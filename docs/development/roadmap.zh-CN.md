@@ -4,7 +4,7 @@
 
 更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.9.1** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。十八个新增工作包与保留的 SHOWCASE-01 均为 NOT_STARTED，不分配版本或日期。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。首批 FIX-01～FIX-04 与 I18N-01 已实现并进入 v3.9.2 验收；其余十三项新增工作包及 SHOWCASE-01 保持 NOT_STARTED，尚未分配版本或日期。参见[正确性修复记录](correctness-maintenance.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -63,11 +63,11 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 
 | 批次 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| 1 正确性 | [FIX-01](development-plan.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | NOT_STARTED |
-| 1 正确性 | [FIX-02](development-plan.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | NOT_STARTED |
-| 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | NOT_STARTED |
-| 1 维护 | [FIX-04](development-plan.zh-CN.md#fix-04) | 扩展诊断时间适用，保留每个代理证据 | 既有诊断与来源观测契约 | NOT_STARTED |
-| 1 维护 | [I18N-01](development-plan.zh-CN.md#i18n-01) | 任务详情首次打开、失败及重试使用正确语言 | 既有 UI 偏好与任务窗格 | NOT_STARTED |
+| 1 正确性 | [FIX-01](development-plan.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | VALIDATING |
+| 1 正确性 | [FIX-02](development-plan.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | VALIDATING |
+| 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | VALIDATING |
+| 1 维护 | [FIX-04](development-plan.zh-CN.md#fix-04) | 扩展诊断时间适用，保留每个代理证据 | 既有诊断与来源观测契约 | VALIDATING |
+| 1 维护 | [I18N-01](development-plan.zh-CN.md#i18n-01) | 任务详情首次打开、失败及重试使用正确语言 | 既有 UI 偏好与任务窗格 | VALIDATING |
 | 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | NOT_STARTED |
 | 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | NOT_STARTED |
 | 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | NOT_STARTED |

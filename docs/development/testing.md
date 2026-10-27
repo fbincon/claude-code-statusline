@@ -19,6 +19,8 @@ Shared cursor editing, scenario-based quick setup and the read-only `explain` op
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
 
+[First-batch correctness validation](correctness-maintenance.md) covers both editors' save reconciliation, bar labels, refresh consumers, historical extension evidence and task language, retaining the existing release matrix.
+
 ## Git, terminal and package transactions
 
 Installed acceptance now requires twenty check categories, including Git policy, shared terminal capability, persistent first entry and explicit version management. Windows receipts include fifteen environment cases and nine real shell/entry combinations; environment simulation alone does not establish shell launch acceptance. See [implementation and diagnostic evidence](m8-m9-delivery.md).

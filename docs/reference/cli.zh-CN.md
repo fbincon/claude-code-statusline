@@ -937,6 +937,8 @@ claude-statusline source status|cancel JOB_ID [--json]
 claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
 claude-statusline config instance main set INSTANCE link off|auto|on
 ```
+刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
+
 
 创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
 

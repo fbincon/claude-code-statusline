@@ -11,7 +11,7 @@
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
 
-协议 v24 是随包或源码原生前端使用的内部接口。显示配置使用 schema v15，v1–v14 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
+协议 v25 是随包或源码原生前端使用的内部接口。显示配置使用 schema v15，v1–v14 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
 
 ## 共享目录
 
@@ -29,10 +29,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":24,"operation":"read","payload":{}}
+{"protocol_version":25,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":24,"result":{...}}`；失败为 `{"protocol_version":24,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":25,"result":{...}}`；失败为 `{"protocol_version":25,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -100,7 +100,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v24 返回完整 schema v15 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v25 返回完整 schema v15 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 
@@ -112,7 +112,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 两个编辑器显示可展开分区和候选样例预览。Enter 展开详情，方向键选择分区，Page Up/Down 滚动，Tab 切换预览范围。
 A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取文件，也不改变打开时的 revision；保存仍是独立的冲突检查事务。
 界面偏好、独立宿主偏好及采集开关不属于便携文件。选择性导入仅支持明确的全局白名单及完整主区／子代理区，不支持任意组件拼接；未选状态及本地来源绑定保留。参见[选择性导入](#选择性导入契约)。
-原有 `import` 操作继续供匹配协议的客户端使用。协议 v24 与显示 schema v15 独立演进；前后端资源需匹配重装。
+原有 `import` 操作继续供匹配协议的客户端使用。协议 v25 与显示 schema v15 独立演进；前后端资源需匹配重装。
 
 `preset` 接收 `{draft,preset}`，返回共享 core 展开的 `{draft}`；`import` 接收 `{draft,path,selection?}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 core 唯一预设定义生成。
 
@@ -126,21 +126,21 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 ## Phase 5 指标迁移
 
-显示 schema v15 保留可空 `metrics.branch_diff_base_ref`；配置协议 v24 在两个编辑器、冲突、预览和便携文件中保留它。v1–v7 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v15 保留可空 `metrics.branch_diff_base_ref`；配置协议 v25 在两个编辑器、冲突、预览和便携文件中保留它。v1–v7 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面偏好与消息操作
 
 `read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（注册表中的受支持代码）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
 
-错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v24，UI 偏好 schema v1 与运行协议 v3 保持独立。
+错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v25，UI 偏好 schema v1 与运行协议 v3 保持独立。
 
 见[翻译架构与贡献规则](i18n.zh-CN.md)。
 
 ## 状态栏语言
 
-显示 schema v15 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v24 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v3 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
+显示 schema v15 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v25 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v3 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
 
-协议 v24 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 schema v15、便携格式 v1、界面偏好 v1、运行协议 v3 独立演进；切换预览底色不迁移显示文件。
+协议 v25 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 schema v15、便携格式 v1、界面偏好 v1、运行协议 v3 独立演进；切换预览底色不迁移显示文件。
 
 ## 外观契约
 
@@ -152,11 +152,11 @@ schema 15 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `I
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 15 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 15、UI protocol 24、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 15、UI protocol 25、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ## TypeScript 后端绑定
 
-随包编译的 ESM 后端已实现全部 UI v24 操作（含预览 span）、runtime v3 及 v1/v2 observe/read 兼容操作，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
+随包编译的 ESM 后端已实现全部 UI v25 操作（含预览 span）、runtime v3 及 v1/v2 observe/read 兼容操作，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
 
 `/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。TS-04 选择原生终端启动器，将私有结果租约与父进程身份、后端 argv、配置及 nonce 绑定；等待配置锁后在锁内再次检查保存许可。测试同时覆盖隔离的真实 PTY、tmux 弹窗、Windows 控制台与注入启动器。
 
@@ -180,19 +180,22 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 
 `reasons.origin` 区分草稿配置、本地配置、已知宿主能力和未知证据。安装归属和运行偏好读取失败时返回未知；正常读取缺失的偏好使用既有默认关闭语义。`explain` 不获取安装锁、不创建目录或修复文件，不读取转录、任务/用量缓存或 Git。既有 `read` 仍使用安装锁保护快照，可能创建锁目录；`preview` 继续完全不读取配置或检测宿主。
 
-`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 24 要求匹配的前后端资源；显示 schema 15、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
+`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 25 要求匹配的前后端资源；显示 schema 15、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
 
 ## 设置与完整外观契约
 
-新的 `display.powerline` 对象使用封闭选项与兼容默认值，schema 15 和编辑器协议 24 要求匹配资源。`describe.options` 与 `editor_fields` 从同一描述生成五种 Powerline 控制。既有预设注册表新增三套完整方案，不另建注册表。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
+新的 `display.powerline` 对象使用封闭选项与兼容默认值，schema 15 和编辑器协议 25 要求匹配资源。`describe.options` 与 `editor_fields` 从同一描述生成五种 Powerline 控制。既有预设注册表新增三套完整方案，不另建注册表。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
 
 ## 数据源协议
 
-`sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_cancel`, `source_diagnose` 提供注册管理、独立审查与可取消刷新；`sources_apply` 使用注册表修订检查并单独提交。`source_refresh` 返回任务而不等待命令执行。显示引用不包含程序或文件路径，便携导出清除绑定 ID；选择性导入仅清除被导入分区的绑定。
+`sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_release`, `source_cancel`, `source_diagnose` 提供注册管理、独立审查与可取消刷新；`sources_apply` 使用注册表修订检查并单独提交。`source_refresh` 返回任务而不等待命令执行。显示引用不包含程序或文件路径，便携导出清除绑定 ID；选择性导入仅清除被导入分区的绑定。
+
+
+`source_release` 接受 `{id,owner}` 并返回任务，幂等释放单个消费者；`source_cancel` 仍明确取消整项任务。任务 v3 保留初始 owner／trigger，并新增 `consumers:[{owner,expires_at}]`。适用自动租约独立提供需求；无任何需求才取消执行。v1／v2 任务只读兼容，运行中的旧任务不被加入。双编辑器共享未确定保存的草稿守卫和提交快照，外部 TUI 使用 Ctrl+K 只读核对。详细接口及验收见[正确性修复记录](correctness-maintenance.zh-CN.md)。
 
 ## 功能契约演进
 
-以下版本记录各功能引入时的接口。当前编辑器协议为 24、显示 schema 为 15；旧协议客户端必须使用匹配的软件包资源。
+以下版本记录各功能引入时的接口。当前编辑器协议为 25、显示 schema 为 15；旧协议客户端必须使用匹配的软件包资源。
 
 ### 图形指标契约
 

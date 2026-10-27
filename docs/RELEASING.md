@@ -8,6 +8,10 @@ Normal release preparation completes the final PR matrix, merges with a merge co
 
 Historical releases below keep their recorded gates and identities. This CI maintenance creates no product version or publication. Dry runs verify preparation and bytes; a future real release must supply the new tag/OIDC publication evidence without replacing an existing version.
 
+## v3.9.2 correctness repairs
+
+Use the [v3.9.2-specific approval](releases/approvals/v3.9.2.json) and require all final PR/main/annotated-tag gates. Retain eight installations, 32 Node cases, sixteen fixed hosts and 197 capacity cases, plus applicable installed journeys for both editors. Promote and publish the original four files under the existing evidence policy; verify npm OIDC, GitHub/Gitee and public downloads. Upgrade the test machine and restore its display/UI preferences. Record actual results in [correctness delivery](development/correctness-maintenance.md). Run no paid model tests; only the six existing #96 gaps remain accepted and unverified.
+
 ## v3.9.1 native capacity patch
 
 Use the [v3.9.1-specific approval](releases/approvals/v3.9.1.json) and require all final PR, merged-main and annotated-tag gates. Add Linux, Windows and macOS 2.1.310 to the earlier thirteen combinations, for sixteen hosts; each native receipt also requires 197 actual-host capacity cases. Retain eight installations, 32 Node cases, independent/source rebuilds, installed terminals, four verified draft attachments, npm OIDC and public-download verification. Update the test machine and restore its pre-reproduction display configuration. Record actual sources, save outcomes and GitHub/npm/Gitee receipts in [native capacity delivery](development/native-capacity.md). Only the same six existing #96 gaps remain accepted and unverified.

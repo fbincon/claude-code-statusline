@@ -11,7 +11,7 @@ Current native capacity and recovery use bounded visible frames and add three-pl
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
 
-Protocol v24 is the internal interface for the bundled/source native frontend. Display persistence uses schema v15, including in-memory v1–v14 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v25 is the internal interface for the bundled/source native frontend. Display persistence uses schema v15, including in-memory v1–v14 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -33,10 +33,10 @@ current session. `config list-items --json` exposes the same additive metadata.
 Run `claude-statusline ui --config-dir PATH` (Windows npm shim: `claude-statusline.cmd`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":24,"operation":"read","payload":{}}
+{"protocol_version":25,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":24,"result":{...}}`; failure is `{"protocol_version":24,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":25,"result":{...}}`; failure is `{"protocol_version":25,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -104,7 +104,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v24 returns complete schema-v15 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares core definitions with generated frontend constants. Missing required current fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/TUI saves preserve the new fields under the existing revision and transaction.
+Protocol v25 returns complete schema-v15 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares core definitions with generated frontend constants. Missing required current fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/TUI saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -123,7 +123,7 @@ previous draft. Acceptance does not reread the file or change the opening revisi
 Saving remains a separate revision-checked transaction. Interface preferences,
 independent host preferences and collection switches are outside portable files.
 Selective import accepts only the explicit global whitelist and complete main/subagent sections. Arbitrary component merges are not supported; unselected state and local source bindings remain intact. See [selective import](#selective-import-contract). The original `import`
-operation remains available to matching protocol clients. Protocol v24 and display
+operation remains available to matching protocol clients. Protocol v25 and display
 schema v15 evolve independently; reinstall matching frontend/backend resources.
 
 `preset`: payload `{draft,preset}` returns `{draft}` expanded by the shared core. `import`: payload `{draft,path,selection?}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical core presets.
@@ -138,21 +138,21 @@ Native file operations are effects handled by the hooks module through the Node 
 
 ## Phase 5 metric migration
 
-Display schema v15 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v24 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime protocol v3 retains v1/v2 observe/read; v1 does not claim execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v15 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v25 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime protocol v3 retains v1/v2 observe/read; v1 does not claim execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## UI preference and message operations
 
 `read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (a registered language code) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
 
-Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v24; UI preference schema v1 and runtime protocol v3 remain independent.
+Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v25; UI preference schema v1 and runtime protocol v3 remain independent.
 
 See [translation architecture and contribution rules](i18n.md).
 
 ## Statusline language
 
-Display schema v15 includes required `statusline_language` (`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v24 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v3 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
+Display schema v15 includes required `statusline_language` (`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v25 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v3 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
 
-Protocol v24 retains the independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display schema v15, portable v1, interface preferences v1 and runtime v3 remain independent; changing the preview surface does not migrate display files.
+Protocol v25 retains the independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display schema v15, portable v1, interface preferences v1 and runtime v3 remain independent; changing the preview surface does not migrate display files.
 
 ## Appearance contract
 
@@ -164,11 +164,11 @@ Display schema 15 stores ordered `instances` instead of the legacy wire `items`/
 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-15 draft bypasses legacy type-selection projections.
 
-TS configuration services use the unchanged installation lock and display schema 15, UI protocol 24, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
+TS configuration services use the unchanged installation lock and display schema 15, UI protocol 25, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
 
 ## TypeScript backend binding
 
-The bundled compiled ESM backend implements every UI v24 operation, including preview spans, plus runtime v3 with v1/v2 observe/read compatibility, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
+The bundled compiled ESM backend implements every UI v25 operation, including preview spans, plus runtime v3 with v1/v2 observe/read compatibility, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
 
 For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. TS-04 selects the native terminal launcher and binds a private result lease to the parent identity, backend argv, configuration and nonce. The save guard is rechecked under the configuration lock after waiting. Tests cover real isolated PTYs, tmux popups and Windows consoles as well as injected launchers.
 
@@ -195,19 +195,22 @@ schemas. See the [candidate recovery contract](typescript-migration/ts-04/recove
 
 `reasons.origin` distinguishes draft configuration, local configuration, known host capability and unknown evidence. Unreadable ownership/runtime preferences remain unknown; normally absent runtime preferences retain their existing disabled default. `explain` takes no installation lock, creates no directories and repairs no files. It never reads transcripts, task/usage caches or Git. Existing `read` still locks its coherent snapshot and may create the lock directory; `preview` remains independent of settings and host detection.
 
-`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 24 requires matching frontend/backend resources; display schema 15, runtime protocol 3, portable 1 and UI preferences 1 remain independent.
+`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 25 requires matching frontend/backend resources; display schema 15, runtime protocol 3, portable 1 and UI preferences 1 remain independent.
 
 ## Setup and complete appearance contracts
 
-The new `display.powerline` object has closed choices and legacy defaults; schema 15 and editor protocol 24 require matching resources. `describe.options` and `editor_fields` expose the five Powerline controls from the same descriptors. The existing preset registry adds three complete schemes without adding a second registry. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
+The new `display.powerline` object has closed choices and legacy defaults; schema 15 and editor protocol 25 require matching resources. `describe.options` and `editor_fields` expose the five Powerline controls from the same descriptors. The existing preset registry adds three complete schemes without adding a second registry. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
 
 ## Source operations
 
-`sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_cancel`, `source_diagnose` expose registry management, independent review and cancellable refresh. `sources_apply` checks the registry revision and commits independently. `source_refresh` returns a job without waiting for execution. Display references contain no executable or file path; portable exports clear binding IDs, and selective imports clear them only in imported sections.
+`sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_release`, `source_cancel`, `source_diagnose` expose registry management, independent review and cancellable refresh. `sources_apply` checks the registry revision and commits independently. `source_refresh` returns a job without waiting for execution. Display references contain no executable or file path; portable exports clear binding IDs, and selective imports clear them only in imported sections.
+
+
+`source_release` accepts `{id,owner}` and returns the job after an idempotent single-consumer release; `source_cancel` remains an explicit whole-job cancellation. Jobs v3 preserve origin owner/trigger and add `consumers:[{owner,expires_at}]`. Applicable automatic leases supply independent interest; only an execution with no interest is cancelled. Jobs v1/v2 remain read-only compatible and running legacy jobs cannot be joined. Both editors share the unresolved-save guard and submitted snapshot; the external TUI uses Ctrl+K for read-only reconciliation. See [correctness interfaces and validation](correctness-maintenance.md).
 
 ## Feature contract evolution
 
-The versions below identify each feature’s introduction. The current protocol is 24 and display schema is 15; earlier protocol clients must use matching package resources.
+The versions below identify each feature’s introduction. The current protocol is 25 and display schema is 15; earlier protocol clients must use matching package resources.
 
 ### Indicator contract
 

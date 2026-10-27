@@ -4,7 +4,7 @@
 
 Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.1** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. All eighteen new packages and the retained SHOWCASE-01 are NOT_STARTED. They have no assigned versions or dates.
+Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. FIX-01–FIX-04 and I18N-01 are implemented and validating for v3.9.2; the other thirteen new packages and SHOWCASE-01 remain NOT_STARTED without assigned versions or dates. See the [correctness repair record](correctness-maintenance.md).
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -63,11 +63,11 @@ Keep the original project and authors credited when discussing these references.
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | NOT_STARTED |
-| 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | NOT_STARTED |
-| 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | NOT_STARTED |
-| 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | NOT_STARTED |
-| 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | NOT_STARTED |
+| 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | VALIDATING |
+| 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | VALIDATING |
+| 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | VALIDATING |
+| 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | VALIDATING |
+| 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | VALIDATING |
 | 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | NOT_STARTED |
 | 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | NOT_STARTED |
 | 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | NOT_STARTED |
