@@ -5,15 +5,14 @@ import { Writable } from 'node:stream';
 import { writeVersionInput } from '../version-management.js';
 
 for (const exitCode of [0, 23]) test(`closed command stdin retains exit status ${exitCode} without crashing the sequence`, { timeout: 10000 }, async t => {
-    const child = spawn(process.execPath, ['-e', `require('node:fs').closeSync(0); process.on('message', () => process.exit(${exitCode})); process.send('ready');`], { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] });
+    // Exiting closes every inherited stdin handle on Windows as well as POSIX.
+    // An oversized pending write guarantees that the child cannot consume it.
+    const child = spawn(process.execPath, ['-e', `process.exit(${exitCode});`], { stdio: ['pipe', 'pipe', 'pipe'] });
     t.after(() => { child.kill('SIGKILL'); });
     const closed = new Promise<number | null>((resolve, reject) => { child.once('error', reject); child.once('close', resolve); });
-    await new Promise<void>((resolve, reject) => { child.once('error', reject); child.once('message', () => resolve()); });
     const failures: Error[] = [], streamErrors: string[] = [];
-    const broken = new Promise<void>(resolve => child.stdin!.once('error', () => resolve()));
-    child.stdin!.on('error', error => streamErrors.push((error as NodeJS.ErrnoException).code ?? 'unknown'));
-    writeVersionInput(child.stdin!, 'x'.repeat(1024 * 1024), error => failures.push(error));
-    await broken; child.send('finish');
+    child.stdin.on('error', error => streamErrors.push((error as NodeJS.ErrnoException).code ?? 'unknown'));
+    writeVersionInput(child.stdin, 'x'.repeat(16 * 1024 * 1024), error => failures.push(error));
     assert.equal(await closed, exitCode);
     assert.deepEqual(streamErrors, ['EPIPE']);
     assert.deepEqual(failures, []);

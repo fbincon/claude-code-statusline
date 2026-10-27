@@ -67,6 +67,8 @@ Failures remain part of the record. An [earlier complete Stage 2 run](https://gi
 
 [Stage A main's macOS 26 / Node 22.x job](https://github.com/fbincon/claude-code-statusline/actions/runs/40418420063/job/121907456214) subsequently exposed an unhandled `EPIPE` when a historical-version command closed stdin early. The acceptance worker now registers the pipe handler before writing: exit codes and command-output assertions still decide success, and other stream errors fail and terminate the command. Real child-process regressions cover early closure with successful and failed exit codes, exact Unicode input and non-pipe errors; they run serially in every runtime source suite. The [in-flight Stage B PR run](https://github.com/fbincon/claude-code-statusline/actions/runs/40418703438) was cancelled for this repair; it is not counted in the successful-run table.
 
+The [next Stage B run](https://github.com/fbincon/claude-code-statusline/actions/runs/40421822049) exposed a Windows-specific fault in that new fixture: closing descriptor 0 did not close every inherited stdin handle, so the fixture's handshake timed out. The fixture now exercises an actual child exit with a bounded pending write, and still requires the `EPIPE`, original exit status and unchanged deadline. This failed/cancelled run remains recorded separately from successful acceptance.
+
 ## CI-01 implementation
 
 **Status: DONE.** Implementation baseline: `95206119dab6f931f320277d25889fea8da49528` (2026-10-23). Product baseline remains v3.6.0. This maintenance task does not create a version, tag, npm publication or Release.
