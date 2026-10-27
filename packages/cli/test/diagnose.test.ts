@@ -18,10 +18,39 @@ import { ConfigurationProtocol } from '../src/ui/protocol.js';
 import { diagnosisAdapter } from '../src/diagnostics/service.js';
 import { diagnosticText } from '../src/diagnostics/command.js';
 import { main } from '../src/main.js';
+import { SourceService } from '../src/sources/service.js';
+import { newInstance } from '@fbincon/statusline-core/editor/instances';
 
 const draft = (items: string[]): Draft => ({ display: config(items), host: { ...DEFAULT_HOST, padding: 0 } });
 const output = (r: ReturnType<Awaited<ReturnType<typeof diagnosisAdapter>>>) => r.output.map(row => row.spans.map(s => s.text).join('')).join('\n');
 const fail = () => assert.fail('Diagnosis attempted a side effect or host process');
+
+test('extension diagnosis uses input time and preserves evidence for each instance and agent without writes', async t => {
+    const f=setup(t),path=join(f.root,'extension.json'),sources=new SourceService(f.service);
+    const change=(action:string,fields={})=>sources.mutate({action,id:'local',expected_revision:sources.read().revision,...fields});
+    change('add',{source:{name:'Local',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path}}});
+    change('enable',{review_revision:sources.review('local').review_revision});
+    const binding=change('bind').binding!,display=agentConfig([]);
+    const first=newInstance('external-value',[]);first.source=binding;
+    const second={...newInstance('external-value',[first]),source:binding};display.subagents.instances=[first,second];
+    const adapter=await diagnosisAdapter(f.service,{now:()=>Date.parse('2026-10-28T12:00:00Z')});
+    for(const [observed_at,status,freshness] of [['2026-10-28T10:59:00Z','observed','current'],['2026-10-28T11:00:00Z','observed','current'],['2026-10-28T10:54:59Z','stale','stale'],['2026-10-28T12:00:00Z','newer_than_input','newer_than_input'],[null,'association_unavailable','unknown']] as const) {
+        writeFileSync(path,JSON.stringify({value:0,observed_at}));
+        const before=allFiles(f.root);
+        const result=adapter({draft:{display,host:DEFAULT_HOST},scope:'subagent',width:120,input:{session_id:'session',tasks:[task({id:'a'}),task({id:'b'})]},observed_at:'2026-10-28T11:00:00Z'});
+        assert.equal(result.observed_at,'2026-10-28T11:00:00.000Z');assert.equal(result.diagnosed_at,'2026-10-28T12:00:00.000Z');
+        for(const node of result.instances) {
+            assert.deepEqual(node.evidence.map(e=>e.scope),['subagent:a','subagent:b']);
+            assert(node.evidence.every(e=>e.status===status && e.freshness===freshness));
+        }
+        if(status==='newer_than_input'||status==='association_unavailable')assert(!output(result).includes('Local: 0'));
+        else assert(output(result).includes('Local: 0'));
+        assert.deepEqual(allFiles(f.root),before);
+        const isolated=adapter({draft:{display,host:DEFAULT_HOST},scope:'subagent',width:120,input:{tasks:[task({id:'a'}),task({id:'b'})]},include_local:false});
+        assert(isolated.instances.every(node=>node.evidence.every(e=>e.status==='input_only')));
+        assert.deepEqual(allFiles(f.root),before);
+    }
+});
 
 test('official-source synthetic payload fixtures retain their provenance and reproduce both added fields', async t => {
     const f=setup(t), adapter=await diagnosisAdapter(f.service);

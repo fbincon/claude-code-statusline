@@ -11,7 +11,7 @@ import type {
   ProcessRunResult,
 } from 'claude-code';
 import {
-  MAIN_ITEM_IDS, ITEM_DEFAULTS,
+  MAIN_ITEM_IDS, ITEM_DEFAULTS, OPERATIONS,
   FORMAT_DEFAULTS, FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, POWERLINE_OPTIONS,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
@@ -121,7 +121,7 @@ export function description(): DescribeResult {
     editor_fields: JSON.parse(JSON.stringify(EDITOR_FIELDS)),
     presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'],
+    operations: [...OPERATIONS],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },
@@ -175,7 +175,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 24, result }));
+  return output(JSON.stringify({ protocol_version: 25, result }));
 }
 
 export function sample(text: string) {
@@ -239,6 +239,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
     behavior,
     commands: [] as CommandInfo[],
     registrations: [] as string[],
+    descriptions: {} as Record<string,string>,
     registered: false,
   };
   on('session.start', () => ({ cwd: '/work' }));
@@ -247,6 +248,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
   on('command.list', () => ({ value: fixture.commands }));
   on('command.register', ($, e) => {
     fixture.registrations.push(e.name);
+    fixture.descriptions[e.name]=e.description;
     fixture.registered = true;
     return { value: { command: RUN.command } };
   });

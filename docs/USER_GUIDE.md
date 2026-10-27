@@ -209,7 +209,7 @@ This applies to the main line and all custom subagent rows. Translate built-in p
 
 `statusline_language` lives in display schema v15 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
 
-Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 15 and interface preferences schema 1 evolve independently; editor protocol 24 rejects older frontend/backend pairs.
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 15 and interface preferences schema 1 evolve independently; editor protocol 25 rejects older frontend/backend pairs.
 
 Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v8 draft to an older backend. See [backups](#backups-and-rollback).
 
@@ -321,6 +321,7 @@ Windows uses `claude-statusline.cmd configure`. Both stdin and stdout must be TT
 | Ctrl+E / Ctrl+G | Open item formatting / leave its form or cancel input |
 | Enter | Save on item/original settings rows; edit or confirm advanced fields |
 | Ctrl+S | Save the full draft outside field input |
+| Ctrl+K | Check saved state while the save outcome is unknown |
 | Esc | Cancel current input first; otherwise discard and close |
 | Ctrl+C | Restore the terminal, exit 130, and discard |
 
@@ -514,6 +515,8 @@ Layout chooses auto/explicit and sets “New row before” boundaries for all co
 
 Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and opens a differences review. Enter expands a section; A accepts the complete candidate into the draft, then Save persists it. Ctrl+G or Q cancels the native review; Esc or Ctrl+G cancels the external review. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
 
+While a save is pending or unknown, both editors block display-draft mutations, including already-open source/profile managers. Ctrl+K in the external TUI and K in Native check the submitted snapshot without saving again. Definitive results unlock editing; conflict retains the draft. Read-only source inspection remains available. See [save recovery](development/correctness-maintenance.md#shared-draft-protection--fix-01).
+
 Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In curses, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
 
 | Preset | Main layout | Subagent defaults |
@@ -681,7 +684,7 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 Display schema 15 stores instance IDs in ordering and rows. Reading v1–v14 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
 
-Current display schema v15, configuration protocol v24, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v14 files are read without rewriting; an actual save backs up the old bytes and migrates to v15. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Current display schema v15, configuration protocol v25, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v14 files are read without rewriting; an actual save backs up the old bytes and migrates to v15. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -725,7 +728,7 @@ For an existing display configuration file, the schema check reports the support
 [WARN] display config schema v4 is valid and will migrate to v15 on the next configuration save
 ```
 
-This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v24 and runtime protocol v3.
+This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v25 and runtime protocol v3.
 
 <a id="故障排查"></a>
 

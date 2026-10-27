@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 24 as const;
+export const PROTOCOL_VERSION = 25 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
@@ -512,7 +512,8 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "sources_read" | "sources_apply" | "source_review" | "source_context" | "source_refresh" | "source_status" | "source_cancel" | "source_diagnose" | "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
+export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export type Operation = typeof OPERATIONS[number];
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -744,7 +745,8 @@ export interface SourceView {
   fields?: Record<string, string | number | boolean | null>;
 }
 export interface SourceJob {
-  version: 2; id: string; source_id: string; source_revision: string; owner: string; trigger: 'manual' | 'automatic'; identity: string;
+  version: 3; id: string; source_id: string; source_revision: string; owner: string; trigger: 'manual' | 'automatic'; identity: string;
+  consumers: { owner: string; expires_at: string }[];
   context: SourceContext; started_at: string; deadline_at: string;
   state: 'running' | 'completed' | 'failed' | 'cancelled'; reason: string;
 }
@@ -944,6 +946,7 @@ export interface ResultMap {
   source_context: SourceContext;
   source_refresh: SourceJob;
   source_status: SourceJob;
+  source_release: SourceJob;
   source_cancel: SourceJob;
   source_diagnose: { source: SourceDefinition; view: SourceView; jobs: SourceJob[]; automatic: AutomaticStatus };
   describe: DescribeResult;

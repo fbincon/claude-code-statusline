@@ -39,7 +39,7 @@ test('native Layout alignment form renders through the Client and persists only 
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 24,
+      protocol_version: 25,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -211,7 +211,7 @@ test('foreign native command and foreign panes pass through without changing the
   ).toBe('foreign command');
   const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
   expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
-  expect(fixture.calls).toHaveLength(0);
+  expect(fixture.calls.every(call=>call.operation==='read_ui_preferences')).toBe(true);
   await ui.unmount();
 });
 

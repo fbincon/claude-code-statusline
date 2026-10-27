@@ -34,7 +34,7 @@ import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
 import type { PreviewBackground } from '../lib/preview-preferences.ts';
 import { text as localizedText, t } from '../lib/i18n/index.ts';
-import type { Language } from '../lib/i18n/index.ts';
+import { renderMessage, type Language, type LocalizedText } from '../lib/i18n/index.ts';
 import { setMessage, failureMessage, setResult, viewMessage } from '../lib/i18n/messages.ts';
 import { binding } from '../lib/launch.ts';
 
@@ -123,7 +123,6 @@ interface Session {
   previewKey: string;
   previewTimer: Timer | null;
   writing: boolean;
-  pendingSave: { draft: Draft; revision: string } | null;
 }
 
 function discard(state: Session): void {
@@ -133,7 +132,6 @@ function discard(state: Session): void {
   state.view = emptyView();
   state.previewKey = '';
   state.writing = false;
-  state.pendingSave = null;
   state.ack = 0;
   state.placed = false;
   state.clientFault = '';
@@ -229,26 +227,21 @@ async function reconcile(
   options: PluginOptions,
 ) {
   const editor = state.view.editor;
-  const submitted = state.pendingSave;
+  const submitted = editor?.pendingSave;
   if (!editor || !submitted || state.writing) return;
   const saving = state.epoch;
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.checking_saved_configuration"));
   $.ui.invalidate('ui.render');
   try {
-    const current = await callBackend($, options, 'read', editor.baseline.configuration ? { target: editor.baseline.configuration.target } : {});
+    const current = await callBackend($, options, 'read', submitted.target ? { target: submitted.target } : {});
     if (state.epoch !== saving) return;
-    if (
-      sameDraft(current.draft, submitted.draft) &&
-      current.installed &&
-      JSON.stringify(current.installation) ===
-        JSON.stringify(editor.baseline.installation)
-    ) {
-      editor.committed(current);
+    const outcome = editor.reconcileSave(current);
+    if (outcome === 'saved') {
       state.saveOutcome = 'saved';
       setMessage(state.view, "message", localizedText("native.hooks.register.the_submitted_tool_configuration_is_saved"));
       state.view.error = '';
-    } else if (current.revision === submitted.revision) {
+    } else if (outcome === 'not_committed') {
       state.saveOutcome = 'refused';
       setMessage(state.view, "message", localizedText("native.hooks.register.no_tool_changes_were_committed_review_the_draft"));
       state.view.error = '';
@@ -256,8 +249,7 @@ async function reconcile(
       state.saveOutcome = 'refused';
       setMessage(state.view, "error", localizedText("native.hooks.register.configuration_conflict_saved_configuration_differs_discard_the_draft"));
     }
-    state.pendingSave = null;
-    state.view.uncertain = false;
+      state.view.uncertain = false;
   } catch (failure) {
     if (state.epoch === saving)
       setMessage(state.view, "error", localizedText("native.hooks.register.save_outcome_remains_unknown", {value0: failureMessage(failure)}));
@@ -286,11 +278,7 @@ async function save(
     return;
   }
   const saving = state.epoch;
-  const submitted = {
-    draft: copyDraft(editor.draft),
-    revision: editor.baseline.revision,
-  };
-  state.pendingSave = submitted;
+  const submitted = editor.beginSave();
   state.saveOutcome = 'pending';
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.saving_tool_configuration"));
@@ -305,26 +293,16 @@ async function save(
     });
     if (state.epoch !== saving) return;
     editor.committed(result);
-    state.pendingSave = null;
-    saved = true;
+      saved = true;
     state.saveOutcome = 'saved';
     setMessage(state.view, "message", (result.changed ? localizedText("native.hooks.register.tool_configuration_saved_later_statusline_refreshes_use_these") : localizedText("native.hooks.register.tool_configuration_is_already_current")));
   } catch (failure) {
     if (state.epoch !== saving) return;
     const error = processFailure(failure);
     setMessage(state.view, "error", failureMessage(error));
-    const refused = [
-      'invalid_request',
-      'invalid_configuration',
-      'configuration_conflict',
-      'not_installed',
-      'ownership_mismatch',
-      'unsupported_protocol',
-      'unsupported_operation',
-    ].includes(error.code);
-    state.view.uncertain = !refused;
-    state.saveOutcome = refused ? 'refused' : 'unknown';
-    if (refused) state.pendingSave = null;
+    editor.saveFailed(error.code);
+    state.view.uncertain = editor.saveState === 'unknown';
+    state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -463,7 +441,6 @@ async function applyPreferences(
 }
 
 async function close($: EngineInterface, state: Session, options: PluginOptions) {
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   // A plugin's own API calls skip its hooks; guard programmatic close here too.
   if (state.writing || state.view.uncertain) {
     setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
@@ -471,6 +448,7 @@ async function close($: EngineInterface, state: Session, options: PluginOptions)
     return;
   }
   try {
+    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     await $.ui.close({ id: PANE });
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -513,40 +491,58 @@ async function openEditor(
 const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
 export interface TaskPaneState {
   owned: boolean; loading: boolean; generation: number; offset: number;
-  language: Language; report: TaskDetails | null; error: string;
+  language: Language; report: TaskDetails | null; error: LocalizedText | null; warning: LocalizedText | null;
+  lines: { report: TaskDetails; language: Language; width: number; value: string[] } | null;
 }
 export function taskPaneState(): TaskPaneState {
-  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:'' };
+  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:null, warning:null, lines:null };
 }
-export async function startTaskDetails($: EngineInterface, state: TaskPaneState): Promise<void> {
-  state.generation++; state.loading=false; state.report=null; state.error=''; state.offset=0; state.owned=false;
-  const commands=await $.command.list();
-  if(!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native')) {
-    await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)}); state.owned=true;
+async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
+  try {
+    const preference=await callBackend($,options,'read_ui_preferences');
+    if(state.generation!==epoch)return false;
+    state.language=preference.ui_language;state.warning=preference.warning;
+  }catch {
+    if(state.generation!==epoch)return false;
+    state.language='en';state.warning=localizedText('task.language_unavailable');
   }
+  return true;
 }
-async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState): Promise<void> {
-  if (state.loading) return;
-  state.loading=true; state.error=''; const epoch=state.generation;
+async function taskCommand($: EngineInterface, state: TaskPaneState, epoch: number): Promise<boolean> {
+  const commands=await $.command.list();
+  if(state.generation!==epoch)return false;
+  state.owned=!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native');
+  if(state.owned)await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)});
+  return state.owned && state.generation===epoch;
+}
+export async function startTaskDetails($: EngineInterface, state: TaskPaneState, options: PluginOptions): Promise<void> {
+  state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;state.warning=null;state.offset=0;state.owned=false;
+  if(await taskLanguage($,options,state,state.generation))await taskCommand($,state,state.generation);
+}
+async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState, readLanguage=true): Promise<void> {
+  if(state.loading)return;
+  state.loading=true;state.error=null;const epoch=state.generation;
   $.ui.invalidate('ui.render');
   try {
-    const launch=binding(options,await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
-    const directory=await $.env.get('CLAUDE_CONFIG_DIR') || (typeof options.configDir==='string' ? options.configDir : '');
-    const argv=[launch.executable,...launch.args,'ui',...(directory ? ['--config-dir',directory] : [])];
+    if(readLanguage) {
+      const previous=state.language;
+      if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return;
+      if(previous!==state.language)await $.ui.open({id:TASK_PANE,title:t('task.title',state.language),closeOnEscape:true,rows:24,columns:88});
+    }
     const session=await $.session.id();
     let host_agents: { observed_at:number; agents:{id:string;name:string|null}[] } | undefined;
     try {
       const agents=await $.agent.list();
       host_agents={observed_at:await $.clock.now(),agents:agents.slice(0,256).map(a=>({id:a.id,name:[...(a.name ?? a.description ?? '').replace(/[\p{Cc}\p{Cs}]/gu,'')].slice(0,256).join('') || null}))};
-    } catch { /* Published evidence remains usable without a host snapshot. */ }
-    const preference=parseResponse('read_ui_preferences',await $.process.run(argv,{stdin:requestText('read_ui_preferences',{}),timeoutMs:30000}));
-    const result=parseResponse('task_details',await $.process.run(argv,{stdin:requestText('task_details',{session_id:session,...(host_agents ? {host_agents} : {})}),timeoutMs:30000}));
-    if(result.session_id!==session)throw new Error(t('task.error.input',state.language));
+    }catch { /* Published evidence remains usable without a host snapshot. */ }
     if(state.generation!==epoch)return;
-    state.report=result;state.language=preference.ui_language;state.offset=0;
-  } catch(failure) {
-    if(state.generation===epoch)state.error=failure instanceof Error ? failure.message : String(failure);
-  } finally {
+    const result=await callBackend($,options,'task_details',{session_id:session,...(host_agents?{host_agents}:{})});
+    if(state.generation!==epoch)return;
+    if(result.session_id!==session)throw new BackendError('invalid_request',localizedText('task.error.input'));
+    state.report=result;state.offset=0;
+  }catch(failure) {
+    if(state.generation===epoch)state.error=failureMessage(failure);
+  }finally {
     if(state.generation===epoch){state.loading=false;$.ui.invalidate('ui.render');}
   }
 }
@@ -554,24 +550,32 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
     if(!state.owned)return next(e);
+    const epoch=++state.generation;state.loading=false;state.report=null;state.lines=null;state.error=null;state.offset=0;
+    if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return next(e);
     const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
     if(!opened.isPlaced)return {text:tr('task.fallback')};
-    await refreshTaskDetails($,options,state);return {};
+    await refreshTaskDetails($,options,state,false);return {};
   });
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
-    state.generation++;state.loading=false;state.report=null;state.error='';return next(e);
+    state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;return next(e);
   });
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
     const {Box,Text,Button}=$.ui.resolve(e);
     if(e.surface!=='terminal')return Text({...styles.text,children:[tr('task.fallback')]});
-    const width=Math.max(2,e.props.bodyColumns),height=Math.max(4,e.props.scroll.bodyRows),capacity=Math.max(1,height-3);
-    const lines=state.report ? taskDetailLines(state.report,state.language,Math.max(2,width-2)) : [tr(state.loading?'profiles.loading':'task.unknown')];
-    state.offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
-    return Box({width,height,flexDirection:'column',children:[
-      Text({...styles.accent,bold:true,wrap:'truncate',children:[tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly'))]}),
-      ...lines.slice(state.offset,state.offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
-      ...(state.error?[Text({...styles.error,wrap:'truncate',children:[state.error.replace(/[\p{Cc}\p{Cs}]/gu,'')]} )]:[]),
+    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(4,Math.min(10000,e.props.scroll.bodyRows));
+    for(;;) {
+    const capacity=Math.max(1,height-3);
+    const lineWidth=Math.max(2,width-2);
+    if(state.report && (state.lines?.report!==state.report || state.lines.language!==state.language || state.lines.width!==lineWidth))
+      state.lines={report:state.report,language:state.language,width:lineWidth,value:taskDetailLines(state.report,state.language,lineWidth)};
+    const lines=state.report ? state.lines!.value : [tr(state.loading?'profiles.loading':'task.unknown')];
+    const offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
+    const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
+    const pane=Box({width,height,flexDirection:'column',children:[
+      Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly')),width)]}),
+      ...lines.slice(offset,offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
+      ...((state.error||state.warning)?[Text({...styles.error,wrap:'truncate',children:[clip([state.warning,state.error].filter((value):value is LocalizedText=>value!==null).map(value=>renderMessage(value,state.language)).join(' · ').replace(/[\p{Cc}\p{Cs}]/gu,''),width)]} )]:[]),
       Box({flexDirection:'row',columnGap:1,children:[
         Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{state.offset=Math.max(0,state.offset-capacity);$.ui.invalidate('ui.render');}}),
         Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{state.offset=Math.min(Math.max(0,lines.length-capacity),state.offset+capacity);$.ui.invalidate('ui.render');}}),
@@ -579,6 +583,11 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
         Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
       ]}),
     ]});
+    if(withinBudget(pane)){state.offset=offset;return pane;}
+    if(height>4)height=Math.max(4,Math.floor(height*.75));
+    else if(width>32)width=Math.max(32,Math.floor(width*.75));
+    else return Text({...styles.text,children:[tr('task.fallback')]});
+    }
   });
 }
 
@@ -606,11 +615,10 @@ export const register: Register = (on, options) => {
     previewKey: '',
     previewTimer: null,
     writing: false,
-    pendingSave: null,
   };
 
   on('session.start', async ($, e, next) => {
-    await startTaskDetails($, taskDetails);
+    await startTaskDetails($, taskDetails, options);
     state.ownsCommand = false;
     if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     discard(state);
@@ -734,7 +742,7 @@ export const register: Register = (on, options) => {
         else if (effect === 'profiles' && state.view.editor) {
           state.writing = true;
           try { await performProfileAction(state.view.editor, { request: (operation, payload) => callBackend($, options, operation, payload) }); }
-          finally { state.writing = false; state.previewKey = ''; }
+          finally { state.writing = false; state.previewKey = ''; state.view.uncertain = state.view.editor?.saveState === 'unknown'; if(state.view.uncertain)state.saveOutcome='unknown'; }
         }
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);

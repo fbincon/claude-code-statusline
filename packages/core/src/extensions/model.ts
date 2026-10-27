@@ -219,7 +219,11 @@ export function parseObservation(raw: unknown, source: SourceDefinition, context
     }
     return result;
 }
-export function sourceView(source: SourceDefinition | undefined, context: SourceContext, current: SourceObservation | null, good: SourceObservation | null, now: number): SourceView {
+/** Missing times cannot establish applicability at an explicitly supplied historical instant. */
+export function observationAt(entry: SourceObservation | null, at: number): SourceObservation | null {
+    return entry?.observed_at !== null && entry?.observed_at !== undefined && Date.parse(entry.observed_at) <= at ? entry : null;
+}
+export function sourceView(source: SourceDefinition | undefined, context: SourceContext, current: SourceObservation | null, good: SourceObservation | null, now: number, historicalAt?: number): SourceView {
     const result: SourceView = { source_id: source?.id ?? null, name: source?.name ?? '', state: 'unbound', reason: 'unbound', observed_at: null, freshness: 'unknown', value: null, unit: null };
     if (!source)
         return result;
@@ -227,6 +231,16 @@ export function sourceView(source: SourceDefinition | undefined, context: Source
         return { ...result, state: 'disabled', reason: 'disabled' };
     if (!matchesScope(source.scope, context))
         return { ...result, state: 'mismatch', reason: 'scope' };
+    if (historicalAt !== undefined) {
+        const original = [current, good], eligibleCurrent = observationAt(current, historicalAt), eligibleGood = observationAt(good, historicalAt);
+        current = eligibleCurrent ?? eligibleGood;
+        good = eligibleGood;
+        now = historicalAt;
+        if (!current) {
+            const later = original.find(entry => entry?.observed_at && Date.parse(entry.observed_at) > historicalAt);
+            return { ...result, state: 'missing', reason: later ? 'newer_than_input' : original.some(Boolean) ? 'association_unavailable' : 'not_refreshed', observed_at: later?.observed_at ?? null };
+        }
+    }
     const valid = (entry: SourceObservation | null) => entry && entry.source_id === source.id && entry.source_revision === source.revision && sameContext(entry.context, context);
     if (current && !valid(current))
         return { ...result, state: 'mismatch', reason: 'identity' };

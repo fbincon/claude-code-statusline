@@ -68,7 +68,7 @@ test('presentation recovery checks an unknown save by reading without resubmitti
     const result = next();
     if (request.operation === 'apply') {
       inject = true;
-      return { value: output(JSON.stringify({ protocol_version: 24, error: { code: 'io_error', message: 'Reply lost after commit', localization: null } }), 2) };
+      return { value: output(JSON.stringify({ protocol_version: 25, error: { code: 'io_error', message: 'Reply lost after commit', localization: null } }), 2) };
     }
     return result;
   };

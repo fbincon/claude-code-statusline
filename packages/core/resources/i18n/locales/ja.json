@@ -1968,5 +1968,15 @@
   "native.capacity.failed": "この画面を描画できません。",
   "native.capacity.saved": "前回の保存は成功しました。再試行は再描画のみです。",
   "native.capacity.unknown": "保存結果が不明です。再試行前に保存状態を確認してください。",
-  "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。"
+  "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。",
+  "statusline.indicator.remaining": "残り {percentage}%",
+  "statusline.indicator.used": "使用 {percentage}%",
+  "editor.save_locked": "表示の下書きを変更する前に、未確定の保存結果を確認してください。",
+  "editor.save_unknown": "保存結果は不明です。Ctrl+K で再保存せずに保存状態を確認します。",
+  "editor.check_saved": "保存状態を確認",
+  "editor.saved": "送信した表示設定は保存されています。",
+  "editor.not_committed": "表示の変更は保存されていません。保持された下書きを編集できます。",
+  "editor.conflict": "設定が競合しています。下書きは保持されています。キャンセルして開き直すと保存済み設定を読み込みます。",
+  "editor.still_unknown": "保存結果はまだ不明です: {detail}",
+  "task.language_unavailable": "インターフェース設定を読み込めないため、英語を使用します。"
 }

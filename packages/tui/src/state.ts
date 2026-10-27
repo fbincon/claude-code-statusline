@@ -14,7 +14,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -124,6 +124,7 @@ export class State {
     }
     adjust(delta: -1 | 1): Effect {
         const e = this.editor, row = this.selectedRow(), d = e.draft.display;
+        if (row.key !== 'ui-language' && !e.canMutateDraft()) {this.notice(e.compositionError);return null;}
         if (row.form) {
             if (adjustForm(this, row.form, delta) && this.localized.message?.key.startsWith('native.lib.client.forms.'))
                 this.notice('');
@@ -192,6 +193,8 @@ export class State {
         const size = dimensions(columns, rows), height = size.listHeight;
         if (ctrl && k === 'c')
             return 'interrupt';
+        if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' && !event.text && !event.paste) return 'reconcile';
+        if (e.saveState === 'pending') return null;
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
@@ -208,6 +211,7 @@ export class State {
         if (event.paste && (!this.input || this.input.kind === 'category')) return null;
         if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
+        if (e.saveState === 'unknown') {this.notice(text('editor.save_unknown'));return null;}
         if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review && !e.explanation) {
             if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
             return null;

@@ -1968,5 +1968,15 @@
   "native.capacity.failed": "The editor cannot draw this view.",
   "native.capacity.saved": "The last save succeeded. Retry only redraws the editor.",
   "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
-  "native.capacity.retained": "Received draft retained; retry does not save or discard it."
+  "native.capacity.retained": "Received draft retained; retry does not save or discard it.",
+  "statusline.indicator.remaining": "{percentage}% left",
+  "statusline.indicator.used": "{percentage}% used",
+  "editor.save_locked": "Check the pending save before changing the display draft.",
+  "editor.save_unknown": "Save outcome unknown. Ctrl+K checks saved state without saving again.",
+  "editor.check_saved": "Check saved state",
+  "editor.saved": "The submitted display configuration is saved.",
+  "editor.not_committed": "No display changes were committed. The retained draft can be edited.",
+  "editor.conflict": "Configuration conflict. The draft is retained; cancel and reopen to load the saved configuration.",
+  "editor.still_unknown": "Save outcome remains unknown: {detail}",
+  "task.language_unavailable": "Interface preferences are unavailable; using English."
 }

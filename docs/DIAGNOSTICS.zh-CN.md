@@ -9,6 +9,8 @@
 
 `doctor` 检查安装，`diagnose` 解释你显式提供的状态栏 JSON，使用已保存的显示配置，并默认补充匹配的已有本地观测。命令只输出报告，不保存或采集数据。两个编辑器的 Explain 面板仍解释**示例**，不代表实时会话。
 
+扩展历史诊断同时过滤 current／last-good，按输入时刻计算有效期，排除之后或无时间戳的值及 PR／检查等附属字段。无时间戳保持未知，不参与历史重建；实时渲染行为不变。每个组件实例的全部代理证据分别保留。诊断不执行 Git 来推测旧输入身份，无法确认关联时保持不可用。
+
 ## 运行诊断
 
 使用你已经从 Claude Code 状态栏 stdin 捕获的 JSON：
@@ -67,7 +69,7 @@ claude-statusline config enable cache-miss-reason
 
 来源为[官方状态栏契约](https://code.claude.com/docs/en/statusline)，缓存原因需要 Claude Code 2.1.260+。既有 `prompt-cache` 保持官方主会话命中率：分母含全部输入 token，不含子代理流量；PR/MR 行为不变。
 
-显示 schema 保持 8。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
+当前显示 schema 为 15，编辑器协议为 25。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
 
 另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
 

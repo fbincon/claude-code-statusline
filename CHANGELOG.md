@@ -3,7 +3,15 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
-## Unreleased
+## 3.9.2 — 2026-10-28
+
+- Share pending/unknown-save draft protection across both editors; add external Ctrl+K read-only reconciliation without repeating writes.
+- Compose main/subagent bar labels, icons, percentages and direction once across six languages.
+- Release GitHub refresh consumers independently so editor close, CLI interruption and automatic leases preserve other applicable work.
+- Exclude later/untimestamped values and auxiliary fields from historical extension output and retain every instance/agent evidence pair.
+- Initialize task language before descriptions/titles, retain it after failure, reload on retry/reopen and bound the plain task Pane with paging.
+- Advance editor protocol to 25 and source jobs to 3; retain display schema 15, registry 2, observation 1, runtime 3 and UI preferences 1.
+- [Release notes](docs/releases/v3.9.2.md) · [Implementation and validation](docs/development/correctness-maintenance.md).
 
 - Reduce Windows controlled-process startup overhead with an isolated native Job Object supervisor, preserving literal arguments, process-tree termination and package recovery (#157).
 - Batch read-only npm registry/cache discovery while preserving configuration precedence and validation; add opt-in phase timing without changing command output (#157).

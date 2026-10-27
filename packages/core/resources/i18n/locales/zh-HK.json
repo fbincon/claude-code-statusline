@@ -1968,5 +1968,15 @@
   "native.capacity.failed": "編輯器暫時無法繪製此畫面。",
   "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
   "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
-  "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
+  "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。",
+  "statusline.indicator.remaining": "剩餘 {percentage}%",
+  "statusline.indicator.used": "已用 {percentage}%",
+  "editor.save_locked": "修改顯示草稿前，請先核對尚未確定的儲存結果。",
+  "editor.save_unknown": "儲存結果未知。Ctrl+K 唯讀核對已儲存狀態，不會再次儲存。",
+  "editor.check_saved": "核對儲存狀態",
+  "editor.saved": "提交的顯示設定已儲存。",
+  "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
+  "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
+  "editor.still_unknown": "儲存結果仍未知：{detail}",
+  "task.language_unavailable": "無法讀取介面偏好，使用英語。"
 }

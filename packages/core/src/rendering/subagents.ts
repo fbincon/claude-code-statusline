@@ -171,7 +171,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 env.trace?.mark('subagent',node.id,'condition_hidden'); continue;
             }
         }
-        if (item !== 'external-value') value = preferences.decorate(value, item, 'subagent', fmt, options, language);
+        if (item !== 'external-value' && options.presentation !== 'bar') value = preferences.decorate(value, item, 'subagent', fmt, options, language);
         let maximum = options.max_width;
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;

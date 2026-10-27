@@ -15,7 +15,7 @@ import { observations } from './observations.js';
 import { resolvedDisplay } from '../rendering/configuration.js';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { SourceService } from '../sources/service.js';
-import { contextFor } from '../sources/context.js';
+import { projectPaths } from '@fbincon/statusline-platform/project-paths';
 
 export type Diagnose = (payload: unknown) => DiagnoseResult;
 export function observedTime(value: unknown): string | null {
@@ -58,20 +58,32 @@ export async function diagnosisAdapter(service: ConfigurationService, options: {
         const env = baseEnvironment(languages.get(draft.display.statusline_language)!, { now: () => (observedAt === null ? now : Date.parse(observedAt)) / 1000 });
         const local = observations(draft, payload.scope as Scope, payload.input, context, options.files ?? diagnosticFiles, facts, includeLocal, observedAt, env);
         const sourceNodes = (payload.scope === 'main' ? draft.display.instances : draft.display.subagents.instances).filter(node => node.enabled && ['external-value','github-pr','github-ci'].includes(node.type_id));
-        if (sourceNodes.length && includeLocal) {
-            const serviceSources = new SourceService(service, () => now);
+        if (sourceNodes.length) {
+            const serviceSources = includeLocal ? new SourceService(service, () => now) : null;
             const cache = new Map<string, import('@fbincon/statusline-core/contracts/ui').SourceView>();
+            const recorded = new Set<string>();
             const supplied = payload.input;
             env.source = (node, input, agent) => {
-                const key = (node.source?.binding ?? '') + ':' + (agent ?? '');
+                const key = JSON.stringify([node.source?.binding ?? null, liveDirectory(input) ?? liveDirectory(supplied), supplied.session_id, agent]);
                 let view = cache.get(key);
                 if (!view) {
-                    try { view = serviceSources.view(node.source, contextFor(liveDirectory(input) ?? liveDirectory(supplied), typeof supplied.session_id === 'string' ? supplied.session_id : null, agent ?? null), false); }
+                    try {
+                        const directory = liveDirectory(input) ?? liveDirectory(supplied);
+                        // A current Git query cannot establish the repository identity of a supplied snapshot.
+                        const sourceContext = {project:directory ? projectPaths.canonical(directory) : null, session:typeof supplied.session_id === 'string' ? supplied.session_id : null,agent:agent ?? null,branch:null,head:null};
+                        view = serviceSources ? serviceSources.view(node.source, sourceContext, false, observedAt === null ? undefined : Date.parse(observedAt)) : {source_id:null,name:'',state:'missing',reason:'input_only',observed_at:null,freshness:'unknown',value:null,unit:null};
+                    }
                     catch { view = {source_id:null,name:node.source?.hint??'',state:'error',reason:'invalid',observed_at:null,freshness:'unknown',value:null,unit:null}; }
                     cache.set(key,view);
                 }
-                const status = view.state === 'valid' ? view.freshness === 'stale' ? 'stale' : 'observed' : view.state === 'disabled' ? 'collector_off' : view.state === 'mismatch' ? 'session_mismatch' : view.state === 'partial' ? 'partial' : view.state === 'missing' || view.state === 'unbound' ? 'not_observed' : 'source_unavailable';
-                local.set(node.id,[{source:'extension:'+(view.source_id ?? 'unbound'),scope:agent ? 'subagent:'+agent : 'local',status,observed_at:view.observed_at,freshness:view.freshness,fields:[{path:'value',status:view.value===null?'not_observed':'observed'}]}]);
+                const status = !includeLocal ? 'input_only' : view.reason === 'newer_than_input' ? 'newer_than_input' : view.reason === 'association_unavailable' ? 'association_unavailable' : view.state === 'valid' ? view.freshness === 'stale' ? 'stale' : 'observed' : view.state === 'disabled' ? 'collector_off' : view.state === 'mismatch' ? 'session_mismatch' : view.state === 'partial' ? 'partial' : view.state === 'missing' || view.state === 'unbound' ? 'not_observed' : 'source_unavailable';
+                const evidenceKey = JSON.stringify([node.id, agent ?? null]);
+                if (!recorded.has(evidenceKey)) {
+                    recorded.add(evidenceKey);
+                    const entries = local.get(node.id) ?? [];
+                    entries.push({source:'extension:'+(view.source_id ?? 'unbound'),scope:agent ? 'subagent:'+agent : 'local',status,observed_at:view.observed_at,freshness:status === 'newer_than_input' ? 'newer_than_input' : view.freshness,fields:[{path:'value',status:view.value===null?'not_observed':'observed'}, ...Object.keys(view.fields ?? {}).map(path => ({path:'fields.'+path,status:'observed' as const}))]});
+                    local.set(node.id, entries);
+                }
                 return view;
             };
         }

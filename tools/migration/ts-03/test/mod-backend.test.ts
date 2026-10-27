@@ -90,6 +90,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const deadline=Date.now()+15000;
     while(job.state==='running'&&Date.now()<deadline){await new Promise(resolve=>setTimeout(resolve,100));job=call('source_status',{id:job.id});}
     assert.equal(job.state,'completed');
+    assert.equal(call('source_release',{id:job.id,owner:'mod-test'}).state,'completed');
     assert.equal(call('source_cancel',{id:job.id}).state,'completed');
     assert.equal(call('source_diagnose',{id:'external',context:sourceContext}).view.value,0);
     assert.deepEqual([...operations].sort(), description.operations.toSorted());

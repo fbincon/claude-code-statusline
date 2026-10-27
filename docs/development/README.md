@@ -24,6 +24,8 @@ Start here to set up a development environment, run checks and build the package
 
 The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
 
+[First-batch correctness repairs and validation](correctness-maintenance.md) covers FIX-01–FIX-04, I18N-01, editor protocol 25 and source jobs 3.
+
 ## Technical documentation
 
 ### Current development

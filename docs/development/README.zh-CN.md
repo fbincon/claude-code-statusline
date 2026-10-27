@@ -24,6 +24,8 @@
 
 当前 TypeScript workspace 使用 Node 24.21.0/npm 11.19.0。日常开发不需要 Python；冻结的 Python 参考通过独立的手动入口验证。
 
+[首批正确性修复与验收](correctness-maintenance.zh-CN.md)记录 FIX-01～FIX-04、I18N-01、编辑器协议 25 和来源任务 3。
+
 ## 技术文档导航
 
 ### 当前开发

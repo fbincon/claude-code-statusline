@@ -8,6 +8,10 @@
 
 下文历史版本保留各自记录的门禁与身份。本次 CI 维护不创建产品版本或发布。干跑只验证准备与字节；新 tag／OIDC 实际发布证据由后续真实版本提供，不替换已有版本。
 
+## v3.9.2 正确性修复
+
+使用 [v3.9.2 专项批准](releases/approvals/v3.9.2.json)，完成最终 PR／main／注解 tag 的全部必需门禁。沿用八安装目标、32 Node 用例、十六固定宿主及 197 项容量检查，并验证双编辑器安装后终端场景。按既有证据晋级规则发布原始四文件，完成 npm OIDC、GitHub／Gitee 及公开下载核验；测试机升级后恢复原显示和界面偏好。实际结果写入[正确性修复记录](development/correctness-maintenance.zh-CN.md)。不运行付费模型测试，仅接受仍未验证的 #96 六项既有缺口。
+
 ## v3.9.1 Native 容量补丁
 
 使用 [v3.9.1 专属批准](releases/approvals/v3.9.1.json)，要求最终 PR、合并 main 和注解 tag 全部自动化门禁通过。原十三个宿主组合增加 Linux、Windows、macOS 的 2.1.310，合计十六个；每个 Native 回执还必须通过 197 项真实宿主容量检查。保留八安装目标、32 项 Node 用例、独立／源码重建、安装包终端、四个草稿附件、OIDC npm 和公开下载校验。更新本机测试安装并恢复复现前显示配置。实际来源、保存结果及 GitHub／npm／Gitee 回执写入[容量修复记录](development/native-capacity.zh-CN.md)，仅沿用 #96 六项既有未验证缺口。

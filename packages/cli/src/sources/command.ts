@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
+import type { SourceJob } from '@fbincon/statusline-core/contracts/ui';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { object, ConfigError } from '@fbincon/statusline-core/config/validation';
 import { sourceError, SOURCE_TYPES } from '@fbincon/statusline-core/extensions/model';
@@ -60,26 +61,30 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         const source = service.source(id), context = contextFor(typeof flags['--project'] === 'string' ? flags['--project'] : source.scope.project ?? process.cwd(), typeof flags['--session'] === 'string' ? flags['--session'] : null, typeof flags['--agent'] === 'string' ? flags['--agent'] : null);
         if (action === 'diagnose')
             return pretty(service.diagnose(id, context));
-        let job = service.start(id, context, randomUUID());
+        const owner=randomUUID();
         if (flags['--no-wait'])
-            return pretty(job);
-        const cancel = () => { try {
-            job = service.cancel(job.id);
+            return pretty(service.start(id, context, owner));
+        let job:SourceJob|undefined, interrupted=false;
+        const cancel = () => { interrupted=true;if(!job)return;try {
+            job = service.release(job.id,owner);
         }
         catch { /* Read the durable result below. */ } };
         process.once('SIGINT', cancel);
         process.once('SIGTERM', cancel);
         try {
-            while (job.state === 'running') {
+            job=service.start(id,context,owner);
+            if(interrupted)cancel();
+            while (job.state === 'running' && !interrupted) {
                 await new Promise(r => setTimeout(r, 100));
                 job = service.job(job.id);
             }
+            if(interrupted)sourceError('cancelled');
+            return pretty(job);
         }
         finally {
             process.removeListener('SIGINT', cancel);
             process.removeListener('SIGTERM', cancel);
         }
-        return pretty(job);
     }
     const payload: Record<string, unknown> = { action, id, expected_revision: current.revision };
     if (action === 'add' || action === 'edit') {

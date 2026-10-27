@@ -64,9 +64,10 @@ export class Session {
         if (effect === 'save')
             return 'save';
         if (effect === 'cancel' || effect === 'interrupt')
-            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0);
+            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
             this.guard();
+            if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
             else if (effect === 'language') {
@@ -102,14 +103,30 @@ export class Session {
         return null;
     }
     failure(error: unknown): void { this.state.notice(error instanceof BackendError && error.localization ? error.localization : error instanceof Error ? error.message : String(error)); }
+    async reconcile(): Promise<void> {
+        const e=this.state.editor,submitted=e.pendingSave;
+        if(e.saveState!=='unknown'||!submitted)return;
+        this.guard();e.setSaveState('pending');
+        try {
+            const current=await this.backend.request('read',submitted.target?{target:submitted.target}:{});
+            this.state.notice(text('editor.'+e.reconcileSave(current)));
+        }catch(error) {
+            e.setSaveState('unknown');
+            this.state.notice(text('editor.still_unknown',{detail:error instanceof Error?error.message:String(error)}));
+        }
+    }
     async save(): Promise<Outcome> {
         const e = this.state.editor;
         this.guard();
         if (!e.acceptNumeric())
             throw new BackendError('invalid_draft', Object.values(e.fieldErrors).join('; '));
-        const result = await this.backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision,
-            ...(e.baseline.configuration ? { target: e.baseline.configuration.target } : {}) });
-        e.committed(result);
+        const submitted=e.beginSave();
+        let result: ResultFor<'apply'>;
+        try {
+            result = await this.backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
+                ...(submitted.target ? { target: submitted.target } : {}) });
+            e.committed(result);
+        }catch(error) {e.saveFailed(error instanceof BackendError?error.code:'');throw error;}
         const value = outcome(result.changed ? 'updated' : 'already-current', this.state.language);
         if (result.backup_dir)
             value.message += t('ui.session.backup', this.state.language, { backup_dir: result.backup_dir });
@@ -134,8 +151,8 @@ export class Session {
                     }
                 },
                 guard: this.guard,
-                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130),
-                timeout: () => outcome('timed-out', this.state.language),
+                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130, this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
+                timeout: () => outcome('timed-out', this.state.language,0,this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
             }, options);
             if (result !== 'save')
                 return result;

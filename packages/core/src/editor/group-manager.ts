@@ -31,6 +31,7 @@ function form(e: Editor, g?: GroupDraft): void {
 }
 function apply(e: Editor, edit: GroupEdit): void {
   const m = e.groupManager!;
+  if (!e.canMutateDraft()) { m.error=true;m.errorMessage=e.compositionError;return; }
   try {
     const display = editGroup(e.draft.display, m.scope, edit, () => newInstance('text', groupScope(e.draft.display, m.scope).instances).id);
     if (!isDraft({ ...e.draft, display })) throw new Error('invalid');

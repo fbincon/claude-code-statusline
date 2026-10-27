@@ -14,6 +14,8 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 
 Session and prompt IDs come from your supplied statusline input or existing session metadata. The CLI does not search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
 
+Command descriptions and initial titles use the loaded interface language. Task-read failures retain that language; refresh/reopen reload preferences. Unreadable preferences fall back to English with guidance without blocking task reads. Tall panes reduce the visible page to fit host capacity while retaining the complete report for paging.
+
 ## Read the evidence
 
 - **Task total time** uses the existing lifecycle timer and frozen terminal duration.

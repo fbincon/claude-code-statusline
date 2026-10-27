@@ -9,6 +9,7 @@ export interface SourceManager {
     library: SourcesResult | null;
     context: SourceContext | null;
     owner: string;
+    closed: boolean;
     page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review';
     automaticInterval: number;
     cursor: number;
@@ -35,7 +36,7 @@ export interface SourceBackend {
 }
 const external = ['external-value', 'github-pr', 'github-ci'];
 export function openSources(editor: Editor): void {
-    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), closed: false, page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
 }
 function source(editor: Editor): SourceDefinition | undefined { return editor.sources!.library?.sources.find(s => s.id === editor.sources!.selected); }
 function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(source(editor)?.kind === 'github' ? ['auto-review' as const, 'auto-off' as const] : [])]; }
@@ -137,6 +138,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         else if (m.page === 'remove')
             m.effect = 'remove';
         else if (m.page === 'unbind') {
+            if (!editor.canMutateDraft()) { m.message=editor.compositionError;return null; }
             const target = targets(editor)[m.cursor];
             const node = target && editor.instance(target.scope, target.id);
             if (node?.source) {
@@ -158,9 +160,10 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
     const m = editor.sources;
     if (!m)
         return;
+    m.closed = true;
     let failed: unknown;
-    for (const job of m.jobs.filter(job => job.state === 'running' && job.owner === m.owner && job.trigger === 'manual')) {
-        try { await backend.request('source_cancel', { id: job.id }); }
+    for (const job of m.jobs.filter(job => job.state === 'running')) {
+        try { await backend.request('source_release', { id: job.id, owner:m.owner }); }
         catch (error) { failed = error; }
     }
     if (failed) throw failed;
@@ -174,6 +177,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
     m.effect = null;
     m.message = null;
     try {
+        const generation=editor.mutationGeneration;
+        if (effect === 'bind' && !editor.canMutateDraft()) { m.message=editor.compositionError;return; }
         if (effect === 'close') {
             await closeSources(editor, backend);
             return;
@@ -206,8 +211,13 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             const selected = source(editor)!;
             const context = await backend.request('source_context', { project: selected.scope.project ?? m.context?.project ?? null, session: selected.scope.session, agent: selected.scope.agent });
             if (effect === 'refresh') {
+                if (m.closed || editor.sources !== m) return;
                 const job = await backend.request('source_refresh', { id: m.selected, context, owner: m.owner });
-                m.jobs.push(job);
+                if (m.closed || editor.sources !== m) {
+                    await backend.request('source_release', { id: job.id, owner: m.owner });
+                    return;
+                }
+                m.jobs = [...m.jobs.filter(previous=>previous.id!==job.id),job];
                 m.message = text('sources.refresh_started');
             }
             else {
@@ -237,6 +247,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         const result = await backend.request('sources_apply', payload);
         m.library = result;
         if (effect === 'bind' && m.target && result.binding) {
+            if (!editor.canMutateDraft(generation) || editor.sources !== m) { m.message=editor.compositionError;return; }
             const node = editor.instance(m.target.scope, m.target.id);
             if (node)
                 node.source = result.binding;

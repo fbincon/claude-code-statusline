@@ -19,6 +19,8 @@
 
 成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
 
+[首批正确性修复验收](correctness-maintenance.zh-CN.md)覆盖双编辑器保存核对、进度条标签、刷新消费者、历史扩展证据和任务语言，保留既有发布矩阵。
+
 ## Git、终端与包事务
 
 安装验收现要求二十类检查，包含 Git 策略、共享终端能力、持久首次入口及显式版本管理。Windows 回执包含十五项环境场景与九种真实 shell／入口组合；模拟环境本身不能证明实际 shell 启动通过。详见[实现与诊断证据](m8-m9-delivery.zh-CN.md)。

@@ -1968,5 +1968,15 @@
   "native.capacity.failed": "이 화면을 그릴 수 없습니다.",
   "native.capacity.saved": "마지막 저장이 완료되었습니다. 재시도는 화면만 다시 그립니다.",
   "native.capacity.unknown": "저장 결과를 알 수 없습니다. 재시도 전에 저장 상태를 확인하세요.",
-  "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다."
+  "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다.",
+  "statusline.indicator.remaining": "{percentage}% 남음",
+  "statusline.indicator.used": "{percentage}% 사용",
+  "editor.save_locked": "표시 초안을 변경하기 전에 미확정 저장 결과를 확인하세요.",
+  "editor.save_unknown": "저장 결과를 알 수 없습니다. Ctrl+K로 다시 저장하지 않고 저장 상태를 확인합니다.",
+  "editor.check_saved": "저장 상태 확인",
+  "editor.saved": "제출한 표시 설정이 저장되었습니다.",
+  "editor.not_committed": "표시 변경 사항이 저장되지 않았습니다. 보존된 초안을 편집할 수 있습니다.",
+  "editor.conflict": "설정 충돌입니다. 초안이 보존되었습니다. 취소하고 다시 열면 저장된 설정을 불러옵니다.",
+  "editor.still_unknown": "저장 결과를 아직 알 수 없습니다: {detail}",
+  "task.language_unavailable": "인터페이스 환경설정을 읽을 수 없어 영어를 사용합니다。"
 }

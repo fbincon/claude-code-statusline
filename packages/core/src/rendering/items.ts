@@ -303,7 +303,7 @@ export class RenderState {
         if (!rendered)
             return null;
         let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage);
-        if (!external) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
+        if (!external && options.presentation !== 'bar') text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
             text = appearance.apply(text, this.config, item, options, 'main', used);
         if (options.max_width !== null) {

@@ -25,7 +25,7 @@ unsaved and does not undo separately saved source changes.
 
 **Refresh now** starts one bounded job. **Refresh status**, **Cancel running
 refresh** and **Inspect source and observations** expose its result. Closing the
-editor cancels its unfinished jobs. Enablement is independent of refresh: it
+editor releases only its refresh interest; other consumers or applicable automatic leases keep the job running. Explicit cancellation still stops the whole job. Enablement is independent of refresh: it
 never automatically launches a command or GitHub request.
 
 ## Local JSON
@@ -135,7 +135,7 @@ claude-statusline source auto-off forge --json
 
 Use the returned review revision. The policy remains on locally until explicitly disabled. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
 
-Supported active sessions renew a lease every five seconds; leases expire after 15 seconds without a heartbeat. Only matching project/session scope, branch and HEAD dispatch work. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service is installed. Multiple sessions share one job for the same source/identity. A manual refresh takes ownership of an existing automatic job, so closing a session or turning automatic refresh off does not cancel that manual work.
+Supported active sessions renew a lease every five seconds; leases expire after 15 seconds without a heartbeat. Only matching project/session scope, branch and HEAD dispatch work. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service is installed. Multiple sessions share one job for the same source/identity. Manual consumers and automatic leases retain independent interest; closing one session/editor or turning automatic refresh off preserves other applicable consumers.
 
 Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
 
@@ -191,7 +191,7 @@ exit and oversized/invalid output remain different outcomes. Descendants are
 terminated as well, including processes retaining output pipes.
 
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
-`source status JOB_ID` and `source cancel JOB_ID`. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh takes ownership of an automatic job. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
+`source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest until completion or the original deadline. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
 
 ## Freshness, sharing and links
 
