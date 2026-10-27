@@ -60,17 +60,18 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         const source = service.source(id), context = contextFor(typeof flags['--project'] === 'string' ? flags['--project'] : source.scope.project ?? process.cwd(), typeof flags['--session'] === 'string' ? flags['--session'] : null, typeof flags['--agent'] === 'string' ? flags['--agent'] : null);
         if (action === 'diagnose')
             return pretty(service.diagnose(id, context));
-        let job = service.start(id, context, randomUUID());
+        const owner=randomUUID();
+        let job = service.start(id, context, owner), interrupted=false;
         if (flags['--no-wait'])
             return pretty(job);
-        const cancel = () => { try {
-            job = service.cancel(job.id);
+        const cancel = () => { interrupted=true;try {
+            job = service.release(job.id,owner);
         }
         catch { /* Read the durable result below. */ } };
         process.once('SIGINT', cancel);
         process.once('SIGTERM', cancel);
         try {
-            while (job.state === 'running') {
+            while (job.state === 'running' && !interrupted) {
                 await new Promise(r => setTimeout(r, 100));
                 job = service.job(job.id);
             }
@@ -79,6 +80,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
             process.removeListener('SIGINT', cancel);
             process.removeListener('SIGTERM', cancel);
         }
+        if(interrupted)sourceError('cancelled');
         return pretty(job);
     }
     const payload: Record<string, unknown> = { action, id, expected_revision: current.revision };

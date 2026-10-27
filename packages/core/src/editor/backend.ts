@@ -517,7 +517,7 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
+      !selection(result.operations, ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_release','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
       result.operations.length !== 25 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||

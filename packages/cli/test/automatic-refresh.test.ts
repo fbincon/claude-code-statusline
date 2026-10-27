@@ -16,7 +16,7 @@ import { runtimeContext } from '../src/runtime/context.js';
 import type { SourceJob } from '@fbincon/statusline-core/contracts/ui';
 import { emptyObservation } from '@fbincon/statusline-core/extensions/model';
 import { Editor } from '@fbincon/statusline-core/editor/draft';
-import { openSources, sourcesKey, sourcesView, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
+import { openSources, closeSources, sourcesKey, sourcesView, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
 import { isSourceResult } from '@fbincon/statusline-core/editor/source-validation';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
@@ -59,14 +59,14 @@ test('automatic review is separate, persistent, bounded, and revoked by source e
     assert.equal(f.service.read().automatic.length, 0); assert.equal(f.service.job(f.launched[0]!.id).state, 'cancelled');
     f.tick(); assert.equal(f.launched.length, 1);
 });
-test('sessions deduplicate, lease expiry stops automatic work, and manual refresh takes ownership', t => {
+test('sessions deduplicate, lease expiry stops automatic work, and manual refresh joins without changing origin', t => {
     const f = fixture(t); f.enable(); f.tick(); f.tick('two');
     assert.equal(f.launched.length, 1);
     const job = f.launched[0]!;
     f.tick('one', 'end'); assert.equal(f.service.job(job.id).state, 'running');
     assert(activeLease(readAutomatic(f.directory), job.identity, f.now()));
     const manual = f.service.start('github', f.context(), 'manual-user');
-    assert.equal(manual.id, job.id); assert.equal(manual.trigger, 'manual'); assert.equal(manual.owner, 'manual-user');
+    assert.equal(manual.id, job.id); assert.equal(manual.trigger, 'automatic'); assert.equal(manual.owner, job.owner); assert.deepEqual(manual.consumers.map(c=>c.owner),['manual-user']);
     f.tick('two', 'end'); assert.equal(f.service.job(job.id).state, 'running');
     f.change('auto-off'); assert.equal(f.service.job(job.id).state, 'running');
     f.service.cancel(job.id);
@@ -74,6 +74,38 @@ test('sessions deduplicate, lease expiry stops automatic work, and manual refres
     const auto = f.launched[1]!;
     f.advance(LEASE_MS + 1); assert.equal(automaticJobActive(f.directory, auto, f.now()), false);
     f.service.cancelInactiveAutomatic(); assert.equal(f.service.job(auto.id).state, 'cancelled');
+});
+test('two editors release their own consumers and retain an applicable automatic lease',async t=>{
+    const f=fixture(t);f.enable();
+    const protocol=new ConfigurationProtocol(f.configuration),backend={request:(operation:string,payload:unknown={})=>operation==='source_release'?f.service.release((payload as {id:string}).id,(payload as {owner:string}).owner):protocol.dispatch({protocol_version:PROTOCOL_VERSION,operation,payload})} as SourceBackend;
+    const editors=['a','b'].map(owner=>{const e=new Editor(protocol.dispatch({protocol_version:PROTOCOL_VERSION,operation:'describe',payload:{}}) as never,protocol.dispatch({protocol_version:PROTOCOL_VERSION,operation:'read',payload:{}}) as never);openSources(e);e.sources!.owner=owner;return e;});
+    const first=f.service.start('github',f.context(),'a'),joined=f.service.start('github',f.context(),'b');
+    assert.equal(joined.id,first.id);assert.equal(joined.owner,'a');assert.equal(joined.trigger,'manual');
+    assert.equal(f.service.start('github',f.context(),'b').consumers.length,2,'joining twice is idempotent');
+    editors[0]!.sources!.jobs=[first];editors[1]!.sources!.jobs=[joined];
+    await closeSources(editors[0]!,backend);assert.equal(f.service.job(first.id).state,'running');
+    assert.deepEqual(f.service.job(first.id).consumers.map(c=>c.owner),['b']);
+    f.tick();await closeSources(editors[1]!,backend);
+    assert.equal(f.service.job(first.id).state,'running','an active automatic lease preserves a manually created execution');
+    f.tick('one','end');assert.equal(f.service.job(first.id).state,'cancelled');
+    const next=f.service.start('github',f.context(),'only');
+    assert.equal(f.service.release(next.id,'foreign').state,'running');
+    assert.equal(f.service.release(next.id,'only').reason,'no_consumers');
+    assert.deepEqual(f.service.release(next.id,'only'),f.service.job(next.id));
+});
+
+test('legacy jobs remain read-only and cannot be joined by a new worker generation',t=>{
+    const f=fixture(t);f.enable();
+    for(const version of [1,2]) {
+        const started=f.service.start('github',f.context(),'legacy'),{consumers,...raw}=started;
+        const old:Record<string,unknown>={...raw,version};if(version===1){delete old.trigger;delete old.identity;}
+        const path=join(f.service.root,'jobs',started.id+'.json'),bytes=JSON.stringify(old);writeFileSync(path,bytes);
+        const result=f.service.job(started.id);assert.equal(result.version,3);assert.equal(result.consumers[0]!.owner,'legacy');
+        assert.equal(readFileSync(path,'utf8'),bytes);
+        assert.throws(()=>f.service.start('github',f.context(),'new'),/running|busy/i);
+        assert.equal(readFileSync(path,'utf8'),bytes);
+        f.service.cancel(started.id);
+    }
 });
 test('failed refreshes back off, identity failures pause, and successful manual retry resumes scheduling', t => {
     const f = fixture(t); f.enable(); f.tick(); f.finish('failed', 'network'); f.tick();

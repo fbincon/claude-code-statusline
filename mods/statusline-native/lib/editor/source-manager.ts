@@ -161,8 +161,8 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
     if (!m)
         return;
     let failed: unknown;
-    for (const job of m.jobs.filter(job => job.state === 'running' && job.owner === m.owner && job.trigger === 'manual')) {
-        try { await backend.request('source_cancel', { id: job.id }); }
+    for (const job of m.jobs.filter(job => job.state === 'running')) {
+        try { await backend.request('source_release', { id: job.id, owner:m.owner }); }
         catch (error) { failed = error; }
     }
     if (failed) throw failed;
@@ -211,7 +211,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             const context = await backend.request('source_context', { project: selected.scope.project ?? m.context?.project ?? null, session: selected.scope.session, agent: selected.scope.agent });
             if (effect === 'refresh') {
                 const job = await backend.request('source_refresh', { id: m.selected, context, owner: m.owner });
-                m.jobs.push(job);
+                m.jobs = [...m.jobs.filter(previous=>previous.id!==job.id),job];
                 m.message = text('sources.refresh_started');
             }
             else {

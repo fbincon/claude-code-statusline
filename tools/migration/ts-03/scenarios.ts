@@ -77,7 +77,7 @@ export const handlers: Readonly<Record<string, Handler>> = {
   },
   ui: async fixture => call(await protocol(), fixture.input.raw as string),
   transaction: async fixture => {
-    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 24, operation, payload }));
+    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 25, operation, payload }));
     const initial = request('read', {}) as { response: { result: { revision: string; draft: unknown } }; exit_code: number };
     const revision = initial.response.result.revision;
     const first = request('apply', { draft: validateDraft(fixture.input.draft), expected_revision: revision }), after = snapshot(process.cwd());
@@ -89,7 +89,7 @@ export const handlers: Readonly<Record<string, Handler>> = {
     for (const operation of ['export', 'import', 'review_import']) {
       const payload: Record<string, unknown> = { draft: validateDraft(fixture.input.draft), path: target };
       if (operation === 'export') payload.overwrite = false;
-      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 24, operation, payload })) });
+      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 25, operation, payload })) });
     }
     return { responses, portable: fs.readFileSync(target, 'utf8') };
   },

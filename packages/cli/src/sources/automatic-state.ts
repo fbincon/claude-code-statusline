@@ -48,9 +48,11 @@ export function activeLease(state: AutomaticState, identity: string, now: number
     return state.leases.some(l => !l.closed && l.expires > now && l.keys.includes(identity));
 }
 export function automaticJobActive(directory: string, job: SourceJob, now: number): boolean {
-    if (job.trigger !== 'automatic') return true;
     const registry = sourceRegistry(directory), source = registry.sources.find(s => s.id === job.source_id), policy = registry.automatic.find(p => p.source_id === job.source_id);
     return Boolean(source?.enabled && policy?.enabled && policy.review_revision === source.revision && policy.auth_revision === authRevision() && refreshIdentity(source, job.context) === job.identity && activeLease(readAutomatic(directory), job.identity, now));
+}
+export function manualJobActive(job: SourceJob, now: number): boolean {
+    return job.consumers.some(consumer => Date.parse(consumer.expires_at) > now);
 }
 export function automaticStatus(directory: string, source: SourceDefinition, context: SourceContext, now: number, jobs: SourceJob[]): AutomaticStatus {
     const policy = sourceRegistry(directory).automatic.find(p => p.source_id === source.id);
