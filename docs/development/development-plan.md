@@ -2,11 +2,11 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.1** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.2** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered, and [v3.9.1 native capacity and recovery](native-capacity.md) is the current product baseline. The formal follow-up contains eighteen new packages and SHOWCASE-01. FIX-01–FIX-04 and I18N-01 are implemented and validating for v3.9.2; the [correctness record](correctness-maintenance.md) owns actual interfaces and evidence. Remaining unstarted entries have no assigned versions or dates.
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered, and [v3.9.2 correctness repairs](correctness-maintenance.md) are the current product baseline, retaining [v3.9.1 native capacity and recovery](native-capacity.md). The formal follow-up contains eighteen new packages and SHOWCASE-01. FIX-01–FIX-04 and I18N-01 are accepted and published in v3.9.2; the [correctness record](correctness-maintenance.md) owns actual interfaces and evidence. Remaining unstarted entries have no assigned versions or dates.
 
-Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.1 decision](../releases/approvals/v3.9.1.json) records acceptance for that release without passing those missing observations.
+Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
 
 **Navigation:** [Index](#work-index) · [Shared design](#design-rules) · [Review baseline](#review-baseline) · [Future work](#future-work) · [Git review](#git-01) · [Windows previews](#terminal-01) · [First entry](#setup-02) · [Version management](#update-01) · [Selective import](#import-01) · [Gradients](#appearance-04) · [Alignment](#composition-03) · [Demonstrations](#showcase-01) · [Candidates](#candidate-boundaries) · [M4–M7 designs](#appearance-03) · [Earlier designs](#delivered-designs) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff)
 
@@ -85,7 +85,7 @@ The [discussion](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b)
 | Task language depends on successful details | Source initializes English, opens/registers the title before preference loading and assigns the loaded preference only after task reading succeeds. Failure-path behavior was source-confirmed, not a new host reproduction. | I18N-01; native task registration and refresh |
 | Missing UI/extension capabilities | Source and maintained guides show four themes, three gradient presets, existing GitHub automatic refresh, manual command refresh, CLI package management and native/CLI task details. External interactive task details, editor package pages and cross-block gradients are proposed additions. | APPEARANCE-05/06, TASK-02, UPDATE-02, COMMAND-02 |
 
-[#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. New package acceptance remains to be performed. The six #96 gaps retain their original unverified status.
+[#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. The five correctness packages have completed [acceptance and publication](correctness-maintenance.md); remaining packages still require implementation acceptance. The six #96 gaps retain their original unverified status.
 
 <a id="future-work"></a>
 
@@ -105,6 +105,8 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** An unknown save blocks bind/unbind, replacement and structural edits even through an already-open manager. Test saved, not committed, concurrent-conflict and still-unknown readbacks. Inspection remains usable; recovery/retry does not repeat a write or erase the retained draft. Add an applicable native interaction regression to the existing suite.
 
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
 <a id="fix-02"></a>
 
 ## FIX-02 Compose bars and labels consistently
@@ -116,6 +118,8 @@ Entries without an implementation record remain proposed work; current package s
 **Slices.** Establish expected numeric/bar labels → repair shared composition → add targeted main/subagent regressions.
 
 **Acceptance.** Cover legacy, hidden, short and custom labels with icons, thresholds and all six languages. Assert retained percentage/direction, absence of duplicate labels, intact graphemes and color resets, and existing width limits. Do not treat a width-only assertion as proof of correct content.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
 
 <a id="fix-03"></a>
 
@@ -129,6 +133,8 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** Cover two editors, editor plus CLI, and manual plus automatic refresh sharing one identity. One exit preserves the remaining consumer; last-consumer release, explicit cancel, source disable/edit and lease expiry have distinct outcomes. Late results cannot publish to another revision or context.
 
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
 <a id="fix-04"></a>
 
 ## FIX-04 Make extension diagnosis time- and agent-applicable
@@ -141,6 +147,8 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** Cover earlier/equal/later/unknown observation times, stale and partial data, explicit zero, multiple agents sharing a component and separate component copies. A later value or auxiliary PR/check field cannot affect historical output or be reported as current evidence. Input-only diagnosis remains read-only and source-free.
 
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
 <a id="i18n-01"></a>
 
 ## I18N-01 Initialize task-detail language independently
@@ -152,6 +160,8 @@ Entries without an implementation record remain proposed work; current package s
 **Slices.** Separate preference and task-result initialization → localize first presentation and retry → cover failure transitions.
 
 **Acceptance.** Exercise all six languages for first open, no data, task failure, retry and reopening after a language change; include preference-read failure and a successful preference read followed by task failure. Verify title, description, controls and guidance rather than message-key coverage alone.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
 
 <a id="appearance-05"></a>
 

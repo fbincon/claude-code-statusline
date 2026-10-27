@@ -2,9 +2,9 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.1** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.2** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. FIX-01–FIX-04 and I18N-01 are implemented and validating for v3.9.2; the other thirteen new packages and SHOWCASE-01 remain NOT_STARTED without assigned versions or dates. See the [correctness repair record](correctness-maintenance.md).
+Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. FIX-01–FIX-04 and I18N-01 are accepted and published in v3.9.2; the other thirteen new packages and SHOWCASE-01 remain NOT_STARTED without assigned versions or dates. See the [correctness repair record](correctness-maintenance.md).
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -24,14 +24,14 @@ This page owns product direction, priorities and work-package status. The [devel
 | Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI with separately reviewed automatic refresh, and explicit command sources; both editors and CLI; optional OSC 8 links | Keep authorization separate from display schemes; clear local bindings only in imported sections |
 | Native presentation | Host-retained editing state, bounded visible frames, independent capacity checks and recoverable save outcomes | Apply these boundaries to every new page; see [capacity and recovery](native-capacity.md) |
-| Interfaces | Display schema 15, editor protocol 24, source registry/jobs 2, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
+| Interfaces | Display schema 15, editor protocol 25, source registry 2/jobs 3, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
+Sources: [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
-The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.9.1 decision](../releases/approvals/v3.9.1.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
+The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.9.2 decision](../releases/approvals/v3.9.2.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
 
 <a id="reference"></a>
 
@@ -63,11 +63,11 @@ Keep the original project and authors credited when discussing these references.
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | VALIDATING |
-| 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | VALIDATING |
-| 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | VALIDATING |
-| 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | VALIDATING |
-| 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | VALIDATING |
+| 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
+| 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
+| 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
+| 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | DONE |
+| 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | DONE |
 | 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | NOT_STARTED |
 | 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | NOT_STARTED |
 | 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | NOT_STARTED |
@@ -193,6 +193,7 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 | v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](m8-m9-delivery.md) |
 | v3.9.0 | IMPORT-01, APPEARANCE-04, COMPOSITION-03 | DONE | [Selective import, gradients and alignment](m10-m12-delivery.md) |
 | v3.9.1 | #154 transport capacity, #155 render-tree capacity and save-result recovery | DONE | [Native capacity and delivery](native-capacity.md) |
+| v3.9.2 | FIX-01–FIX-04, I18N-01: drafts, indicators, refresh consumers, historical diagnosis and task language | DONE | [Correctness delivery and publication](correctness-maintenance.md) |
 
 The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
 
