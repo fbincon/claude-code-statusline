@@ -34,7 +34,7 @@ import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
 import type { PreviewBackground } from '../lib/preview-preferences.ts';
 import { text as localizedText, t } from '../lib/i18n/index.ts';
-import type { Language } from '../lib/i18n/index.ts';
+import { renderMessage, type Language, type LocalizedText } from '../lib/i18n/index.ts';
 import { setMessage, failureMessage, setResult, viewMessage } from '../lib/i18n/messages.ts';
 import { binding } from '../lib/launch.ts';
 
@@ -491,40 +491,57 @@ async function openEditor(
 const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
 export interface TaskPaneState {
   owned: boolean; loading: boolean; generation: number; offset: number;
-  language: Language; report: TaskDetails | null; error: string;
+  language: Language; report: TaskDetails | null; error: LocalizedText | null; warning: LocalizedText | null;
 }
 export function taskPaneState(): TaskPaneState {
-  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:'' };
+  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:null, warning:null };
 }
-export async function startTaskDetails($: EngineInterface, state: TaskPaneState): Promise<void> {
-  state.generation++; state.loading=false; state.report=null; state.error=''; state.offset=0; state.owned=false;
-  const commands=await $.command.list();
-  if(!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native')) {
-    await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)}); state.owned=true;
+async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
+  try {
+    const preference=await callBackend($,options,'read_ui_preferences');
+    if(state.generation!==epoch)return false;
+    state.language=preference.ui_language;state.warning=preference.warning;
+  }catch {
+    if(state.generation!==epoch)return false;
+    state.language='en';state.warning=localizedText('task.language_unavailable');
   }
+  return true;
 }
-async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState): Promise<void> {
-  if (state.loading) return;
-  state.loading=true; state.error=''; const epoch=state.generation;
+async function taskCommand($: EngineInterface, state: TaskPaneState, epoch: number): Promise<boolean> {
+  const commands=await $.command.list();
+  if(state.generation!==epoch)return false;
+  state.owned=!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native');
+  if(state.owned)await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)});
+  return state.owned && state.generation===epoch;
+}
+export async function startTaskDetails($: EngineInterface, state: TaskPaneState, options: PluginOptions): Promise<void> {
+  state.generation++;state.loading=false;state.report=null;state.error=null;state.warning=null;state.offset=0;state.owned=false;
+  if(await taskLanguage($,options,state,state.generation))await taskCommand($,state,state.generation);
+}
+async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState, readLanguage=true): Promise<void> {
+  if(state.loading)return;
+  state.loading=true;state.error=null;const epoch=state.generation;
   $.ui.invalidate('ui.render');
   try {
-    const launch=binding(options,await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
-    const directory=await $.env.get('CLAUDE_CONFIG_DIR') || (typeof options.configDir==='string' ? options.configDir : '');
-    const argv=[launch.executable,...launch.args,'ui',...(directory ? ['--config-dir',directory] : [])];
+    if(readLanguage) {
+      const previous=state.language;
+      if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return;
+      if(previous!==state.language)await $.ui.open({id:TASK_PANE,title:t('task.title',state.language),closeOnEscape:true,rows:24,columns:88});
+    }
     const session=await $.session.id();
     let host_agents: { observed_at:number; agents:{id:string;name:string|null}[] } | undefined;
     try {
       const agents=await $.agent.list();
       host_agents={observed_at:await $.clock.now(),agents:agents.slice(0,256).map(a=>({id:a.id,name:[...(a.name ?? a.description ?? '').replace(/[\p{Cc}\p{Cs}]/gu,'')].slice(0,256).join('') || null}))};
-    } catch { /* Published evidence remains usable without a host snapshot. */ }
-    const preference=parseResponse('read_ui_preferences',await $.process.run(argv,{stdin:requestText('read_ui_preferences',{}),timeoutMs:30000}));
-    const result=parseResponse('task_details',await $.process.run(argv,{stdin:requestText('task_details',{session_id:session,...(host_agents ? {host_agents} : {})}),timeoutMs:30000}));
-    if(result.session_id!==session)throw new Error(t('task.error.input',state.language));
+    }catch { /* Published evidence remains usable without a host snapshot. */ }
     if(state.generation!==epoch)return;
-    state.report=result;state.language=preference.ui_language;state.offset=0;
-  } catch(failure) {
-    if(state.generation===epoch)state.error=failure instanceof Error ? failure.message : String(failure);
-  } finally {
+    const result=await callBackend($,options,'task_details',{session_id:session,...(host_agents?{host_agents}:{})});
+    if(state.generation!==epoch)return;
+    if(result.session_id!==session)throw new BackendError('invalid_request',localizedText('task.error.input'));
+    state.report=result;state.offset=0;
+  }catch(failure) {
+    if(state.generation===epoch)state.error=failureMessage(failure);
+  }finally {
     if(state.generation===epoch){state.loading=false;$.ui.invalidate('ui.render');}
   }
 }
@@ -532,24 +549,29 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
     if(!state.owned)return next(e);
+    const epoch=++state.generation;state.loading=false;state.report=null;state.error=null;state.offset=0;
+    if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return next(e);
     const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
     if(!opened.isPlaced)return {text:tr('task.fallback')};
-    await refreshTaskDetails($,options,state);return {};
+    await refreshTaskDetails($,options,state,false);return {};
   });
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
-    state.generation++;state.loading=false;state.report=null;state.error='';return next(e);
+    state.generation++;state.loading=false;state.report=null;state.error=null;return next(e);
   });
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
     const {Box,Text,Button}=$.ui.resolve(e);
     if(e.surface!=='terminal')return Text({...styles.text,children:[tr('task.fallback')]});
-    const width=Math.max(2,e.props.bodyColumns),height=Math.max(4,e.props.scroll.bodyRows),capacity=Math.max(1,height-3);
+    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(4,Math.min(10000,e.props.scroll.bodyRows));
+    for(;;) {
+    const capacity=Math.max(1,height-3);
     const lines=state.report ? taskDetailLines(state.report,state.language,Math.max(2,width-2)) : [tr(state.loading?'profiles.loading':'task.unknown')];
-    state.offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
-    return Box({width,height,flexDirection:'column',children:[
-      Text({...styles.accent,bold:true,wrap:'truncate',children:[tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly'))]}),
-      ...lines.slice(state.offset,state.offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
-      ...(state.error?[Text({...styles.error,wrap:'truncate',children:[state.error.replace(/[\p{Cc}\p{Cs}]/gu,'')]} )]:[]),
+    const offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
+    const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
+    const pane=Box({width,height,flexDirection:'column',children:[
+      Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly')),width)]}),
+      ...lines.slice(offset,offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
+      ...((state.error||state.warning)?[Text({...styles.error,wrap:'truncate',children:[clip([state.warning,state.error].filter((value):value is LocalizedText=>value!==null).map(value=>renderMessage(value,state.language)).join(' · ').replace(/[\p{Cc}\p{Cs}]/gu,''),width)]} )]:[]),
       Box({flexDirection:'row',columnGap:1,children:[
         Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{state.offset=Math.max(0,state.offset-capacity);$.ui.invalidate('ui.render');}}),
         Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{state.offset=Math.min(Math.max(0,lines.length-capacity),state.offset+capacity);$.ui.invalidate('ui.render');}}),
@@ -557,6 +579,11 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
         Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
       ]}),
     ]});
+    if(withinBudget(pane)){state.offset=offset;return pane;}
+    if(height>4)height=Math.max(4,Math.floor(height*.75));
+    else if(width>32)width=Math.max(32,Math.floor(width*.75));
+    else return Text({...styles.text,children:[tr('task.fallback')]});
+    }
   });
 }
 
@@ -587,7 +614,7 @@ export const register: Register = (on, options) => {
   };
 
   on('session.start', async ($, e, next) => {
-    await startTaskDetails($, taskDetails);
+    await startTaskDetails($, taskDetails, options);
     state.ownsCommand = false;
     if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     discard(state);

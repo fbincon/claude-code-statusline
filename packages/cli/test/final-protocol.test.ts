@@ -82,7 +82,7 @@ test('tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_erro
     for (const [input, status] of [[raw, 0], [Buffer.from([255]), 2], [Buffer.from('{'), 2]] as const) {
         const result = spawnSync(process.execPath, [join(repo, 'packages/cli/dist/src/entry.js'), 'ui', '--config-dir', directory], { input, encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: directory }, timeout: 10000 });
         assert.equal(result.status, status, result.stderr);
-        assert.equal(JSON.parse(result.stdout).protocol_version, 24);
+        assert.equal(JSON.parse(result.stdout).protocol_version, 25);
         assert.equal(result.stderr, '');
     }
     assert.ok(!existsSync(directory));

@@ -509,7 +509,8 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = ["en", "zh-CN", "zh-TW", "zh-HK", "ja", "ko"] as const;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "sources_read" | "sources_apply" | "source_review" | "source_context" | "source_refresh" | "source_status" | "source_release" | "source_cancel" | "source_diagnose" | "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
+export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export type Operation = typeof OPERATIONS[number];
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;

@@ -1987,7 +1987,8 @@ export const LOCALES = {
     "editor.saved": "The submitted display configuration is saved.",
     "editor.not_committed": "No display changes were committed. The retained draft can be edited.",
     "editor.conflict": "Configuration conflict. The draft is retained; cancel and reopen to load the saved configuration.",
-    "editor.still_unknown": "Save outcome remains unknown: {detail}"
+    "editor.still_unknown": "Save outcome remains unknown: {detail}",
+    "task.language_unavailable": "Interface preferences are unavailable; using English."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3968,7 +3969,8 @@ export const LOCALES = {
     "editor.saved": "提交的显示配置已保存。",
     "editor.not_committed": "未提交显示更改，可以继续编辑保留的草稿。",
     "editor.conflict": "配置冲突。草稿已保留；取消并重新打开可加载已保存配置。",
-    "editor.still_unknown": "保存结果仍未知：{detail}"
+    "editor.still_unknown": "保存结果仍未知：{detail}",
+    "task.language_unavailable": "无法读取界面偏好，使用英语。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5949,7 +5951,8 @@ export const LOCALES = {
     "editor.saved": "提交的顯示設定已儲存。",
     "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
     "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
-    "editor.still_unknown": "儲存結果仍未知：{detail}"
+    "editor.still_unknown": "儲存結果仍未知：{detail}",
+    "task.language_unavailable": "無法讀取介面偏好，使用英語。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7930,7 +7933,8 @@ export const LOCALES = {
     "editor.saved": "提交的顯示設定已儲存。",
     "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
     "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
-    "editor.still_unknown": "儲存結果仍未知：{detail}"
+    "editor.still_unknown": "儲存結果仍未知：{detail}",
+    "task.language_unavailable": "無法讀取介面偏好，使用英語。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9911,7 +9915,8 @@ export const LOCALES = {
     "editor.saved": "送信した表示設定は保存されています。",
     "editor.not_committed": "表示の変更は保存されていません。保持された下書きを編集できます。",
     "editor.conflict": "設定が競合しています。下書きは保持されています。キャンセルして開き直すと保存済み設定を読み込みます。",
-    "editor.still_unknown": "保存結果はまだ不明です: {detail}"
+    "editor.still_unknown": "保存結果はまだ不明です: {detail}",
+    "task.language_unavailable": "インターフェース設定を読み込めないため、英語を使用します。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11892,7 +11897,8 @@ export const LOCALES = {
     "editor.saved": "제출한 표시 설정이 저장되었습니다.",
     "editor.not_committed": "표시 변경 사항이 저장되지 않았습니다. 보존된 초안을 편집할 수 있습니다.",
     "editor.conflict": "설정 충돌입니다. 초안이 보존되었습니다. 취소하고 다시 열면 저장된 설정을 불러옵니다.",
-    "editor.still_unknown": "저장 결과를 아직 알 수 없습니다: {detail}"
+    "editor.still_unknown": "저장 결과를 아직 알 수 없습니다: {detail}",
+    "task.language_unavailable": "인터페이스 환경설정을 읽을 수 없어 영어를 사용합니다。"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

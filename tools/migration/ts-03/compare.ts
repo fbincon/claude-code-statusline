@@ -5,7 +5,7 @@ import { canonical, decode, isLosslessNumber } from '@fbincon/statusline-core/js
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
-import { PROTOCOL_VERSION, PRESETS } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, PRESETS, OPERATIONS } from '@fbincon/statusline-core/contracts/ui';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { appearanceBaseline } from './appearance-compatibility.js';
@@ -79,7 +79,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
-      if(canonical(a)===canonical(old) && canonical(b)===canonical(['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose',...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
+      if(canonical(a)===canonical(old) && canonical(b)===canonical(OPERATIONS)) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
       const extensionIds = ['external-value','github-pr','github-ci','session-cost-rate'];

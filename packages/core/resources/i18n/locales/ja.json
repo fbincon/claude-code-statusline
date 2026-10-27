@@ -1977,5 +1977,6 @@
   "editor.saved": "送信した表示設定は保存されています。",
   "editor.not_committed": "表示の変更は保存されていません。保持された下書きを編集できます。",
   "editor.conflict": "設定が競合しています。下書きは保持されています。キャンセルして開き直すと保存済み設定を読み込みます。",
-  "editor.still_unknown": "保存結果はまだ不明です: {detail}"
+  "editor.still_unknown": "保存結果はまだ不明です: {detail}",
+  "task.language_unavailable": "インターフェース設定を読み込めないため、英語を使用します。"
 }

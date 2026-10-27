@@ -27,7 +27,7 @@ import { errorDescription } from '@fbincon/statusline-platform/errors';
 import { ProfileService } from '../config/profiles.js';
 import { taskAdapter } from '../tasks/service.js';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export const OPERATIONS = contracts.OPERATIONS;
 export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {

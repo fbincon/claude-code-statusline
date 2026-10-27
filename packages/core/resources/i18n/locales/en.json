@@ -1977,5 +1977,6 @@
   "editor.saved": "The submitted display configuration is saved.",
   "editor.not_committed": "No display changes were committed. The retained draft can be edited.",
   "editor.conflict": "Configuration conflict. The draft is retained; cancel and reopen to load the saved configuration.",
-  "editor.still_unknown": "Save outcome remains unknown: {detail}"
+  "editor.still_unknown": "Save outcome remains unknown: {detail}",
+  "task.language_unavailable": "Interface preferences are unavailable; using English."
 }

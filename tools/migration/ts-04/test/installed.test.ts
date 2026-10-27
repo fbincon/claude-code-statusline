@@ -58,7 +58,7 @@ function setup(name: string): string {
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
     const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 25, operation, payload }), environment));
-    assert.equal(result.protocol_version, 24);
+    assert.equal(result.protocol_version, 25);
     assert.ok(result.result);
     return result.result;
 }

@@ -1977,5 +1977,6 @@
   "editor.saved": "提交的顯示設定已儲存。",
   "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
   "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
-  "editor.still_unknown": "儲存結果仍未知：{detail}"
+  "editor.still_unknown": "儲存結果仍未知：{detail}",
+  "task.language_unavailable": "無法讀取介面偏好，使用英語。"
 }

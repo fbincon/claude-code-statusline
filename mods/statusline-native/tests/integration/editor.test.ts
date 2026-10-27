@@ -211,7 +211,7 @@ test('foreign native command and foreign panes pass through without changing the
   ).toBe('foreign command');
   const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
   expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
-  expect(fixture.calls).toHaveLength(0);
+  expect(fixture.calls.every(call=>call.operation==='read_ui_preferences')).toBe(true);
   await ui.unmount();
 });
 
