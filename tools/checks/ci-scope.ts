@@ -35,14 +35,22 @@ export function assessCiNeeds(needs: Record<string, { result: string; outputs?: 
     assert.equal(needs.scope?.result, 'success', 'CI scope classification did not pass');
     assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
     const route = needs.scope.outputs?.route ?? 'full';
-    assert(['full', 'tag'].includes(route), 'Unknown acceptance route');
-    if (route === 'tag') {
-        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'tag');
+    assert(['full', 'tag', 'main'].includes(route), 'Unknown acceptance route');
+    const integrated = route === 'main' || needs.scope.outputs?.shadow === 'true';
+    if (integrated) {
+        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'branch'); assert.equal(process.env.CI_REF_NAME, 'main');
+        assert.equal(needs.integration?.result, 'success', 'Three-platform integration did not pass');
+        assert.equal(needs.promotion?.result, 'success', 'Main promotion did not pass');
+    }
+    if (route === 'tag' || route === 'main') {
+        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, route === 'tag' ? 'tag' : 'branch');
+        if (route === 'tag') assert.equal(needs.integration?.result, 'skipped', 'Unexpected integration during tag verification');
         assert.equal(needs.promotion?.result, 'success', 'Release promotion did not pass');
         for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected execution during promotion');
         return;
     }
     const documentation = needs.scope.outputs?.docs_only === 'true';
+    if (!integrated) for (const name of ['integration', 'promotion']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected promotion execution');
     if (documentation) assert.equal(needs.scope.outputs?.docs_checked, 'true', 'Documentation checks did not pass');
     for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods'])
         assert.equal(needs[name]?.result, documentation ? 'skipped' : 'success', 'Unexpected CI result for ' + name);

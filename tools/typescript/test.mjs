@@ -15,6 +15,7 @@ if (!runtime) roots.push('dist/typescript');
 const files = roots
   .flatMap(tests).filter(path => !path.endsWith(join('ts-04', 'test', 'installed.test.js'))).sort();
 if (runtime) for (const name of ['platform', 'transactions', 'json-boundaries', 'runtime-numbers']) files.push(`dist/typescript/tools/migration/ts-03/test/${name}.test.js`);
+if (runtime) files.push('dist/typescript/tools/acceptance/test/version-command-input.test.js');
 if (!files.length) throw new Error('No compiled tests found');
 const groups = [files.filter(file => !testResponsibility(file).serial), files.filter(file => testResponsibility(file).serial)];
 const concurrency = Number(process.env.STATUSLINE_TEST_WORKERS ?? 2);

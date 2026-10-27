@@ -6,11 +6,15 @@
 
 ## CI 耗时与稳定性优化
 
-### A 阶段：同提交 tag 晋级
+### 候选包在 PR、main 与 tag 之间晋级
 
-待审查 PR 和 main 仍执行完整验收。注解版本 tag 指向已完整验收的 main 提交时，可以改跑 `Verify accepted release bytes` 及必需汇总门禁。选择器核对精确仓库／工作流／main 提交的最新运行、原 attempt、源码树和规则摘要、完整 8／32／16 覆盖、实际 job 引用、固定输入及全部原始附件 ID／摘要。再次校验四个交付文件、原回执哈希、版本限定批准和 main 可达性。tag 晋级明确区分本次执行和沿用的覆盖，不改写回执、不声称重新执行完整矩阵。
+待审查产品 PR 执行一次完整验收。常规双父 merge commit 合入 main 后，仅当 PR 验收的 head／base 与合并父提交一致、完整 Git tree 相同时复用候选包；前一个 main 门禁也须通过。main 在 Linux、Windows、macOS 上安装原包，执行版本、安装、doctor、渲染、带 revision 的配置读写及卸载冒烟。三个独立任务的回执分别记录实际集成提交与原始源码／包，可以单独重跑。
 
-完整运行在 `candidate-acceptance.json` 旁生成 schema v1 的 `ci-evidence.json`，记录源码／工具链／运行时／宿主身份、原始 job attempt 和回执／附件摘要。通过明确附件 ID 选择输入，保留先前 attempt 的成功执行；同名旧失败附件不能覆盖重试选定的报告。过期、缺失、变动、失败或歧义证据阻止晋级。旧源码修订保留完整 tag 路径；本阶段尚未启用 main 对 PR 的复用。
+验收策略变化时同时执行复用影子核验和**完整 main 矩阵**。启用 PR 也必须完成最终 PR／main 验收并核对复用结果，然后后续普通合并才能跳过重复矩阵。squash／rebase、base／head／tree 变化或旧 PR 证据走明确的完整 main 后备路径。适用来源的证据损坏、过期、失败、取消、缺失或歧义均阻断，不能改选其他成功运行掩盖。
+
+注解发布 tag 通常指向完整验收的 **PR 源提交**，该提交必须经已核验合并在 main 历史中可达。tag 门禁核对最新完整 PR 验收、成功的 main 集成、tag 对象、版本专属批准、源码 tree／策略及原始四文件／回执／输入／编译输出摘要。A 阶段的同提交 main → tag 路径继续支持完整 main 后备和旧证据。晋级记录区分实际检查与复用覆盖，不改写包内 commit 或原始回执。
+
+完整运行在 `candidate-acceptance.json` 旁生成 schema v1 的 `ci-evidence.json`，记录源码／工具链／运行时／宿主身份、原始 job attempt 和回执／附件摘要。通过明确附件 ID 选择输入，保留先前 attempt 的成功执行；同名旧失败附件不能覆盖重试选定的报告。`ci-promotion` 记录 main／tag 证据链和原始集成 job 引用。恢复可执行编译输出前先验证原始归档和清单摘要；跨提交恢复另须相同 tree 和源提交可达性。旧源码修订保留完整 tag 路径。
 
 npm 解析器沿 tag 晋级记录回溯原始完整运行，复核证据链并发布相同包字节。旧版本继续兼容读取，不补造新的历史证据。源码归档、独立构建、源码重建、草稿附件、OIDC 上下文和公开下载要求保持。源码／证据附件 30 天到期；刷新证据需要适用的完整验收及新的集成／tag 核验，不能用无关成功运行替代。
 
@@ -28,7 +32,7 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 专项诊断可向包管理命令预加载计时订阅器。产品的 `claude-statusline.management-timing` 诊断通道只报告 npm、复制、归档校验和事务检查点的阶段名与耗时；普通命令无订阅器，协议输出不变。诊断日志与常规冷安装证据分开。registry／cache 通过一次 npm `config list --json` 读取，保留 npm 配置优先级、prefix／root 检查和含凭据地址的拒绝行为（[npm 配置](https://docs.npmjs.com/cli/v10/commands/npm-config/)）。
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。保留完整待审查 PR／main 验收及 8 安装目标／32 运行时／16 宿主责任；A 阶段将满足条件的重复 tag 矩阵替换为对原始已验收字节的明确核验。
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。完整候选覆盖仍为 8 安装目标、32 运行时、16 官方宿主及适用的 197 项 Native 容量检查。普通交付执行一轮完整候选矩阵，再进行 main 集成和 tag 核验；策略变化及不等价集成保留完整后备路径。
 
 候选准备只下载一次不可变的 3.7.0、3.8.0 历史包，验证固定 SHA-256 后通过独立的 `ci-historical-inputs` 附件分发。缓存键包含两个不可变摘要，不使用回退键，也不保存测试结果；恢复的文件使用前重新计算摘要。消费方使用已有 `TS06_LEGACY_370_ARTIFACT`／`TS06_LEGACY_380_ARTIFACT` 输入并独立复核字节。候选安装继续在仓库外使用空缓存、离线 npm 和禁用生命周期脚本；本地未提供历史包时也使用同一个下载器。
 
@@ -36,11 +40,34 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 下载最多尝试三次，仅对适用的临时连接错误和 HTTP 408／429／500／502／503／504 进行一秒、两秒退避。摘要不符、非法 gzip、内容超限、权限错误和重试耗尽均失败。日志记录版本、固定 URL、阶段、次数和耗时，不记录凭据。官方宿主回执保存有界、脱敏的成功与失败命令日志、阶段耗时和运行身份。候选包及验收附件明确保留 30 天；压缩包上传避免重复压缩。
 
-使用 `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` 确定性跟踪运行。本地使用已有认证的 `gh` 账户，CI 使用 Actions token；不输出 token，也不修改 GitHub。程序按 15／30／60 秒退避轮询固定运行，只输出状态变化，完成时分页收集全部任务和步骤耗时。报告区分排队、执行和 attempt。退出码 0 表示成功完成、1 表示 CI 失败、2 表示观察未完成；观察到期不取消 CI。不得将沿用的成功任务计作新执行样本。
+使用 `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` 确定性跟踪运行。本地使用已有认证的 `gh` 账户，CI 使用 Actions token；不输出 token，也不修改 GitHub。程序按 15／30／60 秒退避轮询固定运行和当前任务进度，仅输出变化状态及失败步骤摘要，完成时分页收集全部 attempt／步骤耗时。收集期间启动的重跑不会误报为先前成功。报告区分排队、执行和 attempt。退出码 0 表示成功完成、1 表示 CI 失败、2 表示观察未完成；观察到期不取消 CI。不得将沿用的成功任务计作新执行样本。
 
 真实 Git 仓库测试属于资源敏感用例并保留串行：Windows 诊断发现双 worker 并发下出现观测缺失及子进程超时。`validation=windows-source-probe` 在受影响的 Windows x64／ARM 和 Node 组合上执行原运行时测试及十次独立 Git 测试，不生成候选或发布验收。
 
 手动运行使用独立汇总名称 `Manual validation (not PR evidence)`，包括有意跳过的诊断门禁，避免成功或 skipped 的诊断状态覆盖 PR 必需检查。
+
+### Issue #157 的实测交付记录
+
+下列完整运行均保留 8/32/16 覆盖及适用的 197 项 Native 检查。总耗时包含排队与重跑间隔；累计任务分钟统计实际执行，包含失败执行，但排除 GitHub 在后续 attempt 中复制、执行时间戳不变的成功任务。最长排队和最长执行是分别统计的单任务最大值，可能来自不同任务，不能据此直接从总耗时中相减。
+
+| 完整运行 | 总耗时 | 最长任务排队 | 最长任务执行 | 累计任务分钟 | macOS 分钟 | 重跑次数 |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+| [基线 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40336709149) | 56m40s | 38m14s | 32m31s | 598.35 | 221.43 | 0 |
+| [基线 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40346292097) | 67m23s | 39m46s | 34m28s | 626.33 | 235.07 | 1 |
+| [基线 tag](https://github.com/fbincon/claude-code-statusline/actions/runs/40357902282) | 73m28s | 45m17s | 33m59s | 636.23 | 236.50 | 1 |
+| [第二阶段最终 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40402431203) | 41m53s | 34m28s | 21m17s | 459.37 | 161.97 | 0 |
+| [第二阶段 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40408875074) | 66m53s | 57m58s | 20m27s | 473.70 | 174.80 | 0 |
+| [阶段 A 最终 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40409378646) | 70m55s | 62m45s | 19m47s | 462.07 | 170.42 | 0 |
+
+第二阶段最终 PR 相比基线 PR，总耗时减少 26.1%，累计任务分钟减少 23.2%，macOS 分钟减少 26.9%。随后两轮交付验收同时运行、共享托管 runner 配额，更长排队掩盖了执行工作量的降低。这些是具名实测结果，不是延迟保证或受控基准。启用验收策略变化时，仍执行完整 PR/main 矩阵；之后的普通交付使用一次完整 PR 矩阵、三个 main 安装冒烟和 tag 晋级核验。新 tag 触发与真实 npm/OIDC provenance 留待下一次正式发布记录；本次维护不创建版本或测试 tag。
+
+稳定性证据包括 [Windows x64/ARM 宿主安装诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40392875032)：两轮诊断中的同机监督进程启动中位数降低 68–76%，该比例仅描述启动耗时。[macOS Intel/ARM 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40395043483) 各通过 1,000 次身份比较和 20 次相关事务流程。第二阶段最终 PR 中，Windows Claude 2.1.289、2.1.294 各通过十次原长场景重复；最大耗时为 4.079 秒／2.434 秒，距未改变的 20 秒超时最少仍有 15.921 秒／17.566 秒余量。
+
+失败历史继续保留。[第二阶段较早的完整运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40397874104) 在双 worker 调度下出现四个 Windows Git 测试时序失败后取消。将这些资源敏感测试放回串行组，保留全部断言和超时；[四种相关 Windows/Node 组合](https://github.com/fbincon/claude-code-statusline/actions/runs/40401253349) 随后通过完整运行时套件和十次 Git 套件直接重复，再通过最终完整验收。[真实草稿运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40401259200) 的快检成功、必需汇总检查失败；ready/converted/synchronize 转换和取消也已实际执行。取消或诊断运行不计为完整验收；issue #96 既有六项缺口仍未验证。
+
+随后，[阶段 A main 的 macOS 26 / Node 22.x 任务](https://github.com/fbincon/claude-code-statusline/actions/runs/40418420063/job/121907456214) 暴露了历史版本命令提前关闭 stdin 时未处理的 `EPIPE`。验收 worker 现在先注册管道错误处理再写入：成功仍由退出码与命令输出断言决定，其他流错误会失败并终止命令。真实子进程回归覆盖提前关闭后的成功／失败退出码、Unicode 输入完整性和其他流错误，并在每个运行时源码套件中串行执行。[当时运行中的阶段 B PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40418703438) 因这次修复取消，不计入上表的成功运行。
+
+[下一轮阶段 B 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40421822049) 暴露了该新增夹具的 Windows 特有问题：关闭文件描述符 0 并未关闭所有继承的 stdin 句柄，导致夹具握手超时。夹具现改为在有界写入等待期间让真实子进程退出，仍要求观察到管道关闭错误（`EPIPE`，或 Windows 的 `EOF`）、保留原退出码，且不改变超时。[Windows 定向诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40424220219) 确认了 Windows 的 `EOF` 形式；其他输入错误仍会失败。这些失败／取消运行与成功验收分别保留。
 
 ## CI-01 实现
 

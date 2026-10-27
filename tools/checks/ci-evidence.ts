@@ -2,16 +2,16 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { TARGETS, HOSTS } from './runtime-inputs.ts';
+import { envelopeBytes } from './evidence-zip.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
+export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 export interface ArtifactIdentity { id: number; name: string; digest: string; expires_at: string }
 export interface CompleteEvidence {
@@ -57,8 +57,8 @@ export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
     assert(names.includes('ts06-candidate') && names.includes('ci-compiled-tests'), 'Missing build outputs');
     return names.map(name => artifactIdentity(newestArtifact(artifacts, name)));
 }
-export async function artifactJson(artifact: any, file: string): Promise<any> {
-    assert(['ci-evidence.json', 'promotion.json'].includes(file));
+export async function artifactJson(artifact: any, file: string, expectedHash?: string): Promise<any> {
+    assert(['ci-evidence.json', 'promotion.json', 'smoke.json'].includes(file));
     const identity = artifactIdentity(artifact), path = `repos/${CI_REPOSITORY}/actions/artifacts/${identity.id}/zip`;
     let bytes: Buffer;
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
@@ -73,12 +73,9 @@ export async function artifactJson(artifact: any, file: string): Promise<any> {
         bytes = Buffer.concat(chunks);
     } else bytes = execFileSync('gh', ['api', '--hostname', 'github.com', path], { maxBuffer: 4 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] });
     assert.equal('sha256:' + digest(bytes), identity.digest, 'Evidence ZIP digest mismatch');
-    const temporary = fs.mkdtempSync(join(tmpdir(), 'ci-evidence-'));
-    try {
-        const archive = join(temporary, 'evidence.zip'); fs.writeFileSync(archive, bytes, { mode: 0o600 });
-        // Extract one fixed filename to memory, never arbitrary archive paths.
-        return JSON.parse(execFileSync('unzip', ['-p', archive, file], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }));
-    } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
+    const content = envelopeBytes(bytes, file);
+    if (expectedHash) assert.equal(digest(content), expectedHash, 'Original envelope file changed');
+    return JSON.parse(content.toString('utf8'));
 }
 export function requireRun(run: any, commit: string, branch: string, event = 'push'): void {
     assert.match(commit, SHA); assert.equal(run.head_sha, commit); assert.equal(run.head_branch, branch); assert.equal(run.event, event);
@@ -139,6 +136,15 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
         ...TARGETS.flatMap(target => Object.keys(inputs.versions).map(key => `${target.os}-${target.arch}@${key}`)),
         ...HOSTS.map(host => `${({ 'ubuntu-24.04': 'linux', 'windows-2025': 'win32', 'macos-15': 'darwin' } as Record<string, string>)[host.os]}-${host.claude}`)];
     assert.deepEqual([...obligations].sort(), expectedObligations.sort(), 'Incomplete execution obligations');
+    for (const execution of record.executions.filter(value => value.runtime_case)) {
+        if (inputs.shared.includes(execution.runtime_case)) {
+            const installed = record.executions.find(value => value.target === execution.target && !value.runtime_case && !value.host);
+            assert(installed); assert.equal(execution.execution.reused_installed, true); assert.equal(execution.execution.source_suite, 'complete-platform-suite');
+            assert.equal(execution.job_id, installed.job_id, 'Shared runtime must reference the installed job');
+            assert.equal(execution.node_sha256, installed.node_sha256, 'Shared runtime must use the identical executable');
+            for (const key of ['run_id', 'attempt', 'job']) assert.equal(execution.execution[key], installed.execution[key], 'Shared runtime execution changed');
+        } else assert.notEqual(execution.execution.reused_installed, true, 'Different runtime cannot share installation execution');
+    }
     if (record.event === 'pull_request') {
         assert(record.pr && record.pr.draft === false && record.pr.head === record.source_commit && record.pr.base_ref === 'main'); assert.match(record.pr.base, SHA);
         assert(Number.isSafeInteger(record.pr.number) && record.pr.number > 0);
@@ -161,6 +167,7 @@ export function verifyRecordedFiles(record: CompleteEvidence, directory: string)
     for (const [name, hash] of Object.entries(record.delivery))
         assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate', name))), hash, 'Delivery bytes changed');
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'))), record.input_file_sha256, 'Runtime input bytes changed');
+    assert.deepEqual(JSON.parse(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'), 'utf8')), record.inputs, 'Recorded runtime inputs differ from original bytes');
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-acceptance/candidate-acceptance.json'))), record.acceptance_sha256, 'Acceptance bytes changed');
     for (const [name, hash] of Object.entries(record.compiled))
         assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
