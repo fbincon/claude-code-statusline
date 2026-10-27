@@ -53,8 +53,16 @@ export function artifactIdentity(value: any, now = Date.now()): ArtifactIdentity
     return { id: value.id, name: value.name, digest: value.digest, expires_at: value.expires_at };
 }
 export function newestArtifact(artifacts: any[], name: string): any {
-    const matching = artifacts.filter(value => value.name === name).sort((a, b) => b.id - a.id);
-    assert(matching.length, 'Missing artifact: ' + name); artifactIdentity(matching[0]); return matching[0];
+    const matching = artifacts.filter(value => value.name === name);
+    assert(matching.length, 'Missing artifact: ' + name);
+    if (matching.length > 1) {
+        // Artifact IDs identify objects, not chronology: retries can receive smaller IDs.
+        for (const value of matching) assert(typeof value.created_at === 'string' && Number.isFinite(Date.parse(value.created_at)), 'Missing artifact creation time');
+        matching.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+        assert(Date.parse(matching[0].created_at) > Date.parse(matching[1].created_at), 'Ambiguous artifact creation time');
+    }
+    // Never fall back to an older artifact when the newest is expired, corrupt or failed.
+    artifactIdentity(matching[0]); return matching[0];
 }
 export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
     const names = [...new Set<string>(artifacts.map(value => value.name).filter(name => name === 'ts06-candidate' || name === 'ci-compiled-tests' || /^ts06-(?:installed|runtime|mods)-/u.test(name)))].sort();
