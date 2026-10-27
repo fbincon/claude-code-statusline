@@ -2,11 +2,9 @@
 
 [English](README.md) | **简体中文**
 
-[Native 容量修复](native-capacity.zh-CN.md)。
+[功能路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)定义范围、依赖、切片和验收。开始下一任务时读取这两处规范来源，已实现行为查阅链接的交付记录；规划更新不实施功能。
 
-[后续功能路线](roadmap.zh-CN.md#milestones)与[开发工作包](development-plan.zh-CN.md#future-work)按 M8–M13 排列：首次入口与 npm 全局安装 → 显式升级／回滚 → 选择性导入 → 前景／Powerline 背景渐变 → 主栏显式行对齐 → 全部选定功能验收后的演示。GIT-01、TERMINAL-01 为优先独立维护，Windows 预览结果纳入相关验收。八个未来工作包均保持 NOT_STARTED，不分配版本或日期；M4–M7 已随 v3.7.0 交付，CI-01 已完成，规划更新不实施功能。
-
-[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
+[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明纯文档检查、候选证据与晋级路径、`npm run actions:check` 及每周更新审查。
 
 [贡献指南](../../CONTRIBUTING.zh-CN.md)说明反馈、翻译和 PR 流程；[仓库维护](repository-governance.zh-CN.md)记录主线保护、安全入口、依赖告警和发布身份策略。
 
@@ -31,11 +29,11 @@
 ### 当前开发
 
 - [项目级代理指引](../../AGENTS.md)：共享工作区边界、规范来源、验证和 PR 规则，仅维护英文。
-- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：M8–M13 顺序、优先独立维护、范围、依赖、兼容及功能验收；功能／配套／较远候选各有进入条件，既有设计／证据分别保留。
+- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：当前优先级／状态、已核对问题、范围、依赖、兼容及针对性的功能验收；既有设计／证据分别保留。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
-- [原生编辑器接入](native.zh-CN.md)。
+- [原生编辑器接入](native.zh-CN.md)。[容量与恢复](native-capacity.zh-CN.md)。
 - [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
 - [发布流程](../RELEASING.zh-CN.md)。
 
