@@ -6,6 +6,18 @@ import { openColors, colorsKey, colorDraft } from '@fbincon/statusline-core/edit
 import { openDiagnosis, diagnosisKey, diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 import { SetupState } from '@fbincon/statusline-core/editor/setup';
+import { frame } from '../src/drawing.js';
+test('selected theme bands retain their actual colors while their labels remain highlighted', () => {
+    const s = fixture();
+    openColors(s.editor, 'field:theme');
+    s.editor.colors!.cursor = 4;
+    const selected = frame(s, 120, 30).rows.find(row => row.some(span => span.text.includes('› ')) && row.some(span => span.text.includes('Ocean')))!;
+    assert(selected);
+    const bands = selected.filter(span => span.text.includes('██'));
+    assert(bands.length > 0);
+    assert(bands.every(span => span.foreground !== null && !span.reverse));
+    assert(selected.some(span => span.text.includes('Ocean') && span.reverse));
+});
 test('six-language color candidates cancel, apply only to the draft and preserve unknown-save protection', () => {
     for (const language of LANGUAGES) {
         const s = fixture(language), e = s.editor, baseline = JSON.stringify(e.draft);

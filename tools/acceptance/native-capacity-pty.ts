@@ -113,7 +113,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         } else if(action==='diagnose-file') {
             await key('\x0c','open file diagnosis');await until(text=>text.includes('Diagnose input file'),'file form visible');
             await key('\r','edit file path');await key(diagnosticPath,'insert explicit input path');await key('\r','accept path');
-            await key('\x1b[B'.repeat(4)+'\r','diagnose input only');await until(text=>completed('diagnose_file')&&text.includes('File diagnosis output'),'file result visible');capture('after');
+            await key('\x1b[B'.repeat(4)+'\r','diagnose input only');await until(text=>(external||completed('diagnose_file'))&&text.includes('File diagnosis output')&&text.includes('File-input-model')&&text.includes('Evidence: supplied input only'),'file result visible');capture('after');
             await key('\x07','back to form');await key('\x07','back to retained editor');
         } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
