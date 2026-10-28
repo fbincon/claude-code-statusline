@@ -61,7 +61,7 @@ macOS 身份适配器通过既有原生桥接读取 `PROC_PIDTBSDINFO`，校验�
 
 Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保留：开发运行时与某个 Node 组合完全一致时，安装任务的完整源码测试和原有隔离安装也覆盖该组合。共享回执引用这次实际执行，并要求源码测试回执、可执行文件摘要和源码哈希一致，不算一次新测试。其他运行时保持独立任务。两个真实历史版本流程通过隔离子进程并发执行，分别拥有 prefix、HOME、配置、缓存、registry 和日志；失败时取消另一个流程，等待退出后再清理。
 
-手动 `validation=windows-probe` 在 Windows x64 和 ARM 宿主／x64 上运行进程边界回归、同机新旧监督程序测量及真实安装验收，不能生成汇总发布验收。最终完整矩阵还在 Windows Claude 2.1.289、2.1.294 上各重复十次原有 20 秒长场景，保留原测试体、源码摘要、单项耗时与日志，然后执行常规完整宿主测试。
+手动 `validation=windows-probe` 在 Windows x64 和 ARM 宿主／x64 上运行进程边界回归、同机新旧监督程序测量及真实安装验收，不能生成汇总发布验收。最终完整矩阵还在 Windows Claude 2.1.289、2.1.294 上各重复十次原有 20 秒长场景，保留原测试体、源码摘要、单项耗时与日志，然后执行常规完整宿主测试。 Windows 控制台诊断先执行原有终端策略与外部编辑器场景，用测试专属 Node preload 记录子进程终端字节，同时保留真实控制台句柄。`test:installed -- --diagnostic-pattern REGEX` 保留 PowerShell 准备及所选场景全部断言；回执明确不可晋级，且绝不会标记为完整验收通过。
 
 专项诊断可向包管理命令预加载计时订阅器。产品的 `claude-statusline.management-timing` 诊断通道只报告 npm、复制、归档校验和事务检查点的阶段名与耗时；普通命令无订阅器，协议输出不变。诊断日志与常规冷安装证据分开。registry／cache 通过一次 npm `config list --json` 读取，保留 npm 配置优先级、prefix／root 检查和含凭据地址的拒绝行为（[npm 配置](https://docs.npmjs.com/cli/v10/commands/npm-config/)）。
 

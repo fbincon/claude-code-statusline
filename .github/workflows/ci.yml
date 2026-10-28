@@ -496,6 +496,10 @@ jobs:
       - run: npm run build
       - name: Verify actual native process boundaries
         run: node --test packages/platform/dist/test/source-process.test.js
+      - name: Diagnose installed console entries before the long version profile
+        run: |
+          mkdir -p "$RUNNER_TEMP/probe"
+          node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/probe/editor-console.json" --diagnostic-pattern 'installed terminal policy|installed external editor' > "$RUNNER_TEMP/probe/editor-console.log" 2>&1 || { cat "$RUNNER_TEMP/probe/editor-console.log"; exit 1; }
       - name: Compare identical supervisor workloads
         run: node dist/typescript/tools/benchmarks/windows-supervisor.js "$RUNNER_TEMP/probe/supervisor.json"
       - name: Profile real installed upgrade and recovery
