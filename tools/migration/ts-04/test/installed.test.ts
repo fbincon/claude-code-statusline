@@ -745,11 +745,13 @@ test('installed candidate upgrades owned Python entry bytes while preserving opt
 
 test('installed source operations approve commands separately and protect reviewed binding cleanup',async()=>{
     const config=setup('source-operations'),project=join(installed.temporary,'command project');fs.mkdirSync(project);
-    const mode=join(project,'mode.txt');fs.writeFileSync(mode,'good');
+    const mode=join(project,'mode.txt'),gate=join(project,'release.txt');fs.writeFileSync(mode,'good');
     const before=fs.readFileSync(join(config,'settings.json'));
     const mutation=(action:string,extra={})=>ui(config,'sources_apply',{action,id:'periodic',expected_revision:ui(config,'sources_read').revision,...extra});
-    const script='setTimeout(()=>{if(require("node:fs").readFileSync(process.argv[1],"utf8")==="bad")process.exitCode=7;else process.stdout.write("42");},1500)';
-    mutation('add',{source:{name:'Periodic',kind:'command',scope:{project,session:null,agent:null},ttl_seconds:1,settings:{executable:installed.node,args:['-e',script,mode],cwd:project,input:{project:'project'},output:'text',timeout_ms:30000}}});
+    // Keep the command alive until the consumer assertion has actually run.
+    // Cross-platform CLI startup time must not decide whether it is still busy.
+    const script='const fs=require("node:fs"),end=Date.now()+25000;function wait(){if(!fs.existsSync(process.argv[2])){if(Date.now()>end){process.exitCode=8;return;}setTimeout(wait,25);return;}setTimeout(()=>{if(fs.readFileSync(process.argv[1],"utf8")==="bad")process.exitCode=7;else process.stdout.write("42");},1500);}wait();';
+    mutation('add',{source:{name:'Periodic',kind:'command',scope:{project,session:null,agent:null},ttl_seconds:1,settings:{executable:installed.node,args:['-e',script,mode,gate],cwd:project,input:{project:'project'},output:'text',timeout_ms:30000}}});
     const reviewed=ui(config,'source_review',{id:'periodic'}).review_revision;mutation('enable',{review_revision:reviewed});
     const context=ui(config,'source_context',{project,session:null,agent:null});
     const lifecycle=(session:string,seq:number,event='tick')=>JSON.parse(run(['runtime'],config,JSON.stringify({protocol_version:3,operation:'source_lifecycle',payload:{session_id:session,epoch:'installed',seq,project,host_version:'2.1.294',event}}))).result;
@@ -757,6 +759,7 @@ test('installed source operations approve commands separately and protect review
     assert.equal(ui(config,'sources_read').version,3);assert.equal(ui(config,'sources_read').automatic[0].interval_seconds,300);
     assert.equal(lifecycle('one',1).scheduled,1);assert.equal(lifecycle('two',0).scheduled,0);
     const joined=ui(config,'source_refresh',{id:'periodic',context,owner:'installed-manual'});mutation('auto-off');assert.equal(ui(config,'source_status',{id:joined.id}).state,'running');
+    fs.writeFileSync(gate,'release');
     const finish=async(id:string)=>{const end=Date.now()+40000;let job=ui(config,'source_status',{id});while(job.state==='running'&&Date.now()<end){await new Promise(resolve=>setTimeout(resolve,100));job=ui(config,'source_status',{id});}return job;};
     const good=await finish(joined.id);assert.equal(good.state,'completed');assert.equal(good.result.exit_code,0);assert.equal(good.result.summary,'42');
     fs.writeFileSync(mode,'bad');const failure=ui(config,'source_refresh',{id:'periodic',context,owner:'installed-failure'});assert.equal((await finish(failure.id)).state,'failed');
