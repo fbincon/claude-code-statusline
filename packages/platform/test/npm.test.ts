@@ -9,9 +9,10 @@ import { verifyArchive,type NpmLayout } from '../src/npm.js';
 import * as fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolvedPath } from '../src/commands.js';
+import { removeTree } from '../src/remove-tree.js';
 test('ordinary package manifests accept public permissions and reject unsafe or malformed inputs without writes', t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'package manifest 中文 ')), path = join(root, 'package.json');
-    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    t.after(() => removeTree(root));
     const manifest = { name: '@fbincon/claude-code-statusline', version: '3.12.0' }, bytes = Buffer.from(JSON.stringify(manifest));
     fs.writeFileSync(path, bytes);
     for (const mode of process.platform === 'win32' ? [0o600] : [0o600, 0o644, 0o664]) {

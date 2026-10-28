@@ -14,6 +14,7 @@ import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/m
 import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation, observeOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 function product(prefix: string, version: string) {
     const root = globalPackageRoot(prefix);
     fs.mkdirSync(root, { recursive: true });
@@ -30,7 +31,7 @@ function product(prefix: string, version: string) {
 }
 function fixture(t: TestContext) {
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'package management 中文 ')));
-    t.after(() => fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }));
+    t.after(() => removeTree(temporary));
     const prefix = join(temporary, 'prefix'), configDir = join(temporary, 'config'), origin = globalPackageRoot(join(temporary, 'cache'));
     product(prefix, '3.8.0');
     const bytes = Buffer.from('verified archive'), integrity = 'sha512-' + createHash('sha512').update(bytes).digest('base64');
@@ -246,7 +247,7 @@ test('the prefix lock serializes package changes across distinct configuration d
 });
 test('an interrupted first install can repair its partial package without inventing a configuration backup', async (t) => {
     const f = fixture(t);
-    fs.rmSync(f.layout.root, { recursive: true });
+    removeTree(f.layout.root);assert(!fs.existsSync(f.layout.root));
     fs.mkdirSync(f.layout.root, { recursive: true });
     fs.writeFileSync(join(f.layout.root, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version: '3.9.0' }));
     const operation = startOperation(f.configDir, f.prefix, '3.9.0', f.layout.registry, null);
@@ -364,7 +365,7 @@ test('review startup grace excludes runner preparation while the overall deadlin
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-startup-grace-123456789';
     const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
     const record:ReviewRecord={configDir:f.configDir,origin:f.options.origin,pid:null,token:null,launched_at:new Date().toISOString(),job:{version:1,id,owner,state:'running',started_at:new Date(Date.now()-60000).toISOString(),finished_at:null,request,review:null,error:null}};
-    t.after(()=>fs.rmSync(reviewFolder(id),{recursive:true,force:true}));writeReviewRecord(record);
+    t.after(()=>removeTree(reviewFolder(id)));writeReviewRecord(record);
     assert.equal(packageReviewJob(context,id,owner).state,'running');
     record.launched_at=new Date(Date.now()-16000).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
     delete record.launched_at;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
@@ -420,7 +421,7 @@ test('protected cleanup retains current and previous inputs, rejects foreign mat
     const worker=await reviewedExecution(f);worker.request.backup_id=old.id;worker.value.state='running';worker.pid=process.pid;worker.token=processToken(process.pid)!;writeExecution(worker);
     const reserved=reviewHistory(context,f.prefix);assert.equal(reserved.rows.find(row=>row.id===old.id)!.removable,false);assert.throws(()=>cleanupHistory(context,f.prefix,reserved.revision,[old.id]));
     assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]),/conflict/,'A worker created after review invalidates the earlier cleanup decision');
-    fs.rmSync(executionFolder(f.configDir,worker.value.id),{recursive:true,force:true});
+    removeTree(executionFolder(f.configDir,worker.value.id));
     assert(!fs.existsSync(executionFolder(f.configDir,worker.value.id)));
     const evidence=(checked:ReturnType<typeof reviewHistory>)=>JSON.stringify({review:checked,installation:readInstallation(f.configDir,f.prefix),old:readOperation(f.configDir,f.prefix,old.id),executions:fs.readdirSync(dirname(executionFolder(f.configDir,worker.value.id))),marker:fs.existsSync(pendingPath(f.prefix))?JSON.parse(fs.readFileSync(pendingPath(f.prefix),'utf8')):null});
     const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');
