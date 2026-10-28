@@ -66,7 +66,7 @@ try {
                 fs.writeFileSync(join(directory, page + '.ansi'), raw);
                 if (width >= 64 && height >= 18) {
                     for (const [foreground, background] of Object.values(TERMINAL_THEMES)) {
-                        verifyColors(screen.buffer, width, height, foreground, background);
+                        verifyColors(screen.buffer, width, height, foreground, background, ['gradient-selector', 'theme-selector'].includes(page));
                     }
                     const panel = dimensions(width, height).content;
                     for (const line of screen.buffer.slice(panel.innerY, panel.innerY + panel.innerHeight)) {

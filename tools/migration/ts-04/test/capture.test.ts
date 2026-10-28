@@ -62,6 +62,23 @@ test('tests.integration.test_terminal_colors.TerminalColorTests.test_preview_pre
     assert.equal(screen.buffer[p.innerY]![p.innerX]!.fg, 'brightwhite');
     assert.ok(verifyColors(screen.buffer, 64, 18, ...TERMINAL_THEMES.light) > 0);
 });
+test('color-page captures distinguish bounded swatches from labels, reversed bands and unrelated chrome', async (t) => {
+    const f = await fixture(t), screen = new Capture(120, 32);
+    screen.feed(ansiFrame(bounded(f.state, 120, 32)));
+    const content = dimensions(120, 32).content, y = content.innerY + 1, x = content.innerX + 2;
+    screen.buffer[y]![x] = { data: '█', fg: '112233', bg: 'default', bold: false, reverse: false };
+    const check = () => verifyColors(screen.buffer, 120, 32, ...TERMINAL_THEMES.light, true);
+    assert.throws(() => verifyColors(screen.buffer, 120, 32, ...TERMINAL_THEMES.light), /Fixed chrome/);
+    assert.doesNotThrow(check);
+    screen.buffer[y]![x]!.reverse = true;
+    assert.throws(check, /Fixed chrome/);
+    screen.buffer[y]![x]!.reverse = false;
+    screen.buffer[y]![x]!.data = 'Label';
+    assert.throws(check, /Fixed chrome/);
+    screen.buffer[y]![x]!.data = '█';
+    screen.buffer[0]![0]!.fg = 'brightwhite';
+    assert.throws(check, /Fixed chrome/);
+});
 test('tests.integration.test_terminal_colors.TerminalColorTests.test_capture_rejects_unreadable_defaults_and_resolves_recorded_ansi_palette', async (t) => {
     const f = await fixture(t);
     const screen = new Capture(64, 18);
