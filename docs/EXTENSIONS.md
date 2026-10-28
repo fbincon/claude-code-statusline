@@ -253,3 +253,5 @@ claude-statusline source release-draft DRAFT_OWNER --json
 Use the inventory's current revision and inspect references first. A crashed editor may leave a conservative draft reservation; release that exact owner only after recovering, exporting or deliberately abandoning its draft. Normal editor close releases its reservation. Removing a display reference alone does not authorize deletion of a record used by another scheme.
 
 The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all references under lock and refuses used/uncertain records. Clear component references in the editor, then prefer the reviewed binding-cleanup flow.
+
+[Installed source-page captures](images/source-command-package/README.md) illustrate the separate state and approval controls.

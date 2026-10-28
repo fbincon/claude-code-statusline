@@ -128,8 +128,12 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             }else{
                 await until(text=>text.includes('Local status'),'local status boundary visible');
                 if(action==='package-cleanup'){
+                    // This isolated installation is not a global npm prefix.
+                    // Select the owned empty prefix explicitly before browsing.
+                    await key('\x1b[H','first package row');for(let i=0;i<8&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Prefix:'));i++)await key('\x1b[B','select explicit prefix');
+                    await key('\r','edit prefix');await key('\x15','clear prefix');await key(project,'owned empty prefix');await key('\r','read selected prefix');
                     await key('\x1b[H','first package row');for(let i=0;i<50&&!read().split('\n').some(line=>line.includes('›')&&line.includes(t('package.ui.cleanup_review','en')));i++)await key('\x1b[B','find cleanup');
-                    await key('\r','review local cleanup');await until(()=>completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
+                    await key('\r','review local cleanup');await until(text=>external?text.includes(t('package.ui.cleanup_notice','en').slice(0,32)):completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
                 }else capture('after');await key('q','return to editor');
                 assert(!records().some(row=>row.operation==='package_review_start'),'Page entry started a network review');
             }
