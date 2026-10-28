@@ -1,3 +1,4 @@
+import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
 import { diagnosisAdapter } from '../diagnostics/service.js';
 import { Session, outcome, type Backend } from '@fbincon/statusline-tui/session';
 import { RESULT_ENV, REQUEST_ENV, NONCE_ENV, resultPath, requestGuard, deadline, writeResult, EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
@@ -37,7 +38,10 @@ export async function configure(service: ConfigurationService, language: Languag
         const io = service.io;
         const guarded = new ConfigurationService(service.context, { ...io, lock(directory, action) { return io.lock(directory, () => { guard(); return action(); }); } });
         const protocol = new ConfigurationProtocol(guarded, await previewAdapter(),undefined,await diagnosisAdapter(guarded));
-        const backend: Backend = { request(operation, payload = {}) {
+        const backend: Backend = { async control(control,operation,payload={}) {
+            const result=await runSourceProcess({executable:control.executable,args:[...control.args,'ui','--config-dir',control.config_dir],cwd:process.cwd(),environment:process.env,input:requestText(operation,payload),timeoutMs:30000});
+            return parseResponse(operation,{exitCode:result.code??2,stdout:result.stdout,stderr:result.reason});
+        }, request(operation, payload = {}) {
                 if (operation === 'read' && Object.keys(payload as object).length === 0 && target) payload = { target };
                 const response = protocol.handle(requestText(operation, payload), error => { throw error; });
                 return parseResponse(operation, { exitCode: response.status, stdout: pythonJson(response.response), stderr: '' });

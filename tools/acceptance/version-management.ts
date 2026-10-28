@@ -294,7 +294,62 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const cancelled=await ui('package_review_start',{owner,request});assert.equal((await ui('package_review_cancel',{id:cancelled.id,owner})).state,'cancelled');
         assert.deepEqual(configuration(),savedConfiguration);assert.deepEqual(fs.readFileSync(join(root,'candidate.json')),savedPackage);assert.equal(fs.statSync(entry).mtimeMs,entryStamp);assert(!transaction());
         const editorReview={local_reads_no_network:true,metadata_unverified:true,verified_dry_run:true,rollback_review:true,restore_review:true,cancellation:true,configuration_unchanged:true,package_unchanged:true,operation_timings:timings.splice(reviewTimingStart)};
-        return { editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
+        let editorExecution:Record<string,unknown>|null=null;
+        if(historicalVersion==='3.8.0') {
+            const executionTimingStart=timings.length;
+            let controlEntry=entry;
+            const control=async(operation:string,payload:unknown)=>{
+                const response=JSON.parse((await invoke([controlEntry,'ui','--config-dir',configDir],true,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload}))).stdout);
+                assert(response.ok,JSON.stringify(response));return response.result;
+            };
+            const review=async(action:string,target:string|null,backup_id:string|null=null)=>{
+                const status=await control('package_status',{prefix,offset:0});
+                let job=await control('package_review_start',{owner,request:{action,prefix,expected_revision:status.revision,target,channel:null,backup_id,expected_integrity:null}});
+                const deadline=Date.now()+VERSION_OPERATION_MS;
+                while(job.state==='running'&&Date.now()<deadline){await new Promise(resolve=>setTimeout(resolve,250));job=await control('package_review_status',{id:job.id,owner});}
+                assert.equal(job.state,'complete',JSON.stringify(job));assert.equal(job.review.compatible,true,JSON.stringify(job.review));return job;
+            };
+            const executions:any[]=[];
+            const execute=async(job:any)=>{
+                let run=await control('package_execute_start',{id:job.id,owner});
+                assert(!run.control.args[0].startsWith(root+ (process.platform==='win32'?'\\':'/')),'Executor is inside replaced package');
+                controlEntry=run.control.args[0];executions.push(run);
+                // Detaching immediately must leave the worker and transaction alive.
+                await control('package_execute_detach',{id:run.id,owner});
+                const deadline=Date.now()+VERSION_OPERATION_MS;
+                do {await new Promise(resolve=>setTimeout(resolve,250));run=await control('package_execute_status',{id:run.id});}while((run.state==='running'||run.running!==false)&&Date.now()<deadline);
+                assert.equal(run.state,'complete',JSON.stringify(run));assert.equal(run.running,false);assert.equal(run.stage,'complete');return run;
+            };
+            const down=await execute(await review('rollback',historicalVersion));
+            assert.equal(down.results.package,true);assert.equal(down.results.integration,true);
+            assert.equal(await version(),'claude-statusline '+historicalVersion);
+            const oldProtocol=await invoke([entry,'ui','--config-dir',configDir],false,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation:'package_status',payload:{prefix,offset:0}}));assert.notEqual(oldProtocol.code,0);
+            const retained=await control('package_execute_status',{id:down.id});assert.equal(retained.state,'complete');
+            const up=await execute(await review('update',targetVersion));
+            assert.equal(await version(),'claude-statusline '+targetVersion);assert.equal(up.results.integration,true);
+            // Reuse the existing real-npm crash boundary, then recover through the
+            // same retained controller that survived a downgrade and an upgrade.
+            const crashAgain=await invoke(['--input-type=module','-e',crash],false);assert.notEqual(crashAgain.code,0);
+            const pendingId=JSON.parse(fs.readFileSync(markerPath,'utf8')).id;
+            const afterCrash=fs.statSync(entry).mtimeMs;
+            const recovered=await execute(await review('recover-package',targetVersion));
+            assert.equal(recovered.transaction_id,pendingId);assert.equal(fs.statSync(entry).mtimeMs,afterCrash);assert(!fs.existsSync(markerPath));
+            const restored=await execute(await review('restore-config',null,up.transaction_id));
+            assert.equal(restored.results.configuration,true);assert.equal(restored.results.package,null);
+            assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline.json')),display);
+            assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline-profiles.json')),profiles);
+            assert.equal(JSON.parse(fs.readFileSync(settingsPath,'utf8')).env.KEEP,'unchanged');
+            assert.deepEqual(fs.readFileSync(join(root,'candidate.json')),savedPackage);
+            const requests=registryRequests;
+            const cleanup=await control('package_cleanup_review',{prefix,offset:0});
+            assert.equal(cleanup.uncertain,false,JSON.stringify(cleanup));assert(cleanup.rows.some((row:any)=>!row.removable));
+            const removable=cleanup.rows.find((row:any)=>row.removable&&!executions.some(run=>run.id===row.id));assert(removable,JSON.stringify(cleanup));
+            await control('package_cleanup_apply',{prefix,revision:cleanup.revision,ids:[removable.id]});
+            const cleaned=await control('package_cleanup_review',{prefix,offset:0});assert(!cleaned.rows.some((row:any)=>row.id===removable.id));
+            assert.equal(registryRequests,requests);
+            editorExecution={verified_execution:true,retained_control:true,downgrade_roundtrip:true,old_protocol_rejected:true,detach_continues:true,progress_complete:true,package_recovery:true,separate_configuration_restore:true,protected_cleanup:true,configuration_preserved:true,real_npm:true,model_calls:0,operation_timings:timings.splice(executionTimingStart)};
+        }
+        return { editor_execution:editorExecution, editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
         server.closeAllConnections();

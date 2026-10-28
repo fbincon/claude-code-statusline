@@ -39,7 +39,7 @@ test('native Layout alignment form renders through the Client and persists only 
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 27,
+      protocol_version: 28,
       error: { code, message: 'Test save refused.' },
     }),
     2,

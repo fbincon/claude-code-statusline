@@ -208,6 +208,7 @@ export class State {
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
         if(e.packages)return packageKey(e.packages,event);
+        if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?'cancel':null;}
         if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
         if(e.diagnosis)return diagnosisKey(e,event);
         if(e.colors)return colorsKey(e,event,this.language);

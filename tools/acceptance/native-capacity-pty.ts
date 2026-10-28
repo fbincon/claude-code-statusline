@@ -103,7 +103,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         capture('before');
-        if(action==='version-status'||action==='external-task') {
+        if(['version-status','package-cleanup','external-task'].includes(action)) {
             await key(external?'\x04':'d','unsaved copy');
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
             const label=action==='version-status'?'Version and installation':'Task details';
@@ -116,7 +116,11 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await until(text=>text.includes('captured-task'),'task retained');capture('after');await key('q','return to editor');
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
             }else{
-                await until(text=>text.includes('Review only'),'local review boundary visible');capture('after');await key('q','return to editor');
+                await until(text=>text.includes('Review only'),'local review boundary visible');
+                if(action==='package-cleanup'){
+                    await key('\x1b[H','first package row');for(let i=0;i<50&&!read().split('\n').some(line=>line.includes('›')&&line.includes(t('package.ui.cleanup_review','en')));i++)await key('\x1b[B','find cleanup');
+                    await key('\r','review local cleanup');await until(()=>completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
+                }else capture('after');await key('q','return to editor');
                 assert(!records().some(row=>row.operation==='package_review_start'),'Page entry started a network review');
             }
             await until(text=>text.includes('Configure Status Line *'),'unsaved draft retained');
@@ -157,11 +161,13 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel profile page');
             if (action === 'profile-actions') await key(external ? '\x1b' : '\x07', 'cancel library');
-        } else if (action === 'sources' || action === 'source-review') {
+        } else if (['sources','source-review','source-inspect','source-bindings'].includes(action)) {
             await key('\x19', 'source library'); await until(text => text.includes('Local sample 0'), 'source list visible');
             if (action === 'source-review') { await key('\r', 'source actions'); await key('\x1b[B', 'select review'); await key('\r', 'review disabled command'); await until(text => completed('source_review') && text.includes('Review all fields'), 'source review completed'); }
+            if(action==='source-inspect'){await key('\r','source actions');await key('\x1b[B'.repeat(6)+'\r','inspect saved source');await until(()=>completed('source_inspect'),'readable source inspection');}
+            if(action==='source-bindings'){await key('\x1b[B'.repeat((data.sources?.library?.sources.length??0)+1)+'\r','binding inventory');await until(()=>completed('source_bindings_review'),'bindings read completed');}
             capture('after'); await key('\x07', 'cancel source page');
-            if (action === 'source-review') await key('\x07', 'cancel source library');
+            if (['source-review','source-inspect','source-bindings'].includes(action)) await key('\x07', 'cancel source library');
         } else if (action === 'save') {
             for (let i = 0; i < 14; i++) await key('d', 'copy ' + (i + 1));
             await key('s', 'save 24 instances'); await until(text => completed('apply') && /saved/iu.test(text), 'save outcome visible');
@@ -211,10 +217,11 @@ try {
         ['theme-selector','plain-main-w72','colors'],['sample-scenarios','plain-main-w72','scenarios'],['input-file-diagnosis','plain-main-w72','diagnose-file'],
     ]) await runCase(name!, fixture!, action!);
     for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file'],['external-version-status','plain-main-w72','version-status'],['external-task-viewer','plain-main-w72','external-task']]) await runCase(name!, fixture!, action!, true);
-    assert.equal(reports.length, 27); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
+    assert.equal(reports.length, 33); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 27 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === 33 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

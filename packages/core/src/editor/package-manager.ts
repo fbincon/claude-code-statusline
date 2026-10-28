@@ -1,313 +1,185 @@
-import type { PackageStatus, PackageReviewJob, PackageReviewRequest, Operation, ResultFor } from '../contracts/ui.js';
+import type { PackageStatus, PackageReviewJob, PackageReviewRequest, PackageExecution, PackageCleanupReview, PackageControl, Operation, ResultFor } from '../contracts/ui.js';
+import type { Editor } from './draft.js';
+import { closeSourceDraft } from './source-manager.js';
 import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/messages.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
 import { BackendError } from './backend.js';
-interface Row {
-    key: string;
-    text: string;
-    action?: PackageReviewRequest['action'];
-    backup?: string;
-    selected?: boolean;
-}
+interface Row { key:string; text:string; action?:PackageReviewRequest['action']; backup?:string; selected?:boolean }
 export interface PackageManager {
-    owner: string;
-    status: PackageStatus | null;
-    job: PackageReviewJob | null;
-    prefix: string;
-    target: string;
-    channel: 'latest' | 'beta' | null;
-    offset: number;
-    selected: string;
-    scroll: number;
-    rows: Row[];
-    capacity: number;
-    input: TextInput | null;
-    editing: 'prefix' | 'target' | null;
-    message: LocalizedText | string | null;
-    effect: 'load' | 'start' | 'status' | 'cancel' | 'close' | null;
-    action: PackageReviewRequest['action'];
-    backup: string | null;
-    busy: boolean;
-    closed: boolean;
-    generation: number;
+    owner:string;status:PackageStatus|null;job:PackageReviewJob|null;execution:PackageExecution|null;cleanup:PackageCleanupReview|null;
+    prefix:string;target:string;channel:'latest'|'beta'|null;offset:number;selected:string;scroll:number;rows:Row[];capacity:number;
+    input:TextInput|null;editing:'prefix'|'target'|'export_path'|null;export_path:string;
+    message:LocalizedText|string|null;
+    effect:'load'|'start'|'status'|'cancel'|'close'|'execute'|'save-draft'|'discard-draft'|'export-draft'|'reconcile-draft'|'cleanup-review'|'cleanup-apply'|null;
+    mode:'status'|'draft'|'execute-confirm'|'cleanup'|'cleanup-confirm';cleanupId:string|null;draftPrepared:boolean;
+    action:PackageReviewRequest['action'];backup:string|null;busy:boolean;closed:boolean;generation:number;
 }
-export function packageManager(): PackageManager {
-    return { owner: 'viewer-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), status: null, job: null,
-        prefix: '', target: '', channel: null, offset: 0, selected: 'prefix', scroll: 0, rows: [], capacity: 1, input: null, editing: null, message: null,
-        effect: 'load', action: 'check', backup: null, busy: false, closed: false, generation: 0 };
+export function packageManager():PackageManager {
+    return {owner:'viewer-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),status:null,job:null,execution:null,cleanup:null,prefix:'',target:'',channel:null,offset:0,selected:'prefix',scroll:0,rows:[],capacity:1,input:null,editing:null,export_path:'statusline-before-update.json',message:null,effect:'load',mode:'status',cleanupId:null,draftPrepared:false,action:'check',backup:null,busy:false,closed:false,generation:0};
 }
 export interface PackageBackend {
-    request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
+    request<O extends Operation>(operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
+    control?<O extends Operation>(control:PackageControl,operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
 }
-export async function closePackage(view: PackageManager, backend: PackageBackend): Promise<void> {
-    view.closed = true;
-    view.generation++;
-    const job = view.job;
-    if (job)
-        try {
-            await backend.request('package_review_cancel', { id: job.id, owner: view.owner });
-        }
-        catch { /* Worker deadlines still bound a disconnected view. */ }
+function request<O extends Operation>(view:PackageManager,backend:PackageBackend,operation:O,payload:unknown):ResultFor<O>|Promise<ResultFor<O>> {
+    return view.execution&&backend.control?backend.control(view.execution.control,operation,payload):backend.request(operation,payload);
 }
-export async function performPackage(view: PackageManager, backend: PackageBackend): Promise<void> {
-    const effect = view.effect;
-    if (!effect || view.busy)
-        return;
-    view.effect = null;
-    if (effect === 'close') {
-        await closePackage(view, backend);
-        return;
-    }
-    view.busy = true;
-    const generation = view.generation;
-    try {
-        if (effect === 'load') {
-            if (view.job && view.prefix && view.job.request.prefix !== view.prefix) {
-                const cancelled = await backend.request('package_review_cancel', { id: view.job.id, owner: view.owner });
-                if (view.closed || generation !== view.generation)
-                    return;
-                if (cancelled.state !== 'cancelled') {
-                    view.job = cancelled;
-                    view.message = text('package.ui.cancel_requested');
-                    view.selected = 'message';
-                    return;
-                }
-                view.job = null;
-            }
-            const status = await backend.request('package_status', { prefix: view.prefix || null, offset: view.offset });
-            if (view.closed || generation !== view.generation)
-                return;
-            if (view.job && status.revision !== view.job.request.expected_revision) {
-                view.job = { ...view.job, state: 'failed', review: null, error: 'conflict' };
-                view.message = text('package.ui.changed');
-                view.selected = 'message';
-            }
-            view.status = status;
-            view.prefix = status.prefix ?? view.prefix;
-        }
-        else if (effect === 'start') {
-            if (!view.status?.prefix)
-                throw new BackendError('prefix', text('package.reason_prefix'));
-            if (view.job?.state === 'running')
-                return;
-            const previous = view.job;
-            let target = view.action === 'recover-package' ? view.status.pending?.version ?? view.target : view.target || null;
-            let integrity: string | null = null;
-            if (view.action === 'update' && previous?.state === 'complete' && previous.request.action === 'check' && previous.request.expected_revision === view.status.revision && previous.review &&
-                (!target || target === previous.review.target) && (!view.channel || view.channel === previous.review.channel || !!target)) {
-                target = previous.review.target;
-                integrity = previous.review.integrity;
-            }
-            const request: PackageReviewRequest = { action: view.action, prefix: view.status.prefix, expected_revision: view.status.revision,
-                target: view.action === 'restore-config' ? null : target, channel: !target && ['check', 'update'].includes(view.action) ? view.channel : null,
-                backup_id: view.action === 'restore-config' ? view.backup : null, expected_integrity: integrity };
-            if (previous) {
-                const cancelled = await backend.request('package_review_cancel', { id: previous.id, owner: view.owner });
-                if (view.closed || generation !== view.generation)
-                    return;
-                if (cancelled.state !== 'cancelled') {
-                    view.job = cancelled;
-                    view.message = text('package.ui.cancel_requested');
-                    view.selected = 'message';
-                    return;
-                }
-                view.job = null;
-            }
-            const job = await backend.request('package_review_start', { request, owner: view.owner });
-            if (view.closed || generation !== view.generation) {
-                await backend.request('package_review_cancel', { id: job.id, owner: view.owner });
-                return;
-            }
-            view.job = job;
-            view.message = null;
-            view.selected = 'job';
-        }
-        else if (view.job) {
-            const job = await backend.request(effect === 'cancel' ? 'package_review_cancel' : 'package_review_status', { id: view.job.id, owner: view.owner });
-            if (view.closed || generation !== view.generation)
-                return;
-            const cancelled = effect === 'cancel' && job.state === 'cancelled';
-            view.job = cancelled ? null : job;
-            view.message = effect === 'cancel' ? text(cancelled ? 'package.cancelled' : 'package.ui.cancel_requested') : null;
-            if (effect === 'cancel')
-                view.selected = 'message';
-            else if (job.state !== 'running') {
-                view.selected = job.review ? 'verification' : job.error ? 'job-error' : 'job';
-                view.scroll = Math.max(0, view.rows.findIndex(row => row.key === 'job'));
-            }
-        }
-    }
-    catch (error) {
-        if (!view.closed && generation === view.generation) {
-            view.message = error instanceof BackendError && error.localization ? error.localization : text('package.reason_io_error');
-            view.selected = 'message';
-        }
-    }
-    finally {
-        if (generation === view.generation)
-            view.busy = false;
-    }
+export async function closePackage(view:PackageManager,backend:PackageBackend):Promise<void>{
+    view.closed=true;view.generation++;
+    if(view.execution)try{await request(view,backend,'package_execute_detach',{id:view.execution.id,owner:view.owner});}catch{/* Detach never cancels an executor. */}
+    if(view.job)try{await request(view,backend,'package_review_cancel',{id:view.job.id,owner:view.owner});}catch{/* Review deadlines still bound disconnected views. */}
 }
-export function packageView(view: PackageManager, language: Language, width: number, height: number): Row[] {
-    const tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params), rows: Row[] = [];
-    const add = (key: string, value: string, action?: Row['action'], backup?: string) => wrapText([value.replace(/[\p{Cc}\p{Cs}]/gu, '')], Math.max(2, width - 2)).forEach((line, index) => rows.push({ key: index ? key + ':' + index : key, text: line, ...(action ? { action } : {}), ...(backup ? { backup } : {}) }));
-    const status = view.status;
-    add('notice', tr('package.ui.readonly'));
-    if (status)
-        add('current', tr('package.ui.current', { value: status.current ?? tr('task.unknown') }));
-    add('prefix', tr('package.ui.prefix', { value: view.editing === 'prefix' && view.input ? inputView(view.input, Math.max(2, width - 12)) : view.prefix || tr('task.unknown') }));
-    if (!status)
-        add('loading', tr(view.busy ? 'profiles.loading' : 'task.unknown'));
-    else {
-        add('entry', tr('package.ui.entry', { value: status.entry ?? tr('task.unknown') }));
-        add('config', tr('package.ui.config', { value: status.config_dir }));
-        add('previous', tr('package.ui.previous', { value: status.previous ?? tr('task.unknown') }));
-        add('observed-channel', tr('package.ui.channel', { value: status.channel ?? tr('task.unknown') }));
-        add('runtime', `Node ${status.node_version} · Claude ${status.host ?? tr('task.unknown')}`);
-        status.reasons.forEach(reason => add('reason:' + reason, t('package.reason_' + reason, language, {}, reason)));
-        add('target', tr('package.ui.target', { value: view.editing === 'target' && view.input ? inputView(view.input, Math.max(2, width - 12)) : view.target || tr('package.ui.default_target') }));
-        add('channel', tr('package.ui.channel', { value: view.channel ?? tr('package.ui.inherit') }));
-        for (const action of ['check', 'update', 'rollback', 'recover-package'] as const)
-            add(action, 'Enter · ' + tr('package.ui.' + action), action);
-        if (status.pending)
-            add('pending', tr('package.ui.pending', { id: status.pending.id, stage: tr('package.ui.stage_' + status.pending.stage), running: status.pending.running ? tr('task.value.running') : tr('task.unknown') }));
-        for (const record of status.history) {
-            add('backup:' + record.id, `${record.id} · ${record.version ?? '—'} · ${tr('package.ui.stage_' + record.stage)} · ${tr('package.ui.backup_' + record.backup)}`, record.backup === 'verified' ? 'restore-config' : undefined, record.id);
-        }
-        if (status.total > 16) {
-            add('previous-page', tr('package.ui.previous_page'));
-            add('next-page', tr('package.ui.next_page'));
-        }
-    }
-    const job = view.job;
-    if (job) {
-        add('job', tr('package.ui.job', { id: job.id, state: tr('package.ui.state_' + job.state) }));
-        if (job.error)
-            add('job-error', t('package.reason_' + job.error, language, {}, job.error));
-        if (job.review) {
-            const review = job.review;
-            add('verification', tr(review.action === 'restore-config' ? 'package.ui.restore_review' : review.artifact_verified ? 'package.ui.verified' : 'package.ui.unverified'));
-            add('review-target', `${review.current ?? '—'} → ${review.target ?? '—'}`);
-            add('review-config', tr('package.ui.config', { value: review.config_dir }));
-            if (review.registry)
-                add('registry', review.registry);
-            if (review.integrity)
-                add('integrity', review.integrity);
-            if (review.node_engine)
-                add('engine', 'Node ' + review.node_engine);
-            review.reasons.forEach(reason => add('review-reason:' + reason, t('package.reason_' + reason, language, {}, reason)));
-            review.configuration_conflicts.forEach(file => add('conflict:' + file, file));
-            review.files.forEach(file => add('restore:' + file, file));
-        }
-    }
-    if (view.message)
-        add('message', renderMessage(view.message, language));
-    let index = rows.findIndex(row => row.key === view.selected);
-    if (index < 0)
-        index = 0;
-    view.rows = rows;
-    view.selected = rows[index]?.key ?? '';
-    view.capacity = Math.max(1, height);
-    view.scroll = Math.max(0, Math.min(view.scroll, index, Math.max(0, rows.length - view.capacity)));
-    if (index >= view.scroll + view.capacity)
-        view.scroll = index - view.capacity + 1;
-    return rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row, text: (row.key === view.selected ? '› ' : '  ') + row.text, selected: row.key === view.selected }));
+function verified(view:PackageManager):boolean {
+    const job=view.job,review=job?.review;
+    return job?.state==='complete'&&!!review?.compatible&&job.request.action!=='check'&&(review.artifact_verified||job.request.action==='restore-config');
 }
-export function packageKey(view: PackageManager, event: TextKey): 'packages' | null {
-    const key = event.key === 'return' ? 'enter' : event.key, cancel = !event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
-    if (view.input && view.editing) {
-        if (cancel) {
-            view.input = null;
-            view.editing = null;
-            return null;
-        }
-        if (!event.text && !event.paste && key === 'enter') {
-            const field = view.editing;
-            view[field] = view.input.value;
-            view.input = null;
-            view.editing = null;
-            if (field === 'prefix')
-                view.status = null;
-            if (field === 'target' && view.job) {
-                view.effect = 'cancel';
-                return 'packages';
+export async function performPackage(view:PackageManager,backend:PackageBackend,editor?:Editor):Promise<void>{
+    const effect=view.effect;if(!effect||view.busy)return;view.effect=null;
+    if(effect==='close'){await closePackage(view,backend);return;}
+    view.busy=true;const generation=view.generation;
+    try{
+        if(effect==='load'){
+            if(view.job&&view.prefix&&view.job.request.prefix!==view.prefix){
+                const cancelled=await request(view,backend,'package_review_cancel',{id:view.job.id,owner:view.owner});
+                if(view.closed||generation!==view.generation)return;
+                if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=text('package.ui.cancel_requested');view.selected='message';return;}view.job=null;
             }
-            if (field === 'prefix') {
-                view.offset = 0;
-                view.effect = 'load';
-                return 'packages';
+            const status=await request(view,backend,'package_status',{prefix:view.prefix||null,offset:view.offset});
+            if(view.closed||generation!==view.generation)return;
+            if(view.job&&status.revision!==view.job.request.expected_revision){view.job={...view.job,state:'failed',review:null,error:'conflict'};view.message=text('package.ui.changed');view.selected='message';}
+            view.status=status;view.prefix=status.prefix??view.prefix;
+            if(status.execution){view.execution=status.execution;if(editor)editor.packageLocked=true;view.selected='execution';}
+        }else if(effect==='start'){
+            if(!view.status?.prefix)throw new BackendError('prefix',text('package.reason_prefix'));
+            if(view.job?.state==='running'||view.execution?.running!==false&&view.execution?.state==='running')return;
+            const previous=view.job;
+            let target=view.action==='recover-package'?view.status.pending?.version??view.target:view.target||null,integrity:string|null=null;
+            if(view.action==='update'&&previous?.state==='complete'&&previous.request.action==='check'&&previous.request.expected_revision===view.status.revision&&previous.review&&(!target||target===previous.review.target)&&(!view.channel||view.channel===previous.review.channel||!!target)){target=previous.review.target;integrity=previous.review.integrity;}
+            const reviewRequest:PackageReviewRequest={action:view.action,prefix:view.status.prefix,expected_revision:view.status.revision,target:view.action==='restore-config'?null:target,channel:!target&&['check','update'].includes(view.action)?view.channel:null,backup_id:view.action==='restore-config'?view.backup:null,expected_integrity:integrity};
+            if(previous){const cancelled=await request(view,backend,'package_review_cancel',{id:previous.id,owner:view.owner});if(view.closed||generation!==view.generation)return;if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=text('package.ui.cancel_requested');view.selected='message';return;}view.job=null;}
+            const job=await request(view,backend,'package_review_start',{request:reviewRequest,owner:view.owner});
+            if(view.closed||generation!==view.generation){await request(view,backend,'package_review_cancel',{id:job.id,owner:view.owner});return;}
+            view.job=job;view.mode='status';view.draftPrepared=false;view.message=null;view.selected='job';
+        }else if(effect==='execute'){
+            if(!editor||!verified(view))throw new BackendError('integrity',text('package.reason_integrity'));
+            if(editor.saveState!=='idle'){view.mode='draft';view.message=text('editor.save_unknown');return;}
+            if(!view.draftPrepared){
+                if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
+                view.mode=editor.modified?'draft':'execute-confirm';view.selected=editor.modified?'draft-cancel':'execute-confirm';return;
             }
-            return null;
+            await closeSourceDraft(editor,backend);
+            editor.packageLocked=true;
+            const execution=await request(view,backend,'package_execute_start',{id:view.job!.id,owner:view.owner});
+            view.execution=execution;view.mode='status';view.selected='execution';view.message=text('package.ui.editor_locked');
+            if(view.closed||generation!==view.generation)await request(view,backend,'package_execute_detach',{id:execution.id,owner:view.owner});
+        }else if(effect==='discard-draft'){
+            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
+            editor.replaceDraft(editor.baseline.draft);view.draftPrepared=true;view.mode='execute-confirm';view.selected='execute-confirm';
+        }else if(effect==='save-draft'){
+            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
+            if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
+            const submitted=editor.beginSave();
+            try{const saved=await backend.request('apply',{draft:submitted.draft,expected_revision:submitted.revision,...(submitted.target?{target:submitted.target}:{})});editor.committed(saved);}catch(error){editor.saveFailed(error instanceof BackendError?error.code:'');throw error;}
+            view.mode='status';view.job=null;view.status=null;view.effect='load';view.message=text('package.ui.review_again');
+        }else if(effect==='export-draft'){
+            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
+            await backend.request('export',{draft:editor.draft,path:view.export_path,overwrite:false});view.draftPrepared=true;view.mode='execute-confirm';view.selected='execute-confirm';view.message=text('package.ui.exported');
+        }else if(effect==='reconcile-draft'){
+            if(!editor?.pendingSave)return;
+            const pending=editor.pendingSave;editor.setSaveState('pending');
+            try{const current=await backend.request('read',pending.target?{target:pending.target}:{});const result=editor.reconcileSave(current);view.message=text('editor.'+result);view.mode='status';view.job=null;view.status=null;view.effect='load';}catch(error){editor.setSaveState('unknown');throw error;}
+        }else if(effect==='cleanup-review'){
+            if(!view.prefix)throw new BackendError('prefix',text('package.reason_prefix'));
+            view.cleanup=await request(view,backend,'package_cleanup_review',{prefix:view.prefix,offset:view.offset});view.mode='cleanup';view.selected=view.cleanup.rows[0]?'cleanup:'+view.cleanup.rows[0].id:'cleanup-message';
+        }else if(effect==='cleanup-apply'){
+            view.cleanup=await request(view,backend,'package_cleanup_apply',{prefix:view.prefix,revision:view.cleanup!.revision,ids:[view.cleanupId]});view.mode='cleanup';view.selected='cleanup-message';view.message=text('package.ui.cleaned');
+        }else if(effect==='status'&&view.execution){
+            view.execution=await request(view,backend,'package_execute_status',{id:view.execution.id});view.selected='execution';
+        }else if(view.job){
+            const job=await request(view,backend,effect==='cancel'?'package_review_cancel':'package_review_status',{id:view.job.id,owner:view.owner});
+            if(view.closed||generation!==view.generation)return;
+            const cancelled=effect==='cancel'&&job.state==='cancelled';view.job=cancelled?null:job;view.message=effect==='cancel'?text(cancelled?'package.cancelled':'package.ui.cancel_requested'):null;
+            view.selected=effect==='cancel'?'message':job.review?'verification':job.error?'job-error':'job';
         }
-        const result = inputKey(view.input.value, view.input, event, view.editing === 'prefix' ? 4096 : 100);
-        view.input = result.state;
-        if (result.error)
-            view.message = text('input.' + result.error, { limit: view.editing === 'prefix' ? 4096 : 100 });
-        return null;
-    }
-    if (event.text || event.paste || event.meta)
-        return null;
-    if (cancel || !event.ctrl && key.toLowerCase() === 'q') {
-        view.effect = 'close';
-        return 'packages';
-    }
-    if (event.ctrl || view.busy)
-        return null;
-    if (key.toLowerCase() === 'r') {
-        view.effect = view.job ? 'status' : 'load';
-        return 'packages';
-    }
-    if (key.toLowerCase() === 'l') {
-        view.effect = 'load';
-        return 'packages';
-    }
-    if (key.toLowerCase() === 'c' && view.job) {
-        view.effect = 'cancel';
-        return 'packages';
-    }
-    let index = Math.max(0, view.rows.findIndex(row => row.key === view.selected));
-    if (key === 'up')
-        index--;
-    if (key === 'down')
-        index++;
-    if (key === 'pageup')
-        index -= view.capacity;
-    if (key === 'pagedown')
-        index += view.capacity;
-    if (key === 'home')
-        index = 0;
-    if (key === 'end')
-        index = view.rows.length - 1;
-    view.selected = view.rows[Math.max(0, Math.min(index, view.rows.length - 1))]?.key ?? '';
-    if (key !== 'enter')
-        return null;
-    const selectedKey = view.selected.replace(/:\d+$/u, '');
-    if (selectedKey === 'prefix' || selectedKey === 'target') {
-        view.editing = selectedKey;
-        view.input = textInput(view[view.editing]);
-        return null;
-    }
-    if (selectedKey === 'channel') {
-        const channels = [null, 'latest', 'beta'] as const;
-        view.channel = channels[(channels.indexOf(view.channel) + 1) % 3]!;
-        if (view.job) {
-            view.effect = 'cancel';
-            return 'packages';
+    }catch(error){
+        if(!view.closed&&generation===view.generation){view.message=error instanceof BackendError&&error.localization?error.localization:text('package.reason_io_error');view.selected='message';}
+    }finally{if(generation===view.generation)view.busy=false;}
+}
+export function packageView(view:PackageManager,language:Language,width:number,height:number):Row[]{
+    const tr=(key:string,params:Record<string,unknown>={})=>t('package.ui.'+key,language,params),rows:Row[]=[];
+    const add=(key:string,value:string,action?:Row['action'],backup?:string)=>wrapText([value.replace(/[\p{Cc}\p{Cs}]/gu,'')],Math.max(2,width-2)).forEach((line,index)=>rows.push({key:index?key+':'+index:key,text:line,...(action?{action}:{}),...(backup?{backup}:{})}));
+    const status=view.status;
+    if(view.mode==='draft'){
+        add('notice',tr('draft_required'));add('draft-save',tr('draft_save'));add('draft-export',tr('draft_export'));add('draft-discard',tr('draft_discard'));add('draft-cancel',tr('draft_cancel'));add('draft-reconcile',tr('draft_reconcile'));
+    }else if(view.mode==='execute-confirm'){
+        add('notice',tr('execute_notice'));add('execute-confirm',tr('execute_confirm'));add('draft-cancel',tr('draft_cancel'));
+    }else if(view.mode==='cleanup'||view.mode==='cleanup-confirm'){
+        add('cleanup-message',tr(view.cleanup?.uncertain?'cleanup_uncertain':'cleanup_notice'));
+        if(view.mode==='cleanup-confirm'){add('cleanup-confirm',tr('cleanup_confirm'));add('cleanup-selected',view.cleanupId??'');}
+        else for(const row of view.cleanup?.rows??[])add('cleanup:'+row.id,`${row.id} · ${row.version??'—'} · ${tr(row.removable?'cleanup_unused':'cleanup_protected')}${row.reasons.map(reason=>' · '+tr('protect_'+reason)).join('')}`);
+        add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));
+    }else{
+        add('notice',tr('local_notice'));if(status)add('current',tr('current',{value:status.current??t('task.unknown',language)}));
+        add('prefix',tr('prefix',{value:view.editing==='prefix'&&view.input?inputView(view.input,Math.max(2,width-12)):view.prefix||t('task.unknown',language)}));
+        if(!status)add('loading',t(view.busy?'profiles.loading':'task.unknown',language));
+        else{
+            add('entry',tr('entry',{value:status.entry??t('task.unknown',language)}));add('config',tr('config',{value:status.config_dir}));add('previous',tr('previous',{value:status.previous??t('task.unknown',language)}));add('observed-channel',tr('channel',{value:status.channel??t('task.unknown',language)}));add('runtime',`Node ${status.node_version} · Claude ${status.host??t('task.unknown',language)}`);
+            status.reasons.forEach(reason=>add('reason:'+reason,t('package.reason_'+reason,language,{},reason)));
+            if(!view.execution||view.execution.running===false){
+                add('target',tr('target',{value:view.editing==='target'&&view.input?inputView(view.input,Math.max(2,width-12)):view.target||tr('default_target')}));add('channel',tr('channel',{value:view.channel??tr('inherit')}));
+                for(const action of ['check','update','rollback','recover-package'] as const)add(action,'Enter · '+tr(action),action);
+                add('cleanup-review',tr('cleanup_review'));
+            }
+            if(status.pending)add('pending',tr('pending',{id:status.pending.id,stage:tr('stage_'+status.pending.stage),running:status.pending.running?t('task.value.running',language):t('task.unknown',language)}));
+            for(const record of status.history)add('backup:'+record.id,`${record.id} · ${record.version??'—'} · ${tr('stage_'+record.stage)} · ${tr('backup_'+record.backup)}`,record.backup==='verified'?'restore-config':undefined,record.id);
+            if(status.total>16){add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));}
         }
-        return null;
+        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:tr('state_'+job.state)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
+            if(job.review){const review=job.review;add('verification',tr(review.action==='restore-config'?'restore_review':review.artifact_verified?'verified':'unverified'));add('review-target',`${review.current??'—'} → ${review.target??'—'}`);add('review-config',tr('config',{value:review.config_dir}));if(review.registry)add('registry',review.registry);if(review.integrity)add('integrity',review.integrity);if(review.node_engine)add('engine','Node '+review.node_engine);review.reasons.forEach(reason=>add('review-reason:'+reason,t('package.reason_'+reason,language,{},reason)));review.configuration_conflicts.forEach(file=>add('conflict:'+file,file));review.files.forEach(file=>add('restore:'+file,file));if(verified(view))add('execute',tr('execute'));}
+        }
+        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:tr('execution_state_'+run.state),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
     }
-    if (['next-page', 'previous-page'].includes(selectedKey)) {
-        view.offset = Math.max(0, Math.min(view.offset + (selectedKey === 'next-page' ? 16 : -16), Math.max(0, Math.floor(((view.status?.total ?? 1) - 1) / 16) * 16)));
-        view.effect = 'load';
-        return 'packages';
+    if(view.input&&view.editing==='export_path')add('export-path',tr('export_path',{value:inputView(view.input,Math.max(2,width-16))}));
+    if(view.message)add('message',renderMessage(view.message,language));
+    let index=rows.findIndex(row=>row.key===view.selected);if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
+    return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,text:(row.key===view.selected?'› ':'  ')+row.text,selected:row.key===view.selected}));
+}
+export function packageKey(view:PackageManager,event:TextKey):'packages'|null{
+    const key=event.key==='return'?'enter':event.key,cancel=!event.text&&!event.paste&&(key==='escape'||event.ctrl&&key.toLowerCase()==='g');
+    if(view.input&&view.editing){
+        if(cancel){view.input=null;view.editing=null;return null;}
+        if(!event.text&&!event.paste&&key==='enter'){
+            const field=view.editing;view[field]=view.input.value;view.input=null;view.editing=null;
+            if(field==='export_path'){view.effect='export-draft';return 'packages';}
+            if(field==='prefix'){view.status=null;view.offset=0;view.effect='load';return 'packages';}
+            if(field==='target'&&view.job){view.effect='cancel';return 'packages';}return null;
+        }
+        const result=inputKey(view.input.value,view.input,event,view.editing==='target'?100:4096);view.input=result.state;if(result.error)view.message=text('input.'+result.error,{limit:view.editing==='target'?100:4096});return null;
     }
-    const selected = view.rows.find(row => row.key === view.selected);
-    if (selected?.action) {
-        view.action = selected.action;
-        view.backup = selected.backup ?? null;
-        view.effect = 'start';
-        return 'packages';
+    if(event.text||event.paste||event.meta)return null;
+    if(cancel||!event.ctrl&&key.toLowerCase()==='q'){
+        if(view.mode!=='status'){view.mode='status';view.draftPrepared=false;return null;}
+        view.effect='close';return 'packages';
     }
-    return null;
+    if(event.ctrl||view.busy)return null;
+    if(key.toLowerCase()==='r'){view.effect=view.mode==='cleanup'?'cleanup-review':view.execution||view.job?'status':'load';return 'packages';}
+    if(key.toLowerCase()==='l'){view.effect='load';return 'packages';}
+    if(key.toLowerCase()==='c'&&view.job&&!view.execution){view.effect='cancel';return 'packages';}
+    let index=Math.max(0,view.rows.findIndex(row=>row.key===view.selected));if(key==='up')index--;if(key==='down')index++;if(key==='pageup')index-=view.capacity;if(key==='pagedown')index+=view.capacity;if(key==='home')index=0;if(key==='end')index=view.rows.length-1;view.selected=view.rows[Math.max(0,Math.min(index,view.rows.length-1))]?.key??'';
+    if(key!=='enter')return null;const selectedKey=view.selected.replace(/:\d+$/u,'');
+    if(selectedKey==='draft-cancel'){view.mode='status';view.draftPrepared=false;return null;}
+    if(selectedKey==='draft-save'){view.effect='save-draft';return 'packages';}
+    if(selectedKey==='draft-reconcile'){view.effect='reconcile-draft';return 'packages';}
+    if(selectedKey==='draft-export'){view.editing='export_path';view.input=textInput(view.export_path);return null;}
+    if(selectedKey==='draft-discard'){view.effect='discard-draft';return 'packages';}
+    if(selectedKey==='execute'){view.draftPrepared=false;view.effect='execute';return 'packages';}
+    if(selectedKey==='execute-confirm'){view.draftPrepared=true;view.effect='execute';return 'packages';}
+    if(selectedKey==='cleanup-review'){view.offset=0;view.effect='cleanup-review';return 'packages';}
+    if(selectedKey==='cleanup-confirm'){view.effect='cleanup-apply';return 'packages';}
+    if(selectedKey.startsWith('cleanup:')){const row=view.cleanup?.rows.find(row=>'cleanup:'+row.id===selectedKey);if(row?.removable){view.cleanupId=row.id;view.mode='cleanup-confirm';view.selected='cleanup-confirm';}return null;}
+    if((selectedKey==='prefix'||selectedKey==='target')&&!view.execution){view.editing=selectedKey;view.input=textInput(view[selectedKey]);return null;}
+    if(selectedKey==='channel'&&!view.execution){const channels=[null,'latest','beta']as const;view.channel=channels[(channels.indexOf(view.channel)+1)%3]!;if(view.job){view.effect='cancel';return 'packages';}return null;}
+    if(['next-page','previous-page'].includes(selectedKey)){const total=view.mode==='cleanup'?view.cleanup?.total:view.status?.total;view.offset=Math.max(0,Math.min(view.offset+(selectedKey==='next-page'?16:-16),Math.max(0,Math.floor(((total??1)-1)/16)*16)));view.effect=view.mode==='cleanup'?'cleanup-review':'load';return 'packages';}
+    const selected=view.rows.find(row=>row.key===view.selected);if(selected?.action){view.action=selected.action;view.backup=selected.backup??null;view.effect='start';return 'packages';}return null;
 }

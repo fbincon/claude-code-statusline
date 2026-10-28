@@ -219,3 +219,53 @@ test('shared editors review and cancel automatic choices independently of displa
         assert(!existsSync(join(f.directory, 'settings.json')), 'saving local policy cannot apply host integration');
     }
 });
+
+test('command scheduling uses separate approval, a 300s default, serial fair contexts and no Git/auth requirement', async t => {
+    const f=fixture(t);
+    f.change('edit',{source:{name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:1,settings:{executable:process.execPath,args:['-e','process.stdout.write("42")'],cwd:f.root,input:{session:'session'},output:'text',timeout_ms:5000}}});
+    f.change('enable',{review_revision:f.service.review('github').review_revision});
+    f.tick();assert.equal(f.launched.length,0);
+    f.change('auto-on',{review_revision:f.service.review('github').review_revision});
+    assert.equal(f.service.read().version,3);assert.equal(f.service.read().automatic[0]!.interval_seconds,300);
+    f.tick('one');f.tick('two');assert.equal(f.launched.length,1,'one source never overlaps across contexts');
+    const first=f.launched[0]!,manual=f.service.start('github',first.context,'manual');assert.equal(manual.id,first.id);
+    await f.service.work(first.id);
+    const done=f.service.job(first.id);assert.equal(done.state,'completed');assert.equal(done.result?.exit_code,0);assert.equal(done.result?.summary,'42');
+    f.advance(300001);f.tick('one');f.tick('two');
+    assert.equal(f.launched.length,2);assert.notEqual(f.launched[1]!.context.session,first.context.session,'the other due context gets its turn');
+    f.change('auto-off');assert.equal(f.service.job(f.launched[1]!.id).state,'cancelled');
+    f.change('edit',{source:{name:'Edited',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:2,settings:{executable:process.execPath,args:['-e',''],cwd:f.root,input:{},output:'text'}}});
+    assert.equal(f.service.read().automatic.length,0);assert.equal(f.service.source('github').enabled,false);
+});
+test('local agent contexts expire with their session and identical command inputs coalesce', t=>{
+    const f=fixture(t);
+    f.change('edit',{source:{name:'Agent command',kind:'command',scope:{project:null,session:'one',agent:'agent-one'},ttl_seconds:300,settings:{executable:process.execPath,args:['-p','42'],cwd:f.root,input:{agent:'agent'},output:'text'}}});f.enable();
+    const send=(seq:number,agents:{id:string;project:string}[])=>f.scheduler.lifecycle({session_id:'one',epoch:'epoch',seq,project:f.root,host_version:'2.1.294',event:'tick',agents});
+    send(0,[]);assert.equal(f.launched.length,0);
+    send(1,[{id:'agent-one',project:f.root}]);assert.equal(f.launched.length,1);assert.equal(f.launched[0]!.context.agent,'agent-one');
+    send(2,[]);assert.equal(f.service.job(f.launched[0]!.id).state,'cancelled');
+});
+test('command failures retain successful observations and back off or pause by the actual result',async t=>{
+    const f=fixture(t);
+    const spec={name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:1,settings:{executable:process.execPath,args:['-e','process.stdout.write("good")'],cwd:f.root,input:{},output:'text',timeout_ms:5000}};
+    f.change('edit',{source:spec});f.enable();f.tick();await f.service.work(f.launched[0]!.id);f.tick();
+    assert(f.service.inspect('github',f.context()).last_success);
+    f.advance(300001);f.tick();f.finish('failed','exit');f.tick();
+    assert.equal(f.service.diagnose('github',f.context()).automatic.state,'backoff');
+    f.advance(600001);f.tick();f.finish('failed','missing_program');f.tick();
+    assert.equal(f.service.diagnose('github',f.context()).automatic.state,'paused');
+    const job=f.service.start('github',f.context(),'retry');await f.service.work(job.id);f.tick();
+    assert.notEqual(f.service.diagnose('github',f.context()).automatic.state,'paused');
+});
+
+test('saved GitHub checks paginate locally and retain their observed identity after a failed refresh',async t=>{
+    const f=fixture(t);f.change('enable',{review_revision:f.service.review('github').review_revision});let calls=0;
+    const worker=new SourceService(f.configuration,f.now,undefined,async(source,context)=>{
+        calls++;return calls===1?{version:1,source_id:source.id,source_revision:source.revision,context,observed_at:new Date(f.now()).toISOString(),state:'valid',reason:'valid',value:12,unit:null,fields:{ci:'pending'},checks:Array.from({length:35},(_,i)=>({name:'Check '+i,state:'pending',bucket:'pending',url:i===0?'file:///private':'https://github.com/owner/repo/actions/runs/'+i}))}:{version:1,source_id:source.id,source_revision:source.revision,context,observed_at:null,state:'error',reason:'network',value:null,unit:null};
+    });
+    let job=f.service.start('github',f.context(),'one');await worker.work(job.id);
+    const first=f.service.inspect('github',f.context());assert.equal(first.total,35);assert.equal(first.checks.length,16);assert.equal(first.checks[0]!.url,null);
+    assert.equal(f.service.inspect('github',f.context(),16).checks[0]!.name,'Check 16');assert.equal(calls,1,'reading pages never invokes the provider');
+    f.advance(1);job=f.service.start('github',f.context(),'two');await worker.work(job.id);
+    const failed=f.service.inspect('github',f.context(),32);assert.equal(failed.view.reason,'network');assert.equal(failed.view.state,'error');assert.equal(failed.view.freshness,'current');f.advance(301000);assert.equal(f.service.inspect('github',f.context()).view.freshness,'stale');assert.equal(failed.checks.length,3);assert.equal(failed.checks_observed_at,first.checks_observed_at);assert.equal(failed.last_success,first.last_success);
+});

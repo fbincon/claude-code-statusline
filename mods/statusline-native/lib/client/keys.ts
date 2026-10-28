@@ -44,6 +44,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if(e.packages)return packageKey(e.packages,event);
+  if(e.packageLocked){setMessage(view,'message',localizedText('package.ui.editor_locked'));return key==='escape'||event.ctrl&&key.toLowerCase()==='g'?'close':null;}
   if(e.diagnosis)return diagnosisKey(e,event);
   if(e.colors)return colorsKey(e,event,view.language ?? 'en');
   if(event.ctrl&&key.toLowerCase()==='l'&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}

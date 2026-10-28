@@ -28,11 +28,20 @@ function review(value: unknown): boolean {
         string(value.prefix) && string(value.config_dir) && channel(value.channel) && typeof value.artifact_verified === 'boolean' && typeof value.compatible === 'boolean' &&
         strings(value.reasons) && strings(value.configuration_conflicts) && strings(value.files);
 }
+function execution(value:unknown):boolean {
+    return object(value)&&exact(value,['version','id','transaction_id','action','prefix','state','stage','started_at','updated_at','finished_at','error','running','results','control'])&&value.version===1&&string(value.id)&&/^execution-[0-9a-f-]{36}$/u.test(value.id)&&nullable(value.transaction_id)&&['check','update','rollback','recover-package','restore-config'].includes(String(value.action))&&string(value.prefix)&&['running','complete','failed','interrupted'].includes(String(value.state))&&['stage','started_at','updated_at'].every(k=>string(value[k]))&&nullable(value.finished_at)&&nullable(value.error)&&(value.running===null||typeof value.running==='boolean')&&object(value.results)&&exact(value.results,['package','integration','configuration'])&&Object.values(value.results).every(v=>v===null||typeof v==='boolean')&&object(value.control)&&exact(value.control,['executable','args','config_dir'])&&string(value.control.executable)&&string(value.control.config_dir)&&Array.isArray(value.control.args)&&value.control.args.length===1&&value.control.args.every(string);
+}
+function cleanup(value:Record<string,unknown>):boolean {
+    return exact(value,['version','revision','prefix','offset','total','uncertain','rows'])&&value.version===1&&string(value.revision)&&/^[a-f0-9]{64}$/u.test(value.revision)&&string(value.prefix)&&Number.isSafeInteger(value.offset)&&Number(value.offset)>=0&&Number.isSafeInteger(value.total)&&Number(value.total)>=0&&typeof value.uncertain==='boolean'&&Array.isArray(value.rows)&&value.rows.length<=16&&value.rows.every(row=>object(row)&&exact(row,['id','removable','reasons','version'])&&string(row.id)&&typeof row.removable==='boolean'&&strings(row.reasons)&&nullable(row.version));
+}
 export function isPackageResult(operation: string, value: unknown): boolean {
     if (!object(value) || value.version !== 1)
         return false;
+    if(operation.startsWith('package_execute_'))return execution(value);
+    if(operation.startsWith('package_cleanup_'))return cleanup(value);
     if (operation === 'package_status')
-        return exact(value, ['version', 'backend_version', 'captured_at', 'revision', 'prefix', 'entry', 'config_dir', 'current', 'previous', 'channel', 'node_version', 'host', 'compatible', 'reasons', 'pending', 'history', 'offset', 'total']) &&
+        return exact(value, ['version', ...(Object.hasOwn(value,'execution')?['execution']:[]), 'backend_version', 'captured_at', 'revision', 'prefix', 'entry', 'config_dir', 'current', 'previous', 'channel', 'node_version', 'host', 'compatible', 'reasons', 'pending', 'history', 'offset', 'total']) &&
+            (value.execution===undefined||value.execution===null||execution(value.execution))&&
             ['backend_version', 'captured_at', 'revision', 'config_dir', 'node_version'].every(key => string(value[key])) && /^[0-9a-f]{64}$/u.test(String(value.revision)) &&
             ['prefix', 'entry', 'current', 'previous', 'host'].every(key => nullable(value[key])) && channel(value.channel) && typeof value.compatible === 'boolean' && strings(value.reasons) &&
             (value.pending === null || history(value.pending)) && Array.isArray(value.history) && value.history.length <= 16 && value.history.every(history) &&

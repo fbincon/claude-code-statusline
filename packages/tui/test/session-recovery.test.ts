@@ -58,7 +58,7 @@ test('external uncertain saves freeze mutations and reconcile four outcomes with
   }
 });
 
-test('open source managers block bind side effects and unbind while a save is unresolved, including late replies',async()=>{
+test('open source managers block bind side effects and unbind while a save is unresolved, including late replies',{timeout:5000},async()=>{
   const state=fixture(),e=state.editor,node=newInstance('external-value',e.draft.display.instances);
   node.source={binding:'old',hint:'Local'};e.draft.display.instances.push(node);openSources(e);
   const m=e.sources!;
@@ -70,7 +70,7 @@ test('open source managers block bind side effects and unbind while a save is un
   m.effect='bind';m.target={scope:'main',id:node.id};await performSourceAction(e,backend);assert.equal(calls,0);
   e.reconcileSave(e.baseline);
   let release:(value:SourceMutationResult)=>void=()=>assert.fail('Bind did not begin');
-  m.effect='bind';const delayed={request:()=>new Promise<SourceMutationResult>(resolve=>{release=resolve;})};const pending=performSourceAction(e,delayed as unknown as SourceBackend);
+  m.effect='bind';const delayed={request:(operation:string)=>operation==='source_draft'?Promise.resolve({revision:'pins'}):new Promise<SourceMutationResult>(resolve=>{release=resolve;})};const pending=performSourceAction(e,delayed as unknown as SourceBackend);await new Promise(resolve=>setImmediate(resolve));
   e.beginSave();e.saveFailed('io_error');e.reconcileSave(e.baseline);
   release({...library,binding:{binding:'late',hint:'Local'}});await pending;
   assert.deepEqual(e.draft,submitted);assert.equal(node.source.binding,'old');

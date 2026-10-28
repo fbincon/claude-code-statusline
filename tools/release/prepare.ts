@@ -11,7 +11,7 @@ import { verifyDelivery } from '../build/verify.js';
 import { UNVERIFIED_GATES, sourceStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
-import { NATIVE_CAPACITY_CASES } from '../acceptance/native-capacity.js';
+import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES } from '../acceptance/native-capacity.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
@@ -27,6 +27,12 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
     for(const key of ['local_reads_no_network','metadata_unverified','verified_dry_run','rollback_review','restore_review','cancellation','configuration_unchanged','package_unchanged'])assert.equal(review[key],true);
     assert(Array.isArray(review.operation_timings)&&review.operation_timings.length>=15,'Incomplete editor-review operations');
     for(const operation of review.operation_timings)assert(operation&&typeof operation.command==='string'&&Number.isFinite(operation.elapsed_ms)&&operation.elapsed_ms>=0);
+    if(historical==='3.8.0'&&compareVersions(VERSION,'3.12.0')>=0){
+        const execution=value.editor_execution;assert(execution,'Missing editor-execution receipt');
+        for(const key of ['verified_execution','retained_control','downgrade_roundtrip','old_protocol_rejected','detach_continues','progress_complete','package_recovery','separate_configuration_restore','protected_cleanup','configuration_preserved','real_npm'])assert.equal(execution[key],true);
+        assert.equal(execution.model_calls,0);assert(Array.isArray(execution.operation_timings)&&execution.operation_timings.length>=30,'Incomplete editor-execution operations');
+        for(const operation of execution.operation_timings)assert(operation&&typeof operation.command==='string'&&Number.isFinite(operation.elapsed_ms)&&operation.elapsed_ms>=0);
+    }
     const schema = PACKAGE_COMPATIBILITY.read.display[1];
     assert.deepEqual(value.schema_migration, schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null);
     assert(Array.isArray(value.operation_timings) && value.operation_timings.length === (official ? 20 : 19) + (schema > 13 ? 3 : 0), 'Incomplete version-operation evidence');
@@ -65,6 +71,8 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
             assert.equal(Object.keys(report.checks).length, 24); assert(Object.values(report.checks).every(value => value === true));
+            assert(report.source_operations&&typeof report.source_operations==='object');
+            for(const key of ['separate_approval','interval_300','ttl_independent','non_git','manual_consumer_preserved','last_success_after_failure','execution_summary','bindings_reused','drafts_protected','reviewed_cleanup','settings_unchanged'])assert.equal(report.source_operations[key],true);assert.equal(report.source_operations.model_calls,0);
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});
@@ -96,7 +104,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             const required = Number(report.host.split('.')[2]) >= 289 ? ['statusline-native', 'statusline-runtime'] : ['statusline-native'];
             for (const name of required) {
                 const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
-                if (name === 'statusline-native') { assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES); assert.equal(mod.capacity.actual_host, true); }
+                if (name === 'statusline-native') { assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES); assert.equal(mod.capacity.actual_host, true); if(compareVersions(VERSION,'3.12.0')>=0){assert.equal(mod.capacity.total_cases,NATIVE_CAPACITY_TOTAL_CASES);assert.equal(mod.capacity.additional_cases,NATIVE_CAPACITY_ADDITIONAL_CASES);assert.equal(mod.capacity.shared_execution,true);assert.match(mod.capacity.baseline_names_sha256,/^[a-f0-9]{64}$/u);assert.match(mod.capacity.additional_names_sha256,/^[a-f0-9]{64}$/u);} }
                 if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
                 else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
             }

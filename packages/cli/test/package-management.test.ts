@@ -335,3 +335,38 @@ test('package review worker ownership prevents another view from cancelling it',
     const until=Date.now()+15000;while(fs.existsSync(folder)&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,50));
     assert(!fs.existsSync(folder),'Cancelled worker cleans its private temporary directory');assert(!fs.existsSync(f.configDir));
 });
+
+import { executionFolder, writeExecution, readExecution, executeReviewed, detachExecution, type ExecutionRecord } from '../src/management/execution.js';
+import { reviewHistory, cleanupHistory } from '../src/management/history.js';
+import { finishOperation } from '../src/management/store.js';
+async function reviewedExecution(f:ReturnType<typeof fixture>):Promise<ExecutionRecord>{
+    const context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},status=inspectPackage(context,f.prefix);
+    const request:PackageReviewRequest={action:'update',prefix:f.prefix,expected_revision:status.revision,target:'3.9.0',channel:null,backup_id:null,expected_integrity:null};
+    const review=await reviewPackage(request,context,{...f.options,host:()=>null});
+    const id='execution-00000000-0000-0000-0000-000000000001',folder=executionFolder(f.configDir,id),stamp=new Date().toISOString();
+    const record:ExecutionRecord={schema_version:1,owner:'viewer-test-owner-12345',configDir:f.configDir,origin:f.options.origin,request,review,pid:null,token:null,value:{version:1,id,transaction_id:null,action:'update',prefix:f.prefix,state:'running',stage:'queued',started_at:stamp,updated_at:stamp,finished_at:null,error:null,running:null,results:{package:null,integration:null,configuration:null},control:{executable:process.execPath,args:[join(folder,'runner/bin/claude-statusline.js')],config_dir:f.configDir}}};
+    fs.mkdirSync(folder,{recursive:true,mode:0o700});writeExecution(record);return record;
+}
+test('reviewed editor execution rechecks identity, persists transaction progress and preserves user configuration',async t=>{
+    const f=fixture(t);f.write('settings.json',{env:{KEEP:'yes'}});const before=configurationBytes(f.configDir),record=await reviewedExecution(f);
+    assert.equal(await executeReviewed(record,{...f.options,host:()=>null}),0);
+    const final=readExecution(f.configDir,record.value.id);assert.equal(final.value.stage,'complete');assert(final.value.transaction_id);assert.equal(final.value.results.package,true);assert.equal(final.value.results.integration,true);assert.deepEqual(configurationBytes(f.configDir),before);assert.equal(f.state().replacements,1);
+});
+test('a reviewed editor execution refuses changes during staging and cannot silently change the reviewed archive',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f),install=f.npm.installArchive;
+    f.npm.installArchive=async(archive,prefix)=>{await install(archive,prefix);if(prefix!==f.prefix)f.write('settings.json',{changed:true});};
+    assert.equal(await executeReviewed(record,{...f.options,host:()=>null}),2);assert.equal(f.state().replacements,0);assert.equal(record.value.error,'conflict');
+});
+test('editor detachment does not cancel a worker or overwrite its progress',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f);record.pid=process.pid;record.token=processToken(process.pid)!;record.value.stage='installing';writeExecution(record);
+    assert.throws(()=>detachExecution(f.configDir,record.value.id,'invalid owner'));detachExecution(f.configDir,record.value.id,'reopened-view');
+    detachExecution(f.configDir,record.value.id,record.owner);const status=readExecution(f.configDir,record.value.id);assert.equal(status.value.stage,'installing');assert.equal(status.value.state,'running');assert.equal(status.detached,true);
+});
+test('protected cleanup retains current and previous inputs, rejects foreign material and deletes only the reviewed record',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};assert.equal(await manage(f.args(),f.options),0);
+    const current=readInstallation(f.configDir,f.prefix)!;
+    const old=startOperation(f.configDir,f.prefix,'3.7.1',f.layout.registry,null);old.after={...productIdentity(f.layout.root,f.prefix)!,version:'3.7.1'};finishOperation(old);
+    const review=reviewHistory(context,f.prefix);assert.equal(review.uncertain,false);assert.equal(review.rows.find(row=>row.id===current.transaction)!.removable,false);assert.equal(review.rows.find(row=>row.id===old.id)!.removable,true);
+    const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]));assert(fs.existsSync(extra));fs.unlinkSync(extra);
+    assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[current.transaction]));cleanupHistory(context,f.prefix,review.revision,[old.id]);assert(!fs.existsSync(operationPath(old)));assert(fs.existsSync(join(f.configDir,'statusline_runtime/package-management/transactions',current.transaction,'operation.json')));
+});

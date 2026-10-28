@@ -51,3 +51,13 @@ export function processMatches(pid: number, token: string): boolean {
     return false;
   } catch { return false; }
 }
+
+/** A missing identity alone is not evidence of exit. */
+export function processAlive(pid:number,token:string):boolean|null {
+    const observed=processToken(pid);
+    if(observed!==null&&observed!==token)return false;
+    if(processMatches(pid,token))return true;
+    if(process.platform==='linux')try{const raw=readFileSync(`/proc/${pid}/stat`,'utf8');if(['Z','X'].includes(raw.slice(raw.lastIndexOf(')')+2)[0]!))return false;}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return false;}
+    try{process.kill(pid,0);}catch(error){if((error as NodeJS.ErrnoException).code==='ESRCH')return false;}
+    return null;
+}

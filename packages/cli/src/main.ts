@@ -62,6 +62,13 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const { bootstrap } = await import('./management/bootstrap.js');
         return bootstrap(args, stderr);
     }
+    if(!environment.launch&&process.stdin.isTTY&&process.stdout.isTTY){
+        const command=args[0]==='--language'?args[2]:args[0]?.startsWith('--language=')?args[1]:args[0];
+        if(command==='configure'||command==='setup'){
+            const {independentEditor}=await import('./integration/editor-bootstrap.js');
+            const code=await independentEditor(args);if(code!==null)return code;
+        }
+    }
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion, resolvedPath } = await import('@fbincon/statusline-platform/commands');

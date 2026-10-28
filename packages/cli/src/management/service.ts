@@ -37,6 +37,8 @@ export interface ManagementEnvironment {
     confirm?: () => Promise<boolean>;
     host?: () => readonly number[] | null;
     integrate?: typeof refreshIntegration;
+    beforeMutation?: (review: PackageReview) => void;
+    operationStarted?: (operation: PackageOperation) => void;
     checkpoint?: (stage: string, operation: PackageOperation) => void;
 }
 export function mutationAuthorized(flags: ManagementOptions, tty: boolean): void {
@@ -247,11 +249,14 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         else {
             if (!installed || !sameIdentity(installed, before!) || fs.existsSync(pendingPath(layout.prefix)))
                 throw new PackageError('conflict');
+            options.beforeMutation?.(review);
             operation = startOperation(configDir, layout.prefix, target.version, target.registry, before, flags.command as 'update' | 'rollback');
             operation.snapshot = createStorage().lock(configDir, () => { assertConfiguration(configDir, hashes); return saveSnapshot(configDir, dirname(operationPath(operation!)), bytes); });
             operation.beforeCompatibility = installedCompatibility(before!);
             operation.previousChannel = history?.channel ?? null;
         }
+        if(flags.package) options.beforeMutation?.(review);
+        options.operationStarted?.(operation);
         if (operation.before && !operation.snapshot) {
             if (!installed || installed.version !== operation.before.version)
                 throw new PackageError('backup');

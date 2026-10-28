@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { nativeCapacityData } from '../generation/native-capacity.js';
 /** Actual-host acceptance of projected production states, separate from UI reducers. */
 import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
@@ -9,6 +11,8 @@ import type { LaunchSpec } from '@fbincon/statusline-core/integration/binding';
 import { isolatedHostEnvironment } from './mod-types.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 export const NATIVE_CAPACITY_CASES = 197;
+export const NATIVE_CAPACITY_ADDITIONAL_CASES = 20;
+export const NATIVE_CAPACITY_TOTAL_CASES = NATIVE_CAPACITY_CASES + NATIVE_CAPACITY_ADDITIONAL_CASES;
 
 export function nativeCapacity(host: LaunchSpec, destination: string) {
     const source = join(repoRoot, 'mods/statusline-native');
@@ -29,9 +33,12 @@ export function nativeCapacity(host: LaunchSpec, destination: string) {
         const output = (result.stdout ?? '') + (result.stderr ?? '');
         fs.writeFileSync(destination + (args[1] === 'test' ? '.tests.log' : '.validate.log'), output);
         if (result.status !== 0 || result.error) throw new Error('Native capacity acceptance failed: ' + output.slice(-12000));
-        if (args[1] === 'test' && (!new RegExp('\\b' + NATIVE_CAPACITY_CASES + ' pass\\b').test(output) || !/\b0 fail\b/.test(output))) throw new Error('Incomplete native capacity test results');
+        if (args[1] === 'test' && (!new RegExp('\\b' + NATIVE_CAPACITY_TOTAL_CASES + ' pass\\b').test(output) || !/\b0 fail\b/.test(output))) throw new Error('Incomplete native capacity test results');
     }
-    return { status: 'pass', cases: NATIVE_CAPACITY_CASES, original_cases: 195, actual_host: true, model_calls: 0 };
+    const cases=nativeCapacityData().cases;
+    if(cases.length!==NATIVE_CAPACITY_TOTAL_CASES)throw new Error('Capacity inventory differs');
+    const names=(start:number,end:number)=>createHash('sha256').update(JSON.stringify(cases.slice(start,end).map(c=>c.name))).digest('hex');
+    return { status: 'pass', cases: NATIVE_CAPACITY_CASES, original_cases: 197, total_cases:NATIVE_CAPACITY_TOTAL_CASES, additional_cases:NATIVE_CAPACITY_ADDITIONAL_CASES, shared_execution:true, baseline_names_sha256:names(0,NATIVE_CAPACITY_CASES),additional_names_sha256:names(NATIVE_CAPACITY_CASES,cases.length), actual_host: true, model_calls: 0 };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { claude: { type: 'string', default: 'claude' }, output: { type: 'string' } } });
