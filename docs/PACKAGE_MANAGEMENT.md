@@ -13,6 +13,8 @@ Select **Check version metadata** to contact the configured npm registry. This r
 Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. No page action saves, elevates privileges or cleans package history.
 
 
+Known v3.11.0 issue: ordinary npm manifest permissions (`0644`/`0664`) can cause a false read/compatibility warning in this page. [Issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) tracks the deferred fix. Use the existing CLI `update --check` or `--dry-run` for review; do not change installed-file permissions merely to suppress the warning.
+
 ## Check and review
 
 ```text

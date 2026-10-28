@@ -2,16 +2,16 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.10.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.11.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are in progress for v3.11.0. The other eight new packages and SHOWCASE-01 remain NOT_STARTED without assigned versions or dates. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
+Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. The next work covers existing correctness gaps, richer appearance and previews, task/version entry points, command scheduling and configuration reuse. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are published in v3.11.0. The other eight new packages and SHOWCASE-01 remain NOT_STARTED without assigned versions or dates. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
 **Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
 
 
-TASK-02 and UPDATE-02 slice 1 are in implementation for v3.11.0; slices 2/3 of UPDATE-02 remain unstarted. [Implementation record](task-version-review.md).
+TASK-02 is DONE and UPDATE-02 slice 1 is delivered in v3.11.0; slices 2/3 remain unstarted. The maintainer deferred the ordinary npm-manifest permission warning to [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173). [Implementation and delivery](task-version-review.md).
 
 <a id="baseline"></a>
 
@@ -75,7 +75,7 @@ Keep the original project and authors credited when discussing these references.
 | 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | DONE |
 | 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | DONE |
 | 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | DONE |
-| 3 Task entry | [TASK-02](development-plan.md#task-02) | External read-only task browsing, then shared reading controls | Existing task model/service and I18N-01 language handling | IN_PROGRESS |
+| 3 Task entry | [TASK-02](development-plan.md#task-02) | External read-only task browsing, then shared reading controls | Existing task model/service and I18N-01 language handling | DONE |
 | 3/4/later Versions | [UPDATE-02](development-plan.md#update-02) | Slice 1 status/review; slice 2 execution/recovery; slice 3 protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | IN_PROGRESS |
 | 4 Source operations | [SOURCES-01](development-plan.md#sources-01) | Slices 1/2 readable state and GitHub checks; later slice 3 binding reuse/cleanup | Existing source services; FIX-03 lifecycle rules | NOT_STARTED |
 | 4 Scheduling | [COMMAND-02](development-plan.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | NOT_STARTED |
