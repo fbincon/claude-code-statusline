@@ -331,9 +331,12 @@ test('package review worker ownership prevents another view from cancelling it',
     const owner='viewer-test-owner-123456789',job=startPackageReview(context,request,owner),folder=reviewFolder(job.id);
     assert.throws(()=>packageReviewJob(context,job.id,'viewer-other-owner-123456789',true),/identity/);
     assert(!fs.existsSync(join(folder,'cancel.json')));
-    assert.equal(packageReviewJob(context,job.id,owner,true).state,'cancelled');
-    const until=Date.now()+15000;while(fs.existsSync(folder)&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,50));
-    assert(!fs.existsSync(folder),'Cancelled worker cleans its private temporary directory');assert(!fs.existsSync(f.configDir));
+    // Cancellation can return before process exit is confirmed. The caller must
+    // reconcile it again; a stopped worker never removes its own loaded runner.
+    const until=Date.now()+25000;let cancelled=packageReviewJob(context,job.id,owner,true);
+    while(fs.existsSync(folder)&&Date.now()<until){await new Promise(resolve=>setTimeout(resolve,50));cancelled=packageReviewJob(context,job.id,owner,true);}
+    assert.equal(cancelled.state,'cancelled');
+    assert(!fs.existsSync(folder),'Confirmed cancelled worker cleanup: '+JSON.stringify(cancelled));assert(!fs.existsSync(f.configDir));
 });
 test('review startup grace excludes runner preparation while the overall deadline stays bounded',t=>{
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-startup-grace-123456789';
