@@ -129,6 +129,7 @@ else if (operation === 'setup-console') {
     process.exitCode = await main(['--language', 'en', 'setup', '--config-dir', config!], { hostVersion: () => [2, 1, 258] });
 }
 else if (operation === 'windows-editor' || operation === 'windows-setup') {
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_console_adapter',pid:process.pid}),{mode:0o600});
     const { library, nativeApi } = await load('platform', 'native'), k = library('kernel32.dll');
     const input = k.func('void *CreateFileW(const char16_t *name, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')('CONIN$', 0xc0000000, 3, null, 3, 0, null);
     if (!input || nativeApi().address(input) === 0xffffffffffffffffn)
@@ -192,6 +193,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     };
     const poll=setInterval(observeOutput,25);
     timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_editor',pid:process.pid}),{mode:0o600});
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],

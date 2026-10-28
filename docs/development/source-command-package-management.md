@@ -16,6 +16,8 @@ Mutable private package progress/installation records use bounded snapshots that
 
 Interactive bootstrap inspects the command before creating terminal streams. Runtime/UI pipes keep blocking input even when the producer writes after the reader starts. Real delayed-pipe regressions assert protocol success, the published observation and read-only describe behavior; concurrent runtime writers retain all agents and sessions.
 
+Windows historical package journeys run sequentially to avoid competing npm/copy fixtures. All historical versions, transitions, crash/recovery assertions and product/sequence/overall deadlines remain unchanged. The crash fixture propagates a pre-checkpoint management failure and retains its bounded output, so an earlier timeout cannot masquerade as successful execution or as an injected crash.
+
 ## Source lifecycle and references
 
 Execution permission and automatic permission are reviewed independently. Commands start automatic policy at 300 seconds, adjustable 60–86400 separately from TTL. Active host leases renew every five seconds and expire after fifteen. Applicable projects, sessions and confirmed local agents participate; unknown ownership waits. Same-source commands run serially, equal effective input shares work and distinct contexts rotate fairly. Busy ticks do not accumulate work. Temporary failures back off; program/configuration/identity failures pause. Source edits revoke old permission and late result publication.

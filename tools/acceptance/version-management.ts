@@ -47,8 +47,19 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
     try {
         const versions: HistoricalRelease[] = compareVersions(target, '3.8.0') > 0 ? ['3.7.0', '3.8.0'] : ['3.7.0'];
         let primaryFailure: { error: unknown } | undefined;
-        const results = await Promise.allSettled(versions.map(version => historicalSequence(installed, version, controller.signal, host,
-            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; })));
+        const run = (version: HistoricalRelease) => historicalSequence(installed, version, controller.signal, host,
+            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; });
+        const results: PromiseSettledResult<Record<string, unknown>>[] = [];
+        // These are independent historical compatibility journeys, not a
+        // concurrent-install test. Avoid two npm/copy-heavy fixtures competing
+        // on Windows; retain every operation and the existing per-sequence,
+        // product subprocess and two-sequence overall deadlines.
+        if(process.platform==='win32'){
+            for(const version of versions){
+                const [result]=await Promise.allSettled([run(version)]);results.push(result!);
+                if(result?.status==='rejected')break;
+            }
+        }else results.push(...await Promise.allSettled(versions.map(run)));
         if (primaryFailure) throw primaryFailure.error;
         const failed = results.find(result => result.status === 'rejected');
         if (failed?.status === 'rejected') throw failed.reason;
@@ -176,7 +187,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             clearTimeout(timer);
             const elapsed_ms = performance.now() - started;
             timings.push({ command: label, elapsed_ms });
-            trace({ phase: 'exit', id, command: label, code, signal, elapsed_ms, ...(code !== 0 ? { transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) } : {}) });
+            trace({ phase: 'exit', id, command: label, code, signal, elapsed_ms, ...(code !== 0 || label==='crash-after-package-verification' ? { transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) } : {}) });
             try {
                 if (success)
                     assert.equal(code, 0, stderr + stdout);
@@ -244,9 +255,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const recoveryRoot = join(configDir, 'statusline_runtime/package-management/transactions', history.transaction, 'recovery-runner'), recoveryEntry = join(recoveryRoot, 'bin/claude-statusline.js');
         assert(fs.existsSync(recoveryEntry));
         const serviceURL = pathToFileURL(join(recoveryRoot, 'node_modules/@fbincon/statusline-cli/dist/src/management/service.js')).href;
-        const crash = `import {manage} from ${JSON.stringify(serviceURL)};await manage(${JSON.stringify(command(recoveryEntry, 'update', targetVersion).slice(1))},{origin:${JSON.stringify(recoveryRoot)},stdout:s=>process.stdout.write(s),stderr:s=>process.stderr.write(s),checkpoint:stage=>{if(stage==='package_verified')process.kill(process.pid,'SIGKILL');}});`;
+        const crash = `import {manage} from ${JSON.stringify(serviceURL)};process.exitCode=await manage(${JSON.stringify(command(recoveryEntry, 'update', targetVersion).slice(1))},{origin:${JSON.stringify(recoveryRoot)},stdout:s=>process.stdout.write(s),stderr:s=>process.stderr.write(s),checkpoint:stage=>{if(stage==='package_verified')process.kill(process.pid,'SIGKILL');}});`;
         const stopped = await invoke(['--input-type=module', '-e', crash], false);
-        assert.notEqual(stopped.code, 0);
+        assert.notEqual(stopped.code, 0, stopped.stderr + stopped.stdout);
         assert.equal(transaction()?.stage, 'package_verified', stopped.stderr + stopped.stdout);
         assert.equal(await version(), 'claude-statusline ' + targetVersion);
         const markerPath = join(prefix, '.claude-statusline-operation.json'), marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
