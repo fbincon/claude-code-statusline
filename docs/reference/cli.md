@@ -624,12 +624,12 @@ Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switch
 
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`, `zh-CN` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
+| `statusline-language` | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
 | `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
 | `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
 | `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
 | `separator-style` | `classic`, `compact`, `powerline` | `classic` | How to separate top-level items |
-| `theme` | `classic`, `dark`, `light`, `terminal` | `classic` | Statusline color roles; preserves item overrides and Claude host appearance |
+| `theme` | `classic`, `dark`, `light`, `terminal`, `ocean`, `ember`, `slate`, `blossom` | `classic` | Statusline color roles; preserves item overrides and Claude host appearance |
 | `powerline-glyph` | `ascii`, `powerline` | `ascii` | ASCII `>` or optional font-dependent arrow for Powerline boundaries |
 | `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend the localized main/session scope label to the main line |
 | `subagent-statusline` | `on`, `off` | `on` | Whether custom subagent rows should be installed and rendered |
@@ -940,7 +940,7 @@ Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook
 
 ## Conditional visibility and appearance
 
-Use `config set theme classic|dark|light|terminal`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
+Use `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
 
 ## Instance management
 

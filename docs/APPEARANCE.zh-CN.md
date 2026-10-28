@@ -30,7 +30,7 @@ claude-statusline config item main git visibility always
 
 ## 主题与逐项颜色
 
-主题保留项目选择、顺序、格式、布局和采集偏好，切换主题也保留逐项覆盖。四种主题 ID 为 `classic`（既有外观）、`dark`（深色）、`light`（浅色）和 `terminal`（终端 ANSI 色槽），分别提供普通显示和 Powerline 颜色角色。主题不会修改终端背景或安装字体。
+主题保留项目选择、顺序、格式、布局和采集偏好，切换主题也保留逐项覆盖。八种主题 ID 为 `classic`（既有外观）、`dark`（深色）、`light`（浅色）、`terminal`（终端 ANSI 色槽）、`ocean`、`ember`、`slate` 和 `blossom`；ocean、ember、slate 适合深色终端背景，blossom 适合浅色背景，分别提供普通显示和 Powerline 颜色角色。主题不会修改终端背景或安装字体。
 
 ```text
 claude-statusline config set theme light
@@ -119,7 +119,7 @@ claude-statusline config instance main set context-remaining bar-style ascii
 
 ## 静态组件渐变
 
-在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换 `off`、`ocean`（海洋）、`sunset`（落日）、`aurora`（极光）；Enter 可输入预设名或 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
+在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换十一种预设与 `off`；Enter 打开可视色带及候选编辑页，支持逐色标修改，也可输入 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
 
 ```sh
 claude-statusline config instance main set context-used foreground-gradient ocean
@@ -133,7 +133,7 @@ claude-statusline config instance main set context-used foreground-gradient off
 
 告警与严重阈值前景优先于前景渐变。渐变背景采样色与文字色相同时使用中性背景。共享 Powerline 组由主实例决定整组背景，各成员前景独立，并保留成员未生效的背景设置。分隔符和端帽使用相邻色块最终边缘色，spacer 间隙保持终端默认背景。现有 semantic／continuous／restart 模式继续排列继承色，显式渐变在组件或色块内重新开始。
 
-渐变从显示 schema 14／编辑器协议 23 引入；统一交付使用 schema 15／协议 24，保持既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
+渐变从显示 schema 14／编辑器协议 23 引入。当前交付使用显示 schema 16／编辑器协议 26；新增主题需要 schema 16，schema 1～15 的只读迁移保留既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
 
 渐变背景与 RGB 告警／严重前景的对比度低于 3:1 时，背景改用中性色，保留告警前景；ANSI 颜色由终端主题定义，槽位相同时同样保护。
 

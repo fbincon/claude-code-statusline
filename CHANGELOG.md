@@ -2,8 +2,7 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
-
-## 3.10.0 — Unreleased
+## 3.10.0 — 2026-10-28
 
 - Add four registered themes and eight RGB gradient presets, visible color choices and reversible per-stop editing in both editors.
 - Select deterministic sample scenarios and temporary width/row controls without changing display settings or collecting data.

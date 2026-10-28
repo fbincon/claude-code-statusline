@@ -30,7 +30,7 @@ claude-statusline config item main git visibility always
 
 ## Themes and item colors
 
-Themes preserve item selection, order, formats, layout and collection preferences. Existing item overrides survive a theme change. The original four theme IDs are `classic` (existing appearance), `dark`, `light` and `terminal` (terminal ANSI slots). Each supplies regular and Powerline roles. A theme does not change the terminal background or install fonts.
+Themes preserve item selection, order, formats, layout and collection preferences. Existing item overrides survive a theme change. The eight theme IDs are `classic` (existing appearance), `dark`, `light`, `terminal` (terminal ANSI slots), `ocean`, `ember`, `slate` and `blossom`. Ocean, ember and slate suit dark terminal backgrounds; blossom suits light backgrounds. Each supplies regular and Powerline roles. A theme does not change the terminal background or install fonts.
 
 ```text
 claude-statusline config set theme light
@@ -119,7 +119,7 @@ Copies, profiles and portable exports retain these display options without enabl
 
 ## Static component gradients
 
-In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles `off`, `ocean`, `sunset`, and `aurora`; Enter accepts a preset name or 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
+In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles the eleven presets and `off`; Enter opens visible swatches and candidate editing. The color page supports individual stops and custom 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
 
 ```sh
 claude-statusline config instance main set context-used foreground-gradient ocean
@@ -133,7 +133,7 @@ Color interpolation is linear in sRGB channels with equally spaced stops. Foregr
 
 Warning and critical foregrounds override foreground gradients. A background gradient sample that equals the text color uses a neutral background. RGB warning/critical text also uses a neutral background when its contrast ratio against a gradient sample falls below 3:1; the warning foreground is retained. Shared Powerline groups take the entire block's background from the primary instance, retain each member's foreground and preserve inactive member backgrounds. Separators and caps use adjacent final edge colors. Spacer gaps retain the terminal default background. Existing semantic/continuous/restart modes continue to sequence inherited colors; explicit gradients restart within each component or block.
 
-Gradients were introduced in display schema 14 / editor protocol 23; the combined release uses schema 15 / protocol 24. Prior defaults remain unchanged. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
+Gradients were introduced in display schema 14 / editor protocol 23. Current delivery uses display schema 16 / editor protocol 26; new theme identities require schema 16, while read-only migration from schemas 1–15 retains prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
 
 ## Visual color selection and sample scenarios
 
