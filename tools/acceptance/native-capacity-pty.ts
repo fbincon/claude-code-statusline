@@ -58,6 +58,12 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const importPath = join(config, 'identical-display.json'); record(importPath, draft.display);
     const diagnosticPath=join(config,'explicit input 中文.json');record(diagnosticPath,{session_id:'explicit-file',version:'2.1.310',model:{id:'File-input-model'},context_window:{used_percentage:95,remaining_percentage:5}});
     const taskEvidence=taskFixture(config,'task-pty');
+    if(action==='live-command'){
+        const spec=join(config,'controlled-command.json');record(spec,{name:'Controlled active-session command',kind:'command',scope:{project,session:null,agent:null},ttl_seconds:300,settings:{executable:installed.node,args:['-e','process.stdout.write("live-session-command")'],cwd:project,input:{session:'session'},output:'text',timeout_ms:5000}});
+        const cli=(args:string[])=>command(installed.node,[installed.entry,'source','--config-dir',config,...args],{...env,CLAUDE_CONFIG_DIR:config});
+        cli(['add','pty-command','--file',spec]);const review=JSON.parse(cli(['review','pty-command','--json'])).review_revision;
+        cli(['enable','pty-command','--review',review]);cli(['auto-on','pty-command','--review',review,'--interval','300']);
+    }
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
@@ -124,6 +130,11 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 assert(!records().some(row=>row.operation==='package_review_start'),'Page entry started a network review');
             }
             await until(text=>text.includes('Configure Status Line *'),'unsaved draft retained');
+        } else if(action==='live-command'){
+            const jobs=()=>{const folder=join(config,'statusline_runtime/sources/jobs');return fs.existsSync(folder)?fs.readdirSync(folder).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(fs.readFileSync(join(folder,name),'utf8'))).filter(job=>job.source_id==='pty-command'):[];};
+            await until(()=>jobs().some(job=>job.state==='completed'),'actual runtime lease dispatched the controlled command',25000);
+            const observed=jobs();assert.equal(observed.length,1);assert.equal(observed[0].result.summary,'live-session-command');assert.equal(observed[0].result.exit_code,0);assert.equal(typeof observed[0].context.session,'string');
+            await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
         } else if(action==='native-task'){
             await key('q','close configuration');await until(text=>!text.includes('Configure Status Line'),'configuration closed');
             await key('/statusline-task\r','open native task');await until(text=>/Session: [^\s]+/u.test(text),'session identity visible');
@@ -195,7 +206,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         await delay(100); try { process.kill(-p.child.pid!, 'SIGKILL'); } catch { /* Already ended. */ }
         await p.close();
         const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: action === 'tall' ? 220 : external ? 32 : 50,
-            model_calls: 0, source_commands: 0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
+            model_calls: 0, source_commands: action==='live-command'?1:0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
             display_after_sha256: sha256(fs.readFileSync(join(config, 'claude-statusline.json'))), steps };
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
@@ -218,10 +229,11 @@ try {
     ]) await runCase(name!, fixture!, action!);
     for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file'],['external-version-status','plain-main-w72','version-status'],['external-task-viewer','plain-main-w72','external-task']]) await runCase(name!, fixture!, action!, true);
     for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
-    assert.equal(reports.length, 33); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    await runCase('native-live-command','plain-main-w72','live-command');
+    assert.equal(reports.length, 34); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 33 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === 34 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }
