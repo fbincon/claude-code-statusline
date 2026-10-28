@@ -92,14 +92,15 @@ export async function artifactJson(artifact: any, file: string, expectedHash?: s
 export function requireRun(run: any, commit: string, branch: string, event = 'push'): void {
     assert.match(commit, SHA); assert.equal(run.head_sha, commit); assert.equal(run.head_branch, branch); assert.equal(run.event, event);
     assert.equal(run.repository?.full_name, CI_REPOSITORY); assert.equal(run.head_repository?.full_name, CI_REPOSITORY);
-    assert.equal(run.path, '.github/workflows/ci.yml'); assert.equal(run.status, 'completed'); assert.equal(run.conclusion, 'success', 'Latest applicable CI did not pass');
+    assert.equal(run.path, '.github/workflows/ci.yml'); assert.equal(run.status, 'completed', `Latest applicable CI ${run.id} has not completed`);
+    assert.equal(run.conclusion, 'success', `Latest applicable CI ${run.id} did not pass`);
 }
 export function validateComplete(record: CompleteEvidence, run: any, artifacts: any[], now = Date.now()): void {
     assert.equal(record.schema_version, 1); assert.equal(record.kind, 'complete'); assert.equal(record.repository, CI_REPOSITORY);
     requireRun(run, record.source_commit, record.branch, record.event);
     assert.equal(record.run_id, run.id); assert.equal(record.attempt, run.run_attempt); assert.equal(record.workflow, run.path);
     assert.match(record.tree, SHA); assert.match(record.workflow_sha, SHA); assert.match(record.policy_sha256, HASH);
-    assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now);
+    assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now, 'Evidence envelope is expired or has an invalid creation time');
     assert(Date.parse(record.expires_at) - Date.parse(record.created_at) <= 30 * 86400000);
     assert.deepEqual(record.coverage, { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: 197 });
     assert.match(record.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
@@ -138,6 +139,11 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
         const key = execution.target + (execution.runtime_case ? '@' + execution.runtime_case : '');
         assert(!obligations.has(key), 'Duplicate execution obligation'); obligations.add(key);
         assert(Number.isSafeInteger(execution.job_id) && execution.job_id > 0);
+        const split = execution.target.lastIndexOf('-'), os = execution.target.slice(0, split), arch = execution.target.slice(split + 1);
+        const expectedJob = execution.host ? `Mods / ${({ linux: 'ubuntu-24.04', win32: 'windows-2025', darwin: 'macos-15' } as Record<string, string>)[os]} / Claude ${execution.host}` :
+            execution.runtime_case && !execution.execution?.reused_installed ? `Node ${execution.runtime_case} / ${os} / ${arch}` : `Installed / ${os} / ${arch}`;
+        assert.equal(execution.job_name, expectedJob, 'Execution names an unrelated job');
+        assert(Number.isFinite(Date.parse(execution.started_at)) && Date.parse(execution.completed_at) >= Date.parse(execution.started_at), 'Missing original execution times');
         assert.equal(Number(execution.execution?.run_id), record.run_id);
         assert(Number.isSafeInteger(Number(execution.execution?.attempt)) && Number(execution.execution.attempt) > 0 && Number(execution.execution.attempt) <= record.attempt);
         assert.match(execution.node_sha256, HASH);
@@ -190,6 +196,8 @@ export async function verifyWorkflowSource(record: CompleteEvidence): Promise<vo
     assert.equal(workflow.sha, git('rev-parse', record.source_commit + ':' + record.workflow), 'Executed workflow differs from the accepted source');
 }
 export async function recordComplete(evidence: string, selectionFile: string, acceptanceFile: string, output: string): Promise<void> {
+    assert(process.env.GITHUB_EVENT_NAME === 'pull_request' || process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'main',
+        'Only automatic PR/main acceptance can create promotable evidence');
     const selection = JSON.parse(fs.readFileSync(selectionFile, 'utf8')), accepted = JSON.parse(fs.readFileSync(acceptanceFile, 'utf8'));
     assert.equal(accepted.status, 'pass');
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');

@@ -160,14 +160,15 @@ test('only a tag push with successful promotion can intentionally skip the matri
     process.env.CI_EVENT = 'pull_request'; assert.throws(() => assessCiNeeds(needs));
     process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; assert.throws(() => assessCiNeeds(needs));
 });
-test('main reuse and policy-change shadow both require successful integration and promotion', t => {
-    const previous = { CI_EVENT: process.env.CI_EVENT, CI_REF_TYPE: process.env.CI_REF_TYPE, CI_REF_NAME: process.env.CI_REF_NAME };
+test('automatic reuse and independent manual shadow require integration without the full matrix', t => {
+    const previous = { CI_EVENT: process.env.CI_EVENT, CI_REF_TYPE: process.env.CI_REF_TYPE, CI_REF_NAME: process.env.CI_REF_NAME, CI_VALIDATION: process.env.CI_VALIDATION };
     t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } });
     process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; process.env.CI_REF_NAME = 'main';
     for (const shadow of [false, true]) {
-        const needs = { scope: { result: 'success', outputs: { route: shadow ? 'full' : 'main', shadow: String(shadow), docs_only: 'false' } },
+        process.env.CI_EVENT = shadow ? 'workflow_dispatch' : 'push'; process.env.CI_VALIDATION = 'promotion-shadow';
+        const needs = { scope: { result: 'success', outputs: { route: 'main', mode: shadow ? 'diagnostic' : 'automatic', docs_only: 'false' } },
             integration: { result: 'success' }, promotion: { result: 'success' },
-            ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: shadow ? 'success' : 'skipped' }])) };
+            ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])) };
         assert.doesNotThrow(() => assessCiNeeds(needs));
         for (const name of ['integration', 'promotion']) for (const result of ['skipped', 'failure', 'cancelled']) assert.throws(() => assessCiNeeds({ ...needs, [name]: { result } }));
         process.env.CI_REF_NAME = 'other'; assert.throws(() => assessCiNeeds(needs)); process.env.CI_REF_NAME = 'main';

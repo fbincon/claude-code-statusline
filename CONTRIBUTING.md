@@ -34,7 +34,7 @@ npm run check
 git diff --check
 ```
 
-CI uses an explicit documentation/template allowlist. Mixed changes and release approval JSON require the complete product matrix. Both routes finish at `Complete candidate evidence`; see [CI maintenance](docs/development/ci-maintenance.md). The full test suite uses isolated fixtures; follow [testing and acceptance](docs/development/testing.md) for opt-in installed, terminal, physical or paid checks.
+CI uses an explicit documentation/template allowlist. Mixed changes and release approval JSON require the complete final-PR product matrix. Both routes finish at `Complete candidate evidence`; see [CI maintenance](docs/development/ci-maintenance.md). The full test suite uses isolated fixtures; follow [testing and acceptance](docs/development/testing.md) for opt-in installed, terminal, physical or paid checks.
 
 ## Prepare a pull request
 

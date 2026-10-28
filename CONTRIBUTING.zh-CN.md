@@ -34,7 +34,7 @@ npm run check
 git diff --check
 ```
 
-CI 使用明确的文档／模板白名单。混合变更和发布审批 JSON 仍需完整产品矩阵。两条路径都以 `Complete candidate evidence` 汇总检查结束，详见 [CI 维护说明](docs/development/ci-maintenance.zh-CN.md)。完整测试套件使用隔离夹具；需要显式执行的安装、终端、实机或付费验证参见[测试与验收](docs/development/testing.zh-CN.md)。
+CI 使用明确的文档／模板白名单。混合变更和发布审批 JSON 仍需完整最终 PR 产品矩阵。两条路径都以 `Complete candidate evidence` 汇总检查结束，详见 [CI 维护说明](docs/development/ci-maintenance.zh-CN.md)。完整测试套件使用隔离夹具；需要显式执行的安装、终端、实机或付费验证参见[测试与验收](docs/development/testing.zh-CN.md)。
 
 ## 准备 PR
 
