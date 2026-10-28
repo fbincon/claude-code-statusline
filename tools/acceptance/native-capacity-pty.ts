@@ -149,8 +149,12 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         } else if(action==='native-task'){
             await key('q','close configuration');await until(text=>!text.includes('Configure Status Line'),'configuration closed');
             await key('/statusline-task\r','open native task');await until(text=>/Session: [^\s]+/u.test(text),'session identity visible');
-            const session=read().match(/Session: ([a-zA-Z0-9-]+)/u)?.[1];assert(session,'Missing observed session');const evidence=taskFixture(config,session);
-            await key('r','read published task');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
+            const session=read().match(/Session: ([a-zA-Z0-9-]+)/u)?.[1];assert(session,'Missing observed session');
+            // The session heading can render while the first read is still in
+            // flight. Publish only after that read completes, then require an
+            // actual second read instead of pressing a still-busy Refresh.
+            await until(()=>completed('task_details'),'initial native task read completed');const evidence=taskFixture(config,session);
+            await key('r','read published task');await until(()=>records().filter(row=>row.operation==='task_details'&&row.phase==='complete').length===2,'published task refresh completed');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
             assert.deepEqual(fs.readFileSync(evidence.path),evidence.bytes);
         } else if(action==='colors') {
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
