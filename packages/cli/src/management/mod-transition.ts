@@ -1,12 +1,12 @@
 /** Refresh owned Mod bytes with the newer ownership reader before an older installer runs. */
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { compatibility, compareVersions } from '@fbincon/statusline-core/management/compatibility';
 import { PACKAGE_NAME, VERSION } from '@fbincon/statusline-core/release';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
+import { readPackageManifest } from '@fbincon/statusline-platform/npm';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { NATIVE, RUNTIME, type InstallContext } from '../integration/model.js';
 import { owner } from '../integration/mod-ownership.js';
@@ -23,7 +23,7 @@ import { assertConfiguration, configurationBytes, configurationHashes, type Conf
 
 export function prepareModDowngrade(context: InstallContext, root: string, version: string, expected: ConfigHashes, dryRun: boolean): ConfigHashes {
     assertConfiguration(context.configDir, expected);
-    const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+    const manifest = readPackageManifest(root);
     if (manifest.version !== version || manifest.name !== PACKAGE_NAME) throw new PackageError('identity');
     const target = compatibility(manifest.statuslineCompatibility, version);
     const modes = loadRuntime(context.configDir, context.io);

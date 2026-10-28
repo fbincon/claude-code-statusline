@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { PackageError, type PackageIdentity, type PackageReview } from '@fbincon/statusline-core/management/package';
 import { compatibility, compareVersions, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
-import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
+import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, readPackageManifest, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
@@ -73,7 +73,7 @@ function selection(flags: ManagementOptions, before: PackageIdentity, history: R
     return { selector: channel, channel };
 }
 function installedCompatibility(current: PackageIdentity) {
-    const manifest = JSON.parse(fs.readFileSync(join(current.root, 'package.json'), 'utf8'));
+    const manifest = readPackageManifest(current.root);
     return compatibility(manifest.statuslineCompatibility, current.version);
 }
 function observedPackage(layout: NpmLayout, operation: PackageOperation): {
@@ -93,7 +93,7 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
             throw error;
         const manifest = join(layout.root, 'package.json');
         if (fs.existsSync(manifest)) {
-            const value = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+            const value = readPackageManifest(layout.root);
             if (value.name !== '@fbincon/claude-code-statusline' || ![operation.version, operation.before?.version].includes(value.version))
                 throw new PackageError('identity');
         }

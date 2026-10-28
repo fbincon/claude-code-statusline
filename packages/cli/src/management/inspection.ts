@@ -5,7 +5,7 @@ import { VERSION } from '@fbincon/statusline-core/release';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { compatibility, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import type { PackageHistoryRow, PackageStatus } from '@fbincon/statusline-core/contracts/ui';
-import { globalPackageRoot, productIdentity, productRoot } from '@fbincon/statusline-platform/npm';
+import { globalPackageRoot, productIdentity, productRoot, readPackageManifest } from '@fbincon/statusline-platform/npm';
 import { resolvedPath, which } from '@fbincon/statusline-platform/commands';
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { processMatches } from '@fbincon/statusline-platform/processes';
@@ -13,8 +13,6 @@ import { previousBinding } from '../integration/ownership.js';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
 import { readPrivateState } from '@fbincon/statusline-platform/private-state';
-import { readSourceFile } from '@fbincon/statusline-platform/source-files';
-import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { configurationBytes, configurationHashes, configurationCompatibility, readSnapshot } from './configuration.js';
 import { MANAGEMENT_ROOT, operationPath, pendingPath, readInstallation, readOperation, type PackageOperation } from './store.js';
 export interface InspectionContext {
@@ -77,9 +75,7 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
                 reasons.push('not_installed');
             else {
                 // npm manifests are ordinary public package files, not private journals.
-                const bytes = readSourceFile(join(identity.root, 'package.json'));
-                if (!bytes) throw new PackageError('identity');
-                const manifest = JSON.parse(decodeUtf8(bytes));
+                const manifest = readPackageManifest(identity.root);
                 const declared = compatibility(manifest.statuslineCompatibility, identity.version);
                 const binding = previousBinding(configDir, createStorage());
                 reasons.push(...runtimeCompatibility(declared, process.versions.node, process.platform + '-' + process.arch, host, binding !== null));
