@@ -12,6 +12,7 @@ import { UNVERIFIED_GATES, sourceStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES } from '../acceptance/native-capacity.js';
+import { VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from '../acceptance/budgets.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
@@ -22,6 +23,16 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
     assert.equal(value.target_version, VERSION);
     assert.equal(value.host_mode, official ? 'official' : 'version-only');
     assert.equal(value.model_calls, 0);
+    if (compareVersions(VERSION, '3.12.0') >= 0) {
+        const phases = ['baseline', ...(historical === '3.8.0' ? ['editor_execution'] : [])];
+        assert(Array.isArray(value.acceptance_phases) && value.acceptance_phases.length === phases.length, 'Incomplete acceptance phase budgets');
+        for (const [index, phase] of phases.entries()) {
+            const receipt = value.acceptance_phases[index];
+            const budget = phase === 'baseline' ? official ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS : official ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS;
+            assert.equal(receipt?.phase, phase); assert.equal(receipt.status, 'pass'); assert.equal(receipt.budget_ms, budget);
+            assert(Number.isFinite(receipt.elapsed_ms) && receipt.elapsed_ms >= 0 && receipt.elapsed_ms <= budget, 'Acceptance phase exceeded its own budget');
+        }
+    }
     for (const key of ['roundtrip', 'independent_runner', 'crash_recovery', 'configuration_restore', 'real_npm']) assert.equal(value[key], true);
     const review=value.editor_review;assert(review,'Missing editor-review receipt');
     for(const key of ['local_reads_no_network','metadata_unverified','verified_dry_run','rollback_review','restore_review','cancellation','configuration_unchanged','package_unchanged'])assert.equal(review[key],true);
