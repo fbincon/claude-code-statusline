@@ -152,7 +152,7 @@ schema 16 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `I
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 16 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 16、UI protocol 27、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 16、UI protocol 28、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ## TypeScript 后端绑定
 
@@ -245,3 +245,11 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 协议 27 新增 `package_status`（`prefix: string|null`、非负整数 `offset`）、`package_review_start`（`owner`、`request`）及 `package_review_status`／`package_review_cancel`（`id`、`owner`）。request 包含 `action`（`check`、`update`、`rollback`、`recover-package`、`restore-config`）、`prefix`、`expected_revision` 和可空的 `target`、`channel`、`backup_id`、`expected_integrity`。元数据检查与已验证 dry-run 分开；配置还原返回独立文件审核，不宣称产物验证。
 
 状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。显示 schema 16、任务详情 1 及既有 runtime、来源、方案和偏好格式不变。
+
+## 来源操作与包执行协议 28
+
+编辑器协议 28 增加 `source_inspect`、`source_bindings_review/cleanup`、`source_draft`、`package_execute_start/status/detach` 和 `package_cleanup_review/apply`。Core 定义有界摘要／分页及共享交互状态，CLI 实施修订、身份、许可和引用规则，平台层承担文件、进程及删除效果；Mod 资源由规范契约生成。
+
+来源注册表 3 扩展命令自动策略。旧表只读兼容，不补授许可。任务 4 增加可选有界执行结果；任务 1–3 缺失信息显示未知。观测保持 1，增加可选检查／执行字段。外部命令输出协议仍为 v1，runtime 仍为 v3，增加可选且已确认归属的本地代理上下文。调度身份包含来源修订、声明范围及实际输入，维持五秒续租、十五秒过期。
+
+包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。清理绑定修订并保守保护。来源注册表 3 或较新显示配置可能无法被旧包读取；回退审核必须在替换前拒绝不兼容配置，禁止修改 schema 数字强行回退。

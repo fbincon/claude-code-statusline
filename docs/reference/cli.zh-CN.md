@@ -934,7 +934,7 @@ claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--pr
 claude-statusline source unbind ID --binding BINDING_ID [--json]
 claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
 claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
 claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
@@ -970,3 +970,13 @@ claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
 ```
 
 要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。
+
+## 来源绑定维护
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` 显示共享可读摘要；`--json` 提供高级已保存检查详情。命令自动执行单独审核，默认 300 秒，允许 60–86400 秒，与 TTL 独立。绑定清理重新检查引用和修订；仅释放明确放弃或已恢复的草稿 owner。参见[来源操作](../EXTENSIONS.zh-CN.md)及[包执行](../PACKAGE_MANAGEMENT.zh-CN.md)。

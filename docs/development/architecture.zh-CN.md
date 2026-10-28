@@ -231,3 +231,5 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 `config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
 
 </details>
+
+[来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。

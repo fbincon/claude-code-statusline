@@ -972,7 +972,7 @@ claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--pr
 claude-statusline source unbind ID --binding BINDING_ID [--json]
 claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
 claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
 claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
@@ -1008,3 +1008,13 @@ claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
 ```
 
 Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+
+## Source binding maintenance
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).

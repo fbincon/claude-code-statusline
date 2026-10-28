@@ -238,3 +238,5 @@ Display schema v8 and configuration protocol v12 carry `statusline_language` thr
 `config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; TypeScript generates the shared protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
 
 </details>
+
+[Source and package execution boundaries and additional acceptance](source-command-package-management.md) document protocol 28, separate command approval, retained controls and protected cleanup.

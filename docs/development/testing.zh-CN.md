@@ -446,3 +446,5 @@ TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中�
 验收分开记录。源码及进程中断测试不宣称硬件断电验证。性能后续工作仍归 PERF-01。
 
 </details>
+
+[来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。

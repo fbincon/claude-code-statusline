@@ -2,18 +2,28 @@
 
 **English** | [简体中文](PACKAGE_MANAGEMENT.zh-CN.md)
 
-Version management is an explicit CLI operation. Rendering and either editor never check for new packages. Use a persistent global npm installation; [first entry](SETUP.md#first-entry-and-persistent-npm-installation) can review and create one. Source checkouts and private engineering candidates use explicit development commands.
+Version management is explicit through the CLI or either editor. Rendering and either editor never check for new packages. Use a persistent global npm installation; [first entry](SETUP.md#first-entry-and-persistent-npm-installation) can review and create one. Source checkouts and private engineering candidates use explicit development commands.
 
 ## Review from either editor
 
 The Settings page offers **Version and installation**. Opening it reads local package identity, actual prefix/entry, configuration directory, installation channel, Node/Claude compatibility, previous successful version, backups and unfinished transactions. It performs no registry request. An ambiguous prefix requires explicit selection. Backup validity is verified from its recorded snapshot hashes; damaged records are shown without repair.
 
-Select **Check version metadata** to contact the configured npm registry. This result explicitly says the artifact is unverified. **Download and verify upgrade review**, package rollback and unfinished-package recovery reviews use the existing dry-run service and temporary staging, with scripts disabled. Select a verified backup to review configuration restoration separately. These actions do not replace the installation or restore configuration; continue to use the existing CLI commands below for execution.
+Select **Check version metadata** to contact the configured npm registry. This result explicitly says the artifact is unverified. **Download and verify upgrade review**, package rollback and unfinished-package recovery reviews use the existing dry-run service and temporary staging, with scripts disabled. Select a verified backup to review configuration restoration separately. These review actions do not change the installation. A compatible verified review enables a separate execution confirmation.
 
-Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. No page action saves, elevates privileges or cleans package history.
+Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. Execution and history cleanup each require their own explicit review; the product never elevates privileges.
 
 
-Known v3.11.0 issue: ordinary npm manifest permissions (`0644`/`0664`) can cause a false read/compatibility warning in this page. [Issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) tracks the deferred fix. Use the existing CLI `update --check` or `--dry-run` for review; do not change installed-file permissions merely to suppress the warning.
+Ordinary npm manifest modes `0600`, `0644` and `0664` are supported. Recovery journals and snapshots still require private permissions. The v3.11.0 false warning is fixed by [#173](https://github.com/fbincon/claude-code-statusline/issues/173).
+
+## Execute, detach and reconnect
+
+After a verified review, choose execution and handle the current draft explicitly: save successfully and review again, export to a new file, discard explicitly, or cancel and retain the draft. Export does not mark it saved. Unknown save outcomes require read-only reconciliation; any saved configuration change requires a fresh package review. Execution rechecks installation identity, configuration revision, exact target and integrity before mutation.
+
+The handoff returns a durable execution ID and an independent Node/JS control entry outside the replaced package. The old editor becomes read-only. `R` reads stages and separate package/integration/configuration outcomes; closing only detaches. Reopen while unfinished to inspect or review recovery. Keep the returned control entry to inspect progress even after downgrading to an older editor protocol. After completion reopen the external editor or restart Claude. A successful package replacement with failed integration remains incomplete and recoverable.
+
+## Protected history cleanup
+
+History is paginated for the selected installation prefix. Explicit cleanup accepts only selected, completed and unreferenced owned records, rechecking the review under installation/configuration locks. Running or unverifiable executors, unfinished transactions, attached control entries, current/previous rollback material and necessary snapshots are protected. Unreadable ownership or references block deletion. Configuration restoration stays a separate review and never silently restores source permission.
 
 ## Check and review
 
@@ -37,7 +47,7 @@ claude-statusline update --version 3.8.0 --prefix /chosen/prefix --config-dir /c
 claude-statusline rollback --version 3.7.0 --prefix /chosen/prefix --config-dir /chosen/claude --yes
 ```
 
-Noninteractive package changes require all three: an exact `--version`, an explicit `--prefix`, and `--yes`. `--config-dir` is optional but recommended for isolated installations. Use quoted native paths; Windows supports `claude-statusline.cmd`. Ordinary interactive changes display a review and require `yes`, unless `--yes` was already explicit. Neither editor adds a version-management page.
+Noninteractive package changes require all three: an exact `--version`, an explicit `--prefix`, and `--yes`. `--config-dir` is optional but recommended for isolated installations. Use quoted native paths; Windows supports `claude-statusline.cmd`. Ordinary interactive changes display a review and require `yes`, unless `--yes` was already explicit. Both editors offer the same reviewed execution rules.
 
 Automatic transitions are tested from the actual published v3.7.0 archive. Its compatibility record is bound to SHA-256 `b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95`; registry metadata cannot substitute another legacy archive. New packages carry a versioned `statuslineCompatibility` declaration. Missing/unknown declarations, unsupported runtimes/hosts or unreadable configuration stop replacement.
 
