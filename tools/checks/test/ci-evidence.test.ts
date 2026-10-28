@@ -56,17 +56,21 @@ test('successful workflow status cannot replace the required aggregate or origin
     const previous = process.env.GH_TOKEN; process.env.GH_TOKEN = 'fixture-only';
     t.after(() => { if (previous === undefined) delete process.env.GH_TOKEN; else process.env.GH_TOKEN = previous; });
     const { record } = fixture();
+    let freshRun = { ...run };
     let gates: any[] = [{ name: 'Complete candidate evidence', conclusion: 'success' }];
     let jobs = [...new Map(record.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name,
         started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
     t.mock.method(globalThis, 'fetch', async (input: any) => {
         const url = new URL(String(input));
         assert.equal(url.hostname, 'api.github.com');
-        assert(url.pathname.includes('/actions/runs/12/'));
+        if (url.pathname.endsWith('/actions/runs/12')) return Response.json(freshRun);
+        assert.match(url.pathname, /\/actions\/runs\/12\/attempts\/[12]\/jobs$/u, 'Never use the mutable latest-jobs alias');
         const result = url.pathname.includes('/attempts/1/jobs') ? jobs : gates;
         return Response.json({ jobs: result, total_count: result.length });
     });
     await requireGate(run); await verifyExecutionJobs(record);
+    freshRun = { ...run, run_attempt: 3 }; await assert.rejects(requireGate(run), /attempt changed/u);
+    freshRun = { ...run, status: 'in_progress' }; await assert.rejects(requireGate(run), /has not completed/u); freshRun = { ...run };
     for (const conclusion of ['failure', 'skipped', 'cancelled', null]) {
         gates = [{ name: 'Complete candidate evidence', conclusion }]; await assert.rejects(requireGate(run));
     }

@@ -100,12 +100,16 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
             result = { artifacts, total_count: artifacts.length };
         } else if (pathname === '/actions/runs/44/artifacts') result = { artifacts: mainArtifacts, total_count: mainArtifacts.length };
         else if (pathname === '/actions/runs/45/artifacts') result = { artifacts: tagArtifacts, total_count: tagArtifacts.length };
-        else if (/^\/actions\/runs\/\d+\/jobs$/u.test(pathname)) result = { total_count: 1, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' }] };
+        else if (pathname === '/actions/runs/12') result = prRun;
+        else if (pathname === '/actions/runs/1') result = baseRun;
+        else if (pathname === '/actions/runs/44') result = mainRun;
+        else if (/^\/actions\/runs\/(?:1|12)\/attempts\/2\/jobs$/u.test(pathname)) result = { total_count: 1, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' }] };
         else if (pathname === '/actions/runs/12/attempts/1/jobs') {
             const jobs = [...new Map(source.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name, started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
             result = { jobs, total_count: jobs.length };
         }
-        else if (pathname === '/actions/runs/44/attempts/2/jobs') result = { total_count: 3, jobs: SMOKE_TARGETS.map((target, index) => ({ id: 1000 + index, name: 'Integration smoke / ' + target, conclusion: 'success' })) };
+        else if (pathname === '/actions/runs/44/attempts/2/jobs') result = { total_count: 4, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' },
+            ...SMOKE_TARGETS.map((target, index) => ({ id: 1000 + index, name: 'Integration smoke / ' + target, conclusion: 'success' }))] };
         else if (/^\/actions\/artifacts\/\d+\/zip$/u.test(pathname)) return new Response(null, { status: 302, headers: { location: 'https://ci-fixture.invalid/' + pathname.split('/')[3] } });
         else throw new Error('Unexpected API call: ' + url.href);
         return Response.json(result);
