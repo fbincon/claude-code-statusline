@@ -2115,5 +2115,6 @@
   "package.ui.stage_complete": "完成",
   "package.ui.stage_uncertain": "結果未知",
   "package.ui.stage_invalid": "無效記錄",
-  "groups.inspection": "檢視與審核"
+  "groups.inspection": "檢視與審核",
+  "package.ui.cancel_requested": "已要求取消；R 查詢執行器是否已停止。"
 }

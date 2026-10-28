@@ -2,7 +2,6 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { detectClaudeVersion } from '@fbincon/statusline-platform/commands';
 import { processToken } from '@fbincon/statusline-platform/processes';
-import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { readReviewRecord, writeReviewRecord, reviewFolder, REVIEW_DEADLINE_MS } from './review-jobs.js';
 import { reviewPackage } from './review.js';
 import { packageReason } from './inspection.js';
@@ -28,8 +27,6 @@ catch (error) {
 finally {
     clearInterval(watcher);
     record.job.finished_at = new Date().toISOString();
-    if (cancelled())
-        removeTree(folder);
-    else
-        writeReviewRecord(record);
+    // The caller removes the independent runner only after this process exits.
+    writeReviewRecord(record);
 }

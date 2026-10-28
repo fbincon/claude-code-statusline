@@ -2115,5 +2115,6 @@
   "package.ui.stage_complete": "Complete",
   "package.ui.stage_uncertain": "Outcome unknown",
   "package.ui.stage_invalid": "Invalid record",
-  "groups.inspection": "Inspection"
+  "groups.inspection": "Inspection",
+  "package.ui.cancel_requested": "Cancellation requested; R checks whether the worker has stopped."
 }

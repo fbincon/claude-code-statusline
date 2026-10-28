@@ -2115,5 +2115,6 @@
   "package.ui.stage_complete": "완료",
   "package.ui.stage_uncertain": "결과 알 수 없음",
   "package.ui.stage_invalid": "잘못된 기록",
-  "groups.inspection": "조회 및 검토"
+  "groups.inspection": "조회 및 검토",
+  "package.ui.cancel_requested": "취소를 요청했습니다. R로 실행기 중지 여부를 확인하세요."
 }

@@ -2125,7 +2125,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "Complete",
     "package.ui.stage_uncertain": "Outcome unknown",
     "package.ui.stage_invalid": "Invalid record",
-    "groups.inspection": "Inspection"
+    "groups.inspection": "Inspection",
+    "package.ui.cancel_requested": "Cancellation requested; R checks whether the worker has stopped."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -4244,7 +4245,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "完成",
     "package.ui.stage_uncertain": "结果未知",
     "package.ui.stage_invalid": "无效记录",
-    "groups.inspection": "查看与审核"
+    "groups.inspection": "查看与审核",
+    "package.ui.cancel_requested": "已请求取消；R 查询执行器是否已停止。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -6363,7 +6365,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "完成",
     "package.ui.stage_uncertain": "結果未知",
     "package.ui.stage_invalid": "無效記錄",
-    "groups.inspection": "檢視與審核"
+    "groups.inspection": "檢視與審核",
+    "package.ui.cancel_requested": "已要求取消；R 查詢執行器是否已停止。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -8482,7 +8485,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "完成",
     "package.ui.stage_uncertain": "結果未知",
     "package.ui.stage_invalid": "無效記錄",
-    "groups.inspection": "檢視與審核"
+    "groups.inspection": "檢視與審核",
+    "package.ui.cancel_requested": "已要求取消；R 查詢執行器是否已停止。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -10601,7 +10605,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "完了",
     "package.ui.stage_uncertain": "結果不明",
     "package.ui.stage_invalid": "無効な記録",
-    "groups.inspection": "表示と確認"
+    "groups.inspection": "表示と確認",
+    "package.ui.cancel_requested": "中止を要求しました。R で実行器の停止を確認します。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -12720,7 +12725,8 @@ export const LOCALES = {
     "package.ui.stage_complete": "완료",
     "package.ui.stage_uncertain": "결과 알 수 없음",
     "package.ui.stage_invalid": "잘못된 기록",
-    "groups.inspection": "조회 및 검토"
+    "groups.inspection": "조회 및 검토",
+    "package.ui.cancel_requested": "취소를 요청했습니다. R로 실행기 중지 여부를 확인하세요."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

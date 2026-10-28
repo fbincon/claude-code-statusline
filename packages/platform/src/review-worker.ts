@@ -8,3 +8,14 @@ export function startReviewWorker(entry: string, args: readonly string[], direct
         throw new Error('Review worker could not start');
     return child.pid;
 }
+
+/** Keep cancellation inside the native request budget; never infer exit from a signal. */
+export function waitReviewExit(stopped: () => boolean, timeoutMs = 10000): boolean {
+    const deadline = Date.now() + timeoutMs;
+    const wait = new Int32Array(new SharedArrayBuffer(4));
+    while (!stopped()) {
+        if (Date.now() >= deadline) return false;
+        Atomics.wait(wait, 0, 0, 25);
+    }
+    return true;
+}

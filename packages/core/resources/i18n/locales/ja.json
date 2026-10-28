@@ -2115,5 +2115,6 @@
   "package.ui.stage_complete": "完了",
   "package.ui.stage_uncertain": "結果不明",
   "package.ui.stage_invalid": "無効な記録",
-  "groups.inspection": "表示と確認"
+  "groups.inspection": "表示と確認",
+  "package.ui.cancel_requested": "中止を要求しました。R で実行器の停止を確認します。"
 }

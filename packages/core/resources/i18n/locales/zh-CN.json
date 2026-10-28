@@ -2115,5 +2115,6 @@
   "package.ui.stage_complete": "完成",
   "package.ui.stage_uncertain": "结果未知",
   "package.ui.stage_invalid": "无效记录",
-  "groups.inspection": "查看与审核"
+  "groups.inspection": "查看与审核",
+  "package.ui.cancel_requested": "已请求取消；R 查询执行器是否已停止。"
 }

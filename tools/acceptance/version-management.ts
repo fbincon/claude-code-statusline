@@ -152,7 +152,8 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         stdout: string;
         stderr: string;
     }>((resolve, reject) => {
-        const id = ++sequence, started = performance.now(), label = args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
+        const operation=args[1]==='ui'&&inputData?JSON.parse(inputData).operation:null;
+        const id = ++sequence, started = performance.now(), label = operation?'ui '+operation:args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
         trace({ phase: 'start', id, command: label, argv: args[0] === '--input-type=module' ? ['<controlled crash checkpoint>'] : args });
         const child = spawn(input.node, args, { cwd: input.temporary, env, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
         let stdout = '', stderr = '';

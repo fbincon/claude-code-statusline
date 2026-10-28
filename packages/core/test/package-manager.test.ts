@@ -12,7 +12,7 @@ test('opening a version page only inspects local state; metadata binds the next 
         operation: string;
         payload: any;
     }[] = [];
-    const backend = { request(operation: string, payload: any) { calls.push({ operation, payload }); return operation === 'package_status' ? status : job(view.owner); } } as PackageBackend;
+    const backend = { request(operation: string, payload: any) { calls.push({ operation, payload }); return operation === 'package_status' ? status : operation==='package_review_cancel'?{...job(view.owner),state:'cancelled'}:job(view.owner); } } as PackageBackend;
     await performPackage(view, backend);
     assert.deepEqual(calls.map(x => x.operation), ['package_status']);
     view.job = { ...job(view.owner), state: 'complete', review: { action: 'check', current: '3.10.0', target: '3.11.0', prefix: '/prefix', entry: '/prefix/entry', config_dir: '/config', channel: 'latest', registry: 'https://registry.npmjs.org/', integrity: 'sha512-' + Buffer.alloc(64).toString('base64'), node_engine: '>=22', host: '2.1.310', artifact_verified: false, compatible: true, reasons: [], configuration_conflicts: [], backup_id: null, files: [] } };
@@ -86,4 +86,42 @@ test('wrapped prefix rows still open the same literal path editor', () => {
     packageKey(view, { key: 'return' });
     assert.equal(view.editing, 'prefix');
     assert.equal(view.input?.value, view.prefix);
+});
+
+test('an unconfirmed cancellation cannot start a replacement review',async()=>{
+    const view=packageManager();view.status=status;view.job={...job(view.owner),state:'failed'};view.effect='start';
+    const calls:string[]=[];
+    await performPackage(view,{request(operation){calls.push(operation);return job(view.owner);}} as PackageBackend);
+    assert.deepEqual(calls,['package_review_cancel']);assert.equal(view.job?.state,'running');assert(view.message);
+});
+
+test('an unconfirmed cancellation retains the original job when the prefix changes', async () => {
+    const view = packageManager();
+    view.prefix = '/other-prefix';
+    view.job = job(view.owner);
+    const calls: string[] = [];
+    await performPackage(view, { request(operation) { calls.push(operation); return job(view.owner); } } as PackageBackend);
+    assert.deepEqual(calls, ['package_review_cancel']);
+    assert.equal(view.job?.request.prefix, '/prefix');
+    assert.equal(view.status, null);
+    assert(view.message);
+});
+
+test('closing during replacement cancellation never starts another review', async () => {
+    const view = packageManager();
+    view.status = status;
+    view.job = { ...job(view.owner), state: 'complete' };
+    view.effect = 'start';
+    const calls: string[] = [];
+    let finish!: (value: PackageReviewJob) => void;
+    const backend = { request(operation: string) {
+        calls.push(operation);
+        return calls.length === 1 ? new Promise<PackageReviewJob>(resolve => { finish = resolve; }) : { ...job(view.owner), state: 'cancelled' };
+    } } as PackageBackend;
+    const pending = performPackage(view, backend);
+    await closePackage(view, backend);
+    finish({ ...job(view.owner), state: 'cancelled' });
+    await pending;
+    assert(!calls.includes('package_review_start'));
+    assert.equal(view.closed, true);
 });

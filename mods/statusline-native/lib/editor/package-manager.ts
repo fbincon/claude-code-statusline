@@ -65,7 +65,15 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
     try {
         if (effect === 'load') {
             if (view.job && view.prefix && view.job.request.prefix !== view.prefix) {
-                await backend.request('package_review_cancel', { id: view.job.id, owner: view.owner });
+                const cancelled = await backend.request('package_review_cancel', { id: view.job.id, owner: view.owner });
+                if (view.closed || generation !== view.generation)
+                    return;
+                if (cancelled.state !== 'cancelled') {
+                    view.job = cancelled;
+                    view.message = text('package.ui.cancel_requested');
+                    view.selected = 'message';
+                    return;
+                }
                 view.job = null;
             }
             const status = await backend.request('package_status', { prefix: view.prefix || null, offset: view.offset });
@@ -96,7 +104,15 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
                 target: view.action === 'restore-config' ? null : target, channel: !target && ['check', 'update'].includes(view.action) ? view.channel : null,
                 backup_id: view.action === 'restore-config' ? view.backup : null, expected_integrity: integrity };
             if (previous) {
-                await backend.request('package_review_cancel', { id: previous.id, owner: view.owner });
+                const cancelled = await backend.request('package_review_cancel', { id: previous.id, owner: view.owner });
+                if (view.closed || generation !== view.generation)
+                    return;
+                if (cancelled.state !== 'cancelled') {
+                    view.job = cancelled;
+                    view.message = text('package.ui.cancel_requested');
+                    view.selected = 'message';
+                    return;
+                }
                 view.job = null;
             }
             const job = await backend.request('package_review_start', { request, owner: view.owner });
@@ -112,8 +128,9 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
             const job = await backend.request(effect === 'cancel' ? 'package_review_cancel' : 'package_review_status', { id: view.job.id, owner: view.owner });
             if (view.closed || generation !== view.generation)
                 return;
-            view.job = effect === 'cancel' ? null : job;
-            view.message = effect === 'cancel' ? text('package.cancelled') : null;
+            const cancelled = effect === 'cancel' && job.state === 'cancelled';
+            view.job = cancelled ? null : job;
+            view.message = effect === 'cancel' ? text(cancelled ? 'package.cancelled' : 'package.ui.cancel_requested') : null;
             if (effect === 'cancel')
                 view.selected = 'message';
             else if (job.state !== 'running') {
@@ -123,9 +140,10 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
         }
     }
     catch (error) {
-        if (!view.closed && generation === view.generation)
+        if (!view.closed && generation === view.generation) {
             view.message = error instanceof BackendError && error.localization ? error.localization : text('package.reason_io_error');
-        view.selected = 'message';
+            view.selected = 'message';
+        }
     }
     finally {
         if (generation === view.generation)

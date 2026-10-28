@@ -9,7 +9,7 @@ import type { PackageReviewJob, PackageReviewRequest } from '@fbincon/statusline
 import { atomicWrite, privateDirectory } from '@fbincon/statusline-platform/files';
 import { productRoot, productIdentity } from '@fbincon/statusline-platform/npm';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
-import { startReviewWorker } from '@fbincon/statusline-platform/review-worker';
+import { startReviewWorker, waitReviewExit } from '@fbincon/statusline-platform/review-worker';
 import { processMatches } from '@fbincon/statusline-platform/processes';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { readRegular } from '../recovery/journal.js';
@@ -76,9 +76,17 @@ export function packageReviewJob(context: InspectionContext, id: unknown, owner:
         throw new PackageError('identity');
     if (cancel) {
         atomicWrite(join(reviewFolder(id), 'cancel.json'), '{}\n');
-        if (job.state !== 'running' || record.pid && record.token && !processMatches(record.pid, record.token) || !record.pid && Date.now() - Date.parse(job.started_at) > 15000)
+        const stopped = waitReviewExit(() => {
+            const latest = readReviewRecord(id);
+            return !!latest.pid && !!latest.token && !processMatches(latest.pid, latest.token);
+        });
+        if (stopped) {
+            const finished = readReviewRecord(id).job;
             removeTree(reviewFolder(id));
-        return { ...job, state: 'cancelled', finished_at: new Date().toISOString() };
+            return {...finished, state:'cancelled', finished_at:new Date().toISOString()};
+        }
+        // Cancellation was requested, but a live/unverifiable executor still owns its files.
+        return readReviewRecord(id).job;
     }
     if (job.state === 'running' && (Date.now() - Date.parse(job.started_at) > REVIEW_DEADLINE_MS ||
         Date.now() - Date.parse(job.started_at) > 15000 && (!record.pid || !record.token || !processMatches(record.pid, record.token))))
