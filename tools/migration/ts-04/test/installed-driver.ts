@@ -165,8 +165,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     fs.writeFileSync(capturedPath,'',{mode:0o600});
     // Preserve Node's lazy TTY initialization too: accessing stdout in this
     // preload would itself change the inherited console flags before capture.
-    const modeTrace=capturedPath+'.modes.jsonl';fs.writeFileSync(modeTrace,'',{mode:0o600});
-    fs.writeFileSync(preload,`import fs from 'node:fs';import{createRequire}from'node:module';const api=createRequire(process.argv[1])('koffi'),k=api.load('kernel32.dll'),get=k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)'),handle=k.func('void *GetStdHandle(uint32_t kind)'),trace=phase=>{const value=[0];get(handle(0xfffffff5),value);fs.appendFileSync(${JSON.stringify(modeTrace)},JSON.stringify({phase,output:value[0]})+'\\n');};trace('preload');process.on('beforeExit',()=>trace('beforeExit'));process.on('exit',()=>trace('exit'));const seen=new WeakSet();for(const name of ['stdout','stderr']){const descriptor=Object.getOwnPropertyDescriptor(process,name);Object.defineProperty(process,name,{...descriptor,get(){trace('before '+name);const stream=descriptor.get.call(process);trace('after '+name);if(!seen.has(stream)){seen.add(stream);const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}return stream;}});}\n`,{mode:0o600});
+    fs.writeFileSync(preload,`import fs from 'node:fs';const seen=new WeakSet();for(const name of ['stdout','stderr']){const descriptor=Object.getOwnPropertyDescriptor(process,name);Object.defineProperty(process,name,{...descriptor,get(){const stream=descriptor.get.call(process);if(!seen.has(stream)){seen.add(stream);const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}return stream;}});}\n`,{mode:0o600});
     const nodeOptions=process.env.NODE_OPTIONS;
     process.env.NODE_OPTIONS=[nodeOptions,'--import='+pathToFileURL(preload).href].filter(Boolean).join(' ');
     const capturedOutput=()=>chunks.join('')+fs.readFileSync(capturedPath,'utf8');
@@ -197,7 +196,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), console_trace:fs.readFileSync(modeTrace,'utf8').split('\n').filter(Boolean).slice(-32).map(line=>JSON.parse(line)), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }
     finally {

@@ -99,7 +99,7 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
                 assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No color receipt');
                 const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
-                consoleObservations.push({entry,environment:name,before_mode:saved.before_mode,after_mode:saved.after_mode,before_output_mode:saved.before_output_mode,after_output_mode:saved.after_output_mode,console_trace:saved.console_trace});
+                consoleObservations.push({entry,environment:name,before_mode:saved.before_mode,after_mode:saved.after_mode,before_output_mode:saved.before_output_mode,after_output_mode:saved.after_output_mode});
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
                 else assert(!/\x1b\[(?:38|48);5;/u.test(saved.output));

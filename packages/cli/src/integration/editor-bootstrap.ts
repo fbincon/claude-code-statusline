@@ -7,9 +7,11 @@ import { spawn } from 'node:child_process';
 import { productRoot, productIdentity } from '@fbincon/statusline-platform/npm';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
+import { captureLoadedWindowsModes } from '@fbincon/statusline-platform/terminal/windows-modes';
 export async function independentEditor(argv:readonly string[]):Promise<number|null>{
     const root=productRoot(fileURLToPath(import.meta.url));if(!root||!productIdentity(root))return null;
     const folder=fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(),'claude-statusline-editor-')));fs.chmodSync(folder,0o700);
+    const restoreConsoleModes=captureLoadedWindowsModes();
     try{
         const runner=join(folder,'runner');copyPackage(root,runner);
         return await new Promise<number>((resolve,reject)=>{
@@ -18,5 +20,5 @@ export async function independentEditor(argv:readonly string[]):Promise<number|n
             const detach=()=>{process.off('SIGTERM',stop);process.off('SIGWINCH',resize);};
             child.once('error',error=>{detach();reject(error);});child.once('exit',(code,signal)=>{detach();resolve(code??(signal?130:2));});
         });
-    }finally{removeTree(folder);}
+    }finally{try{removeTree(folder);}finally{restoreConsoleModes();}}
 }
