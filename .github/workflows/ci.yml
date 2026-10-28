@@ -587,6 +587,9 @@ jobs:
       - name: Run unchanged source assertions with resource-sensitive Git tests serialized
         run: |
           mkdir -p "$RUNNER_TEMP/source-probe"
+          for round in {1..20}; do
+            node --test --test-name-pattern 'protected cleanup retains' packages/cli/dist/test/package-management.test.js > "$RUNNER_TEMP/source-probe/package-cleanup-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/package-cleanup-$round.log"; exit 1; }
+          done
           node tools/typescript/test.mjs --runtime > "$RUNNER_TEMP/source-probe/runtime.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/runtime.log"; exit 1; }
           for round in {1..10}; do
             node --test packages/cli/dist/test/git.test.js > "$RUNNER_TEMP/source-probe/git-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/git-$round.log"; exit 1; }

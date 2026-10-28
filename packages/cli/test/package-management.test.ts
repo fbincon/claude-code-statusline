@@ -421,10 +421,12 @@ test('protected cleanup retains current and previous inputs, rejects foreign mat
     const reserved=reviewHistory(context,f.prefix);assert.equal(reserved.rows.find(row=>row.id===old.id)!.removable,false);assert.throws(()=>cleanupHistory(context,f.prefix,reserved.revision,[old.id]));
     assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]),/conflict/,'A worker created after review invalidates the earlier cleanup decision');
     fs.rmSync(executionFolder(f.configDir,worker.value.id),{recursive:true,force:true});
+    assert(!fs.existsSync(executionFolder(f.configDir,worker.value.id)));
+    const evidence=(checked:ReturnType<typeof reviewHistory>)=>JSON.stringify({review:checked,installation:readInstallation(f.configDir,f.prefix),old:readOperation(f.configDir,f.prefix,old.id),executions:fs.readdirSync(dirname(executionFolder(f.configDir,worker.value.id))),marker:fs.existsSync(pendingPath(f.prefix))?JSON.parse(fs.readFileSync(pendingPath(f.prefix),'utf8')):null});
     const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');
-    const foreignReview=reviewHistory(context,f.prefix);assert.equal(foreignReview.uncertain,false);assert.equal(foreignReview.rows.find(row=>row.id===old.id)!.removable,true);
+    const foreignReview=reviewHistory(context,f.prefix);assert.equal(foreignReview.uncertain,false,evidence(foreignReview));assert.equal(foreignReview.rows.find(row=>row.id===old.id)!.removable,true,evidence(foreignReview));
     assert.throws(()=>cleanupHistory(context,f.prefix,foreignReview.revision,[old.id]),/journal/);assert(fs.existsSync(extra));assert(fs.existsSync(operationPath(old)));fs.unlinkSync(extra);
-    const finalReview=reviewHistory(context,f.prefix);assert.equal(finalReview.uncertain,false);assert.equal(finalReview.rows.find(row=>row.id===old.id)!.removable,true);
+    const finalReview=reviewHistory(context,f.prefix);assert.equal(finalReview.uncertain,false,evidence(finalReview));assert.equal(finalReview.rows.find(row=>row.id===old.id)!.removable,true,evidence(finalReview));
     assert.throws(()=>cleanupHistory(context,f.prefix,finalReview.revision,[current.transaction]),/conflict/);cleanupHistory(context,f.prefix,finalReview.revision,[old.id]);assert(!fs.existsSync(operationPath(old)));assert(fs.existsSync(join(f.configDir,'statusline_runtime/package-management/transactions',current.transaction,'operation.json')));
 });
 
