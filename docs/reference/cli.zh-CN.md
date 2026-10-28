@@ -962,3 +962,11 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ## 主行对应列对齐
 
 使用 `config alignment list`、`config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'` 和 `config alignment remove ID` 管理稳定引用。逗号连接同列成员，分号分隔列；使引用失效的结构修改在写入前拒绝。[使用规则](../COMPOSITION.zh-CN.md#显式主行的对应列对齐)。
+
+## 交互任务查看器
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。

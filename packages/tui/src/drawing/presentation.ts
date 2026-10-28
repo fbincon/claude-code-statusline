@@ -52,6 +52,8 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if(e.packages)return tr('package.ui.title');
+    if(e.taskViewer)return t('task.title',e.taskViewer.language);
     if(e.diagnosis)return tr('diagnosis.title');
     if(e.colors)return tr('colors.title');
     if (e.alignmentManager) return tr('alignment.title');

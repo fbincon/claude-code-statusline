@@ -7,7 +7,7 @@ const report:TaskDetails={version:1,session_id:'session-test',prompt_id:null,cap
 const languagePane={...PANE,requestId:'statusline-task-details',viewport:{columns:220,rows:30},props:{...PANE.props,bodyColumns:200}};
 for(const language of LANGUAGES)test(`task language initializes before opening, survives failure and reloads on retry/reopen in ${language}`,async($,on)=>{
     const f=setup(on);f.store.uiLanguage=language;let failed=true;
-    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:26,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:27,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
     await $.session.start(START);
     expect(f.descriptions['statusline-task']).toBe(t('task.title',language));
     await $.command.run({...RUN,command:'statusline-task'});
@@ -77,5 +77,20 @@ test('task command reads explicit session evidence into a separate pane without 
     expect(f.calls.some(c=>c.operation==='task_details' && typeof c.payload.session_id==='string')).toBe(true);
     expect(f.calls.some(c=>['apply','profiles_apply','runtime'].includes(c.operation))).toBe(false);
     expect(f.configCalls).toEqual([]);
+    await ui.unmount();
+});
+
+test('native task input shares search, evidence and refresh position without rereading on navigation', {timeoutMs:20000}, async($,on)=>{
+    const f=setup(on),value={...report,prompt_id:'p',agents:[{id:'parent',parent_id:null,name:'Parent',status:'running',evidence:[]},{id:'child',parent_id:'parent',name:'Child',status:'failed',evidence:[{source:'child-source',scope:'subagent:child',status:'stale',observed_at:'2026-10-27T00:00:00Z',freshness:'stale' as const}]}]};
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:reply({...value,session_id:request.payload.session_id})}:next();
+    await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
+    const ui=await $.ui.mount(languagePane);
+    const press=async(key:string)=>{const client=await ui.find({type:'Client'});await ui.key({in:'task-client-'+(client!.props.props as any).epoch,key});};
+    await press('/');for(const key of 'child')await press(key);await press('return');await press('e');await press('end');
+    expect(await ui.find({type:'Text',text:'    Child [child]: Failed'})).toBeDefined();
+    expect(f.calls.filter(call=>call.operation==='task_details').length).toBe(1);
+    await ui.press({key:'task-refresh'});expect(f.calls.filter(call=>call.operation==='task_details').length).toBe(2);
+    expect(await ui.find({type:'Text',text:t('task.viewer.filter','en',{status:t('task.viewer.all','en'),query:'child'})})).toBeDefined();
+    expect(f.calls.some(call=>['apply','sources_apply','set_ui_language'].includes(call.operation))).toBe(false);
     await ui.unmount();
 });

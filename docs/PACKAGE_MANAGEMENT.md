@@ -4,6 +4,15 @@
 
 Version management is an explicit CLI operation. Rendering and either editor never check for new packages. Use a persistent global npm installation; [first entry](SETUP.md#first-entry-and-persistent-npm-installation) can review and create one. Source checkouts and private engineering candidates use explicit development commands.
 
+## Review from either editor
+
+The Settings page offers **Version and installation**. Opening it reads local package identity, actual prefix/entry, configuration directory, installation channel, Node/Claude compatibility, previous successful version, backups and unfinished transactions. It performs no registry request. An ambiguous prefix requires explicit selection. Backup validity is verified from its recorded snapshot hashes; damaged records are shown without repair.
+
+Select **Check version metadata** to contact the configured npm registry. This result explicitly says the artifact is unverified. **Download and verify upgrade review**, package rollback and unfinished-package recovery reviews use the existing dry-run service and temporary staging, with scripts disabled. Select a verified backup to review configuration restoration separately. These actions do not replace the installation or restore configuration; continue to use the existing CLI commands below for execution.
+
+Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. No page action saves, elevates privileges or cleans package history.
+
+
 ## Check and review
 
 ```text

@@ -1,3 +1,4 @@
+import { packageView } from '../../lib/editor/package-manager.ts';
 import { diagnosisLines } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
 import { colorsView } from '../../lib/editor/color-manager.ts';
@@ -62,7 +63,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  if(e.packages){title=tr('package.ui.title');content.push(...packageView(e.packages,view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
+  } else if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
   } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
   } else if(e.alignmentManager) {
     title=tr('alignment.title');

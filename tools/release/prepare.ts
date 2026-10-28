@@ -23,6 +23,10 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
     assert.equal(value.host_mode, official ? 'official' : 'version-only');
     assert.equal(value.model_calls, 0);
     for (const key of ['roundtrip', 'independent_runner', 'crash_recovery', 'configuration_restore', 'real_npm']) assert.equal(value[key], true);
+    const review=value.editor_review;assert(review,'Missing editor-review receipt');
+    for(const key of ['local_reads_no_network','metadata_unverified','verified_dry_run','rollback_review','restore_review','cancellation','configuration_unchanged','package_unchanged'])assert.equal(review[key],true);
+    assert(Array.isArray(review.operation_timings)&&review.operation_timings.length>=15,'Incomplete editor-review operations');
+    for(const operation of review.operation_timings)assert(operation&&typeof operation.command==='string'&&Number.isFinite(operation.elapsed_ms)&&operation.elapsed_ms>=0);
     const schema = PACKAGE_COMPATIBILITY.read.display[1];
     assert.deepEqual(value.schema_migration, schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null);
     assert(Array.isArray(value.operation_timings) && value.operation_timings.length === (official ? 20 : 19) + (schema > 13 ? 3 : 0), 'Incomplete version-operation evidence');
@@ -60,10 +64,11 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 23); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 24); assert(Object.values(report.checks).every(value => value === true));
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});
+            assert.equal(report.checks.task_viewer,true);assert.deepEqual(report.task_viewer,{languages:6,views:18,standalone_non_tty:true,readonly:true,installed_modules:true});
             assert.equal(report.checks.alignments, true); assert.equal(report.alignment_cases, 4);
             assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:18,installed_modules:true,saved_reopened:true,preview_matches:true});
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);

@@ -60,6 +60,8 @@ export class Editor {
   explanation: ExplanationView | null = null;
   profiles: ProfileManager | null = null;
   sources: SourceManager | null = null;
+  taskViewer: import('./task-viewer.js').TaskViewer | null = null;
+  packages: import('./package-manager.js').PackageManager | null = null;
   groupManager: GroupManager | null = null;
   alignmentManager: AlignmentManager | null = null;
   compositionError: LocalizedText = text('composition.invalid');

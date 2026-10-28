@@ -20,7 +20,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -57,8 +57,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 26, operation, payload }), environment));
-    assert.equal(result.protocol_version, 26);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 27, operation, payload }), environment));
+    assert.equal(result.protocol_version, 27);
     assert.ok(result.result);
     return result.result;
 }
@@ -537,7 +537,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 26, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 27, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -565,6 +565,18 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     assert.equal(task.prompt_id,null); assert.equal(task.version,1); assert.equal(fs.existsSync(missingTasks),false);
     report.profile_project_task_cases = 8;
     checks.native_protocol = true;
+});
+test('installed task viewer is available without installation and shares six-language bounded reading', () => {
+    const config=join(installed.temporary,'task-viewer-readonly');
+    assert(run(['task','--help'],config).includes('view --session-id'));
+    const nonTty=invoke(['task','view','--session-id','session'],config);
+    assert.equal(nonTty.status,2);assert(nonTty.stderr.includes('task show'));assert(!fs.existsSync(config));
+    const viewerURL=pathToFileURL(join(installed.modules,'statusline-core/dist/src/editor/task-viewer.js')).href;
+    const frameURL=pathToFileURL(join(installed.modules,'statusline-tui/dist/src/task-viewer.js')).href;
+    const program=`import {taskViewer,receiveTask,taskViewerKey,taskViewerView} from ${JSON.stringify(viewerURL)};import {taskFrame} from ${JSON.stringify(frameURL)};const languages=['en','zh-CN','zh-TW','zh-HK','ja','ko'];for(const language of languages){const view=taskViewer('session',null,language);receiveTask(view,{version:1,session_id:'session',prompt_id:'prompt',captured_at:'2026-10-28T00:00:00Z',status:'running',phase:'main',elapsed_seconds:0,active_seconds:null,progress:{completed:0,total:1},agents:[{id:'agent',parent_id:null,name:'Agent',status:'running',evidence:[]}],evidence:[],limitations:['independent_snapshots']});taskViewerView(view,80,12);view.selected='agent:agent:0';taskViewerKey(view,{key:'e'});for(const width of [32,80,120]){const frame=taskFrame(view,width,16);if(frame.rows.length!==16||view.selected!=='agent:agent:0')throw Error('Viewer lost reading state');}}console.log(JSON.stringify({languages,views:18}));`;
+    const result=spawnSync(installed.node,['--input-type=module','-e',program],{cwd:installed.directory,env:installed.env,encoding:'utf8',timeout:30000});
+    assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,18);assert(!fs.existsSync(config));
+    report.task_viewer={languages:6,views:18,standalone_non_tty:true,readonly:true,installed_modules:true};checks.task_viewer=true;
 });
 test('installed setup checks, previews, cancels, saves and integrates in a real terminal', { timeout: 90000 }, async () => {
     const readonly = join(installed.temporary, 'setup readonly');

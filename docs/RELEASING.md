@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.11.0 task browsing and version review
+
+Use the [version decision](releases/approvals/v3.11.0.json). Retain all existing installation/runtime/host/capacity gates. Version-management receipts additionally require local-only inspection, metadata/unverified results, verified upgrade/rollback dry runs, separate configuration-restoration review, cancellation and unchanged installation/configuration bytes. Require installed task-viewer and both-editor journeys. Follow the source-bound promotion route below, publish the original four verified files and restore test-machine display/UI preferences. [Implementation and delivery](development/task-version-review.md).
+
 ## v3.10.0 appearance and understanding
 
 Use the [version decision](releases/approvals/v3.10.0.json). Retain all existing installation/runtime/host/capacity gates and require installed new-theme, scenario and current-draft file-diagnosis evidence. Acceptance-tool edits follow the source-equivalent reuse rules below; they do not alone require a second full matrix. Publish the original four verified files and upgrade the test installation with original display/UI preferences restored. [Implementation and delivery](development/appearance-preview-diagnosis.md).

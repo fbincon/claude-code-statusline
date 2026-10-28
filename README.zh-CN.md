@@ -18,7 +18,7 @@
 
 - **按需扩展状态栏：** 在双编辑器或 CLI 管理本地 JSON、GitHub 检查和命令数据源，明确审查启用，支持独立开启会话内 GitHub 自动刷新及可选目录/PR 链接。[扩展指南](docs/EXTENSIONS.zh-CN.md)。
 - **管理显示方案和项目：**保存、预览和复用命名方案，按项目根目录选择整套显示配置。[方案管理](docs/PROFILES.zh-CN.md)。
-- **查看任务证据：**通过 `/statusline-task` 或 CLI 按需查看任务、代理、计时来源及覆盖限制。[任务详情](docs/TASK_DETAILS.zh-CN.md)。
+- **查看任务证据：**通过 `/statusline-task`、`task view` 或外部编辑器浏览任务证据，支持搜索、过滤和折叠。[任务详情](docs/TASK_DETAILS.zh-CN.md)。
 
 - **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件及联动分组，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
 

@@ -1,3 +1,6 @@
+import { PackageError } from '@fbincon/statusline-core/management/package';
+import { inspectPackage, packageReason } from '../management/inspection.js';
+import { startPackageReview, packageReviewJob } from '../management/review-jobs.js';
 import { diagnosticInputFile } from '../diagnostics/input.js';
 import { isScenario, type PreviewScenario } from '@fbincon/statusline-core/editor/preview-settings';
 import { SourceService } from '../sources/service.js';
@@ -67,6 +70,19 @@ export class ConfigurationProtocol {
         if (typeof operation !== 'string' || !(OPERATIONS as readonly string[]).includes(operation))
             throw new ConfigError('errors.protocol.unsupported_configuration_operation', {}, 'unsupported_operation');
         const payload = request.payload;
+        if (operation.startsWith('package_')) {
+            const context={configDir:this.service.context.configDir,origin:this.service.context.launch.args[0]??this.service.context.launch.executable,hostVersion:this.service.context.hostVersion};
+            try {
+                if(operation==='package_status') {
+                    requestObject(payload,['prefix','offset'],'payload');
+                    const offset=safeInteger(payload.offset);
+                    if(!(payload.prefix===null||typeof payload.prefix==='string'&&payload.prefix.length>0&&payload.prefix.length<=8192&&!/[\p{Cc}\p{Cs}]/u.test(payload.prefix))||offset===null||offset<0)throw new PackageError('arguments');
+                    return inspectPackage(context,payload.prefix as string|null,offset!);
+                }
+                requestObject(payload,operation==='package_review_start'?['request','owner']:['id','owner'],'payload');
+                return operation==='package_review_start'?startPackageReview(context,payload.request,payload.owner):packageReviewJob(context,payload.id,payload.owner,operation==='package_review_cancel');
+            }catch(error){if(error instanceof ConfigError)throw error;const reason=packageReason(error);throw new ConfigError('package.reason_'+reason,{},reason);}
+        }
         if (operation.startsWith('source')) {
             const sources = new SourceService(this.service);
             if (operation === 'sources_read') { requestObject(payload, [], 'payload'); return sources.read(); }

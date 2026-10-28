@@ -26,6 +26,9 @@ import { ArgumentError } from '../config/arguments.js';
 import { processMatches } from '@fbincon/statusline-platform/processes';
 export interface ManagementEnvironment {
     origin: string;
+    signal?: AbortSignal;
+    review?: (review: PackageReview | import('./restore.js').ConfigurationRestoreReview) => void;
+    failure?: (reason: string) => void;
     stdout: (text: string) => void;
     stderr: (text: string) => void;
     environment?: NodeJS.ProcessEnv;
@@ -116,6 +119,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
     const { stdout, stderr } = options, environment = options.environment ?? process.env;
     let flags: ManagementOptions | undefined, language: Language = 'en', temporary: string | undefined, release: (() => void) | undefined, operation: PackageOperation | undefined;
     const controller = new AbortController(), cancel = () => controller.abort();
+    options.signal?.addEventListener('abort',cancel,{once:true});
+    if(options.signal?.aborted)controller.abort();
     process.on('SIGINT', cancel);
     process.on('SIGTERM', cancel);
     try {
@@ -128,13 +133,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             const prefix = resolvedPath(flags.prefix);
             if (within(configDir, globalPackageRoot(prefix)))
                 throw new PackageError('prefix');
-            return await restoreConfiguration(flags, configDir, prefix, language, stdout, options.confirm, controller.signal);
+            return await restoreConfiguration(flags, configDir, prefix, language, stdout, options.confirm, controller.signal, options.review);
         }
         const npm = options.npm ?? new Npm(environment, undefined, undefined, controller.signal), layout = await npm.layout(flags.prefix);
         if (within(configDir, layout.root))
             throw new PackageError('prefix');
         if (flags.restoreConfig)
-            return await restoreConfiguration(flags, configDir, layout.prefix, language, stdout, options.confirm, controller.signal);
+            return await restoreConfiguration(flags, configDir, layout.prefix, language, stdout, options.confirm, controller.signal, options.review);
         let before: PackageIdentity | null = null;
         if (!flags.package)
             before = currentPackage(layout);
@@ -180,6 +185,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         if (configReasons.length)
             reasons.push('configuration');
         const review: PackageReview = { schema_version: 1, action: flags.package ? 'recover-package' : flags.command as 'update' | 'rollback', current: before?.version ?? null, observed_package: observed ?? before?.version ?? null, target: target.version, registry: target.registry, prefix: layout.prefix, entry: join(layout.root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js'), node: process.execPath, npm_entry: npm.entry, config_dir: configDir, node_version: process.versions.node, node_engine: target.nodeEngine, host: host?.join('.') ?? null, channel, integrated, compatibility: target.compatibility, integrity: target.integrity, compatible: !reasons.length, reasons, configuration_conflicts: configReasons, backup_id: operation?.id ?? history?.transaction ?? null, artifact_verified: false };
+        options.review?.(review);
         if (flags.check) {
             stdout(JSON.stringify(review, null, 2) + '\n');
             return reasons.length ? 2 : 0;
@@ -190,7 +196,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
                 stderr(t('package.reason_' + reasons[0], language) + '\n');
             return 2;
         }
-        if (!flags.package && target.version === before!.version) {
+        if (!flags.package && target.version === before!.version && !(flags.dryRun && options.review)) {
             stdout(flags.json ? JSON.stringify({ ...review, unchanged: true }) + '\n' : t('management.current', language, { version: target.version }) + '\n');
             return 0;
         }
@@ -214,6 +220,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         if (integrated)
             await (options.integrate ?? refreshIntegration)(staged.root, expected, configDir, host, hashes, temporary, true, environment, controller.signal);
         review.artifact_verified = true;
+        options.review?.(review);
         if (!flags.json)
             stdout(t('management.review', language) + '\n');
         stdout(JSON.stringify(review, null, 2) + '\n');
@@ -324,6 +331,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             }
             catch { /* Preserve the last durable phase if the journal volume is unavailable. */ }
         }
+        options.failure?.(reason);
         const message = t('package.reason_' + reason, language);
         if (flags?.json)
             stdout(JSON.stringify({ schema_version: 1, error: { code: reason, message } }) + '\n');
@@ -334,6 +342,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         return reason === 'interrupted' ? 130 : 2;
     }
     finally {
+        options.signal?.removeEventListener('abort',cancel);
         release?.();
         process.off('SIGINT', cancel);
         process.off('SIGTERM', cancel);

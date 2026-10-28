@@ -139,7 +139,7 @@ export function outputs(root = ROOT): Map<string, string> {
     body = body.replaceAll('../contracts/ui.js', backend ? './generated-contracts.ts' : '../generated-contracts.ts')
       .replaceAll('../i18n/messages.js', backend ? './i18n/index.ts' : '../i18n/index.ts')
       .replaceAll('../unicode/index.js', text ? '../lib/unicode.ts' : '../unicode.ts');
-    if (backend) body = body.replaceAll('./preview-settings.js','./editor/preview-settings.ts').replaceAll('./alignments.js', './editor/alignments.ts').replaceAll('./gradients.js', './editor/gradients.ts').replaceAll('./appearance.js', './editor/appearance.ts').replaceAll('./source-validation.js','./editor/source-validation.ts').replaceAll('./indicators.js','./editor/indicators.ts').replaceAll('./groups.js','./editor/groups.ts').replaceAll('./cost-rate.js','./editor/cost-rate.ts');
+    if (backend) body = body.replaceAll('./package-validation.js','./editor/package-validation.ts').replaceAll('./preview-settings.js','./editor/preview-settings.ts').replaceAll('./alignments.js', './editor/alignments.ts').replaceAll('./gradients.js', './editor/gradients.ts').replaceAll('./appearance.js', './editor/appearance.ts').replaceAll('./source-validation.js','./editor/source-validation.ts').replaceAll('./indicators.js','./editor/indicators.ts').replaceAll('./groups.js','./editor/groups.ts').replaceAll('./cost-rate.js','./editor/cost-rate.ts');
     if (!backend && !text) body = body.replaceAll('./backend.js', '../backend.ts').replaceAll('./text.js', '../../ui/text.ts');
     body = body.replace(/(from ['"][^'"]+)\.js(['"])/gu, '$1.ts$2');
     result.set(destination, header + body);

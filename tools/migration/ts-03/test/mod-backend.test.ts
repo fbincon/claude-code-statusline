@@ -95,6 +95,11 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.equal(call('source_release',{id:job.id,owner:'mod-test'}).state,'completed');
     assert.equal(call('source_cancel',{id:job.id}).state,'completed');
     assert.equal(call('source_diagnose',{id:'external',context:sourceContext}).view.value,0);
+    const packageState=call('package_status',{prefix:join(f.root,'readonly-package-prefix'),offset:0});
+    const packageOwner='viewer-protocol-123456789';
+    const packageJob=call('package_review_start',{owner:packageOwner,request:{action:'check',prefix:packageState.prefix,expected_revision:packageState.revision,target:null,channel:'latest',backup_id:null,expected_integrity:null}});
+    call('package_review_status',{id:packageJob.id,owner:packageOwner});
+    call('package_review_cancel',{id:packageJob.id,owner:packageOwner});
     assert.deepEqual([...operations].sort(), description.operations.toSorted());
     const rendered = f.run('render', '{"model":{"id":"Python-free"},"context_window":{"remaining_percentage":50}}');
     assert.equal(rendered.exitCode, 0);

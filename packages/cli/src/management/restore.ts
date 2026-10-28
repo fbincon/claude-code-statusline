@@ -18,7 +18,8 @@ import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { ManagementOptions } from './arguments.js';
 import { confirmPackage } from './first-entry.js';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
-export async function restoreConfiguration(flags: ManagementOptions, configDir: string, prefix: string, language: Language, stdout: (value: string) => void, confirm?: () => Promise<boolean>, signal?: AbortSignal): Promise<number> {
+export interface ConfigurationRestoreReview { schema_version: number; action: 'restore-config'; backup_id: string; source_version: string; prefix: string; files: {path: string; current: string|null; backup: string|null}[]; preserved: string[] }
+export async function restoreConfiguration(flags: ManagementOptions, configDir: string, prefix: string, language: Language, stdout: (value: string) => void, confirm?: () => Promise<boolean>, signal?: AbortSignal, onReview?: (review: ConfigurationRestoreReview) => void): Promise<number> {
     const operation = readOperation(configDir, prefix, flags.restoreConfig), current = configurationBytes(configDir), hashes = configurationHashes(current);
     if (!operation.snapshot || !operation.before)
         throw new PackageError('backup');
@@ -40,7 +41,8 @@ export async function restoreConfiguration(flags: ManagementOptions, configDir: 
         if (!equalSettings(settings, updated))
             changes.push({ ...artifact(join(configDir, 'settings.json'), raw), desired: jsonBytes(updated) });
     }
-    const review = { schema_version: 1, action: 'restore-config', backup_id: operation.id, source_version: operation.before.version, prefix, files: changes.map(change => ({ path: change.path, current: hashes[change.name] ?? null, backup: operation.snapshot![change.name] ?? null })), preserved: ['source_authorization', 'runtime_preferences', 'editor_preferences', 'unrelated_claude_settings'] };
+    const review: ConfigurationRestoreReview = { schema_version: 1, action: 'restore-config', backup_id: operation.id, source_version: operation.before.version, prefix, files: changes.map(change => ({ path: change.path, current: hashes[change.name] ?? null, backup: operation.snapshot![change.name] ?? null })), preserved: ['source_authorization', 'runtime_preferences', 'editor_preferences', 'unrelated_claude_settings'] };
+    onReview?.(review);
     if (!flags.json)
         stdout(t('management.restore_review', language) + '\n');
     stdout(JSON.stringify(review, null, 2) + '\n');

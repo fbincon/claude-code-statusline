@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.11.0 — 2026-10-28
+
+- Add a standalone `task view` command and external-editor entry; share filtering, search, folding, evidence layers and stable reading position with Native task details.
+- Add local version/installation pages to both editors, with explicit metadata checks and independently cancellable verified dry-run reviews.
+- Preserve saved configuration, unsaved drafts and installation bytes during reviews; keep package rollback and configuration-restoration review separate.
+- Advance editor protocol to 27; retain display schema 16 and existing task/runtime/storage formats.
+- [Release notes](docs/releases/v3.11.0.md) · [Implementation and validation](docs/development/task-version-review.md).
+
 ## 3.10.0 — 2026-10-28
 
 - Add four registered themes and eight RGB gradient presets, visible color choices and reversible per-stop editing in both editors.

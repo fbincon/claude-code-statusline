@@ -645,7 +645,7 @@ node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-s
 
 ### 审核包变更
 
-持久全局安装先运行 `claude-statusline update --check`，再运行 `claude-statusline update`。审核解析精确目标，验证兼容性并刷新匹配集成。`rollback` 默认上一成功版本，配置恢复单独操作。[版本管理与恢复](PACKAGE_MANAGEMENT.zh-CN.md)说明脚本约束、v3.7.0 边界及保留恢复入口。
+两个编辑器都提供本机“版本与安装”页面，支持显式元数据和 dry-run 审核。执行持久全局安装升级时先运行 `claude-statusline update --check`，再运行 `claude-statusline update`。审核解析精确目标，验证兼容性并刷新匹配集成。`rollback` 默认上一成功版本，配置恢复单独操作。[版本管理与恢复](PACKAGE_MANAGEMENT.zh-CN.md)说明脚本约束、v3.7.0 边界及保留恢复入口。
 
 ### 手动 npm 替换
 
