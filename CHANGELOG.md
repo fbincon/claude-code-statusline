@@ -2,7 +2,7 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
-## 3.12.0 — 2026-10-28 (in preparation)
+## 3.12.0 — 2026-10-28
 
 - Add readable source state, saved GitHub check pages and reviewed binding reuse/cleanup.
 - Add separately reviewed automatic commands: 300-second initial interval, active leases, fair context rotation and shared consumers.

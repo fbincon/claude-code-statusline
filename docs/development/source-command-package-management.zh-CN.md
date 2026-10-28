@@ -33,3 +33,5 @@ Core 负责可读摘要、检查／绑定分页、执行／历史契约及双编
 最终不可变候选保留八个安装目标、32 个 Node 组合、十六个固定宿主及原有 197 项容量断言；新增二十个有界来源／包页面与原用例共享实际宿主执行，总计 217 项。回执分别记录基线／新增数及名称摘要，不将基线虚构成独立执行。最终 PR 证据通过 main/tag 晋级原始产物。补充双编辑器 PTY 和本机真实 Claude 2.1.312，不调用模型。验收后记录实际 ID／摘要；此处尚未宣称发布。
 
 #157 已凭 v3.11.0 tag／OIDC／provenance 及公开下载证据关闭，见[问题评论](https://github.com/fbincon/claude-code-statusline/issues/157#issuecomment-6472495690)。账户 macOS 额度／runner 供应仍未验证。仅接受 [#96](https://github.com/fbincon/claude-code-statusline/issues/96) 既有六项缺口，不豁免新增自动化失败。v3.12.0 发布后，本机新发现只提 issue，保持该版本不变。
+
+发布前本机验证：安装候选 `25b47a17b14e812f74c324b4e30bbd2feaaaf5d7` 的全部 25 项安装测试通过，包括真实 npm 编辑器转换及来源操作。修复版本页只读投影后，Claude 2.1.312 全部 217 项容量断言通过。五个测试文件保留原断言，并限制宿主失败报告大小。最终不可变 PR／main／tag 及渠道记录仍待完成。

@@ -116,7 +116,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await until(text=>text.includes('captured-task'),'task retained');capture('after');await key('q','return to editor');
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
             }else{
-                await until(text=>text.includes('Review only'),'local review boundary visible');
+                await until(text=>text.includes('Local status'),'local status boundary visible');
                 if(action==='package-cleanup'){
                     await key('\x1b[H','first package row');for(let i=0;i<50&&!read().split('\n').some(line=>line.includes('›')&&line.includes(t('package.ui.cleanup_review','en')));i++)await key('\x1b[B','find cleanup');
                     await key('\r','review local cleanup');await until(()=>completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
