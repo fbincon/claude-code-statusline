@@ -266,7 +266,16 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const savedConfiguration=configuration(),savedPackage=fs.readFileSync(join(root,'candidate.json')),entryStamp=fs.statSync(entry).mtimeMs;
         const requestsBefore=registryRequests;
         const local=await ui('package_status',{prefix,offset:0});
-        assert.equal(local.current,targetVersion);assert.equal(registryRequests,requestsBefore);
+        assert.equal(local.current,targetVersion);assert.equal(local.compatible,true,JSON.stringify(local.reasons));assert.deepEqual(local.reasons,[]);assert.equal(registryRequests,requestsBefore);
+        const manifestPath=join(root,'package.json'),manifestMode=fs.statSync(manifestPath).mode&0o777,manifestBytes=fs.readFileSync(manifestPath);
+        try {
+            for(const mode of process.platform==='win32'?[manifestMode]:[0o600,0o644,0o664]) {
+                fs.chmodSync(manifestPath,mode);const actualMode=fs.statSync(manifestPath).mode;
+                const ordinary=await ui('package_status',{prefix,offset:0});
+                assert.equal(ordinary.compatible,true,JSON.stringify(ordinary.reasons));assert.deepEqual(ordinary.reasons,[]);
+                assert.deepEqual(fs.readFileSync(manifestPath),manifestBytes);assert.equal(fs.statSync(manifestPath).mode,actualMode);assert.deepEqual(configuration(),savedConfiguration);
+            }
+        } finally { fs.chmodSync(manifestPath,manifestMode); }
         const owner='viewer-acceptance-'+Date.now();
         const request={action:'check',prefix,expected_revision:local.revision,target:targetVersion,channel:null,backup_id:null,expected_integrity:null};
         const finished=async(job:any)=>{

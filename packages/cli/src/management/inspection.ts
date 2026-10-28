@@ -12,6 +12,8 @@ import { previousBinding } from '../integration/ownership.js';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
 import { readRegular } from '../recovery/journal.js';
+import { readSourceFile } from '@fbincon/statusline-platform/source-files';
+import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { configurationBytes, configurationHashes, configurationCompatibility, readSnapshot } from './configuration.js';
 import { MANAGEMENT_ROOT, operationPath, pendingPath, readInstallation, readOperation, type PackageOperation } from './store.js';
 export interface InspectionContext {
@@ -73,7 +75,10 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
             if (!identity)
                 reasons.push('not_installed');
             else {
-                const manifest = JSON.parse(readRegular(join(identity.root, 'package.json'), 1024 * 1024).toString('utf8'));
+                // npm manifests are ordinary public package files, not private journals.
+                const bytes = readSourceFile(join(identity.root, 'package.json'));
+                if (!bytes) throw new PackageError('identity');
+                const manifest = JSON.parse(decodeUtf8(bytes));
                 const declared = compatibility(manifest.statuslineCompatibility, identity.version);
                 const binding = previousBinding(configDir, createStorage());
                 reasons.push(...runtimeCompatibility(declared, process.versions.node, process.platform + '-' + process.arch, host, binding !== null));

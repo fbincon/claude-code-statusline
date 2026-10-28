@@ -276,9 +276,27 @@ test('independent execution preserves relative prefix/config paths and treats a 
 
 // Editor reviews share UPDATE-01, but never enter its mutation/transaction branch.
 import { inspectPackage } from '../src/management/inspection.js';
+import { readRegular } from '../src/recovery/journal.js';
 import { reviewPackage } from '../src/management/review.js';
 import { startPackageReview, packageReviewJob, reviewFolder } from '../src/management/review-jobs.js';
 import type { PackageReviewRequest } from '@fbincon/statusline-core/contracts/ui';
+test('ordinary npm manifest permissions do not become recovery permissions or write configuration', t => {
+    const f = fixture(t), context = { configDir: f.configDir, origin: f.options.origin, hostVersion: () => null };
+    const path = join(f.layout.root, 'package.json'), bytes = fs.readFileSync(path);
+    for (const mode of [0o600, 0o644, 0o664]) {
+        fs.chmodSync(path, mode);
+        const before = fs.statSync(path).mode;
+        const status = inspectPackage(context, f.prefix);
+        assert.equal(status.current, '3.8.0');
+        assert.equal(status.compatible, true, JSON.stringify(status.reasons));
+        assert.deepEqual(status.reasons, []);
+        assert.deepEqual(fs.readFileSync(path), bytes);
+        assert.equal(fs.statSync(path).mode, before);
+        assert(!fs.existsSync(f.configDir));
+        assert.equal(f.state().metadata, 0);
+        if (process.platform !== 'win32' && mode !== 0o600) assert.throws(() => readRegular(path), /non-private/);
+    }
+});
 test('local package inspection performs no npm calls and reports corrupt backups without repairing them', t=>{
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
     const state=inspectPackage(context,f.prefix);
