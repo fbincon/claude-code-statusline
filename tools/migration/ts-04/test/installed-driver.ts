@@ -163,7 +163,9 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     // rather than replacing TTY streams with pipes or observing only this parent.
     const capturedPath=join(config!,'editor-child-output.ansi'),preload=join(config!,'editor-output-preload.mjs');
     fs.writeFileSync(capturedPath,'',{mode:0o600});
-    fs.writeFileSync(preload,`import fs from 'node:fs';for(const stream of [process.stdout,process.stderr]){const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}\n`,{mode:0o600});
+    // Preserve Node's lazy TTY initialization too: accessing stdout in this
+    // preload would itself change the inherited console flags before capture.
+    fs.writeFileSync(preload,`import fs from 'node:fs';const seen=new WeakSet();for(const name of ['stdout','stderr']){const descriptor=Object.getOwnPropertyDescriptor(process,name);Object.defineProperty(process,name,{...descriptor,get(){const stream=descriptor.get.call(process);if(!seen.has(stream)){seen.add(stream);const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}return stream;}});}\n`,{mode:0o600});
     const nodeOptions=process.env.NODE_OPTIONS;
     process.env.NODE_OPTIONS=[nodeOptions,'--import='+pathToFileURL(preload).href].filter(Boolean).join(' ');
     const capturedOutput=()=>chunks.join('')+fs.readFileSync(capturedPath,'utf8');
