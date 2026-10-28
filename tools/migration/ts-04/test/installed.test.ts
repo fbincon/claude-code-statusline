@@ -30,6 +30,7 @@ before(() => {
     report = { schema_version: 1, stage: installed.packed.source.channel && installed.packed.source.channel !== 'candidate' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
     report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
     report.execution = { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null };
+    if(process.env.TS05_DIAGNOSTIC_PATTERN)report.diagnostic_only={pattern:process.env.TS05_DIAGNOSTIC_PATTERN,promotable:false};
 });
 after(() => {
     // Do not publish a passing receipt if teardown itself fails.
@@ -37,7 +38,7 @@ after(() => {
     const path = process.env.TS04_INSTALLED_REPORT;
     if (path) {
         fs.mkdirSync(dirname(path), { recursive: true });
-        fs.writeFileSync(path, JSON.stringify({ ...report, status: Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
+        fs.writeFileSync(path, JSON.stringify({ ...report, status: !process.env.TS05_DIAGNOSTIC_PATTERN && Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
     }
 });
 function invoke(args: string[], config: string, input = '', environment: NodeJS.ProcessEnv = {}) {
@@ -57,8 +58,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 27, operation, payload }), environment));
-    assert.equal(result.protocol_version, 27);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 28, operation, payload }), environment));
+    assert.equal(result.protocol_version, 28);
     assert.ok(result.result);
     return result.result;
 }
@@ -75,9 +76,10 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
     const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);
     for (const [environment, colors] of [[{TERM:'xterm-256color'},256],[{NO_COLOR:'',TERM:'xterm-256color'},0],[{TERM:'xterm'},16]] as const)
         assert.equal(colorCapability({environment,platform:process.platform,tty:true,windowsVT:false}).colors,colors);
-    const evidence: unknown[] = [], shellEvidence: unknown[] = [];
+    const evidence: unknown[] = [], shellEvidence: unknown[] = [], consoleObservations: unknown[] = [];
     report.terminal_color_evidence=evidence;
     report.terminal_shell_evidence=shellEvidence;
+    report.terminal_console_observations=consoleObservations;
     if (process.platform === 'win32') {
         const config = setup('terminal-colors');
         const before = fs.readFileSync(join(config,'settings.json'));
@@ -97,6 +99,7 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
                 assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No color receipt');
                 const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
+                consoleObservations.push({entry,environment:name,before_mode:saved.before_mode,after_mode:saved.after_mode,before_output_mode:saved.before_output_mode,after_output_mode:saved.after_output_mode});
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
                 else assert(!/\x1b\[(?:38|48);5;/u.test(saved.output));
@@ -537,7 +540,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 27, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 28, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -741,4 +744,34 @@ test('installed candidate upgrades owned Python entry bytes while preserving opt
     report.compatible_backup_golden_replay = true;
     report.compatible_backup = { settings: raw, display, payload: fixture.input.payload, columns: fixture.input.width + 2, expected };
     checks.python_upgrade = true;
+});
+
+test('installed source operations approve commands separately and protect reviewed binding cleanup',async()=>{
+    const config=setup('source-operations'),project=join(installed.temporary,'command project');fs.mkdirSync(project);
+    const mode=join(project,'mode.txt'),gate=join(project,'release.txt');fs.writeFileSync(mode,'good');
+    const before=fs.readFileSync(join(config,'settings.json'));
+    const mutation=(action:string,extra={})=>ui(config,'sources_apply',{action,id:'periodic',expected_revision:ui(config,'sources_read').revision,...extra});
+    // Keep the command alive until the consumer assertion has actually run.
+    // Cross-platform CLI startup time must not decide whether it is still busy.
+    const script='const fs=require("node:fs"),end=Date.now()+25000;function wait(){if(!fs.existsSync(process.argv[2])){if(Date.now()>end){process.exitCode=8;return;}setTimeout(wait,25);return;}setTimeout(()=>{if(fs.readFileSync(process.argv[1],"utf8")==="bad")process.exitCode=7;else process.stdout.write("42");},1500);}wait();';
+    mutation('add',{source:{name:'Periodic',kind:'command',scope:{project,session:null,agent:null},ttl_seconds:1,settings:{executable:installed.node,args:['-e',script,mode,gate],cwd:project,input:{project:'project'},output:'text',timeout_ms:30000}}});
+    const reviewed=ui(config,'source_review',{id:'periodic'}).review_revision;mutation('enable',{review_revision:reviewed});
+    const context=ui(config,'source_context',{project,session:null,agent:null});
+    const lifecycle=(session:string,seq:number,event='tick')=>JSON.parse(run(['runtime'],config,JSON.stringify({protocol_version:3,operation:'source_lifecycle',payload:{session_id:session,epoch:'installed',seq,project,host_version:'2.1.294',event}}))).result;
+    assert.equal(lifecycle('one',0).scheduled,0);mutation('auto-on',{review_revision:reviewed});
+    assert.equal(ui(config,'sources_read').version,3);assert.equal(ui(config,'sources_read').automatic[0].interval_seconds,300);
+    assert.equal(lifecycle('one',1).scheduled,1);assert.equal(lifecycle('two',0).scheduled,0);
+    const joined=ui(config,'source_refresh',{id:'periodic',context,owner:'installed-manual'});mutation('auto-off');assert.equal(ui(config,'source_status',{id:joined.id}).state,'running');
+    fs.writeFileSync(gate,'release');
+    const finish=async(id:string)=>{const end=Date.now()+40000;let job=ui(config,'source_status',{id});while(job.state==='running'&&Date.now()<end){await new Promise(resolve=>setTimeout(resolve,100));job=ui(config,'source_status',{id});}return job;};
+    const good=await finish(joined.id);assert.equal(good.state,'completed');assert.equal(good.result.exit_code,0);assert.equal(good.result.summary,'42');
+    fs.writeFileSync(mode,'bad');const failure=ui(config,'source_refresh',{id:'periodic',context,owner:'installed-failure'});assert.equal((await finish(failure.id)).state,'failed');
+    const inspection=ui(config,'source_inspect',{id:'periodic',context,offset:0});assert.equal(inspection.view.value,'42');assert.equal(inspection.view.freshness,'stale');assert(inspection.last_success);assert.equal(inspection.jobs[0].result.exit_code,7);
+    const binding=mutation('bind').binding;assert.equal(mutation('bind').binding.binding,binding.binding);
+    ui(config,'source_draft',{owner:'installed-draft',bindings:[binding.binding],close:false});let inventory=ui(config,'source_bindings_review',{offset:0});assert.equal(inventory.rows.find((r:any)=>r.id===binding.binding).removable,false);
+    ui(config,'source_draft',{owner:'installed-draft',bindings:[],close:true});inventory=ui(config,'source_bindings_review',{offset:0});assert.equal(inventory.rows.find((r:any)=>r.id===binding.binding).removable,true);
+    ui(config,'source_bindings_cleanup',{revision:inventory.revision,ids:[binding.binding]});assert.equal(ui(config,'sources_read').bindings.length,0);assert.equal(ui(config,'sources_read').sources[0].enabled,true);assert.deepEqual(fs.readFileSync(join(config,'settings.json')),before);
+    lifecycle('one',2,'end');lifecycle('two',1,'end');
+    reportInstalledSourceOperations();
+    function reportInstalledSourceOperations(){report.source_operations={separate_approval:true,interval_300:true,ttl_independent:true,non_git:true,manual_consumer_preserved:true,last_success_after_failure:true,execution_summary:true,bindings_reused:true,drafts_protected:true,reviewed_cleanup:true,settings_unchanged:true,model_calls:0};}
 });

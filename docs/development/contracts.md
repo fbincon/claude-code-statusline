@@ -164,7 +164,7 @@ Display schema 16 stores ordered `instances` instead of the legacy wire `items`/
 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-15 draft bypasses legacy type-selection projections.
 
-TS configuration services use the unchanged installation lock and display schema 16, UI protocol 27, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
+TS configuration services use the unchanged installation lock and display schema 16, UI protocol 28, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
 
 ## TypeScript backend binding
 
@@ -199,7 +199,7 @@ schemas. See the [candidate recovery contract](typescript-migration/ts-04/recove
 
 ## Setup and complete appearance contracts
 
-The new `display.powerline` object has closed choices and legacy defaults; schema 16 and editor protocol 27 require matching resources. `describe.options` and `editor_fields` expose the five Powerline controls from the same descriptors. The existing preset registry adds three complete schemes without adding a second registry. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
+The new `display.powerline` object has closed choices and legacy defaults; schema 16 and editor protocol 28 require matching resources. `describe.options` and `editor_fields` expose the five Powerline controls from the same descriptors. The existing preset registry adds three complete schemes without adding a second registry. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
 
 ## Source operations
 
@@ -266,3 +266,11 @@ Sample and diagnosis rows can include `style_reasons:[{code,owner_id}]`. Codes a
 Protocol 27 adds `package_status` (`prefix: string|null`, `offset: nonnegative integer`), `package_review_start` (`owner`, `request`), and `package_review_status` / `package_review_cancel` (`id`, `owner`). A request contains `action` (`check`, `update`, `rollback`, `recover-package`, `restore-config`), `prefix`, `expected_revision`, and nullable `target`, `channel`, `backup_id`, `expected_integrity`. Metadata checks and verified dry runs are distinct. Restoration returns its own file review and does not claim artifact verification.
 
 Status includes the current backend version, installed identity, compatibility reasons, pending operation and at most 16 history records per page. Jobs have version 1 and running/complete/failed/cancelled states. Their temporary files are separate from installation journals; polling is explicit, cancellation is owner-bound, and identity/revision changes invalidate results. Matching frontend/backend resources are required. Display schema 16, task details 1 and existing runtime, source, profile and preference formats are unchanged.
+
+## Source operations and package execution protocol 28
+
+Editor protocol 28 adds `source_inspect`, `source_bindings_review/cleanup`, `source_draft`, `package_execute_start/status/detach` and `package_cleanup_review/apply`. Core defines bounded summaries/pages and shared interaction states; CLI enforces revision, identity, permission and reference rules; platform owns file/process/delete effects. Mod resources are generated from these canonical contracts.
+
+Source registry 3 extends automatic policies to commands. Old registries remain read-only compatible and do not grant new permission. Job 4 adds optional bounded execution result; jobs 1–3 read missing results as unknown. Observations keep version 1 with optional checks/execution fields. Command output protocol stays v1; runtime stays v3 with optional confirmed local-agent contexts. Effective scheduling identity includes source revision, declared scope and actual inputs. Five-second renewal and fifteen-second expiry remain unchanged.
+
+Package execution records have independent version 1 and retained controls. Progress reads never rewrite records; verified process identity distinguishes stopped from unknown. Package-history/pending `running` is `true`, `false` or `null` (unverifiable). Unknown executors retain their records and block recovery/replacement until exit or a different identity is confirmed. Cleanup is revision-bound and conservative. Source registry 3 or newer display configuration may prevent an old package reading current files; rollback review must reject incompatible configuration before replacement. Do not edit schema numbers to force rollback.

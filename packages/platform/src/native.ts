@@ -2,6 +2,8 @@ import type koffi from 'koffi';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 let api: typeof koffi | undefined;
+/** Observe initialization without loading or pinning an installed native module. */
+export function nativeLoaded(): boolean { return api !== undefined; }
 export function nativeApi(): typeof koffi { return api ??= require('koffi') as typeof koffi; }
 const libraries = new Map<string, ReturnType<typeof koffi.load>>();
 export function library(name: string) {

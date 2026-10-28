@@ -8,6 +8,8 @@ import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { which, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
 import { phaseTimer } from './performance.js';
+import { readSourceFile } from './source-files.js';
+import { decodeUtf8 } from './utf8.js';
 export interface NpmLayout {
     prefix: string;
     root: string;
@@ -26,6 +28,16 @@ export interface RegistryPackage {
 }
 export const globalPackageRoot = (prefix: string) => join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules', PACKAGE_NAME);
 export const globalPackageBin = (prefix: string) => join(prefix, process.platform === 'win32' ? 'claude-statusline.cmd' : 'bin/claude-statusline');
+/** Authoritative manifest reads run in the independent worker, after bootstrap. */
+export function readPackageManifest(root: string): Record<string, any> {
+    try {
+        const bytes = readSourceFile(join(root, 'package.json'));
+        if (!bytes) throw new Error('missing manifest');
+        const value: unknown = JSON.parse(decodeUtf8(bytes));
+        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid manifest');
+        return value as Record<string, any>;
+    } catch { throw new PackageError('identity'); }
+}
 export function verifyArchive(path: string, target: RegistryPackage): void {
     const finish = phaseTimer('package.verify-archive');
     try { verifyArchiveBytes(path, target); } finally { finish(); }
@@ -57,6 +69,8 @@ export function productIdentity(root: string, prefix = ''): PackageIdentity | nu
     try {
         if (fs.lstatSync(root).isSymbolicLink())
             throw new Error('linked product');
+        // Preliminary identity is also used before the bootstrap copy. Do not
+        // load the installed native adapter here; the worker verifies manifests.
         const manifest = JSON.parse(fs.readFileSync(join(root, 'package.json'), 'utf8'));
         if (manifest.name !== PACKAGE_NAME || !exactVersion(manifest.version) || manifest.bin?.['claude-statusline'] !== 'bin/claude-statusline.js')
             throw new Error('identity');
@@ -228,7 +242,7 @@ export class Npm {
         const root = globalPackageRoot(prefix), identity = productIdentity(root, prefix);
         if (!identity || identity.version !== target.version)
             throw new PackageError('identity');
-        const manifest = JSON.parse(fs.readFileSync(join(root, 'package.json'), 'utf8'));
+        const manifest = readPackageManifest(root);
         if (manifest.engines?.node !== target.nodeEngine || !equalSettings(compatibility(manifest.statuslineCompatibility, target.version), target.compatibility) || (manifest.statuslineCompatibility === undefined) !== target.legacy)
             throw new PackageError('identity');
         await this.verify(identity, globalPackageBin(prefix));

@@ -1,3 +1,5 @@
+import { startExecution, executionStatus, detachExecution } from '../management/execution.js';
+import { reviewHistory, cleanupHistory } from '../management/history.js';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { inspectPackage, packageReason } from '../management/inspection.js';
 import { startPackageReview, packageReviewJob } from '../management/review-jobs.js';
@@ -73,6 +75,13 @@ export class ConfigurationProtocol {
         if (operation.startsWith('package_')) {
             const context={configDir:this.service.context.configDir,origin:this.service.context.launch.args[0]??this.service.context.launch.executable,hostVersion:this.service.context.hostVersion};
             try {
+                if(operation==='package_execute_start'){requestObject(payload,['id','owner'],'payload');return startExecution(context,payload.id,payload.owner);}
+                if(operation==='package_execute_status'||operation==='package_execute_detach'){
+                    requestObject(payload,operation==='package_execute_detach'?['id','owner']:['id'],'payload');if(typeof payload.id!=='string'||operation==='package_execute_detach'&&typeof payload.owner!=='string')throw new PackageError('arguments');return operation==='package_execute_detach'?detachExecution(context.configDir,payload.id,payload.owner as string):executionStatus(context.configDir,payload.id);
+                }
+                if(operation==='package_cleanup_review'||operation==='package_cleanup_apply'){
+                    requestObject(payload,operation==='package_cleanup_review'?['prefix','offset']:['prefix','revision','ids'],'payload');if(typeof payload.prefix!=='string'||!payload.prefix)throw new PackageError('arguments');return operation==='package_cleanup_review'?reviewHistory(context,payload.prefix,Number(payload.offset)):cleanupHistory(context,payload.prefix,payload.revision,payload.ids);
+                }
                 if(operation==='package_status') {
                     requestObject(payload,['prefix','offset'],'payload');
                     const offset=safeInteger(payload.offset);
@@ -87,6 +96,11 @@ export class ConfigurationProtocol {
             const sources = new SourceService(this.service);
             if (operation === 'sources_read') { requestObject(payload, [], 'payload'); return sources.read(); }
             if (operation === 'sources_apply') return sources.mutate(payload);
+            if(operation==='source_bindings_review'){requestObject(payload,['offset'],'payload');return sources.bindings().review(payload.offset);}
+            if(operation==='source_bindings_cleanup'){requestObject(payload,['revision','ids'],'payload');return sources.bindings().cleanup(payload.revision,payload.ids);}
+            if(operation==='source_draft'){requestObject(payload,['owner','bindings','close'],'payload');if(typeof payload.close!=='boolean')throw new ConfigError('sources.error.invalid');return sources.bindings().pin(payload.owner,payload.bindings,payload.close);}
+            if(operation==='source_inspect'){requestObject(payload,['id','context','offset'],'payload');return sources.inspect(payload.id,sourceContext(payload.context),payload.offset);}
+
             if (operation === 'source_context') {
                 requestObject(payload, ['project','session','agent'], 'payload');
                 for (const key of ['project','session','agent']) if (payload[key] !== null && typeof payload[key] !== 'string') throw new ConfigError('sources.error.invalid');

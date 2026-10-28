@@ -9,7 +9,7 @@ import { promptLink, reportAgent } from '../lib/identity.ts';
 import { WaitCoverage } from '../lib/timing.ts';
 import { binding } from '../lib/launch.ts';
 
-type State = { endedSession: string | null; sourceSequence: number; sourceBusy: boolean; sourceEnded: boolean; queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
+type State = { endedSession: string | null; sourceSequence: number; sourceBusy: boolean; sourceEnded: boolean; queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[]; sourceAgents: Record<string,string> };
 
 async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
   const queue = state.queue;
@@ -27,7 +27,7 @@ async function bind($: EngineInterface, options: PluginOptions, state: State): P
   queue.bind(session, now);
   state.sourceSequence = 0; state.sourceEnded = false;
   state.turns = {};
-  state.agentTypes = [];
+  state.agentTypes = []; state.sourceAgents = {};
   queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: now }, now);
   state.ready = true;
 }
@@ -60,6 +60,7 @@ async function sourceLifecycle($: EngineInterface, options: PluginOptions, state
       stdin: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'source_lifecycle', payload: {
         session_id: state.queue.session, epoch: state.queue.epoch, seq: sequence,
         project: await $.session.cwd(), host_version: state.hostVersion, event,
+        agents: event==='end'?[]:Object.entries(state.sourceAgents).slice(0,256).map(([id,project])=>({id,project})),
       } }), timeoutMs: 2000,
     });
   } catch { /* A missed heartbeat expires its lease; it cannot affect the host. */ }
@@ -68,7 +69,7 @@ async function sourceLifecycle($: EngineInterface, options: PluginOptions, state
 
 
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { endedSession: null, sourceSequence: 0, sourceBusy: false, sourceEnded: false, queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [] };
+  const state: State = { endedSession: null, sourceSequence: 0, sourceBusy: false, sourceEnded: false, queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [], sourceAgents: {} };
   const queue = state.queue;
   queue.timing = options.nativeTiming !== false;
   queue.metrics = options.liveMetrics === true;
@@ -89,6 +90,7 @@ export const register: Register = (on, options: PluginOptions) => {
       $.clock.every(5000, async () => {
         try {
           await bind($, options, state);
+          if(options.sourceRefresh===true&&Object.keys(state.sourceAgents).length){try{const agents=await $.agent.list();const active=new Set(agents.filter(a=>!a.teammateId&&!['completed','failed','killed'].includes(a.status)).map(a=>a.id));for(const id of Object.keys(state.sourceAgents))if(!active.has(id))delete state.sourceAgents[id];}catch{state.sourceAgents={};}}
           await sourceLifecycle($, options, state, 'tick');
           if (!queue.timing && !queue.metrics) return;
           const now = await $.clock.now();
@@ -137,6 +139,7 @@ export const register: Register = (on, options: PluginOptions) => {
     try {
       await bind($, options, state);
       const now = await $.clock.now();
+      delete state.sourceAgents[e.agent_id];
       queue.push('agent_end', { ended_at_ms: now, status: 'completed' }, now,
                  { prompt_id: e.prompt_id ?? null, agent_id: e.agent_id }, 'classic_hook');
     } catch {}
@@ -169,9 +172,12 @@ export const register: Register = (on, options: PluginOptions) => {
     const loop = e.parentAgentId ?? 'main';
     const turn = state.turns[loop];
     const epoch = queue.epoch;
+    let project:string|undefined;
+    if(options.sourceRefresh===true)try{project=('cwd' in e&&typeof e.cwd==='string'?e.cwd:undefined)??(e.parentAgentId?state.sourceAgents[e.parentAgentId]:await $.session.cwd());}catch{/* Unknown ownership cannot start commands. */}
     const result = await next(e);
     try {
       if (result.agentId && epoch === queue.epoch) {
+        if(project&&!('teammateId' in result&&result.teammateId))state.sourceAgents[result.agentId]=project;
         if (!state.agentTypes.includes(e.subagentType)) state.agentTypes.push(e.subagentType);
         const now = await $.clock.now();
         queue.push('agent_start', { started_at_ms: now }, now, {
@@ -189,6 +195,7 @@ export const register: Register = (on, options: PluginOptions) => {
       const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
       queue.push('turn_end', { status, duration_ms: e.durationMs, wait_coverage: waitCoverage.finish(e.agentId ?? 'main', e.turnId) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
       queue.push('turn_usage', { usage: usage(e.usage) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+      if(e.agentId)delete state.sourceAgents[e.agentId];
       if (e.agentId)
         queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
     } catch {}

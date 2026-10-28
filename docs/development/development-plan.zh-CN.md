@@ -2,6 +2,8 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
+已批准的 v3.12.0 工作实现 SOURCES-01、COMMAND-02 和 UPDATE-02 剩余切片，验收完成前保持 IN_PROGRESS。命令自动间隔默认 300 秒，可调 60–86400 秒，与 TTL 独立；同源串行、相同输入共享、不同上下文公平轮转。[实现](source-command-package-management.zh-CN.md)。
+
 更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.10.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)为当前产品基线，沿用 [v3.9.2 正确性修复](correctness-maintenance.zh-CN.md)与 [v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已随 v3.9.2 完成验收和发布，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；APPEARANCE-05、PREVIEW-01、EXPLAIN-02 已随 v3.10.0 完成验收和发布，实际接口与证据见[交付记录](appearance-preview-diagnosis.zh-CN.md)；其余未启动条目不分配版本或日期。
@@ -62,7 +64,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 - **保持定位：**状态栏负责清楚呈现任务、代理、项目和用量；详情与解释使用既有按需入口。保留真实零值及缺失、过期、部分、不支持等不同状态，不推断没有证据的任务结果。
 - **共享实现：**core 保存纯配置、目录、Unicode、布局与解释规则；platform 负责文件、进程和终端；cli 编排服务；tui 与原生 Mod 适配交互。复用既有事务和任务存储。[当前架构](architecture.zh-CN.md)。
 - **配置边界：**界面语言立即保存，显示语言和外观随显示 Save 保存，Claude 宿主偏好独立 Apply。预览、导入审阅和方案选择只产生候选草稿。用户级默认、命名方案和项目编辑目标始终可辨认。[方案语义](../PROFILES.zh-CN.md)。
-- **兼容：**当前基线为显示 schema 16、编辑器协议 27、来源注册表 2／任务 3、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1，各接口独立演进。先列明新增字段和旧数据解释，再决定具体版本；旧文件读取不静默写回，实际迁移沿用备份和恢复机制。
+- **兼容：**当前基线为显示 schema 16、编辑器协议 28、来源注册表 3／任务 4、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1，各接口独立演进。先列明新增字段和旧数据解释，再决定具体版本；旧文件读取不静默写回，实际迁移沿用备份和恢复机制。
 - **扩展授权：**默认使用宿主输入及本地状态。外部文件源、联网提供方和命令分别启用，按用户配置登记。显示方案可以引用来源，但导入、预设选择和项目绑定不能授予执行或联网能力。
 - **范围界限：**正式后续以上表为准。既有 setup、选择性导入、静态组件渐变、显式行对齐、GitHub 自动刷新及 CLI 版本管理保持已交付。其他提供方、数据及较远方向按[候选池](roadmap.zh-CN.md#candidates)进入条件另行决定。全局外观复用沿用既有导入，组件样式与组复用归 IMPORT-02。
 - **未来接口：**先写清配置意图、数据流与兼容，再分配未来 schema／协议版本或公开命令名称。复用组件能力目录及生成的编辑器资源；新增选项须贯穿预览、保存／重开、方案选择、导入导出与冲突处理，读取旧配置不会开启新行为。

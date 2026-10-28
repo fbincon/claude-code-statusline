@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { PackageError, type PackageIdentity, type PackageReview } from '@fbincon/statusline-core/management/package';
 import { compatibility, compareVersions, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
-import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
+import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, readPackageManifest, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
@@ -23,7 +23,7 @@ import { configurationBytes, configurationHashes, configurationCompatibility, as
 import { refreshIntegration } from './integration.js';
 import { restoreConfiguration } from './restore.js';
 import { ArgumentError } from '../config/arguments.js';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 export interface ManagementEnvironment {
     origin: string;
     signal?: AbortSignal;
@@ -37,6 +37,8 @@ export interface ManagementEnvironment {
     confirm?: () => Promise<boolean>;
     host?: () => readonly number[] | null;
     integrate?: typeof refreshIntegration;
+    beforeMutation?: (review: PackageReview) => void;
+    operationStarted?: (operation: PackageOperation) => void;
     checkpoint?: (stage: string, operation: PackageOperation) => void;
 }
 export function mutationAuthorized(flags: ManagementOptions, tty: boolean): void {
@@ -71,14 +73,14 @@ function selection(flags: ManagementOptions, before: PackageIdentity, history: R
     return { selector: channel, channel };
 }
 function installedCompatibility(current: PackageIdentity) {
-    const manifest = JSON.parse(fs.readFileSync(join(current.root, 'package.json'), 'utf8'));
+    const manifest = readPackageManifest(current.root);
     return compatibility(manifest.statuslineCompatibility, current.version);
 }
 function observedPackage(layout: NpmLayout, operation: PackageOperation): {
     identity: PackageIdentity | null;
     state: string;
 } {
-    if (operation.executors?.some(p => processMatches(p.pid, p.token)))
+    if (operation.executors?.some(p => processAlive(p.pid, p.token) !== false))
         throw new PackageError('busy');
     try {
         const identity = productIdentity(layout.root, layout.prefix);
@@ -91,7 +93,7 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
             throw error;
         const manifest = join(layout.root, 'package.json');
         if (fs.existsSync(manifest)) {
-            const value = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+            const value = readPackageManifest(layout.root);
             if (value.name !== '@fbincon/claude-code-statusline' || ![operation.version, operation.before?.version].includes(value.version))
                 throw new PackageError('identity');
         }
@@ -247,11 +249,14 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         else {
             if (!installed || !sameIdentity(installed, before!) || fs.existsSync(pendingPath(layout.prefix)))
                 throw new PackageError('conflict');
+            options.beforeMutation?.(review);
             operation = startOperation(configDir, layout.prefix, target.version, target.registry, before, flags.command as 'update' | 'rollback');
             operation.snapshot = createStorage().lock(configDir, () => { assertConfiguration(configDir, hashes); return saveSnapshot(configDir, dirname(operationPath(operation!)), bytes); });
             operation.beforeCompatibility = installedCompatibility(before!);
             operation.previousChannel = history?.channel ?? null;
         }
+        if(flags.package) options.beforeMutation?.(review);
+        options.operationStarted?.(operation);
         if (operation.before && !operation.snapshot) {
             if (!installed || installed.version !== operation.before.version)
                 throw new PackageError('backup');

@@ -1,5 +1,5 @@
 import { taskFixture } from './task-fixture.js';
-/** Installed, real Claude PTYs for #154/#155; no model or external-source calls. */
+/** Installed, real Claude PTYs for #154/#155; no model calls; one explicitly reviewed controlled-command journey. */
 import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -32,7 +32,7 @@ const matrix = nativeCapacityData(), reports: Record<string, unknown>[] = [];
 const project = join(installed.temporary, 'project 中文 &'), template = join(installed.temporary, 'template'), shim = join(installed.temporary, 'backend-entry.mjs');
 fs.mkdirSync(project); fs.mkdirSync(template);
 const main = pathToFileURL(join(installed.modules, 'statusline-cli/dist/src/main.js')).href;
-fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null;try{operation=JSON.parse(raw).operation??null}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode})+'\\n');\n`);
+fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null,sourceValue=null;try{operation=JSON.parse(raw).operation??null}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw,stdout:value=>{process.stdout.write(value);if(operation==='source_inspect')try{sourceValue=JSON.parse(value).result?.view?.value??null}catch{}}});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode,...(operation==='source_inspect'?{source_value:sourceValue}:{})})+'\\n');\n`);
 const env = officialEnvironment(installed);
 function command(executable: string, args: string[], environment = env, timeout = 180000) {
     const result = spawnSync(executable, args, { cwd: project, env: environment, encoding: 'utf8', timeout, maxBuffer: 8 * 1024 * 1024 });
@@ -48,7 +48,10 @@ const failures = /props serializes to more than|a tree serializing to more than|
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 async function runCase(name: string, fixtureName: string, action: string, external = false) {
     const directory = join(output, name); fs.mkdirSync(directory);
-    const config = join(installed.temporary, name); fs.cpSync(template, config, { recursive: true });
+    const config = join(installed.temporary, name);
+    // The live-command journey reruns the real installer, whose ownership
+    // checks correctly refuse registrations copied from another config root.
+    if (action === 'live-command') fs.mkdirSync(config); else fs.cpSync(template, config, { recursive: true });
     const data = caseData(fixtureName), draft = (fixtureName === 'import-four-gradients' ? data.review.result.draft : data.draft) as Draft;
     record(join(config, '.claude.json'), { hasCompletedOnboarding: true, theme: 'dark', projects: { [project]: { hasTrustDialogAccepted: true } } });
     record(join(config, 'claude-statusline.json'), draft.display);
@@ -58,6 +61,16 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const importPath = join(config, 'identical-display.json'); record(importPath, draft.display);
     const diagnosticPath=join(config,'explicit input 中文.json');record(diagnosticPath,{session_id:'explicit-file',version:'2.1.310',model:{id:'File-input-model'},context_window:{used_percentage:95,remaining_percentage:5}});
     const taskEvidence=taskFixture(config,'task-pty');
+    if(action==='live-command'){
+        const spec=join(config,'controlled-command.json');record(spec,{name:'Controlled active-session command',kind:'command',scope:{project,session:null,agent:null},ttl_seconds:300,settings:{executable:installed.node,args:['-e','process.stdout.write("live-session-command")'],cwd:project,input:{session:'session'},output:'text',timeout_ms:5000}});
+        const cli=(args:string[])=>command(installed.node,[installed.entry,'source','--config-dir',config,...args],{...env,CLAUDE_CONFIG_DIR:config});
+        cli(['add','pty-command','--file',spec]);const review=JSON.parse(cli(['review','pty-command','--json'])).review_revision;
+        cli(['enable','pty-command','--review',review]);cli(['auto-on','pty-command','--review',review,'--interval','300']);
+        // Policy approval and host integration are independent commit points.
+        const refresh=join(config,'refresh-host.mjs');
+        fs.writeFileSync(refresh,`import{install,installContext}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-cli/dist/src/integration/install.js')).href)};import{PluginHost}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/plugin-host.js')).href)};const directory=process.argv[2];const context=installContext(directory,{executable:process.execPath,args:[${JSON.stringify(shim)}]},${JSON.stringify(version)},undefined,()=>new PluginHost(directory,${JSON.stringify(host)}));const result=install(context,{native:true,external:true,nativeTiming:true,liveMetrics:false});if(result.failed)throw new Error(JSON.stringify(result.messages));`);
+        command(installed.node,[refresh,config],{...env,CLAUDE_CONFIG_DIR:config});
+    }
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
@@ -103,10 +116,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         capture('before');
-        if(action==='version-status'||action==='external-task') {
+        if(['version-status','package-cleanup','external-task'].includes(action)) {
             await key(external?'\x04':'d','unsaved copy');
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
-            const label=action==='version-status'?'Version and installation':'Task details';
+            const label=action==='external-task'?'Task details':'Version and installation';
             for(let i=0;i<90&&!read().split('\n').some(line=>line.includes('›')&&line.includes(label));i++)await key('\x1b[B','select read-only entry');
             await until(text=>text.split('\n').some(line=>line.includes('›')&&line.includes(label)),'read-only entry selected');
             await key('\r','open read-only view');
@@ -116,15 +129,32 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await until(text=>text.includes('captured-task'),'task retained');capture('after');await key('q','return to editor');
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
             }else{
-                await until(text=>text.includes('Review only'),'local review boundary visible');capture('after');await key('q','return to editor');
+                await until(text=>text.includes('Local status'),'local status boundary visible');
+                if(action==='package-cleanup'){
+                    // This isolated installation is not a global npm prefix.
+                    // Select the owned empty prefix explicitly before browsing.
+                    await key('\x1b[H','first package row');for(let i=0;i<8&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Prefix:'));i++)await key('\x1b[B','select explicit prefix');
+                    await key('\r','edit prefix');await key('\x15','clear prefix');await key(project,'owned empty prefix');await key('\r','read selected prefix');
+                    await key('\x1b[H','first package row');for(let i=0;i<50&&!read().split('\n').some(line=>line.includes('›')&&line.includes(t('package.ui.cleanup_review','en')));i++)await key('\x1b[B','find cleanup');
+                    await key('\r','review local cleanup');await until(text=>external?text.includes(t('package.ui.cleanup_notice','en').slice(0,32)):completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
+                }else capture('after');await key('q','return to editor');
                 assert(!records().some(row=>row.operation==='package_review_start'),'Page entry started a network review');
             }
             await until(text=>text.includes('Configure Status Line *'),'unsaved draft retained');
+        } else if(action==='live-command'){
+            const jobs=()=>{const folder=join(config,'statusline_runtime/sources/jobs');return fs.existsSync(folder)?fs.readdirSync(folder).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(fs.readFileSync(join(folder,name),'utf8'))).filter(job=>job.source_id==='pty-command'):[];};
+            await until(()=>jobs().some(job=>job.state==='completed'),'actual runtime lease dispatched the controlled command',25000);
+            const observed=jobs();assert.equal(observed.length,1);assert.equal(observed[0].result.summary,'live-session-command');assert.equal(observed[0].result.exit_code,0);assert.equal(typeof observed[0].context.session,'string');
+            await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');assert(records().some(row=>row.operation==='source_inspect'&&row.phase==='complete'&&row.source_value==='live-session-command'));capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
         } else if(action==='native-task'){
             await key('q','close configuration');await until(text=>!text.includes('Configure Status Line'),'configuration closed');
             await key('/statusline-task\r','open native task');await until(text=>/Session: [^\s]+/u.test(text),'session identity visible');
-            const session=read().match(/Session: ([a-zA-Z0-9-]+)/u)?.[1];assert(session,'Missing observed session');const evidence=taskFixture(config,session);
-            await key('r','read published task');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
+            const session=read().match(/Session: ([a-zA-Z0-9-]+)/u)?.[1];assert(session,'Missing observed session');
+            // The session heading can render while the first read is still in
+            // flight. Publish only after that read completes, then require an
+            // actual second read instead of pressing a still-busy Refresh.
+            await until(()=>completed('task_details'),'initial native task read completed');const evidence=taskFixture(config,session);
+            await key('r','read published task');await until(()=>records().filter(row=>row.operation==='task_details'&&row.phase==='complete').length===2,'published task refresh completed');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
             assert.deepEqual(fs.readFileSync(evidence.path),evidence.bytes);
         } else if(action==='colors') {
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
@@ -157,11 +187,13 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel profile page');
             if (action === 'profile-actions') await key(external ? '\x1b' : '\x07', 'cancel library');
-        } else if (action === 'sources' || action === 'source-review') {
+        } else if (['sources','source-review','source-inspect','source-bindings'].includes(action)) {
             await key('\x19', 'source library'); await until(text => text.includes('Local sample 0'), 'source list visible');
             if (action === 'source-review') { await key('\r', 'source actions'); await key('\x1b[B', 'select review'); await key('\r', 'review disabled command'); await until(text => completed('source_review') && text.includes('Review all fields'), 'source review completed'); }
+            if(action==='source-inspect'){await key('\r','source actions');await key('\x1b[B'.repeat(6)+'\r','inspect saved source');await until(text=>external?text.includes('Last success:'):completed('source_inspect'),'readable source inspection');}
+            if(action==='source-bindings'){await key('\x1b[B'.repeat((data.sources?.library?.sources.length??0)+1)+'\r','binding inventory');await until(text=>external?text.includes(t('sources.bindings_help','en')):completed('source_bindings_review'),'bindings read completed');}
             capture('after'); await key('\x07', 'cancel source page');
-            if (action === 'source-review') await key('\x07', 'cancel source library');
+            if (['source-review','source-inspect','source-bindings'].includes(action)) await key('\x07', 'cancel source library');
         } else if (action === 'save') {
             for (let i = 0; i < 14; i++) await key('d', 'copy ' + (i + 1));
             await key('s', 'save 24 instances'); await until(text => completed('apply') && /saved/iu.test(text), 'save outcome visible');
@@ -189,7 +221,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         await delay(100); try { process.kill(-p.child.pid!, 'SIGKILL'); } catch { /* Already ended. */ }
         await p.close();
         const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: action === 'tall' ? 220 : external ? 32 : 50,
-            model_calls: 0, source_commands: 0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
+            model_calls: 0, source_commands: action==='live-command'?1:0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
             display_after_sha256: sha256(fs.readFileSync(join(config, 'claude-statusline.json'))), steps };
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
@@ -211,10 +243,12 @@ try {
         ['theme-selector','plain-main-w72','colors'],['sample-scenarios','plain-main-w72','scenarios'],['input-file-diagnosis','plain-main-w72','diagnose-file'],
     ]) await runCase(name!, fixture!, action!);
     for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file'],['external-version-status','plain-main-w72','version-status'],['external-task-viewer','plain-main-w72','external-task']]) await runCase(name!, fixture!, action!, true);
-    assert.equal(reports.length, 27); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
+    await runCase('native-live-command','plain-main-w72','live-command');
+    assert.equal(reports.length, 34); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 27 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === 34 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

@@ -2,7 +2,7 @@ import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
 import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
 import { colorDraft } from '../lib/editor/color-manager.ts';
 import { previewWidth } from '../lib/editor/preview-settings.ts';
-import { performSourceAction, closeSources } from '../lib/editor/source-manager.ts';
+import { performSourceAction, closeSources, closeSourceDraft } from '../lib/editor/source-manager.ts';
 import { taskViewer, taskViewerView, taskViewerKey, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
@@ -51,12 +51,12 @@ async function callBackend<O extends Operation>(
   options: PluginOptions,
   operation: O,
   payload: unknown = {},
+  control?: import('../lib/generated-contracts.ts').PackageControl,
 ): Promise<ResultFor<O>> {
   try {
-    const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
-    const directory =
-      (await $.env.get('CLAUDE_CONFIG_DIR')) ||
-      (typeof options.configDir === 'string' ? options.configDir : undefined);
+    const launch = control ?? binding(options, await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
+    const directory = control?.config_dir ?? ((await $.env.get('CLAUDE_CONFIG_DIR')) ||
+      (typeof options.configDir === 'string' ? options.configDir : undefined));
     const argv = directory
       ? [launch.executable, ...launch.args, 'ui', '--config-dir', directory]
       : [launch.executable, ...launch.args, 'ui'];
@@ -168,8 +168,8 @@ async function load(
   state: Session,
   options: PluginOptions,
 ) {
-  if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+  if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
   discard(state);
   const opening = state.epoch;
   setMessage(state.view, "busy", localizedText("native.hooks.register.loading_configuration"));
@@ -455,8 +455,8 @@ async function close($: EngineInterface, state: Session, options: PluginOptions)
     return;
   }
   try {
-    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     await $.ui.close({ id: PANE });
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -645,8 +645,8 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await startTaskDetails($, taskDetails, options);
     state.ownsCommand = false;
-    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -684,8 +684,8 @@ export const register: Register = (on, options) => {
       $.ui.invalidate('ui.render');
       return { deny: state.view.error };
     }
-    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     const result = await next(e);
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -777,12 +777,20 @@ export const register: Register = (on, options) => {
           state.diagnosisTimer=timer;
         }
         else if (effect === 'packages' && state.view.editor?.packages) {
-          const view=state.view.editor.packages;await performPackage(view,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+          const view=state.view.editor.packages;state.writing=true;
+          try{await performPackage(view,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)},state.view.editor);}
+          finally{state.writing=false;state.view.uncertain=state.view.editor.saveState==='unknown';if(state.view.uncertain)state.saveOutcome='unknown';}
           if(view.closed)state.view.editor.packages=null;
         }
         else if (effect === 'sources' && state.view.editor) {
           state.writing=true;
-          try { await performSourceAction(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); }
+          try { await performSourceAction(state.view.editor,{request:async(operation,payload)=>{
+            if(operation==='source_context'){
+              const context=payload as {project:string|null;session:string|null;agent:string|null};
+              try{payload={...context,project:context.project??await $.session.cwd(),session:context.session??await $.session.id()};}catch{/* Preserve unknown ownership when host context is unavailable. */}
+            }
+            return callBackend($,options,operation,payload);
+          }}); }
           finally {state.writing=false;state.previewKey='';}
         }
         else if (effect === 'profiles' && state.view.editor) {

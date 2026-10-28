@@ -1,3 +1,4 @@
+import { NATIVE_CAPACITY_CASES } from '../../acceptance/native-capacity.js';
 import { HISTORICAL_RELEASES } from '../../acceptance/historical-releases.js';
 import { compareVersions, PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import test from 'node:test';
@@ -15,15 +16,15 @@ const assessStableApproval = (value: unknown, version: string) => assessRegister
 const stableApprovalPath = (version: string) => registeredApprovalPath(version, registry);
 const commit = 'a'.repeat(40), hash = 'b'.repeat(64);
 const schema = PACKAGE_COMPATIBILITY.read.display[1];
-const transitions = (official = false, previous = false): any => ({ editor_review:{local_reads_no_network:true,metadata_unverified:true,verified_dry_run:true,rollback_review:true,restore_review:true,cancellation:true,configuration_unchanged:true,package_unchanged:true,operation_timings:Array.from({length:15},()=>({command:'ui review',elapsed_ms:1}))}, cases: 7, historical_version: previous ? '3.8.0' : '3.7.0', historical_sha256: HISTORICAL_RELEASES[previous ? '3.8.0' : '3.7.0'], ...(compareVersions(VERSION, '3.8.0') > 0 && !previous ? { previous_release: transitions(official, true) } : {}), target_version: VERSION, schema_migration: schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, host_mode: official ? 'official' : 'version-only', model_calls: 0, operation_timings: Array.from({ length: (official ? 20 : 19) + (schema > 13 ? 3 : 0) }, (_, index) => ({ command: 'operation-' + index, elapsed_ms: 1 })) });
+const transitions = (official = false, previous = false): any => ({ acceptance_phases: ['baseline', ...(previous ? ['editor_execution'] : [])].map(phase => ({ phase, budget_ms: official ? 1_200_000 : 900_000, elapsed_ms: 1, status: 'pass' })), editor_execution:previous?{verified_execution:true,retained_control:true,downgrade_roundtrip:true,old_protocol_rejected:true,detach_continues:true,progress_complete:true,package_recovery:true,separate_configuration_restore:true,protected_cleanup:true,configuration_preserved:true,real_npm:true,model_calls:0,operation_timings:Array.from({length:30},()=>({command:'ui execution',elapsed_ms:1}))}:null, editor_review:{local_reads_no_network:true,metadata_unverified:true,verified_dry_run:true,rollback_review:true,restore_review:true,cancellation:true,configuration_unchanged:true,package_unchanged:true,operation_timings:Array.from({length:15},()=>({command:'ui review',elapsed_ms:1}))}, cases: 7, historical_version: previous ? '3.8.0' : '3.7.0', historical_sha256: HISTORICAL_RELEASES[previous ? '3.8.0' : '3.7.0'], ...(compareVersions(VERSION, '3.8.0') > 0 && !previous ? { previous_release: transitions(official, true) } : {}), target_version: VERSION, schema_migration: schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, host_mode: official ? 'official' : 'version-only', model_calls: 0, operation_timings: Array.from({ length: (official ? 20 : 19) + (schema > 13 ? 3 : 0) }, (_, index) => ({ command: 'operation-' + index, elapsed_ms: 1 })) });
 function receipts(): any[] {
-    const base = { status: 'pass', commit, tarball_sha256: hash };
+    const base = { status: 'pass', commit, tarball_sha256: hash,source_operations:{separate_approval:true,interval_300:true,ttl_independent:true,non_git:true,manual_consumer_preserved:true,last_success_after_failure:true,execution_summary:true,bindings_reused:true,drafts_protected:true,reviewed_cleanup:true,settings_unchanged:true,model_calls:0} };
     const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, task_viewer:{languages:6,views:18,standalone_non_tty:true,readonly:true,installed_modules:true}, alignment_matrix: {languages:LANGUAGES,widths:[40,80,120],cases:18,installed_modules:true,saved_reopened:true,preview_matches:true}, appearance_preview_diagnosis:{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true}, alignment_cases: 4, gradient_cases: 6, selective_import_cases: 4, setup_cases: 3, extension_cases: 4, indicator_cases: 3, group_cases: 4, automatic_refresh_cases: 4, cost_rate_cases: 4, git_policy_cases: 4, first_entry_cases: 4, version_management: transitions(), terminal_color_cases: target.startsWith('windows-') ? 15 : 3, checks: { task_viewer:true, ...Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])), alignments: true, gradients: true, selective_import: true, setup: true, extensions: true, indicators: true, groups: true, automatic_refresh: true, cost_rates: true, git_policy: true, terminal_colors: true, first_entry: true, version_management: true } }));
     for (const row of installations as any[]) if (row.target.startsWith('windows-'))
         row.terminal_shell_evidence = ['setup','configure','slash'].flatMap(entry => ['powershell','cmd','git-bash'].map(shell => ({entry,shell,colors:256,input_tty:true,restored:true,cancelled:true})));
     return [...installations,
         ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
-        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', capacity: { status: 'pass', cases: 197, actual_host: true }, types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host, ...(compareVersions(VERSION,'3.8.0') > 0 ? { previous_release: { ...transitions(true,true), host } } : {}) }, installed: { ...base, source: { commit } } }; })];
+        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', capacity: { total_cases:217,additional_cases:20,shared_execution:true,baseline_names_sha256:hash,additional_names_sha256:hash,status: 'pass', cases: NATIVE_CAPACITY_CASES, actual_host: true }, types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host, ...(compareVersions(VERSION,'3.8.0') > 0 ? { previous_release: { ...transitions(true,true), host } } : {}) }, installed: { ...base, source: { commit } } }; })];
 }
 test('tests.integration.test_publish_package.AcceptanceTests.test_completed_matrix_is_required', () => {
     assert.equal(assessEvidence(receipts(), commit, hash).hosts, 16);
@@ -183,4 +184,25 @@ test('task-viewer and read-only package-review receipts cannot be omitted or wea
     }
     const missing=receipts();delete missing[0].task_viewer;assert.throws(()=>assessEvidence(missing,commit,hash));
     const changed=receipts();changed[0].task_viewer.readonly=false;assert.throws(()=>assessEvidence(changed,commit,hash));
+});
+
+test('v3.12 rejects missing source, execution and additional capacity receipts',()=>{
+    for(const mutate of [(rows:any[])=>delete rows[0].source_operations,(rows:any[])=>delete rows[0].version_management.previous_release.editor_execution,(rows:any[])=>delete rows.find(row=>row.mods).mods['statusline-native'].capacity.total_cases]){const rows=receipts();mutate(rows);assert.throws(()=>assessEvidence(rows,commit,hash));}
+});
+
+
+test('each acceptance phase must retain its own original budget and passing elapsed receipt', () => {
+    for (const official of [false, true]) for (const mutate of [
+        (value: any) => delete value.acceptance_phases,
+        (value: any) => value.previous_release.acceptance_phases.pop(),
+        (value: any) => value.acceptance_phases[0].budget_ms++,
+        (value: any) => value.acceptance_phases[0].elapsed_ms = value.acceptance_phases[0].budget_ms + 1,
+        (value: any) => value.previous_release.acceptance_phases[1].elapsed_ms = -1,
+        (value: any) => value.previous_release.acceptance_phases[1].status = 'timeout',
+        (value: any) => value.previous_release.acceptance_phases.reverse(),
+    ]) {
+        const rows = receipts(), row = official ? rows.find(row => row.host) : rows[0];
+        mutate(official ? row.package_management : row.version_management);
+        assert.throws(() => assessEvidence(rows, commit, hash));
+    }
 });

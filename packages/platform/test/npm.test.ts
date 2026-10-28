@@ -2,13 +2,36 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { Npm } from '../src/npm.js';
+import { Npm, readPackageManifest } from '../src/npm.js';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { verifyArchive,type NpmLayout } from '../src/npm.js';
 import * as fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolvedPath } from '../src/commands.js';
+import { removeTree } from '../src/remove-tree.js';
+test('ordinary package manifests accept public permissions and reject unsafe or malformed inputs without writes', t => {
+    const root = fs.mkdtempSync(join(tmpdir(), 'package manifest 中文 ')), path = join(root, 'package.json');
+    t.after(() => removeTree(root));
+    const manifest = { name: '@fbincon/claude-code-statusline', version: '3.12.0' }, bytes = Buffer.from(JSON.stringify(manifest));
+    fs.writeFileSync(path, bytes);
+    for (const mode of process.platform === 'win32' ? [0o600] : [0o600, 0o644, 0o664]) {
+        fs.chmodSync(path, mode); const actual = fs.statSync(path).mode;
+        assert.deepEqual(readPackageManifest(root), manifest);
+        assert.deepEqual(fs.readFileSync(path), bytes); assert.equal(fs.statSync(path).mode, actual);
+    }
+    for (const invalid of [Buffer.from('null'), Buffer.from('[]'), Buffer.from('{'), Buffer.from([0xff]), Buffer.alloc(1048577, 32)]) {
+        fs.writeFileSync(path, invalid); assert.throws(() => readPackageManifest(root), error => error instanceof PackageError && error.code === 'identity');
+        assert.deepEqual(fs.readFileSync(path), invalid);
+    }
+    fs.unlinkSync(path);
+    assert.throws(() => readPackageManifest(root), PackageError);
+    if (process.platform !== 'win32') {
+        const outside = join(root, 'outside.json'); fs.writeFileSync(outside, bytes); fs.symlinkSync(outside, path);
+        assert.throws(() => readPackageManifest(root), PackageError); assert.deepEqual(fs.readFileSync(outside), bytes); fs.unlinkSync(path);
+    }
+    fs.mkdirSync(path); assert.throws(() => readPackageManifest(root), PackageError);
+});
 test('npm uses Node and literal argv, reports its effective prefix and scoped registry, and never invokes a shell shim', async () => {
     const prefix = resolve(tmpdir(), 'npm prefix 中文 & $`'), root = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules'), calls: readonly string[][] = [];
     const seen: string[][] = [];

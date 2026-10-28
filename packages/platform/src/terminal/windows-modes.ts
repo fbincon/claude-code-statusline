@@ -1,4 +1,12 @@
-import { nativeFunction, winError } from '../native.js';
+import { nativeFunction, nativeLoaded, winError } from '../native.js';
+
+/** A fresh Node child initializes its global console before any user script.
+ * Preserve an embedded caller's later mode changes when its native adapter is
+ * already loaded. Ordinary bootstrap must not pin the installed native module.
+ */
+export function captureLoadedWindowsModes(): () => void {
+    return process.platform === 'win32' && nativeLoaded() ? captureWindowsModes(true, true) : () => {};
+}
 
 /** libuv's normal mode is a fixed mask, not the caller's complete console mode.
  * Restore the original standard-handle masks after Node stops raw input.

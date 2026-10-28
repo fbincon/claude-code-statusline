@@ -151,6 +151,8 @@ try {
                 await key('\x1b[6~');
                 capture('sources-review-details');
                 await key('\x07');
+                await key('\r');await key('\x1b[B'.repeat(6)+'\r');capture('source-summary');await key('\x07');
+                await key('\x1b[B'.repeat(3)+'\r');capture('source-bindings');await key('\x07');
                 await key('\x1b[B\r');
                 await key('\x1b[B'.repeat(10) + '\r', t('sources.interval', language));
                 capture('automatic-review');

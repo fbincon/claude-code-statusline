@@ -1,3 +1,4 @@
+import { sourceSummary } from '@fbincon/statusline-core/editor/source-summary';
 import { randomUUID } from 'node:crypto';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
 import type { SourceJob } from '@fbincon/statusline-core/contracts/ui';
@@ -21,7 +22,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         return '';
     }
     const p: string[] = [], flags: Record<string, string | boolean> = {};
-    const values = ['--file', '--review', '--project', '--session', '--agent', '--instance', '--scope', '--profile', '--binding', '--interval'];
+    const values = ['--file', '--review', '--project', '--session', '--agent', '--instance', '--scope', '--profile', '--binding', '--interval', '--offset'];
     let literal = false;
     for (let i = 0; i < rest.length; i++) {
         const token = rest[i]!;
@@ -46,11 +47,14 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         else
             p.push(token);
     }
-    if (!['list', 'add', 'edit', 'review', 'enable', 'disable', 'remove', 'bind', 'unbind', 'refresh', 'status', 'cancel', 'diagnose', 'auto-on', 'auto-off'].includes(action ?? '') || p.length !== (action === 'list' ? 0 : 1))
+    if (!['list', 'add', 'edit', 'review', 'enable', 'disable', 'remove', 'bind', 'unbind', 'refresh', 'status', 'cancel', 'diagnose', 'auto-on', 'auto-off', 'bindings', 'cleanup-bindings', 'release-draft'].includes(action ?? '') || p.length !== (['list','bindings'].includes(action??'') ? 0 : 1))
         sourceError('invalid');
     const id = p[0], pretty = (value: unknown) => JSON.stringify(value, null, 2), current = service.read();
     if (action === 'list')
         return flags['--json'] ? pretty(current) : current.sources.map(source => `${source.id}  ${source.name}  ${source.kind}  ${t('sources.' + (source.enabled ? 'enabled' : 'disabled'), language)}`).join('\n') || t('sources.empty', language);
+    if(action==='bindings')return pretty(service.bindings().review(Number(flags['--offset']??0)));
+    if(action==='cleanup-bindings')return pretty(service.bindings().cleanup(flags['--review'],[id]));
+    if(action==='release-draft')return pretty(service.bindings().pin(id,[],true));
     if (action === 'review')
         return pretty(service.review(id));
     if (action === 'status')
@@ -60,7 +64,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
     if (action === 'refresh' || action === 'diagnose') {
         const source = service.source(id), context = contextFor(typeof flags['--project'] === 'string' ? flags['--project'] : source.scope.project ?? process.cwd(), typeof flags['--session'] === 'string' ? flags['--session'] : null, typeof flags['--agent'] === 'string' ? flags['--agent'] : null);
         if (action === 'diagnose')
-            return pretty(service.diagnose(id, context));
+            return flags['--json']?pretty(service.inspect(id,context,Number(flags['--offset']??0))):sourceSummary(service.inspect(id,context,Number(flags['--offset']??0)),language).join('\n');
         const owner=randomUUID();
         if (flags['--no-wait'])
             return pretty(service.start(id, context, owner));
@@ -113,6 +117,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         const node = (scope === 'main' ? display.display.instances : display.display.subagents.instances).find(node => node.id === flags['--instance']);
         if (!node || !SOURCE_TYPES.includes(node.type_id) || node.type_id.startsWith('github-') && service.source(id).kind !== 'github')
             sourceError('binding');
+        payload.binding=node.source?.binding;
         const result = service.mutate(payload);
         node.source = result.binding;
         profiles.applyTarget({ display: display.display, host: display.host }, display.revision, target);

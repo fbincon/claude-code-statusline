@@ -13,7 +13,8 @@ import { HISTORICAL_RELEASES, type HistoricalRelease } from './historical-releas
 import { prepareHistorical } from './historical-inputs.js';
 import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
-import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS } from './budgets.js';
+import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from './budgets.js';
+import { VersionPhaseBudget } from './phase-budget.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
 export interface VersionHost {
@@ -47,8 +48,19 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
     try {
         const versions: HistoricalRelease[] = compareVersions(target, '3.8.0') > 0 ? ['3.7.0', '3.8.0'] : ['3.7.0'];
         let primaryFailure: { error: unknown } | undefined;
-        const results = await Promise.allSettled(versions.map(version => historicalSequence(installed, version, controller.signal, host,
-            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; })));
+        const run = (version: HistoricalRelease) => historicalSequence(installed, version, controller.signal, host,
+            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; });
+        const results: PromiseSettledResult<Record<string, unknown>>[] = [];
+        // These are independent historical compatibility journeys, not a
+        // concurrent-install test. Avoid two npm/copy-heavy fixtures competing
+        // on Windows. Each original sequence retains its own budget; additional
+        // editor execution has a separate, independently enforced envelope.
+        if(process.platform==='win32'){
+            for(const version of versions){
+                const [result]=await Promise.allSettled([run(version)]);results.push(result!);
+                if(result?.status==='rejected')break;
+            }
+        }else results.push(...await Promise.allSettled(versions.map(run)));
         if (primaryFailure) throw primaryFailure.error;
         const failed = results.find(result => result.status === 'rejected');
         if (failed?.status === 'rejected') throw failed.reason;
@@ -60,10 +72,16 @@ async function historicalSequence(installed: ReturnType<typeof installCandidate>
     // Keep the established Unicode/shell-character fixture depth: Node 22.0.0 on
     // Windows can lose package type resolution when recovery manifests grow deeper.
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(dirname(installed.temporary), 'ts05 version 中文 $` & ')));
+    let completed = false;
     try {
-        return await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
+        const result = await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
+        completed = true; return result;
     } finally {
-        removeTree(temporary);
+        // A detached executor may still be finishing after a failed assertion.
+        // Keep its recovery data and the original error, rather than racing its
+        // writes during teardown and replacing the failure with ENOTEMPTY.
+        if (completed) removeTree(temporary);
+        else console.error(JSON.stringify({ version_management_fixture_retained: temporary, historical_version: historicalVersion }));
     }
 }
 async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
@@ -80,7 +98,8 @@ async function historicalSequenceIn(installed: ReturnType<typeof installCandidat
     const program = `import {versionManagementChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))));`;
     let stderr = '';
     const result = await runSourceProcess({ executable: installed.node, args: ['--input-type=module', '-e', program, JSON.stringify(input)], cwd: installed.directory, input: '',
-        environment: process.env, timeoutMs: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS, signal, captureStderr: value => { stderr = value; } });
+        environment: process.env, timeoutMs: (host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS) +
+            (historicalVersion === '3.8.0' ? host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS : 0), signal, captureStderr: value => { stderr = value; } });
     const diagnostics = stderr + result.stdout + '\n' + fs.readFileSync(trace, 'utf8').slice(-16000);
     assert.equal(result.reason, 'completed', diagnostics);
     assert.equal(result.code, 0, diagnostics);
@@ -88,6 +107,12 @@ async function historicalSequenceIn(installed: ReturnType<typeof installCandidat
 }
 export async function versionManagementChild(input: Input): Promise<Record<string, unknown>> {
     const { historicalVersion, historicalSha256 } = input;
+    const budget = new VersionPhaseBudget(input.host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS,
+        input.host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS, phase => {
+            const failure = { phase: 'phase_timeout', acceptance_phase: phase, historical_version: historicalVersion };
+            fs.appendFileSync(input.trace, JSON.stringify(failure) + '\n');
+            process.stderr.write(JSON.stringify(failure) + '\n'); process.exit(124);
+        });
     const manifest = JSON.parse(fs.readFileSync(join(input.root, 'package.json'), 'utf8')), targetVersion = manifest.version;
     const incompatibleVersion = (Number(targetVersion.split('.')[0]) + 1) + '.0.0';
     const targetBytes = fs.readFileSync(input.artifact), legacyBytes = fs.readFileSync(input.legacy);
@@ -170,7 +195,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             clearTimeout(timer);
             const elapsed_ms = performance.now() - started;
             timings.push({ command: label, elapsed_ms });
-            trace({ phase: 'exit', id, command: label, code, signal, elapsed_ms, ...(code !== 0 ? { transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) } : {}) });
+            trace({ phase: 'exit', id, command: label, code, signal, elapsed_ms, ...(code !== 0 || label==='crash-after-package-verification' ? { transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) } : {}) });
             try {
                 if (success)
                     assert.equal(code, 0, stderr + stdout);
@@ -238,9 +263,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const recoveryRoot = join(configDir, 'statusline_runtime/package-management/transactions', history.transaction, 'recovery-runner'), recoveryEntry = join(recoveryRoot, 'bin/claude-statusline.js');
         assert(fs.existsSync(recoveryEntry));
         const serviceURL = pathToFileURL(join(recoveryRoot, 'node_modules/@fbincon/statusline-cli/dist/src/management/service.js')).href;
-        const crash = `import {manage} from ${JSON.stringify(serviceURL)};await manage(${JSON.stringify(command(recoveryEntry, 'update', targetVersion).slice(1))},{origin:${JSON.stringify(recoveryRoot)},stdout:s=>process.stdout.write(s),stderr:s=>process.stderr.write(s),checkpoint:stage=>{if(stage==='package_verified')process.kill(process.pid,'SIGKILL');}});`;
+        const crash = `import {manage} from ${JSON.stringify(serviceURL)};process.exitCode=await manage(${JSON.stringify(command(recoveryEntry, 'update', targetVersion).slice(1))},{origin:${JSON.stringify(recoveryRoot)},stdout:s=>process.stdout.write(s),stderr:s=>process.stderr.write(s),checkpoint:stage=>{if(stage==='package_verified')process.kill(process.pid,'SIGKILL');}});`;
         const stopped = await invoke(['--input-type=module', '-e', crash], false);
-        assert.notEqual(stopped.code, 0);
+        assert.notEqual(stopped.code, 0, stopped.stderr + stopped.stdout);
         assert.equal(transaction()?.stage, 'package_verified', stopped.stderr + stopped.stdout);
         assert.equal(await version(), 'claude-statusline ' + targetVersion);
         const markerPath = join(prefix, '.claude-statusline-operation.json'), marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
@@ -266,7 +291,16 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const savedConfiguration=configuration(),savedPackage=fs.readFileSync(join(root,'candidate.json')),entryStamp=fs.statSync(entry).mtimeMs;
         const requestsBefore=registryRequests;
         const local=await ui('package_status',{prefix,offset:0});
-        assert.equal(local.current,targetVersion);assert.equal(registryRequests,requestsBefore);
+        assert.equal(local.current,targetVersion);assert.equal(local.compatible,true,JSON.stringify(local.reasons));assert.deepEqual(local.reasons,[]);assert.equal(registryRequests,requestsBefore);
+        const manifestPath=join(root,'package.json'),manifestMode=fs.statSync(manifestPath).mode&0o777,manifestBytes=fs.readFileSync(manifestPath);
+        try {
+            for(const mode of process.platform==='win32'?[manifestMode]:[0o600,0o644,0o664]) {
+                fs.chmodSync(manifestPath,mode);const actualMode=fs.statSync(manifestPath).mode;
+                const ordinary=await ui('package_status',{prefix,offset:0});
+                assert.equal(ordinary.compatible,true,JSON.stringify(ordinary.reasons));assert.deepEqual(ordinary.reasons,[]);
+                assert.deepEqual(fs.readFileSync(manifestPath),manifestBytes);assert.equal(fs.statSync(manifestPath).mode,actualMode);assert.deepEqual(configuration(),savedConfiguration);
+            }
+        } finally { fs.chmodSync(manifestPath,manifestMode); }
         const owner='viewer-acceptance-'+Date.now();
         const request={action:'check',prefix,expected_revision:local.revision,target:targetVersion,channel:null,backup_id:null,expected_integrity:null};
         const finished=async(job:any)=>{
@@ -285,9 +319,73 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const cancelled=await ui('package_review_start',{owner,request});assert.equal((await ui('package_review_cancel',{id:cancelled.id,owner})).state,'cancelled');
         assert.deepEqual(configuration(),savedConfiguration);assert.deepEqual(fs.readFileSync(join(root,'candidate.json')),savedPackage);assert.equal(fs.statSync(entry).mtimeMs,entryStamp);assert(!transaction());
         const editorReview={local_reads_no_network:true,metadata_unverified:true,verified_dry_run:true,rollback_review:true,restore_review:true,cancellation:true,configuration_unchanged:true,package_unchanged:true,operation_timings:timings.splice(reviewTimingStart)};
-        return { editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
+        let editorExecution:Record<string,unknown>|null=null;
+        if(historicalVersion==='3.8.0') {
+            budget.beginEditor();
+            trace({phase:'acceptance_phase',acceptance_phase:'editor_execution'});
+            const executionTimingStart=timings.length;
+            let controlEntry=entry;
+            const control=async(operation:string,payload:unknown)=>{
+                const response=JSON.parse((await invoke([controlEntry,'ui','--config-dir',configDir],true,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload}))).stdout);
+                assert.equal(response.protocol_version,PROTOCOL_VERSION);assert(Object.hasOwn(response,'result'),JSON.stringify(response));return response.result;
+            };
+            const review=async(action:string,target:string|null,backup_id:string|null=null)=>{
+                const status=await control('package_status',{prefix,offset:0});
+                let job=await control('package_review_start',{owner,request:{action,prefix,expected_revision:status.revision,target,channel:null,backup_id,expected_integrity:null}});
+                const deadline=Date.now()+VERSION_OPERATION_MS;
+                while(job.state==='running'&&Date.now()<deadline){await new Promise(resolve=>setTimeout(resolve,250));job=await control('package_review_status',{id:job.id,owner});}
+                assert.equal(job.state,'complete',JSON.stringify(job));assert.equal(job.review.compatible,true,JSON.stringify(job.review));return job;
+            };
+            const executions:any[]=[];
+            const execute=async(job:any)=>{
+                let run=await control('package_execute_start',{id:job.id,owner});
+                assert(!run.control.args[0].startsWith(root+ (process.platform==='win32'?'\\':'/')),'Executor is inside replaced package');
+                controlEntry=run.control.args[0];executions.push(run);
+                // Detaching immediately must leave the worker and transaction alive.
+                await control('package_execute_detach',{id:run.id,owner});
+                const deadline=Date.now()+VERSION_OPERATION_MS;
+                let observed='';
+                do {await new Promise(resolve=>setTimeout(resolve,250));run=await control('package_execute_status',{id:run.id});
+                    const progress=JSON.stringify({id:run.id,state:run.state,stage:run.stage,running:run.running,results:run.results,error:run.error});
+                    if(progress!==observed){trace({phase:'execution_progress',progress:JSON.parse(progress)});observed=progress;}
+                }while((run.state==='running'||run.running!==false)&&Date.now()<deadline);
+                assert.equal(run.state,'complete',JSON.stringify(run));assert.equal(run.running,false);assert.equal(run.stage,'complete');return run;
+            };
+            const down=await execute(await review('rollback',historicalVersion));
+            assert.equal(down.results.package,true);assert.equal(down.results.integration,true);
+            assert.equal(await version(),'claude-statusline '+historicalVersion);
+            const oldProtocol=await invoke([entry,'ui','--config-dir',configDir],false,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation:'package_status',payload:{prefix,offset:0}}));assert.notEqual(oldProtocol.code,0);
+            const retained=await control('package_execute_status',{id:down.id});assert.equal(retained.state,'complete');
+            const up=await execute(await review('update',targetVersion));
+            assert.equal(await version(),'claude-statusline '+targetVersion);assert.equal(up.results.integration,true);
+            await execute(await review('restore-config',null,up.transaction_id));
+            await execute(await review('rollback',historicalVersion));
+            // Reuse the existing real-npm crash boundary, then recover through the
+            // same retained controller that survived a downgrade and an upgrade.
+            const crashAgain=await invoke(['--input-type=module','-e',crash],false);assert.notEqual(crashAgain.code,0);
+            const pendingId=JSON.parse(fs.readFileSync(markerPath,'utf8')).id;
+            const afterCrash=fs.statSync(entry).mtimeMs;
+            const recovered=await execute(await review('recover-package',targetVersion));
+            assert.equal(recovered.transaction_id,pendingId);assert.equal(fs.statSync(entry).mtimeMs,afterCrash);assert(!fs.existsSync(markerPath));
+            const restored=await execute(await review('restore-config',null,recovered.transaction_id));
+            assert.equal(restored.results.configuration,true);assert.equal(restored.results.package,null);
+            assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline.json')),display);
+            assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline-profiles.json')),profiles);
+            assert.equal(JSON.parse(fs.readFileSync(settingsPath,'utf8')).env.KEEP,'unchanged');
+            assert.deepEqual(fs.readFileSync(join(root,'candidate.json')),savedPackage);
+            const requests=registryRequests;
+            const cleanup=await control('package_cleanup_review',{prefix,offset:0});
+            assert.equal(cleanup.uncertain,false,JSON.stringify(cleanup));assert(cleanup.rows.some((row:any)=>!row.removable));
+            const removable=cleanup.rows.find((row:any)=>row.removable&&!executions.some(run=>run.id===row.id));assert(removable,JSON.stringify(cleanup));
+            await control('package_cleanup_apply',{prefix,revision:cleanup.revision,ids:[removable.id]});
+            const cleaned=await control('package_cleanup_review',{prefix,offset:0});assert(!cleaned.rows.some((row:any)=>row.id===removable.id));
+            assert.equal(registryRequests,requests);
+            editorExecution={verified_execution:true,retained_control:true,downgrade_roundtrip:true,old_protocol_rejected:true,detach_continues:true,progress_complete:true,package_recovery:true,separate_configuration_restore:true,protected_cleanup:true,configuration_preserved:true,real_npm:true,model_calls:0,operation_timings:timings.splice(executionTimingStart)};
+        }
+        return { acceptance_phases:budget.finish(), editor_execution:editorExecution, editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
+        budget.close();
         server.closeAllConnections();
         await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     }

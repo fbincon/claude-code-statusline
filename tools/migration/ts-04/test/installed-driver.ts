@@ -129,6 +129,7 @@ else if (operation === 'setup-console') {
     process.exitCode = await main(['--language', 'en', 'setup', '--config-dir', config!], { hostVersion: () => [2, 1, 258] });
 }
 else if (operation === 'windows-editor' || operation === 'windows-setup') {
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_console_adapter',pid:process.pid}),{mode:0o600});
     const { library, nativeApi } = await load('platform', 'native'), k = library('kernel32.dll');
     const input = k.func('void *CreateFileW(const char16_t *name, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')('CONIN$', 0xc0000000, 3, null, 3, 0, null);
     if (!input || nativeApi().address(input) === 0xffffffffffffffffn)
@@ -158,11 +159,20 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     };
     let previewCancelled = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
-    const write = process.stdout.write.bind(process.stdout);
-    (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
-        const value = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
-        chunks.push(value);
-        if (!scheduled && chunks.join('').includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
+    // The production editor can move to an independent runtime. Preserve its
+    // real console handles and record its writes through a fixture-only preload,
+    // rather than replacing TTY streams with pipes or observing only this parent.
+    const capturedPath=join(config!,'editor-child-output.ansi'),preload=join(config!,'editor-output-preload.mjs');
+    fs.writeFileSync(capturedPath,'',{mode:0o600});
+    // Preserve Node's lazy TTY initialization too: accessing stdout in this
+    // preload would itself change the inherited console flags before capture.
+    fs.writeFileSync(preload,`import fs from 'node:fs';const seen=new WeakSet();for(const name of ['stdout','stderr']){const descriptor=Object.getOwnPropertyDescriptor(process,name);Object.defineProperty(process,name,{...descriptor,get(){const stream=descriptor.get.call(process);if(!seen.has(stream)){seen.add(stream);const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}return stream;}});}\n`,{mode:0o600});
+    const nodeOptions=process.env.NODE_OPTIONS;
+    process.env.NODE_OPTIONS=[nodeOptions,'--import='+pathToFileURL(preload).href].filter(Boolean).join(' ');
+    const capturedOutput=()=>chunks.join('')+fs.readFileSync(capturedPath,'utf8');
+    const observeOutput=()=>{
+        const output=capturedOutput();
+        if (!scheduled && output.includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
             scheduled = true;
             setTimeout(() => {
                 const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
@@ -170,21 +180,31 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
                 sendKeys(keys);
             }, 50);
         }
-        if (choice === 'preview-cancel' && !previewCancelled && chunks.join('').includes('Statusline theme')) {
+        if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
         }
+    };
+    const write = process.stdout.write.bind(process.stdout);
+    (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
+        const value = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+        chunks.push(value);
+        observeOutput();
         return (write as any)(chunk, ...args);
     };
-    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: chunks.join('').slice(-2000) })); process.exit(1); }, 10000);
+    const poll=setInterval(observeOutput,25);
+    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_editor',pid:process.pid}),{mode:0o600});
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: chunks.join('') }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }
     finally {
         clearTimeout(timer);
+        clearInterval(poll);
+        if(nodeOptions===undefined)delete process.env.NODE_OPTIONS;else process.env.NODE_OPTIONS=nodeOptions;
         k.func('bool CloseHandle(void *handle)')(input);
     }
 }

@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sample, windowsBootId } from '@fbincon/statusline-platform/clocks';
-import { processToken, processMatches } from '@fbincon/statusline-platform/processes';
+import { processToken, processMatches, processAlive } from '@fbincon/statusline-platform/processes';
 import { delta, trusted } from '@fbincon/statusline-core/timing/sample';
 import { decode, integer } from '@fbincon/statusline-core/json';
 import { atomicWrite, lock, withLock, durableUnlink, isLinkOrReparse, retryWindows } from '@fbincon/statusline-platform/files';
@@ -78,9 +78,14 @@ test('unavailable clocks, wall adjustment, reboot and frozen integer semantics',
 test('exited process is not live even when Windows retains its creation identity', async () => {
   const child = spawn(process.execPath, [cli, 'wait']);
   const close = once(child, 'close');
-  const token = processToken(child.pid!); assert.ok(token); child.kill('SIGKILL'); await close;
-  assert.equal(processMatches(child.pid!, token), false);
-  const retained = processToken(child.pid!); assert.ok(retained === null || retained === token);
+  const token = processToken(child.pid!); assert.ok(token);assert.equal(processAlive(child.pid!,token),true);
+  const k=process.platform==='win32'?library('kernel32.dll'):null;
+  const retainedHandle=k?.func('void *OpenProcess(uint32_t access, bool inherit, uint32_t pid)')(0x101000,false,child.pid!);
+  if(k)assert(retainedHandle);
+  try{child.kill('SIGKILL');await close;
+    assert.equal(processMatches(child.pid!,token),false);assert.equal(processAlive(child.pid!,token),false);
+    const retained=processToken(child.pid!);assert.ok(retained===null||retained===token);
+  }finally{if(retainedHandle)k!.func('bool CloseHandle(void *handle)')(retainedHandle);}
 });
 test('independent Node writers serialize updates using the same lock file', async () => {
   const path = join(temporary, 'counter'); fs.writeFileSync(path, '0');

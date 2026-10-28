@@ -31,7 +31,7 @@ for (const language of LANGUAGES)
         await keys(ui, 'return');
         expect(f.calls.filter(call => call.operation === 'package_status').length).toBe(1);
         expect(f.calls.some(call => call.operation === 'package_review_start')).toBe(false);
-        expect(await visibleText(ui)).toContain(t('package.ui.readonly', language));
+        expect((await visibleText(ui)).replace(/\s+/gu,' ')).toContain(t('package.ui.local_notice', language));
         for (let step = 0; step < 80 && !(await visibleText(ui)).includes('› Enter · ' + t('package.ui.check', language)); step++)
             await keys(ui, 'down');
         await keys(ui, 'return');

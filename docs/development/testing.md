@@ -452,3 +452,5 @@ already deferred until before release. Source and process-interruption tests do
 not claim hardware power-loss validation. PERF-01 remains the performance follow-up.
 
 </details>
+
+[Source and package execution boundaries and additional acceptance](source-command-package-management.md) document protocol 28, separate command approval, retained controls and protected cleanup.

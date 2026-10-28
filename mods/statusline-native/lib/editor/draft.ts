@@ -60,6 +60,8 @@ export class Editor {
   colors: import('./color-manager.js').ColorManager | null = null;
   explanation: ExplanationView | null = null;
   profiles: ProfileManager | null = null;
+  sourceDraftRegistered = false;
+  sourceDraftOwner = 'draft-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
   sources: SourceManager | null = null;
   taskViewer: import('./task-viewer.js').TaskViewer | null = null;
   packages: import('./package-manager.js').PackageManager | null = null;
@@ -78,11 +80,13 @@ export class Editor {
   buffers: Record<NumericField, string>;
   fieldErrors: Partial<Record<NumericField, string>> = {};
   fieldErrorMessages: Partial<Record<NumericField, LocalizedText>> = {};
+  packageLocked = false;
   saveState: 'idle' | 'pending' | 'unknown' = 'idle';
   pendingSave: PendingSave | null = null;
   mutationGeneration = 0;
 
   canMutateDraft(generation = this.mutationGeneration): boolean {
+    if (this.packageLocked) { this.compositionError=text('package.ui.editor_locked');return false; }
     if (this.saveState === 'idle' && generation === this.mutationGeneration) return true;
     this.compositionError = text('editor.save_locked');
     return false;

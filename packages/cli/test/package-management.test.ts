@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
@@ -11,9 +11,10 @@ import { PackageError } from '@fbincon/statusline-core/management/package';
 import { Npm, globalPackageRoot, globalPackageBin, productIdentity, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { managementOptions, managementRequest } from '../src/management/arguments.js';
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
-import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation } from '../src/management/store.js';
+import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation, observeOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 function product(prefix: string, version: string) {
     const root = globalPackageRoot(prefix);
     fs.mkdirSync(root, { recursive: true });
@@ -30,7 +31,7 @@ function product(prefix: string, version: string) {
 }
 function fixture(t: TestContext) {
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'package management 中文 ')));
-    t.after(() => fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }));
+    t.after(() => removeTree(temporary));
     const prefix = join(temporary, 'prefix'), configDir = join(temporary, 'config'), origin = globalPackageRoot(join(temporary, 'cache'));
     product(prefix, '3.8.0');
     const bytes = Buffer.from('verified archive'), integrity = 'sha512-' + createHash('sha512').update(bytes).digest('base64');
@@ -206,6 +207,28 @@ test('a surviving executor blocks recovery after its transaction owner exits', a
     f.clear();
     assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);
 });
+test('an unverifiable surviving executor blocks recovery without changing its transaction or configuration', async t => {
+    const f=fixture(t);f.options.checkpoint=stage=>{if(stage==='package_verified')throw new PackageError('interrupted');};
+    assert.equal(await manage(f.args(),f.options),130);f.options.checkpoint=undefined;
+    const operation=readOperation(f.configDir,f.prefix),pid=999999997;
+    operation.executors=[{pid,token:'unverifiable-creation-token'}];saveOperation(operation);
+    const read=mutableFs.readFileSync;
+    // Model a still-existing process whose creation identity cannot be read.
+    // No signal is sent and no real foreign process is selected.
+    t.mock.method(process,'kill',()=>true);
+    t.mock.method(mutableFs,'readFileSync',(...args:Parameters<typeof mutableFs.readFileSync>)=>{
+        if(String(args[0])===`/proc/${pid}/stat`)throw Object.assign(new Error('Identity denied'),{code:'EACCES'});
+        return read(...args);
+    });syncBuiltinESMExports();
+    try {
+        assert.equal(inspectPackage({configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},f.prefix).pending?.running,null);
+        observeOperation(operation)(null);assert.deepEqual(readOperation(f.configDir,f.prefix).executors,[{pid,token:'unverifiable-creation-token'}]);
+        const before=fs.readFileSync(operationPath(operation)),configuration=configurationBytes(f.configDir);
+        f.clear();assert.equal(await manage(f.args('recover',['--package','--version','3.9.0','--yes']),f.options),2,f.state().output);
+        assert.match(f.state().output,/executor|running|busy/);assert.equal(f.state().replacements,1);
+        assert.deepEqual(fs.readFileSync(operationPath(operation)),before);assert.deepEqual(configurationBytes(f.configDir),configuration);assert(fs.existsSync(pendingPath(f.prefix)));
+    }finally{t.mock.restoreAll();syncBuiltinESMExports();}
+});
 test('the prefix lock serializes package changes across distinct configuration directories', async (t) => {
     const f = fixture(t);
     let other: number | undefined;
@@ -224,7 +247,7 @@ test('the prefix lock serializes package changes across distinct configuration d
 });
 test('an interrupted first install can repair its partial package without inventing a configuration backup', async (t) => {
     const f = fixture(t);
-    fs.rmSync(f.layout.root, { recursive: true });
+    removeTree(f.layout.root);assert(!fs.existsSync(f.layout.root));
     fs.mkdirSync(f.layout.root, { recursive: true });
     fs.writeFileSync(join(f.layout.root, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version: '3.9.0' }));
     const operation = startOperation(f.configDir, f.prefix, '3.9.0', f.layout.registry, null);
@@ -276,9 +299,27 @@ test('independent execution preserves relative prefix/config paths and treats a 
 
 // Editor reviews share UPDATE-01, but never enter its mutation/transaction branch.
 import { inspectPackage } from '../src/management/inspection.js';
+import { readRegular } from '../src/recovery/journal.js';
 import { reviewPackage } from '../src/management/review.js';
-import { startPackageReview, packageReviewJob, reviewFolder } from '../src/management/review-jobs.js';
+import { startPackageReview, packageReviewJob, reviewFolder, writeReviewRecord, type ReviewRecord, REVIEW_DEADLINE_MS } from '../src/management/review-jobs.js';
 import type { PackageReviewRequest } from '@fbincon/statusline-core/contracts/ui';
+test('ordinary npm manifest permissions do not become recovery permissions or write configuration', t => {
+    const f = fixture(t), context = { configDir: f.configDir, origin: f.options.origin, hostVersion: () => null };
+    const path = join(f.layout.root, 'package.json'), bytes = fs.readFileSync(path);
+    for (const mode of [0o600, 0o644, 0o664]) {
+        fs.chmodSync(path, mode);
+        const before = fs.statSync(path).mode;
+        const status = inspectPackage(context, f.prefix);
+        assert.equal(status.current, '3.8.0');
+        assert.equal(status.compatible, true, JSON.stringify(status.reasons));
+        assert.deepEqual(status.reasons, []);
+        assert.deepEqual(fs.readFileSync(path), bytes);
+        assert.equal(fs.statSync(path).mode, before);
+        assert(!fs.existsSync(f.configDir));
+        assert.equal(f.state().metadata, 0);
+        if (process.platform !== 'win32' && mode !== 0o600) assert.throws(() => readRegular(path), /non-private/);
+    }
+});
 test('local package inspection performs no npm calls and reports corrupt backups without repairing them', t=>{
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
     const state=inspectPackage(context,f.prefix);
@@ -313,7 +354,88 @@ test('package review worker ownership prevents another view from cancelling it',
     const owner='viewer-test-owner-123456789',job=startPackageReview(context,request,owner),folder=reviewFolder(job.id);
     assert.throws(()=>packageReviewJob(context,job.id,'viewer-other-owner-123456789',true),/identity/);
     assert(!fs.existsSync(join(folder,'cancel.json')));
-    assert.equal(packageReviewJob(context,job.id,owner,true).state,'cancelled');
-    const until=Date.now()+15000;while(fs.existsSync(folder)&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,50));
-    assert(!fs.existsSync(folder),'Cancelled worker cleans its private temporary directory');assert(!fs.existsSync(f.configDir));
+    // Cancellation can return before process exit is confirmed. The caller must
+    // reconcile it again; a stopped worker never removes its own loaded runner.
+    const until=Date.now()+25000;let cancelled=packageReviewJob(context,job.id,owner,true);
+    while(fs.existsSync(folder)&&Date.now()<until){await new Promise(resolve=>setTimeout(resolve,50));cancelled=packageReviewJob(context,job.id,owner,true);}
+    assert.equal(cancelled.state,'cancelled');
+    assert(!fs.existsSync(folder),'Confirmed cancelled worker cleanup: '+JSON.stringify(cancelled));assert(!fs.existsSync(f.configDir));
+});
+test('review startup grace excludes runner preparation while the overall deadline stays bounded',t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-startup-grace-123456789';
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const record:ReviewRecord={configDir:f.configDir,origin:f.options.origin,pid:null,token:null,launched_at:new Date().toISOString(),job:{version:1,id,owner,state:'running',started_at:new Date(Date.now()-60000).toISOString(),finished_at:null,request,review:null,error:null}};
+    t.after(()=>removeTree(reviewFolder(id)));writeReviewRecord(record);
+    assert.equal(packageReviewJob(context,id,owner).state,'running');
+    record.launched_at=new Date(Date.now()-16000).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
+    delete record.launched_at;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
+    record.pid=process.pid;record.token=null;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).state,'running','Unknown identity must retain the worker and its files until the overall deadline');
+    record.launched_at=new Date().toISOString();record.job.started_at=new Date(Date.now()-REVIEW_DEADLINE_MS-1).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
+});
+
+import { executionFolder, writeExecution, readExecution, executeReviewed, detachExecution, type ExecutionRecord } from '../src/management/execution.js';
+import { reviewHistory, cleanupHistory } from '../src/management/history.js';
+import { finishOperation } from '../src/management/store.js';
+import mutableFs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+async function reviewedExecution(f:ReturnType<typeof fixture>):Promise<ExecutionRecord>{
+    const context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},status=inspectPackage(context,f.prefix);
+    const request:PackageReviewRequest={action:'update',prefix:f.prefix,expected_revision:status.revision,target:'3.9.0',channel:null,backup_id:null,expected_integrity:null};
+    const review=await reviewPackage(request,context,{...f.options,host:()=>null});
+    const id='execution-00000000-0000-0000-0000-000000000001',folder=executionFolder(f.configDir,id),stamp=new Date().toISOString();
+    const record:ExecutionRecord={schema_version:1,owner:'viewer-test-owner-12345',configDir:f.configDir,origin:f.options.origin,request,review,pid:null,token:null,value:{version:1,id,transaction_id:null,action:'update',prefix:f.prefix,state:'running',stage:'queued',started_at:stamp,updated_at:stamp,finished_at:null,error:null,running:null,results:{package:null,integration:null,configuration:null},control:{executable:process.execPath,args:[join(folder,'runner/bin/claude-statusline.js')],config_dir:f.configDir}}};
+    fs.mkdirSync(folder,{recursive:true,mode:0o700});writeExecution(record);return record;
+}
+test('reviewed editor execution rechecks identity, persists transaction progress and preserves user configuration',async t=>{
+    const f=fixture(t);f.write('settings.json',{env:{KEEP:'yes'}});const before=configurationBytes(f.configDir),record=await reviewedExecution(f);
+    assert.equal(await executeReviewed(record,{...f.options,host:()=>null}),0);
+    const final=readExecution(f.configDir,record.value.id);assert.equal(final.value.stage,'complete');assert(final.value.transaction_id);assert.equal(final.value.results.package,true);assert.equal(final.value.results.integration,true);assert.deepEqual(configurationBytes(f.configDir),before);assert.equal(f.state().replacements,1);
+});
+test('a reviewed editor execution refuses changes during staging and cannot silently change the reviewed archive',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f),install=f.npm.installArchive;
+    f.npm.installArchive=async(archive,prefix)=>{await install(archive,prefix);if(prefix!==f.prefix)f.write('settings.json',{changed:true});};
+    assert.equal(await executeReviewed(record,{...f.options,host:()=>null}),2);assert.equal(f.state().replacements,0);assert.equal(record.value.error,'conflict');
+});
+test('editor detachment does not cancel a worker or overwrite its progress',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f);record.pid=process.pid;record.token=processToken(process.pid)!;record.value.stage='installing';writeExecution(record);
+    assert.throws(()=>detachExecution(f.configDir,record.value.id,'invalid owner'));detachExecution(f.configDir,record.value.id,'reopened-view');
+    detachExecution(f.configDir,record.value.id,record.owner);const status=readExecution(f.configDir,record.value.id);assert.equal(status.value.stage,'installing');assert.equal(status.value.state,'running');assert.equal(status.detached,true);
+});
+test('editor progress reads a complete private replacement instead of reporting a damaged journal',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f),path=join(executionFolder(f.configDir,record.value.id),'execution.json'),next=path+'.next';
+    record.value.stage='installing';fs.writeFileSync(next,JSON.stringify(record),{mode:0o600});
+    const open=mutableFs.openSync;let replaced=false;
+    t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
+        if(String(args[0])===path&&!replaced){replaced=true;fs.renameSync(next,path);}
+        return open(...args);
+    });
+    syncBuiltinESMExports();
+    try {assert.equal(readExecution(f.configDir,record.value.id).value.stage,'installing');assert(replaced);}
+    finally {t.mock.restoreAll();syncBuiltinESMExports();}
+});
+test('protected cleanup retains current and previous inputs, rejects foreign material and deletes only the reviewed record',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};assert.equal(await manage(f.args(),f.options),0);
+    const current=readInstallation(f.configDir,f.prefix)!;
+    const old=startOperation(f.configDir,f.prefix,'3.7.1',f.layout.registry,null);old.after={...productIdentity(f.layout.root,f.prefix)!,version:'3.7.1'};finishOperation(old);
+    const review=reviewHistory(context,f.prefix);assert.equal(review.uncertain,false);assert.equal(review.rows.find(row=>row.id===current.transaction)!.removable,false);assert.equal(review.rows.find(row=>row.id===old.id)!.removable,true);
+    const worker=await reviewedExecution(f);worker.request.backup_id=old.id;worker.value.state='running';worker.pid=process.pid;worker.token=processToken(process.pid)!;writeExecution(worker);
+    const reserved=reviewHistory(context,f.prefix);assert.equal(reserved.rows.find(row=>row.id===old.id)!.removable,false);assert.throws(()=>cleanupHistory(context,f.prefix,reserved.revision,[old.id]));
+    assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]),/conflict/,'A worker created after review invalidates the earlier cleanup decision');
+    removeTree(executionFolder(f.configDir,worker.value.id));
+    assert(!fs.existsSync(executionFolder(f.configDir,worker.value.id)));
+    const evidence=(checked:ReturnType<typeof reviewHistory>)=>JSON.stringify({review:checked,installation:readInstallation(f.configDir,f.prefix),old:readOperation(f.configDir,f.prefix,old.id),executions:fs.readdirSync(dirname(executionFolder(f.configDir,worker.value.id))),marker:fs.existsSync(pendingPath(f.prefix))?JSON.parse(fs.readFileSync(pendingPath(f.prefix),'utf8')):null});
+    const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');
+    const foreignReview=reviewHistory(context,f.prefix);assert.equal(foreignReview.uncertain,false,evidence(foreignReview));assert.equal(foreignReview.rows.find(row=>row.id===old.id)!.removable,true,evidence(foreignReview));
+    assert.throws(()=>cleanupHistory(context,f.prefix,foreignReview.revision,[old.id]),/journal/);assert(fs.existsSync(extra));assert(fs.existsSync(operationPath(old)));fs.unlinkSync(extra);
+    const finalReview=reviewHistory(context,f.prefix);assert.equal(finalReview.uncertain,false,evidence(finalReview));assert.equal(finalReview.rows.find(row=>row.id===old.id)!.removable,true,evidence(finalReview));
+    assert.throws(()=>cleanupHistory(context,f.prefix,finalReview.revision,[current.transaction]),/conflict/);cleanupHistory(context,f.prefix,finalReview.revision,[old.id]);assert(!fs.existsSync(operationPath(old)));assert(fs.existsSync(join(f.configDir,'statusline_runtime/package-management/transactions',current.transaction,'operation.json')));
+});
+
+test('history cleanup protects the retained controller executing the cleanup itself',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f);record.value.state='complete';record.pid=process.pid;record.token='obsolete-worker-identity';writeExecution(record);detachExecution(f.configDir,record.value.id,record.owner);
+    const context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
+    assert.equal(reviewHistory(context,f.prefix).rows.find(row=>row.id===record.value.id)!.removable,true);
+    const controller={...context,origin:record.value.control.args[0]!},protectedReview=reviewHistory(controller,f.prefix);
+    assert(protectedReview.rows.find(row=>row.id===record.value.id)!.reasons.includes('attached'));
+    assert.throws(()=>cleanupHistory(controller,f.prefix,protectedReview.revision,[record.value.id]));assert(fs.existsSync(executionFolder(f.configDir,record.value.id)));
 });

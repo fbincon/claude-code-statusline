@@ -1,3 +1,4 @@
+import { BackendError } from '../src/editor/backend.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { packageManager, packageView, packageKey, performPackage, closePackage, type PackageBackend } from '../src/editor/package-manager.js';
@@ -124,4 +125,31 @@ test('closing during replacement cancellation never starts another review', asyn
     await pending;
     assert(!calls.includes('package_review_start'));
     assert.equal(view.closed, true);
+});
+
+import { Editor } from '../src/editor/draft.js';
+import { defaultDisplay } from '../src/config/display.js';
+import { DEFAULT_HOST } from '../src/config/draft.js';
+import type { ReadResult, DescribeResult, PackageExecution } from '../src/contracts/ui.js';
+function editorFixture(){return new Editor({catalog:[],options:{padding:{minimum:0,maximum:32},'refresh-interval':{minimum:1,maximum:3600}}}as unknown as DescribeResult,{draft:{display:defaultDisplay(),host:{...DEFAULT_HOST}},revision:'0'.repeat(64),installed:true,installation:{}}as ReadResult);}
+function verifiedJob(view:ReturnType<typeof packageManager>):PackageReviewJob{return {...job(view.owner),state:'complete',request:{...request,action:'update'},review:{action:'update',current:'3.10.0',target:'3.12.0',prefix:'/prefix',entry:'/prefix/entry',config_dir:'/config',channel:'latest',registry:'https://registry.npmjs.org/',integrity:'sha512-'+Buffer.alloc(64).toString('base64'),node_engine:'>=22',host:'2.1.310',artifact_verified:true,compatible:true,reasons:[],configuration_conflicts:[],backup_id:null,files:[]}};}
+test('dirty drafts require an explicit choice and exporting never marks them saved',async()=>{
+    const e=editorFixture(),view=packageManager(),calls:string[]=[];e.draft.display.statusline_language='ko';view.job=verifiedJob(view);view.status=status;view.effect='execute';
+    const backend={request(operation:string){calls.push(operation);return {path:'/export'};}}as PackageBackend;
+    await performPackage(view,backend,e);assert.equal(view.mode,'draft');assert.equal(calls.length,0);
+    view.effect='export-draft';await performPackage(view,backend,e);assert.equal(e.modified,true);assert.equal(view.mode,'execute-confirm');assert.equal(calls.join(','),'export');
+    view.effect='discard-draft';await performPackage(view,backend,e);assert.equal(e.modified,false);assert.equal(view.mode,'execute-confirm');assert(!calls.includes('apply'));
+});
+test('unknown saves block execution and accepted handoffs lock editing while close only detaches',async()=>{
+    const e=editorFixture(),view=packageManager();view.job=verifiedJob(view);view.effect='execute';e.setSaveState('unknown');const calls:string[]=[];
+    const execution:PackageExecution={version:1,id:'execution-00000000-0000-0000-0000-000000000001',transaction_id:null,action:'update',prefix:'/prefix',state:'running',stage:'queued',started_at:status.captured_at,updated_at:status.captured_at,finished_at:null,error:null,running:null,results:{package:false,integration:false,configuration:null},control:{executable:'/node',args:['/runner/entry'],config_dir:'/config'}};
+    const backend={request(operation:string){calls.push(operation);return operation==='package_execute_start'?execution:{...job(view.owner),state:'cancelled'};},control(_control:unknown,operation:string){calls.push(operation);return execution;}}as PackageBackend;
+    await performPackage(view,backend,e);assert.equal(view.mode,'draft');assert.equal(calls.length,0);
+    e.setSaveState('idle');view.draftPrepared=true;view.effect='execute';await performPackage(view,backend,e);assert.equal(e.packageLocked,true);assert.equal(e.canMutateDraft(),false);await closePackage(view,backend);assert(calls.includes('package_execute_detach'));assert(!calls.includes('package_execute_cancel'));
+});
+
+test('a definitive handoff refusal retains draft reservations and unlocks the original editor',async()=>{
+    const e=editorFixture(),view=packageManager();e.sourceDraftRegistered=true;view.job=verifiedJob(view);view.draftPrepared=true;view.effect='execute';const calls:string[]=[];
+    const backend={request(operation:string){calls.push(operation);throw new BackendError('conflict','Installation changed');}}as PackageBackend;
+    await performPackage(view,backend,e);assert.equal(e.packageLocked,false);assert.equal(e.sourceDraftRegistered,true);assert.deepEqual(calls,['package_execute_start']);assert.equal(view.execution,null);
 });

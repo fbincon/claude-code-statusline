@@ -1,3 +1,5 @@
+import { packageManager } from '@fbincon/statusline-core/editor/package-manager';
+import { textInput } from '@fbincon/statusline-core/editor/text-input';
 /** Rebuild the issue #154/#155 state matrix from canonical rules and rendering. */
 import assert from 'node:assert/strict';
 import { configurationDescription } from '@fbincon/statusline-cli/ui/protocol';
@@ -52,6 +54,7 @@ export function nativeCapacityData() {
     const intern = (value: unknown): number => { const key = JSON.stringify(value), existing = indices.get(key); if (existing !== undefined) return existing; const index = values.length; indices.set(key, index); values.push(JSON.parse(key)); return index; };
     const cases: { name: string; columns: number; rows: number; editor: Record<string, number>; preview: number; padding: number; search: boolean }[] = [];
     const add = (name: string, e: Editor, columns = 72, rows = 24, padding = 0, search = false) => {
+        e.sourceDraftOwner='draft-capacity-fixture';
         assert(isDraft(e.draft), 'Invalid capacity draft: ' + name);
         const width = columns - (columns >= 64 && rows >= 20 ? 2 : 0);
         const draft = e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
@@ -127,6 +130,20 @@ export function nativeCapacityData() {
     assert.equal(cases.length, 195);
     add('captured-72x213', editor(minimal), 72, 213);
     add('extreme-10000x10000', editor(gradients(10)), 10000, 10000);
+    for(const width of [32,196]){
+        const sourceEntry={...source(0),kind:'command' as const,enabled:true,settings:{executable:'/fixture/never-execute',args:['x'.repeat(4096)],cwd:'/fixture',input:{},output:'text' as const,timeout_ms:5000}};
+        const makeSource=()=>{const e=editor();openSources(e);Object.assign(e.sources!,{owner:'capacity-fixture',effect:null,selected:sourceEntry.id,library:{version:3,revision:'1'.repeat(64),sources:[sourceEntry],bindings:[],automatic:[]}});return e;};
+        for(const page of ['diagnose','checks','bindings','binding-cleanup'] as const){
+            const e=makeSource(),m=e.sources!;m.page=page;m.inspection={source:sourceEntry,view:{source_id:sourceEntry.id,name:sourceEntry.name,state:'error',reason:'timeout',observed_at:'2026-10-28T00:00:00Z',freshness:'stale',value:42,unit:null},automatic:{state:'backoff',reason:'retry',interval_seconds:300,next_at:'2026-10-28T00:05:00Z',last_attempt:'2026-10-28T00:00:00Z',last_success:'2026-10-27T23:55:00Z'},jobs:[],last_success:'2026-10-27T23:55:00Z',checks_observed_at:'2026-10-28T00:00:00Z',checks_context:{project:'/project',session:null,agent:null,branch:'main',head:'a'.repeat(40)},checks:Array.from({length:16},(_,i)=>({name:'Check '+i+' '+('界'.repeat(128)),state:'pending',bucket:'pending',url:'https://github.com/example/project/actions/runs/'+(i+1)})),offset:0,total:64};
+            m.bindingReview={revision:'2'.repeat(64),rows:Array.from({length:16},(_,i)=>({id:'binding-'+i,source_id:sourceEntry.id,references:['profile:retained','draft:other-editor'],duplicate:true,removable:false})),offset:0,total:4096,uncertain:false};m.bindingSelection='binding-0';add('source-operations-'+page+'-w'+width,e,width,width===32?12:40);
+        }
+        for(const mode of ['status','draft','execute-confirm','cleanup','cleanup-confirm','export'] as const){
+            const e=editor(),p=packageManager();p.owner='viewer-capacity-fixture';p.effect=null;p.mode=mode==='export'?'draft':mode;p.prefix='/fixture/prefix';p.cleanupId='pkg-00000000-0000-0000-0000-000000000001';p.cleanup={version:1,revision:'2'.repeat(64),prefix:p.prefix,offset:0,total:4096,uncertain:false,rows:Array.from({length:16},(_,i)=>({id:'pkg-history-'+i,version:'3.11.0',removable:i%2===0,reasons:i%2?['current','previous','running']:[]}))};
+            if(mode==='status'){p.execution={version:1,id:'execution-00000000-0000-0000-0000-000000000001',transaction_id:p.cleanupId,action:'update',prefix:p.prefix,state:'running',stage:'integrating',started_at:'2026-10-28T00:00:00Z',updated_at:'2026-10-28T00:00:00Z',finished_at:null,error:null,running:true,results:{package:true,integration:false,configuration:null},control:{executable:'/fixture/node',args:['/fixture/retained/bin/claude-statusline.js'],config_dir:'/fixture/config'}};e.packageLocked=true;}
+            if(mode==='export'){p.editing='export_path';p.input=textInput('/fixture/'+('界'.repeat(512))+'/saved.json');}
+            e.packages=p;add('package-operations-'+mode+'-w'+width,e,width,width===32?12:40);
+        }
+    }
     return { description, values, cases };
 }
 

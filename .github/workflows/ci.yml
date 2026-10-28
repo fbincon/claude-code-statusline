@@ -496,6 +496,10 @@ jobs:
       - run: npm run build
       - name: Verify actual native process boundaries
         run: node --test packages/platform/dist/test/source-process.test.js
+      - name: Diagnose installed console entries before the long version profile
+        run: |
+          mkdir -p "$RUNNER_TEMP/probe"
+          node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/probe/editor-console.json" --diagnostic-pattern 'installed terminal policy|installed external editor' > "$RUNNER_TEMP/probe/editor-console.log" 2>&1 || { cat "$RUNNER_TEMP/probe/editor-console.log"; exit 1; }
       - name: Compare identical supervisor workloads
         run: node dist/typescript/tools/benchmarks/windows-supervisor.js "$RUNNER_TEMP/probe/supervisor.json"
       - name: Profile real installed upgrade and recovery
@@ -580,9 +584,24 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: x64
+      - name: Prepare system PowerShell for source-only diagnostics
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-probe"
+          node --input-type=module <<'JS'
+          import { writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { prepareWindowsPowerShell } from './dist/typescript/tools/acceptance/windows-shell.js';
+          const result = prepareWindowsPowerShell();
+          writeFileSync(join(process.env.RUNNER_TEMP, 'source-probe', 'shell-setup.json'), JSON.stringify(result, null, 2) + '\n');
+          console.log(JSON.stringify(result));
+          if (result.status !== 'pass') process.exit(1);
+          JS
       - name: Run unchanged source assertions with resource-sensitive Git tests serialized
         run: |
           mkdir -p "$RUNNER_TEMP/source-probe"
+          for round in {1..20}; do
+            node --test --test-name-pattern 'protected cleanup retains' packages/cli/dist/test/package-management.test.js > "$RUNNER_TEMP/source-probe/package-cleanup-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/package-cleanup-$round.log"; exit 1; }
+          done
           node tools/typescript/test.mjs --runtime > "$RUNNER_TEMP/source-probe/runtime.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/runtime.log"; exit 1; }
           for round in {1..10}; do
             node --test packages/cli/dist/test/git.test.js > "$RUNNER_TEMP/source-probe/git-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/git-$round.log"; exit 1; }

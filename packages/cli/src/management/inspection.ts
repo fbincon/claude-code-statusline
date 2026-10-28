@@ -1,17 +1,18 @@
+import { activeExecution } from './execution.js';
 import * as fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { compatibility, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import type { PackageHistoryRow, PackageStatus } from '@fbincon/statusline-core/contracts/ui';
-import { globalPackageRoot, productIdentity, productRoot } from '@fbincon/statusline-platform/npm';
+import { globalPackageRoot, productIdentity, productRoot, readPackageManifest } from '@fbincon/statusline-platform/npm';
 import { resolvedPath, which } from '@fbincon/statusline-platform/commands';
 import { sha256 } from '@fbincon/statusline-platform/hash';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 import { previousBinding } from '../integration/ownership.js';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
-import { readRegular } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { configurationBytes, configurationHashes, configurationCompatibility, readSnapshot } from './configuration.js';
 import { MANAGEMENT_ROOT, operationPath, pendingPath, readInstallation, readOperation, type PackageOperation } from './store.js';
 export interface InspectionContext {
@@ -73,7 +74,8 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
             if (!identity)
                 reasons.push('not_installed');
             else {
-                const manifest = JSON.parse(readRegular(join(identity.root, 'package.json'), 1024 * 1024).toString('utf8'));
+                // npm manifests are ordinary public package files, not private journals.
+                const manifest = readPackageManifest(identity.root);
                 const declared = compatibility(manifest.statuslineCompatibility, identity.version);
                 const binding = previousBinding(configDir, createStorage());
                 reasons.push(...runtimeCompatibility(declared, process.versions.node, process.platform + '-' + process.arch, host, binding !== null));
@@ -114,8 +116,9 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
             catch {
                 backup = 'invalid';
             }
+        const states=(operation.executors??[]).map(p=>processAlive(p.pid,p.token));
         return { id: operation.id, version: operation.version, created: operation.created, stage: operation.stage, backup,
-            running: operation.executors?.some(p => processMatches(p.pid, p.token)) ?? false };
+            running: states.includes(true)?true:states.includes(null)?null:false };
     };
     const records: PackageHistoryRow[] = [];
     let total = 0;
@@ -124,28 +127,24 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
         safeTarget(configDir, folder);
         if (fs.existsSync(folder)) {
             const ids = fs.readdirSync(folder).filter(id => /^pkg-[0-9a-f-]{36}$/u.test(id)).sort();
-            total = ids.length;
-            if (prefix)
-                for (const id of ids.slice(offset, offset + 16)) {
-                    try {
-                        const path = join(folder, id, 'operation.json');
-                        safeTarget(configDir, path);
-                        const raw = JSON.parse(readRegular(path, 1024 * 1024).toString('utf8'));
-                        if (raw.prefix !== prefix)
-                            continue;
-                        records.push(row(readOperation(configDir, prefix, id)));
-                    }
-                    catch {
-                        records.push({ id, version: null, created: null, stage: 'invalid', backup: 'invalid', running: false });
-                    }
-                }
+            const selected=ids.flatMap(id=>{
+                try{const path=join(folder,id,'operation.json');safeTarget(configDir,path);const raw=JSON.parse(readPrivateState(path,1024*1024).toString('utf8'));return raw.prefix===prefix?[{id,created:typeof raw.created==='string'?raw.created:''}]:[];}
+                catch{return [{id,created:''}];}
+            }).sort((a,b)=>b.created.localeCompare(a.created)||a.id.localeCompare(b.id));
+            total=selected.length;
+            if(prefix)for(const {id}of selected.slice(offset,offset+16)){
+                try{records.push(row(readOperation(configDir,prefix,id)));}
+                catch{records.push({id,version:null,created:null,stage:'invalid',backup:'invalid',running:false});}
+            }
         }
     }
     catch (error) {
         reasons.push(packageReason(error));
     }
+    let execution:import('@fbincon/statusline-core/contracts/ui').PackageExecution|null=null;
+    if(prefix)try{execution=activeExecution(configDir,prefix);}catch(error){reasons.push(packageReason(error));}
     const unique = [...new Set(reasons)];
-    return { version: 1, backend_version: VERSION, captured_at: new Date().toISOString(),
+    return { version: 1, execution, backend_version: VERSION, captured_at: new Date().toISOString(),
         revision: sha256(JSON.stringify({ identity, history, pending, hashes, prefix, configDir, host })), prefix, entry: identity?.entry ?? null, config_dir: configDir,
         current: identity?.version ?? null, previous: history?.previous?.version ?? null, channel: history?.channel ?? null, node_version: process.versions.node, host,
         compatible: !!identity && !unique.length, reasons: unique, pending: pending ? row(pending) : null, history: records, offset, total };

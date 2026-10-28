@@ -139,7 +139,7 @@ Supported active sessions renew a lease every five seconds; leases expire after 
 
 Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
 
-Rendering, preview, imports and project bindings never dispatch refreshes. Command and JSON sources remain outside automatic scheduling. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
+Rendering, preview, imports and project bindings never dispatch refreshes. JSON sources remain outside automatic scheduling; separately reviewed commands use the scheduling rules below. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
 
 ## Commands
 
@@ -225,3 +225,33 @@ Display schema 10 and editor protocol 17 carry these additions. Older display
 configurations remain readable without automatic rewriting; saving uses the new
 schema. Reinstall integration when frontend/backend versions differ. Runtime,
 task lifecycle, portable envelope and profile collection versions are unchanged.
+
+## Readable operations and saved check details
+
+**Inspect source and observations** and `source diagnose ID` share a readable summary: enablement, automatic policy, waiting/running/backoff/pause, current observation failure and freshness, last success, next attempt and context ownership. The newest bounded job summaries include exit status, duration and sanitized output; missing old-record information remains unknown. `--json` and the advanced JSON action expose structured details. A recent successful value can remain within TTL after a failed attempt; the failure remains visible independently of freshness.
+
+GitHub check details retain observed names, state and validated HTTP(S) links, repository, branch, HEAD and capture time. Arrow keys paginate saved observations in groups of sixteen. Opening a page never queries GitHub. Unknown, missing, cancelled, skipped and expired checks keep their meanings; retained details from an earlier success retain their original time.
+
+**Cancel running refresh** cancels the current job. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
+
+## Automatic command execution
+
+Enable and review the exact command first, then separately review automatic execution with the same `auto-on` entry shown above. Automatic command permission defaults off. Its initial interval is **300 seconds**, adjustable from 60 through 86400 seconds, independently of `ttl_seconds`. Source edits revoke both old execution and automatic permission; reading an old registry never grants permission.
+
+The runtime Mod renews five-second leases expiring after fifteen seconds. Confirmed projects, sessions and local agents supply only the reviewed input mappings; unknown agent/project ownership waits instead of guessing. No daemon is installed. Each command source runs serially. Identical actual inputs share a job; distinct contexts rotate fairly and keep independent results. Busy ticks are skipped rather than queued for catch-up. Temporary failures back off exponentially; missing executables, malformed output and configuration/identity failures pause until successful manual retry or renewed review. Late results cannot publish into an edited source.
+
+## Binding inventory and cleanup
+
+Binding prefers the component's current compatible binding, then reuses a compatible record for the same source. The source library's **Binding inventory** lists unused and duplicate records, with explicit cleanup review. Defaults, all named schemes/project associations, registered editor drafts and retained recovery transactions protect their references. A changed review or unreadable reference prevents deletion. Cleanup never changes source definitions or execution permission.
+
+```bash
+claude-statusline source bindings --json
+claude-statusline source cleanup-bindings BINDING_ID --review REVIEW_REVISION --json
+claude-statusline source release-draft DRAFT_OWNER --json
+```
+
+Use the inventory's current revision and inspect references first. A crashed editor may leave a conservative draft reservation; release that exact owner only after recovering, exporting or deliberately abandoning its draft. Normal editor close releases its reservation. Removing a display reference alone does not authorize deletion of a record used by another scheme.
+
+The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all references under lock and refuses used/uncertain records. Clear component references in the editor, then prefer the reviewed binding-cleanup flow.
+
+[Installed source-page captures](images/source-command-package/README.md) illustrate the separate state and approval controls.

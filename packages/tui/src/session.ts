@@ -3,10 +3,10 @@ import { readTask } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
 import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
-import { performSourceAction, closeSources } from '@fbincon/statusline-core/editor/source-manager';
+import { performSourceAction, closeSources, closeSourceDraft } from '@fbincon/statusline-core/editor/source-manager';
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
-import type { Operation, ResultFor } from '@fbincon/statusline-core/contracts/ui';
+import type { Operation, ResultFor, PackageControl } from '@fbincon/statusline-core/contracts/ui';
 import { createReview } from '@fbincon/statusline-core/editor/import-review';
 import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
@@ -18,6 +18,7 @@ import { frame, ansiFrame } from './drawing.js';
 import { dimensions } from './layout.js';
 import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
 export interface Backend {
+    control?<O extends Operation>(control:PackageControl,operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
     request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
 }
 export interface Outcome {
@@ -72,8 +73,8 @@ export class Session {
         if (effect === 'cancel' || effect === 'interrupt')
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
-            this.guard();
-            if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend);if(e.packages.closed)e.packages=null;return null;}
+            if(!e.packageLocked)this.guard();
+            if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend,e);if(e.packages.closed)e.packages=null;return null;}
             if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
             if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
             if (effect === 'reconcile') {await this.reconcile();return null;}
@@ -160,7 +161,7 @@ export class Session {
                         this.failure(error);return null;
                     }
                 },
-                guard: this.guard,
+                guard: () => {if(!this.state.editor.packageLocked)this.guard();},
                 interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130, this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
                 timeout: () => outcome('timed-out', this.state.language,0,this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
             }, options);
@@ -176,6 +177,6 @@ export class Session {
             this.failure(error);
             if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
             return outcome('error', this.state.language, 2, this.state.message);
-        } finally { if(this.state.editor.packages)await closePackage(this.state.editor.packages,this.backend); await closeSources(this.state.editor,this.backend); }
+        } finally { if(this.state.editor.packages)await closePackage(this.state.editor.packages,this.backend); if(!this.state.editor.packageLocked){await closeSources(this.state.editor,this.backend); await closeSourceDraft(this.state.editor,this.backend);} }
     }
 }
