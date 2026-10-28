@@ -87,7 +87,7 @@ for (const language of LANGUAGES)
         const view = taskViewer('session', null, language), value = report();
         value.agents = Array.from({ length: 256 }, (_, index) => ({ id: 'agent-' + index, parent_id: null, name: '代理👩‍💻é'.repeat(20), status: 'running', evidence: [] }));
         receiveTask(view, value);
-        for (const width of [16, 32, 80, 200])
+        for (const width of [1, 16, 32, 80, 200])
             for (const height of [6, 12, 40]) {
                 const rows = taskViewerView(view, width, height);
                 assert(rows.length <= height);

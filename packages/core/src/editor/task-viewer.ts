@@ -121,13 +121,21 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     add('progress', tr('task.progress', { value: report.progress ? report.progress.completed + '/' + report.progress.total : tr('task.unknown') }));
     add('agents', tr('task.agents'));
     const agents = new Map(report.agents.map(agent => [agent.id, agent]));
+    const childrenByParent = new Map<string, TaskAgentDetail[]>();
+    for (const agent of report.agents)
+        if (agent.parent_id) {
+            const children = childrenByParent.get(agent.parent_id) ?? [];
+            children.push(agent);
+            childrenByParent.set(agent.parent_id, children);
+        }
+    const collapsedAgents = new Set(view.collapsed);
     const matched = new Set(report.agents.filter(agent => (!view.status || (agent.status ?? 'unknown') === view.status) &&
         (!view.query || (agent.id + '\n' + (agent.name ?? '')).toLowerCase().includes(view.query.toLowerCase()))).map(agent => agent.id));
     const included = new Set(matched);
     for (const id of matched) {
         let parent = agents.get(id)?.parent_id;
         const seen = new Set([id]);
-        while (parent && agents.has(parent) && !seen.has(parent)) {
+        while (parent && agents.has(parent) && !seen.has(parent) && !included.has(parent)) {
             seen.add(parent);
             included.add(parent);
             parent = agents.get(parent)?.parent_id ?? null;
@@ -138,8 +146,8 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
         if (visited.has(agent.id) || !included.has(agent.id))
             return;
         visited.add(agent.id);
-        const children = report.agents.filter(child => child.parent_id === agent.id && included.has(child.id));
-        const collapsed = !filtering && view.collapsed.includes(agent.id);
+        const children = (childrenByParent.get(agent.id) ?? []).filter(child => included.has(child.id));
+        const collapsed = !filtering && collapsedAgents.has(agent.id);
         add('agent:' + agent.id, '  '.repeat(Math.min(depth, 8)) + (children.length ? collapsed ? '▸ ' : '▾ ' : '  ') +
             (agent.name ?? agent.id) + ' [' + agent.id + ']: ' + status(agent.status) +
             (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), agent.id);
@@ -151,11 +159,11 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     report.agents.filter(agent => !agent.parent_id || !agents.has(agent.parent_id)).forEach(agent => append(agent, 0));
     // Defensive cycle handling for a malformed wire response; never invent a parent.
     report.agents.filter(agent => included.has(agent.id) && !visited.has(agent.id) &&
-        !report.agents.some(parent => parent.id === agent.parent_id && view.collapsed.includes(parent.id) && !filtering)).forEach(agent => {
+        !(agent.parent_id && agents.has(agent.parent_id) && collapsedAgents.has(agent.parent_id) && !filtering)).forEach(agent => {
         let parent = agent.parent_id;
         const seen = new Set([agent.id]);
         while (parent && agents.has(parent) && !seen.has(parent)) {
-            if (!filtering && view.collapsed.includes(parent))
+            if (!filtering && collapsedAgents.has(parent))
                 return;
             seen.add(parent);
             parent = agents.get(parent)?.parent_id ?? null;
@@ -202,8 +210,12 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
     view.scroll = Math.max(0, Math.min(view.scroll, index, Math.max(0, rows.length - view.capacity)));
     if (index >= view.scroll + view.capacity)
         view.scroll = index - view.capacity + 1;
-    return [...header, ...rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row, selected: row.key === view.selected }))]
-        .slice(0, Math.max(1, height)).map(row => ({ ...row, text: clipText(safe(row.text), Math.max(1, width)) }));
+    // Body rows were sanitized and wrapped for this width once. Re-scanning every
+    // grapheme on each page or native capacity probe makes large reports costly.
+    const boundedHeader = header.map(row => ({ ...row, text: clipText(safe(row.text), Math.max(1, width)) }));
+    const body = rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row,
+        ...(width < 2 ? { text: clipText(row.text, 1) } : {}), selected: row.key === view.selected }));
+    return [...boundedHeader, ...body].slice(0, Math.max(1, height));
 }
 export function taskViewerKey(view: TaskViewer, event: TextKey): 'read' | 'close' | null {
     const key = event.key === 'return' ? 'enter' : event.key;
