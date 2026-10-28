@@ -55,3 +55,16 @@ test('native source management refreshes only explicitly and releases its consum
   expect(JSON.stringify(f.store.draft)).toBe(before);
   await ui.unmount();
 });
+
+test('native source inspection uses the confirmed host project and session without refreshing',async($,on)=>{
+  const f=setup(on);await $.session.start(START);
+  f.behavior.process=(request,next)=>{
+    if(request.operation==='sources_read')return {value:reply({version:3,sources:[],bindings:[],automatic:[],revision:'a'.repeat(64)})};
+    if(request.operation==='source_context')return {value:reply({project:START.cwd,session:request.payload.session,agent:null,branch:null,head:null})};
+    if(request.operation==='source_draft')return {value:reply({revision:'pins'})};
+    return next();
+  };
+  await $.command.run(RUN);const ui=await $.ui.mount(PANE);await keys(ui,{key:'y',ctrl:true});
+  const context=f.calls.find(call=>call.operation==='source_context')?.payload;expect(context.project).toBe(START.cwd);expect(typeof context.session).toBe('string');expect(context.session.length>0).toBe(true);expect(context.agent).toBe(null);
+  expect(f.calls.some(call=>call.operation==='source_refresh')).toBe(false);await ui.unmount();
+});

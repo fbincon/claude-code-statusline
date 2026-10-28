@@ -139,8 +139,11 @@ export class SourceService {
                     binding = { binding: bid, hint: selected.name };
                     if(value.draft_owner!==undefined)this.bindings().reserve(sourceId(value.draft_owner),[bid]);
                 }
-                else if (value.action === 'unbind')
+                else if (value.action === 'unbind') {
+                    const review=this.bindings().review(0,true),record=review.rows.find(row=>row.source_id===id&&row.id===value.binding);
+                    if(review.uncertain||record&&!record.removable)sourceError('referenced');
                     state.bindings = state.bindings.filter(b => !(b.source_id === id && b.id === value.binding));
+                }
                 else
                     sourceError('invalid');
             }

@@ -175,3 +175,5 @@ claude-statusline source release-draft DRAFT_OWNER --json
 ```
 
 先检查引用，使用清单当前修订。崩溃编辑器可能留下保守草稿保留记录；仅在恢复、导出或明确放弃该草稿后释放准确 owner。正常关闭编辑器会释放记录。仅移除当前显示引用，不代表可以删除其他方案仍使用的记录。
+
+旧 `source unbind ID --binding BINDING_ID` 删除同样在锁内检查全部引用，拒绝仍使用或无法确认的记录。先在编辑器解除组件引用，再优先使用带审核的绑定清理。

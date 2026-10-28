@@ -32,7 +32,7 @@ const matrix = nativeCapacityData(), reports: Record<string, unknown>[] = [];
 const project = join(installed.temporary, 'project 中文 &'), template = join(installed.temporary, 'template'), shim = join(installed.temporary, 'backend-entry.mjs');
 fs.mkdirSync(project); fs.mkdirSync(template);
 const main = pathToFileURL(join(installed.modules, 'statusline-cli/dist/src/main.js')).href;
-fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null;try{operation=JSON.parse(raw).operation??null}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode})+'\\n');\n`);
+fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null,sourceValue=null;try{operation=JSON.parse(raw).operation??null}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw,stdout:value=>{process.stdout.write(value);if(operation==='source_inspect')try{sourceValue=JSON.parse(value).result?.view?.value??null}catch{}}});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode,...(operation==='source_inspect'?{source_value:sourceValue}:{})})+'\\n');\n`);
 const env = officialEnvironment(installed);
 function command(executable: string, args: string[], environment = env, timeout = 180000) {
     const result = spawnSync(executable, args, { cwd: project, env: environment, encoding: 'utf8', timeout, maxBuffer: 8 * 1024 * 1024 });
@@ -63,6 +63,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         const cli=(args:string[])=>command(installed.node,[installed.entry,'source','--config-dir',config,...args],{...env,CLAUDE_CONFIG_DIR:config});
         cli(['add','pty-command','--file',spec]);const review=JSON.parse(cli(['review','pty-command','--json'])).review_revision;
         cli(['enable','pty-command','--review',review]);cli(['auto-on','pty-command','--review',review,'--interval','300']);
+        // Policy approval and host integration are independent commit points.
+        const refresh=join(config,'refresh-host.mjs');
+        fs.writeFileSync(refresh,`import{install,installContext}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-cli/dist/src/integration/install.js')).href)};import{PluginHost}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/plugin-host.js')).href)};const directory=process.argv[2];const context=installContext(directory,{executable:process.execPath,args:[${JSON.stringify(shim)}]},${JSON.stringify(version)},undefined,()=>new PluginHost(directory,${JSON.stringify(host)}));const result=install(context);if(result.failed)throw new Error(JSON.stringify(result.messages));`);
+        command(installed.node,[refresh,config],{...env,CLAUDE_CONFIG_DIR:config});
     }
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
@@ -112,7 +116,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         if(['version-status','package-cleanup','external-task'].includes(action)) {
             await key(external?'\x04':'d','unsaved copy');
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
-            const label=action==='version-status'?'Version and installation':'Task details';
+            const label=action==='external-task'?'Task details':'Version and installation';
             for(let i=0;i<90&&!read().split('\n').some(line=>line.includes('›')&&line.includes(label));i++)await key('\x1b[B','select read-only entry');
             await until(text=>text.split('\n').some(line=>line.includes('›')&&line.includes(label)),'read-only entry selected');
             await key('\r','open read-only view');
@@ -134,7 +138,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             const jobs=()=>{const folder=join(config,'statusline_runtime/sources/jobs');return fs.existsSync(folder)?fs.readdirSync(folder).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(fs.readFileSync(join(folder,name),'utf8'))).filter(job=>job.source_id==='pty-command'):[];};
             await until(()=>jobs().some(job=>job.state==='completed'),'actual runtime lease dispatched the controlled command',25000);
             const observed=jobs();assert.equal(observed.length,1);assert.equal(observed[0].result.summary,'live-session-command');assert.equal(observed[0].result.exit_code,0);assert.equal(typeof observed[0].context.session,'string');
-            await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
+            await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');assert(records().some(row=>row.operation==='source_inspect'&&row.phase==='complete'&&row.source_value==='live-session-command'));capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
         } else if(action==='native-task'){
             await key('q','close configuration');await until(text=>!text.includes('Configure Status Line'),'configuration closed');
             await key('/statusline-task\r','open native task');await until(text=>/Session: [^\s]+/u.test(text),'session identity visible');
@@ -175,8 +179,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         } else if (['sources','source-review','source-inspect','source-bindings'].includes(action)) {
             await key('\x19', 'source library'); await until(text => text.includes('Local sample 0'), 'source list visible');
             if (action === 'source-review') { await key('\r', 'source actions'); await key('\x1b[B', 'select review'); await key('\r', 'review disabled command'); await until(text => completed('source_review') && text.includes('Review all fields'), 'source review completed'); }
-            if(action==='source-inspect'){await key('\r','source actions');await key('\x1b[B'.repeat(6)+'\r','inspect saved source');await until(()=>completed('source_inspect'),'readable source inspection');}
-            if(action==='source-bindings'){await key('\x1b[B'.repeat((data.sources?.library?.sources.length??0)+1)+'\r','binding inventory');await until(()=>completed('source_bindings_review'),'bindings read completed');}
+            if(action==='source-inspect'){await key('\r','source actions');await key('\x1b[B'.repeat(6)+'\r','inspect saved source');await until(text=>external?text.includes('Last success:'):completed('source_inspect'),'readable source inspection');}
+            if(action==='source-bindings'){await key('\x1b[B'.repeat((data.sources?.library?.sources.length??0)+1)+'\r','binding inventory');await until(text=>external?text.includes(t('sources.bindings_help','en')):completed('source_bindings_review'),'bindings read completed');}
             capture('after'); await key('\x07', 'cancel source page');
             if (['source-review','source-inspect','source-bindings'].includes(action)) await key('\x07', 'cancel source library');
         } else if (action === 'save') {

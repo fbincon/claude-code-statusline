@@ -373,3 +373,12 @@ test('protected cleanup retains current and previous inputs, rejects foreign mat
     const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]));assert(fs.existsSync(extra));fs.unlinkSync(extra);
     assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[current.transaction]));cleanupHistory(context,f.prefix,review.revision,[old.id]);assert(!fs.existsSync(operationPath(old)));assert(fs.existsSync(join(f.configDir,'statusline_runtime/package-management/transactions',current.transaction,'operation.json')));
 });
+
+test('history cleanup protects the retained controller executing the cleanup itself',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f);record.value.state='complete';record.pid=process.pid;record.token='obsolete-worker-identity';writeExecution(record);detachExecution(f.configDir,record.value.id,record.owner);
+    const context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
+    assert.equal(reviewHistory(context,f.prefix).rows.find(row=>row.id===record.value.id)!.removable,true);
+    const controller={...context,origin:record.value.control.args[0]!},protectedReview=reviewHistory(controller,f.prefix);
+    assert(protectedReview.rows.find(row=>row.id===record.value.id)!.reasons.includes('attached'));
+    assert.throws(()=>cleanupHistory(controller,f.prefix,protectedReview.revision,[record.value.id]));assert(fs.existsSync(executionFolder(f.configDir,record.value.id)));
+});

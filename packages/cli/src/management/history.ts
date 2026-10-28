@@ -1,6 +1,7 @@
 /** Explicit cleanup of owned completed records; reviews never repair history. */
 import * as fs from 'node:fs';
-import { join } from 'node:path';
+import { join, relative, isAbsolute, sep } from 'node:path';
+import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import type { PackageCleanupReview } from '@fbincon/statusline-core/contracts/ui';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -16,7 +17,7 @@ import type { InspectionContext } from './inspection.js';
 function names(directory:string,folder:string):string[]{safeTarget(directory,folder);const result=fs.existsSync(folder)?fs.readdirSync(folder).sort():[];if(result.length>4096)throw new PackageError('journal');return result;}
 export function reviewHistory(context:InspectionContext,prefix:string,offset=0,all=false):PackageCleanupReview {
     if(!Number.isSafeInteger(offset)||offset<0)throw new PackageError('arguments');
-    const directory=context.configDir,root=join(directory,MANAGEMENT_ROOT),inputs:unknown[]=[prefix],rows:PackageCleanupReview['rows']=[];
+    const directory=context.configDir,root=join(directory,MANAGEMENT_ROOT),inputs:unknown[]=[prefix,resolvedPath(context.origin)],rows:PackageCleanupReview['rows']=[];
     let uncertain=false;const referenced=new Set<string>(),previous=new Set<string>();
     try {
         if(pending(directory).length)uncertain=true;
@@ -53,7 +54,7 @@ export function reviewHistory(context:InspectionContext,prefix:string,offset=0,a
             const record=readExecution(directory,id),status=executionStatus(directory,id);inputs.push([record,status.running]);
             if(status.prefix!==prefix)continue;
             const reasons:string[]=[];
-            if(status.running!==false)reasons.push('running');if(status.state!=='complete')reasons.push('pending');if(!record.detached)reasons.push('attached');
+            if(status.running!==false)reasons.push('running');if(status.state!=='complete')reasons.push('pending');const active=relative(join(executionFolder(directory,id),'runner'),resolvedPath(context.origin));if(!record.detached||!isAbsolute(active)&&active!=='..'&&!active.startsWith('..'+sep))reasons.push('attached');
             rows.push({id,version:record.review.target,removable:!reasons.length,reasons});
         }
     }catch{uncertain=true;}

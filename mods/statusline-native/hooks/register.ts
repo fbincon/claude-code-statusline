@@ -784,7 +784,13 @@ export const register: Register = (on, options) => {
         }
         else if (effect === 'sources' && state.view.editor) {
           state.writing=true;
-          try { await performSourceAction(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); }
+          try { await performSourceAction(state.view.editor,{request:async(operation,payload)=>{
+            if(operation==='source_context'){
+              const context=payload as {project:string|null;session:string|null;agent:string|null};
+              try{payload={...context,project:context.project??await $.session.cwd(),session:context.session??await $.session.id()};}catch{/* Preserve unknown ownership when host context is unavailable. */}
+            }
+            return callBackend($,options,operation,payload);
+          }}); }
           finally {state.writing=false;state.previewKey='';}
         }
         else if (effect === 'profiles' && state.view.editor) {
