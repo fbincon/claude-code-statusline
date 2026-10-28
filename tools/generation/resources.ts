@@ -1,3 +1,4 @@
+import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -138,7 +139,7 @@ export function outputs(root = ROOT): Map<string, string> {
     body = body.replaceAll('../contracts/ui.js', backend ? './generated-contracts.ts' : '../generated-contracts.ts')
       .replaceAll('../i18n/messages.js', backend ? './i18n/index.ts' : '../i18n/index.ts')
       .replaceAll('../unicode/index.js', text ? '../lib/unicode.ts' : '../unicode.ts');
-    if (backend) body = body.replaceAll('./alignments.js', './editor/alignments.ts').replaceAll('./gradients.js', './editor/gradients.ts').replaceAll('./appearance.js', './editor/appearance.ts').replaceAll('./source-validation.js','./editor/source-validation.ts').replaceAll('./indicators.js','./editor/indicators.ts').replaceAll('./groups.js','./editor/groups.ts').replaceAll('./cost-rate.js','./editor/cost-rate.ts');
+    if (backend) body = body.replaceAll('./preview-settings.js','./editor/preview-settings.ts').replaceAll('./alignments.js', './editor/alignments.ts').replaceAll('./gradients.js', './editor/gradients.ts').replaceAll('./appearance.js', './editor/appearance.ts').replaceAll('./source-validation.js','./editor/source-validation.ts').replaceAll('./indicators.js','./editor/indicators.ts').replaceAll('./groups.js','./editor/groups.ts').replaceAll('./cost-rate.js','./editor/cost-rate.ts');
     if (!backend && !text) body = body.replaceAll('./backend.js', '../backend.ts').replaceAll('./text.js', '../../ui/text.ts');
     body = body.replace(/(from ['"][^'"]+)\.js(['"])/gu, '$1.ts$2');
     result.set(destination, header + body);
@@ -159,10 +160,10 @@ export function outputs(root = ROOT): Map<string, string> {
   const generatedCatalog = { MAIN_ITEM_IDS: mainIds, SUBAGENT_ITEM_IDS: subagentIds, PRESETS: presets };
   result.set('packages/core/src/contracts/generated-catalog.ts', header + Object.entries(generatedCatalog).map(([name, value]) => 'export const ' + name + ' = ' + json(value) + ' as const;\n').join(''));
   for (const [source, destination] of [['ui', 'mods/statusline-native/lib/generated-contracts.ts'], ['runtime', 'mods/statusline-runtime/lib/generated-contracts.ts']]) {
-    let body = utf8(join(root, 'packages/core/src/contracts/' + source + '.ts')).split('\n').slice(1).filter(line => !line.startsWith('import ') || !['"../i18n/registry.js";', '"./generated-catalog.js";'].some(suffix => line.endsWith(suffix))).join('\n');
+    let body = utf8(join(root, 'packages/core/src/contracts/' + source + '.ts')).split('\n').slice(1).filter(line => !line.startsWith('import ') || !['"../i18n/registry.js";', '"./generated-catalog.js";', '"../editor/themes.js";'].some(suffix => line.endsWith(suffix))).join('\n');
     if (/^import /mu.test(body)) throw new Error('A Mod contract acquired an unsupported module dependency');
     if (source === 'ui') {
-      body = body.replaceAll('LANGUAGES', json(codes))
+      body = body.replaceAll('THEME_IDS', '(' + json(THEME_IDS) + ' as const)').replaceAll('LANGUAGES', json(codes))
         .replace('export type StatuslineLanguage = Language;', 'export type StatuslineLanguage = ' + codes.map(code => json(code)).join(' | ') + ';')
         .replace('export type MainItemId = typeof MAIN_ITEM_IDS[number];', 'export type MainItemId = ' + mainIds.map(id => json(id)).join(' | ') + ';')
         .replace('export type SubagentItemId = typeof SUBAGENT_ITEM_IDS[number];', 'export type SubagentItemId = ' + subagentIds.map(id => json(id)).join(' | ') + ';')

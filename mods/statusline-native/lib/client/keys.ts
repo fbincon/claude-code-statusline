@@ -1,3 +1,6 @@
+import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
+import { openColors, colorsKey } from '../editor/color-manager.ts';
+import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
 import { openAlignments, alignmentsKey } from '../editor/alignment-manager.ts';
 import { openGroups, groupsKey } from '../editor/group-manager.ts';
 import { openSources, sourcesKey } from '../editor/source-manager.ts';
@@ -17,7 +20,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -39,6 +42,9 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e) e.setSaveState(view.uncertain ? 'unknown' : view.busy ? 'pending' : 'idle');
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if(e.diagnosis)return diagnosisKey(e,event);
+  if(e.colors)return colorsKey(e,event,view.language ?? 'en');
+  if(event.ctrl&&key.toLowerCase()==='l'&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
   if (e.alignmentManager) return alignmentsKey(e,event);
   if (e.groupManager) return groupsKey(e, event);
   if (event.ctrl && key.toLowerCase() === 'b' && !view.input && !view.uncertain && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text) { openGroups(e); return null; }
@@ -50,6 +56,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return null;
   }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  if(event.ctrl&&['v','w','n'].includes(key.toLowerCase())&&!view.input){if(key.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(key.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,view.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
   if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
   if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
   if (event.ctrl && key.toLowerCase()==='p' && !view.input && !e.detail && !e.adding && !e.review && !view.uncertain) {
@@ -206,6 +213,8 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",e.compositionError); }
+    else if(e.setting==='diagnose-file'){openDiagnosis(e);return null;}
+    else if(openColors(e,e.setting))return null;
     else if (e.setting === 'row-alignment') { openAlignments(e); return null; }
     else if (e.setting === 'component-groups') { openGroups(e); return null; }
     else if (e.setting === 'sources') {openSources(e);return 'sources';}

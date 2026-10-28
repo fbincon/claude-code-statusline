@@ -25,7 +25,7 @@ export function interpolate(colors: GradientDraft, position: number): Color {
   return ['rgb', '#' + [1,3,5].map(i => Math.round(parseInt(a.slice(i,i+2),16) * (1-fraction) + parseInt(b.slice(i,i+2),16) * fraction).toString(16).padStart(2,'0')).join('')];
 }
 /** One color per grapheme, positioned by terminal cells; first/last visible graphemes reach the endpoints. */
-export function paintGradient(text: string, colors: GradientDraft | null | undefined, channel: 'foreground' | 'background', config: DisplayDraft): string {
+export function paintGradient(text: string, colors: GradientDraft | null | undefined, channel: 'foreground' | 'background', config: DisplayDraft, onContrast?:()=>void): string {
   if (!colors || !config.use_colors || channel === 'background' && config.separator_style !== 'powerline') return text;
   const units = styledUnits(text), total = units.reduce((sum, unit) => sum + unit.width, 0);
   const first = (units[0]?.width ?? 0) / 2, last = total - (units.at(-1)?.width ?? 0) / 2;
@@ -35,6 +35,7 @@ export function paintGradient(text: string, colors: GradientDraft | null | undef
     const state = parse(unit.style), color = outputColor(interpolate(colors, last > first ? (center-first)/(last-first) : 0), config);
     let background = channel === 'background' ? color : state.background;
     if (channel === 'background' && warningCollision(state.foreground, background, config)) {
+      onContrast?.();
       const foreground = state.foreground!;
       background = foreground[0] === 'ansi' ? ['ansi', foreground[1] === 0 ? 15 : 0]
         : ['rgb', luminance(foreground[1]) > 0.179 ? '#000000' : '#ffffff'];

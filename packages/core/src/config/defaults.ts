@@ -15,7 +15,7 @@ export const DEFAULT_POWERLINE: DisplayDraft['powerline'] = {
   padding: 'both', separator: 'arrow', start_cap: false, end_cap: true, color_mode: 'semantic',
 };
 export const DEFAULT_DISPLAY: DisplayDraft = {
-  schema_version: 15, groups: [], use_colors: true, palette: 'default', directory_style: 'full', separator_style: 'classic',
+  schema_version: 16, groups: [], use_colors: true, palette: 'default', directory_style: 'full', separator_style: 'classic',
   scope_labels: 'when-subagents', statusline_language: 'en', theme: 'classic', powerline_glyph: 'ascii', powerline: DEFAULT_POWERLINE,
   subagents: DEFAULT_SUBAGENTS, formatting: DEFAULT_FORMATTING,
   layout: { mode: 'auto', rows: [] }, metrics: { branch_diff_base_ref: null },

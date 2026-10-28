@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+[Appearance, sample scenarios and explicit file diagnosis](appearance-preview-diagnosis.md) documents APPEARANCE-05, PREVIEW-01 and EXPLAIN-02.
+
 [The functional roadmap](roadmap.md#milestones) owns current priorities and work-package status; [the development plan](development-plan.md#future-work) defines scope, dependencies, slices and acceptance. Use those sources for the next task and the linked delivery records for implemented behavior. Planning edits do not implement features.
 
 [CI maintenance and Action identities](ci-maintenance.md) documents documentation-only checks, candidate evidence and promotion routes, `npm run actions:check` and weekly update review.

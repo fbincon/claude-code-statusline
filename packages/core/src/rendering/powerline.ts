@@ -1,3 +1,4 @@
+import type { RenderTrace } from './trace.js';
 import type { FitObserver } from './trace.js';
 import type { DisplayDraft, Scope } from '../contracts/ui.js';
 import * as styles from './styles.js';
@@ -8,6 +9,7 @@ import type { GradientDraft } from '../contracts/ui.js';
 
 export interface Block {
     id?: string;
+    onContrast?:()=>void;
     text: string;
     priority?: number;
     prefer_slash_breaks?: boolean;
@@ -17,8 +19,8 @@ export interface Block {
     background_gradient?: GradientDraft | null;
 }
 /** Owned by one main or subagent render, never retained between payloads. */
-export interface ColorCursor { index: number; scope: Scope }
-export const cursor = (scope: Scope = 'main'): ColorCursor => ({ index: 0, scope });
+export interface ColorCursor { index: number; scope: Scope; trace?:RenderTrace }
+export const cursor = (scope: Scope = 'main',trace?:RenderTrace): ColorCursor => ({ index: 0, scope,trace });
 function edge(text: string, last = false): styles.Style {
     const units = layout.styledUnits(text);
     return units.length ? styles.parse(units[last ? units.length - 1 : 0]!.style) : styles.DEFAULT;
@@ -54,7 +56,7 @@ export function row(blocks: readonly Block[], config: DisplayDraft, padding = tr
         const gradient = block.background_gradient ?? (block.id ? (colors.scope === 'main' ? config.instances : config.subagents.instances).find(node => node.id === block.id)?.options.background_gradient : undefined);
         if (gradient && config.use_colors) {
             const body = paintGradient((left ? styles.serialize(edge(text)) + ' ' + styles.RESET : '') + text +
-                (right ? styles.serialize(edge(text, true)) + ' ' + styles.RESET : ''), gradient, 'background', config);
+                (right ? styles.serialize(edge(text, true)) + ' ' + styles.RESET : ''), gradient, 'background', config,block.onContrast ?? (block.id?()=>colors.trace?.style(colors.scope,block.id!,'contrast_protected'):undefined));
             if (previous !== null) result.push(separator(previous, body, config));
             else if (caps && config.powerline.start_cap) result.push(separator('', body, config, true));
             result.push(body); previous = body; continue;

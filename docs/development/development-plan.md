@@ -175,6 +175,8 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** Compare text, block backgrounds, warning/critical overrides and inherited/custom choices in main/subagent output, previews and both editors. Cover no color, terminal/ANSI fallback, save/reopen and selective appearance import without replacing components/layout. Native selectors send only the visible color choices.
 
+**Implementation in validation:** v3.10.0 selects schema 16 and protocol 26; reviewed palettes and interaction rules are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+
 <a id="preview-01"></a>
 
 ## PREVIEW-01 Select sample scenarios

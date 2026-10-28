@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+[外观、样例场景与显式文件诊断](appearance-preview-diagnosis.zh-CN.md)记录 APPEARANCE-05、PREVIEW-01、EXPLAIN-02。
+
 [功能路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)定义范围、依赖、切片和验收。开始下一任务时读取这两处规范来源，已实现行为查阅链接的交付记录；规划更新不实施功能。
 
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明纯文档检查、候选证据与晋级路径、`npm run actions:check` 及每周更新审查。

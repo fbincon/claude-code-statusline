@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.10.0 appearance and understanding
+
+Use the [version decision](releases/approvals/v3.10.0.json). Retain all existing installation/runtime/host/capacity gates and require installed new-theme, scenario and current-draft file-diagnosis evidence. Acceptance-tool edits require full main acceptance and shadow promotion. Publish the original four verified files and upgrade the test installation with original display/UI preferences restored. [Implementation and delivery](development/appearance-preview-diagnosis.md).
+
 ## Source-bound CI evidence promotion
 
 Normal release preparation completes the final PR matrix, merges with a merge commit, and requires main's verified integration plus Linux/Windows/macOS installation smoke. Create the annotated version tag at the **accepted PR source commit**, reachable through that merge on main; tag SHA, package source SHA and npm provenance must agree. Policy changes and nonequivalent integration require full main acceptance; the same-commit main-to-tag fallback remains available. Publish the original package/source/manifest/checksum bytes without rebuilding or relabeling them. The npm workflow follows the explicit PR/main/tag evidence chain and downloads immutable original artifact IDs. Missing, expired or mismatched evidence is blocking. See [CI policy and evidence](development/ci-maintenance.md#candidate-promotion-across-pr-main-and-tag).

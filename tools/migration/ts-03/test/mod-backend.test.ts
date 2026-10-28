@@ -70,6 +70,8 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.equal(response.exitCode, 2);
     assert.throws(() => backend.parseResponse('read', response), (error: any) => error.code === 'unsupported_protocol');
     assert.throws(() => backend.parseResponse('read', { ...f.run('ui', backend.requestText('read')), isStdoutTruncated: true }), (error: any) => error.code === 'backend_output_truncated');
+    const diagnosisFile=join(f.root,'diagnostic input.json');writeFileSync(diagnosisFile,JSON.stringify({model:{id:'explicit-file'}}));
+    const fileReport=call('diagnose_file',{draft:baseline.draft,path:diagnosisFile,scope:'main',width:80});assert.equal(fileReport.include_local,false);assert.equal(fileReport.source,diagnosisFile);
     const diagnosis = call('diagnose', { draft: baseline.draft, scope: 'main', width: 80, input: { model: { id: 'diagnostic-model' } }, include_local: false });
     assert.equal(diagnosis.sample, false);
     const library = call('profiles_read');

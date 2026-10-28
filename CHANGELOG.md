@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.10.0 — Unreleased
+
+- Add four registered themes and eight RGB gradient presets, visible color choices and reversible per-stop editing in both editors.
+- Select deterministic sample scenarios and temporary width/row controls without changing display settings or collecting data.
+- Explain per-row inactive/overridden styles and diagnose an explicit input file using the current draft, with input-only defaults in editors.
+- Advance display schema to 16 and editor protocol to 26; retain read-only old-file migration, source authorization and save recovery.
+- [Release notes](docs/releases/v3.10.0.md) · [Implementation and validation](docs/development/appearance-preview-diagnosis.md).
+
 ## 3.9.2 — 2026-10-28
 
 - Share pending/unknown-save draft protection across both editors; add external Ctrl+K read-only reconciliation without repeating writes.

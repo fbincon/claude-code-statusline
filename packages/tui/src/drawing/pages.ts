@@ -1,3 +1,5 @@
+import { diagnosisLines } from '@fbincon/statusline-core/editor/diagnosis-view';
+import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
 import { groupsView } from '@fbincon/statusline-core/editor/group-manager';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
@@ -21,6 +23,8 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const panel = size.content;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
+    if(e.diagnosis){const lines=diagnosisLines(e,state.language,width),count=Math.max(1,panel.innerHeight-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-count));e.diagnosis.scroll=start;lines.slice(start,start+count).forEach((line,i)=>canvas.content(panel,i,[paint(line)]));return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;}
+    if(e.colors){colorsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,row.spans.map(span=>({...span,reverse:row.selected && span.foreground === null})),row.selected));return ''; }
     if (e.alignmentManager) {
         alignmentsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
         return '';

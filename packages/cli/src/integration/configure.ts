@@ -1,3 +1,4 @@
+import { diagnosisAdapter } from '../diagnostics/service.js';
 import { Session, outcome, type Backend } from '@fbincon/statusline-tui/session';
 import { RESULT_ENV, REQUEST_ENV, NONCE_ENV, resultPath, requestGuard, deadline, writeResult, EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
@@ -35,7 +36,7 @@ export async function configure(service: ConfigurationService, language: Languag
         // Check revocation after lock acquisition as well as between terminal events.
         const io = service.io;
         const guarded = new ConfigurationService(service.context, { ...io, lock(directory, action) { return io.lock(directory, () => { guard(); return action(); }); } });
-        const protocol = new ConfigurationProtocol(guarded, await previewAdapter());
+        const protocol = new ConfigurationProtocol(guarded, await previewAdapter(),undefined,await diagnosisAdapter(guarded));
         const backend: Backend = { request(operation, payload = {}) {
                 if (operation === 'read' && Object.keys(payload as object).length === 0 && target) payload = { target };
                 const response = protocol.handle(requestText(operation, payload), error => { throw error; });

@@ -11,7 +11,7 @@ import type {
   ProcessRunResult,
 } from 'claude-code';
 import {
-  MAIN_ITEM_IDS, ITEM_DEFAULTS, OPERATIONS,
+  THEME_VALUES, MAIN_ITEM_IDS, ITEM_DEFAULTS, OPERATIONS,
   FORMAT_DEFAULTS, FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, POWERLINE_OPTIONS,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
@@ -31,7 +31,7 @@ export function component(type_id: string, enabled = true): import('../lib/gener
 
 export const BASE: Draft = {
   display: {
-    schema_version: 15, groups: [],
+    schema_version: 16, groups: [],
     theme: "classic",
     powerline_glyph: "ascii",
     powerline: { padding: "both", separator: "arrow", start_cap: false, end_cap: true, color_mode: "semantic" },
@@ -126,7 +126,7 @@ export function description(): DescribeResult {
     options: {
       colors: { choices: [true, false] },
       palette: { choices: ['default', 'ansi'] },
-      theme: { choices: ['classic', 'dark', 'light', 'terminal'] },
+      theme: { choices: [...THEME_VALUES] },
       ...POWERLINE_OPTIONS,
       'powerline-glyph': { choices: ['ascii', 'powerline'] },
       'directory-style': {
@@ -175,7 +175,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 25, result }));
+  return output(JSON.stringify({ protocol_version: 26, result }));
 }
 
 export function sample(text: string) {

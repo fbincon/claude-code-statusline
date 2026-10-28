@@ -19,7 +19,7 @@ test('tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_o
         writeFileSync(f.displayPath, raw);
         const cfg = f.display();
         assert.equal(cfg.statusline_language, 'en');
-        assert.equal(cfg.schema_version, 15);
+        assert.equal(cfg.schema_version, 16);
         assert.deepEqual(readFileSync(f.displayPath), raw);
     }
     const result = setOption(f.service, 'statusline-language', 'zh-CN');
