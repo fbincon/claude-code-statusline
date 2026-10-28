@@ -12,6 +12,8 @@ Editor protocol 28 requires matching Mods. Display schema stays 16; source regis
 
 The #173 repair uses the bounded ordinary-file reader for npm manifests, preserving link/reparse, size and identity checks. Private recovery journals and snapshots retain strict permission checks. Regressions assert actual version, compatibility/reasons, bytes, modes and unchanged configuration for `0600`, `0644` and `0664`. Root AGENTS.md records the durable reader-selection and read-only assertion rule.
 
+Mutable private package progress/installation records use bounded snapshots that retry only file-identity/content races while retaining owner, private-mode, size and no-follow checks. Immutable recovery journals and snapshots retain strict readers.
+
 ## Source lifecycle and references
 
 Execution permission and automatic permission are reviewed independently. Commands start automatic policy at 300 seconds, adjustable 60–86400 separately from TTL. Active host leases renew every five seconds and expire after fifteen. Applicable projects, sessions and confirmed local agents participate; unknown ownership waits. Same-source commands run serially, equal effective input shares work and distinct contexts rotate fairly. Busy ticks do not accumulate work. Temporary failures back off; program/configuration/identity failures pause. Source edits revoke old permission and late result publication.

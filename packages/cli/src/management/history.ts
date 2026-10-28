@@ -8,7 +8,8 @@ import { revision } from '@fbincon/statusline-platform/hash';
 import { processAlive } from '@fbincon/statusline-platform/processes';
 import { lock, isLinkOrReparse } from '@fbincon/statusline-platform/files';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { readRegular, pending } from '../recovery/journal.js';
+import { pending } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
 import { MANAGEMENT_ROOT, readOperation, pendingPath } from './store.js';
@@ -23,7 +24,7 @@ export function reviewHistory(context:InspectionContext,prefix:string,offset=0,a
         if(pending(directory).length)uncertain=true;
         for(const name of names(directory,join(root,'installations'))){
             if(!/^[a-f0-9]{64}\.json$/u.test(name))throw new PackageError('journal');
-            const path=join(root,'installations',name);safeTarget(directory,path);const value=JSON.parse(readRegular(path,1024*1024).toString('utf8'));inputs.push(value);
+            const path=join(root,'installations',name);safeTarget(directory,path);const value=JSON.parse(readPrivateState(path,1024*1024).toString('utf8'));inputs.push(value);
             if(value.schema_version!==1||typeof value.transaction!=='string'||!value.current?.version)throw new PackageError('journal');
             referenced.add(value.transaction);if(value.previous)previous.add(JSON.stringify([value.previous.prefix,value.previous.version,value.previous.inventory_sha256]));
         }
@@ -37,10 +38,10 @@ export function reviewHistory(context:InspectionContext,prefix:string,offset=0,a
             }
         }
         let selectedPending:string|null=null;
-        if(fs.existsSync(pendingPath(prefix))){const path=pendingPath(prefix);safeTarget(prefix,path);const marker=JSON.parse(readRegular(path,65536).toString('utf8'));inputs.push(marker);if(marker.configDir!==directory||marker.prefix!==prefix)throw new PackageError('journal');selectedPending=marker.id;}
+        if(fs.existsSync(pendingPath(prefix))){const path=pendingPath(prefix);safeTarget(prefix,path);const marker=JSON.parse(readPrivateState(path,65536).toString('utf8'));inputs.push(marker);if(marker.configDir!==directory||marker.prefix!==prefix)throw new PackageError('journal');selectedPending=marker.id;}
         for(const id of names(directory,join(root,'transactions'))){
             const path=join(root,'transactions',id,'operation.json');safeTarget(directory,path);
-            const raw=JSON.parse(readRegular(path,1024*1024).toString('utf8')),operation=readOperation(directory,raw.prefix,id);inputs.push(operation);
+            const raw=JSON.parse(readPrivateState(path,1024*1024).toString('utf8')),operation=readOperation(directory,raw.prefix,id);inputs.push(operation);
             if(operation.prefix!==prefix)continue;
             const reasons:string[]=[];
             if(operation.stage!=='complete')reasons.push('pending');

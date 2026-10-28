@@ -12,7 +12,7 @@ import { startReviewWorker } from '@fbincon/statusline-platform/review-worker';
 import { atomicWrite, privateDirectory, lock, durableUnlink } from '@fbincon/statusline-platform/files';
 import { processToken, processMatches, processAlive } from '@fbincon/statusline-platform/processes';
 import { safeTarget } from '../integration/paths.js';
-import { readRegular } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { inspectPackage, type InspectionContext, packageReason } from './inspection.js';
 import { packageReviewJob } from './review-jobs.js';
 import { MANAGEMENT_ROOT, type PackageOperation } from './store.js';
@@ -29,10 +29,10 @@ const markerPath=(prefix:string)=>join(prefix,'.claude-statusline-editor-operati
 export function writeExecution(record:ExecutionRecord):void {atomicWrite(join(executionFolder(record.configDir,record.value.id),'execution.json'),JSON.stringify(record)+'\n');}
 export function readExecution(configDir:string,id:string):ExecutionRecord {
     const folder=executionFolder(configDir,id),path=join(folder,'execution.json');safeTarget(configDir,path);
-    let record:ExecutionRecord;try{record=JSON.parse(readRegular(path,1024*1024).toString('utf8'));}catch{throw new PackageError('journal');}
+    let record:ExecutionRecord;try{record=JSON.parse(readPrivateState(path,1024*1024).toString('utf8'));}catch{throw new PackageError('journal');}
     if(record.schema_version!==1||record.configDir!==configDir||record.value?.id!==id||record.request?.prefix!==record.value.prefix||record.value.control?.config_dir!==configDir||record.value.control.args.length!==1||record.value.control.args[0]!==join(folder,'runner','bin','claude-statusline.js')||record.value.version!==1||!['running','complete','failed','interrupted'].includes(record.value.state)||!(record.pid===null||Number.isSafeInteger(record.pid)&&record.pid>0)||!(record.token===null||typeof record.token==='string')||typeof record.value.started_at!=='string'||!Number.isFinite(Date.parse(record.value.started_at)))throw new PackageError('journal');
     const detached=join(folder,'detached.json');
-    record.detached=fs.existsSync(detached)&&JSON.parse(readRegular(detached,65536).toString('utf8')).owner===record.owner;
+    record.detached=fs.existsSync(detached)&&JSON.parse(readPrivateState(detached,65536).toString('utf8')).owner===record.owner;
     return record;
 }
 export function executionStatus(configDir:string,id:string):PackageExecution {
@@ -52,7 +52,7 @@ export function startExecution(context:InspectionContext,id:unknown,owner:unknow
     try {
         const marker=markerPath(request.prefix);safeTarget(request.prefix,marker);
         if(fs.existsSync(marker)){
-            const prior=JSON.parse(readRegular(marker,65536).toString('utf8'));
+            const prior=JSON.parse(readPrivateState(marker,65536).toString('utf8'));
             if(prior.configDir!==context.configDir||typeof prior.id!=='string')throw new PackageError('busy');
             const status=executionStatus(context.configDir,prior.id);
             if(status.running!==false)throw new PackageError('busy');
@@ -114,7 +114,7 @@ export async function executionWorker(configDir:string,id:string):Promise<void> 
         record.value.state=code===0?'complete':code===130?'interrupted':'failed';record.value.finished_at=new Date().toISOString();record.value.updated_at=record.value.finished_at;
         if(code===0){record.value.stage='complete';if(record.request.action==='restore-config')record.value.results.configuration=true;else{record.value.results.package=true;record.value.results.integration=true;}}
         writeExecution(record);
-        try {const marker=markerPath(record.request.prefix),value=JSON.parse(readRegular(marker,65536).toString('utf8'));if(value.id===id&&value.configDir===configDir)durableUnlink(marker);}catch{/* Preserve an uncertain reservation. */}
+        try {const marker=markerPath(record.request.prefix),value=JSON.parse(readPrivateState(marker,65536).toString('utf8'));if(value.id===id&&value.configDir===configDir)durableUnlink(marker);}catch{/* Preserve an uncertain reservation. */}
         try{fs.rmdirSync(claim);}catch{/* Never erase recovery data on failed cleanup. */}
     }
 }
@@ -126,7 +126,7 @@ export function detachExecution(configDir:string,id:string,owner:string):Package
 export function activeExecution(configDir:string,prefix:string):PackageExecution|null{
     const marker=markerPath(prefix);safeTarget(prefix,marker);
     if(!fs.existsSync(marker))return null;
-    const data=JSON.parse(readRegular(marker,65536).toString('utf8'));
+    const data=JSON.parse(readPrivateState(marker,65536).toString('utf8'));
     if(data.owner!=='claude-code-statusline'||data.configDir!==configDir||typeof data.id!=='string')throw new PackageError('identity');
     const value=executionStatus(configDir,data.id);if(value.prefix!==prefix)throw new PackageError('identity');return value;
 }

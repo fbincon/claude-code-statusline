@@ -4,7 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { atomicWrite, privateDirectory, durableUnlink } from '@fbincon/statusline-platform/files';
 import { PackageError, type PackageIdentity } from '@fbincon/statusline-core/management/package';
 import { safeTarget } from '../integration/paths.js';
-import { readRegular } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { exactVersion } from '@fbincon/statusline-core/management/package';
 import { compatibility } from '@fbincon/statusline-core/management/compatibility';
 import type { PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
@@ -99,7 +99,7 @@ export function readInstallation(configDir: string, prefix: string): Installatio
     safeTarget(configDir, path);
     if (!fs.existsSync(path))
         return null;
-    const value = JSON.parse(readRegular(path, 1024 * 1024).toString('utf8'));
+    const value = JSON.parse(readPrivateState(path, 1024 * 1024).toString('utf8'));
     if (value.schema_version !== 1 || !exactVersion(value.current?.version) || value.current.prefix !== prefix || value.previous && !exactVersion(value.previous.version) || ![null, 'latest', 'beta'].includes(value.channel))
         throw new PackageError('journal');
     return value;
@@ -110,7 +110,7 @@ export function readOperation(configDir: string, prefix: string, id?: string): P
         safeTarget(prefix, marker);
         if (!fs.existsSync(marker))
             throw new PackageError('no_pending');
-        const value = JSON.parse(readRegular(marker, 65536).toString('utf8'));
+        const value = JSON.parse(readPrivateState(marker, 65536).toString('utf8'));
         if (value.owner !== 'claude-code-statusline' || value.schema_version !== 1 || value.prefix !== prefix || value.configDir !== configDir)
             throw new PackageError('journal');
         id = value.id;
@@ -121,7 +121,7 @@ export function readOperation(configDir: string, prefix: string, id?: string): P
     safeTarget(configDir, path);
     let value: PackageOperation;
     try {
-        value = JSON.parse(readRegular(path, 1024 * 1024).toString('utf8'));
+        value = JSON.parse(readPrivateState(path, 1024 * 1024).toString('utf8'));
     }
     catch {
         throw new PackageError('journal');

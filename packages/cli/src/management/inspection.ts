@@ -12,7 +12,7 @@ import { processMatches } from '@fbincon/statusline-platform/processes';
 import { previousBinding } from '../integration/ownership.js';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
-import { readRegular } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { readSourceFile } from '@fbincon/statusline-platform/source-files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { configurationBytes, configurationHashes, configurationCompatibility, readSnapshot } from './configuration.js';
@@ -131,7 +131,7 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
         if (fs.existsSync(folder)) {
             const ids = fs.readdirSync(folder).filter(id => /^pkg-[0-9a-f-]{36}$/u.test(id)).sort();
             const selected=ids.flatMap(id=>{
-                try{const path=join(folder,id,'operation.json');safeTarget(configDir,path);const raw=JSON.parse(readRegular(path,1024*1024).toString('utf8'));return raw.prefix===prefix?[{id,created:typeof raw.created==='string'?raw.created:''}]:[];}
+                try{const path=join(folder,id,'operation.json');safeTarget(configDir,path);const raw=JSON.parse(readPrivateState(path,1024*1024).toString('utf8'));return raw.prefix===prefix?[{id,created:typeof raw.created==='string'?raw.created:''}]:[];}
                 catch{return [{id,created:''}];}
             }).sort((a,b)=>b.created.localeCompare(a.created)||a.id.localeCompare(b.id));
             total=selected.length;

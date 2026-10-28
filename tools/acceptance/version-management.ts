@@ -60,10 +60,16 @@ async function historicalSequence(installed: ReturnType<typeof installCandidate>
     // Keep the established Unicode/shell-character fixture depth: Node 22.0.0 on
     // Windows can lose package type resolution when recovery manifests grow deeper.
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(dirname(installed.temporary), 'ts05 version 中文 $` & ')));
+    let completed = false;
     try {
-        return await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
+        const result = await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
+        completed = true; return result;
     } finally {
-        removeTree(temporary);
+        // A detached executor may still be finishing after a failed assertion.
+        // Keep its recovery data and the original error, rather than racing its
+        // writes during teardown and replacing the failure with ENOTEMPTY.
+        if (completed) removeTree(temporary);
+        else console.error(JSON.stringify({ version_management_fixture_retained: temporary, historical_version: historicalVersion }));
     }
 }
 async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {

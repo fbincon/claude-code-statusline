@@ -12,7 +12,7 @@ import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { startReviewWorker, waitReviewExit } from '@fbincon/statusline-platform/review-worker';
 import { processMatches } from '@fbincon/statusline-platform/processes';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { readRegular } from '../recovery/journal.js';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { safeTarget } from '../integration/paths.js';
 import { inspectPackage, type InspectionContext } from './inspection.js';
 export interface ReviewRecord {
@@ -33,7 +33,7 @@ export function reviewFolder(id: string): string {
 export function readReviewRecord(id: string): ReviewRecord {
     const folder = reviewFolder(id), path = join(folder, 'job.json');
     safeTarget(folder, path);
-    const value = JSON.parse(readRegular(path, 1024 * 1024).toString('utf8')) as ReviewRecord;
+    const value = JSON.parse(readPrivateState(path, 1024 * 1024).toString('utf8')) as ReviewRecord;
     if (!isPackageResult('package_review_status', value.job) || value.job.id !== id || typeof value.configDir !== 'string' || typeof value.origin !== 'string' ||
         !(value.pid === null || Number.isSafeInteger(value.pid) && value.pid > 0) || !(value.token === null || typeof value.token === 'string'))
         throw new PackageError('journal');

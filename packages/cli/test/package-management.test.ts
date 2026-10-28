@@ -339,6 +339,8 @@ test('package review worker ownership prevents another view from cancelling it',
 import { executionFolder, writeExecution, readExecution, executeReviewed, detachExecution, type ExecutionRecord } from '../src/management/execution.js';
 import { reviewHistory, cleanupHistory } from '../src/management/history.js';
 import { finishOperation } from '../src/management/store.js';
+import mutableFs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 async function reviewedExecution(f:ReturnType<typeof fixture>):Promise<ExecutionRecord>{
     const context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},status=inspectPackage(context,f.prefix);
     const request:PackageReviewRequest={action:'update',prefix:f.prefix,expected_revision:status.revision,target:'3.9.0',channel:null,backup_id:null,expected_integrity:null};
@@ -361,6 +363,18 @@ test('editor detachment does not cancel a worker or overwrite its progress',asyn
     const f=fixture(t),record=await reviewedExecution(f);record.pid=process.pid;record.token=processToken(process.pid)!;record.value.stage='installing';writeExecution(record);
     assert.throws(()=>detachExecution(f.configDir,record.value.id,'invalid owner'));detachExecution(f.configDir,record.value.id,'reopened-view');
     detachExecution(f.configDir,record.value.id,record.owner);const status=readExecution(f.configDir,record.value.id);assert.equal(status.value.stage,'installing');assert.equal(status.value.state,'running');assert.equal(status.detached,true);
+});
+test('editor progress reads a complete private replacement instead of reporting a damaged journal',async t=>{
+    const f=fixture(t),record=await reviewedExecution(f),path=join(executionFolder(f.configDir,record.value.id),'execution.json'),next=path+'.next';
+    record.value.stage='installing';fs.writeFileSync(next,JSON.stringify(record),{mode:0o600});
+    const open=mutableFs.openSync;let replaced=false;
+    t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
+        if(String(args[0])===path&&!replaced){replaced=true;fs.renameSync(next,path);}
+        return open(...args);
+    });
+    syncBuiltinESMExports();
+    try {assert.equal(readExecution(f.configDir,record.value.id).value.stage,'installing');assert(replaced);}
+    finally {t.mock.restoreAll();syncBuiltinESMExports();}
 });
 test('protected cleanup retains current and previous inputs, rejects foreign material and deletes only the reviewed record',async t=>{
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};assert.equal(await manage(f.args(),f.options),0);
