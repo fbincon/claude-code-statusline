@@ -26,7 +26,10 @@ export function nativeCapacity(host: LaunchSpec, destination: string) {
     }
     removeTests(join(destination, 'tests'));
     fs.writeFileSync(join(destination, 'hooks/hooks.json'), JSON.stringify({ modules: ['../tests/capacity-register.ts'] }) + '\n');
-    fs.writeFileSync(join(destination, 'tests/capacity.test.ts'), "import './integration/capacity-cases.ts';\n");
+    // Bound each official test child while preserving every original assertion.
+    // This also prevents a single sandbox from accumulating hundreds of mounts.
+    const batchSize=50;
+    for(let start=0;start<NATIVE_CAPACITY_TOTAL_CASES;start+=batchSize)fs.writeFileSync(join(destination,'tests/capacity-'+start+'.test.ts'),"import {registerCapacityCases} from './integration/capacity-cases.ts';\nregisterCapacityCases("+start+","+Math.min(start+batchSize,NATIVE_CAPACITY_TOTAL_CASES)+");\n");
     const environment = isolatedHostEnvironment(process.env, join(destination, 'config'));
     for (const args of [['plugin', 'validate', '--strict', destination], ['plugin', 'test', destination]]) {
         const result = spawnSync(host.executable, [...host.args, ...args], { cwd: repoRoot, env: environment, encoding: 'utf8', timeout: 300000, maxBuffer: 8 * 1024 * 1024 });
@@ -38,7 +41,7 @@ export function nativeCapacity(host: LaunchSpec, destination: string) {
     const cases=nativeCapacityData().cases;
     if(cases.length!==NATIVE_CAPACITY_TOTAL_CASES)throw new Error('Capacity inventory differs');
     const names=(start:number,end:number)=>createHash('sha256').update(JSON.stringify(cases.slice(start,end).map(c=>c.name))).digest('hex');
-    return { status: 'pass', cases: NATIVE_CAPACITY_CASES, original_cases: 197, total_cases:NATIVE_CAPACITY_TOTAL_CASES, additional_cases:NATIVE_CAPACITY_ADDITIONAL_CASES, shared_execution:true, baseline_names_sha256:names(0,NATIVE_CAPACITY_CASES),additional_names_sha256:names(NATIVE_CAPACITY_CASES,cases.length), actual_host: true, model_calls: 0 };
+    return { status: 'pass', cases: NATIVE_CAPACITY_CASES, original_cases: 197, total_cases:NATIVE_CAPACITY_TOTAL_CASES, additional_cases:NATIVE_CAPACITY_ADDITIONAL_CASES, test_files:Math.ceil(NATIVE_CAPACITY_TOTAL_CASES/batchSize), shared_execution:true, baseline_names_sha256:names(0,NATIVE_CAPACITY_CASES),additional_names_sha256:names(NATIVE_CAPACITY_CASES,cases.length), actual_host: true, model_calls: 0 };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { claude: { type: 'string', default: 'claude' }, output: { type: 'string' } } });

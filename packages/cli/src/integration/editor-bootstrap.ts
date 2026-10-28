@@ -14,8 +14,9 @@ export async function independentEditor(argv:readonly string[]):Promise<number|n
         const runner=join(folder,'runner');copyPackage(root,runner);
         return await new Promise<number>((resolve,reject)=>{
             const child=spawn(process.execPath,[join(runner,'node_modules/@fbincon/statusline-cli/dist/src/integration/editor-worker-entry.js'),join(root,'node_modules/@fbincon/statusline-cli/dist/src/entry.js'),JSON.stringify(argv)],{stdio:'inherit',shell:false,env:process.env,cwd:process.cwd()});
-            const stop=()=>child.kill('SIGTERM');process.on('SIGTERM',stop);
-            child.once('error',error=>{process.off('SIGTERM',stop);reject(error);});child.once('exit',(code,signal)=>{process.off('SIGTERM',stop);resolve(code??(signal?130:2));});
+            const stop=()=>child.kill('SIGTERM'),resize=()=>child.kill('SIGWINCH');process.on('SIGTERM',stop);if(process.platform!=='win32')process.on('SIGWINCH',resize);
+            const detach=()=>{process.off('SIGTERM',stop);process.off('SIGWINCH',resize);};
+            child.once('error',error=>{detach();reject(error);});child.once('exit',(code,signal)=>{detach();resolve(code??(signal?130:2));});
         });
     }finally{removeTree(folder);}
 }

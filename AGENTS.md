@@ -25,7 +25,7 @@ Preserve the Python archive; use its [separate reference procedure](archive/pyth
 
 - Product identity lives in [core release definitions](packages/core/src/release.ts); private workspace versions are development metadata.
 - Maintain catalog and protocol definitions in `packages/core`, translations in `packages/core/resources/i18n`, and skill templates in `packages/cli/resources`.
-- Update canonical sources and regenerate owned copies; do not edit files marked as generated or regenerate the Python archive.
+- Update canonical sources and regenerate owned copies; do not edit files marked as generated or regenerate the Python archive. Keep generated Native modules within the host import-file limit; split resources without dropping language or acceptance coverage.
 - Use the existing [resource generator](tools/generation/resources.ts) and [translation guide](docs/development/i18n.md), preserving message keys and named placeholders.
 
 After changing canonical resources:
