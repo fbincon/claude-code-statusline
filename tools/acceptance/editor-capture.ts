@@ -1,3 +1,4 @@
+import { taskFixture } from './task-fixture.js';
 /** Capture the installed external editor in a real PTY; reconstruct cells, never an OS screenshot. */
 import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
@@ -42,12 +43,13 @@ try {
     run(['source', 'enable', 'capture-github', '--review', githubReview]);
     const sources = fs.readFileSync(join(config, 'claude-statusline-sources.json'));
     const settings = fs.readFileSync(join(config, 'settings.json'));
+    const taskEvidence=taskFixture(config,'capture-session');
     for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
         run(['config', 'profile', 'save', 'Capture scheme', '--overwrite']);
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         const profiles = fs.readFileSync(join(config, 'claude-statusline-profiles.json'));
-        const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
+        let pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
             const key = async (value: string, contains?: string) => {
@@ -268,6 +270,12 @@ try {
                 const portable = JSON.parse(fs.readFileSync(portablePath, 'utf8'));
                 portable.draft.host.padding = 2;
                 fs.writeFileSync(portablePath, JSON.stringify(portable));
+                await selectSetting('task-details');await key('\r',t('task.title',language));capture('task-identity');
+                await key('capture-session');await key('\r','captured-task');capture('task-summary');
+                await key('/agent-alpha\r');await key('e');await key('\x1b[F');capture('task-evidence');
+                await key('r');await key('q');
+                await selectSetting('package-management');await key('\r',t('package.ui.title',language));capture('package-local');
+                await key('\x1b[F');capture('package-local-details');await key('q');
                 await selectSetting('import-file');
                 await key('\r');
                 await key('\r', t('review.selection.help', language));
@@ -300,6 +308,14 @@ try {
             await pty.exited();
             assert.equal(pty.child.exitCode, 0);
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');
+            if(values.extended){
+                await pty.close();
+                pty=openPty(config,columns,rows,installed.env,language,{executable:installed.node,args:[installed.entry,'--language',language,'task','view','--session-id','capture-session'],cwd:installed.temporary});
+                await pty.wait(text=>text.includes('captured-task')&&text.includes(`\x1b[${rows};1H`));capture('task-standalone');
+                pty.send('q');await pty.exited();assert.equal(pty.child.exitCode,0);assert.deepEqual(pty.attributes(),pty.before);
+                assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
+            }
+
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settings, 'Capture changed configuration');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline-sources.json')), sources, 'Cancelled automatic review changed source policy');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
@@ -310,7 +326,7 @@ try {
         const config = installed.env.CLAUDE_CONFIG_DIR;
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         for (const TERM of ['vt100', 'vt220', 'xterm-mono', 'dumb']) {
-            const pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
+            let pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
                 { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure'], cwd: installed.temporary });
             try {
                 const supported = TERM !== 'dumb';

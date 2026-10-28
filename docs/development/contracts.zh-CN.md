@@ -29,10 +29,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":26,"operation":"read","payload":{}}
+{"protocol_version":27,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":26,"result":{...}}`；失败为 `{"protocol_version":26,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":27,"result":{...}}`；失败为 `{"protocol_version":27,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ schema 16 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `I
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 16 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 16、UI protocol 26、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 16、UI protocol 27、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ## TypeScript 后端绑定
 
@@ -180,11 +180,11 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 
 `reasons.origin` 区分草稿配置、本地配置、已知宿主能力和未知证据。安装归属和运行偏好读取失败时返回未知；正常读取缺失的偏好使用既有默认关闭语义。`explain` 不获取安装锁、不创建目录或修复文件，不读取转录、任务/用量缓存或 Git。既有 `read` 仍使用安装锁保护快照，可能创建锁目录；`preview` 继续完全不读取配置或检测宿主。
 
-`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 26 要求匹配的前后端资源；显示 schema 16、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
+`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 27 要求匹配的前后端资源；显示 schema 16、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
 
 ## 设置与完整外观契约
 
-新的 `display.powerline` 对象使用封闭选项与兼容默认值，schema 16 和编辑器协议 26 要求匹配资源。`describe.options` 与 `editor_fields` 从同一描述生成五种 Powerline 控制。既有预设注册表新增三套完整方案，不另建注册表。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
+新的 `display.powerline` 对象使用封闭选项与兼容默认值，schema 16 和编辑器协议 27 要求匹配资源。`describe.options` 与 `editor_fields` 从同一描述生成五种 Powerline 控制。既有预设注册表新增三套完整方案，不另建注册表。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
 
 ## 数据源协议
 
@@ -230,10 +230,18 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 
 ## 外观与诊断协议 26
 
-显示 schema 16 保留此前字段，新增 `ocean`、`ember`、`slate`、`blossom` 主题值。Schema 1–15 仅在内存规范化，不写文件；新增主题要求 schema 16。显式保存保留身份、修订、锁、备份及恢复。前后端需匹配协议 26。
+显示 schema 16 保留此前字段，新增 `ocean`、`ember`、`slate`、`blossom` 主题值。Schema 1–15 仅在内存规范化，不写文件；新增主题要求 schema 16。显式保存保留身份、修订、锁、备份及恢复。前后端需匹配协议 27。
 
 `preview`、`explain` 接受可选 `scenario`，省略为 `normal`；生产预览返回场景元数据。有效身份为 `normal`、`warning`、`critical`、`zero`、`missing`、`source-stale`、`source-failed`、`long-content`、`git-clean`、`git-modified`、`git-conflicted`、`no-agents`、`few-agents`、`many-agents`。场景只改变注入观测；宽度与预览行浏览是临时界面状态。
 
 `diagnose_file` 接受 `{draft,path,scope,width,observed_at?,include_local?}`，通过与 CLI 相同的 UTF-8／BOM／32 MiB／严格 JSON 校验读取指定路径，返回 `DiagnoseResult`，默认 `include_local:false`。相对路径基于后端工作目录。现有 `diagnose` 保留输入 JSON 及原默认值。作用域不符、输入／时间无效及文件不可读均为结构化失败。操作不采集、不写显示或运行状态。
 
 样例及诊断行可包含 `style_reasons:[{code,owner_id}]`。原因码为 `colors_disabled`、`background_gradient_requires_powerline`、`group_background_owned`、`threshold_warning`、`threshold_critical`、`color_quantized`、`contrast_protected`，适用时携带主实例身份。原因来自生产渲染，与缺少观测证据独立。原生展示分别检查 props、Pane 和 Client 树，只传输报告／选择器的可见内容。
+
+## 任务浏览与包审核协议 27
+
+`task_details` 保持版本 1 响应及显式会话／任务语义。`task view` 与双端阅读控件共享仅当前界面有效的搜索、过滤、树展开、证据显示和行锚点，不改变任务存储。
+
+协议 27 新增 `package_status`（`prefix: string|null`、非负整数 `offset`）、`package_review_start`（`owner`、`request`）及 `package_review_status`／`package_review_cancel`（`id`、`owner`）。request 包含 `action`（`check`、`update`、`rollback`、`recover-package`、`restore-config`）、`prefix`、`expected_revision` 和可空的 `target`、`channel`、`backup_id`、`expected_integrity`。元数据检查与已验证 dry-run 分开；配置还原返回独立文件审核，不宣称产物验证。
+
+状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。显示 schema 16、任务详情 1 及既有 runtime、来源、方案和偏好格式不变。

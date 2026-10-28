@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.11.0 任务浏览与版本审核
+
+使用[版本决定](releases/approvals/v3.11.0.json)，保留全部既有安装／runtime／宿主／容量门禁。版本管理回执额外要求仅本机检查、元数据／未验证结果、已验证升级／回退 dry-run、独立配置还原审核、取消及安装／配置字节保持不变，并要求安装态任务查看器及双编辑器旅程。按下文源码绑定证据提升流程发布四项原始已验证文件，恢复测试机显示／界面偏好。[实现与交付](development/task-version-review.zh-CN.md)。
+
 ## v3.10.0 外观与理解
 
 使用[版本决定](releases/approvals/v3.10.0.json)，保留全部安装／runtime／宿主／容量门禁，并要求安装包的新主题、场景和当前草稿文件诊断证据。验收工具变更采用下述源码等价复用规则，不单独要求第二轮完整矩阵。发布原始四个已核验文件，升级本机安装并恢复原显示／界面偏好。[实施与交付](development/appearance-preview-diagnosis.zh-CN.md)。

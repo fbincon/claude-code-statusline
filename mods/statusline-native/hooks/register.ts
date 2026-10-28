@@ -1,8 +1,9 @@
+import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
 import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
 import { colorDraft } from '../lib/editor/color-manager.ts';
 import { previewWidth } from '../lib/editor/preview-settings.ts';
 import { performSourceAction, closeSources } from '../lib/editor/source-manager.ts';
-import { taskDetailLines } from '../lib/editor/task-detail.ts';
+import { taskViewer, taskViewerView, taskViewerKey, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
 import type {
@@ -31,7 +32,7 @@ import { MIN_COLUMNS, MIN_ROWS, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
-import { withinBudget } from '../ui/frame.ts';
+import { withinBudget, frameElements } from '../ui/frame.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
@@ -167,6 +168,7 @@ async function load(
   state: Session,
   options: PluginOptions,
 ) {
+  if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   discard(state);
   const opening = state.epoch;
@@ -453,7 +455,8 @@ async function close($: EngineInterface, state: Session, options: PluginOptions)
     return;
   }
   try {
-    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     await $.ui.close({ id: PANE });
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -494,14 +497,13 @@ async function openEditor(
 
 /** Task host calls stay in this statically inspected entry; presentation is shared in core. */
 const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
-export interface TaskPaneState {
-  owned: boolean; loading: boolean; generation: number; offset: number;
-  language: Language; report: TaskDetails | null; error: LocalizedText | null; warning: LocalizedText | null;
-  lines: { report: TaskDetails; language: Language; width: number; value: string[] } | null;
+export interface TaskPaneState extends TaskViewer {
+  owned: boolean; epoch: number; ack: number; frameGeneration: number; chain: Promise<void>;
 }
 export function taskPaneState(): TaskPaneState {
-  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:null, warning:null, lines:null };
+  return {...taskViewer(),input:null,owned:false,epoch:0,ack:0,frameGeneration:0,chain:Promise.resolve()};
 }
+
 async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
   try {
     const preference=await callBackend($,options,'read_ui_preferences');
@@ -521,77 +523,94 @@ async function taskCommand($: EngineInterface, state: TaskPaneState, epoch: numb
   return state.owned && state.generation===epoch;
 }
 export async function startTaskDetails($: EngineInterface, state: TaskPaneState, options: PluginOptions): Promise<void> {
-  state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;state.warning=null;state.offset=0;state.owned=false;
-  if(await taskLanguage($,options,state,state.generation))await taskCommand($,state,state.generation);
+  const generation=state.generation+1,epoch=state.epoch+1;
+  Object.assign(state,taskPaneState(),{generation,epoch});
+  if(await taskLanguage($,options,state,generation))await taskCommand($,state,generation);
 }
 async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState, readLanguage=true): Promise<void> {
-  if(state.loading)return;
-  state.loading=true;state.error=null;const epoch=state.generation;
+  if(state.busy||state.closed)return;
+  state.busy=true;const generation=state.generation;
   $.ui.invalidate('ui.render');
   try {
     if(readLanguage) {
       const previous=state.language;
-      if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return;
+      if(!await taskLanguage($,options,state,generation)||!await taskCommand($,state,generation))return;
       if(previous!==state.language)await $.ui.open({id:TASK_PANE,title:t('task.title',state.language),closeOnEscape:true,rows:24,columns:88});
     }
     const session=await $.session.id();
+    if(!state.session)state.session=session;
     let host_agents: { observed_at:number; agents:{id:string;name:string|null}[] } | undefined;
-    try {
+    if(state.session===session)try {
       const agents=await $.agent.list();
       host_agents={observed_at:await $.clock.now(),agents:agents.slice(0,256).map(a=>({id:a.id,name:[...(a.name ?? a.description ?? '').replace(/[\p{Cc}\p{Cs}]/gu,'')].slice(0,256).join('') || null}))};
     }catch { /* Published evidence remains usable without a host snapshot. */ }
-    if(state.generation!==epoch)return;
-    const result=await callBackend($,options,'task_details',{session_id:session,...(host_agents?{host_agents}:{})});
-    if(state.generation!==epoch)return;
-    if(result.session_id!==session)throw new BackendError('invalid_request',localizedText('task.error.input'));
-    state.report=result;state.offset=0;
+    if(state.generation!==generation)return;
+    const result=await callBackend($,options,'task_details',{session_id:state.session,prompt_id:state.prompt,...(host_agents?{host_agents}:{})});
+    if(state.generation!==generation)return;
+    receiveTask(state,result);
   }catch(failure) {
-    if(state.generation===epoch)state.error=failureMessage(failure);
+    if(state.generation===generation)state.error=failureMessage(failure);
   }finally {
-    if(state.generation===epoch){state.loading=false;$.ui.invalidate('ui.render');}
+    if(state.generation===generation){state.busy=false;$.ui.invalidate('ui.render');}
   }
 }
+
 export function registerTaskDetails(on: On, options: PluginOptions, state: TaskPaneState): void {
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
     if(!state.owned)return next(e);
-    const epoch=++state.generation;state.loading=false;state.report=null;state.lines=null;state.error=null;state.offset=0;
-    if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return next(e);
+    await startTaskDetails($,state,options);
+    if(!state.owned)return next(e);
     const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
     if(!opened.isPlaced)return {text:tr('task.fallback')};
     await refreshTaskDetails($,options,state,false);return {};
   });
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
-    state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;return next(e);
+    state.generation++;state.epoch++;state.closed=true;state.busy=false;state.report=null;return next(e);
+  });
+  on('ui.message',{component:'Pane'},async($,e,next)=>{
+    if(e.requestId!==TASK_PANE||e.element!=='task-client-'+state.epoch||e.module!=='ui/client/surface.ts'||e.surface!=='terminal'||!state.owned||state.closed)return next(e);
+    const batch=parseBatch(e.data);
+    if(!batch){state.error=localizedText('task.fallback');$.ui.invalidate('ui.render');return {};}
+    const run=state.chain.then(async()=>{
+      if(batch.epoch!==state.epoch||state.closed)return {};
+      for(const message of batch.events){
+        if(message.seq<=state.ack)continue;
+        if(message.seq!==state.ack+1){state.error=localizedText('task.fallback');break;}
+        state.ack=message.seq;
+        const action=taskViewerKey(state,message.event);
+        if(action==='close'){await $.ui.close({id:TASK_PANE});break;}
+        if(action==='read')await refreshTaskDetails($,options,state);
+      }
+      $.ui.invalidate('ui.render');return {};
+    });
+    state.chain=run.then(()=>{},()=>{});return run;
   });
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
-    const {Box,Text,Button}=$.ui.resolve(e);
-    if(e.surface!=='terminal')return Text({...styles.text,children:[tr('task.fallback')]});
-    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(4,Math.min(10000,e.props.scroll.bodyRows));
+    if(e.surface!=='terminal')return $.ui.resolve(e).Text({...styles.text,children:[tr('task.fallback')]});
+    const {Box,Text,Button,Client}=$.ui.resolve(e);
+    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(6,Math.min(10000,e.props.scroll.bodyRows));
     for(;;) {
-    const capacity=Math.max(1,height-3);
-    const lineWidth=Math.max(2,width-2);
-    if(state.report && (state.lines?.report!==state.report || state.lines.language!==state.language || state.lines.width!==lineWidth))
-      state.lines={report:state.report,language:state.language,width:lineWidth,value:taskDetailLines(state.report,state.language,lineWidth)};
-    const lines=state.report ? state.lines!.value : [tr(state.loading?'profiles.loading':'task.unknown')];
-    const offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
-    const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
-    const pane=Box({width,height,flexDirection:'column',children:[
-      Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly')),width)]}),
-      ...lines.slice(offset,offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
-      ...((state.error||state.warning)?[Text({...styles.error,wrap:'truncate',children:[clip([state.warning,state.error].filter((value):value is LocalizedText=>value!==null).map(value=>renderMessage(value,state.language)).join(' · ').replace(/[\p{Cc}\p{Cs}]/gu,''),width)]} )]:[]),
-      Box({flexDirection:'row',columnGap:1,children:[
-        Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{state.offset=Math.max(0,state.offset-capacity);$.ui.invalidate('ui.render');}}),
-        Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{state.offset=Math.min(Math.max(0,lines.length-capacity),state.offset+capacity);$.ui.invalidate('ui.render');}}),
-        Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
-        Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
-      ]}),
-    ]});
-    if(withinBudget(pane)){state.offset=offset;return pane;}
-    if(height>4)height=Math.max(4,Math.floor(height*.75));
-    else if(width>32)width=Math.max(32,Math.floor(width*.75));
-    else return Text({...styles.text,children:[tr('task.fallback')]});
+      const lines=taskViewerView(state,Math.max(2,width-2),Math.max(1,height-3));
+      const {elements,frame}=frameElements();
+      elements.Text({...styles.muted,wrap:'truncate',children:[clip(tr('task.viewer.help_read'),width)]});
+      const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
+      const pane=Box({width,height,flexDirection:'column',children:[
+        Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.busy?tr('profiles.loading'):tr('task.readonly')),width)]}),
+        ...lines.map(row=>Text({...styles.text,bold:row.selected,wrap:'truncate',children:[row.text]})),
+        Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:1,props:{epoch:state.epoch,ack:state.ack,generation:++state.frameGeneration,columns:width,rows:1,displayColumns:width,displayRows:1,language:state.language,busy:false,frame}}),
+        Box({flexDirection:'row',columnGap:1,children:[
+          Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{taskViewerKey(state,{key:'pageup'});$.ui.invalidate('ui.render');}}),
+          Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{taskViewerKey(state,{key:'pagedown'});$.ui.invalidate('ui.render');}}),
+          Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
+          Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
+        ]}),
+      ]});
+      if(withinBudget(pane))return pane;
+      if(height>6)height=Math.max(6,Math.floor(height*.75));
+      else if(width>32)width=Math.max(32,Math.floor(width*.75));
+      else return Text({...styles.text,children:[tr('task.fallback')]});
     }
   });
 }
@@ -626,7 +645,8 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await startTaskDetails($, taskDetails, options);
     state.ownsCommand = false;
-    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -664,7 +684,8 @@ export const register: Register = (on, options) => {
       $.ui.invalidate('ui.render');
       return { deny: state.view.error };
     }
-    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     const result = await next(e);
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -754,6 +775,10 @@ export const register: Register = (on, options) => {
             }finally{view.busy=false;if(state.diagnosisTimer===timer)state.diagnosisTimer=null;$.ui.invalidate('ui.render');}
           });
           state.diagnosisTimer=timer;
+        }
+        else if (effect === 'packages' && state.view.editor?.packages) {
+          const view=state.view.editor.packages;await performPackage(view,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+          if(view.closed)state.view.editor.packages=null;
         }
         else if (effect === 'sources' && state.view.editor) {
           state.writing=true;
@@ -848,7 +873,7 @@ export const register: Register = (on, options) => {
       width >= MIN_COLUMNS &&
       height >= MIN_ROWS &&
       !state.writing &&
-      !editor?.diagnosis && state.previewKey !== key
+      !editor?.diagnosis && !editor?.packages && state.previewKey !== key
     ) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;

@@ -1,3 +1,4 @@
+import { isPackageResult } from './package-validation.js';
 import { isScenario } from './preview-settings.js';
 import { validAlignments } from './alignments.js';
 import { GRADIENT_KEYS, validGradient } from './gradients.js';
@@ -477,6 +478,8 @@ export function parseResponse<O extends Operation>(
     if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {
     if (!isDraft(result.draft)) fail();
+  } else if (operation.startsWith('package_')) {
+    if (!isPackageResult(operation,result)) fail();
   } else if (operation.startsWith('source')) {
     if (!isSourceResult(operation,result)) fail();
   } else if (operation === 'profiles_read' || operation === 'profiles_apply') {

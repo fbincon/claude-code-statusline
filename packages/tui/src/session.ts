@@ -1,3 +1,5 @@
+import { performPackage, closePackage } from '@fbincon/statusline-core/editor/package-manager';
+import { readTask } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
 import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
@@ -32,8 +34,8 @@ export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
 export class Session {
     private previewKey = '';
     private explanationKey = '';
-    constructor(public readonly state: State, public readonly backend: Backend, public readonly guard: () => void = () => { }) { }
-    static async open(backend: Backend, language?: Language, guard?: () => void): Promise<Session> {
+    constructor(public readonly state: State, public readonly backend: Backend, public readonly guard: () => void = () => { }, public languageOverride?: Language) { }
+    static async open(backend: Backend, language?: Language, guard?: () => void, languageOverride?: Language): Promise<Session> {
         const description = await backend.request('describe'), current = await backend.request('read'), preference = await backend.request('read_ui_preferences');
         if (description.backend_version !== current.backend_version)
             throw new BackendError('backend_version_mismatch', text('native.hooks.register.the_backend_changed_while_opening_reopen_the_editor'));
@@ -42,11 +44,11 @@ export class Session {
         const state = new State(description, current, language ?? preference.ui_language);
         if (preference.warning)
             state.notice(preference.warning);
-        return new Session(state, backend, guard);
+        return new Session(state, backend, guard, languageOverride);
     }
     async preview(columns: number, rows: number): Promise<void> {
         const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-        if(e.diagnosis)return;
+        if(e.diagnosis || e.taskViewer || e.packages)return;
         const key = JSON.stringify([draft, width,e.previewScenario]);
         if(e.explanation) {
             const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
@@ -71,6 +73,8 @@ export class Session {
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
             this.guard();
+            if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend);if(e.packages.closed)e.packages=null;return null;}
+            if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
             if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
             if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources') await performSourceAction(e,this.backend);
@@ -78,6 +82,7 @@ export class Session {
             else if (effect === 'language') {
                 const result = await this.backend.request('set_ui_language', { ui_language: state.pendingLanguage });
                 state.language = result.ui_language;
+                if(this.languageOverride)this.languageOverride=result.ui_language;
                 state.pendingLanguage = null;
                 state.notice('');
             }
@@ -171,6 +176,6 @@ export class Session {
             this.failure(error);
             if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
             return outcome('error', this.state.language, 2, this.state.message);
-        } finally { await closeSources(this.state.editor,this.backend); }
+        } finally { if(this.state.editor.packages)await closePackage(this.state.editor.packages,this.backend); await closeSources(this.state.editor,this.backend); }
     }
 }

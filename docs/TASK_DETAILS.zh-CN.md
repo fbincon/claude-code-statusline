@@ -16,6 +16,21 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 
 任务命令描述和首次标题在读取界面语言后生成。任务读取失败仍使用已读取语言，刷新／重开重新读取偏好；偏好不可读时提示并回退英语，不阻止任务读取。高窗格会缩小可见页以满足宿主容量，完整报告仍可翻页。
 
+## 外部任务查看器与阅读控件
+
+独立查看器不依赖 Native 面板或已安装的配置编辑器：
+
+```sh
+claude-statusline task view --session-id SESSION_ID
+claude-statusline --language zh-CN task view --session-id SESSION_ID --prompt-id PROMPT_ID --config-dir "/path/to/config"
+```
+
+外部配置编辑器的“设置”页也提供“任务详情”。输入会话 ID 和可选任务 ID，Tab 切换输入项，Enter 读取。返回时保留显示草稿、编辑目标及未决保存状态。独立命令需要交互终端；非交互文本／JSON 继续使用 `task show`。
+
+两端共享阅读控件：方向键选择，Page Up/Down 或 J/K 翻页，`/` 按名称／ID 搜索，`F` 切换已观测的代理状态，左右键或 Enter 展开／折叠选中代理，`E` 显示／隐藏证据。`S` 编辑会话／任务身份，任务 ID 留空沿用已发布的当前任务指针。默认显示摘要及全部状态；搜索不区分大小写，匹配子节点保留父级上下文。外部查看器不会推测仅 Native 宿主提供的名称。
+
+会话与解析出的任务身份固定在滚动正文上方。刷新及缩放尽量保留原选中项；切换任务时重置任务专属阅读状态。刷新失败时保留上次成功报告及原读取时间，并显示错误；没有观测的有效报告与读取失败分别处理。Q／Escape 关闭或取消输入，Ctrl+G 也可取消输入；Native Escape 沿用宿主焦点行为。
+
 ## 理解证据
 
 - **任务总耗时**复用现有生命周期计时和终态冻结值。

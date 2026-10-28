@@ -4,11 +4,14 @@
 
 更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.10.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。其余十项新增工作包及 SHOWCASE-01 保持 NOT_STARTED，尚未分配版本或日期。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片正在实施，目标 v3.11.0。其余八项新增工作包及 SHOWCASE-01 保持 NOT_STARTED，尚未分配版本或日期。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
 **导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
+
+
+TASK-02 和 UPDATE-02 第一片正在实施，目标 v3.11.0；UPDATE-02 第二／三片仍未开始。[实施记录](task-version-review.zh-CN.md)。
 
 <a id="baseline"></a>
 
@@ -72,8 +75,8 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | DONE |
 | 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | DONE |
 | 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | DONE |
-| 3 任务入口 | [TASK-02](development-plan.zh-CN.md#task-02) | 外部只读任务浏览，再完善两端阅读控制 | 既有任务模型／服务与 I18N-01 语言处理 | NOT_STARTED |
-| 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 第一片状态／审核，第二片执行／恢复，第三片受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | NOT_STARTED |
+| 3 任务入口 | [TASK-02](development-plan.zh-CN.md#task-02) | 外部只读任务浏览，再完善两端阅读控制 | 既有任务模型／服务与 I18N-01 语言处理 | IN_PROGRESS |
+| 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 第一片状态／审核，第二片执行／恢复，第三片受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | IN_PROGRESS |
 | 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 前两片提供可读状态和 GitHub 检查，后续第三片复用／清理绑定 | 既有来源服务；FIX-03 生命周期规则 | NOT_STARTED |
 | 4 调度 | [COMMAND-02](development-plan.zh-CN.md#command-02) | 适用活跃会话内单独审核的命令定时执行 | FIX-03；既有命令执行与活跃会话续租 | NOT_STARTED |
 | 5 连续色彩 | [APPEARANCE-06](development-plan.zh-CN.md#appearance-06) | 同一实际显示行内相邻色块背景连续渐变 | 既有拟合、分组、对齐与 Powerline 边缘颜色 | NOT_STARTED |

@@ -659,7 +659,7 @@ For rollback, stop Claude, use the Node entry to run `install --no-native-timing
 
 ### Reviewed package changes
 
-Use `claude-statusline update --check`, then `claude-statusline update` for the persistent global installation. The review resolves an exact target, verifies compatibility and refreshes matching integration. `rollback` chooses the previous successful version; configuration restoration is separate. [Version management and recovery](PACKAGE_MANAGEMENT.md) describes precise scripting, the v3.7.0 boundary and retained recovery entries.
+Both editors offer a local **Version and installation** page with explicit metadata and dry-run reviews. To execute an upgrade, use `claude-statusline update --check`, then `claude-statusline update` for the persistent global installation. The review resolves an exact target, verifies compatibility and refreshes matching integration. `rollback` chooses the previous successful version; configuration restoration is separate. [Version management and recovery](PACKAGE_MANAGEMENT.md) describes precise scripting, the v3.7.0 boundary and retained recovery entries.
 
 ### Manual npm replacement
 

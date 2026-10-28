@@ -11,6 +11,7 @@ const focus: Shortcut = { key: 'Esc', label: 'focus' };
 export function editorShortcuts(view: View): Shortcut[][] {
   const e = view.editor;
   if (!e) return [[focus]];
+  if(e.packages)return [[{key:'Enter',label:'select'},{key:'R',label:'reload'},{key:'C',label:'cancel'},{key:'Q',label:'close'},focus],[{key:'↑↓',label:'select'},{key:'PgUp/PgDn',label:'page'},{key:'L',label:'reload'}]];
   if (view.busy) return [[focus]];
   if(e.colors)return [[{key:'Ctrl+S',label:'accept draft'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'Enter',label:'edit'}]];
   if(e.diagnosis)return [[{key:'Enter',label:'accept'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'PgUp/PgDn',label:'scroll'}]];

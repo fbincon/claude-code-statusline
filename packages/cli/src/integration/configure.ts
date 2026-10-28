@@ -12,7 +12,7 @@ import { localizedError } from '../errors.js';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import type { ConfigTarget } from '@fbincon/statusline-core/contracts/ui';
-export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env, target?: ConfigTarget): Promise<number> {
+export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env, target?: ConfigTarget, explicitLanguage?: Language): Promise<number> {
     const configDir = service.context.configDir, rawResult = env[RESULT_ENV];
     let path: string | undefined;
     if (rawResult !== undefined) {
@@ -42,7 +42,7 @@ export async function configure(service: ConfigurationService, language: Languag
                 const response = protocol.handle(requestText(operation, payload), error => { throw error; });
                 return parseResponse(operation, { exitCode: response.status, stdout: pythonJson(response.response), stderr: '' });
             } };
-        const session = await Session.open(backend, language, guard);
+        const session = await Session.open(backend, language, guard, explicitLanguage);
         result = await session.run({ deadline: stopAt, environment: env });
     }
     catch (error) {

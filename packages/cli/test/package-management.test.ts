@@ -273,3 +273,47 @@ test('independent execution preserves relative prefix/config paths and treats a 
     assert.equal(prepared.environment.KEEP, 'literal');
     assert.equal(managementPaths(['update'], { CLAUDE_CONFIG_DIR: '   ' }, f.temporary).environment.CLAUDE_CONFIG_DIR, undefined);
 });
+
+// Editor reviews share UPDATE-01, but never enter its mutation/transaction branch.
+import { inspectPackage } from '../src/management/inspection.js';
+import { reviewPackage } from '../src/management/review.js';
+import { startPackageReview, packageReviewJob, reviewFolder } from '../src/management/review-jobs.js';
+import type { PackageReviewRequest } from '@fbincon/statusline-core/contracts/ui';
+test('local package inspection performs no npm calls and reports corrupt backups without repairing them', t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
+    const state=inspectPackage(context,f.prefix);
+    assert.equal(state.current,'3.8.0');assert.equal(state.prefix,f.prefix);assert.equal(f.state().metadata,0);assert(!fs.existsSync(f.configDir));
+    const operation=startOperation(f.configDir,f.prefix,'3.9.0',f.layout.registry,productIdentity(f.layout.root,f.prefix)!);
+    operation.snapshot=Object.fromEntries(Object.keys(configurationBytes(f.configDir)).map(key=>[key,'0'.repeat(64)]));saveOperation(operation);
+    const raw=fs.readFileSync(operationPath(operation));
+    const result=inspectPackage(context,f.prefix);
+    assert.equal(result.pending?.backup,'invalid');assert.equal(result.history[0]?.backup,'invalid');
+    assert.deepEqual(fs.readFileSync(operationPath(operation)),raw);
+});
+test('editor metadata and verified reviews distinguish artifact verification and preserve all installed bytes',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},before=fs.readFileSync(join(f.layout.root,'candidate.json'));
+    const status=inspectPackage(context,f.prefix);
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:status.revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const metadata=await reviewPackage(request,context,f.options);assert.equal(metadata.artifact_verified,false);assert.equal(metadata.target,'3.9.0');
+    const verified=await reviewPackage({...request,action:'update',target:metadata.target,channel:null,expected_integrity:metadata.integrity},context,f.options);
+    assert.equal(verified.artifact_verified,true);assert.equal(f.state().replacements,0);
+    assert.deepEqual(fs.readFileSync(join(f.layout.root,'candidate.json')),before);assert(!fs.existsSync(f.configDir));assert(!fs.existsSync(pendingPath(f.prefix)));
+});
+test('stale identity and changed integrity block editor reviews before downloading or replacing anything',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
+    const request:PackageReviewRequest={action:'update',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:'3.9.0',channel:null,backup_id:null,expected_integrity:'sha512-'+Buffer.alloc(64).toString('base64')};
+    f.npm.download=async()=>assert.fail('Unreviewed integrity must not be downloaded');
+    await assert.rejects(reviewPackage(request,context,f.options),/integrity/);
+    f.write('claude-statusline.json',defaultDisplay());
+    await assert.rejects(reviewPackage(request,context,f.options),/conflict/);assert.equal(f.state().replacements,0);
+});
+test('package review worker ownership prevents another view from cancelling it',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null};
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const owner='viewer-test-owner-123456789',job=startPackageReview(context,request,owner),folder=reviewFolder(job.id);
+    assert.throws(()=>packageReviewJob(context,job.id,'viewer-other-owner-123456789',true),/identity/);
+    assert(!fs.existsSync(join(folder,'cancel.json')));
+    assert.equal(packageReviewJob(context,job.id,owner,true).state,'cancelled');
+    const until=Date.now()+15000;while(fs.existsSync(folder)&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,50));
+    assert(!fs.existsSync(folder),'Cancelled worker cleans its private temporary directory');assert(!fs.existsSync(f.configDir));
+});

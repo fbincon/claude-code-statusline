@@ -155,6 +155,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { taskCommand } = await import('./tasks/command.js');
             const { runtimeContext } = await import('./runtime/context.js');
             try {
+                if(args[0]==='view'){const {taskViewCommand}=await import('./tasks/view.js');return await taskViewCommand(args,environment.runtime??runtimeContext(configDir),language,selectedLanguage as Language|undefined);}
                 stdout(taskCommand(args, environment.runtime ?? runtimeContext(configDir), language) + '\n');
                 return 0;
             } catch (error) {
@@ -212,7 +213,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { configure } = await import('./integration/configure.js');
             const { ProfileService } = await import('./config/profiles.js');
             const { editorTarget } = await import('./config/profile-command.js');
-            return configure(service, language, stdout, stderr, process.env, editorTarget(args, new ProfileService(service), process.cwd()));
+            return configure(service, language, stdout, stderr, process.env, editorTarget(args, new ProfileService(service), process.cwd()), selectedLanguage as Language|undefined);
         }
         if (command === 'ui') {
             const { PROTOCOL_VERSION } = await import('@fbincon/statusline-core/contracts/ui');

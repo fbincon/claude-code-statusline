@@ -7,6 +7,7 @@ import type { Writable } from 'node:stream';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { npmEntry, readTar } from '../build/files.js';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { compareVersions } from '@fbincon/statusline-core/management/compatibility';
 import { HISTORICAL_RELEASES, type HistoricalRelease } from './historical-releases.js';
 import { prepareHistorical } from './historical-inputs.js';
@@ -92,7 +93,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const targetBytes = fs.readFileSync(input.artifact), legacyBytes = fs.readFileSync(input.legacy);
     const sri = (bytes: Buffer) => 'sha512-' + createHash('sha512').update(bytes).digest('base64');
     let registry = '', badIntegrity = false;
+    let registryRequests=0;
     const server = createServer((request, response) => {
+        registryRequests++;
         if (request.url === '/target.tgz' || request.url === '/legacy.tgz') {
             response.end(request.url === '/target.tgz' ? targetBytes : legacyBytes);
             return;
@@ -149,7 +152,8 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         stdout: string;
         stderr: string;
     }>((resolve, reject) => {
-        const id = ++sequence, started = performance.now(), label = args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
+        const operation=args[1]==='ui'&&inputData?JSON.parse(inputData).operation:null;
+        const id = ++sequence, started = performance.now(), label = operation?'ui '+operation:args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
         trace({ phase: 'start', id, command: label, argv: args[0] === '--input-type=module' ? ['<controlled crash checkpoint>'] : args });
         const child = spawn(input.node, args, { cwd: input.temporary, env, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
         let stdout = '', stderr = '';
@@ -255,7 +259,33 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert.equal(JSON.parse(fs.readFileSync(settingsPath, 'utf8')).env.KEEP, 'unchanged');
         const render = await invoke([entry, 'render'], true, JSON.stringify({ model: { display_name: 'After version recovery' } }));
         assert(render.stdout.includes('After version recovery'));
-        return { cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
+        const reviewTimingStart=timings.length;
+        const ui=async(operation:string,payload:unknown)=>JSON.parse((await invoke([entry,'ui','--config-dir',configDir],true,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload}))).stdout).result;
+        const names=['settings.json','claude-statusline.json','claude-statusline-profiles.json','claude-statusline-sources.json','claude-statusline-runtime.json','claude-statusline-native.json','claude-statusline-features.json','statusline-ui.json','statusline_runtime/installation.json'];
+        const configuration=()=>Object.fromEntries(names.map(name=>[name,fs.existsSync(join(configDir,name))?fs.readFileSync(join(configDir,name)).toString('base64'):null]));
+        const savedConfiguration=configuration(),savedPackage=fs.readFileSync(join(root,'candidate.json')),entryStamp=fs.statSync(entry).mtimeMs;
+        const requestsBefore=registryRequests;
+        const local=await ui('package_status',{prefix,offset:0});
+        assert.equal(local.current,targetVersion);assert.equal(registryRequests,requestsBefore);
+        const owner='viewer-acceptance-'+Date.now();
+        const request={action:'check',prefix,expected_revision:local.revision,target:targetVersion,channel:null,backup_id:null,expected_integrity:null};
+        const finished=async(job:any)=>{
+            const stop=Date.now()+VERSION_OPERATION_MS;
+            while(job.state==='running'&&Date.now()<stop){await new Promise(resolve=>setTimeout(resolve,250));job=await ui('package_review_status',{id:job.id,owner});}
+            assert.equal(job.state,'complete',JSON.stringify(job));return job;
+        };
+        const metadata=await finished(await ui('package_review_start',{owner,request}));assert.equal(metadata.review.artifact_verified,false);
+        await ui('package_review_cancel',{id:metadata.id,owner});
+        const verified=await finished(await ui('package_review_start',{owner,request:{...request,action:'update',expected_integrity:metadata.review.integrity}}));
+        assert.equal(verified.review.artifact_verified,true);await ui('package_review_cancel',{id:verified.id,owner});
+        const rollback=await finished(await ui('package_review_start',{owner,request:{...request,action:'rollback',target:historicalVersion}}));
+        assert.equal(rollback.review.artifact_verified,true);await ui('package_review_cancel',{id:rollback.id,owner});
+        const restoration=await finished(await ui('package_review_start',{owner,request:{...request,action:'restore-config',target:null,backup_id:marker.id}}));
+        assert.equal(restoration.review.action,'restore-config');await ui('package_review_cancel',{id:restoration.id,owner});
+        const cancelled=await ui('package_review_start',{owner,request});assert.equal((await ui('package_review_cancel',{id:cancelled.id,owner})).state,'cancelled');
+        assert.deepEqual(configuration(),savedConfiguration);assert.deepEqual(fs.readFileSync(join(root,'candidate.json')),savedPackage);assert.equal(fs.statSync(entry).mtimeMs,entryStamp);assert(!transaction());
+        const editorReview={local_reads_no_network:true,metadata_unverified:true,verified_dry_run:true,rollback_review:true,restore_review:true,cancellation:true,configuration_unchanged:true,package_unchanged:true,operation_timings:timings.splice(reviewTimingStart)};
+        return { editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
         server.closeAllConnections();

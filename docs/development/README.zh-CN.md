@@ -1,6 +1,8 @@
 # 开发指南
 
 [English](README.md) | **简体中文**
+[任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
+
 
 [外观、样例场景与显式文件诊断](appearance-preview-diagnosis.zh-CN.md)记录 APPEARANCE-05、PREVIEW-01、EXPLAIN-02。
 

@@ -1,3 +1,5 @@
+import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
+import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';
 import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '@fbincon/statusline-core/editor/preview-settings';
@@ -17,7 +19,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -43,7 +45,7 @@ export interface Row extends SettingRow {
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
 const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
 const pages = ['main', 'subagents', 'settings', 'layout'] as const;
-const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Preview', 'Interface'];
+const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Inspection', 'Preview', 'Interface'];
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
     editor: Editor;
@@ -93,6 +95,7 @@ export class State {
             row('preview-scenario','Sample scenario',e.previewScenario,'Preview','choice'),row('preview-width','Preview width',e.previewWidth,'Preview','choice'),
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
             ...['diagnose-file','component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['task-details','package-management'].map(key=>row(key,key,'','Inspection','action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -204,6 +207,8 @@ export class State {
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if(e.packages)return packageKey(e.packages,event);
+        if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
         if(e.diagnosis)return diagnosisKey(e,event);
         if(e.colors)return colorsKey(e,event,this.language);
         if(ctrl&&k.toLowerCase()==='l'&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
@@ -362,6 +367,8 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
+            if(row.key==='package-management'){e.packages=packageManager();return 'packages';}
+            if(row.key==='task-details'){e.taskViewer=taskViewer('',null,this.language);return null;}
             if(row.key==='diagnose-file'){openDiagnosis(e);return null;}
             if(openColors(e,row.key))return null;
             if (row.key === 'row-alignment') { openAlignments(e); return null; }

@@ -1,3 +1,4 @@
+import { packageManager, packageKey } from '../editor/package-manager.ts';
 import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
 import { openColors, colorsKey } from '../editor/color-manager.ts';
 import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
@@ -20,7 +21,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -42,6 +43,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e) e.setSaveState(view.uncertain ? 'unknown' : view.busy ? 'pending' : 'idle');
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if(e.packages)return packageKey(e.packages,event);
   if(e.diagnosis)return diagnosisKey(e,event);
   if(e.colors)return colorsKey(e,event,view.language ?? 'en');
   if(event.ctrl&&key.toLowerCase()==='l'&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
@@ -218,6 +220,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     else if (e.setting === 'row-alignment') { openAlignments(e); return null; }
     else if (e.setting === 'component-groups') { openGroups(e); return null; }
     else if (e.setting === 'sources') {openSources(e);return 'sources';}
+    else if (e.setting === 'package-management') {e.packages=packageManager();return 'packages';}
     else if (e.setting === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
     else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }
     else if(e.setting==='item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
