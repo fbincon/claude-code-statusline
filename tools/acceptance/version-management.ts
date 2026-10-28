@@ -300,7 +300,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             let controlEntry=entry;
             const control=async(operation:string,payload:unknown)=>{
                 const response=JSON.parse((await invoke([controlEntry,'ui','--config-dir',configDir],true,JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload}))).stdout);
-                assert(response.ok,JSON.stringify(response));return response.result;
+                assert.equal(response.protocol_version,PROTOCOL_VERSION);assert(Object.hasOwn(response,'result'),JSON.stringify(response));return response.result;
             };
             const review=async(action:string,target:string|null,backup_id:string|null=null)=>{
                 const status=await control('package_status',{prefix,offset:0});
@@ -327,6 +327,8 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             const retained=await control('package_execute_status',{id:down.id});assert.equal(retained.state,'complete');
             const up=await execute(await review('update',targetVersion));
             assert.equal(await version(),'claude-statusline '+targetVersion);assert.equal(up.results.integration,true);
+            await execute(await review('restore-config',null,up.transaction_id));
+            await execute(await review('rollback',historicalVersion));
             // Reuse the existing real-npm crash boundary, then recover through the
             // same retained controller that survived a downgrade and an upgrade.
             const crashAgain=await invoke(['--input-type=module','-e',crash],false);assert.notEqual(crashAgain.code,0);
@@ -334,7 +336,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             const afterCrash=fs.statSync(entry).mtimeMs;
             const recovered=await execute(await review('recover-package',targetVersion));
             assert.equal(recovered.transaction_id,pendingId);assert.equal(fs.statSync(entry).mtimeMs,afterCrash);assert(!fs.existsSync(markerPath));
-            const restored=await execute(await review('restore-config',null,up.transaction_id));
+            const restored=await execute(await review('restore-config',null,recovered.transaction_id));
             assert.equal(restored.results.configuration,true);assert.equal(restored.results.package,null);
             assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline.json')),display);
             assert.deepEqual(fs.readFileSync(join(configDir,'claude-statusline-profiles.json')),profiles);

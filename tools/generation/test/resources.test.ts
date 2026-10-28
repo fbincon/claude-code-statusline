@@ -27,7 +27,7 @@ test('tests.i18n.test_translation.TranslationTests.test_catalogue_translations_a
     assert.equal(data.en![key], item[part]);
     for (const { code } of registry) assert.ok(data[code]![key]);
   }
-  for (const [name, content] of outputs()) assert.equal(fs.readFileSync(join(ROOT, name), 'utf8').replaceAll('\r\n', '\n'), content, name);
+  for (const [name, content] of outputs()) { assert.equal(fs.readFileSync(join(ROOT, name), 'utf8').replaceAll('\r\n', '\n'), content, name);if(name.startsWith('mods/'))assert(Buffer.byteLength(content)<1024*1024,'Native imported module exceeds host limit: '+name); }
 });
 
 test('tests.config.test_catalog.CatalogTests.test_wire_display_fields_and_generated_frontend_are_current', () => {
@@ -117,7 +117,7 @@ test('language removal identifies only active generator-owned modules', () => {
     fs.writeFileSync(join(run.directory, 'languages.json'), JSON.stringify([run.registry[0]]));
     fs.unlinkSync(join(run.directory, 'locales/fr.json'));
     const values = languageOutputs(run.root);
-    assert.deepEqual(obsoleteOutputs(values, run.root).sort(), ['packages/core/src/i18n/statusline/fr.ts'].sort());
+    assert.deepEqual(obsoleteOutputs(values, run.root).sort(), ['mods/statusline-native/lib/i18n/locales/fr.ts', 'packages/core/src/i18n/statusline/fr.ts'].sort());
     fs.writeFileSync(join(run.root, 'packages/core/src/i18n/statusline/private.ts'), '// handwritten');
     assert.throws(() => obsoleteOutputs(values, run.root), /Unowned/);
   } finally { run.close(); }

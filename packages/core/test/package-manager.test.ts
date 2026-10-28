@@ -1,3 +1,4 @@
+import { BackendError } from '../src/editor/backend.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { packageManager, packageView, packageKey, performPackage, closePackage, type PackageBackend } from '../src/editor/package-manager.js';
@@ -145,4 +146,10 @@ test('unknown saves block execution and accepted handoffs lock editing while clo
     const backend={request(operation:string){calls.push(operation);return operation==='package_execute_start'?execution:{...job(view.owner),state:'cancelled'};},control(_control:unknown,operation:string){calls.push(operation);return execution;}}as PackageBackend;
     await performPackage(view,backend,e);assert.equal(view.mode,'draft');assert.equal(calls.length,0);
     e.setSaveState('idle');view.draftPrepared=true;view.effect='execute';await performPackage(view,backend,e);assert.equal(e.packageLocked,true);assert.equal(e.canMutateDraft(),false);await closePackage(view,backend);assert(calls.includes('package_execute_detach'));assert(!calls.includes('package_execute_cancel'));
+});
+
+test('a definitive handoff refusal retains draft reservations and unlocks the original editor',async()=>{
+    const e=editorFixture(),view=packageManager();e.sourceDraftRegistered=true;view.job=verifiedJob(view);view.draftPrepared=true;view.effect='execute';const calls:string[]=[];
+    const backend={request(operation:string){calls.push(operation);throw new BackendError('conflict','Installation changed');}}as PackageBackend;
+    await performPackage(view,backend,e);assert.equal(e.packageLocked,false);assert.equal(e.sourceDraftRegistered,true);assert.deepEqual(calls,['package_execute_start']);assert.equal(view.execution,null);
 });

@@ -26,6 +26,15 @@ export function reviewHistory(context:InspectionContext,prefix:string,offset=0,a
             if(value.schema_version!==1||typeof value.transaction!=='string'||!value.current?.version)throw new PackageError('journal');
             referenced.add(value.transaction);if(value.previous)previous.add(JSON.stringify([value.previous.prefix,value.previous.version,value.previous.inventory_sha256]));
         }
+        // Queued workers can reference an existing snapshot before they create
+        // their own package transaction. Protect that input under the same lock.
+        for(const id of names(directory,join(root,'executions'))){
+            const record=readExecution(directory,id),status=executionStatus(directory,id);
+            if(status.state!=='complete'||status.running!==false){
+                if(record.request.backup_id)referenced.add(record.request.backup_id);
+                if(status.transaction_id)referenced.add(status.transaction_id);
+            }
+        }
         let selectedPending:string|null=null;
         if(fs.existsSync(pendingPath(prefix))){const path=pendingPath(prefix);safeTarget(prefix,path);const marker=JSON.parse(readRegular(path,65536).toString('utf8'));inputs.push(marker);if(marker.configDir!==directory||marker.prefix!==prefix)throw new PackageError('journal');selectedPending=marker.id;}
         for(const id of names(directory,join(root,'transactions'))){

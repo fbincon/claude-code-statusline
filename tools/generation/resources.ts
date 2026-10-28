@@ -84,7 +84,11 @@ export function languageOutputs(root = ROOT): Map<string, string> {
   const all = registryText + 'export const LOCALES = ' + json(data, 2, false) + ' as const;\nexport type MessageKey = keyof typeof LOCALES.en;\n';
   outputs.set('packages/core/src/i18n/registry.ts', registryText);
   outputs.set('packages/core/src/i18n/generated-locales.ts', all);
-  outputs.set('mods/statusline-native/lib/i18n/generated-locales.ts', all);
+  // Official hosts bound each imported module to 1 MiB. Keep the aggregate
+  // Node cache while splitting Native translations into one module per pack.
+  const imports=registry.map(({code},index)=>`import { MESSAGES as locale${index} } from './locales/${code}.ts';`).join('\n');
+  outputs.set('mods/statusline-native/lib/i18n/generated-locales.ts',registryText+imports+'\nexport const LOCALES = {'+registry.map(({code},index)=>JSON.stringify(code)+':locale'+index).join(',')+'} as const;\nexport type MessageKey = keyof typeof LOCALES.en;\n');
+  for(const {code}of registry)outputs.set('mods/statusline-native/lib/i18n/locales/'+code+'.ts',header+'export const MESSAGES = '+json(data[code],2,false)+' as const;\n');
   for (const { code } of registry) {
     const messages = Object.fromEntries(Object.entries(data[code]!).filter(([key]) => key.startsWith('statusline.')));
     outputs.set('packages/core/src/i18n/statusline/' + code + '.ts', header + 'export const MESSAGES = ' + json(messages, 2, false) + ' as const;\n');
@@ -204,7 +208,7 @@ export function obsoleteOutputs(values: ReadonlyMap<string, string>, root = ROOT
       obsolete.push(path);
     }
   }
-  for (const [directory, extension] of [['packages/core/src/i18n/statusline', '.ts']]) {
+  for (const [directory, extension] of [['packages/core/src/i18n/statusline', '.ts'], ['mods/statusline-native/lib/i18n/locales', '.ts']]) {
     const folder = join(root, directory!);
     if (!fs.existsSync(folder)) continue;
     for (const entry of fs.readdirSync(folder)) {

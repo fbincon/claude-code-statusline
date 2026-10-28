@@ -254,6 +254,7 @@ test('command failures retain successful observations and back off or pause by t
     assert.equal(f.service.diagnose('github',f.context()).automatic.state,'backoff');
     f.advance(600001);f.tick();f.finish('failed','missing_program');f.tick();
     assert.equal(f.service.diagnose('github',f.context()).automatic.state,'paused');
+    const attempts=f.launched.length;f.advance(3*86400000);f.tick();assert.equal(f.launched.length,attempts);assert.equal(f.service.diagnose('github',f.context()).automatic.state,'paused');
     const job=f.service.start('github',f.context(),'retry');await f.service.work(job.id);f.tick();
     assert.notEqual(f.service.diagnose('github',f.context()).automatic.state,'paused');
 });

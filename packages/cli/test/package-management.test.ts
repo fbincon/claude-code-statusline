@@ -367,6 +367,9 @@ test('protected cleanup retains current and previous inputs, rejects foreign mat
     const current=readInstallation(f.configDir,f.prefix)!;
     const old=startOperation(f.configDir,f.prefix,'3.7.1',f.layout.registry,null);old.after={...productIdentity(f.layout.root,f.prefix)!,version:'3.7.1'};finishOperation(old);
     const review=reviewHistory(context,f.prefix);assert.equal(review.uncertain,false);assert.equal(review.rows.find(row=>row.id===current.transaction)!.removable,false);assert.equal(review.rows.find(row=>row.id===old.id)!.removable,true);
+    const worker=await reviewedExecution(f);worker.request.backup_id=old.id;worker.value.state='running';worker.pid=process.pid;worker.token=processToken(process.pid)!;writeExecution(worker);
+    const reserved=reviewHistory(context,f.prefix);assert.equal(reserved.rows.find(row=>row.id===old.id)!.removable,false);assert.throws(()=>cleanupHistory(context,f.prefix,reserved.revision,[old.id]));
+    fs.rmSync(executionFolder(f.configDir,worker.value.id),{recursive:true,force:true});
     const extra=join(dirname(operationPath(old)),'foreign.txt');fs.writeFileSync(extra,'keep');assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[old.id]));assert(fs.existsSync(extra));fs.unlinkSync(extra);
     assert.throws(()=>cleanupHistory(context,f.prefix,review.revision,[current.transaction]));cleanupHistory(context,f.prefix,review.revision,[old.id]);assert(!fs.existsSync(operationPath(old)));assert(fs.existsSync(join(f.configDir,'statusline_runtime/package-management/transactions',current.transaction,'operation.json')));
 });

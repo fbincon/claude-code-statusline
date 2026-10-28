@@ -68,10 +68,10 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
                 if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
                 view.mode=editor.modified?'draft':'execute-confirm';view.selected=editor.modified?'draft-cancel':'execute-confirm';return;
             }
-            await closeSourceDraft(editor,backend);
             editor.packageLocked=true;
             const execution=await request(view,backend,'package_execute_start',{id:view.job!.id,owner:view.owner});
             view.execution=execution;view.mode='status';view.selected='execution';view.message=text('package.ui.editor_locked');
+            await closeSourceDraft(editor,{request:(operation,payload)=>request(view,backend,operation,payload)});
             if(view.closed||generation!==view.generation)await request(view,backend,'package_execute_detach',{id:execution.id,owner:view.owner});
         }else if(effect==='discard-draft'){
             if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
@@ -103,6 +103,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
             view.selected=effect==='cancel'?'message':job.review?'verification':job.error?'job-error':'job';
         }
     }catch(error){
+        if(effect==='execute'&&editor&&!view.execution&&error instanceof BackendError&&['arguments','conflict','integrity','identity','busy','development','permission','configuration','journal'].includes(error.code))editor.packageLocked=false;
         if(!view.closed&&generation===view.generation){view.message=error instanceof BackendError&&error.localization?error.localization:text('package.reason_io_error');view.selected='message';}
     }finally{if(generation===view.generation)view.busy=false;}
 }
