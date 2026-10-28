@@ -2214,5 +2214,7 @@ export const MESSAGES = {
   "package.ui.execution_state_failed": "실행 실패",
   "package.ui.execution_state_interrupted": "실행 중단",
   "package.ui.result_na": "해당 없음",
-  "sources.scope_all": "모두 / 공유"
+  "sources.scope_all": "모두 / 공유",
+  "package.ui.control": "보존할 관리 진입점: {executable} · {entry}",
+  "package.ui.control_help": "이 진입점을 보존하세요. 다운그레이드 후 Node로 열고 configure --config-dir {directory}를 전달하여 다시 확인할 수 있습니다."
 } as const;

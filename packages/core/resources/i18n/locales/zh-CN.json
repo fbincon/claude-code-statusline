@@ -2213,5 +2213,7 @@
   "package.ui.execution_state_failed": "执行失败",
   "package.ui.execution_state_interrupted": "执行中断",
   "package.ui.result_na": "不适用",
-  "sources.scope_all": "任意／共享"
+  "sources.scope_all": "任意／共享",
+  "package.ui.control": "保留管理入口：{executable} · {entry}",
+  "package.ui.control_help": "保留此入口；降级后使用 Node 打开，并传入 configure --config-dir {directory}，即可重新查看。"
 }

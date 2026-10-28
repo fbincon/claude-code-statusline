@@ -2214,5 +2214,7 @@ export const MESSAGES = {
   "package.ui.execution_state_failed": "Execution failed",
   "package.ui.execution_state_interrupted": "Execution interrupted",
   "package.ui.result_na": "not applicable",
-  "sources.scope_all": "any / shared"
+  "sources.scope_all": "any / shared",
+  "package.ui.control": "Retained manager: {executable} · {entry}",
+  "package.ui.control_help": "Keep this entry. Open it with Node and configure --config-dir {directory} to revisit after a downgrade."
 } as const;

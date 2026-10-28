@@ -1,5 +1,5 @@
 import { taskFixture } from './task-fixture.js';
-/** Installed, real Claude PTYs for #154/#155; no model or external-source calls. */
+/** Installed, real Claude PTYs for #154/#155; no model calls; one explicitly reviewed controlled-command journey. */
 import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';

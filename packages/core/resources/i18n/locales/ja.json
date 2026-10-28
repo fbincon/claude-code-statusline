@@ -2213,5 +2213,7 @@
   "package.ui.execution_state_failed": "実行失敗",
   "package.ui.execution_state_interrupted": "実行中断",
   "package.ui.result_na": "対象外",
-  "sources.scope_all": "すべて／共有"
+  "sources.scope_all": "すべて／共有",
+  "package.ui.control": "保持する管理入口: {executable} · {entry}",
+  "package.ui.control_help": "この入口を保持してください。ダウングレード後は Node で開き、configure --config-dir {directory} を渡して再確認できます。"
 }

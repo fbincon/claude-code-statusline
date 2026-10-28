@@ -2214,5 +2214,7 @@ export const MESSAGES = {
   "package.ui.execution_state_failed": "執行失敗",
   "package.ui.execution_state_interrupted": "執行中斷",
   "package.ui.result_na": "不適用",
-  "sources.scope_all": "任意／共用"
+  "sources.scope_all": "任意／共用",
+  "package.ui.control": "保留管理入口：{executable} · {entry}",
+  "package.ui.control_help": "保留此入口；降級後使用 Node 開啟，並傳入 configure --config-dir {directory}，即可重新查看。"
 } as const;

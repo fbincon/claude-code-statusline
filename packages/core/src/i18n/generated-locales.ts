@@ -2223,7 +2223,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "Execution failed",
     "package.ui.execution_state_interrupted": "Execution interrupted",
     "package.ui.result_na": "not applicable",
-    "sources.scope_all": "any / shared"
+    "sources.scope_all": "any / shared",
+    "package.ui.control": "Retained manager: {executable} · {entry}",
+    "package.ui.control_help": "Keep this entry. Open it with Node and configure --config-dir {directory} to revisit after a downgrade."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -4440,7 +4442,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "执行失败",
     "package.ui.execution_state_interrupted": "执行中断",
     "package.ui.result_na": "不适用",
-    "sources.scope_all": "任意／共享"
+    "sources.scope_all": "任意／共享",
+    "package.ui.control": "保留管理入口：{executable} · {entry}",
+    "package.ui.control_help": "保留此入口；降级后使用 Node 打开，并传入 configure --config-dir {directory}，即可重新查看。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -6657,7 +6661,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "執行失敗",
     "package.ui.execution_state_interrupted": "執行中斷",
     "package.ui.result_na": "不適用",
-    "sources.scope_all": "任意／共用"
+    "sources.scope_all": "任意／共用",
+    "package.ui.control": "保留管理入口：{executable} · {entry}",
+    "package.ui.control_help": "保留此入口；降級後使用 Node 開啟，並傳入 configure --config-dir {directory}，即可重新查看。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -8874,7 +8880,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "執行失敗",
     "package.ui.execution_state_interrupted": "執行中斷",
     "package.ui.result_na": "不適用",
-    "sources.scope_all": "任意／共用"
+    "sources.scope_all": "任意／共用",
+    "package.ui.control": "保留管理入口：{executable} · {entry}",
+    "package.ui.control_help": "保留此入口；降級後使用 Node 開啟，並傳入 configure --config-dir {directory}，即可重新查看。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -11091,7 +11099,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "実行失敗",
     "package.ui.execution_state_interrupted": "実行中断",
     "package.ui.result_na": "対象外",
-    "sources.scope_all": "すべて／共有"
+    "sources.scope_all": "すべて／共有",
+    "package.ui.control": "保持する管理入口: {executable} · {entry}",
+    "package.ui.control_help": "この入口を保持してください。ダウングレード後は Node で開き、configure --config-dir {directory} を渡して再確認できます。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -13308,7 +13318,9 @@ export const LOCALES = {
     "package.ui.execution_state_failed": "실행 실패",
     "package.ui.execution_state_interrupted": "실행 중단",
     "package.ui.result_na": "해당 없음",
-    "sources.scope_all": "모두 / 공유"
+    "sources.scope_all": "모두 / 공유",
+    "package.ui.control": "보존할 관리 진입점: {executable} · {entry}",
+    "package.ui.control_help": "이 진입점을 보존하세요. 다운그레이드 후 Node로 열고 configure --config-dir {directory}를 전달하여 다시 확인할 수 있습니다."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;
