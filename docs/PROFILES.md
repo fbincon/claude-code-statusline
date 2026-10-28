@@ -89,3 +89,7 @@ Main selection replaces its complete instances, groups, layout and metric settin
 Choose at most one of `--user`, `--profile NAME_OR_ID`, or `--project PATH`; omission means the user default. Project targets follow existing project resolution, including the user-default fallback. Named targets retain their name, ID and bindings; JSON results identify the target and affected shared projects. A selective profile import updates that target and cannot be combined with `--name` or `--overwrite`. The original full-profile import still creates a named copy.
 
 Unselected settings and local source bindings are preserved. Imported scopes lose local bindings; source registrations and permissions are never imported. Selective import preserves host settings, UI language and warning thresholds unless the display thresholds are explicitly selected. Dry runs, review cancellation and invalid inputs write nothing. Concurrent saved edits refuse the old revision.
+
+## Sample scenarios
+
+`config profile preview NAME --scenario warning --width 80` previews a saved scheme with the selected deterministic observations. Omit `--scenario` for the normal sample. JSON includes its scenario identity; neither preview path writes display settings.

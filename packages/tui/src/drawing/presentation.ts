@@ -22,6 +22,8 @@ export function fieldValue(row: Row, state: State): string {
         return input.buffer + ' _';
     }
     if (row.key === 'item:cost_rate_basis') return t('cost_rate.basis.' + row.value, language);
+    if(row.key==='preview-scenario')return t('preview.scenario.'+row.value,language);
+    if(row.key==='preview-width')return row.value==='auto'?t('preview.auto',language):row.value;
     if (row.key === 'item:presentation') return t('indicators.presentation.' + row.value, language);
     if (row.key === 'field:statusline_language') {
         return LANGUAGE_NAMES[editor.draft.display.statusline_language];
@@ -50,6 +52,8 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if(e.diagnosis)return tr('diagnosis.title');
+    if(e.colors)return tr('colors.title');
     if (e.alignmentManager) return tr('alignment.title');
     if (e.groupManager) return tr('composition.groups.title');
     if (e.sources) return tr('sources.title');

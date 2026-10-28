@@ -89,3 +89,7 @@ claude-statusline config profile import scheme.json --select subagent,statusline
 `--user`、`--profile NAME_OR_ID`、`--project PATH` 最多指定一个；省略时使用用户默认。项目目标沿用现有解析规则，包括回退到用户默认。命名目标保留名称、ID 与绑定，JSON 结果说明目标及共享项目。选择性方案导入更新该目标，不能与 `--name` 或 `--overwrite` 混用；原有完整方案导入仍创建命名副本。
 
 未选择设置及其本地来源绑定保留；导入区域清除本地绑定，来源注册和权限始终不导入。选择性导入保留 host 设置、界面语言和告警阈值，只有显式选择显示阈值才会修改后者。预览、取消和无效输入不写入；并发保存导致旧版本事务被拒绝。
+
+## 样例场景
+
+`config profile preview NAME --scenario warning --width 80` 使用所选确定性观测预览已保存方案，省略 `--scenario` 使用正常样例。JSON 包含场景身份，两种预览均不写显示配置。

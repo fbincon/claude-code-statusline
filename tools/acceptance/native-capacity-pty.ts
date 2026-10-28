@@ -55,6 +55,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     if (data.profiles?.library) { const { revision: _, ...library } = data.profiles.library; record(join(config, 'claude-statusline-profiles.json'), library); }
     if (data.sources?.library) { const { revision: _, ...library } = data.sources.library; record(join(config, 'claude-statusline-sources.json'), library); }
     const importPath = join(config, 'identical-display.json'); record(importPath, draft.display);
+    const diagnosticPath=join(config,'explicit input 中文.json');record(diagnosticPath,{session_id:'explicit-file',version:'2.1.310',model:{id:'File-input-model'},context_window:{used_percentage:95,remaining_percentage:5}});
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
@@ -100,7 +101,21 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         capture('before');
-        if (action === 'quick') {
+        if(action==='colors') {
+            await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
+            for(let i=0;i<80&&!/›.*Statusline theme/u.test(read());i++)await key('\x1b[B','find theme');
+            await until(text=>/›.*Statusline theme/u.test(text),'theme selected');await key('\r','open color selector');
+            await until(text=>text.includes('Colors and gradients'),'color selector visible');
+            await key('\x1b[B'.repeat(4)+'\r','preview ocean theme');await until(text=>text.includes('Ocean'),'new theme candidate visible');capture('after');await key('\x07','cancel candidate');
+        } else if(action==='scenarios') {
+            await key('\x16','warning sample');await until(text=>text.includes('Warning'),'sample identity visible');
+            await key('\x17','40-column sample');await until(text=>text.includes('40c'),'sample width visible');capture('after');
+        } else if(action==='diagnose-file') {
+            await key('\x0c','open file diagnosis');await until(text=>text.includes('Diagnose input file'),'file form visible');
+            await key('\r','edit file path');await key(diagnosticPath,'insert explicit input path');await key('\r','accept path');
+            await key('\x1b[B'.repeat(4)+'\r','diagnose input only');await until(text=>completed('diagnose_file')&&text.includes('File diagnosis output'),'file result visible');capture('after');
+            await key('\x07','back to form');await key('\x07','back to retained editor');
+        } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel quick setup');
@@ -167,12 +182,13 @@ try {
         ['background-gradient-2','background-gradient-2','pages'], ['agent-gradient-all','agent-gradient-all','pages'],
         ['gradient-text-128','gradient-text-128','pages'], ['tall-minimal','minimal-main','tall'],
         ['foreground-gradients','import-four-gradients','pages'], ['explanation','plain-main-w72','explain'],
+        ['theme-selector','plain-main-w72','colors'],['sample-scenarios','plain-main-w72','scenarios'],['input-file-diagnosis','plain-main-w72','diagnose-file'],
     ]) await runCase(name!, fixture!, action!);
-    for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import']]) await runCase(name!, fixture!, action!, true);
-    assert.equal(reports.length, 17); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file']]) await runCase(name!, fixture!, action!, true);
+    assert.equal(reports.length, 23); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 17 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === 23 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

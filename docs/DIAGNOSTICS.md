@@ -69,7 +69,7 @@ claude-statusline config enable cache-miss-reason
 
 The source is the [official statusline contract](https://code.claude.com/docs/en/statusline): cache causes require Claude Code 2.1.260+. Existing `prompt-cache` still uses the official main-conversation ratio, with all input tokens in its denominator, excluding subagent traffic. PR/MR behavior is unchanged.
 
-The current display schema is 15 and editor protocol is 25. Older packages cannot recognize `cache-miss-reason`; remove that component or restore an earlier configuration backup before downgrading. No automatic migration or configuration rewrite occurs during diagnosis.
+The current display schema is 16 and editor protocol is 26. Older packages cannot recognize `cache-miss-reason`; remove that component or restore an earlier configuration backup before downgrading. No automatic migration or configuration rewrite occurs during diagnosis.
 
 See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_ITEMS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
 
@@ -80,3 +80,11 @@ See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_
 ## Package operation diagnosis
 
 `update --check --json` reports metadata compatibility; `update --dry-run` additionally verifies the archive. `recover --package --dry-run --prefix PATH --config-dir PATH` inspects a retained package transaction. Keep `recover --restore-config BACKUP_ID` separate from package repair. See [version management](PACKAGE_MANAGEMENT.md) for exact-version scripting and recovery entries.
+
+## Diagnose a file from either editor
+
+Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter a path, select main/subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses only the supplied input; matching existing local observations can be explicitly included. The current unsaved display draft and its editing target remain in use. The existing CLI command keeps its documented default.
+
+The result identifies the actual file, scope, input/diagnosis times and evidence range. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
+
+Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).

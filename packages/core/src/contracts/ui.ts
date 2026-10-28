@@ -1,8 +1,9 @@
 /** Canonical editor protocol and static descriptors. Emit Mod copies with the TS resource generator. */
+import { THEME_IDS } from "../editor/themes.js";
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 25 as const;
+export const PROTOCOL_VERSION = 26 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
@@ -79,12 +80,7 @@ export const EDITOR_FIELDS = {
       "label": "Statusline theme",
       "group": "Appearance",
       "kind": "choice",
-      "choices": [
-        "classic",
-        "dark",
-        "light",
-        "terminal"
-      ],
+      "choices": THEME_IDS,
       "minimum": 0,
       "maximum": 10000,
       "nullable": false
@@ -492,7 +488,7 @@ export const FORMAT_DEFAULTS = {"model_name": "original", "number_format": "lega
 export type MainItemId = typeof MAIN_ITEM_IDS[number];
 export type SubagentItemId = typeof SUBAGENT_ITEM_IDS[number];
 export type Palette = "default" | "ansi";
-export type Theme = "classic" | "dark" | "light" | "terminal";
+export type Theme = typeof THEME_VALUES[number];
 export type PowerlineGlyph = "ascii" | "powerline";
 export type VisibilityRule = "always" | "git-dirty" | "nonzero" | "used-at-least";
 export type DirectoryStyle = "full" | "home" | "project-relative" | "basename";
@@ -504,7 +500,7 @@ export type UnavailableReason = "not_observed" | "unsupported_host" | "unknown_h
 export const MAIN_ITEM_IDS = generatedMAIN_ITEM_IDS;
 export const SUBAGENT_ITEM_IDS = generatedSUBAGENT_ITEM_IDS;
 export const PALETTE_VALUES = ["default", "ansi"] as const;
-export const THEME_VALUES = ["classic", "dark", "light", "terminal"] as const;
+export const THEME_VALUES = THEME_IDS;
 export const POWERLINEGLYPH_VALUES = ["ascii", "powerline"] as const;
 export const VISIBILITYRULE_VALUES = ["always", "git-dirty", "nonzero", "used-at-least"] as const;
 export const DIRECTORYSTYLE_VALUES = ["full", "home", "project-relative", "basename"] as const;
@@ -512,7 +508,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'diagnose_file', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
 export type Operation = typeof OPERATIONS[number];
 export interface ItemGuidance {
   source_kinds: string[];
@@ -662,7 +658,7 @@ export interface PowerlineDraft {
 }
 export interface DisplayDraft {
   groups: GroupDraft[];
-  schema_version: 15;
+  schema_version: 16;
   statusline_language: StatuslineLanguage;
   instances: InstanceDraft[];
   use_colors: boolean;
@@ -754,14 +750,15 @@ export interface SourceReview { source: SourceDefinition; review_revision: strin
 export interface SourceMutationResult extends SourcesResult { binding?: SourceReference; backup_dir: string | null }
 export interface PreviewResult {
   sample: true;
+  scenario?: string;
   main: Span[][];
   subagents: Span[][];
 }
 export const SAMPLE_REASONS = ['sample_group_hidden','sample_visible','sample_empty','sample_condition_hidden','sample_truncated','sample_priority_omitted','sample_width_omitted','sample_row_hidden','sample_spacer'] as const;
 export type SampleReason = typeof SAMPLE_REASONS[number];
-export const EXPLAIN_REASONS = ['alignment_active','alignment_collapsed','cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
+export const EXPLAIN_REASONS = ['collector_session_unobserved','diagnostic_input_missing_session','alignment_active','alignment_collapsed','cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
 export interface ExplainReason { code: string; origin: 'configuration' | 'local_configuration' | 'host_capability' | 'unknown'; }
-export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; }
+export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; style_reasons?:StyleDecision[]; }
 export interface ExplainInstance {
   id: string; type_id: string; enabled: boolean;
   reasons: ExplainReason[];
@@ -777,7 +774,9 @@ export interface ExplainResult {
 }
 export const LAYOUT_REASONS = ['group_hidden','visible','empty','condition_hidden','priority_omitted','width_omitted','row_hidden','spacer'] as const;
 export type LayoutReason = typeof LAYOUT_REASONS[number];
-export interface InstanceLayout { row_id: string; outcome: LayoutReason; truncated: boolean; }
+export const STYLE_REASONS = ['colors_disabled','background_gradient_requires_powerline','group_background_owned','threshold_warning','threshold_critical','color_quantized','contrast_protected'] as const;
+export interface StyleDecision {code: typeof STYLE_REASONS[number];owner_id:string|null}
+export interface InstanceLayout { row_id: string; outcome: LayoutReason; truncated: boolean; style_reasons?:StyleDecision[]; }
 export const EVIDENCE_STATUSES = ['observed','not_observed','invalid_field','source_unavailable','association_unavailable','session_mismatch','prompt_mismatch','stale','partial','collector_off','input_only','newer_than_input','unsupported_host','no_misses','unidentified'] as const;
 export type EvidenceStatus = typeof EVIDENCE_STATUSES[number];
 export interface DiagnosticEvidence {
@@ -954,6 +953,7 @@ export interface ResultMap {
   preview: PreviewResult;
   explain: ExplainResult;
   diagnose: DiagnoseResult;
+  diagnose_file: DiagnoseResult;
   apply: ApplyResult;
   import: TransferResult;
   review_import: ImportReviewResult;

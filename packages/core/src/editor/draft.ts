@@ -45,6 +45,9 @@ export class Editor {
   draft: Draft;
   baseline: ReadResult;
   page: Page = 'main';
+  previewScenario: import('./preview-settings.js').PreviewScenario = 'normal';
+  previewWidth = 'auto';
+  previewOffset = 0;
   advanced = false;
   adding = false;
   pickerSaved: {search:string;category:string;selected:string} | null = null;
@@ -52,6 +55,8 @@ export class Editor {
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
   quick: QuickSetup | null = null;
+  diagnosis: import('./diagnosis-view.js').DiagnosisView | null = null;
+  colors: import('./color-manager.js').ColorManager | null = null;
   explanation: ExplanationView | null = null;
   profiles: ProfileManager | null = null;
   sources: SourceManager | null = null;

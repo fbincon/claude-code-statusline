@@ -40,6 +40,7 @@ export function configurationReasons(draft: Draft, scope: Scope, node: InstanceD
       else if(!['text','spacer'].includes(node.type_id)) add('host_requirement_unknown','unknown');
       for(const [requirement,field] of [['native_timing','native_timing'],['live_metrics','live_metrics']] as const) {
         if(!requirements.includes(requirement)) continue;
+        if(facts.runtime?.[field])add('collector_session_unobserved','unknown');
         add(facts.runtime===null?'collector_unknown':facts.runtime[field]?field+'_on':field+'_off',facts.runtime===null?'unknown':'local_configuration');
       }
       return reasons;

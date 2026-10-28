@@ -30,6 +30,8 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    if(e.colors)return {actions:[['Ctrl+S',t('colors.apply',state.language)],hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('Enter','edit')]};
+    if(e.diagnosis)return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('PgUp/PgDn','scroll')]};
     if(e.saveState==='unknown')return {actions:[['Ctrl+K',t('editor.check_saved',state.language)]],help:[['Ctrl+Y',t('sources.title',state.language)]]};
     if (e.groupManager || e.alignmentManager) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [hint('↑↓','select'),hint('←→','adjust')] };
     if (e.sources) return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[['Ctrl+S',t('sources.save',state.language)],['R',t('sources.reload',state.language)]]};
@@ -76,6 +78,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     }
     const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
     if(!e.detail) actions.push(['Ctrl+P',t('quick.title',state.language)]);
+    actions.push(['Ctrl+V/W/N',t('preview.controls',state.language)]);
     if (e.detail) {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }

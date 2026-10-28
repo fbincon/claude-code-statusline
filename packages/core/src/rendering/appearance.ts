@@ -1,23 +1,21 @@
+import type { RenderTrace } from './trace.js';
 import type { DisplayDraft, ItemOptionsDraft, Scope } from '../contracts/ui.js';
 import { BY_SCOPE } from '../config/catalog.js';
 import * as styles from './styles.js';
 import { terminalColor } from './colors.js';
 import * as layout from './layout.js';
-const ROLES = ['model', 'directory', 'branch', 'percentage', 'tokens', 'timer'];
-const DARK = ['#f6e2b7', '#abdfa7', '#c8a9ee', '#f2b590', '#e990a9', '#8ed3d3'], LIGHT = ['#664515', '#205727', '#633487', '#864511', '#93284a', '#126168'];
-const BLOCK_DARK = ['#3c3548', '#234337', '#3d3155', '#543720', '#542b3c', '#1f4148'], BLOCK_LIGHT = ['#eee1c4', '#d6ecd4', '#e7dcf2', '#f5dfce', '#f4d8e1', '#d1ecec'];
-const ANSI = [3, 2, 5, 3, 5, 6], BLOCK_ANSI = [4, 2, 5, 3, 1, 6];
+import { THEME_ROLES as ROLES, ANSI_ROLES as ANSI, ANSI_BLOCKS as BLOCK_ANSI, themeDefinition } from '../editor/themes.js';
 export function color(value: string | null): styles.Color | null { return value === null || value === 'default' ? null : value.startsWith('ansi:') ? ['ansi', Number(value.slice(5))] : ['rgb', value]; }
 export function outputColor(value: styles.Color | null, config: DisplayDraft): styles.Color | null { return value !== null && config.palette === 'ansi' ? ['ansi', terminalColor(value, 16)!] : value; }
 const themes = styles.memo<string, Record<string, string>>(16, key => {
     const [theme, ansi] = JSON.parse(key) as [
         string,
         boolean
-    ], values = theme === 'light' ? LIGHT : DARK;
+    ], definition = themeDefinition(theme), values = definition.foreground;
     const result = Object.fromEntries(ROLES.map((role, i) => [role, styles.serialize({ bold: true, foreground: ansi || theme === 'terminal' ? ['ansi', ANSI[i]!] : ['rgb', values[i]!], background: null })]));
     result.size = result.percentage!;
-    result.git_error = styles.serialize({ bold: true, foreground: ansi || theme === 'terminal' ? ['ansi', 1] : ['rgb', theme === 'light' ? '#a02020' : '#f28686'], background: null });
-    result.separator = styles.serialize({ bold: false, foreground: ansi || theme === 'terminal' ? ['ansi', 8] : ['rgb', theme === 'light' ? '#58616b' : '#aab2bd'], background: null });
+    result.git_error = styles.serialize({ bold: true, foreground: ansi || theme === 'terminal' ? ['ansi', 1] : ['rgb', definition.critical], background: null });
+    result.separator = styles.serialize({ bold: false, foreground: ansi || theme === 'terminal' ? ['ansi', 8] : ['rgb', definition.separator], background: null });
     return result;
 });
 export function themeStyles(theme: string, ansi: boolean) { return themes(JSON.stringify([theme, ansi])); }
@@ -36,7 +34,7 @@ export function itemRole(item: string, scope: Scope): string {
     return roles[group] ?? 'timer';
 }
 export function baseStyle(config: DisplayDraft, item: string, scope: Scope, position?: number): styles.Style {
-    const role = itemRole(item, scope), index = position === undefined ? ROLES.indexOf(role) : position % ROLES.length;
+    const role = itemRole(item, scope), index = position === undefined ? (ROLES as readonly string[]).indexOf(role) : position % ROLES.length;
     if (config.separator_style === 'powerline') {
         let foreground: styles.Color, background: styles.Color;
         if (config.palette === 'ansi' || config.theme === 'terminal') {
@@ -44,9 +42,9 @@ export function baseStyle(config: DisplayDraft, item: string, scope: Scope, posi
             foreground = ['ansi', [3, 6].includes(BLOCK_ANSI[index]!) ? 0 : 15];
         }
         else {
-            const light = config.theme === 'light';
-            background = ['rgb', (light ? BLOCK_LIGHT : BLOCK_DARK)[index]!];
-            foreground = ['rgb', light ? '#202630' : '#f4f5f7'];
+            const definition = themeDefinition(config.theme);
+            background = ['rgb', definition.backgrounds[index]!];
+            foreground = ['rgb', definition.blockText];
         }
         return { bold: true, foreground, background };
     }
@@ -66,7 +64,7 @@ export function sequence(text: string, config: DisplayDraft, id: string, scope: 
         // Keep threshold and explicit foreground colors; only adjust inherited backgrounds.
         if (node.options.background === null && foreground !== null && styles.sameColor(foreground, background))
             background = config.palette === 'ansi' || config.theme === 'terminal' ? ['ansi', 0]
-                : ['rgb', config.theme === 'light' ? '#ffffff' : '#000000'];
+                : ['rgb', themeDefinition(config.theme).surface === 'light' ? '#ffffff' : '#000000'];
         return { ...unit, style: styles.serialize({ ...state,
             foreground, background,
         }) };
@@ -79,12 +77,13 @@ export function riskColor(used: number | null, config: DisplayDraft): styles.Col
     const critical = used >= limits.critical;
     if (config.palette === 'ansi' || config.theme === 'terminal')
         return ['ansi', critical ? 1 : 3];
-    return ['rgb', config.theme === 'light' ? critical ? '#a02020' : '#805000' : critical ? '#f28686' : '#f2b550'];
+    return ['rgb', critical ? themeDefinition(config.theme).critical : themeDefinition(config.theme).warning];
 }
-export function apply(text: string, config: DisplayDraft, item: string, options: ItemOptionsDraft, scope: Scope = 'main', used: number | null = null): string {
+export function apply(text: string, config: DisplayDraft, item: string, options: ItemOptionsDraft, scope: Scope = 'main', used: number | null = null, trace?:RenderTrace, id?:string): string {
     if (!config.use_colors)
         return layout.withoutColors(text);
     const block = config.separator_style === 'powerline', risk = riskColor(used, config);
+    if(risk&&id)trace?.style(scope,id,used!>=config.formatting.thresholds.critical?'threshold_critical':'threshold_warning');
     if (config.theme === 'classic' && !block && options.foreground === null && options.background === null && risk === null)
         return text;
     const base = baseStyle(config, item, scope), foreground = outputColor(color(options.foreground), config), background = outputColor(color(options.background), config);

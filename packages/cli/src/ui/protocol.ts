@@ -1,3 +1,5 @@
+import { diagnosticInputFile } from '../diagnostics/input.js';
+import { isScenario, type PreviewScenario } from '@fbincon/statusline-core/editor/preview-settings';
 import { SourceService } from '../sources/service.js';
 import { contextFor } from '../sources/context.js';
 import { sourceContext } from '@fbincon/statusline-core/extensions/model';
@@ -28,7 +30,7 @@ import { ProfileService } from '../config/profiles.js';
 import { taskAdapter } from '../tasks/service.js';
 export const BACKEND_VERSION = VERSION;
 export const OPERATIONS = contracts.OPERATIONS;
-export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
+export type Preview = (draft: Draft, width: number, trace?: RenderTrace, scenario?: PreviewScenario) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
         host_version: version?.join('.') ?? null,
@@ -143,11 +145,20 @@ export class ConfigurationProtocol {
             const result = scoped ? new ProfileService(this.service).applyTarget(parsed, revision, payload.target) : this.service.apply(parsed, revision);
             return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
         }
+        if(operation==='diagnose_file'){
+            requestObject(payload,['draft','path','scope','width',...(object(payload)?['observed_at','include_local'].filter(key=>Object.hasOwn(payload,key)):[])],'payload');
+            if(!this.diagnose)throw new Error('Diagnosis adapter has not been bound');
+            const file=diagnosticInputFile(payload.path);
+            if(payload.scope==='subagent'&&!Object.hasOwn(file.input,'tasks')&&['model','workspace','context_window','cost'].some(key=>Object.hasOwn(file.input,key))||payload.scope==='main'&&Array.isArray(file.input.tasks)&&!['model','workspace','context_window','cost'].some(key=>Object.hasOwn(file.input,key)))throw new ConfigError('diagnose.error.scope',{},'invalid_request');
+            return this.diagnose({draft:payload.draft,scope:payload.scope,width:payload.width,input:file.input,source:file.path,observed_at:payload.observed_at??null,include_local:payload.include_local??false});
+        }
         if (operation === 'diagnose') {
             if (!this.diagnose) throw new Error('Diagnosis adapter has not been bound');
             return this.diagnose(payload);
         }
-        requestObject(payload, operation==='explain'?['draft','scope','width']:['draft', 'width'], 'payload');
+        requestObject(payload, [...(operation==='explain'?['draft','scope','width']:['draft','width']), ...(object(payload)&&Object.hasOwn(payload,'scenario')?['scenario']:[])], 'payload');
+        const scenario=payload.scenario ?? 'normal';
+        if(!isScenario(scenario))throw new ConfigError('preview.invalid_scenario',{},'invalid_request');
         if (operation==='explain' && payload.scope!=='main' && payload.scope!=='subagent') throw new ConfigError('explain.invalid_scope',{},'invalid_request');
         const parsed = validateDraft(payload.draft);
         let width: number;
@@ -161,10 +172,10 @@ export class ConfigurationProtocol {
             throw new Error('Preview adapter has not been bound');
         if(operation==='explain') {
             const trace=new RenderTrace(parsed.display);
-            const preview=this.preview(parsed,width,trace);
+            const preview=this.preview(parsed,width,trace,scenario);
             return explain(parsed,payload.scope as contracts.Scope,width,preview,trace,explanationFacts(this.service));
         }
-        return this.preview(parsed, width);
+        return this.preview(parsed, width, undefined, scenario);
     }
     handle(raw: string, diagnostics: (error: unknown) => void = error => console.error(error)): {
         response: unknown;

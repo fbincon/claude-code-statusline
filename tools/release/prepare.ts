@@ -63,6 +63,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(Object.keys(report.checks).length, 23); assert(Object.values(report.checks).every(value => value === true));
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
+            if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});
             assert.equal(report.checks.alignments, true); assert.equal(report.alignment_cases, 4);
             assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:18,installed_modules:true,saved_reopened:true,preview_matches:true});
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);

@@ -1,7 +1,10 @@
+import type { RenderTrace } from './trace.js';
+import { sampleAgents, scenarioSource, SAMPLE_NOW } from './sample-scenarios.js';
+import type { PreviewScenario } from '../editor/preview-settings.js';
 import { foregroundPaint } from './gradients.js';
 import { groupedRows } from './groups.js';
 import { indicator } from './indicators.js';
-import { externalPresentation, sampleSource } from './extensions.js';
+import { externalPresentation } from './extensions.js';
 import { fileLink } from '../terminal/links.js';
 import { withLink } from './layout.js';
 import type { FitObserver } from './trace.js';
@@ -44,17 +47,17 @@ interface Prepared {
     legacyFitting: boolean;
     measure: (text: string) => number;
 }
-function prepare(config: DisplayDraft, tracing = false): Prepared {
+function prepare(config: DisplayDraft, trace?:RenderTrace): Prepared {
     const nodes = new Map<string, InstanceDraft>(), options = new Map<string, ReturnType<typeof preferences.optionsFor>>();
     const enabled = config.subagents.enabled ? config.subagents.instances.filter(node => node.enabled) : [];
-    const literalTruncated = tracing ? new Set<InstanceDraft>() : undefined;
+    const literalTruncated = trace ? new Set<InstanceDraft>() : undefined;
     const literals = new Map<InstanceDraft, string>(), widths = new Map<string, number>();
     for (const node of config.subagents.instances) {
         nodes.set(node.id, node);
         if (!options.has(node.id)) options.set(node.id, [{ ...config.formatting, ...node.options.formatting }, node.options]);
     }
     for (const node of enabled) if (node.type_id === 'text') literals.set(node, literal(node, config, 'subagent', literalTruncated ? () => literalTruncated.add(node) : undefined));
-    return { colors: powerline.cursor('subagent'), palette: paletteFor(config), nodes, options, enabled, literals, literalTruncated,
+    return { colors: powerline.cursor('subagent',trace), palette: paletteFor(config), nodes, options, enabled, literals, literalTruncated,
         legacyFitting: preferences.legacyFitting(config.subagents.instances.map(node => node.options)),
         measure(text) {
             let width = widths.get(text);
@@ -224,7 +227,7 @@ function fit(parts: Part[], columns: number, measure: Prepared['measure'], obser
     return parts;
 }
 export function renderTask(task: Data, config: DisplayDraft, env: RenderEnvironment, columns = DEFAULT_COLUMNS, nowMs = env.now() * 1000): string {
-    return renderPrepared(task, config, env, columns, nowMs, prepare(config, !!env.trace));
+    return renderPrepared(task, config, env, columns, nowMs, prepare(config, env.trace));
 }
 function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment, columns: number, nowMs: number, prepared: Prepared): string {
     if (!prepared.enabled.length) return '';
@@ -235,17 +238,17 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
         const byId = new Map(parts.map(part => [part.item, part]));
         const cells: Cell[] = config.subagents.instances.map(node => {
             const part = byId.get(node.id);
-            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used) : '', paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
+            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
         });
         return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
     }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
-        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
+        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
         return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + (cell.paint?.(cell.text) ?? cell.text)).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
     }
     if (config.separator_style === 'powerline')
-        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), paint: foregroundPaint(options.foreground_gradient, config, appearance.riskColor(part.used ?? null, config)), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'), prepared.colors);
+        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used,env.trace,part.item), paint: foregroundPaint(options.foreground_gradient, config, appearance.riskColor(part.used ?? null, config)), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'), prepared.colors);
     if (prepared.legacyFitting)
         while (parts.length > 1 && prepared.measure(plain(parts)) > columns) {
             const priority = (i: number) => prepared.options.get(parts[i]!.item)![1].priority;
@@ -259,7 +262,7 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     parts = fit(parts, columns, prepared.measure, env.trace?.fit('subagent'));
     const content = parts.map((part, i) => {
         const options = prepared.options.get(part.item)![1];
-        let value = config.theme !== 'classic' || options.foreground !== null || options.background !== null || options.foreground_gradient ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used) : styled(part);
+        let value = config.theme !== 'classic' || options.foreground !== null || options.background !== null || options.foreground_gradient ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used,env.trace,part.item) : styled(part);
         value = foregroundPaint(options.foreground_gradient, config, appearance.riskColor(part.used ?? null, config))?.(value) ?? value;
         return (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : separator : '') + value;
     }).join('');
@@ -290,7 +293,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
                     task = { ...task, _frozen_duration_ms: end - start };
             }
             if (!hidden)
-                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, !!env.trace));
+                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, env.trace));
         }
         catch { /* A malformed task must not break the remaining NDJSON records. */ }
         if (content)
@@ -299,11 +302,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
     }
     return result;
 }
-export function previewRows(config: DisplayDraft, columns: number, env: RenderEnvironment): string[] {
-    env = { ...env, source: sampleSource, links: true };
-    const now = 1788400120000;
-    return renderPayload({ columns, tasks: [
-            { id: 'preview-running', name: 'Explore', type: 'local_agent', status: 'running', label: 'searching auth flow', startTime: now - 78000, model: 'claude-sonnet-5', effort: 'high', contextWindowSize: 200000, tokenCount: 84000, cwd: '/project/src' },
-            { id: 'preview-completed', name: 'Reviewer', type: 'local_agent', status: 'completed', description: 'reviewed lifecycle tests', startTime: now - 42000, _frozen_duration_ms: 42000, model: 'claude-haiku-4-5', contextWindowSize: 200000, tokenCount: 18500, cwd: '/project/tests' },
-        ] }, config, env, now).map(item => item.content).filter(Boolean);
+export function previewRows(config: DisplayDraft, columns: number, env: RenderEnvironment, scenario: PreviewScenario = 'normal'): string[] {
+    env={...env,source:scenarioSource(scenario),links:true};
+    return renderPayload({columns,tasks:sampleAgents(scenario)},config,env,SAMPLE_NOW*1000).map(item=>item.content).filter(Boolean);
 }

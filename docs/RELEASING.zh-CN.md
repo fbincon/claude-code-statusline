@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.10.0 外观与理解
+
+使用[版本决定](releases/approvals/v3.10.0.json)，保留全部安装／runtime／宿主／容量门禁，并要求安装包的新主题、场景和当前草稿文件诊断证据。验收工具变更要求完整 main 验收与 shadow promotion。发布原始四个已核验文件，升级本机安装并恢复原显示／界面偏好。[实施与交付](development/appearance-preview-diagnosis.zh-CN.md)。
+
 ## 绑定源码的 CI 证据晋级
 
 常规发版准备先完成最终 PR 矩阵，以 merge commit 合并，并通过 main 集成核验及 Linux／Windows／macOS 安装冒烟。在经该合并于 main 历史中可达的**已验收 PR 源提交**上创建注解版本 tag；tag SHA、包内源码 SHA 和 npm provenance 必须一致。策略变化或不等价集成仍须完整 main 验收，也保留同提交 main → tag 后备路径。发布原始安装包／源码／清单／校验和字节，不重新构建或改写来源。npm 工作流核对明确的 PR／main／tag 证据链，按不可变原始附件 ID 下载。缺失、过期或不匹配证据均阻断。参见 [CI 规则与证据](development/ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)。

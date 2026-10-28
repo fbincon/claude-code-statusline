@@ -40,14 +40,15 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
     for (const unit of values) {
       if (unit.group?.shared_powerline) {
         const primary = nodes.get(unit.group.primary_id)!;
+        for(const cell of unit.cells)if(cell.id!==primary.id)colors.trace?.style(scope,cell.id,'group_background_owned',primary.id);
         const base = byId.get(primary.id)?.text || appearance.apply(' ', config, primary.type_id, primary.options, scope);
         const primaryStyle = styles.parse(layout.styledUnits(appearance.sequence(base, config, primary.id, scope, index))[0]?.style ?? '');
         const text = unit.cells.map(c => c.paint?.(c.text) ?? c.text).join(' ');
         const shared = config.use_colors ? layout.renderStyledUnits(layout.styledUnits(text).map(c => ({ ...c, style: styles.serialize({ ...styles.parse(c.style), background: primaryStyle.background }) }))) : layout.withoutColors(text);
-        blocks.push({ text: shared, sequence: false, background_gradient: primary.options.background_gradient }); index++;
+        blocks.push({ text: shared, sequence: false, background_gradient: primary.options.background_gradient,onContrast:()=>unit.cells.forEach(cell=>colors.trace?.style(scope,cell.id,'contrast_protected')) }); index++;
       } else for (const cell of unit.cells) {
         blocks.push({ text: cell.sequence === false ? cell.text : appearance.sequence(cell.text, config, cell.id, scope, index++), sequence: false,
-          paint: cell.paint, background_gradient: nodes.get(cell.id)?.options.background_gradient });
+          paint: cell.paint, background_gradient: nodes.get(cell.id)?.options.background_gradient,onContrast:()=>colors.trace?.style(scope,cell.id,'contrast_protected') });
       }
     }
     return { text: powerline.row(blocks, config, padding, caps), next: index };

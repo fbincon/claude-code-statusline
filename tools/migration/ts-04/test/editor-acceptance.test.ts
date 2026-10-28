@@ -34,7 +34,7 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_first_save_migrates_
         p.send('\x13');
         await p.exited();
         assert.equal(p.child.exitCode, 0);
-        assert.equal(JSON.parse(fs.readFileSync(f.displayPath, 'utf8')).schema_version, 15);
+        assert.equal(JSON.parse(fs.readFileSync(f.displayPath, 'utf8')).schema_version, 16);
         assert.equal(fs.readdirSync(join(f.root, 'backups/statusline')).length, 1);
     }
     finally {

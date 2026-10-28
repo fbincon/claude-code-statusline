@@ -1,3 +1,6 @@
+import { riskColor } from './appearance.js';
+import { serialize } from './styles.js';
+import type { RenderTrace } from './trace.js';
 import type { DisplayDraft, FormattingDraft, ItemOptionsDraft, Scope } from '../contracts/ui.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
 import { BY_SCOPE } from '../config/catalog.js';
@@ -92,18 +95,14 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
         units = [...layout.styledUnits(icon + ' '), ...units];
     return layout.renderStyledUnits(units);
 }
-export function threshold(text: string, used: number | null, fmt: FormattingDraft, config: DisplayDraft, normal: string): string {
+export function threshold(text: string, used: number | null, fmt: FormattingDraft, config: DisplayDraft, normal: string, trace?:RenderTrace,id?:string,scope:Scope='main'): string {
     if (!config.use_colors || !fmt.thresholds.enabled || used === null)
         return text;
-    const level = fmt.thresholds;
-    let color: string;
-    if (used >= level.critical)
-        color = config.palette === 'ansi' ? '\x1b[1;31m' : '\x1b[1;38;2;242;134;134m';
-    else if (used >= level.warning)
-        color = config.palette === 'ansi' ? '\x1b[1;33m' : '\x1b[1;38;2;242;181;80m';
-    else
-        return text;
-    return normal ? text.replaceAll(normal, color) : text;
+    const risk=riskColor(used,{...config,formatting:fmt});
+    if(!risk)return text;
+    if(id&&normal&&text.includes(normal))trace?.style(scope,id,used>=fmt.thresholds.critical?'threshold_critical':'threshold_warning');
+    const color=serialize({bold:true,foreground:risk,background:null});
+    return normal ? text.replaceAll(normal,color) : text;
 }
 export function optionsFor(config: DisplayDraft, id: string, scope: Scope = 'main'): readonly [
     FormattingDraft,

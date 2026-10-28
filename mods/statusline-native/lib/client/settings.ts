@@ -1,3 +1,4 @@
+import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
 import type { View } from '../session.ts';
@@ -15,7 +16,7 @@ export interface SettingRow {
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
-  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
+  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true},...(!e.adding?[{key:'diagnose-file',label:'Diagnose input file',group:'Item format',value:'Enter',editable:true}]:[]), ...formRows(view)];
   if (e.page === 'layout') {
     const fields = formRows(view);
     if (!e.draft.display.instances.length) return fields;
@@ -100,7 +101,8 @@ export function settingRows(view: View): SettingRow[] {
   rows.splice(appearanceEnd, 0, ...fields.filter(row => row.group === 'Appearance'));
   rows.push(...fields.filter(row => row.group !== 'Appearance'));
   rows.push(
-    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
+    {key:'preview-scenario',label:'Sample scenario',group:'Preview',value:e.previewScenario,editable:true},
+    {key:'preview-width',label:'Preview width',group:'Preview',value:e.previewWidth,editable:true},    {key:'diagnose-file',label:'Diagnose input file',group:'Presets / portable files',value:'Enter',editable:true},    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
     { key: 'component-groups', label: 'Component groups', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'sources', label: 'Data sources', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'profiles', label: 'Display schemes and projects', group: 'Presets / portable files', value: 'Enter', editable: true },
@@ -124,6 +126,8 @@ export function settingRows(view: View): SettingRow[] {
 
 export function adjustSetting(view: View, delta: -1 | 1): void {
   const e = view.editor!;
+  if(e.setting==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return;}
+  if(e.setting==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return;}
   if (!e.canMutateDraft() && !['ui-language','preview-background'].includes(e.setting) && !e.setting.startsWith('host-')) { setMessage(view, 'message', e.compositionError);return; }
   const d = e.draft.display;
   const form = formRows(view).find((row) => row.key === e.setting);

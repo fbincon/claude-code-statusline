@@ -68,9 +68,9 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |
 | 1 维护 | [FIX-04](development-plan.zh-CN.md#fix-04) | 扩展诊断时间适用，保留每个代理证据 | 既有诊断与来源观测契约 | DONE |
 | 1 维护 | [I18N-01](development-plan.zh-CN.md#i18n-01) | 任务详情首次打开、失败及重试使用正确语言 | 既有 UI 偏好与任务窗格 | DONE |
-| 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | NOT_STARTED |
-| 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | NOT_STARTED |
-| 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | NOT_STARTED |
+| 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | VALIDATING |
+| 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | VALIDATING |
+| 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | VALIDATING |
 | 3 任务入口 | [TASK-02](development-plan.zh-CN.md#task-02) | 外部只读任务浏览，再完善两端阅读控制 | 既有任务模型／服务与 I18N-01 语言处理 | NOT_STARTED |
 | 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 第一片状态／审核，第二片执行／恢复，第三片受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | NOT_STARTED |
 | 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 前两片提供可读状态和 GitHub 检查，后续第三片复用／清理绑定 | 既有来源服务；FIX-03 生命周期规则 | NOT_STARTED |

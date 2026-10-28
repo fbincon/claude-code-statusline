@@ -302,10 +302,10 @@ export class RenderState {
         const rendered = external ? { text: external.text } : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage') : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
         if (!rendered)
             return null;
-        let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage);
+        let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage,this.env.trace,id);
         if (!external && options.presentation !== 'bar') text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
-            text = appearance.apply(text, this.config, item, options, 'main', used);
+            text = appearance.apply(text, this.config, item, options, 'main', used,this.env.trace,id);
         if (options.max_width !== null) {
             if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'truncated');
             text = layout.truncateStyled(text, options.max_width);
@@ -330,7 +330,7 @@ export function coalesce(items: readonly RenderedItem[], inner: string): layout.
     emit(); return segments;
 }
 const paintSegment = (segment: layout.LayoutSegment) => segment.paint?.(segment.text, 0) ?? segment.text;
-export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e), colors = powerline.cursor()): string[] {
+export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e), colors = powerline.cursor('main',env.trace)): string[] {
     const palette = paletteFor(config), [outer, inner] = separators(config, palette), state = factory(data, config, palette, inner, env), rows: string[] = [];
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
     const label = () => ({ text: palette.timer + env.language.text('scope.main') + palette.reset });

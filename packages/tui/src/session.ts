@@ -1,3 +1,6 @@
+import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
+import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
+import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
 import { performSourceAction, closeSources } from '@fbincon/statusline-core/editor/source-manager';
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
@@ -42,12 +45,13 @@ export class Session {
         return new Session(state, backend, guard);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-        const key = JSON.stringify([draft, width]);
+        const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
+        if(e.diagnosis)return;
+        const key = JSON.stringify([draft, width,e.previewScenario]);
         if(e.explanation) {
             const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
             if(identity!==this.explanationKey || !view.result) {
-                const result=await this.backend.request('explain',{draft,scope:view.scope,width});
+                const result=await this.backend.request('explain',{draft,scope:view.scope,width,scenario:e.previewScenario});
                 if(result.scope!==view.scope || result.width!==width) throw new Error('Explanation response does not match the request');
                 view.result=result;view.error='';this.state.preview=result.preview;this.explanationKey=identity;
             }
@@ -55,7 +59,7 @@ export class Session {
         }
         if (key === this.previewKey)
             return;
-        this.state.preview = await this.backend.request('preview', { draft, width });
+        this.state.preview = await this.backend.request('preview', { draft, width,scenario:e.previewScenario });
         this.previewKey = key;
     }
     async key(key: Key, columns = 80, rows = 24): Promise<'save' | Outcome | null> {
@@ -67,6 +71,7 @@ export class Session {
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
             this.guard();
+            if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
             if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);

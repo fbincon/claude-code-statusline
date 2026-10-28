@@ -134,7 +134,9 @@ try {
                     if (type === 'context-used') {
                         await selectSetting('fields.item.foreground_gradient.label'); await key('\x1b[C'); capture('foreground-gradient');
                         await selectSetting('fields.item.background_gradient.label'); await key('\x1b[C'); capture('background-gradient');
-                        await key('\r'); await key('\x15'); await key('#112233,#445566,#778899'); capture('gradient-custom'); await key('\r');
+                        await key('\r'); capture('gradient-selector'); await key('\x1b[H');
+                        for(let index=0;index<12;index++)await key('\x1b[B');
+                        await key('\r'); await key('\x15'); await key('#112233,#445566,#778899'); capture('gradient-custom'); await key('\r'); await key('\x13');
                     }
                     await key('\x07'); await key('\x18'); await key('\x1b[H');
                 }
@@ -247,6 +249,9 @@ try {
                 await key('\x07');
                 await key('\t');
                 await key('\t');
+                await selectSetting('fields.global.theme.label');await key('\r',t('colors.title',language));capture('theme-selector');await key('\x07');
+                await key('\x16');capture('sample-warning');await key('\x17');capture('sample-width');
+                await key('\x0c',t('diagnosis.title',language));capture('file-diagnosis-form');await key('\x07');
                 for (const option of ['padding', 'separator', 'start_cap', 'end_cap', 'color_mode']) {
                     await selectSetting('fields.global.powerline.' + option + '.label');
                     await key('\x1b[C');

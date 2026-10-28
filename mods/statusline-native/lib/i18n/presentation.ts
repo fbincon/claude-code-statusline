@@ -50,7 +50,9 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
           (p.row.isLocked ? t('native.host_locked', language, {entry}) : !canEdit(p) ? t('native.host_unsupported', language, {entry}) : '') +
           (p.result ? ' · ' + preferenceResult(p, language) : '') : t('native.host_unavailable', language, {entry});
       }
-    } else if (row.key === 'ui-language') {
+    } else if(row.key==='preview-scenario')value=t('preview.scenario.'+value,language);
+    else if(row.key==='preview-width')value=value==='auto'?t('preview.auto',language):value;
+    else if (row.key === 'ui-language') {
       // All autonyms remain recognizable in either interface language.
     } else if (row.key === 'item:cost_rate_basis') value = t('cost_rate.basis.' + value, language);
     else if (row.key === 'item:foreground_gradient' || row.key === 'item:background_gradient')

@@ -1,3 +1,6 @@
+import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
+import { colorDraft } from '../lib/editor/color-manager.ts';
+import { previewWidth } from '../lib/editor/preview-settings.ts';
 import { performSourceAction, closeSources } from '../lib/editor/source-manager.ts';
 import { taskDetailLines } from '../lib/editor/task-detail.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
@@ -122,12 +125,14 @@ interface Session {
   epoch: number;
   previewKey: string;
   previewTimer: Timer | null;
+  diagnosisTimer:Timer|null;
   writing: boolean;
 }
 
 function discard(state: Session): void {
   state.previewTimer?.cancel();
   state.previewTimer = null;
+  state.diagnosisTimer?.cancel();state.diagnosisTimer=null;
   state.epoch += 1;
   state.view = emptyView();
   state.previewKey = '';
@@ -614,6 +619,7 @@ export const register: Register = (on, options) => {
     inputChain: Promise.resolve(),
     previewKey: '',
     previewTimer: null,
+    diagnosisTimer:null,
     writing: false,
   };
 
@@ -734,6 +740,21 @@ export const register: Register = (on, options) => {
           state.placed = true;
         } else if (effect === 'reconcile') await reconcile($, state, options);
         else if (effect === 'transfer') await transferDraft($, state, options);
+        else if(effect==='diagnoseFile'&&state.view.editor) {
+          const editor=state.view.editor,view=editor.diagnosis!,generation=view.generation;
+          const payload=diagnosisRequest(editor,previewWidth(contentColumns(state.displayColumns,state.displayRows),editor.previewWidth));
+          view.busy=true;
+          state.diagnosisTimer?.cancel();
+          const timer:Timer=$.clock.after(0,async()=>{
+            try {
+              const result=await callBackend($,options,'diagnose_file',payload);
+              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch){view.result=result;view.error='';view.report=true;view.scroll=0;}
+            }catch(failure){
+              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch)view.error=renderMessage(failureMessage(failure),state.view.language??'en');
+            }finally{view.busy=false;if(state.diagnosisTimer===timer)state.diagnosisTimer=null;$.ui.invalidate('ui.render');}
+          });
+          state.diagnosisTimer=timer;
+        }
         else if (effect === 'sources' && state.view.editor) {
           state.writing=true;
           try { await performSourceAction(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); }
@@ -818,16 +839,16 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
-    const previewColumns = contentColumns(width, height);
+    const previewDraft = editor?.colors ? colorDraft(editor) : editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
+    const previewColumns = previewWidth(contentColumns(width,height),editor?.previewWidth ?? 'auto');
     const explanation=editor?.explanation;
-    const key = `${state.epoch}:${previewColumns}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
+    const key = `${state.epoch}:${previewColumns}:${editor?.previewScenario}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
       height >= MIN_ROWS &&
       !state.writing &&
-      state.previewKey !== key
+      !editor?.diagnosis && state.previewKey !== key
     ) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;
@@ -836,9 +857,9 @@ export const register: Register = (on, options) => {
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {
         try {
-          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns}) : null;
+          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns,scenario:editor?.previewScenario}) : null;
           if(explained && (explained.scope!==explanation!.scope || explained.width!==previewColumns)) throw new Error('Explanation response does not match the request');
-          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns});
+          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns,scenario:editor?.previewScenario});
           if (state.epoch === requestedEpoch && state.previewKey === key) {
             if(explanation && explained) { explanation.result=explained;explanation.error=''; }
             state.view.preview = preview;

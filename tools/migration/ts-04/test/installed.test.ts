@@ -57,8 +57,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 25, operation, payload }), environment));
-    assert.equal(result.protocol_version, 25);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 26, operation, payload }), environment));
+    assert.equal(result.protocol_version, 26);
     assert.ok(result.result);
     return result.result;
 }
@@ -197,6 +197,19 @@ test('installed gradients preserve foreground, background, warning, group, Unico
     run(['config','instance','main','set','context-used','background-gradient','off'],config);
     run(['config','import',file,'--select','main'],config);
     assert.deepEqual(ui(config,'read').draft.display.instances.find((n:any)=>n.id==='context-used').options.background_gradient,['#112233','#445566']);
+    run(['config','set','theme','ocean'],config);
+    run(['config','instance','main','set','context-used','foreground-gradient','glacier'],config);
+    const saved=ui(config,'read'),savedBytes=fs.readFileSync(join(config,'claude-statusline.json'));
+    assert.equal(saved.draft.display.schema_version,16);assert.equal(saved.draft.display.theme,'ocean');
+    const scenarios=['warning','critical','missing','source-stale','source-failed','many-agents'];
+    for(const scenario of scenarios){const sample=ui(config,'preview',{draft:saved.draft,width:80,scenario});assert.equal(sample.scenario,scenario);assert.equal(sample.sample,true);}
+    saved.draft.display.theme='ember';
+    const inputFile=join(installed.temporary,'explicit input 中文.json');fs.writeFileSync(inputFile,JSON.stringify({context_window:{used_percentage:95,remaining_percentage:5},session_id:'installed-diagnosis',version:'2.1.310'}));
+    const diagnosed=ui(config,'diagnose_file',{draft:saved.draft,path:inputFile,scope:'main',width:80});
+    assert.equal(diagnosed.sample,false);assert.equal(diagnosed.include_local,false);assert.equal(diagnosed.source,inputFile);assert.equal(diagnosed.observed_at,null);
+    assert(diagnosed.instances.some((n:any)=>n.rows.some((row:any)=>row.style_reasons?.some((r:any)=>r.code==='threshold_critical'))));
+    assert.deepEqual(fs.readFileSync(join(config,'claude-statusline.json')),savedBytes);
+    report.appearance_preview_diagnosis={theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true};
     report.gradient_cases=6;checks.gradients=true;
 });
 test('installed explicit-row alignment survives editing, hiding, transfers and narrow terminals', () => {
@@ -524,7 +537,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 25, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 26, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -596,7 +609,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,15);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,16);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

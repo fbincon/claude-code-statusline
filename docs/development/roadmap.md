@@ -68,9 +68,9 @@ Keep the original project and authors credited when discussing these references.
 | 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
 | 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | DONE |
 | 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | DONE |
-| 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | NOT_STARTED |
-| 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | NOT_STARTED |
-| 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | NOT_STARTED |
+| 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | VALIDATING |
+| 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | VALIDATING |
+| 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | VALIDATING |
 | 3 Task entry | [TASK-02](development-plan.md#task-02) | External read-only task browsing, then shared reading controls | Existing task model/service and I18N-01 language handling | NOT_STARTED |
 | 3/4/later Versions | [UPDATE-02](development-plan.md#update-02) | Slice 1 status/review; slice 2 execution/recovery; slice 3 protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | NOT_STARTED |
 | 4 Source operations | [SOURCES-01](development-plan.md#sources-01) | Slices 1/2 readable state and GitHub checks; later slice 3 binding reuse/cleanup | Existing source services; FIX-03 lifecycle rules | NOT_STARTED |

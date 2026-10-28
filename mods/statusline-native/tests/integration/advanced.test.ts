@@ -16,9 +16,9 @@ test('appearance edits save one complete draft without applying host settings', 
   await selectSetting(ui, 'item:visibility_threshold');
   await keys(ui, 'return', {key:'u',ctrl:true}, '8', '5', 'return');
   await selectSetting(ui, 'item:foreground');
-  await keys(ui, 'return', {key:'u',ctrl:true}, '#', 'A', 'B', 'C', 'D', 'E', 'F', 'return');
+  await keys(ui,'return','end','up','up','return',{key:'u',ctrl:true},'#ABCDEF','return',{key:'s',ctrl:true});
   await selectSetting(ui, 'item:background');
-  await keys(ui, 'return', {key:'u',ctrl:true}, 'a', 'n', 's', 'i', ':', '1', '7', 'return');
+  await keys(ui,'return','end','up','up','return',{key:'u',ctrl:true},'ansi:17','return',{key:'s',ctrl:true});
   expect(fixture.calls.some(c => c.operation === 'apply')).toBe(false);
   await keys(ui, {key:'g',ctrl:true}, '3');
   await selectSetting(ui, 'field:theme');

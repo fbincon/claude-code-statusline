@@ -1,3 +1,6 @@
+import { diagnosisLines } from '../../lib/editor/diagnosis-view.ts';
+import { previewWidth } from '../../lib/editor/preview-settings.ts';
+import { colorsView } from '../../lib/editor/color-manager.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { groupsView } from '../../lib/editor/group-manager.ts';
 import { sourcesView } from '../../lib/editor/source-manager.ts';
@@ -59,7 +62,9 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.alignmentManager) {
+  if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
+  } else if(e.alignmentManager) {
     title=tr('alignment.title');
     content.push(...alignmentsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
   } else if(e.groupManager) {
@@ -160,7 +165,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   }
   if (capacityNotice) title = capacityNotice + ' · ' + title;
   const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
-  const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
+  const allSamples = e.diagnosis?.report&&e.diagnosis.result ? e.diagnosis.result.output.map(row=>row.spans) : view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
+  const sample=allSamples.slice(Math.min(e.previewOffset,Math.max(0,allSamples.length-1)));
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const background = view.previewBackground ?? 'dark';
@@ -185,7 +191,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(capacityNotice || tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', e.diagnosis?.report ? tr('diagnosis.output') : e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language)+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(inner,e.previewWidth)+'c', preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,
