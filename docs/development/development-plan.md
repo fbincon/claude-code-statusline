@@ -209,9 +209,9 @@ Entries without an implementation record remain proposed work; current package s
 
 ## TASK-02 External read-only task details
 
-**Implementation:** [TASK-02 and UPDATE-02 slice 1](task-version-review.md), targeting v3.11.0; final acceptance is pending.
+**Delivered:** [TASK-02 and UPDATE-02 slice 1](task-version-review.md), published in v3.11.0. The version-page permission warning is deferred under issue #173.
 
-**Goal and scope.** Add a standalone external task viewer and an entry from the external configuration editor. Select session/task identity explicitly and keep it visible. Reuse the existing `task_details` model/service for summary, agents, known parent relations, checklist progress and timing evidence; preserve `task show` semantics. The implemented command is `task view`; publication is pending final acceptance.
+**Goal and scope.** Add a standalone external task viewer and an entry from the external configuration editor. Select session/task identity explicitly and keep it visible. Reuse the existing `task_details` model/service for summary, agents, known parent relations, checklist progress and timing evidence; preserve `task show` semantics. The published interactive command is `task view`.
 
 **Ownership and interfaces.** Cli selects identity and reads known task state; core owns view/navigation rules and tui handles terminals. Do not infer names or outcomes unavailable outside the native host. Return from the viewer to the retained configuration draft and editing target.
 
@@ -222,6 +222,8 @@ Entries without an implementation record remain proposed work; current package s
 <a id="update-02"></a>
 
 ## UPDATE-02 Version review, execution and protected history
+
+**Delivery:** Slice 1 is published in v3.11.0, with the permission warning tracked separately in [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173). Slices 2/3 remain unstarted.
 
 **Goal and ownership.** Both editors expose the existing package-management capabilities through shared cli services, with platform package/process effects and core review models. Entering the page reads local identity/history; network checks and package changes require explicit actions. Reuse UPDATE-01 compatibility, prefix ownership, locks, external recovery runner and stage journal.
 

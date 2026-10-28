@@ -4,6 +4,8 @@
 
 ## 3.11.0 — 2026-10-28
 
+- Known post-publication issue: ordinary npm manifest permissions can cause a false local read/compatibility warning in the version page; [#173](https://github.com/fbincon/claude-code-statusline/issues/173) is deferred to later development at the maintainer’s request.
+
 - Add a standalone `task view` command and external-editor entry; share filtering, search, folding, evidence layers and stable reading position with Native task details.
 - Add local version/installation pages to both editors, with explicit metadata checks and independently cancellable verified dry-run reviews.
 - Preserve saved configuration, unsaved drafts and installation bytes during reviews; keep package rollback and configuration-restoration review separate.
