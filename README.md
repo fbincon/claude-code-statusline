@@ -23,7 +23,8 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Compose your statusline:** add, copy and arrange independent components, linked groups, literal text and left/right alignment in either editor. [Composition guide](docs/COMPOSITION.md).
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors, themes and short percentage bars, and opt into [Powerline](docs/APPEARANCE.md).
 - **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
-- **Diagnose supplied input:** inspect real statusline JSON and matching saved observations without collecting or writing. See [input diagnosis](docs/DIAGNOSTICS.md).
+- **Review colors and samples:** press Enter on a color field for visible choices; Ctrl+V selects a sample scenario, Ctrl+W changes preview width and Ctrl+N browses rows. See [appearance](docs/APPEARANCE.md#visual-color-selection-and-sample-scenarios).
+- **Diagnose supplied input:** press Ctrl+L in either editor to inspect a file with the unsaved draft and input-only evidence by default, or use the CLI. See [input diagnosis](docs/DIAGNOSTICS.md).
 - **Find what to show:** 65 main metrics and 15 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
 - **Estimate session cost rates:** choose session or cumulative API time as the denominator, with a one-minute observation window and explicit units. [Metric definitions](docs/DISPLAY_ITEMS.md#session-cost-rate).
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.

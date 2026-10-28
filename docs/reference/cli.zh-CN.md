@@ -604,12 +604,12 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 
 | OPTION | VALUE | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`、`zh-CN` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
+| `statusline-language` | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
 | `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
 | `separator-style` | `classic`、`compact`、`powerline` | `classic` | 顶层条目的分隔方式 |
-| `theme` | `classic`、`dark`、`light`、`terminal` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
+| `theme` | `classic`、`dark`、`light`、`terminal`、`ocean`、`ember`、`slate`、`blossom` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
 | `powerline-glyph` | `ascii`、`powerline` | `ascii` | Powerline 边界使用 ASCII `>` 或可选的字体相关箭头 |
 | `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
 | `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
@@ -902,7 +902,7 @@ claude-statusline.cmd config show
 
 ## 条件显示与外观
 
-使用 `config set theme classic|dark|light|terminal`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。
+使用 `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。
 
 ## 实例管理
 

@@ -2,9 +2,9 @@
 
 [English](roadmap.md) | **简体中文**
 
-更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.9.2** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.10.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 完成验收和发布；其余十三项新增工作包及 SHOWCASE-01 保持 NOT_STARTED，尚未分配版本或日期。参见[正确性修复记录](correctness-maintenance.zh-CN.md)。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。其余十项新增工作包及 SHOWCASE-01 保持 NOT_STARTED，尚未分配版本或日期。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -18,16 +18,17 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | --- | --- | --- |
 | 配置入口 | 首次设置向导、会话内编辑器、外部 TUI、CLI、对话指南及 Quick setup | 无参数持久安装审核及显式升级／回退／恢复已交付 |
 | 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、五项 Powerline 控制、可选百分比短条、联动分组、选择性导入、静态前景／Powerline 背景渐变及主栏显式行对齐 | 扩充主题、渐变及复用能力，保留既有显示选择 |
+| 外观审阅 | 八主题、十一渐变预设、可视选色、十四样例场景、会话宽度及使用未保存草稿的显式文件诊断 | 扩展复用时保留来源授权边界 |
 | 任务与项目 | 任务计时、子代理独立行、只读任务详情、命名方案和项目根目录绑定 | 复用既有证据模型增加外部只读任务查看器 |
 | 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | 新交互和说明保持六语言覆盖 |
 | 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
 | 扩展数据 | 本机 JSON、可独立审核自动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
 | Native 展示 | 宿主保留编辑状态、有界可见帧、独立容量检查及可恢复保存结果 | 所有新页面遵守这些边界；见[容量与恢复](native-capacity.zh-CN.md) |
-| 接口 | 显示 schema 15、编辑器协议 25、来源注册表 2／任务 3、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
+| 接口 | 显示 schema 16、编辑器协议 26、来源注册表 2／任务 3、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
+依据：[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
@@ -68,9 +69,9 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |
 | 1 维护 | [FIX-04](development-plan.zh-CN.md#fix-04) | 扩展诊断时间适用，保留每个代理证据 | 既有诊断与来源观测契约 | DONE |
 | 1 维护 | [I18N-01](development-plan.zh-CN.md#i18n-01) | 任务详情首次打开、失败及重试使用正确语言 | 既有 UI 偏好与任务窗格 | DONE |
-| 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | VALIDATING |
-| 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | VALIDATING |
-| 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | VALIDATING |
+| 2 外观 | [APPEARANCE-05](development-plan.zh-CN.md#appearance-05) | 更多主题／渐变预设、可见色带与渐变编辑 | 既有外观规则；共享主题登记 | DONE |
+| 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | DONE |
+| 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | DONE |
 | 3 任务入口 | [TASK-02](development-plan.zh-CN.md#task-02) | 外部只读任务浏览，再完善两端阅读控制 | 既有任务模型／服务与 I18N-01 语言处理 | NOT_STARTED |
 | 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 第一片状态／审核，第二片执行／恢复，第三片受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | NOT_STARTED |
 | 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 前两片提供可读状态和 GitHub 检查，后续第三片复用／清理绑定 | 既有来源服务；FIX-03 生命周期规则 | NOT_STARTED |
@@ -194,6 +195,7 @@ Native 改动分别保留 props、Pane 与 Client 树检查、有界可见页、
 | v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](m10-m12-delivery.zh-CN.md) |
 | v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量与交付](native-capacity.zh-CN.md) |
 | v3.9.2 | FIX-01～FIX-04、I18N-01：草稿、进度条、刷新消费者、历史诊断及任务语言 | DONE | [正确性修复与发布](correctness-maintenance.zh-CN.md) |
+| v3.10.0 | APPEARANCE-05、PREVIEW-01、EXPLAIN-02：主题、可视选色、样例场景及文件诊断 | DONE | [外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md) |
 
 链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
 

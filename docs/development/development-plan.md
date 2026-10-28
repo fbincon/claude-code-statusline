@@ -2,9 +2,9 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.9.2** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.10.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered, and [v3.9.2 correctness repairs](correctness-maintenance.md) are the current product baseline, retaining [v3.9.1 native capacity and recovery](native-capacity.md). The formal follow-up contains eighteen new packages and SHOWCASE-01. FIX-01–FIX-04 and I18N-01 are accepted and published in v3.9.2; the [correctness record](correctness-maintenance.md) owns actual interfaces and evidence. Remaining unstarted entries have no assigned versions or dates.
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered, and [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) are the current product baseline, retaining [v3.9.2 correctness repairs](correctness-maintenance.md) and [v3.9.1 native capacity and recovery](native-capacity.md). The formal follow-up contains eighteen new packages and SHOWCASE-01. FIX-01–FIX-04 and I18N-01 are accepted and published in v3.9.2; the [correctness record](correctness-maintenance.md) owns actual interfaces and evidence. APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are accepted and published in v3.10.0; their [delivery record](appearance-preview-diagnosis.md) owns actual interfaces and evidence. Remaining unstarted entries have no assigned versions or dates.
 
 Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
 
@@ -83,7 +83,7 @@ The [discussion](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b)
 | Refresh cancellation crosses consumers | Two in-memory GitHub refresh requests reuse one job owned by editor A; closing A requests cancellation of the same job returned to B. This did not execute a real worker. | FIX-03; [source service](../../packages/cli/src/sources/service.ts), shared source-manager close |
 | Extension diagnosis uses later data and overwrites agent evidence | An 11:00 input includes a supplied source view observed at 12:00 as `observed/current` and renders its value. Two agents both request a source, but final evidence contains only the second. | FIX-04; [diagnosis adapter](../../packages/cli/src/diagnostics/service.ts) |
 | Task language depends on successful details | Source initializes English, opens/registers the title before preference loading and assigns the loaded preference only after task reading succeeds. Failure-path behavior was source-confirmed, not a new host reproduction. | I18N-01; native task registration and refresh |
-| Missing UI/extension capabilities | Source and maintained guides show four themes, three gradient presets, existing GitHub automatic refresh, manual command refresh, CLI package management and native/CLI task details. External interactive task details, editor package pages and cross-block gradients are proposed additions. | APPEARANCE-05/06, TASK-02, UPDATE-02, COMMAND-02 |
+| Missing UI/extension capabilities | At the planning baseline, source and maintained guides showed four themes, three gradient presets, existing GitHub automatic refresh, manual command refresh, CLI package management and native/CLI task details. External interactive task details, editor package pages and cross-block gradients are proposed additions. | APPEARANCE-05/06, TASK-02, UPDATE-02, COMMAND-02 |
 
 [#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. The five correctness packages have completed [acceptance and publication](correctness-maintenance.md); remaining packages still require implementation acceptance. The six #96 gaps retain their original unverified status.
 
@@ -175,7 +175,7 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** Compare text, block backgrounds, warning/critical overrides and inherited/custom choices in main/subagent output, previews and both editors. Cover no color, terminal/ANSI fallback, save/reopen and selective appearance import without replacing components/layout. Native selectors send only the visible color choices.
 
-**Implementation in validation:** v3.10.0 selects schema 16 and protocol 26; reviewed palettes and interaction rules are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+**Delivered:** v3.10.0 uses schema 16 and protocol 26. Palettes, interaction rules, acceptance and publication evidence are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
 
 <a id="preview-01"></a>
 
@@ -189,6 +189,8 @@ Entries without an implementation record remain proposed work; current package s
 
 **Acceptance.** Confirm unchanged configuration on selection/cancel, identical renderer rules, real zero versus absence, conditional hiding, groups, alignment and applicable color overrides. Exercise targeted narrow/ordinary/wide cases and large agent lists without transporting hidden previews or the whole scenario library to the Client.
 
+**Delivered:** v3.10.0 is complete; actual behavior and validation are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+
 <a id="explain-02"></a>
 
 ## EXPLAIN-02 Explain inactive configuration and explicit input
@@ -200,6 +202,8 @@ Entries without an implementation record remain proposed work; current package s
 **Slices.** Add missing reasons → expose the explicit file path and review context → present localized paged explanations and failure guidance.
 
 **Acceptance.** Each reason matches the same configuration/input's output; an override cannot be described as a missing observation. Invalid/unreadable files, scope mismatch, missing time and source failure remain distinct. Diagnosis does not enable collection, save a draft or execute a source. Large reports preserve native capacity and return to the same draft.
+
+**Delivered:** v3.10.0 is complete; actual behavior and validation are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
 
 <a id="task-02"></a>
 

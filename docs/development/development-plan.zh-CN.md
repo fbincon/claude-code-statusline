@@ -2,9 +2,9 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.9.2** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.10.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.9.2 正确性修复](correctness-maintenance.zh-CN.md)为当前产品基线，沿用 [v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已随 v3.9.2 完成验收和发布，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)为当前产品基线，沿用 [v3.9.2 正确性修复](correctness-maintenance.zh-CN.md)与 [v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已随 v3.9.2 完成验收和发布，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；APPEARANCE-05、PREVIEW-01、EXPLAIN-02 已随 v3.10.0 完成验收和发布，实际接口与证据见[交付记录](appearance-preview-diagnosis.zh-CN.md)；其余未启动条目不分配版本或日期。
 
 已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.2 专项决定](../releases/approvals/v3.9.2.json)记录该版本对缺口的接受，不代表缺失观察已通过。
 
@@ -83,7 +83,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 | 刷新取消跨越使用者 | 两次内存 GitHub 刷新复用同一任务，owner 仍为编辑器 A；关闭 A 请求取消 B 正在使用的同一任务。未执行真实 worker。 | FIX-03；[来源服务](../../packages/cli/src/sources/service.ts)、共享来源管理关闭流程 |
 | 扩展诊断采用较晚数据并覆盖代理证据 | 11:00 输入将 12:00 观测的替身来源视图记为 `observed/current` 并渲染值；两个代理均请求来源，最终证据只保留第二个。 | FIX-04；[诊断适配](../../packages/cli/src/diagnostics/service.ts) |
 | 任务语言依赖详情成功 | 源码先初始化英文、在偏好加载前注册／打开标题，并仅在任务读取成功后赋予已加载偏好。失败路径为源码确认，未新增宿主复现。 | I18N-01；Native 任务注册与刷新 |
-| 尚缺的界面／扩展能力 | 源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
+| 尚缺的界面／扩展能力 | 规划基线时，源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
 
 [#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。五项正确性工作包已完成[验收与发布](correctness-maintenance.zh-CN.md)，其余工作包仍待实施验收；#96 六项缺口保持原有未验证状态。
 
@@ -175,7 +175,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 **验收。** 主栏／子代理、预览和双编辑器核对文字、色块背景、警告／临界覆盖、继承及自定义选择。覆盖无色、terminal／ANSI 回退、保存／重开和仅全局外观导入不替换组件／布局。Native 选择器仅发送可见颜色选项。
 
-**实现验证中：** v3.10.0 采用 schema 16、协议 26；已选配色与交互规则见[外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)。
+**已交付：** v3.10.0 采用 schema 16、协议 26；配色、交互规则、验收与发布证据见[外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)。
 
 <a id="preview-01"></a>
 
@@ -189,6 +189,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 **验收。** 选择／取消不改配置，生产渲染规则一致，零与缺失可辨，检查条件隐藏、分组、对齐及适用颜色覆盖。针对性覆盖窄／普通／宽窗口和大代理列表，隐藏预览及完整场景库不能传入 Client。
 
+**已交付：** v3.10.0 已完成，实际行为与验证见[外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)。
+
 <a id="explain-02"></a>
 
 ## EXPLAIN-02 解释未生效配置与显式输入
@@ -200,6 +202,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 **切片。** 补齐缺失原因 → 提供显式文件路径及审阅上下文 → 展示本地化分页解释和失败指引。
 
 **验收。** 原因与相同配置／输入的输出一致，不把样式覆盖解释为缺少观测。非法／不可读文件、作用域不符、未知时间及来源失败分别可辨。诊断不启用采集、不保存草稿、不执行来源；大报告遵守 Native 容量并返回原草稿。
+
+**已交付：** v3.10.0 已完成，实际行为与验证见[外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)。
 
 <a id="task-02"></a>
 
