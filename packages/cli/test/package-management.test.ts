@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
@@ -278,7 +278,7 @@ test('independent execution preserves relative prefix/config paths and treats a 
 import { inspectPackage } from '../src/management/inspection.js';
 import { readRegular } from '../src/recovery/journal.js';
 import { reviewPackage } from '../src/management/review.js';
-import { startPackageReview, packageReviewJob, reviewFolder } from '../src/management/review-jobs.js';
+import { startPackageReview, packageReviewJob, reviewFolder, writeReviewRecord, type ReviewRecord, REVIEW_DEADLINE_MS } from '../src/management/review-jobs.js';
 import type { PackageReviewRequest } from '@fbincon/statusline-core/contracts/ui';
 test('ordinary npm manifest permissions do not become recovery permissions or write configuration', t => {
     const f = fixture(t), context = { configDir: f.configDir, origin: f.options.origin, hostVersion: () => null };
@@ -334,6 +334,17 @@ test('package review worker ownership prevents another view from cancelling it',
     assert.equal(packageReviewJob(context,job.id,owner,true).state,'cancelled');
     const until=Date.now()+15000;while(fs.existsSync(folder)&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,50));
     assert(!fs.existsSync(folder),'Cancelled worker cleans its private temporary directory');assert(!fs.existsSync(f.configDir));
+});
+test('review startup grace excludes runner preparation while the overall deadline stays bounded',t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-startup-grace-123456789';
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const record:ReviewRecord={configDir:f.configDir,origin:f.options.origin,pid:null,token:null,launched_at:new Date().toISOString(),job:{version:1,id,owner,state:'running',started_at:new Date(Date.now()-60000).toISOString(),finished_at:null,request,review:null,error:null}};
+    t.after(()=>fs.rmSync(reviewFolder(id),{recursive:true,force:true}));writeReviewRecord(record);
+    assert.equal(packageReviewJob(context,id,owner).state,'running');
+    record.launched_at=new Date(Date.now()-16000).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
+    delete record.launched_at;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
+    record.pid=process.pid;record.token=null;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).state,'running','Unknown identity must retain the worker and its files until the overall deadline');
+    record.launched_at=new Date().toISOString();record.job.started_at=new Date(Date.now()-REVIEW_DEADLINE_MS-1).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
 });
 
 import { executionFolder, writeExecution, readExecution, executeReviewed, detachExecution, type ExecutionRecord } from '../src/management/execution.js';

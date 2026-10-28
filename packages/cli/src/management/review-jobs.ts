@@ -10,7 +10,7 @@ import { atomicWrite, privateDirectory } from '@fbincon/statusline-platform/file
 import { productRoot, productIdentity } from '@fbincon/statusline-platform/npm';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { startReviewWorker, waitReviewExit } from '@fbincon/statusline-platform/review-worker';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { safeTarget } from '../integration/paths.js';
@@ -21,6 +21,7 @@ export interface ReviewRecord {
     origin: string;
     pid: number | null;
     token: string | null;
+    launched_at?: string;
 }
 export const REVIEW_DEADLINE_MS = 10 * 60 * 1000;
 export function reviewFolder(id: string): string {
@@ -35,7 +36,8 @@ export function readReviewRecord(id: string): ReviewRecord {
     safeTarget(folder, path);
     const value = JSON.parse(readPrivateState(path, 1024 * 1024).toString('utf8')) as ReviewRecord;
     if (!isPackageResult('package_review_status', value.job) || value.job.id !== id || typeof value.configDir !== 'string' || typeof value.origin !== 'string' ||
-        !(value.pid === null || Number.isSafeInteger(value.pid) && value.pid > 0) || !(value.token === null || typeof value.token === 'string'))
+        !(value.pid === null || Number.isSafeInteger(value.pid) && value.pid > 0) || !(value.token === null || typeof value.token === 'string') ||
+        value.launched_at !== undefined && (typeof value.launched_at !== 'string' || !Number.isFinite(Date.parse(value.launched_at))))
         throw new PackageError('journal');
     return value;
 }
@@ -60,6 +62,10 @@ export function startPackageReview(context: InspectionContext, request: unknown,
                 throw new PackageError('identity');
             entry = join(runner, 'node_modules/@fbincon/statusline-cli/dist/src/management/review-worker-entry.js');
         }
+        // Runner preparation is part of the overall deadline, but not worker
+        // startup grace: an installed copy can take longer than fifteen seconds.
+        record.launched_at = new Date().toISOString();
+        writeReviewRecord(record);
         startReviewWorker(entry, [job.id], folder);
         return job;
     }
@@ -78,7 +84,7 @@ export function packageReviewJob(context: InspectionContext, id: unknown, owner:
         atomicWrite(join(reviewFolder(id), 'cancel.json'), '{}\n');
         const stopped = waitReviewExit(() => {
             const latest = readReviewRecord(id);
-            return !!latest.pid && !!latest.token && !processMatches(latest.pid, latest.token);
+            return !!latest.pid && !!latest.token && processAlive(latest.pid, latest.token) === false;
         });
         if (stopped) {
             const finished = readReviewRecord(id).job;
@@ -89,7 +95,7 @@ export function packageReviewJob(context: InspectionContext, id: unknown, owner:
         return readReviewRecord(id).job;
     }
     if (job.state === 'running' && (Date.now() - Date.parse(job.started_at) > REVIEW_DEADLINE_MS ||
-        Date.now() - Date.parse(job.started_at) > 15000 && (!record.pid || !record.token || !processMatches(record.pid, record.token))))
+        Date.now() - Date.parse(record.launched_at ?? job.started_at) > 15000 && (!record.pid || !!record.token && processAlive(record.pid, record.token) === false)))
         return { ...job, state: 'failed', error: 'interrupted', finished_at: new Date().toISOString() };
     if (job.state === 'complete' && inspectPackage(context, job.request.prefix).revision !== job.request.expected_revision)
         return { ...job, state: 'failed', review: null, error: 'conflict' };
