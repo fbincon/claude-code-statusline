@@ -584,6 +584,18 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: x64
+      - name: Prepare system PowerShell for source-only diagnostics
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-probe"
+          node --input-type=module <<'JS'
+          import { writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { prepareWindowsPowerShell } from './dist/typescript/tools/acceptance/windows-shell.js';
+          const result = prepareWindowsPowerShell();
+          writeFileSync(join(process.env.RUNNER_TEMP, 'source-probe', 'shell-setup.json'), JSON.stringify(result, null, 2) + '\n');
+          console.log(JSON.stringify(result));
+          if (result.status !== 'pass') process.exit(1);
+          JS
       - name: Run unchanged source assertions with resource-sensitive Git tests serialized
         run: |
           mkdir -p "$RUNNER_TEMP/source-probe"

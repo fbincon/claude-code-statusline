@@ -75,7 +75,7 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 使用 `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` 确定性跟踪运行。本地使用已有认证的 `gh` 账户，CI 使用 Actions token；不输出 token，也不修改 GitHub。程序按 15／30／60 秒退避轮询固定运行和当前任务进度，仅输出变化状态及失败步骤摘要，完成时分页收集全部 attempt／步骤耗时。收集期间启动的重跑不会误报为先前成功。报告区分排队、执行和 attempt。退出码 0 表示成功完成、1 表示 CI 失败、2 表示观察未完成；观察到期不取消 CI。不得将沿用的成功任务计作新执行样本。
 
-真实 Git 仓库测试属于资源敏感用例并保留串行：Windows 诊断发现双 worker 并发下出现观测缺失及子进程超时。`validation=windows-source-probe` 在受影响的 Windows x64／ARM 和 Node 组合上隔离重复二十次包历史清理并保留引用／保护诊断，再执行原运行时测试及十次独立 Git 测试，不生成候选或发布验收。
+真实 Git 仓库测试属于资源敏感用例并保留串行：Windows 诊断发现双 worker 并发下出现观测缺失及子进程超时。`validation=windows-source-probe` 先复用安装验收已有的 60 秒系统 PowerShell 准备阶段并记录 `candidate_invoked=false`，原来源命令仍限时 15 秒；再在受影响的 Windows x64／ARM 和 Node 组合上隔离重复二十次包历史清理并保留引用／保护诊断，执行原运行时测试及十次独立 Git 测试，不生成候选或发布验收。
 
 手动运行使用独立汇总名称 `Manual validation (not PR evidence)`，包括有意跳过的诊断门禁，避免成功或 skipped 的诊断状态覆盖 PR 必需检查。
 
