@@ -8,13 +8,25 @@ import { CI_REPOSITORY } from './ci-watch.ts';
 import { completeSource, runsFor, latestRun } from './ci-sources.ts';
 import { selectMain, integratedCandidate, verifyMerge, recordIntegration } from './ci-integration.ts';
 export { completeSource, runsFor, latestRun } from './ci-sources.ts';
-import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestArtifact, policyDigest, requireRun, validateComplete, verifyRecordedFiles, verifyWorkflowSource, type CompleteEvidence, type ArtifactIdentity } from './ci-evidence.ts';
+import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestArtifact, requireRun, verifyRecordedFiles, type CompleteEvidence, type ArtifactIdentity } from './ci-evidence.ts';
 
 export interface PromotionSelection {
     schema_version: 1; route: 'full' | 'tag' | 'main'; reason: string; commit: string; tag?: string; tag_object?: string;
     source_run?: number; source_commit?: string; filename?: string; source_record?: CompleteEvidence; source_envelope?: ArtifactIdentity; artifact_ids?: number[];
     integration?: { commit: string; base: string; head: string; pr: number; tree: string };
-    integration_run?: number; integration_envelope?: ArtifactIdentity; integration_record_sha256?: string; shadow?: boolean;
+    integration_run?: number; integration_envelope?: ArtifactIdentity; integration_record_sha256?: string;
+    mode?: 'automatic' | 'diagnostic' | 'full'; base_run?: number; push_before?: string; changed_paths?: string[];
+    prediction?: { route: 'main' | 'full'; reason: string; head: string; base: string };
+}
+/** A forecast is conditional on the final complete run; it is never evidence. */
+export function predictMain(head: string, base: string): NonNullable<PromotionSelection['prediction']> {
+    try {
+        assert.match(head, /^[a-f0-9]{40}$/u); assert.match(base, /^[a-f0-9]{40}$/u);
+        git('merge-base', '--is-ancestor', base, head);
+        assert.equal(git('merge-tree', '--write-tree', base, head), git('rev-parse', head + '^{tree}'));
+        git('cat-file', '-e', base + ':tools/checks/ci-sources.ts');
+        return { route: 'main', head, base, reason: 'Merge commit with this base/tree can reuse final complete PR evidence, subject to live provenance and accepted-base verification' };
+    } catch { return { route: 'full', head, base, reason: 'Update the PR base or supply a supported accepted verifier before an equivalent merge can be proven' }; }
 }
 export function verifyTagIdentity(tag: string, commit: string, read = git): string {
     assert.match(tag, /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
@@ -31,7 +43,7 @@ export async function selectTag(tag: string, commit: string): Promise<PromotionS
     const main = latestRun(await runsFor(commit), commit, 'main');
     if (!main) {
         const integrated = await integratedCandidate(commit);
-        if (!integrated) return full;
+        assert(integrated, 'Missing applicable source/main integration evidence for tag');
         assert.equal(tag, 'v' + integrated.source_record!.version, 'Tag/version mismatch');
         return { ...integrated, route: 'tag', commit, tag, tag_object: tagObject, reason: 'Promote the original PR candidate through its successful main integration' };
     }
@@ -52,7 +64,10 @@ export async function verifyOriginal(selection: PromotionSelection, evidence: st
             for (const key of ['integration', 'integration_run', 'integration_envelope', 'integration_record_sha256'] as const)
                 assert.deepEqual(integrated[key], selection[key], 'Integration evidence changed during promotion');
         }
-    } else { assert(selection.integration); await verifyMerge(selection.integration); }
+    } else {
+        assert(selection.integration); assert.equal(selection.source_commit, selection.integration.head);
+        assert.equal(selection.commit, selection.integration.commit); await verifyMerge(selection.integration);
+    }
     const source = selection.source_record;
     const current = latestRun(await runsFor(selection.source_commit, source.event), selection.source_commit, source.branch, source.event);
     assert(current && current.id === selection.source_run, 'Original evidence changed during promotion');
@@ -61,7 +76,7 @@ export async function verifyOriginal(selection: PromotionSelection, evidence: st
     assert.deepEqual(original.artifact_ids, selection.artifact_ids);
     verifyRecordedFiles(original.record, evidence); return original.record;
 }
-export async function verifyPromotion(selection: PromotionSelection, evidence: string, output: string, smokes?: string, smokeSelection?: string): Promise<void> {
+export async function verifyPromotion(selection: PromotionSelection, evidence: string, output: string, smokes?: string, smokeSelection?: string, verificationFile?: string): Promise<void> {
     const record = await verifyOriginal(selection, evidence), directory = join(evidence, 'ts06-candidate');
     assert(selection.filename && selection.source_commit);
     const { verifyDelivery } = await import('../build/verify.js');
@@ -80,7 +95,8 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     } else { assert.equal(checked.source.channel, 'preview'); assert.equal(previous.preview_ready, true); }
     assert.deepEqual(record.toolchain, { node: checked.source.node, npm: checked.source.npm, typescript: checked.source.typescript, lock_sha256: checked.source.lock_sha256 });
     if (selection.route === 'main') {
-        assert(smokes && smokeSelection); await recordIntegration(selection, smokes, smokeSelection, output); return;
+        assert(smokes && smokeSelection && verificationFile);
+        await recordIntegration(selection, smokes, smokeSelection, output, JSON.parse(fs.readFileSync(verificationFile, 'utf8'))); return;
     }
     const result = { schema_version: 1, kind: 'tag-promotion', repository: CI_REPOSITORY, commit: selection.commit, source_commit: selection.source_commit,
         tag: selection.tag, tag_object: selection.tag_object, run_id: Number(process.env.GITHUB_RUN_ID), attempt: Number(process.env.GITHUB_RUN_ATTEMPT),
@@ -116,21 +132,41 @@ export async function publishedTagEvidence(tag: string, commit: string, run: any
     return { sourceRun: promotion.source_run, integrationRun, promotion, artifacts: original.artifact_ids, record: original.record };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values, positionals } = parseArgs({ allowPositionals: true, options: { output: { type: 'string' }, selection: { type: 'string' }, evidence: { type: 'string' }, smokes: { type: 'string' }, 'smoke-selection': { type: 'string' } } });
+    const { values, positionals } = parseArgs({ allowPositionals: true, options: { output: { type: 'string' }, selection: { type: 'string' }, evidence: { type: 'string' }, smokes: { type: 'string' }, 'smoke-selection': { type: 'string' }, 'trusted-verification': { type: 'string' } } });
     assert(values.output || positionals[0] === 'preflight');
     if (positionals[0] === 'select') {
         const commit = git('rev-parse', 'HEAD');
-        const result = process.env.CI_EVENT === 'push' && process.env.CI_REF_TYPE === 'tag' ? await selectTag(process.env.CI_REF_NAME!, commit) :
-            process.env.CI_EVENT === 'push' && process.env.CI_REF_NAME === 'main' && process.env.CI_DOCS_ONLY !== 'true' ? await selectMain(commit, process.env.CI_BASE ?? '') :
-            { schema_version: 1, route: 'full', reason: 'Full acceptance required', commit } as PromotionSelection;
-        fs.writeFileSync(values.output!, JSON.stringify(result, null, 2) + '\n');
-        if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `route=${result.shadow ? 'full' : result.route}\npromotion_route=${result.route === 'full' ? '' : result.route}\nshadow=${result.shadow === true}\nsource_run=${result.source_run ?? ''}\nsource_commit=${result.source_commit ?? ''}\nfilename=${result.filename ?? ''}\nartifact_ids=${result.artifact_ids?.join(',') ?? ''}\n`);
-        console.log(JSON.stringify({ route: result.route, reason: result.reason, source_run: result.source_run }));
+        try {
+            const diagnostic = process.env.CI_EVENT === 'workflow_dispatch' && process.env.CI_VALIDATION === 'promotion-shadow';
+            if (diagnostic) assert.equal(process.env.CI_REF_NAME, 'main', 'Promotion shadow must run on main');
+            const result = diagnostic ? { ...await selectMain(commit, git('rev-parse', commit + '^1')), mode: 'diagnostic' as const } :
+                process.env.CI_EVENT === 'push' && process.env.CI_REF_TYPE === 'tag' ? await selectTag(process.env.CI_REF_NAME!, commit) :
+                process.env.CI_EVENT === 'push' && process.env.CI_REF_NAME === 'main' && process.env.CI_DOCS_ONLY !== 'true' ? await selectMain(commit, process.env.CI_BASE ?? '') :
+                { schema_version: 1, route: 'full', reason: process.env.CI_EVENT === 'workflow_dispatch' ? 'Explicit manual validation; not PR or release evidence' :
+                    process.env.CI_DOCS_ONLY === 'true' ? 'Documentation allowlist; no candidate acceptance' : 'Complete final PR acceptance required', commit } as PromotionSelection;
+            if (diagnostic) assert.equal(result.route, 'main', 'No reusable candidate for shadow diagnostics; use explicit full validation');
+            result.mode ??= process.env.CI_EVENT === 'workflow_dispatch' ? 'full' : 'automatic';
+            if (process.env.CI_EVENT === 'pull_request' && process.env.CI_DOCS_ONLY !== 'true') result.prediction = predictMain(commit, process.env.CI_BASE ?? '');
+            fs.writeFileSync(values.output!, JSON.stringify(result, null, 2) + '\n');
+            if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `route=${result.route}\npromotion_route=${result.route === 'full' ? '' : result.route}\nmode=${result.mode}\nsource_run=${result.source_run ?? ''}\nsource_commit=${result.source_commit ?? ''}\nfilename=${result.filename ?? ''}\nartifact_ids=${result.artifact_ids?.join(',') ?? ''}\n`);
+            const summary = { route: process.env.CI_DOCS_ONLY === 'true' ? 'documentation' : result.route, mode: result.mode, reason: result.reason,
+                prediction: result.prediction, integration: result.integration, push_before: result.push_before, base_run: result.base_run,
+                source_run: result.source_run, source_commit: result.source_commit, source_envelope: result.source_envelope,
+                original_delivery: result.source_record?.delivery, artifact_ids: result.artifact_ids, changed_paths: result.changed_paths };
+            console.log(JSON.stringify(summary, null, 2));
+            if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '### CI route and original evidence\n\n```json\n' + JSON.stringify(summary, null, 2) + '\n```\n');
+        } catch (error) {
+            const blocked = { route: 'blocked', commit, event: process.env.CI_EVENT, reason: error instanceof Error ? error.message : String(error),
+                action: 'Repair applicable evidence or provenance; no automatic full fallback and no older green substitution' };
+            console.error(JSON.stringify(blocked, null, 2));
+            if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '### CI blocked\n\n```json\n' + JSON.stringify(blocked, null, 2) + '\n```\n');
+            throw error;
+        }
     } else if (positionals[0] === 'preflight') {
         assert(values.selection && values.evidence);
         await verifyOriginal(JSON.parse(fs.readFileSync(values.selection, 'utf8')), resolve(values.evidence));
     } else {
         assert.equal(positionals[0], 'verify'); assert(values.selection && values.evidence && values.output);
-        await verifyPromotion(JSON.parse(fs.readFileSync(values.selection, 'utf8')), resolve(values.evidence), resolve(values.output), values.smokes, values['smoke-selection']);
+        await verifyPromotion(JSON.parse(fs.readFileSync(values.selection, 'utf8')), resolve(values.evidence), resolve(values.output), values.smokes, values['smoke-selection'], values['trusted-verification']);
     }
 }

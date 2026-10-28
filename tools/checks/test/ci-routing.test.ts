@@ -6,10 +6,11 @@ import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { crc32 } from 'node:zlib';
 import { selectMain, recordIntegration, SMOKE_TARGETS } from '../ci-integration.js';
-import { selectTag, publishedTagEvidence } from '../ci-promotion.js';
+import { selectTag, publishedTagEvidence, predictMain } from '../ci-promotion.js';
 import { digest, policyDigest } from '../ci-evidence.js';
 import { documentationOnly, assessCiNeeds } from '../ci-scope.js';
 import { CI_REPOSITORY } from '../ci-watch.js';
+import { BASE_VERIFICATION_CHECKS } from '../ci-trust.js';
 import { fixture, run, hash } from './fixtures/ci-evidence.js';
 
 function envelope(file: string, value: unknown): Buffer {
@@ -22,9 +23,13 @@ function envelope(file: string, value: unknown): Buffer {
     return Buffer.concat([local, name, body, central, name, end]);
 }
 
-for (const changedPolicy of [false, true]) test(changedPolicy ?
-    'approval validator changes require complete main acceptance plus shadow promotion' :
-    'new release registration reuses complete PR evidence through main and tag without a full main matrix', async t => {
+const changes = [
+    'docs/releases/approvals/registry.json', 'packages/core/src/render.ts', 'packages/cli/resources/generated.json',
+    'tools/acceptance/new-journey.ts', 'tools/acceptance/screenshots.ts', 'tools/checks/ci-watch.ts',
+    'tools/release/notes.ts', 'tools/acceptance/package-lock.json', 'tools/build/pack.ts',
+    '.github/workflows/ci.yml', 'tools/release/approval.ts', 'tools/checks/ci-evidence.ts', 'tools/checks/ci-sources.ts',
+];
+for (const changedPath of changes) test(changedPath + ': full PR evidence reuses the identical bytes through main, tag and npm', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'ci routing ')), originalCwd = process.cwd();
     const git = (...args: string[]) => execFileSync('git', ['-C', root, '-c', 'user.name=CI fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'commit.gpgsign=false', '-c', 'tag.gpgsign=false', '-c', 'core.autocrlf=false', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -40,14 +45,16 @@ for (const changedPolicy of [false, true]) test(changedPolicy ?
     write('.github/workflows/ci.yml', 'name: CI\n'); write('tools/checks/ci-evidence.ts', '// Policy fixture\n');
     write('tools/release/approval.ts', '// Stable approval validator\n');
     write('docs/releases/approvals/registry.json', '{"schema_version":1,"approvals":[]}\n');
-    git('add', '.'); git('commit', '-m', 'base'); const base = git('rev-parse', 'HEAD');
+    write('tools/checks/ci-sources.ts', '// Baseline verifier fixture\n');
+    git('add', '.'); git('commit', '-m', 'earlier main'); const earlier = git('rev-parse', 'HEAD');
+    git('commit', '--allow-empty', '-m', 'accepted base'); const base = git('rev-parse', 'HEAD');
     git('switch', '-c', 'release-fixture');
     const version = '9.9.9', path = `docs/releases/approvals/v${version}.json`;
     write('docs/releases/approvals/registry.json', JSON.stringify({ schema_version: 1, approvals: [{ version, path, approved_on: '2026-10-28' }] }));
     write(path, JSON.stringify({ version })); write('packages/core/src/release.ts', `export const VERSION = '${version}';\n`);
-    if (changedPolicy) write('tools/release/approval.ts', '// Changed approval semantics\n');
+    if (changedPath !== 'docs/releases/approvals/registry.json') write(changedPath, '// Accepted change\n');
     git('add', '.'); git('commit', '-m', 'release data'); const head = git('rev-parse', 'HEAD');
-    assert.equal(policyDigest(base, git) === policyDigest(head, git), !changedPolicy);
+    assert.equal(policyDigest(base, git) === policyDigest(head, git), !changedPath.startsWith('tools/') && !changedPath.startsWith('.github/'));
     assert.notEqual(git('rev-parse', base + '^{tree}'), git('rev-parse', head + '^{tree}'));
     assert.equal(documentationOnly('pull_request', 'branch', [path, 'docs/releases/approvals/registry.json']), false);
     git('switch', 'main'); git('merge', '--no-ff', 'release-fixture', '-m', 'integrate'); const commit = git('rev-parse', 'HEAD');
@@ -68,7 +75,8 @@ for (const changedPolicy of [false, true]) test(changedPolicy ?
         const zip = envelope(file, body); archives.set(id, zip);
         return { id, name, expired: false, digest: 'sha256:' + digest(zip), expires_at: originalArtifacts[0]!.expires_at };
     };
-    let available = [...originalArtifacts], mainArtifacts: any[] = [], tagArtifacts: any[] = [];
+    let available = [...originalArtifacts], mainArtifacts: any[] = [], tagArtifacts: any[] = [], extraRuns: any[] = [];
+    let missingEnvelope = false;
     t.mock.method(globalThis, 'fetch', async (input: string | URL | Request, options?: RequestInit) => {
         const url = new URL(String(input));
         if (url.hostname === 'ci-fixture.invalid') {
@@ -83,22 +91,27 @@ for (const changedPolicy of [false, true]) test(changedPolicy ?
         let result: unknown;
         if (pathname === '/actions/workflows/ci.yml/runs') {
             const sha = url.searchParams.get('head_sha'), event = url.searchParams.get('event');
-            result = { workflow_runs: sha === head ? [event === 'pull_request' ? prRun : tagRun] : sha === commit ? [mainRun] : sha === base ? [baseRun] : [] };
-        } else if (pathname === '/commits/' + head + '/pulls' || pathname === '/commits/' + commit + '/pulls') result = [pr];
+            result = { workflow_runs: sha === head ? (event === 'pull_request' ? [prRun, ...extraRuns] : [tagRun]) : sha === commit ? [mainRun] : sha === base ? [baseRun] : [] };
+        } else if (/^\/commits\/[a-f0-9]{40}\/pulls$/u.test(pathname)) result = [pr];
         else if (pathname === '/pulls/23') result = pr;
         else if (pathname === '/contents/.github/workflows/ci.yml') result = { type: 'file', sha: git('rev-parse', head + ':.github/workflows/ci.yml') };
         else if (pathname === '/actions/runs/12/artifacts') {
-            const artifacts = [...available, artifact(900, 'ts06-acceptance', 'ci-evidence.json', source)];
+            const artifacts = [...available, ...(missingEnvelope ? [] : [artifact(900, 'ts06-acceptance', 'ci-evidence.json', source)])];
             result = { artifacts, total_count: artifacts.length };
         } else if (pathname === '/actions/runs/44/artifacts') result = { artifacts: mainArtifacts, total_count: mainArtifacts.length };
         else if (pathname === '/actions/runs/45/artifacts') result = { artifacts: tagArtifacts, total_count: tagArtifacts.length };
+        else if (/^\/actions\/runs\/\d+\/jobs$/u.test(pathname)) result = { total_count: 1, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' }] };
+        else if (pathname === '/actions/runs/12/attempts/1/jobs') {
+            const jobs = [...new Map(source.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name, started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
+            result = { jobs, total_count: jobs.length };
+        }
         else if (pathname === '/actions/runs/44/attempts/2/jobs') result = { total_count: 3, jobs: SMOKE_TARGETS.map((target, index) => ({ id: 1000 + index, name: 'Integration smoke / ' + target, conclusion: 'success' })) };
         else if (/^\/actions\/artifacts\/\d+\/zip$/u.test(pathname)) return new Response(null, { status: 302, headers: { location: 'https://ci-fixture.invalid/' + pathname.split('/')[3] } });
         else throw new Error('Unexpected API call: ' + url.href);
         return Response.json(result);
     });
     const selection = await selectMain(commit, base);
-    assert.equal(selection.route, 'main'); assert.equal(selection.shadow, changedPolicy); assert.equal(selection.source_commit, head);
+    assert.equal(selection.route, 'main'); assert.equal('shadow' in selection, false); assert.equal(selection.source_commit, head);
     assert.equal(selection.source_run, prRun.id); assert.deepEqual(selection.source_record?.delivery, source.delivery);
     const smokes = SMOKE_TARGETS.map((target, index) => ({ schema_version: 1, kind: 'integration-smoke', status: 'pass', target,
         integration_commit: commit, source_commit: head, tarball_sha256: hash, node: source.toolchain.node, node_sha256: hash,
@@ -108,15 +121,18 @@ for (const changedPolicy of [false, true]) test(changedPolicy ?
     mainArtifacts = smokes.map(row => artifact(1000 + SMOKE_TARGETS.indexOf(row.target), 'ci-integration-' + row.target, 'smoke.json', row));
     for (const smoke of smokes) write(`smokes/ci-integration-${smoke.target}/smoke.json`, JSON.stringify(smoke));
     write('smoke-selection.json', JSON.stringify({ run_id: 44, artifacts: mainArtifacts.map(({ expired: _, ...item }) => item) }));
-    await recordIntegration(selection, join(root, 'smokes'), join(root, 'smoke-selection.json'), join(root, 'promotion.json'));
+    const verification = { schema_version: 1, kind: 'base-verifier', status: 'pass', verifier_commit: base, verifier_tree: git('rev-parse', base + '^{tree}'),
+        base_run: 1, integration_commit: commit, source_commit: head, source_run: prRun.id, source_envelope: selection.source_envelope,
+        source_record_sha256: digest(JSON.stringify(source)), run_id: 44, attempt: 2, checks: BASE_VERIFICATION_CHECKS };
+    await recordIntegration(selection, join(root, 'smokes'), join(root, 'smoke-selection.json'), join(root, 'promotion.json'), verification);
     const integration = JSON.parse(fs.readFileSync(join(root, 'promotion.json'), 'utf8'));
     mainArtifacts.push(artifact(2000, 'ci-promotion', 'promotion.json', integration));
     process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; process.env.CI_REF_NAME = 'main';
-    const needs = { scope: { result: 'success', outputs: { route: changedPolicy ? 'full' : 'main', shadow: String(changedPolicy) } },
-        integration: { result: 'success' }, promotion: { result: 'success' }, ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: changedPolicy ? 'success' : 'skipped' }])) };
+    const needs = { scope: { result: 'success', outputs: { route: 'main' } },
+        integration: { result: 'success' }, promotion: { result: 'success' }, ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])) };
     assessCiNeeds(needs);
     assert.throws(() => assessCiNeeds({ ...needs, integration: { result: 'skipped' } }));
-    if (changedPolicy) assert.throws(() => assessCiNeeds({ ...needs, development: { result: 'skipped' } }));
+    assert.throws(() => assessCiNeeds({ ...needs, development: { result: 'success' } }));
     const tag = await selectTag('v' + version, head);
     assert.equal(tag.route, 'tag'); assert.equal(tag.source_run, prRun.id); assert.equal(tag.integration_run, mainRun.id);
     assert.deepEqual(tag.source_record?.delivery, source.delivery);
@@ -127,7 +143,34 @@ for (const changedPolicy of [false, true]) test(changedPolicy ?
     tagArtifacts = [artifact(3000, 'ci-promotion', 'promotion.json', promoted)];
     const published = await publishedTagEvidence('v' + version, head, tagRun);
     assert.equal(published?.sourceRun, prRun.id); assert.equal(published?.integrationRun, mainRun.id);
-    if (!changedPolicy) {
+    assert.equal(predictMain(head, base).route, 'main');
+    if (changedPath === changes[0]) {
+        assert.equal((await selectMain(commit, earlier)).route, 'main', 'Batched push uses the accepted real first parent');
+        for (const patch of [{ conclusion: 'failure' }, { conclusion: 'cancelled' }, { status: 'in_progress' }]) {
+            extraRuns = [{ ...prRun, id: 99, ...patch }];
+            await assert.rejects(selectMain(commit, base)); await assert.rejects(selectTag('v' + version, head));
+        }
+        extraRuns = [{ ...prRun, id: 99, event: 'workflow_dispatch', conclusion: 'failure' }];
+        assert.equal((await selectMain(commit, base)).route, 'main', 'Manual runs are not applicable PR evidence'); extraRuns = [];
+        missingEnvelope = true; await assert.rejects(selectMain(commit, base), /Missing artifact/u); missingEnvelope = false;
+        source.pr!.base = earlier;
+        assert.match((await selectMain(commit, base)).reason, /different base/u); source.pr!.base = base;
+        const tree = git('rev-parse', head + '^{tree}');
+        for (const label of ['squash', 'rebase']) {
+            const rewritten = git('commit-tree', tree, '-p', base, '-m', label);
+            assert.equal((await selectMain(rewritten, base)).route, 'full', 'Same tree cannot replace source ancestry/tag identity');
+        }
+        const unrelated = git('commit-tree', tree, '-m', 'unrelated same tree');
+        await assert.rejects(selectMain(commit, unrelated));
+        const wrongParent = git('commit-tree', tree, '-p', base, '-p', unrelated, '-m', 'wrong head');
+        pr.merge_commit_sha = wrongParent;
+        assert.match((await selectMain(wrongParent, base)).reason, /Merged head differs/u);
+        const changedTree = git('commit-tree', base + '^{tree}', '-p', base, '-p', head, '-m', 'different integrated content');
+        pr.merge_commit_sha = changedTree;
+        assert.match((await selectMain(changedTree, base)).reason, /Integrated tree differs/u);
+        pr.merge_commit_sha = commit;
+        pr.base.sha = earlier;
+        assert.match((await selectMain(commit, base)).reason, /base changed/u); pr.base.sha = base;
         const validExpiry = source.expires_at;
         source.expires_at = new Date(Date.now() - 1).toISOString();
         await assert.rejects(selectMain(commit, base)); await assert.rejects(selectTag('v' + version, head)); source.expires_at = validExpiry;

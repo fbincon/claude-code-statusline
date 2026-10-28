@@ -4,15 +4,15 @@
 
 ## v3.10.0 外观与理解
 
-使用[版本决定](releases/approvals/v3.10.0.json)，保留全部安装／runtime／宿主／容量门禁，并要求安装包的新主题、场景和当前草稿文件诊断证据。验收工具变更要求完整 main 验收与 shadow promotion。发布原始四个已核验文件，升级本机安装并恢复原显示／界面偏好。[实施与交付](development/appearance-preview-diagnosis.zh-CN.md)。
+使用[版本决定](releases/approvals/v3.10.0.json)，保留全部安装／runtime／宿主／容量门禁，并要求安装包的新主题、场景和当前草稿文件诊断证据。验收工具变更采用下述源码等价复用规则，不单独要求第二轮完整矩阵。发布原始四个已核验文件，升级本机安装并恢复原显示／界面偏好。[实施与交付](development/appearance-preview-diagnosis.zh-CN.md)。
 
 2026-10-28 已完成最终 PR／main／tag 门禁、OIDC 发布、公开下载及测试机升级／恢复，实际源码与渠道凭证见[交付记录](development/appearance-preview-diagnosis.zh-CN.md)。
 
 ## 绑定源码的 CI 证据晋级
 
-常规发版准备先完成最终 PR 矩阵，以 merge commit 合并，并通过 main 集成核验及 Linux／Windows／macOS 安装冒烟。在经该合并于 main 历史中可达的**已验收 PR 源提交**上创建注解版本 tag；tag SHA、包内源码 SHA 和 npm provenance 必须一致。策略变化或不等价集成仍须完整 main 验收，也保留同提交 main → tag 后备路径。发布原始安装包／源码／清单／校验和字节，不重新构建或改写来源。npm 工作流核对明确的 PR／main／tag 证据链，按不可变原始附件 ID 下载。缺失、过期或不匹配证据均阻断。参见 [CI 规则与证据](development/ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)。
+常规发版准备先完成最终 PR 矩阵，以 merge commit 合并，并通过 main 集成核验及 Linux／Windows／macOS 安装冒烟。在经该合并于 main 历史中可达的**已验收 PR 源提交**上创建注解版本 tag；tag SHA、包内源码 SHA 和 npm provenance 必须一致。策略变化后的已验收等价文件树也复用，另执行独立已验收 base 校验和晋级专项检查。未验收集成保留完整 main 及同提交 main → tag 后备路径。发布原始安装包／源码／清单／校验和字节，不重新构建或改写来源。npm 工作流核对明确的 PR／main／tag 证据链，按不可变原始附件 ID 下载。缺失、过期或不匹配证据均阻断。参见 [CI 规则与证据](development/ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)。
 
-每个获批准的稳定版本都应新增批准 JSON，并在[批准登记表](releases/approvals/registry.json)增加 `{version, path, approved_on}` 条目。保持精确批准日期和既有六项缺口范围，无需为了登记版本而修改校验器。这些发布数据仍须通过完整最终 PR 验收；策略不变且合并等价时，main 复用原候选包并执行三个安装冒烟。改变校验器、构建／验收执行或证据规则时，main 仍执行完整矩阵及影子晋级。两个数据文件均从原始源码归档核验，批准回执记录它们的摘要。登记／批准缺失、无效或不匹配均阻断发布。
+每个获批准的稳定版本都应新增批准 JSON，并在[批准登记表](releases/approvals/registry.json)增加 `{version, path, approved_on}` 条目。保持精确批准日期和既有六项缺口范围，无需为了登记版本而修改校验器。这些发布数据仍须通过完整最终 PR 验收；已验收合并等价时，main 复用原候选包并执行三个安装冒烟。校验器、构建／验收及证据规则变化采用同一路由，加上独立核验和 main/tag 专项回归；证据不兼容时阻断，直至提供经过审查的迁移。两个数据文件均从原始源码归档核验，批准回执记录它们的摘要。登记／批准缺失、无效或不匹配均阻断发布。
 
 下方历史版本保留其原始门禁和身份。干跑验证准备过程及字节；每次实际发布都应记录真实 tag／OIDC 发布结果，不替换既有版本。
 

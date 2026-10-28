@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       validation:
-        description: Full acceptance or isolated Windows diagnostics (not release evidence)
+        description: Explicit full validation or isolated diagnostics (never PR or release evidence)
         type: choice
-        options: [full, windows-probe, macos-probe, windows-source-probe]
+        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe]
         default: full
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
       draft: ${{ steps.scope.outputs.draft }}
       route: ${{ steps.promotion.outputs.route }}
       promotion_route: ${{ steps.promotion.outputs.promotion_route }}
-      shadow: ${{ steps.promotion.outputs.shadow }}
+      mode: ${{ steps.promotion.outputs.mode }}
       source_run: ${{ steps.promotion.outputs.source_run }}
       source_commit: ${{ steps.promotion.outputs.source_commit }}
       filename: ${{ steps.promotion.outputs.filename }}
@@ -70,7 +70,8 @@ jobs:
           CI_EVENT: ${{ github.event_name }}
           CI_REF_TYPE: ${{ github.ref_type }}
           CI_REF_NAME: ${{ github.ref_name }}
-          CI_BASE: ${{ github.event.before }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_VALIDATION: ${{ inputs.validation }}
           CI_DOCS_ONLY: ${{ steps.scope.outputs.docs_only }}
         run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -425,6 +426,7 @@ jobs:
           CI_EVENT: ${{ github.event_name }}
           CI_REF_TYPE: ${{ github.ref_type }}
           CI_REF_NAME: ${{ github.ref_name }}
+          CI_VALIDATION: ${{ inputs.validation }}
         run: node tools/checks/ci-scope.ts gate
       - if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -453,12 +455,12 @@ jobs:
       - name: Bind complete acceptance to its original source and artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full' && github.event_name != 'workflow_dispatch'
         run: node dist/typescript/tools/checks/ci-evidence.js record --evidence "$RUNNER_TEMP/evidence" --selection "$RUNNER_TEMP/evidence-selection.json" --acceptance "$RUNNER_TEMP/acceptance/candidate-acceptance.json" --output "$RUNNER_TEMP/acceptance/ci-evidence.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          name: ts06-acceptance
+          name: ${{ github.event_name == 'workflow_dispatch' && 'ci-manual-acceptance' || 'ts06-acceptance' }}
           path: ${{ runner.temp }}/acceptance/
           if-no-files-found: error
           retention-days: 30
@@ -674,7 +676,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
+      - name: Independently verify with the accepted first-parent code
+        if: needs.scope.outputs.promotion_route == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-trust.ts --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/promotion/trusted-verification.json"
       - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
+      - name: Exercise main, tag, npm provenance and workflow routing contracts
+        run: node --test --test-concurrency=1 dist/typescript/tools/checks/test/ci-{evidence,integration,routing,scope,trust}.test.js
       - id: smokes
         if: needs.scope.outputs.promotion_route == 'main'
         name: Select exact original integration receipts
@@ -691,7 +700,7 @@ jobs:
       - name: Verify the original package, receipts, main ancestry and tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --smokes "$RUNNER_TEMP/smokes" --smoke-selection "$RUNNER_TEMP/smoke-selection.json" --output "$RUNNER_TEMP/promotion/promotion.json"
+        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --smokes "$RUNNER_TEMP/smokes" --smoke-selection "$RUNNER_TEMP/smoke-selection.json" --trusted-verification "$RUNNER_TEMP/promotion/trusted-verification.json" --output "$RUNNER_TEMP/promotion/promotion.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ci-promotion

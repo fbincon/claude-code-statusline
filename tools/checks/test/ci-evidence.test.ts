@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { artifactIdentity, newestArtifact, selectCompleteArtifacts, validateComplete, verifyRecordedFiles, digest, fileReceipts, type CompleteEvidence } from '../ci-evidence.js';
 import { latestRun, verifyTagIdentity } from '../ci-promotion.js';
 import { commit, hash, now, run, fixture } from './fixtures/ci-evidence.js';
+import { requireGate, verifyExecutionJobs } from '../ci-sources.js';
 test('complete evidence retains exact source, coverage and immutable original artifact identities', () => {
     const { record, artifacts } = fixture(); assert.doesNotThrow(() => validateComplete(record, run, artifacts));
     assert.equal(selectCompleteArtifacts(artifacts).length, 50);
@@ -50,6 +51,32 @@ test('latest failed exact source run cannot fall back to older green or unrelate
     assert.equal(latestRun([run], 'c'.repeat(40), 'main'), undefined);
     assert.throws(() => latestRun([run, { ...run, id: 13, conclusion: 'failure' }], commit, 'main'));
     assert.throws(() => latestRun([run, { ...run, id: 13, status: 'in_progress' }], commit, 'main'));
+});
+test('successful workflow status cannot replace the required aggregate or original job provenance', async t => {
+    const previous = process.env.GH_TOKEN; process.env.GH_TOKEN = 'fixture-only';
+    t.after(() => { if (previous === undefined) delete process.env.GH_TOKEN; else process.env.GH_TOKEN = previous; });
+    const { record } = fixture();
+    let gates: any[] = [{ name: 'Complete candidate evidence', conclusion: 'success' }];
+    let jobs = [...new Map(record.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name,
+        started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
+    t.mock.method(globalThis, 'fetch', async (input: any) => {
+        const url = new URL(String(input));
+        assert.equal(url.hostname, 'api.github.com');
+        assert(url.pathname.includes('/actions/runs/12/'));
+        const result = url.pathname.includes('/attempts/1/jobs') ? jobs : gates;
+        return Response.json({ jobs: result, total_count: result.length });
+    });
+    await requireGate(run); await verifyExecutionJobs(record);
+    for (const conclusion of ['failure', 'skipped', 'cancelled', null]) {
+        gates = [{ name: 'Complete candidate evidence', conclusion }]; await assert.rejects(requireGate(run));
+    }
+    for (const invalid of [[], [{ name: 'Manual validation (not PR evidence)', conclusion: 'success' }]]) {
+        gates = invalid; await assert.rejects(requireGate(run));
+    }
+    const original = jobs;
+    for (const patch of [{ id: 999 }, { name: 'Unrelated successful job' }, { conclusion: 'failure' }, { started_at: 'different execution' }, { completed_at: null }]) {
+        jobs = [{ ...original[0]!, ...patch }, ...original.slice(1)]; await assert.rejects(verifyExecutionJobs(record));
+    }
 });
 test('original package bytes and every receipt are checked again before promotion', () => {
     const root = fs.mkdtempSync(join(tmpdir(), 'evidence-bytes-'));

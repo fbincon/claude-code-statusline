@@ -4,11 +4,13 @@ import { mergeEquivalence, validateIntegration, SMOKE_TARGETS } from '../ci-inte
 import { digest } from '../ci-evidence.js';
 import { commit, hash, run, fixture } from './fixtures/ci-evidence.js';
 import type { PromotionSelection } from '../ci-promotion.js';
+import { BASE_VERIFICATION_CHECKS } from '../ci-trust.js';
 test('integration requires unchanged head, base and tree and a two-parent merge', () => {
     const base = 'c'.repeat(40), merge = 'd'.repeat(40);
     const good = { commit: merge, parents: [base, commit], before: base, head: commit, base, tree: hash, headTree: hash };
     assert.equal(mergeEquivalence(good), null);
-    for (const changed of [{ parents: [base] }, { parents: [base, commit, merge] }, { before: merge }, { base: merge }, { head: merge }, { headTree: 'f'.repeat(40) }])
+    assert.equal(mergeEquivalence({ ...good, before: merge }), null, 'Push boundary is checked separately from actual parents');
+    for (const changed of [{ parents: [base] }, { parents: [base, commit, merge] }, { base: merge }, { head: merge }, { headTree: 'f'.repeat(40) }])
         assert.notEqual(mergeEquivalence({ ...good, ...changed }), null);
 });
 function integrated() {
@@ -32,6 +34,23 @@ function integrated() {
 }
 test('main integration binds original PR bytes and all three real smoke jobs across attempts', () => {
     const value = integrated(); assert.doesNotThrow(() => validateIntegration(value.record, value.mainRun, value.selection, value.artifacts));
+});
+test('schema-2 integration requires independent accepted-base verification; legacy records remain readable', () => {
+    const value = integrated(), tree = 'e'.repeat(40);
+    const verification = { schema_version: 1, kind: 'base-verifier', status: 'pass', verifier_commit: value.selection.integration!.base,
+        verifier_tree: tree, base_run: 1, source_commit: commit, source_run: run.id, source_envelope: value.selection.source_envelope,
+        source_record_sha256: value.record.source_record_sha256, integration_commit: value.selection.commit, run_id: 44, attempt: 2,
+        checks: BASE_VERIFICATION_CHECKS };
+    const record = { ...value.record, schema_version: 2, verification };
+    const validate = (candidate: any) => validateIntegration(candidate, value.mainRun, value.selection, value.artifacts, () => tree);
+    assert.doesNotThrow(() => validate(record));
+    assert.throws(() => validate({ ...record, verification: undefined }));
+    for (const patch of [{ verifier_commit: commit }, { verifier_tree: commit }, { source_run: 99 }, { source_commit: tree },
+        { source_record_sha256: hash }, { run_id: 99 }, { attempt: 1 }, { base_run: 0 }, { source_envelope: {} },
+        { checks: BASE_VERIFICATION_CHECKS.slice(1) }, { kind: 'current-verifier' }, { status: 'skipped' }])
+        assert.throws(() => validate({ ...record, verification: { ...verification, ...patch } }));
+    assert.doesNotThrow(() => validateIntegration(value.record, value.mainRun, value.selection, value.artifacts));
+    assert.throws(() => validate({ ...record, kind: 'diagnostic-main-promotion' }));
 });
 test('integration cannot substitute other runs, sources, policies, artifacts or partial smoke results', () => {
     const mutations = [

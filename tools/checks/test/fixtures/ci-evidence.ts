@@ -22,5 +22,11 @@ export function fixture() {
         const installed = record.executions.find(value => value.target === row.target && !value.runtime_case && !value.host)!;
         row.job_id = installed.job_id; row.execution = { ...installed.execution, reused_installed: true, source_suite: 'complete-platform-suite' };
     }
+    for (const row of record.executions) {
+        const split = row.target.lastIndexOf('-'), os = row.target.slice(0, split), arch = row.target.slice(split + 1);
+        row.job_name = row.host ? `Mods / ${({ linux: 'ubuntu-24.04', win32: 'windows-2025', darwin: 'macos-15' } as Record<string, string>)[os]} / Claude ${row.host}` :
+            row.runtime_case && !row.execution.reused_installed ? `Node ${row.runtime_case} / ${os} / ${arch}` : `Installed / ${os} / ${arch}`;
+        row.started_at = new Date(now - 1000).toISOString(); row.completed_at = new Date(now).toISOString();
+    }
     return { record, artifacts };
 }

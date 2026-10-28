@@ -36,14 +36,18 @@ export function assessCiNeeds(needs: Record<string, { result: string; outputs?: 
     assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
     const route = needs.scope.outputs?.route ?? 'full';
     assert(['full', 'tag', 'main'].includes(route), 'Unknown acceptance route');
-    const integrated = route === 'main' || needs.scope.outputs?.shadow === 'true';
+    const integrated = route === 'main';
+    const diagnostic = needs.scope.outputs?.mode === 'diagnostic';
     if (integrated) {
-        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'branch'); assert.equal(process.env.CI_REF_NAME, 'main');
+        assert.equal(process.env.CI_EVENT, diagnostic ? 'workflow_dispatch' : 'push');
+        if (diagnostic) assert.equal(process.env.CI_VALIDATION, 'promotion-shadow');
+        assert.equal(process.env.CI_REF_TYPE, 'branch'); assert.equal(process.env.CI_REF_NAME, 'main');
         assert.equal(needs.integration?.result, 'success', 'Three-platform integration did not pass');
         assert.equal(needs.promotion?.result, 'success', 'Main promotion did not pass');
     }
     if (route === 'tag' || route === 'main') {
-        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, route === 'tag' ? 'tag' : 'branch');
+        assert.equal(process.env.CI_EVENT, diagnostic ? 'workflow_dispatch' : 'push'); assert.equal(process.env.CI_REF_TYPE, route === 'tag' ? 'tag' : 'branch');
+        if (route === 'tag') assert.equal(diagnostic, false);
         if (route === 'tag') assert.equal(needs.integration?.result, 'skipped', 'Unexpected integration during tag verification');
         assert.equal(needs.promotion?.result, 'success', 'Release promotion did not pass');
         for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected execution during promotion');

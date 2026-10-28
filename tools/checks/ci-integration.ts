@@ -6,8 +6,9 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestArtifact, policyDigest, requireRun, type ArtifactIdentity } from './ci-evidence.ts';
-import { completeSource, latestRun, runsFor } from './ci-sources.ts';
+import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import type { PromotionSelection } from './ci-promotion.ts';
+import { BASE_VERIFICATION_CHECKS } from './ci-trust.ts';
 
 export const SMOKE_TARGETS = ['ubuntu-24.04', 'windows-2025', 'macos-15'];
 type Integration = NonNullable<PromotionSelection['integration']>;
@@ -25,7 +26,9 @@ function trustedMergedPr(pr: any): boolean {
 }
 export function mergeEquivalence(value: { commit: string; parents: string[]; before: string; head: string; base: string; tree: string; headTree: string }): string | null {
     if (value.parents.length !== 2) return 'Merge is not a two-parent merge commit';
-    if (value.parents[0] !== value.before || value.parents[0] !== value.base) return 'Main base changed after PR acceptance';
+    // A push may contain several merges. The actual first parent, not the push
+    // boundary, is the integration base; selectMain checks the range separately.
+    if (value.parents[0] !== value.base) return 'Main base changed after PR acceptance';
     if (value.parents[1] !== value.head) return 'Merged head differs from the accepted PR source';
     if (value.tree !== value.headTree) return 'Integrated tree differs from the accepted PR source';
     return null;
@@ -44,32 +47,40 @@ export async function verifyMerge(integration: Integration): Promise<void> {
     git('merge-base', '--is-ancestor', integration.commit, 'refs/remotes/origin/main');
 }
 async function acceptedPr(pr: any) {
-    const run = latestRun(await runsFor(pr.head.sha, 'pull_request'), pr.head.sha, pr.head.ref, 'pull_request');
-    assert(run, 'Missing final PR acceptance');
-    const source = await completeSource(run);
-    assert.equal(source.record.pr?.number, pr.number); assert.equal(source.record.pr?.head, pr.head.sha);
-    return { run, ...source };
+    try {
+        const run = latestRun(await runsFor(pr.head.sha, 'pull_request'), pr.head.sha, pr.head.ref, 'pull_request');
+        assert(run, 'Missing final PR acceptance');
+        const source = await completeSource(run);
+        assert.equal(source.record.pr?.number, pr.number); assert.equal(source.record.pr?.head, pr.head.sha);
+        return { run, ...source };
+    } catch (error) { throw new Error(`PR #${pr.number} at ${pr.head.sha}: ${error instanceof Error ? error.message : String(error)}`, { cause: error }); }
 }
 export async function selectMain(commit: string, before: string): Promise<PromotionSelection> {
     const full = (reason: string): PromotionSelection => ({ schema_version: 1, route: 'full', commit, reason });
     const parents = git('rev-list', '--parents', '-n', '1', commit).split(' ').slice(1);
-    if (parents.length !== 2 || parents[0] !== before) return full('Full acceptance for nonstandard or batched main integration');
+    if (parents.length !== 2) return full('Non-merge integration: source ancestry, compiler restoration and release identity require acceptance at main');
+    assert.match(before, /^[a-f0-9]{40}$/u, 'Missing main push boundary');
+    git('merge-base', '--is-ancestor', before, parents[0]!);
     const prs = (await associatedPulls(commit)).filter(pr => trustedMergedPr(pr) && pr.merge_commit_sha === commit);
     if (prs.length === 0) return full('No reusable owned merge-commit PR');
     assert.equal(prs.length, 1, 'Ambiguous merge provenance'); const pr = prs[0];
     const relation = localRelation(commit, before, pr), difference = mergeEquivalence(relation);
-    if (difference) return full(difference);
     try { git('cat-file', '-e', pr.head.sha + ':tools/checks/ci-evidence.ts'); } catch { return full('Legacy PR evidence requires complete main acceptance'); }
     const source = await acceptedPr(pr);
-    if (source.record.pr!.base !== before) return full('PR acceptance used a different base commit');
+    // Invalid applicable evidence blocks even when the merge also needs new
+    // acceptance. Never use a full run to hide a failed/missing source run.
+    if (difference) return full(difference);
+    if (source.record.pr!.base !== parents[0]) return full('PR acceptance used a different base commit');
     assert.equal(source.record.tree, relation.tree); assert.equal(source.record.policy_sha256, policyDigest(commit));
-    const baseRun = latestRun(await runsFor(before), before, 'main'); assert(baseRun, 'Previous main has no successful integration gate');
-    // Policy/bootstrap changes verify the promotion in shadow and still run the
-    // complete main matrix. Ordinary unchanged-policy merges reuse after that.
-    const shadow = policyDigest(before) !== policyDigest(commit);
-    return { schema_version: 1, route: 'main', shadow, commit,
-        reason: shadow ? 'Acceptance policy changed: verify promotion and complete main matrix' : 'Reuse complete PR evidence for the identical integrated tree',
-        integration: { commit, base: before, head: pr.head.sha, pr: pr.number, tree: relation.tree },
+    try { git('cat-file', '-e', parents[0] + ':tools/checks/ci-sources.ts'); }
+    catch { return full('Legacy base has no independent evidence verifier; establish complete main acceptance'); }
+    const base = parents[0]!, baseRun = latestRun(await runsFor(base), base, 'main'); assert(baseRun, 'Previous main has no successful integration gate');
+    await requireGate(baseRun);
+    return { schema_version: 1, route: 'main', commit,
+        reason: 'Reuse complete PR evidence for the identical integrated tree; verify with the accepted base and run three installation smokes',
+        base_run: baseRun.id, push_before: before,
+        changed_paths: git('diff', '--no-renames', '--name-only', base, commit, '--').split('\n').filter(Boolean),
+        integration: { commit, base, head: pr.head.sha, pr: pr.number, tree: relation.tree },
         source_run: source.run.id, source_commit: pr.head.sha, filename: `fbincon-claude-code-statusline-${source.record.version}.tgz`,
         source_record: source.record, source_envelope: source.envelope, artifact_ids: source.artifact_ids };
 }
@@ -89,14 +100,29 @@ export function validateSmokes(reports: any[], selection: PromotionSelection): v
         assert(Number.isSafeInteger(Number(row.execution?.attempt)) && Number(row.execution.attempt) > 0);
     }
 }
-export function validateIntegration(record: any, run: any, selection: PromotionSelection, artifacts: any[]): void {
+export function validateBaseVerification(verification: any, selection: PromotionSelection, run: { id: number; run_attempt: number }, read = git): void {
+    assert(verification && selection.integration && selection.source_record);
+    assert.equal(verification.schema_version, 1); assert.equal(verification.kind, 'base-verifier'); assert.equal(verification.status, 'pass');
+    assert.deepEqual(verification.checks, BASE_VERIFICATION_CHECKS);
+    assert.equal(verification.verifier_commit, selection.integration.base);
+    assert.equal(verification.verifier_tree, read('rev-parse', selection.integration.base + '^{tree}'));
+    assert.equal(verification.source_run, selection.source_run); assert.equal(verification.source_commit, selection.source_commit);
+    assert.equal(verification.source_record_sha256, digest(JSON.stringify(selection.source_record)));
+    assert.deepEqual(verification.source_envelope, selection.source_envelope);
+    assert.equal(verification.integration_commit, selection.integration.commit);
+    assert.equal(verification.run_id, run.id); assert.equal(verification.attempt, run.run_attempt);
+    assert(Number.isSafeInteger(verification.base_run) && verification.base_run > 0);
+    if (selection.base_run) assert.equal(verification.base_run, selection.base_run);
+}
+export function validateIntegration(record: any, run: any, selection: PromotionSelection, artifacts: any[], read = git): void {
     assert(selection.integration && selection.source_record && selection.source_envelope);
     requireRun(run, selection.integration.commit, 'main');
-    assert.equal(record.schema_version, 1); assert.equal(record.kind, 'main-promotion'); assert.equal(record.status, 'pass');
+    assert([1, 2].includes(record.schema_version)); assert.equal(record.kind, 'main-promotion'); assert.equal(record.status, 'pass');
     assert.equal(record.repository, CI_REPOSITORY); assert.equal(record.run_id, run.id); assert.equal(record.attempt, run.run_attempt);
     assert.deepEqual(record.integration, selection.integration); assert.equal(record.source_commit, selection.source_commit); assert.equal(record.source_run, selection.source_run);
     assert.deepEqual(record.source_envelope, selection.source_envelope); assert.equal(record.source_record_sha256, digest(JSON.stringify(selection.source_record)));
     assert.deepEqual(record.delivery, selection.source_record.delivery); assert.equal(record.policy_sha256, selection.source_record.policy_sha256);
+    if (record.schema_version === 2) validateBaseVerification(record.verification, selection, run, read);
     validateSmokes(record.smokes, selection);
     const expectedNames = SMOKE_TARGETS.map(target => 'ci-integration-' + target).sort();
     assert.deepEqual(record.artifacts.map((item: ArtifactIdentity) => item.name).sort(), expectedNames);
@@ -116,12 +142,17 @@ export async function integratedCandidate(commit: string): Promise<PromotionSele
     await verifyMerge(integration);
     const source = await acceptedPr(pr); assert.equal(source.record.pr!.base, integration.base);
     const main = latestRun(await runsFor(integration.commit), integration.commit, 'main'); assert(main, 'Missing successful main integration');
+    await requireGate(main);
     const artifacts = await listRunArtifacts(main.id), envelope = newestArtifact(artifacts, 'ci-promotion');
     const record = await artifactJson(envelope, 'promotion.json');
     const result: PromotionSelection = { schema_version: 1, route: 'main', reason: 'Verified original PR candidate and its main integration', commit: integration.commit, integration,
         source_commit: commit, source_run: source.run.id, source_record: source.record, source_envelope: source.envelope, artifact_ids: source.artifact_ids,
         filename: `fbincon-claude-code-statusline-${source.record.version}.tgz`, integration_run: main.id, integration_envelope: artifactIdentity(envelope), integration_record_sha256: digest(JSON.stringify(record)) };
     validateIntegration(record, main, result, artifacts);
+    if (record.schema_version === 2) {
+        const base = latestRun(await runsFor(integration.base), integration.base, 'main');
+        assert(base && base.id === record.verification.base_run, 'Accepted base verification changed'); await requireGate(base);
+    }
     await Promise.all(record.smokes.map(async (smoke: any) => {
         const artifact = newestArtifact(artifacts, 'ci-integration-' + smoke.target);
         const original = await artifactJson(artifact, 'smoke.json', smoke.receipt_sha256);
@@ -130,7 +161,7 @@ export async function integratedCandidate(commit: string): Promise<PromotionSele
     }));
     return result;
 }
-export async function recordIntegration(selection: PromotionSelection, directory: string, selectionFile: string, output: string): Promise<void> {
+export async function recordIntegration(selection: PromotionSelection, directory: string, selectionFile: string, output: string, verification?: any): Promise<void> {
     const selected = JSON.parse(fs.readFileSync(selectionFile, 'utf8'));
     const reports = SMOKE_TARGETS.map(target => {
         const bytes = fs.readFileSync(join(directory, 'ci-integration-' + target, 'smoke.json'));
@@ -153,10 +184,11 @@ export async function recordIntegration(selection: PromotionSelection, directory
         const matches = byAttempt.get(originalAttempt)!.filter(row => row.name === name && row.conclusion === 'success');
         assert.equal(matches.length, 1, 'Missing successful original integration job'); report.job_id = matches[0].id;
     }
-    const record = { schema_version: 1, kind: 'main-promotion', status: 'pass', repository: CI_REPOSITORY, run_id: runId, attempt,
+    validateBaseVerification(verification, selection, { id: runId, run_attempt: attempt });
+    const record = { schema_version: 2, kind: selection.mode === 'diagnostic' ? 'diagnostic-main-promotion' : 'main-promotion', status: 'pass', repository: CI_REPOSITORY, run_id: runId, attempt,
         integration: selection.integration, source_commit: selection.source_commit, source_run: selection.source_run, source_envelope: selection.source_envelope,
         source_record_sha256: digest(JSON.stringify(selection.source_record)), delivery: selection.source_record!.delivery, policy_sha256: selection.source_record!.policy_sha256,
-        shadow: selection.shadow === true, executed: ['merge-parents', 'pr-head-base', 'tree-and-policy', 'original-artifacts', 'complete-receipts', 'three-platform-installation-smoke'],
+        verification, executed: ['merge-parents', 'pr-head-base', 'tree-and-policy', 'original-artifacts', 'complete-receipts', 'accepted-base-verifier', 'promotion-contract-regressions', 'three-platform-installation-smoke'],
         reused: selection.source_record!.coverage, smokes: reports, artifacts: selected.artifacts, created_at: new Date().toISOString() };
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
 }
