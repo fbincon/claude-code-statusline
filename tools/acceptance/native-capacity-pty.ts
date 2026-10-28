@@ -48,7 +48,10 @@ const failures = /props serializes to more than|a tree serializing to more than|
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 async function runCase(name: string, fixtureName: string, action: string, external = false) {
     const directory = join(output, name); fs.mkdirSync(directory);
-    const config = join(installed.temporary, name); fs.cpSync(template, config, { recursive: true });
+    const config = join(installed.temporary, name);
+    // The live-command journey reruns the real installer, whose ownership
+    // checks correctly refuse registrations copied from another config root.
+    if (action === 'live-command') fs.mkdirSync(config); else fs.cpSync(template, config, { recursive: true });
     const data = caseData(fixtureName), draft = (fixtureName === 'import-four-gradients' ? data.review.result.draft : data.draft) as Draft;
     record(join(config, '.claude.json'), { hasCompletedOnboarding: true, theme: 'dark', projects: { [project]: { hasTrustDialogAccepted: true } } });
     record(join(config, 'claude-statusline.json'), draft.display);
@@ -65,7 +68,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         cli(['enable','pty-command','--review',review]);cli(['auto-on','pty-command','--review',review,'--interval','300']);
         // Policy approval and host integration are independent commit points.
         const refresh=join(config,'refresh-host.mjs');
-        fs.writeFileSync(refresh,`import{install,installContext}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-cli/dist/src/integration/install.js')).href)};import{PluginHost}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/plugin-host.js')).href)};const directory=process.argv[2];const context=installContext(directory,{executable:process.execPath,args:[${JSON.stringify(shim)}]},${JSON.stringify(version)},undefined,()=>new PluginHost(directory,${JSON.stringify(host)}));const result=install(context);if(result.failed)throw new Error(JSON.stringify(result.messages));`);
+        fs.writeFileSync(refresh,`import{install,installContext}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-cli/dist/src/integration/install.js')).href)};import{PluginHost}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/plugin-host.js')).href)};const directory=process.argv[2];const context=installContext(directory,{executable:process.execPath,args:[${JSON.stringify(shim)}]},${JSON.stringify(version)},undefined,()=>new PluginHost(directory,${JSON.stringify(host)}));const result=install(context,{native:true,external:true,nativeTiming:true,liveMetrics:false});if(result.failed)throw new Error(JSON.stringify(result.messages));`);
         command(installed.node,[refresh,config],{...env,CLAUDE_CONFIG_DIR:config});
     }
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
