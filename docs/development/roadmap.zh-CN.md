@@ -2,18 +2,18 @@
 
 [English](roadmap.md) | **简体中文**
 
-v3.12.0 正在实现 SOURCES-01 全部切片、COMMAND-02 和 UPDATE-02 第二／三片，并修复 #173。完成全部验收和发布后才标记 DONE。[当前实现与证据](source-command-package-management.zh-CN.md)。下列早期交付事实保留为历史。
+v3.12.0 已完成 SOURCES-01 全部切片、COMMAND-02 和 UPDATE-02 第二／三片，三个工作包均为 DONE；#173 已修复。[交付证据](source-command-package-management.zh-CN.md)。下列早期交付事实保留为历史。
 
-更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.11.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.12.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作覆盖既有正确性缺口、外观与预览、任务／版本入口、命令调度及配置复用。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片已随 v3.11.0 发布。其余未开始工作包及 SHOWCASE-01 保持下表所列状态。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作按下列状态继续扩展呈现、复用与交互。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片已随 v3.11.0 发布。其余未开始工作包及 SHOWCASE-01 保持下表所列状态。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
 **导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
 
 
-TASK-02 为 DONE，UPDATE-02 第一片已随 v3.11.0 交付；v3.12.0 正在实现剩余切片，并修复此前延期的普通 npm 清单权限误报 [#173](https://github.com/fbincon/claude-code-statusline/issues/173)。[实现与交付](task-version-review.zh-CN.md)。
+TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-command-package-management.zh-CN.md)已完成 UPDATE-02 剩余切片及 #173 修复。[早期交付记录](task-version-review.zh-CN.md)。
 
 <a id="baseline"></a>
 
@@ -24,16 +24,16 @@ TASK-02 为 DONE，UPDATE-02 第一片已随 v3.11.0 交付；v3.12.0 正在实�
 | 配置入口 | 首次设置向导、会话内编辑器、外部 TUI、CLI、对话指南及 Quick setup | 无参数持久安装审核及显式升级／回退／恢复已交付 |
 | 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、五项 Powerline 控制、可选百分比短条、联动分组、选择性导入、静态前景／Powerline 背景渐变及主栏显式行对齐 | 扩充主题、渐变及复用能力，保留既有显示选择 |
 | 外观审阅 | 八主题、十一渐变预设、可视选色、十四样例场景、会话宽度及使用未保存草稿的显式文件诊断 | 扩展复用时保留来源授权边界 |
-| 任务与项目 | 任务计时、子代理独立行、只读任务详情、命名方案和项目根目录绑定 | 复用既有证据模型增加外部只读任务查看器 |
+| 任务与项目 | 任务计时、子代理独立行、双编辑器只读任务浏览、命名方案及项目根目录绑定 | 扩展配置复用时保持证据归属 |
 | 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | 新交互和说明保持六语言覆盖 |
 | 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
-| 扩展数据 | 本机 JSON、可独立审核自动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
+| 扩展数据 | 本机 JSON、GitHub PR／CI 与命令源；可读状态、检查分页、引用保护的绑定及独立审核的活跃会话自动刷新；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
 | Native 展示 | 宿主保留编辑状态、有界可见帧、独立容量检查及可恢复保存结果 | 所有新页面遵守这些边界；见[容量与恢复](native-capacity.zh-CN.md) |
 | 接口 | 显示 schema 16、编辑器协议 28、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
+依据：[v3.12.0 交付](source-command-package-management.zh-CN.md)、[v3.11.0 交付](task-version-review.zh-CN.md)、[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
@@ -78,9 +78,9 @@ TASK-02 为 DONE，UPDATE-02 第一片已随 v3.11.0 交付；v3.12.0 正在实�
 | 2 理解 | [PREVIEW-01](development-plan.zh-CN.md#preview-01) | 可选择的样例状态，审阅外观与布局 | 注入观测的生产渲染器 | DONE |
 | 2 理解 | [EXPLAIN-02](development-plan.zh-CN.md#explain-02) | 解释未生效的样式／来源，并显式诊断输入文件 | 既有解释／诊断；扩展证据可信性依赖 FIX-04 | DONE |
 | 3 任务入口 | [TASK-02](development-plan.zh-CN.md#task-02) | 外部只读任务浏览，再完善两端阅读控制 | 既有任务模型／服务与 I18N-01 语言处理 | DONE |
-| 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 第一片状态／审核，第二片执行／恢复，第三片受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | IN_PROGRESS |
-| 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 前两片提供可读状态和 GitHub 检查，后续第三片复用／清理绑定 | 既有来源服务；FIX-03 生命周期规则 | IN_PROGRESS |
-| 4 调度 | [COMMAND-02](development-plan.zh-CN.md#command-02) | 适用活跃会话内单独审核的命令定时执行 | FIX-03；既有命令执行与活跃会话续租 | IN_PROGRESS |
+| 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 状态／审核、执行／恢复及受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | DONE |
+| 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 可读状态、已保存 GitHub 检查分页、兼容绑定复用及受保护清理 | 既有来源服务；FIX-03 生命周期规则 | DONE |
+| 4 调度 | [COMMAND-02](development-plan.zh-CN.md#command-02) | 适用活跃会话内单独审核的命令定时执行 | FIX-03；既有命令执行与活跃会话续租 | DONE |
 | 5 连续色彩 | [APPEARANCE-06](development-plan.zh-CN.md#appearance-06) | 同一实际显示行内相邻色块背景连续渐变 | 既有拟合、分组、对齐与 Powerline 边缘颜色 | NOT_STARTED |
 | 后续，可穿插 | [APPEARANCE-07](development-plan.zh-CN.md#appearance-07) | 可选窄栏进度条，保留数字含义 | FIX-02 与既有拟合／优先级 | NOT_STARTED |
 | 后续，可穿插 | [UX-03](development-plan.zh-CN.md#ux-03) | 共享撤销／重做、变更审阅及外部冲突恢复 | FIX-01 与既有 revision 保存／重载／导出 | NOT_STARTED |
@@ -89,7 +89,7 @@ TASK-02 为 DONE，UPDATE-02 第一片已随 v3.11.0 交付；v3.12.0 正在实�
 | 后续，可穿插 | [PROFILE-02](development-plan.zh-CN.md#profile-02) | 展示已交付新能力的场景方案 | 仅依赖各方案实际使用的外观／组合能力 | NOT_STARTED |
 | 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 上述十八包及全部切片验收，匹配的安装产物 | NOT_STARTED |
 
-批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续完善可穿插实施，包括来源绑定和包事务历史清理。
+批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续工作可按各自依赖穿插，保留已交付的绑定与历史保护规则。
 
 SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待十八个正式工作包及全部切片，包括后续完善。剩余候选不会继续增加其前置条件。M1–M12 保留历史编号与交付证据。
 
@@ -201,6 +201,8 @@ Native 改动分别保留 props、Pane 与 Client 树检查、有界可见页、
 | v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量与交付](native-capacity.zh-CN.md) |
 | v3.9.2 | FIX-01～FIX-04、I18N-01：草稿、进度条、刷新消费者、历史诊断及任务语言 | DONE | [正确性修复与发布](correctness-maintenance.zh-CN.md) |
 | v3.10.0 | APPEARANCE-05、PREVIEW-01、EXPLAIN-02：主题、可视选色、样例场景及文件诊断 | DONE | [外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md) |
+| v3.11.0 | TASK-02、UPDATE-02 第一片 | DONE | [任务浏览与版本审核](task-version-review.zh-CN.md) |
+| v3.12.0 | SOURCES-01、COMMAND-02、UPDATE-02 第二／三片；#173 | DONE | [v3.12.0 交付](source-command-package-management.zh-CN.md) |
 
 链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
 

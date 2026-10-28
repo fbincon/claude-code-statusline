@@ -16,7 +16,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
-- **Add explicit data sources:** manage local JSON, GitHub checks and command values in either editor or CLI, with reviewed activation, optional session-owned GitHub refresh and directory/PR links. [Extension guide](docs/EXTENSIONS.md).
+- **Add explicit data sources:** manage local JSON, GitHub checks and command values in either editor or CLI, with separately reviewed activation and automatic GitHub/command refresh during active sessions, plus optional directory/PR links. [Extension guide](docs/EXTENSIONS.md).
 - **Reuse display schemes across projects:** save and preview named schemes, then bind project roots to complete display settings. [Profile guide](docs/PROFILES.md).
 - **Inspect task evidence:** open `/statusline-task`, `task view` or the external editor to browse task evidence with search, filters and folding. [Task details](docs/TASK_DETAILS.md).
 
