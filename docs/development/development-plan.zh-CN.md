@@ -2,11 +2,11 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-已批准的 v3.12.0 工作实现 SOURCES-01、COMMAND-02 和 UPDATE-02 剩余切片，验收完成前保持 IN_PROGRESS。命令自动间隔默认 300 秒，可调 60–86400 秒，与 TTL 独立；同源串行、相同输入共享、不同上下文公平轮转。[实现](source-command-package-management.zh-CN.md)。
+v3.12.0 已完成 SOURCES-01 全部切片、COMMAND-02 和 UPDATE-02 剩余切片，三个工作包均为 DONE。默认自动间隔 300 秒，可调 60–86400 秒，与 TTL 独立；同源串行、相同输入共享、不同上下文公平轮转。[v3.12.0 交付](source-command-package-management.zh-CN.md)。
 
-更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.10.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.12.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)为当前产品基线，沿用 [v3.9.2 正确性修复](correctness-maintenance.zh-CN.md)与 [v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已随 v3.9.2 完成验收和发布，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；APPEARANCE-05、PREVIEW-01、EXPLAIN-02 已随 v3.10.0 完成验收和发布，实际接口与证据见[交付记录](appearance-preview-diagnosis.zh-CN.md)；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.12.0 交付](source-command-package-management.zh-CN.md)为当前产品基线，沿用 [v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。本轮正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
 
 已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.2 专项决定](../releases/approvals/v3.9.2.json)记录该版本对缺口的接受，不代表缺失观察已通过。
 
@@ -87,7 +87,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 | 任务语言依赖详情成功 | 源码先初始化英文、在偏好加载前注册／打开标题，并仅在任务读取成功后赋予已加载偏好。失败路径为源码确认，未新增宿主复现。 | I18N-01；Native 任务注册与刷新 |
 | 尚缺的界面／扩展能力 | 规划基线时，源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
 
-[#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。五项正确性工作包已完成[验收与发布](correctness-maintenance.zh-CN.md)，其余工作包仍待实施验收；#96 六项缺口保持原有未验证状态。
+[#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。五项正确性工作包已完成[验收与发布](correctness-maintenance.zh-CN.md)，[路线图](roadmap.zh-CN.md#milestones)记录后续交付及剩余验收义务；#96 六项缺口保持原有未验证状态。
 
 <a id="future-work"></a>
 
@@ -211,7 +211,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## TASK-02 外部只读交互任务详情
 
-**已交付：**[TASK-02 与 UPDATE-02 第一片](task-version-review.zh-CN.md) 已随 v3.11.0 发布，版本页权限误报另列 issue #173 延后处理。
+**已交付：**[TASK-02 与 UPDATE-02 第一片](task-version-review.zh-CN.md) 已随 v3.11.0 发布，随后报告的版本页误报 #173 已由[v3.12.0 交付](source-command-package-management.zh-CN.md)修复。
 
 **目标与范围。** 增加独立外部任务查看器及外部配置编辑器入口，显式选择会话／任务并始终显示身份。复用现有 `task_details` 模型／服务，展示摘要、代理、已知父子关系、清单进度和计时证据。保留 `task show` 语义，已发布的交互命令为 `task view`。
 
@@ -225,7 +225,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## UPDATE-02 版本审核、执行与受保护历史
 
-**交付：**第一片已随 v3.11.0 发布，权限误报由 [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) 单独跟踪。第二／三片仍未开始。
+**交付：**第一片已随 v3.11.0 发布；第二／三片及 [#173](https://github.com/fbincon/claude-code-statusline/issues/173) 修复已随 [v3.12.0 交付](source-command-package-management.zh-CN.md)完成。
 
 **目标与职责。** 双编辑器经共享 cli 服务提供既有包管理能力，platform 处理包／进程作用，core 管理审核模型。进入页面读取本机身份／历史，联网检查与包变更由显式动作发起。复用 UPDATE-01 的兼容、prefix 所有权、锁、包外恢复执行器及阶段 journal。
 
@@ -241,6 +241,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## SOURCES-01 可读来源操作与绑定维护
 
+**已交付：**[v3.12.0 交付](source-command-package-management.zh-CN.md)完成全部切片与验收。
+
 **目标与职责。** 共享来源服务／模型驱动本地化编辑器摘要及适用 CLI 输出。原始 JSON 留作高级详情，默认展示启用／自动状态、运行／等待／暂停、最近成功／失败、下次执行、项目／分支／会话归属与可操作原因。生命周期采用 FIX-03 的使用者规则。
 
 **第一片——操作，第四批。** 明确区分取消当前、关闭自动与停用来源，保留有界执行结果／错误摘要及上次成功观测，同时显示当前失败／陈旧。COMMAND-02 经此共享视图增加命令专属调度状态。
@@ -254,6 +256,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 <a id="command-02"></a>
 
 ## COMMAND-02 活跃会话内的命令定时执行
+
+**已交付：**[v3.12.0 交付](source-command-package-management.zh-CN.md)完成全部切片与验收。
 
 **目标与范围。** 在已交付手动 COMMAND-01 之外，增加适用活跃会话内、单独审核的定时执行。执行许可与自动许可分开，无适用有效续租时暂停派发。首版使用既有会话生命周期接入，不安装系统常驻服务。
 

@@ -2,11 +2,11 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Approved v3.12.0 work implements SOURCES-01, COMMAND-02 and the remaining UPDATE-02 slices. Status remains IN_PROGRESS until acceptance completes. Command automatic interval: 300 seconds by default, 60–86400 adjustable, independent of TTL; source-serial execution shares equal inputs and fairly rotates distinct contexts. [Implementation](source-command-package-management.md).
+v3.12.0 delivers all SOURCES-01 slices, COMMAND-02 and the remaining UPDATE-02 slices; all three packages are DONE. Automatic interval defaults to 300 seconds, adjustable from 60–86400 independently of TTL; equal inputs share work and distinct contexts rotate fairly while each source runs serially. [v3.12.0 delivery](source-command-package-management.md).
 
-Updated: **2026-10-28** (Asia/Shanghai) · Product baseline: **v3.10.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.12.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered, and [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) are the current product baseline, retaining [v3.9.2 correctness repairs](correctness-maintenance.md) and [v3.9.1 native capacity and recovery](native-capacity.md). The formal follow-up contains eighteen new packages and SHOWCASE-01. FIX-01–FIX-04 and I18N-01 are accepted and published in v3.9.2; the [correctness record](correctness-maintenance.md) owns actual interfaces and evidence. APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are accepted and published in v3.10.0; their [delivery record](appearance-preview-diagnosis.md) owns actual interfaces and evidence. Remaining unstarted entries have no assigned versions or dates.
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.12.0 delivery](source-command-package-management.md) is the current product baseline, retaining [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
 
 Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
 
@@ -87,7 +87,7 @@ The [discussion](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b)
 | Task language depends on successful details | Source initializes English, opens/registers the title before preference loading and assigns the loaded preference only after task reading succeeds. Failure-path behavior was source-confirmed, not a new host reproduction. | I18N-01; native task registration and refresh |
 | Missing UI/extension capabilities | At the planning baseline, source and maintained guides showed four themes, three gradient presets, existing GitHub automatic refresh, manual command refresh, CLI package management and native/CLI task details. External interactive task details, editor package pages and cross-block gradients are proposed additions. | APPEARANCE-05/06, TASK-02, UPDATE-02, COMMAND-02 |
 
-[#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. The five correctness packages have completed [acceptance and publication](correctness-maintenance.md); remaining packages still require implementation acceptance. The six #96 gaps retain their original unverified status.
+[#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. The five correctness packages completed [acceptance and publication](correctness-maintenance.md); the [roadmap](roadmap.md#milestones) records subsequent deliveries and remaining acceptance obligations. The six #96 gaps retain their original unverified status.
 
 <a id="future-work"></a>
 
@@ -211,7 +211,7 @@ Entries without an implementation record remain proposed work; current package s
 
 ## TASK-02 External read-only task details
 
-**Delivered:** [TASK-02 and UPDATE-02 slice 1](task-version-review.md), published in v3.11.0. The version-page permission warning is deferred under issue #173.
+**Delivered:** [TASK-02 and UPDATE-02 slice 1](task-version-review.md), published in v3.11.0. The subsequently reported version-page warning #173 is fixed in [v3.12.0 delivery](source-command-package-management.md).
 
 **Goal and scope.** Add a standalone external task viewer and an entry from the external configuration editor. Select session/task identity explicitly and keep it visible. Reuse the existing `task_details` model/service for summary, agents, known parent relations, checklist progress and timing evidence; preserve `task show` semantics. The published interactive command is `task view`.
 
@@ -225,7 +225,7 @@ Entries without an implementation record remain proposed work; current package s
 
 ## UPDATE-02 Version review, execution and protected history
 
-**Delivery:** Slice 1 is published in v3.11.0, with the permission warning tracked separately in [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173). Slices 2/3 remain unstarted.
+**Delivery:** Slice 1 was published in v3.11.0; slices 2/3 and the [#173](https://github.com/fbincon/claude-code-statusline/issues/173) repair are complete in [v3.12.0 delivery](source-command-package-management.md).
 
 **Goal and ownership.** Both editors expose the existing package-management capabilities through shared cli services, with platform package/process effects and core review models. Entering the page reads local identity/history; network checks and package changes require explicit actions. Reuse UPDATE-01 compatibility, prefix ownership, locks, external recovery runner and stage journal.
 
@@ -241,6 +241,8 @@ Entries without an implementation record remain proposed work; current package s
 
 ## SOURCES-01 Readable source operations and binding maintenance
 
+**Delivered:** All slices and acceptance are complete in [v3.12.0 delivery](source-command-package-management.md).
+
 **Goal and ownership.** Shared source services/models drive localized editor summaries and applicable CLI output. Keep raw JSON as advanced details while showing enabled/automatic state, running/waiting/paused status, last success/failure, next execution, project/branch/session ownership and actionable failure reasons. FIX-03 supplies consumer-aware lifecycle semantics.
 
 **Slice 1 — operations, batch 4.** Clearly separate cancel-current, disable-automatic and disable-source actions. Retain a bounded execution result/error summary and last successful observation with current failure/staleness visible. COMMAND-02 adds its source-specific scheduling state through this shared view.
@@ -254,6 +256,8 @@ Entries without an implementation record remain proposed work; current package s
 <a id="command-02"></a>
 
 ## COMMAND-02 Commands scheduled by active sessions
+
+**Delivered:** All slices and acceptance are complete in [v3.12.0 delivery](source-command-package-management.md).
 
 **Goal and scope.** Extend the delivered manual COMMAND-01 capability with separately reviewed periodic execution during applicable active sessions. Execution permission and automatic permission are distinct; no applicable live lease pauses dispatch. This first version uses existing session lifecycle integration and does not install a system daemon.
 

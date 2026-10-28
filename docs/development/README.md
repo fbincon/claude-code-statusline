@@ -3,7 +3,7 @@
 **English** | [简体中文](README.zh-CN.md)
 [Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
 
-[Source operations, command scheduling and package execution](source-command-package-management.md) covers SOURCES-01, COMMAND-02 and UPDATE-02 completion in progress.
+[Source operations, command scheduling and package execution](source-command-package-management.md) covers SOURCES-01, COMMAND-02 and UPDATE-02 completion, delivered in v3.12.0.
 
 
 [Appearance, sample scenarios and explicit file diagnosis](appearance-preview-diagnosis.md) documents APPEARANCE-05, PREVIEW-01 and EXPLAIN-02.

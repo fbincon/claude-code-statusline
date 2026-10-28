@@ -6,6 +6,8 @@
 
 使用[版本决定](releases/approvals/v3.12.0.json)，保留八个安装目标、32 个 Node 组合、十六个固定宿主和基线 197 项容量用例；新增二十项共享实际宿主执行（总计 217），分别记录数量和摘要。要求已安装来源操作、真实 npm 编辑器执行回执、双编辑器 PTY 和本机 Claude 2.1.312 补充，不调用模型。原始不可变 PR 产物通过 main/tag 核验晋级。核对四附件、OIDC／provenance、公开渠道和 Gitee 显式 ref，升级后恢复本机偏好。发布后新发现仅提 issue，保留 v3.12.0。[实现](development/source-command-package-management.zh-CN.md)。
 
+已于 2026-10-29 完成交付：最终 PR／main／tag 门禁、OIDC 发布、六个公开下载作业及 Gitee 四份附件摘要核验均通过；本机验证及偏好保留均通过。实际来源、事务与未验证限制见[交付记录](development/source-command-package-management.zh-CN.md)。
+
 ## v3.11.0 任务浏览与版本审核
 
 使用[版本决定](releases/approvals/v3.11.0.json)，保留全部既有安装／runtime／宿主／容量门禁。版本管理回执额外要求仅本机检查、元数据／未验证结果、已验证升级／回退 dry-run、独立配置还原审核、取消及安装／配置字节保持不变，并要求安装态任务查看器及双编辑器旅程。按下文源码绑定证据提升流程发布四项原始已验证文件，恢复测试机显示／界面偏好。[实现与交付](development/task-version-review.zh-CN.md)。
