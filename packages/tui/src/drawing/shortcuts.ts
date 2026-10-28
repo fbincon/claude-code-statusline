@@ -30,7 +30,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
-    if(e.packages)return {actions:[['Enter',t('ui.hints.select',state.language)],['R',t('profiles.refresh',state.language)],['Q/Esc',t('task.close',state.language)]],help:[['C',t('ui.hints.cancel',state.language)],['L',t('sources.reload',state.language)],['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
+    if(e.packages)return {actions:[['Enter',t('ui.hints.select',state.language)],['R',t('profiles.refresh',state.language)],['Q/Esc',t('task.close',state.language)]],help:[['C',t('ui.hints.cancel',state.language)],hint('L','reload'),['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
     if(e.taskViewer)return {actions:[['R',t('profiles.refresh',e.taskViewer.language)],['Q/Esc',t('task.close',e.taskViewer.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',e.taskViewer.language)],['/ F E S ←→',t('task.viewer.keys',e.taskViewer.language)]]};
     if(e.colors)return {actions:[['Ctrl+S',t('colors.apply',state.language)],hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('Enter','edit')]};
     if(e.diagnosis)return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('PgUp/PgDn','scroll')]};
