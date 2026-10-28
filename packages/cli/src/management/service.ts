@@ -23,7 +23,7 @@ import { configurationBytes, configurationHashes, configurationCompatibility, as
 import { refreshIntegration } from './integration.js';
 import { restoreConfiguration } from './restore.js';
 import { ArgumentError } from '../config/arguments.js';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 export interface ManagementEnvironment {
     origin: string;
     signal?: AbortSignal;
@@ -80,7 +80,7 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
     identity: PackageIdentity | null;
     state: string;
 } {
-    if (operation.executors?.some(p => processMatches(p.pid, p.token)))
+    if (operation.executors?.some(p => processAlive(p.pid, p.token) !== false))
         throw new PackageError('busy');
     try {
         const identity = productIdentity(layout.root, layout.prefix);

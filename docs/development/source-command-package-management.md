@@ -30,6 +30,8 @@ A compatible verified review is required. Draft save must complete or reconcile;
 
 Accepted handoff makes the old editor read-only. Closing detaches without cancelling. Retained controls remain usable through downgrade/upgrade and unfinished execution can be rediscovered. Package recovery and configuration restoration remain independent. History is prefix-filtered before pagination; cleanup protects running/unknown processes, pending transactions, current/previous rollback inputs, attached controls and required snapshots.
 
+Unverifiable executors retain their records, report unknown liveness and block package recovery/replacement until exit or a different process identity is confirmed. This also applies when observing child completion or waiting for the original Windows caller. A denied-identity regression reproduces the former unsafe recovery, then asserts refusal and unchanged transaction/configuration bytes.
+
 ## Acceptance and delivery
 
 Required local checks: generate, generate:check, check and diff whitespace. Focused tests cover ordinary/private permissions, shared consumers, multi-context leases, retry/pause, stored GitHub pages, draft reservations, cross-profile references, review invalidation, unknown saves, stage results and cleanup conflicts.

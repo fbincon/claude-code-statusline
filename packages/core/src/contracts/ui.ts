@@ -932,7 +932,7 @@ export interface PackageHistoryRow {
   created: string | null;
   stage: string;
   backup: 'verified' | 'missing' | 'invalid';
-  running: boolean;
+  running: boolean | null;
 }
 export interface PackageReviewRequest {
   action: 'check' | 'update' | 'rollback' | 'recover-package' | 'restore-config';

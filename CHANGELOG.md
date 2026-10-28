@@ -7,6 +7,7 @@
 - Add readable source state, saved GitHub check pages and reviewed binding reuse/cleanup.
 - Add separately reviewed automatic commands: 300-second initial interval, active leases, fair context rotation and shared consumers.
 - Execute verified package changes/recovery in both editors with explicit draft handling, retained progress controls and protected history cleanup.
+- Keep unverifiable executor identity protected and block recovery until exit is confirmed.
 - Fix ordinary npm-manifest permissions (#173); retain strict private recovery readers.
 - Use editor protocol 28, source registry 3 and jobs 4; display 16 and command observation 1 remain compatible.
 - [Release notes](docs/releases/v3.12.0.md) · [Implementation](docs/development/source-command-package-management.md).

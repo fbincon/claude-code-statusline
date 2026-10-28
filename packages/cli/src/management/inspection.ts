@@ -8,7 +8,7 @@ import type { PackageHistoryRow, PackageStatus } from '@fbincon/statusline-core/
 import { globalPackageRoot, productIdentity, productRoot, readPackageManifest } from '@fbincon/statusline-platform/npm';
 import { resolvedPath, which } from '@fbincon/statusline-platform/commands';
 import { sha256 } from '@fbincon/statusline-platform/hash';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 import { previousBinding } from '../integration/ownership.js';
 import { safeTarget } from '../integration/paths.js';
 import { createStorage } from '../config/storage.js';
@@ -116,8 +116,9 @@ export function inspectPackage(context: InspectionContext, explicit: string | nu
             catch {
                 backup = 'invalid';
             }
+        const states=(operation.executors??[]).map(p=>processAlive(p.pid,p.token));
         return { id: operation.id, version: operation.version, created: operation.created, stage: operation.stage, backup,
-            running: operation.executors?.some(p => processMatches(p.pid, p.token)) ?? false };
+            running: states.includes(true)?true:states.includes(null)?null:false };
     };
     const records: PackageHistoryRow[] = [];
     let total = 0;

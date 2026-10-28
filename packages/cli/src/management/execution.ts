@@ -10,7 +10,7 @@ import { productRoot, productIdentity, writablePrefix } from '@fbincon/statuslin
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { startReviewWorker } from '@fbincon/statusline-platform/review-worker';
 import { atomicWrite, privateDirectory, lock, durableUnlink } from '@fbincon/statusline-platform/files';
-import { processToken, processMatches, processAlive } from '@fbincon/statusline-platform/processes';
+import { processToken, processAlive } from '@fbincon/statusline-platform/processes';
 import { safeTarget } from '../integration/paths.js';
 import { readPrivateState } from '@fbincon/statusline-platform/private-state';
 import { inspectPackage, type InspectionContext, packageReason } from './inspection.js';
@@ -107,7 +107,7 @@ export async function executionWorker(configDir:string,id:string):Promise<void> 
     record.pid=process.pid;record.token=token;writeExecution(record);
     let code=2;
     try {
-        if(record.starter){const end=Date.now()+15000;while(processMatches(record.starter.pid,record.starter.token)&&Date.now()<end)await new Promise(resolve=>setTimeout(resolve,50));if(processMatches(record.starter.pid,record.starter.token))throw new PackageError('busy');}
+        if(record.starter){const end=Date.now()+15000;while(processAlive(record.starter.pid,record.starter.token)!==false&&Date.now()<end)await new Promise(resolve=>setTimeout(resolve,50));if(processAlive(record.starter.pid,record.starter.token)!==false)throw new PackageError('busy');}
         code=await executeReviewed(record);
     }catch(error){record.value.error=packageReason(error);}
     finally{

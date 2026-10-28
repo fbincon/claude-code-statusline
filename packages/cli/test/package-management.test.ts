@@ -11,7 +11,7 @@ import { PackageError } from '@fbincon/statusline-core/management/package';
 import { Npm, globalPackageRoot, globalPackageBin, productIdentity, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { managementOptions, managementRequest } from '../src/management/arguments.js';
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
-import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation } from '../src/management/store.js';
+import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation, observeOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
 function product(prefix: string, version: string) {
@@ -205,6 +205,28 @@ test('a surviving executor blocks recovery after its transaction owner exits', a
     saveOperation(operation);
     f.clear();
     assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);
+});
+test('an unverifiable surviving executor blocks recovery without changing its transaction or configuration', async t => {
+    const f=fixture(t);f.options.checkpoint=stage=>{if(stage==='package_verified')throw new PackageError('interrupted');};
+    assert.equal(await manage(f.args(),f.options),130);f.options.checkpoint=undefined;
+    const operation=readOperation(f.configDir,f.prefix),pid=999999997;
+    operation.executors=[{pid,token:'unverifiable-creation-token'}];saveOperation(operation);
+    const read=mutableFs.readFileSync;
+    // Model a still-existing process whose creation identity cannot be read.
+    // No signal is sent and no real foreign process is selected.
+    t.mock.method(process,'kill',()=>true);
+    t.mock.method(mutableFs,'readFileSync',(...args:Parameters<typeof mutableFs.readFileSync>)=>{
+        if(String(args[0])===`/proc/${pid}/stat`)throw Object.assign(new Error('Identity denied'),{code:'EACCES'});
+        return read(...args);
+    });syncBuiltinESMExports();
+    try {
+        assert.equal(inspectPackage({configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},f.prefix).pending?.running,null);
+        observeOperation(operation)(null);assert.deepEqual(readOperation(f.configDir,f.prefix).executors,[{pid,token:'unverifiable-creation-token'}]);
+        const before=fs.readFileSync(operationPath(operation)),configuration=configurationBytes(f.configDir);
+        f.clear();assert.equal(await manage(f.args('recover',['--package','--version','3.9.0','--yes']),f.options),2,f.state().output);
+        assert.match(f.state().output,/executor|running|busy/);assert.equal(f.state().replacements,1);
+        assert.deepEqual(fs.readFileSync(operationPath(operation)),before);assert.deepEqual(configurationBytes(f.configDir),configuration);assert(fs.existsSync(pendingPath(f.prefix)));
+    }finally{t.mock.restoreAll();syncBuiltinESMExports();}
 });
 test('the prefix lock serializes package changes across distinct configuration directories', async (t) => {
     const f = fixture(t);

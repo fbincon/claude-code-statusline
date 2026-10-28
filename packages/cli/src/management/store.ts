@@ -11,7 +11,7 @@ import type { PackageCompatibility } from '@fbincon/statusline-core/management/c
 import { globalPackageRoot } from '@fbincon/statusline-platform/npm';
 import type { RegistryPackage } from '@fbincon/statusline-platform/npm';
 import type { ConfigHashes } from './configuration.js';
-import { processToken, processMatches } from '@fbincon/statusline-platform/processes';
+import { processToken, processAlive } from '@fbincon/statusline-platform/processes';
 export const MANAGEMENT_ROOT = 'statusline_runtime/package-management';
 export interface PackageOperation {
     schema_version: 1;
@@ -72,7 +72,7 @@ export function finishOperation(operation: PackageOperation): void {
 }
 export function observeOperation(operation: PackageOperation): (pid: number | null) => void {
     return pid => {
-        operation.executors = (operation.executors ?? []).filter(p => processMatches(p.pid, p.token));
+        operation.executors = (operation.executors ?? []).filter(p => processAlive(p.pid, p.token) !== false);
         if (pid !== null) {
             const token = processToken(pid);
             if (!token)

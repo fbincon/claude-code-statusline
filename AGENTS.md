@@ -59,6 +59,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - Preserve the [shared contracts](docs/development/contracts.md), storage compatibility and command-specific error behavior.
 - Keep JSON/NDJSON protocol stdout free of logs, and preserve silent render/hook handling of invalid input. Check command intent before initializing terminal streams; machine-protocol pipes must retain blocking input.
 - Choose bounded file readers for the data's ownership and permission contract; ordinary installation files are not private recovery artifacts. Acceptance must assert actual status/reasons and read-only byte/mode preservation, not identity alone. Read atomically replaced private progress through bounded snapshots; keep immutable recovery readers strict.
+- Preserve unknown executor liveness as unknown. Retain its records and block package recovery or replacement until exit or a different process identity is confirmed.
 - Preserve read-only operations, previews and dry-run contracts. Explicit configuration writes retain ownership/revision checks, locks, backups, atomic publication and recovery.
 - Use the production rendering pipeline for previews with injected observations; keep live collection separate from pure rendering.
 - Preserve complete graphemes, terminal-cell budgets and ANSI styling through shared Unicode/rendering helpers.
