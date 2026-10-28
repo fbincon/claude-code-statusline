@@ -2,7 +2,7 @@ import test from 'node:test';
 import { setup, observation as o, plain, assert, fs, join, allFiles, pythonJson } from './runtime-support.js';
 import { fresh } from '@fbincon/statusline-core/runtime/live/state';
 import { run } from '@fbincon/statusline-platform/launch';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 test('tests.runtime.live.test_store.LiveStoreTests.test_duplicate_and_out_of_order_events_preserve_ownership', t => {
     const f = setup(t);
     f.apply(o(), o('prompt', 1, 1010, { prompt: 'p' }));
@@ -39,11 +39,7 @@ test('tests.runtime.live.test_store.LiveStoreTests.test_multiple_process_writers
     f.preferences(true, false);
     f.apply(o(), o('prompt', 1, 1010, { prompt: 'p' }));
     const entry = fileURLToPath(new URL('../src/entry.js', import.meta.url));
-    // Keep the real CLI/protocol path, but retain the original fixture-only
-    // exception if the protocol correctly sanitizes an OS failure on a runner.
-    const protocol = new URL('../src/runtime/live/protocol.js', import.meta.url).href;
-    const diagnostic = `process.argv.splice(1,0,${JSON.stringify(entry)});const{RuntimeProtocol}=await import(${JSON.stringify(protocol)});const dispatch=RuntimeProtocol.prototype.dispatch;RuntimeProtocol.prototype.dispatch=function(...args){try{return dispatch.apply(this,args)}catch(error){process.stderr.write(String(error?.stack??error)+'\\n');throw error;}};await import(${JSON.stringify(pathToFileURL(entry).href)});`;
-    const results = await Promise.all(Array.from({ length: 20 }, (_, index) => run({ executable: process.execPath, args: ['--input-type=module','-e',diagnostic] }, ['runtime', '--config-dir', f.root], pythonJson({ protocol_version: 2, operation: 'observe', payload: { observations: [o('agent_start', index + 2, 1020 + index, { prompt: 'p', agent: String(index) })] } }), 30000, { ...process.env, CLAUDE_STATUSLINE_RUNTIME_DIR: f.context.runtimeRoot })));
+    const results = await Promise.all(Array.from({ length: 20 }, (_, index) => run({ executable: process.execPath, args: [entry] }, ['runtime', '--config-dir', f.root], pythonJson({ protocol_version: 2, operation: 'observe', payload: { observations: [o('agent_start', index + 2, 1020 + index, { prompt: 'p', agent: String(index) })] } }), 30000, { ...process.env, CLAUDE_STATUSLINE_RUNTIME_DIR: f.context.runtimeRoot })));
     for (const result of results) {
         assert.equal(result.code, 0, result.stdout + result.stderr);
         assert.equal(result.stderr, '');

@@ -14,6 +14,8 @@ The #173 repair uses the bounded ordinary-file reader for npm manifests, preserv
 
 Mutable private package progress/installation records use bounded snapshots that retry only file-identity/content races while retaining owner, private-mode, size and no-follow checks. Immutable recovery journals and snapshots retain strict readers.
 
+Interactive bootstrap inspects the command before creating terminal streams. Runtime/UI pipes keep blocking input even when the producer writes after the reader starts. Real delayed-pipe regressions assert protocol success, the published observation and read-only describe behavior; concurrent runtime writers retain all agents and sessions.
+
 ## Source lifecycle and references
 
 Execution permission and automatic permission are reviewed independently. Commands start automatic policy at 300 seconds, adjustable 60–86400 separately from TTL. Active host leases renew every five seconds and expire after fifteen. Applicable projects, sessions and confirmed local agents participate; unknown ownership waits. Same-source commands run serially, equal effective input shares work and distinct contexts rotate fairly. Busy ticks do not accumulate work. Temporary failures back off; program/configuration/identity failures pause. Source edits revoke old permission and late result publication.

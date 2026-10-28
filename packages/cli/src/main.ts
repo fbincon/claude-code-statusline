@@ -62,12 +62,12 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const { bootstrap } = await import('./management/bootstrap.js');
         return bootstrap(args, stderr);
     }
-    if(Object.keys(environment).length===0&&process.stdin.isTTY&&process.stdout.isTTY){
-        const command=args[0]==='--language'?args[2]:args[0]?.startsWith('--language=')?args[1]:args[0];
-        if(command==='configure'||command==='setup'){
-            const {independentEditor}=await import('./integration/editor-bootstrap.js');
-            const code=await independentEditor(args);if(code!==null)return code;
-        }
+    const interactiveCommand=args[0]==='--language'?args[2]:args[0]?.startsWith('--language=')?args[1]:args[0];
+    // Creating Node's stdin stream can make a pipe nonblocking. Inspect the
+    // command first so machine protocols keep their synchronous input contract.
+    if((interactiveCommand==='configure'||interactiveCommand==='setup')&&Object.keys(environment).length===0&&process.stdin.isTTY&&process.stdout.isTTY){
+        const {independentEditor}=await import('./integration/editor-bootstrap.js');
+        const code=await independentEditor(args);if(code!==null)return code;
     }
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
