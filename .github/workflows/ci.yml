@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+# Stage one installs and fully accepts the protocol before scoped scheduling.
+env:
+  IMPACT_CHECKS: 'false'
+
 concurrency:
   group: ts06-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -27,13 +31,13 @@ defaults:
 
 jobs:
   scope:
-    name: Classify and check documentation
+    name: Classify changes and select evidence
     permissions:
       contents: read
       actions: read
     runs-on: ubuntu-24.04
     outputs:
-      docs_only: ${{ steps.scope.outputs.docs_only }}
+      docs_only: ${{ env.IMPACT_CHECKS == 'true' && 'false' || steps.scope.outputs.docs_only }}
       docs_checked: ${{ steps.documentation.outputs.docs_checked }}
       draft: ${{ steps.scope.outputs.draft }}
       route: ${{ steps.promotion.outputs.route }}
@@ -43,6 +47,11 @@ jobs:
       source_commit: ${{ steps.promotion.outputs.source_commit }}
       filename: ${{ steps.promotion.outputs.filename }}
       artifact_ids: ${{ steps.promotion.outputs.artifact_ids }}
+      impact_matrix: ${{ steps.impact.outputs.matrix }}
+      impact_reused: ${{ steps.impact.outputs.reused }}
+      impact_packaging: ${{ steps.impact.outputs.packaging }}
+      impact_source_run: ${{ steps.impact.outputs.source_run }}
+      impact_package_artifact: ${{ steps.impact.outputs.source_package_artifact }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -63,6 +72,36 @@ jobs:
           CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
           CI_DRAFT: ${{ github.event.pull_request.draft || false }}
         run: node tools/checks/ci-scope.ts
+      - id: impact
+        name: Resolve source responsibilities and package equivalence
+        if: env.IMPACT_CHECKS == 'true' && github.ref_type == 'branch' && github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_NAME: ${{ github.ref_name }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node tools/checks/impact-workflow.ts select --directory "$RUNNER_TEMP/impact"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.impact.outputs.route == 'maintenance'
+        with:
+          name: ci-impact-plan
+          path: |
+            ${{ runner.temp }}/impact/selection.json
+            ${{ runner.temp }}/impact/plan.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.impact.outputs.packaging == 'true' && steps.impact.outputs.route == 'maintenance'
+        with:
+          name: ci-impact-package
+          path: |
+            ${{ runner.temp }}/impact/package/base.tgz
+            ${{ runner.temp }}/impact/package/head.tgz
+            ${{ runner.temp }}/impact/package/comparison.json
+            ${{ runner.temp }}/impact/package/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
       - id: promotion
         name: Select full acceptance or verified source promotion
         env:
@@ -72,7 +111,8 @@ jobs:
           CI_REF_NAME: ${{ github.ref_name }}
           CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           CI_VALIDATION: ${{ inputs.validation }}
-          CI_DOCS_ONLY: ${{ steps.scope.outputs.docs_only }}
+          CI_DOCS_ONLY: ${{ env.IMPACT_CHECKS == 'true' && 'false' || steps.scope.outputs.docs_only }}
+          CI_IMPACT_ROUTE: ${{ steps.impact.outputs.route }}
         run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.promotion.outputs.promotion_route != ''
@@ -81,14 +121,230 @@ jobs:
           path: ${{ runner.temp }}/promotion-selection.json
           if-no-files-found: error
           retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.promotion.outputs.route == 'release'
+        with:
+          name: ci-release-selection
+          path: ${{ runner.temp }}/promotion-selection.json
+          if-no-files-found: error
+          retention-days: 30
       - id: documentation
-        if: steps.scope.outputs.docs_only == 'true'
+        if: env.IMPACT_CHECKS != 'true' && steps.scope.outputs.docs_only == 'true'
         env:
           CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           npm run docs:check
           git diff --check "$CI_BASE" HEAD
           echo "docs_checked=true" >> "$GITHUB_OUTPUT"
+
+  scoped:
+    name: Scoped / ${{ matrix.id }}
+    needs: scope
+    if: needs.scope.outputs.route == 'maintenance' && needs.scope.outputs.draft != 'true' && needs.scope.outputs.impact_reused != 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.scope.outputs.impact_matrix) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-impact-plan
+          path: ${{ runner.temp }}/impact
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.impact_packaging == 'true'
+        with:
+          name: ci-impact-package
+          path: ${{ runner.temp }}/package
+      - name: Install only the selected official host
+        if: matrix.host != ''
+        env:
+          HOST_VERSION: ${{ matrix.host }}
+        run: |
+          claude_native=$(node -p "'@anthropic-ai/claude-code-' + process.platform + '-' + process.arch")
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@$HOST_VERSION" "$claude_native@$HOST_VERSION"
+          node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
+          echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Execute the exact planned checks
+        env:
+          IMPACT_TASK: ${{ matrix.id }}
+          IMPACT_PACKAGE: ${{ needs.scope.outputs.impact_packaging }}
+        run: |
+          args=()
+          if [[ "$IMPACT_PACKAGE" == true ]]; then args=(--artifact "$RUNNER_TEMP/package/head.tgz"); fi
+          npm run ci:check -- --plan "$RUNNER_TEMP/impact/plan.json" --task "$IMPACT_TASK" --report "$RUNNER_TEMP/scoped/receipt.json" "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-scoped-${{ matrix.id }}
+          path: ${{ runner.temp }}/scoped/receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+  maintenance:
+    name: Verify scoped maintenance evidence
+    needs: [scope, scoped]
+    if: always() && needs.scope.result == 'success' && needs.scope.outputs.route == 'maintenance' && needs.scope.outputs.draft != 'true' && (needs.scoped.result == 'success' || needs.scope.outputs.impact_reused == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-impact-plan
+          path: ${{ runner.temp }}/impact
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.impact_package_artifact != ''
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.impact_source_run }}
+          artifact-ids: ${{ needs.scope.outputs.impact_package_artifact }}
+          path: ${{ runner.temp }}/package
+          merge-multiple: true
+      - name: Bind original checks and independently verify accepted maintenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          CI_PR: ${{ github.event.pull_request.number }}
+          CI_DRAFT: ${{ github.event.pull_request.draft || false }}
+          IMPACT_PACKAGE: ${{ needs.scope.outputs.impact_package_artifact }}
+        run: |
+          args=()
+          if [[ -n "$IMPACT_PACKAGE" ]]; then args=(--package "$RUNNER_TEMP/package"); fi
+          node tools/checks/impact-workflow.ts record --selection "$RUNNER_TEMP/impact/selection.json" --output "$RUNNER_TEMP/maintenance/maintenance.json" "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-maintenance
+          path: ${{ runner.temp }}/maintenance/maintenance.json
+          if-no-files-found: error
+          retention-days: 30
+
+  release-build:
+    name: Build current maintenance release source
+    needs: scope
+    if: needs.scope.outputs.route == 'release'
+    runs-on: ubuntu-24.04
+    outputs:
+      filename: ${{ steps.build.outputs.filename }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - id: build
+        run: node dist/typescript/tools/build/impact-release-build.js --output "$RUNNER_TEMP/release" --rebuild "$RUNNER_TEMP/rebuilt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+  release-smoke:
+    name: Maintenance release smoke / ${{ matrix.os }}
+    needs: release-build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release
+      - run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/release/${{ needs.release-build.outputs.filename }}" --source "$GITHUB_SHA" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-release-smoke-${{ matrix.os }}
+          path: ${{ runner.temp }}/smoke/
+          if-no-files-found: error
+          retention-days: 30
+
+  release-binding:
+    name: Bind maintenance release and product acceptance
+    needs: [scope, release-build, release-smoke]
+    if: needs.scope.outputs.route == 'release'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/original
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: node dist/typescript/tools/checks/impact-release.js --selection "$RUNNER_TEMP/selection/promotion-selection.json" --original "$RUNNER_TEMP/original" --delivery "$RUNNER_TEMP/release" --output "$RUNNER_TEMP/binding/release-binding.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-release-binding
+          path: ${{ runner.temp }}/binding/release-binding.json
+          if-no-files-found: error
+          retention-days: 30
 
   quick:
     name: Draft quick checks
@@ -406,7 +662,7 @@ jobs:
 
   acceptance:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
-    needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion]
+    needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion, scoped, maintenance, release-build, release-smoke, release-binding]
     if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
     permissions:

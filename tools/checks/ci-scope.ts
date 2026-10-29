@@ -35,7 +35,19 @@ export function assessCiNeeds(needs: Record<string, { result: string; outputs?: 
     assert.equal(needs.scope?.result, 'success', 'CI scope classification did not pass');
     assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
     const route = needs.scope.outputs?.route ?? 'full';
-    assert(['full', 'tag', 'main'].includes(route), 'Unknown acceptance route');
+    assert(['full', 'tag', 'main', 'maintenance', 'release'].includes(route), 'Unknown acceptance route');
+    if (route === 'maintenance') {
+        assert.equal(needs.maintenance?.result, 'success', 'Scoped evidence did not pass');
+        assert.equal(needs.scoped?.result, needs.scope.outputs?.impact_reused === 'true' ? 'skipped' : 'success');
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods', 'integration', 'promotion']) assert.equal(needs[name]?.result, 'skipped');
+        return;
+    }
+    if (route === 'release') {
+        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'tag');
+        for (const name of ['release-build', 'release-smoke', 'release-binding']) assert.equal(needs[name]?.result, 'success', 'Maintenance release check failed: ' + name);
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods', 'integration', 'promotion', 'scoped', 'maintenance']) assert.equal(needs[name]?.result, 'skipped');
+        return;
+    }
     const integrated = route === 'main';
     const diagnostic = needs.scope.outputs?.mode === 'diagnostic';
     if (integrated) {
