@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import * as tar from 'tar';
-import { canonical, emitted, hash, git, messageShape } from '../checks/impact-content.ts';
+import { canonical, emitted, hash, git, messageShape, runtimeManifest } from '../checks/impact-content.ts';
 import { extractFiles, readTar, npmEntry } from './files.ts';
 
 export interface PackageComparison { schema_version: 1; kind: 'package-comparison'; base: string; head: string; base_sha256: string; head_sha256: string; equivalent: boolean; changed_members: string[] }
@@ -20,7 +20,8 @@ function projection(entries: ReadonlyMap<string, Buffer>): Record<string, string
             const item = JSON.parse(raw.toString());
             value = { ...item, backend_version: '<version>', mod_version: '<version>', files: Object.keys(item.files).sort() };
             for (const [path, digest] of Object.entries(item.files)) assert.equal(hash(entries.get(dirname(name) + '/' + path)!), digest);
-        } else if (name === 'package.json' || name.endsWith('/.claude-plugin/plugin.json')) {
+        } else if (/^node_modules\/@fbincon\/statusline-(?:core|platform|cli|tui)\/package\.json$/u.test(name)) value = runtimeManifest(raw);
+        else if (name === 'package.json' || name.endsWith('/.claude-plugin/plugin.json')) {
             const item = JSON.parse(raw.toString()); value = { ...item, version: '<version>' };
         } else if (/\.(?:js|ts)$/u.test(name)) {
             // Translation modules have separately checked canonical inputs and
@@ -32,7 +33,7 @@ function projection(entries: ReadonlyMap<string, Buffer>): Record<string, string
                     return prefix + JSON.stringify('<message:' + placeholders.join(',') + '>');
                 });
             }
-            value = emitted(text, name.endsWith('/editor/themes.js') || name.endsWith('/editor/themes.ts'), name.endsWith('/src/release.js'));
+            value = emitted(text, name.endsWith('/editor/themes.js') || name.endsWith('/editor/themes.ts'), name.endsWith('/src/release.js'), name, name === 'node_modules/@fbincon/statusline-cli/dist/src/help.js');
         }
         result[name] = hash(typeof value === 'string' ? value : canonical(value));
     }

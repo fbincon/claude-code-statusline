@@ -20,11 +20,33 @@ export function tree(revision: string): Map<string, Blob> {
         return [path, { mode: kind === 'blob' ? mode : kind, oid, bytes: () => content ??= execFileSync('git', ['cat-file', 'blob', oid], { maxBuffer: 64 * 1024 * 1024 }) }];
     }));
 }
-export function emitted(text: string, presentation = false, identity = false, path = 'input.ts'): string {
+function helpValue(node: ts.StringLiteralLike): boolean {
+    if (/[\u0000-\u0008\u000b-\u001f\u007f]/u.test(node.text)) return false;
+    let value: ts.Node = node;
+    for (let parent = value.parent; parent; parent = value.parent) {
+        if (ts.isParenthesizedExpression(parent) ||
+            ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.PlusToken ||
+            ts.isConditionalExpression(parent) && (parent.whenTrue === value || parent.whenFalse === value) ||
+            ts.isArrayLiteralExpression(parent)) {
+            value = parent;
+            continue;
+        }
+        if (ts.isVariableDeclaration(parent)) return ts.isIdentifier(parent.name) && parent.name.text === 'lines' && parent.initializer === value;
+        if (ts.isCallExpression(parent)) return parent.arguments.some(argument => argument === value) &&
+            ts.isPropertyAccessExpression(parent.expression) && ts.isIdentifier(parent.expression.expression) &&
+            parent.expression.expression.text === 'lines' && parent.expression.name.text === 'push';
+        return false;
+    }
+    return false;
+}
+export function emitted(text: string, presentation = false, identity = false, path = 'input.ts', help = false): string {
     const source = ts.createSourceFile(path, text, ts.ScriptTarget.ESNext, true);
     assert.equal((source as unknown as { parseDiagnostics: unknown[] }).parseDiagnostics.length, 0, 'Cannot parse product input');
     const transformed = ts.transform(source, [context => root => {
         const visit: ts.Visitor = node => {
+            // Help text may pass through concatenation or conditional result
+            // slots, never through a selector, translation key or function call.
+            if (help && ts.isStringLiteralLike(node) && helpValue(node)) return context.factory.createStringLiteral('<help>');
             // Only explicit value slots are presentation data. Identifiers, keys,
             // array lengths, imports and every executable operation remain bound.
             if (presentation && ts.isPropertyAssignment(node) && ts.isStringLiteral(node.initializer) &&
@@ -46,6 +68,11 @@ export function emitted(text: string, presentation = false, identity = false, pa
         assert(!output.diagnostics?.some(item => item.category === ts.DiagnosticCategory.Error), 'Cannot lower product input');
         return output.outputText;
     } finally { transformed.dispose(); }
+}
+export function runtimeManifest(bytes: Buffer): string {
+    const value = JSON.parse(bytes.toString('utf8'));
+    for (const name of ['description', 'keywords', 'homepage', 'bugs', 'repository', 'author', 'contributors', 'funding', 'license']) delete value[name];
+    return canonical(value);
 }
 export const localePath = (path: string) => /^packages\/core\/resources\/i18n\/locales\/[^/]+\.json$/u.test(path);
 export const generatedLocalePath = (path: string) => /^packages\/core\/src\/i18n\/(?:generated-locales|statusline\/[^/]+)\.ts$/u.test(path) ||

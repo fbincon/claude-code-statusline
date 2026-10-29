@@ -15,7 +15,7 @@
 
 [功能路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)定义范围、依赖、切片和验收。开始下一任务时读取这两处规范来源，已实现行为查阅链接的交付记录；规划更新不实施功能。
 
-[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明纯文档检查、候选证据与晋级路径、`npm run actions:check` 及每周更新审查。
+[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明按影响专项检查、候选与维护证据、晋升路线、Action 身份及每周更新审查。
 
 [贡献指南](../../CONTRIBUTING.zh-CN.md)说明反馈、翻译和 PR 流程；[仓库维护](repository-governance.zh-CN.md)记录主线保护、安全入口、依赖告警和发布身份策略。
 

@@ -27,14 +27,16 @@ npm run docs:check
 git diff --check
 ```
 
-产品、依赖、工作流或开发工具变更使用：
+核心产品行为变更使用：
 
 ```bash
 npm run check
 git diff --check
 ```
 
-CI 使用明确的文档／模板白名单。混合变更和发布审批 JSON 仍需完整最终 PR 产品矩阵。两条路径都以 `Complete candidate evidence` 汇总检查结束，详见 [CI 维护说明](docs/development/ci-maintenance.zh-CN.md)。完整测试套件使用隔离夹具；需要显式执行的安装、终端、实机或付费验证参见[测试与验收](docs/development/testing.zh-CN.md)。
+其他已提交改动使用 `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json`，再执行计划选中的 `npm run ci:check` 任务。涉及包内容的计划须增加 `--compare`；使用新输出路径和符合实际平台的任务，其他平台／宿主由 CI 执行。文档媒体还须通过计划选中的资源检查。
+
+CI 对混合维护取检查并集，仅核心行为执行完整产品矩阵；未知职责或未完成比较会阻断。所有路线都以 `Complete candidate evidence` 汇总，详见[按影响检查](docs/development/impact-checks.zh-CN.md)和 [CI 维护](docs/development/ci-maintenance.zh-CN.md)。测试使用隔离夹具；安装、终端、实机和付费检查参见[测试与验收](docs/development/testing.zh-CN.md)。
 
 ## 准备 PR
 

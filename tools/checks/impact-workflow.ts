@@ -9,7 +9,7 @@ import { hash, canonical, git, productInputs } from './impact-content.ts';
 import { selectMaintenanceMain, collectScopedReceipts, verifyScopedJobs, maintenanceSource, type MaintenanceRecord } from './impact-evidence.ts';
 import { independentMaintenance } from './impact-trust.ts';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
-import { latestRun, runsFor } from './ci-sources.ts';
+import { latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { listRunArtifacts, newestArtifact, artifactIdentity } from './ci-evidence.ts';
 import { resolveComparison } from './impact-comparison.ts';
 
@@ -19,7 +19,7 @@ export async function selectImpact(directory: string): Promise<ImpactSelection> 
     const head = git('rev-parse', 'HEAD'), event = process.env.CI_EVENT;
     assert(['pull_request', 'push'].includes(event ?? ''));
     const base = event === 'pull_request' ? git('merge-base', process.env.CI_BASE!, head) : git('rev-parse', head + '^1');
-    const plan = createImpactPlan(base, head);
+    let plan = createImpactPlan(base, head);
     assert.notEqual(plan.route, 'blocked', 'Unclassified changes: ' + plan.unknown.join(', '));
     const selected: ImpactSelection = { schema_version: 1, plan };
     if (plan.route !== 'product' && event === 'push' && process.env.CI_REF_NAME === 'main') {
@@ -32,6 +32,11 @@ export async function selectImpact(directory: string): Promise<ImpactSelection> 
                 selected.source_package_artifact = artifact.id;
             }
         }
+    }
+    if (!selected.reused && event === 'push' && process.env.CI_BASE !== base) {
+        git('merge-base', '--is-ancestor', process.env.CI_BASE!, head);
+        plan = createImpactPlan(process.env.CI_BASE!, head); selected.plan = plan;
+        assert.notEqual(plan.route, 'blocked', 'Unclassified integration changes: ' + plan.unknown.join(', '));
     }
     if (!selected.reused && plan.route !== 'product' && plan.checks.includes('packaging')) {
         selected.package = await resolveComparison(plan, join(directory, 'package'));
@@ -54,7 +59,12 @@ export async function recordMaintenance(selection: ImpactSelection, output: stri
         assert.equal(reused.integration.commit, commit);
         if (plan.checks.includes('packaging')) { assert(packageDirectory); assert.equal(hash(fs.readFileSync(join(packageDirectory, 'comparison.json'))), plan.comparison_sha256); }
         reused = { ...reused, verifier_sha256: await independentMaintenance(reused, packageDirectory) };
-    } else assert.equal(commit, plan.head);
+    } else {
+        assert.equal(commit, plan.head);
+        if (event === 'push') {
+            const baseRun = latestRun(await runsFor(plan.base), plan.base, 'main'); assert(baseRun, 'Missing actual integration base gate'); await requireGate(baseRun);
+        }
+    }
     const runId = Number(process.env.GITHUB_RUN_ID), created = new Date();
     const record: MaintenanceRecord = { schema_version: 1, kind: 'maintenance', repository: CI_REPOSITORY, commit, tree: git('rev-parse', commit + '^{tree}'),
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), event, branch: process.env.CI_BRANCH!, created_at: created.toISOString(), expires_at: new Date(created.getTime() + 30 * 86400000).toISOString(),

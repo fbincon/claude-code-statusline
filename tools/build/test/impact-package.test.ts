@@ -43,3 +43,11 @@ test('presentation normalization preserves message keys, placeholders and non-me
     assert(!comparePackages(base, head, before, pack(head, { [path]: '{"hello":"Welcome {other}"}' })).equivalent);
     assert(!comparePackages(base, head, before, pack(head, { [path]: '{"new":"Welcome {name}"}' })).equivalent);
 });
+test('help values and descriptive workspace metadata are separate from executable package contracts', t => {
+    const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40), help = 'node_modules/@fbincon/statusline-cli/dist/src/help.js', manifest = 'node_modules/@fbincon/statusline-core/package.json';
+    const before = pack(base, { [help]: 'export function help(command) { const lines = ["old"]; if (command === "config") lines.push("before"); return lines; }', [manifest]: '{"name":"core","description":"Before","exports":"./index.js"}' });
+    const after = pack(head, { [help]: 'export function help(command) { const lines = ["new"]; if (command === "config") lines.push("after"); return lines; }', [manifest]: '{"name":"core","description":"After","exports":"./index.js"}' });
+    assert(comparePackages(base, head, before, after).equivalent);
+    const changed = pack(head, { [help]: 'export function help(command) { const lines = ["new"]; if (command === "install") lines.push("after"); return lines; }', [manifest]: '{"name":"core","description":"After","exports":"./other.js"}' });
+    assert(!comparePackages(base, head, before, changed).equivalent);
+});
