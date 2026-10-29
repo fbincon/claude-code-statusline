@@ -1,0 +1,95 @@
+/** Pure style selection and whole-group reference closure, shared by all frontends. */
+import type { CatalogItem, Draft, InstanceDraft, ReuseRequest, ReuseReviewResult, Scope } from '../contracts/ui.js';
+import { FORMAT_CHOICES } from '../contracts/ui.js';
+import { clone } from './history.js';
+import { supportedFormats } from './appearance.js';
+import { alignmentUnits, refKey } from './alignments.js';
+import { isDraft } from './backend.js';
+import { differences } from './import-differences.js';
+
+export const STYLE_FIELDS = ['foreground', 'background', 'foreground_gradient', 'background_gradient', 'label', 'icon', ...Object.keys(FORMAT_CHOICES).map(key => 'formatting.' + key)];
+const area = (draft: Draft, scope: Scope) => scope === 'main' ? draft.display : draft.display.subagents;
+export function styleFields(node: InstanceDraft, scope: Scope, catalog: readonly CatalogItem[] = []): string[] {
+  if (node.type_id === 'spacer') return [];
+  const formats = supportedFormats(scope, node.type_id, catalog.find(c => c.scope === scope && c.id === node.type_id)?.capabilities);
+  return STYLE_FIELDS.filter(field => !field.startsWith('formatting.') || formats.includes(field.slice(11)));
+}
+export function reuseRequest(value: unknown): ReuseRequest {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('reuse.invalid');
+  const r = value as Record<string, unknown>, ids = (v: unknown): v is string[] => Array.isArray(v) && v.length <= 10000 && v.every(id => typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(id)) && new Set(v).size === v.length;
+  const keys = r.kind === 'style' ? ['kind','scope','from_scope','from_id','to_ids','fields'] : ['kind','scope','group_ids','references','explicit'];
+  if (Object.keys(r).length !== keys.length || keys.some(key => !Object.hasOwn(r,key)) || !['main','subagent'].includes(String(r.scope))) throw new Error('reuse.invalid');
+  if (r.kind === 'style') {
+    if (!['main','subagent'].includes(String(r.from_scope)) || !ids([r.from_id]) || !ids(r.to_ids) || !r.to_ids.length || !Array.isArray(r.fields) || r.fields.some(f => !STYLE_FIELDS.includes(String(f))) || new Set(r.fields).size !== r.fields.length) throw new Error('reuse.invalid');
+  } else if (r.kind !== 'groups' || !ids(r.group_ids) || !r.group_ids.length || !['review','expand','exclude'].includes(String(r.references)) || typeof r.explicit !== 'boolean') throw new Error('reuse.invalid');
+  return clone(value as ReuseRequest);
+}
+export function reuseDraft(base: Draft, incoming: Draft, raw: ReuseRequest, nextId: () => string, catalog: readonly CatalogItem[] = [], local = false): ReuseReviewResult {
+  const request = reuseRequest(raw), draft = clone(base), source = area(incoming, request.kind === 'style' ? request.from_scope : request.scope), target = area(draft, request.scope);
+  const mappings: ReuseReviewResult['mappings'] = { instances: {}, groups: {}, alignments: {} }, dependencies: string[] = [], blocked: string[] = [];
+  if (request.kind === 'style') {
+    const origin = source.instances.find(n => n.id === request.from_id);
+    if (!origin) throw new Error('reuse.invalid');
+    for (const id of request.to_ids) {
+      const destination = target.instances.find(n => n.id === id);
+      if (!destination || request.fields.some(field => !styleFields(origin, request.from_scope, catalog).includes(field) || !styleFields(destination, request.scope, catalog).includes(field))) throw new Error('reuse.incompatible');
+      for (const field of request.fields) {
+        const formatting = field.startsWith('formatting.'), key = formatting ? field.slice(11) : field;
+        const from = (formatting ? origin.options.formatting : origin.options) as unknown as Record<string, unknown>;
+        const to = (formatting ? destination.options.formatting : destination.options) as unknown as Record<string, unknown>;
+        if (Object.hasOwn(from,key)) to[key] = clone(from[key]); else delete to[key];
+      }
+    }
+  } else {
+    const selected = new Set<string>(), selectedGroups = new Set(request.group_ids);
+    const addGroup = (id: string) => { const group = source.groups.find(g => g.id === id); if (!group) throw new Error('reuse.invalid'); selectedGroups.add(id); group.member_ids.forEach(member => selected.add(member)); };
+    request.group_ids.forEach(addGroup);
+    const alignments = request.scope === 'main' ? incoming.display.layout.alignments ?? [] : [];
+    const included = (ref: { kind: string; id: string }) => ref.kind === 'group' ? selectedGroups.has(ref.id) : selected.has(ref.id);
+    let growing = true;
+    while (growing) {
+      growing = false;
+      for (const a of alignments.filter(a => a.columns.flat().some(included))) for (const ref of a.columns.flat().filter(ref => !included(ref))) {
+        const dependency = refKey(ref); if (!dependencies.includes(dependency)) dependencies.push(dependency);
+        if (request.references === 'expand') {
+          if (ref.kind === 'group') addGroup(ref.id);
+          else { const group = source.groups.find(g => g.member_ids.includes(ref.id)); if (group) addGroup(group.id); else selected.add(ref.id); }
+          growing = true;
+        }
+      }
+      if (request.references !== 'expand') break;
+    }
+    const retained = alignments.filter(a => a.columns.flat().some(included) && a.columns.flat().every(included));
+    if (dependencies.length && request.references === 'review') blocked.push('reuse.references');
+    // Alignment side is part of the relationship: retain each necessary row spacer.
+    if (request.scope === 'main') for (const unit of alignmentUnits(incoming.display.layout, source.instances, source.groups)) {
+      if (unit.side === 'right' && included(unit.ref)) {
+        const spacer = incoming.display.layout.rows[unit.row]!.find(id => source.instances.find(n => n.id === id)?.type_id === 'spacer');
+        if (spacer) selected.add(spacer);
+      }
+    }
+    const nodes = source.instances.filter(n => selected.has(n.id));
+    if (nodes.length !== selected.size) throw new Error('reuse.invalid');
+    const occupied = new Set([...target.instances.map(n => n.id), ...target.groups.map(g => g.id), ...(draft.display.layout.alignments ?? []).map(a => a.id)]);
+    const fresh = () => { for (let i = 0; i < 100; i++) { const id = nextId(); if (/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(id) && !occupied.has(id)) { occupied.add(id); return id; } } throw new Error('reuse.invalid'); };
+    for (const node of nodes) mappings.instances[node.id] = fresh();
+    for (const id of selectedGroups) mappings.groups[id] = fresh();
+    for (const a of retained) mappings.alignments[a.id] = fresh();
+    const copies = nodes.map(node => ({ ...clone(node), id: mappings.instances[node.id]!, ...(node.source && !local ? { source: { binding: null, hint: node.source.hint } } : {}) }));
+    target.instances.push(...copies);
+    target.groups.push(...source.groups.filter(g => selectedGroups.has(g.id)).map(g => ({ ...clone(g), id: mappings.groups[g.id]!, primary_id: mappings.instances[g.primary_id]!, member_ids: g.member_ids.map(id => mappings.instances[id]!) })));
+    if (request.scope === 'main') {
+      const layout = draft.display.layout, importedRows = (incoming.display.layout.mode === 'explicit' ? incoming.display.layout.rows : [nodes.map(n => n.id)]).map(row => row.filter(id => selected.has(id)).map(id => mappings.instances[id]!)).filter(row => row.length);
+      const needsExplicit = importedRows.length > 1 || retained.length > 0 || nodes.some(n => n.type_id === 'spacer');
+      if (layout.mode === 'auto' && needsExplicit) {
+        if (!request.explicit) blocked.push('reuse.explicit');
+        layout.mode = 'explicit'; layout.rows = base.display.instances.length ? [base.display.instances.map(n => n.id)] : [];
+      }
+      if (layout.mode === 'explicit') layout.rows.push(...importedRows);
+      if (retained.length) layout.alignments = [...(layout.alignments ?? []), ...retained.map(a => ({ id: mappings.alignments[a.id]!, columns: a.columns.map(column => column.map(ref => ({ kind: ref.kind, id: mappings[ref.kind === 'group' ? 'groups' : 'instances'][ref.id]! }))) }))];
+    }
+  }
+  if (!blocked.length && !isDraft(draft)) blocked.push('reuse.incompatible');
+  const unresolved = (['main','subagent'] as const).flatMap(scope => area(draft, scope).instances.filter(n => n.source && !n.source.binding && Object.values(mappings.instances).includes(n.id)).map(n => ({ scope, id: n.id, hint: n.source!.hint })));
+  return { draft: blocked.length ? clone(base) : draft, changes: blocked.length ? [] : differences(base, draft), mappings, dependencies, unresolved, blocked };
+}

@@ -1,3 +1,5 @@
+import { performChanges, changePreview, openChanges } from '@fbincon/statusline-core/editor/change-review';
+import { performReuse } from '@fbincon/statusline-core/editor/reuse-manager';
 import { performPackage, closePackage } from '@fbincon/statusline-core/editor/package-manager';
 import { readTask } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
@@ -48,7 +50,7 @@ export class Session {
         return new Session(state, backend, guard, languageOverride);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
+        const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.changeReview ? changePreview(e) : e.reuse?.result && !e.reuse.result.blocked.length ? e.reuse.result.draft : e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
         if(e.diagnosis || e.taskViewer || e.packages)return;
         const key = JSON.stringify([draft, width,e.previewScenario]);
         if(e.explanation) {
@@ -77,6 +79,8 @@ export class Session {
             if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend,e);if(e.packages.closed)e.packages=null;return null;}
             if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
             if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
+            if (effect === 'changes') {await performChanges(e,this.backend);return null;}
+            if (effect === 'reuse') {await performReuse(e,this.backend);return null;}
             if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
@@ -137,7 +141,7 @@ export class Session {
             result = await this.backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
                 ...(submitted.target ? { target: submitted.target } : {}) });
             e.committed(result);
-        }catch(error) {e.saveFailed(error instanceof BackendError?error.code:'');throw error;}
+        }catch(error) {e.saveFailed(error instanceof BackendError?error.code:'');if(error instanceof BackendError&&error.code==='configuration_conflict'){openChanges(e);e.changeReview!.effect='read';await performChanges(e,this.backend);}throw error;}
         const value = outcome(result.changed ? 'updated' : 'already-current', this.state.language);
         if (result.backup_dir)
             value.message += t('ui.session.backup', this.state.language, { backup_dir: result.backup_dir });

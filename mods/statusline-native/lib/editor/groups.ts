@@ -40,7 +40,7 @@ export interface GroupEdit {
   link_visibility?: boolean; shared_powerline?: boolean;
   before?: string; after?: string;
 }
-export function editGroup(original: DisplayDraft, scope: Scope, edit: GroupEdit, nextId: () => string): DisplayDraft {
+export function editGroup(original: DisplayDraft, scope: Scope, edit: GroupEdit, nextId: () => string, protectAlignments = true): DisplayDraft {
   const display = JSON.parse(JSON.stringify(original)) as DisplayDraft, target = groupScope(display, scope);
   const invalid = (): never => { throw new Error('composition.groups.invalid'); };
   const fresh = () => { const value = nextId(); if (!id(value) || target.instances.some(n => n.id === value) || target.groups.some(g => g.id === value)) invalid(); return value; };
@@ -86,6 +86,6 @@ export function editGroup(original: DisplayDraft, scope: Scope, edit: GroupEdit,
     } else invalid();
   }
   if (!validGroups(target.groups, target.instances, scope === 'main' ? display.layout : undefined)) invalid();
-  if (scope === 'main') requireAlignments(display);
+  if (scope === 'main' && protectAlignments) requireAlignments(display);
   return display;
 }

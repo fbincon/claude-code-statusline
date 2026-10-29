@@ -20,7 +20,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, draft_reuse: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -58,8 +58,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 28, operation, payload }), environment));
-    assert.equal(result.protocol_version, 28);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 29, operation, payload }), environment));
+    assert.equal(result.protocol_version, 29);
     assert.ok(result.result);
     return result.result;
 }
@@ -251,6 +251,11 @@ test('installed explicit-row alignment survives editing, hiding, transfers and n
     execFileSync(installed.node,[driver,installed.modules,'joint-display',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
     report.alignment_matrix = JSON.parse(fs.readFileSync(receipt,'utf8'));
     report.alignment_cases = 4; checks.alignments = true;
+});
+test('installed draft history, structural repairs and reuse preserve revisions across save and reopen',()=>{
+    const config=setup('draft-reuse'),receipt=join(installed.temporary,'draft-reuse.json');
+    execFileSync(installed.node,[driver,installed.modules,'draft-reuse',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
+    report.draft_reuse=JSON.parse(fs.readFileSync(receipt,'utf8'));checks.draft_reuse=true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
@@ -540,7 +545,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 28, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 29, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

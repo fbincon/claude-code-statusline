@@ -2,6 +2,15 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+
+## 3.13.0 — 2026-10-29
+
+- Share bounded draft undo/redo, semantic change review and explicit concurrent-edit recovery in both editors.
+- Review structural edits together with precise alignment repairs and accept them as one undoable action.
+- Copy selected compatible visual fields and reuse complete groups with explicit dependencies, ID mapping and local-source rebinding.
+- Use editor protocol 29; retain display schema 16 and portable/profile 1.
+- [Release notes](docs/releases/v3.13.0.md) · [Implementation](docs/development/draft-history-and-reuse.md).
+
 ## 3.12.0 — 2026-10-28
 
 - Add readable source state, saved GitHub check pages and reviewed binding reuse/cleanup.

@@ -83,9 +83,9 @@ Keep the original project and authors credited when discussing these references.
 | 4 Scheduling | [COMMAND-02](development-plan.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | DONE |
 | 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | NOT_STARTED |
 | Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | NOT_STARTED |
-| Later, interleavable | [UX-03](development-plan.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | NOT_STARTED |
-| Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | NOT_STARTED |
-| Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | NOT_STARTED |
+| Later, interleavable | [UX-03](development-plan.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | IN_PROGRESS |
+| Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | IN_PROGRESS |
+| Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | IN_PROGRESS |
 | Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | NOT_STARTED |
 | Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | All eighteen packages above and every slice accepted; matching installed artifacts | NOT_STARTED |
 

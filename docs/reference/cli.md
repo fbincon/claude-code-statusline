@@ -2,6 +2,9 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](../DRAFT_HISTORY.md).
+
 [First-use setup](../SETUP.md) and [complete schemes](../SCHEMES.md).
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).

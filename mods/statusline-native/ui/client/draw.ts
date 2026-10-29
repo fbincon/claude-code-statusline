@@ -1,3 +1,5 @@
+import { changesView } from '../../lib/editor/change-review.ts';
+import { reuseView } from '../../lib/editor/reuse-manager.ts';
 import { packageView } from '../../lib/editor/package-manager.ts';
 import { diagnosisLines } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
@@ -63,7 +65,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
+  if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,view.language??'en',inner,layout.bodyRows):reuseView(e,view.language??'en',inner,layout.bodyRows)).map(row=>line(row.text,rowStyle(row.selected===true))));
+  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
   } else if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
   } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
   } else if(e.alignmentManager) {

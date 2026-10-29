@@ -1,3 +1,6 @@
+import { openChanges, changePreview } from '@fbincon/statusline-core/editor/change-review';
+import { openReuse } from '@fbincon/statusline-core/editor/reuse-manager';
+import { reuseDraft } from '@fbincon/statusline-core/editor/reuse';
 import { packageManager } from '@fbincon/statusline-core/editor/package-manager';
 import { textInput } from '@fbincon/statusline-core/editor/text-input';
 /** Rebuild the issue #154/#155 state matrix from canonical rules and rendering. */
@@ -57,7 +60,7 @@ export function nativeCapacityData() {
         e.sourceDraftOwner='draft-capacity-fixture';
         assert(isDraft(e.draft), 'Invalid capacity draft: ' + name);
         const width = columns - (columns >= 64 && rows >= 20 ? 2 : 0);
-        const draft = e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
+        const draft = e.changeReview ? changePreview(e) : e.reuse?.result && !e.reuse.result.blocked.length ? e.reuse.result.draft : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
         let preview = sample(draft, width);
         if (e.explanation) {
             const trace = new RenderTrace(draft.display); preview = sample(draft, width, trace);
@@ -144,6 +147,33 @@ export function nativeCapacityData() {
             e.packages=p;add('package-operations-'+mode+'-w'+width,e,width,width===32?12:40);
         }
     }
+    assert.equal(cases.length,217);
+    const grouped=copyDraft(minimal);
+    grouped.display.instances=['a','b','c','d'].map(id=>({id,type_id:'model',enabled:true,text:null,options:defaultItem()}));
+    grouped.display.groups=[{id:'g1',member_ids:['a','b'],primary_id:'a',link_visibility:true,shared_powerline:true},{id:'g2',member_ids:['c','d'],primary_id:'c',link_visibility:true,shared_powerline:true}];
+    grouped.display.layout={mode:'explicit',rows:[['a','b'],['c','d']],alignments:[{id:'table',columns:[[{kind:'group',id:'g1'},{kind:'group',id:'g2'}]]}]};
+    for(const width of [32,196]) for(const name of ['history-full','history-compare','history-export','history-discard','structure','style-source','style-select','style-fields','style-review','groups-select','groups-dependencies','groups-review','groups-complete']) {
+        const e=editor(name.startsWith('groups')||name==='structure'?grouped:minimal);
+        if(name.startsWith('history')) {
+            for(let i=0;i<100;i++){const next=copyDraft(e.draft);next.host.padding=(i+1)%2;e.commitDraft(next);}
+            openChanges(e);
+            if(name==='history-compare'){const current=read(copyDraft(minimal));current.draft.display.palette='ansi';e.changeReview!.current=current;e.changeReview!.external=createReview({draft:current.draft,changes:differences(e.baseline.draft,current.draft)});e.changeReview!.comparison=1;}
+            if(name==='history-export')e.changeReview!.input=textInput('/fixture/'+('界'.repeat(512))+'/draft.json');
+            if(name==='history-discard')e.changeReview!.confirm=true;
+        }else if(name==='structure'){e.selected.main='a';e.instanceAction('main','remove');}
+        else {
+            openReuse(e,name.startsWith('style')?'style':'groups');const m=e.reuse!;m.from=e.draft.display.instances[0]!.id;m.fields=['foreground','label'];m.groups=['g1'];
+            m.page=name.endsWith('source')?'source':name.endsWith('select')?'select':name.endsWith('fields')?'fields':name.endsWith('complete')?'complete':'review';
+            if(m.kind==='style'){m.incoming.display.instances[0]!.options.foreground='#abcdef';m.incoming.display.instances[0]!.options.label='Copied 中文 👩‍💻';}
+            if(m.page==='review'||m.page==='complete'){
+                let serial=0;m.references=name==='groups-dependencies'?'review':'expand';m.explicit=true;m.details=name==='groups-dependencies';
+                m.result=reuseDraft(e.draft,m.incoming,m.kind==='style'?{kind:'style',scope:'main',from_scope:'main',from_id:m.from,to_ids:[m.destination],fields:m.fields}:{kind:'groups',scope:'main',group_ids:m.groups,references:m.references,explicit:true},()=> 'reuse-'+ ++serial,description.catalog,m.local);
+                m.review=createReview(m.result);
+            }
+        }
+        add('draft-reuse-'+name+'-w'+width,e,width,width===32?12:200);
+    }
+    assert.equal(cases.length,243);
     return { description, values, cases };
 }
 

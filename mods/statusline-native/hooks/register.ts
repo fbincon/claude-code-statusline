@@ -1,3 +1,5 @@
+import { openChanges, performChanges, changePreview } from '../lib/editor/change-review.ts';
+import { performReuse } from '../lib/editor/reuse-manager.ts';
 import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
 import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
 import { colorDraft } from '../lib/editor/color-manager.ts';
@@ -310,6 +312,7 @@ async function save(
     editor.saveFailed(error.code);
     state.view.uncertain = editor.saveState === 'unknown';
     state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
+    if(error.code==='configuration_conflict'){openChanges(editor);editor.changeReview!.effect='read';await performChanges(editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -755,10 +758,11 @@ export const register: Register = (on, options) => {
         );
         if (effect === 'save' || effect === 'finish') {
           await save($, state, options, effect === 'finish');
+        } else if ((effect === 'changes' || effect === 'reuse') && state.view.editor) {
+          state.writing=true;try { if(effect==='changes')await performChanges(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});else await performReuse(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); } finally {state.writing=false;state.previewKey='';}
         } else if (effect === 'close') await close($, state, options);
         else if (effect === 'reload') {
-          await load($, state, options);
-          state.placed = true;
+          if(state.view.editor?.modified){openChanges(state.view.editor);state.view.editor.changeReview!.confirm=true;}else {await load($,state,options);state.placed=true;}
         } else if (effect === 'reconcile') await reconcile($, state, options);
         else if (effect === 'transfer') await transferDraft($, state, options);
         else if(effect==='diagnoseFile'&&state.view.editor) {
@@ -872,7 +876,7 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.colors ? colorDraft(editor) : editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
+    const previewDraft = editor?.changeReview ? changePreview(editor) : editor?.reuse?.result && !editor.reuse.result.blocked.length ? editor.reuse.result.draft : editor?.colors ? colorDraft(editor) : editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
     const previewColumns = previewWidth(contentColumns(width,height),editor?.previewWidth ?? 'auto');
     const explanation=editor?.explanation;
     const key = `${state.epoch}:${previewColumns}:${editor?.previewScenario}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;

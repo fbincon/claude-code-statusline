@@ -64,7 +64,7 @@ M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-
 - **Product focus:** the status line presents tasks, agents, projects and usage clearly; existing on-demand entry points provide detail and explanation. Preserve real zero and distinct missing, stale, partial or unsupported states. Do not infer task outcomes without evidence.
 - **Shared implementation:** core owns pure configuration, catalog, Unicode, layout and explanation; platform owns files, processes and terminals; cli orchestrates services; tui and native Mods adapt interactions. Reuse existing transactions and task stores. [Current architecture](architecture.md).
 - **Configuration boundaries:** UI language saves immediately, display language and appearance follow display Save, and Claude preferences retain separate Apply. Preview, import review and scheme selection produce candidate drafts. Make user default, named profile and project editing targets clear. [Profile semantics](../PROFILES.md).
-- **Compatibility:** the current baseline is display schema 16, editor protocol 28, source registry 3/jobs 4, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
+- **Compatibility:** the current baseline is display schema 16, editor protocol 29, source registry 3/jobs 4, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
 - **Extension authorization:** default capabilities use host input and local state. External file sources, network providers and commands are separately enabled and registered in user configuration. A display scheme may reference a source, but import, preset selection and project binding cannot grant execution or network access.
 - **Scope boundaries:** the formal follow-up is listed above. Existing setup, selective import, static component gradients, explicit row alignment, GitHub automatic refresh and CLI version management remain delivered. Further providers, data and longer-term directions retain separate entry conditions in the [candidate pool](roadmap.md#candidates). Reuse existing global-appearance import; component-style and group reuse belong to IMPORT-02.
 - **Future interfaces:** describe configuration intent, data flow and compatibility before assigning future schema/protocol versions or public command spellings. Reuse catalog capabilities and generated editor resources. New options must survive preview, save/reopen, profile selection, import/export and conflict handling; reading an old configuration does not enable new behavior.
@@ -294,6 +294,9 @@ Entries without an implementation record remain proposed work; current package s
 <a id="ux-03"></a>
 
 ## UX-03 Shared draft history and external recovery
+
+**Status: IN_PROGRESS.** [Implementation and acceptance](draft-history-and-reuse.md).
+
 
 **Goal and scope.** Provide bounded undo/redo for display-draft actions, a reviewable change summary and stronger external-editor conflict recovery. One logical copy/delete/group/import/apply-style action is one history entry. UI-language saves, source authorization and host Apply retain independent persistence semantics.
 

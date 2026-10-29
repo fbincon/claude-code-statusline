@@ -3,6 +3,7 @@ import { OPTIONS } from './operations.js';
 import { PALETTE_VALUES, DIRECTORYSTYLE_VALUES, SEPARATORSTYLE_VALUES, SCOPELABELS_VALUES, STATUSLINELANGUAGE_VALUES } from '@fbincon/statusline-core/contracts/ui';
 import { ROWS } from '@fbincon/statusline-core/config/presets';
 import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
+export const REUSE_OPTIONS = ['--style-from','--style-to','--style-fields','--groups','--references','--expected-revision','--source-revision'] as const;
 export class ArgumentError extends Error {
     constructor(message: string, public readonly key = 'cli.unrecognized', public readonly params: Record<string, unknown> = { arguments: message }, public readonly help?: { unrecognizedOption?: string; pending?: boolean }) {
         super(message);
@@ -154,6 +155,11 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     }
     else if (action !== 'reset')
         throw new ArgumentError(`unknown config subcommand: ${action}`);
+    if (action === 'import') {
+        for (const option of REUSE_OPTIONS) allowed[option] = 'one';
+        allowed['--explicit-layout'] = 'boolean'; allowed['--profile-file'] = 'boolean';
+    }
+    if (action === 'layout' || ['instance','group'].includes(action) && selected !== 'list') Object.assign(allowed, {'--dry-run':'boolean','--expected-revision':'one','--accept-alignments':'one'});
     let literal = false;
     for (let i = 0; i < args.length; i++) {
         const token = args[i]!;

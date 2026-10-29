@@ -24,7 +24,9 @@ test('native alignment manager survives the frozen Client port and keeps pending
     e.alignmentManager!.cursor = 1;
     expect(JSON.stringify(props)).toBe(snapshot);
     alignmentsKey(e, { key: 'escape' });
-    expect(e.instanceAction('main', 'remove')).toBe(false);
-    expect(e.compositionError.key).toBe('alignment.references');
+    expect(e.instanceAction('main', 'remove')).toBe(true);
+    expect(e.structureProposal!.repairs[0]!.id).toBe(e.draft.display.layout.alignments![0]!.id);
+    expect(e.draft.display.instances.length).toBe(2);
+    expect(e.acceptProposal()).toBe(true);expect(e.draft.display.layout.alignments).toEqual([]);expect(e.undo()).toBe(true);expect(e.draft.display.instances.length).toBe(2);
   }
 });

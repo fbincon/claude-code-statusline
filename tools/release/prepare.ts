@@ -81,9 +81,11 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 24); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 25); assert(Object.values(report.checks).every(value => value === true));
             assert(report.source_operations&&typeof report.source_operations==='object');
             for(const key of ['separate_approval','interval_300','ttl_independent','non_git','manual_consumer_preserved','last_success_after_failure','execution_summary','bindings_reused','drafts_protected','reviewed_cleanup','settings_unchanged'])assert.equal(report.source_operations[key],true);assert.equal(report.source_operations.model_calls,0);
+            assert.equal(report.checks.draft_reuse,true);
+            assert.deepEqual(report.draft_reuse,{languages:LANGUAGES,widths:[40,80,120],history:true,atomic_repairs:true,style_fields:true,group_closure:true,unbound_sources:true,conflict_retry:true,unknown_reconciliation:true,save_reopen:true,installed_modules:true,model_calls:0});
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});

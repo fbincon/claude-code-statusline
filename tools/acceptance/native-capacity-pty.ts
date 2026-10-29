@@ -58,7 +58,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     record(join(config, 'statusline-ui.json'), { schema_version: 1, ui_language: 'en' });
     if (data.profiles?.library) { const { revision: _, ...library } = data.profiles.library; record(join(config, 'claude-statusline-profiles.json'), library); }
     if (data.sources?.library) { const { revision: _, ...library } = data.sources.library; record(join(config, 'claude-statusline-sources.json'), library); }
-    const importPath = join(config, 'identical-display.json'); record(importPath, draft.display);
+    const importPath = join(config, 'identical-display.json');const imported=structuredClone(draft.display);if(action==='style-reuse'){imported.instances[0]!.options.foreground='#abcdef';imported.instances[0]!.options.label='Copied style';}record(importPath, imported);
     const diagnosticPath=join(config,'explicit input 中文.json');record(diagnosticPath,{session_id:'explicit-file',version:'2.1.310',model:{id:'File-input-model'},context_window:{used_percentage:95,remaining_percentage:5}});
     const taskEvidence=taskFixture(config,'task-pty');
     if(action==='live-command'){
@@ -116,7 +116,31 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         capture('before');
-        if(['version-status','package-cleanup','external-task'].includes(action)) {
+        if(action==='draft-history') {
+            await key(external?'\x04':'d','one logical copy');await until(text=>text.includes('Configure Status Line *'),'copy retained');
+            await key('\x1a','undo copy');await until(text=>!text.includes('Configure Status Line *'),'undo restored baseline');
+            await key('\x12','redo copy');await until(text=>text.includes('Configure Status Line *'),'redo restored draft');
+            await key('\x14','review changes');await until(text=>text.includes('Changes and history'),'history visible');
+            await key('c','compare current file');await until(text=>text.includes('Baseline → current file'),'current revision compared');
+            await key('\t','replacement comparison');capture('after');await key('e','export retained draft');await key('\x15','clear export path');
+            const exportPath=join(directory,'retained-draft.json');await key(exportPath,'literal export path');await key('\r','export draft');await until(()=>fs.existsSync(exportPath),'draft export exists');assert(JSON.parse(fs.readFileSync(exportPath,'utf8')).draft.display.instances.length===draft.display.instances.length+1);
+            await key('q','return from review');await key('\x1a','undo retained copy');await until(text=>!text.includes('Configure Status Line *'),'original draft restored');
+        } else if(action==='alignment-repair') {
+            await key(external?'\x18':'x','delete referenced primary');await until(text=>text.includes('Review structural edit'),'repair proposal visible');capture('after');
+            await key('a','accept atomic structural repair');await until(text=>text.includes('Configure Status Line *'),'structural edit retained');await key('\x1a','undo complete repair');await until(text=>!text.includes('Configure Status Line *'),'structure and references restored');
+        } else if(action==='style-reuse') {
+            await key('\x05','destination details');await key('\x1b[H','first detail');
+            for(let i=0;i<15&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Copy / paste visual style'));i++)await key('\x1b[B','find visual reuse');
+            await key('\r','choose style source');await key('\x1b[B\r','portable style file');await key('\x15','clear source path');await key(importPath,'literal style path');await key('\r','read style file');
+            await key('\x1b[B\r','source component');await key('\x1b[F\r','review selected visual fields');await until(text=>text.includes('Candidate only'),'style candidate visible');capture('after');
+            await key('a','accept visual fields');await until(text=>text.includes('Applied to draft'),'style applied');await key('q','close reuse');await key('\x07','leave destination details');await key('\x1a','undo style paste');await until(text=>!text.includes('Configure Status Line *'),'original style restored');
+        } else if(action==='group-reuse') {
+            await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
+            for(let i=0;i<90&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Reuse complete groups'));i++)await key('\x1b[B','find group reuse');
+            await key('\r\r','select current source');await key('\x1b[B ','select first whole group');await key('\x1b[F\r','review dependencies');await until(text=>text.includes('Outside references require'),'outside references explicit');
+            await key('x','expand reference closure');await key('\t','inspect mapped identities');capture('after');await key('a','accept complete group closure');await until(text=>text.includes('Applied to draft'),'groups accepted');
+            await key('q','return from group reuse');await key('\x1a','undo whole import');await until(text=>!text.includes('Configure Status Line *'),'groups and rows restored');
+        } else if(['version-status','package-cleanup','external-task'].includes(action)) {
             await key(external?'\x04':'d','unsaved copy');
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
             const label=action==='external-task'?'Task details':'Version and installation';
@@ -244,6 +268,7 @@ try {
     ]) await runCase(name!, fixture!, action!);
     for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file'],['external-version-status','plain-main-w72','version-status'],['external-task-viewer','plain-main-w72','external-task']]) await runCase(name!, fixture!, action!, true);
     for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
+    for(const external of [false,true])for(const [name,fixture,action]of [['draft-history','plain-main-w72','draft-history'],['style-reuse','plain-main-w72','style-reuse'],['group-reuse','draft-reuse-groups-review-w196','group-reuse'],['alignment-repair','draft-reuse-groups-review-w196','alignment-repair']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
     await runCase('native-live-command','plain-main-w72','live-command');
     assert.equal(reports.length, 34); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }

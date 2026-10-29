@@ -1,0 +1,29 @@
+/** A structural edit is staged with reference repairs; persisted validation stays strict. */
+import type { AlignmentDraft, Draft, ImportChange } from '../contracts/ui.js';
+import { alignmentUnits, refKey, validAlignments } from './alignments.js';
+import { isDraft } from './backend.js';
+import { clone, semantic } from './history.js';
+import { differences } from './import-differences.js';
+
+export interface AlignmentRepair { id: string; before: AlignmentDraft; after: AlignmentDraft | null }
+export interface StructureProposal {
+  generation: number; target: string; base: Draft; draft: Draft; repairs: AlignmentRepair[]; changes: ImportChange[];
+}
+export function repairStructure(base: Draft, proposed: Draft): Omit<StructureProposal, 'generation' | 'target'> {
+  const draft = clone(proposed), d = draft.display, originals = d.layout.alignments ?? [];
+  const units = new Set(alignmentUnits(d.layout, d.instances, d.groups).map(unit => refKey(unit.ref)));
+  const candidates = originals.map(value => ({ before: value, after: { ...clone(value), columns: value.columns.map(column => column.filter(ref => units.has(refKey(ref)))).filter(column => column.length >= 2) } }));
+  // Give unchanged, individually valid relationships priority over repaired ones.
+  const stable = candidates.filter(({ before, after }) => semantic(before) === semantic(after) && validAlignments([after], d.layout, d.instances, d.groups));
+  const accepted: AlignmentDraft[] = [], kept = new Map<string, AlignmentDraft>();
+  for (const { after } of [...stable, ...candidates.filter(c => !stable.includes(c))]) {
+    if (after.columns.length && validAlignments([...accepted, after], d.layout, d.instances, d.groups)) { accepted.push(after); kept.set(after.id, after); }
+  }
+  if (d.layout.alignments !== undefined) d.layout.alignments = originals.flatMap(a => kept.has(a.id) ? [kept.get(a.id)!] : []);
+  const repairs = originals.flatMap(before => {
+    const after = kept.get(before.id) ?? null;
+    return semantic(before) === semantic(after) ? [] : [{ id: before.id, before: clone(before), after: clone(after) }];
+  });
+  if (!isDraft(draft)) throw new Error('composition.invalid');
+  return { base: clone(base), draft, repairs, changes: differences(base, draft) };
+}
