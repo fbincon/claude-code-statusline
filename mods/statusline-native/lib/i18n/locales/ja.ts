@@ -2232,7 +2232,7 @@ export const MESSAGES = {
   "history.comparison.1": "基準 → 現在のファイル",
   "history.comparison.2": "現在のファイル → 下書き",
   "history.structure_help": "A 適用 · Enter 詳細 · Q 中止",
-  "history.help": "C 比較 · Tab 切替 · E 出力 · L 破棄/再読込 · K 下書き保持/再試行 · Q 戻る",
+  "history.help": "U 元に戻す · R やり直す · C 比較 · Tab 切替 · E 出力 · L 破棄/再読込 · K 下書き保持/再試行 · Q 戻る",
   "history.trimmed": "履歴の上限に達したため、古い項目を削除しました。",
   "history.exported": "下書きを出力しました。現在の設定は変更されていません。",
   "history.failed": "操作を完了できませんでした：{detail}",

@@ -91,3 +91,11 @@ test('review presentation preserves long export/path input state and scroll snap
   e.changeReview=null;openReuse(e,'style');e.reuse!.page='path';e.reuse!.input=textInput('/'+('界'.repeat(512))+'/source.json');
   const snapshot=JSON.stringify(e.reuse);for(const width of [32,196])reuseView(e,'en',width,12);assert.equal(JSON.stringify(e.reuse),snapshot);
 });
+
+test('history review undo and redo refresh the comparison and retain unresolved-save protection',()=>{
+  const e=editor(),base=copyDraft(e.draft),changed=copyDraft(base);changed.host.padding=7;e.commitDraft(changed);openChanges(e);
+  changesKey(e,{key:'u'},'en',32,12);assert.deepEqual(e.draft,base);assert(e.changeReview);assert.equal(e.changeReview.review.result.changes.length,0);
+  changesKey(e,{key:'r'},'en',32,12);assert.deepEqual(e.draft,changed);assert(e.changeReview!.review.result.changes.length>0);
+  e.beginSave();e.saveFailed('io_error');openChanges(e);const before=JSON.stringify(e.history);
+  changesKey(e,{key:'u'},'en',32,12);assert.deepEqual(e.draft,changed);assert.equal(JSON.stringify(e.history),before);
+});

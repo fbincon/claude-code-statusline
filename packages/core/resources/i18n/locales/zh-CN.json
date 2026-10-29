@@ -2231,7 +2231,7 @@
   "history.comparison.1": "基线 → 当前文件",
   "history.comparison.2": "当前文件 → 草稿",
   "history.structure_help": "A 接受 · Enter 详情 · Q 取消",
-  "history.help": "C 比较 · Tab 切换 · E 导出 · L 丢弃重载 · K 保留草稿重试 · Q 返回",
+  "history.help": "U 撤销 · R 重做 · C 比较 · Tab 切换 · E 导出 · L 丢弃重载 · K 保留草稿重试 · Q 返回",
   "history.trimmed": "已达到会话历史上限，最早记录已移除。",
   "history.exported": "草稿已导出，当前配置未改写。",
   "history.failed": "无法完成操作：{detail}",

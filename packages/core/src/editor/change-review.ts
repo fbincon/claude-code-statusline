@@ -48,6 +48,11 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
     return null;
   }
   if (m.kind === 'changes') {
+    if (['u','r'].includes(key.toLowerCase())) {
+      if (e.undo(key.toLowerCase() === 'r')) openChanges(e);
+      else m.message = e.compositionError;
+      return null;
+    }
     if (key.toLowerCase() === 'c') { m.effect = 'read'; return 'changes'; }
     if (key.toLowerCase() === 'e') { m.input = textInput('statusline-draft.json'); return null; }
     if (key.toLowerCase() === 'l') {

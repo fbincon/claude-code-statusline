@@ -74,7 +74,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     }
   }
   if (view.error && e.page !== 'settings') actions.splice(actions.length - 1, 0, { key: 'R', label: 'reload' });
-  return [actions, contextual,[{key:'Ctrl+Z/R',label:'undo / redo'},{key:'Ctrl+T',label:'changes'},{key:'Ctrl+V/W/N',label:'preview'}]];
+  return [actions, contextual,[{key:'Ctrl+_/R',label:'undo / redo'},{key:'Ctrl+T',label:'changes'},{key:'Ctrl+V/W/N',label:'preview'}]];
 }
 
 /** Share footer and viewport budgets between drawing and keyboard paging. */
@@ -85,7 +85,7 @@ export function editorLayout(view: View, columns: number, rows: number) {
   const limit = Math.max(1, rows - (framed ? 10 : 8));
   let footer = shortcutRows(groups, columns);
   if (footer.length > limit) footer = shortcutRows(groups, columns, true);
-  for (const key of ['Ctrl+Z/R','Ctrl+T','Ctrl+V/W/N','V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U']) {
+  for (const key of ['Ctrl+_/R','Ctrl+T','Ctrl+V/W/N','V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U']) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);

@@ -2231,7 +2231,7 @@
   "history.comparison.1": "기준 → 현재 파일",
   "history.comparison.2": "현재 파일 → 초안",
   "history.structure_help": "A 적용 · Enter 상세 · Q 취소",
-  "history.help": "C 비교 · Tab 전환 · E 내보내기 · L 버리고 새로 고침 · K 초안 유지/재시도 · Q 뒤로",
+  "history.help": "U 실행 취소 · R 다시 실행 · C 비교 · Tab 전환 · E 내보내기 · L 버리고 새로 고침 · K 초안 유지/재시도 · Q 뒤로",
   "history.trimmed": "세션 기록 한도에 도달하여 가장 오래된 항목을 제거했습니다.",
   "history.exported": "초안을 내보냈습니다. 현재 설정은 변경되지 않았습니다.",
   "history.failed": "작업을 완료할 수 없습니다: {detail}",

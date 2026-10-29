@@ -2231,7 +2231,7 @@
   "history.comparison.1": "Baseline → current file",
   "history.comparison.2": "Current file → draft",
   "history.structure_help": "A accept · Enter details · Q cancel",
-  "history.help": "C compare · Tab comparison · E export · L discard/reload · K keep draft/retry · Q back",
+  "history.help": "U undo · R redo · C compare · Tab comparison · E export · L discard/reload · K keep draft/retry · Q back",
   "history.trimmed": "Oldest history entries were removed at the session limit.",
   "history.exported": "Draft exported. Live configuration is unchanged.",
   "history.failed": "Could not complete the action: {detail}",

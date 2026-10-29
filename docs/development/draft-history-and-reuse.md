@@ -18,6 +18,8 @@ Style reuse has a fixed visual whitelist and capability-aware format intersectio
 
 Conflict comparison reads the same pinned target and retains all drafts/history. The three comparisons show baseline/draft/current. Keeping the draft adopts only a matching reviewed target/installation revision; the subsequent Save still uses the ordinary locked transaction. A second external edit conflicts again. Reload requires explicit discard; export uses the existing protected portable exporter. Native sends only visible bounded frames; history and candidates remain host-owned.
 
+Native offers Ctrl+_ undo and Ctrl+R redo, with U/R also available inside Changes and history. Ctrl+Z remains handled when forwarded, but the Unix host intercepts it to suspend Claude before Client delivery. The installer leaves global host keybindings alone. This verified host behavior changes the initial shortcut proposal; it is not recorded as a passed Ctrl+Z terminal test. See the [usage and host reference](../DRAFT_HISTORY.md).
+
 ## Required validation
 
 - Focused core, CLI and both-editor tests cover atomic history, cancellation, bounds, forks, save boundaries, stale responses/proposals, independent effects, exact reference repairs, style preservation, group closure and source isolation.
@@ -28,6 +30,8 @@ Conflict comparison reads the same pinned target and retains all drafts/history.
 ## Local development checks
 
 On 2026-10-29, the complete source check passes 1,404 tests with six platform-only skips, 86 generated resources, 3,762 documentation links, archive and migration inventories. Local Claude 2.1.312 passes all 168 product Mod tests and exact declarations/typechecking. Its actual-host capacity run passes all 243 cases. The first capacity run exposed two read-only export-path projection failures; copying input view state fixes them, and both original assertions plus a pure regression remain. These are development-source checks; immutable candidate, pinned platform/host and publication evidence follow below.
+
+The first immutable candidate additionally passed all 25 installed categories. Its 42 real PTY journeys found the Native Ctrl+Z interception; the other 41 passed. The collector's old expected total of 34 and Native's unsupported `paste` event-property checks were corrected before final acceptance. Initial failed runs remain diagnostic evidence and are not promoted to release receipts.
 
 ## Delivery evidence
 

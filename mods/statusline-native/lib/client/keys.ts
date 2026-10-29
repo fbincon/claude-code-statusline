@@ -48,8 +48,9 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if(e.changeReview)return changesKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
   if(e.reuse)return reuseKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
-  if(event.ctrl&&!event.text&&!event.paste&&key.toLowerCase()==='t'&&!view.input){openChanges(e);return null;}
-  if(event.ctrl&&!event.text&&!event.paste&&['z','r'].includes(key.toLowerCase())&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(key.toLowerCase()==='r');return null;}
+  if(event.ctrl&&!event.text&&key.toLowerCase()==='t'&&!view.input){openChanges(e);return null;}
+  // Current Unix hosts reserve Ctrl+Z for suspend before Client receives it.
+  if(event.ctrl&&!event.text&&['z','_','r'].includes(key.toLowerCase())&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(key.toLowerCase()==='r');return null;}
   if(e.packages){packageView(e.packages,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);return packageKey(e.packages,event);}
   if(e.packageLocked){setMessage(view,'message',localizedText('package.ui.editor_locked'));return key==='escape'||event.ctrl&&key.toLowerCase()==='g'?'close':null;}
   if(e.diagnosis)return diagnosisKey(e,event);

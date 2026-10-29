@@ -2232,7 +2232,7 @@ export const MESSAGES = {
   "history.comparison.1": "基準 → 目前檔案",
   "history.comparison.2": "目前檔案 → 草稿",
   "history.structure_help": "A 接受 · Enter 詳情 · Q 取消",
-  "history.help": "C 比較 · Tab 切換 · E 匯出 · L 捨棄重載 · K 保留草稿重試 · Q 返回",
+  "history.help": "U 復原 · R 重做 · C 比較 · Tab 切換 · E 匯出 · L 捨棄重載 · K 保留草稿重試 · Q 返回",
   "history.trimmed": "已達到工作階段歷史上限，最早記錄已移除。",
   "history.exported": "草稿已匯出，目前設定未改寫。",
   "history.failed": "無法完成操作：{detail}",

@@ -2,7 +2,9 @@
 
 **English** | [简体中文](DRAFT_HISTORY.zh-CN.md)
 
-Both `claude-statusline configure` and `/statusline-configure-native` share the same draft rules. Use **Ctrl+Z** to undo, **Ctrl+R** to redo, and **Ctrl+T** or Settings → **Changes and history** to review changes. These controls apply outside active text inputs and other managers.
+Both `claude-statusline configure` and `/statusline-configure-native` share the same draft rules. The external editor uses **Ctrl+Z** to undo; Native uses **Ctrl+_** (often Ctrl+Shift+-). Both use **Ctrl+R** to redo, and **Ctrl+T** or Settings → **Changes and history** to review changes. That page also offers **U** undo and **R** redo. These controls apply outside active text inputs and other managers.
+
+Claude's Unix host intercepts Ctrl+Z to suspend the entire process before Native receives it, as observed on 2.1.312 and described in [Claude's terminal conflicts](https://code.claude.com/docs/en/keybindings#terminal-conflicts). Native retains Ctrl+Z handling for hosts that forward it; the installer does not modify Claude's global keybindings.
 
 ## History and change review
 
