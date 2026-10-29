@@ -6,6 +6,8 @@ const [modules, operation, config, receipt, choice] = process.argv.slice(2);
 const load = (name: string, path: string) => import(pathToFileURL(join(modules!, 'statusline-' + name, 'dist/src', path + '.js')).href);
 if (operation === 'appearance-scenarios') {
     const { SCENARIO_SCHEMES } = await load('core','config/scenario-presets');
+    const schemes=choice?[choice]:SCENARIO_SCHEMES;
+    assert(schemes.every((name:string)=>SCENARIO_SCHEMES.includes(name)),'Unknown installed appearance scenario');
     const { applyPreset } = await load('core','config/presets');
     const { LANGUAGES } = await load('core','i18n/registry');
     const { exportText, importText } = await load('core','config/transfer');
@@ -17,7 +19,7 @@ if (operation === 'appearance-scenarios') {
     const { defaultItem } = await load('core','config/display');
     const service=new ConfigurationService({configDir:config,launch:{executable:process.execPath,args:[join(modules!,'statusline-cli/dist/src/entry.js')]},hostVersion:()=>null});
     const preview=await previewAdapter('/sample'), widths=[40,80,120];
-    for(const name of SCENARIO_SCHEMES) for(const language of LANGUAGES) {
+    for(const name of schemes) for(const language of LANGUAGES) {
         const current=service.read(),display=applyPreset(current.display,name,()=>{throw new Error('Unexpected identity allocation');});
         display.statusline_language=language;
         for(const scenario of ['normal','warning','critical','missing','many-agents']) for(const width of widths) {
@@ -31,7 +33,7 @@ if (operation === 'appearance-scenarios') {
     display.scope_labels='off';display.instances=[{id:'context',type_id:'context-remaining',enabled:true,text:null,options:{...defaultItem(),presentation:'adaptive',label:'CTX中文👩🏽‍💻',icon:'I'}}];display.layout={mode:'explicit',rows:[['context']]};
     const environment=baseEnvironment(await presentation('en'),{home:'/sample'});
     for(let width=2;width<=80;width++){const rows=configuredRows({context_window:{remaining_percentage:50}},display,width,environment);for(const row of rows){assert(displayWidth(row)<=width);assert(row.includes('50%'));assert(row.includes('CTX中文👩🏽‍💻'));assert(!row.includes('…'));}}
-    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,schemes:SCENARIO_SCHEMES,semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0}));
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,schemes,semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0}));
 } else if (operation === 'joint-display') {
     const { defaultItem } = await load('core', 'config/display');
     const { LANGUAGES } = await load('core', 'i18n/registry');

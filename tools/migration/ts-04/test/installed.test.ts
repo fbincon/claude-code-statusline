@@ -1,4 +1,5 @@
 import { VERSION } from '@fbincon/statusline-core/release';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { strip } from '@fbincon/statusline-core/rendering/layout';
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -782,7 +783,22 @@ test('installed source operations approve commands separately and protect review
 });
 
 test('installed adaptive indicators and scene schemes retain semantic and persistence contracts',()=>{
-    const config=setup('appearance-scenarios'),receipt=join(installed.temporary,'appearance-scenarios.json');
-    execFileSync(installed.node,[driver,installed.modules,'appearance-scenarios',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
-    report.appearance_scenarios=JSON.parse(fs.readFileSync(receipt,'utf8'));checks.appearance_scenarios=true;
+    const config=setup('appearance-scenarios'),schemes=['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'];
+    const common={languages:LANGUAGES,widths:[40,80,120],semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0};
+    const parts: {schemes:string[]}[]=[],executions: {scheme:string;timeout_ms:number;elapsed_ms:number;status:string}[]=[];
+    report.appearance_scenario_executions=executions;
+    // Each scene retains all six languages, five samples and three widths.
+    // The 120-second subprocess deadline bounds one scene, not all 450 previews.
+    for(const scheme of schemes){
+        const receipt=join(installed.temporary,'appearance-'+scheme+'.json'),started=performance.now();
+        const execution={scheme,timeout_ms:120000,elapsed_ms:0,status:'running'};executions.push(execution);
+        process.stdout.write(JSON.stringify({appearance_scenario:{scheme,phase:'start',timeout_ms:execution.timeout_ms}})+'\n');
+        try{
+            execFileSync(installed.node,[driver,installed.modules,'appearance-scenarios',config,receipt,scheme],{cwd:installed.directory,env:installed.env,timeout:execution.timeout_ms});
+            const part=JSON.parse(fs.readFileSync(receipt,'utf8'));assert.deepEqual(part,{...common,schemes:[scheme]});parts.push(part);execution.status='pass';
+        }catch(error){execution.status='fail';throw error;}
+        finally{execution.elapsed_ms=performance.now()-started;process.stdout.write(JSON.stringify({appearance_scenario:execution})+'\n');}
+    }
+    const combined={...common,schemes:parts.flatMap(part=>part.schemes)};assert.deepEqual(combined,{...common,schemes});
+    report.appearance_scenarios=combined;checks.appearance_scenarios=true;
 });
