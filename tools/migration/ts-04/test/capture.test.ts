@@ -189,3 +189,13 @@ test('terminal decoder preserves every UTF-8 and escape chunk boundary and treat
     assert.deepEqual(decoder.flushEscape(), [{ key: 'escape' }]);
     assert.deepEqual(decoder.push('\x1b[200~hello\x13\x1b[201~'), [{ key: 'hello\x13', paste: true }]);
 });
+
+test('product preview backgrounds require exact approved cells and cannot color unused panel space', async t => {
+    const {state}=await fixture(t),screen=new Capture(64,18);screen.feed(ansiFrame(frame(state,64,18)));
+    const panel=dimensions(64,18).preview,cell=screen.buffer[panel.innerY]![panel.innerX]!;
+    cell.bg='112233';const expected=structuredClone(screen.buffer);
+    assert.throws(()=>verifyColors(screen.buffer,64,18,...TERMINAL_THEMES.light),/Artificial preview/);
+    assert.doesNotThrow(()=>verifyColors(screen.buffer,64,18,...TERMINAL_THEMES.light,false,expected));
+    screen.buffer[panel.innerY+1]![panel.innerX+1]!.bg='112233';
+    assert.throws(()=>verifyColors(screen.buffer,64,18,...TERMINAL_THEMES.light,false,expected),/differs from production/);
+});

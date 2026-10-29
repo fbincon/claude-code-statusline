@@ -16,7 +16,9 @@ import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { dimensions } from '@fbincon/statusline-tui/layout';
-import { PRESETS } from '@fbincon/statusline-core/contracts/ui';
+import { Canvas, ansiFrame } from '@fbincon/statusline-tui/drawing/canvas';
+import type { Span } from '@fbincon/statusline-core/contracts/ui';
+import { PRESETS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true }, extended: { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.output || !values.font?.length)
@@ -31,7 +33,7 @@ const monochrome: Record<string, unknown>[] = [];
 const columns = 120, rows = 32;
 try {
     const config = installed.env.CLAUDE_CONFIG_DIR;
-    const run = (args: string[]) => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, timeout: 30000 });
+    const run = (args: string[], input = '') => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, input, timeout: 30000 });
     run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
     run(['config', 'set', 'directory-style', 'home']);
     const sourceSpec = join(installed.temporary, 'capture-source.json');
@@ -59,7 +61,7 @@ try {
                     text.slice(text.lastIndexOf('\x1b[H')).includes(`\x1b[${rows};1H`) &&
                     (!contains || text.slice(text.lastIndexOf('\x1b[H')).includes(contains)));
             };
-            const capture = (page: string, width = columns, height = rows) => {
+            const capture = (page: string, width = columns, height = rows, expectedPreview?: Capture['buffer']) => {
                 const raw = pty.captured();
                 const screen = new Capture(width, height);
                 screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
@@ -68,7 +70,7 @@ try {
                 fs.writeFileSync(join(directory, page + '.ansi'), raw);
                 if (width >= 64 && height >= 18) {
                     for (const [foreground, background] of Object.values(TERMINAL_THEMES)) {
-                        verifyColors(screen.buffer, width, height, foreground, background, ['gradient-selector', 'theme-selector'].includes(page));
+                        verifyColors(screen.buffer, width, height, foreground, background, ['gradient-selector', 'theme-selector', 'row-background-selector'].includes(page), expectedPreview);
                     }
                     const panel = dimensions(width, height).content;
                     for (const line of screen.buffer.slice(panel.innerY, panel.innerY + panel.innerHeight)) {
@@ -91,6 +93,27 @@ try {
                         width: image.width, height: image.height });
                 }
                 return screen.buffer.map(row => row.map(cell => cell.data).join(''));
+            };
+            const schemePreview = async (id: string): Promise<Capture['buffer'] | undefined> => {
+                if (!['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'].includes(id)) return;
+                const request=(operation:string,payload:unknown={})=>JSON.parse(run(['ui'],JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload})).toString()).result;
+                const candidate=request('preset',{preset:id,draft:request('read').draft}).draft;
+                assert(candidate,'Preset must return a candidate draft');
+                const panel=dimensions(columns,rows).preview;
+                const sample=request('preview',{draft:candidate,width:panel.innerWidth}).main as Span[][];
+                const canvas=new Canvas(columns,rows),overflow=sample.length>panel.innerHeight;
+                const count=overflow&&panel.innerHeight>1?panel.innerHeight-1:panel.innerHeight;
+                for(let index=0;index<count;index++)canvas.content(panel,index,(sample[index]??[]).map(span=>({...span,reverse:false})));
+                const expected=new Capture(columns,rows);expected.feed(ansiFrame(canvas.frame()));
+                await pty.wait(raw=>{
+                    const actual=new Capture(columns,rows);actual.feed(raw.slice(raw.lastIndexOf('\x1b[H')));
+                    for(let y=panel.innerY;y<panel.innerY+count;y++)for(let x=panel.innerX;x<panel.innerX+panel.innerWidth;x++){
+                        const a=actual.buffer[y]![x]!,e=expected.buffer[y]![x]!;
+                        if(a.data!==e.data||a.bg!==e.bg)return false;
+                    }
+                    return true;
+                });
+                return expected.buffer;
             };
             const selectSetting = async (name: string) => {
                 await key('\x1b[H');
@@ -168,10 +191,12 @@ try {
                     await key('\x1b[H');
                     for (let index = 0; index < PRESETS.findIndex(preset => preset.id === id); index++) await key('\x1b[B');
                     await key('\r', t('quick.appearance', language));
-                    capture('scheme-' + id);
+                    const expected=await schemePreview(id);
+                    capture('scheme-' + id,columns,rows,expected);
                     await key('\x1b[F\r', t('quick.review', language));
                     await key('\x1b[B\x1b[B\r', t('profiles.field.name', language));
-                    capture('scheme-copy-' + id);
+                    await schemePreview(id);
+                    capture('scheme-copy-' + id,columns,rows,expected);
                     await key('\x07'); await key('\x07');
                 }
                 await key('\x10',t('quick.title',language));

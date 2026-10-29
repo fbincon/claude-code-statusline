@@ -188,15 +188,18 @@ export function contrast(foreground: string, background: string): number {
     const a = light(foreground), b = light(background);
     return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
-export function verifyColors(cells: Cell[][], columns: number, rows: number, foreground: string, background: string, colorSwatches = false): number {
+export function verifyColors(cells: Cell[][], columns: number, rows: number, foreground: string, background: string, colorSwatches = false, expectedPreview?: readonly (readonly Cell[])[]): number {
     const { preview, content } = dimensions(columns, rows);
     let samples = 0;
     for (let y = 0; y < rows; y++)
         for (let x = 0; x < columns; x++) {
             const cell = cells[y]![x]!;
             if (y >= preview.innerY && y < preview.innerY + preview.innerHeight && x >= preview.innerX && x < preview.innerX + preview.innerWidth) {
-                if (cell.bg !== 'default')
-                    throw new Error('Artificial preview background');
+                const expected = expectedPreview?.[y]?.[x];
+                if (cell.bg !== 'default' || expected && expected.bg !== 'default') {
+                    if (!expected) throw new Error('Artificial preview background');
+                    if (cell.bg !== expected.bg || cell.data !== expected.data) throw new Error('Preview background differs from production sample');
+                }
                 if (cell.data.trim())
                     samples++;
             }
