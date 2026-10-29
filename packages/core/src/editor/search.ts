@@ -1,6 +1,6 @@
 /** Local deterministic search. Original code-point positions survive NFKD. */
 import type { CatalogItem } from '../contracts/ui.js';
-import { LANGUAGES, t } from '../i18n/messages.js';
+import { LANGUAGES, messageOrigin, t } from '../i18n/messages.js';
 
 const SPACES = new Set([..." \t\n\r\v\f\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000"]);
 export interface Match { rank: number; positions: number[]; text: string; field: string }
@@ -78,11 +78,11 @@ export function fields(item: CatalogItem, customLabel: string | null = null): re
   const prefix = `items.${item.scope}.${item.id}.`;
   const result = [
     preparedField('id', item.id),
-    ...LANGUAGES.map(code => preparedField('label.' + code, code === 'en' ? item.label : t(prefix + 'label', code))),
+    ...LANGUAGES.map(code => preparedField('label.' + messageOrigin(prefix + 'label', code), code === 'en' ? item.label : t(prefix + 'label', code))),
     preparedField('custom_label', customLabel ?? ''),
-    ...LANGUAGES.map(code => preparedField('description.' + code, code === 'en' ? item.description : t(prefix + 'description', code))),
+    ...LANGUAGES.map(code => preparedField('description.' + messageOrigin(prefix + 'description', code), code === 'en' ? item.description : t(prefix + 'description', code))),
     preparedField('category.id', item.group),
-    ...LANGUAGES.map(code => preparedField('category.' + code, t('catalog.categories.' + item.group, code, {}, item.group))),
+    ...LANGUAGES.map(code => preparedField('category.' + messageOrigin('catalog.categories.' + item.group, code), t('catalog.categories.' + item.group, code, {}, item.group))),
   ];
   fieldCache.set(item, {customLabel, fields: result});
   return result;

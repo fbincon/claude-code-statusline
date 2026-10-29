@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "entries": {
+    "interface-language": {
+      "version": 1,
+      "description": "Language of CLI and editor controls, independent of statusline output.",
+      "en": "Interface language",
+      "zh-CN": "界面语言",
+      "zh-TW": "介面語言",
+      "zh-HK": "介面語言",
+      "ja": "インターフェース言語",
+      "ko": "인터페이스 언어"
+    },
+    "statusline-language": {
+      "version": 1,
+      "description": "Language of rendered main and subagent statusline text, saved with display settings.",
+      "en": "Statusline language",
+      "zh-CN": "状态栏语言",
+      "zh-TW": "狀態列語言",
+      "zh-HK": "狀態欄語言",
+      "ja": "ステータスライン言語",
+      "ko": "상태 표시줄 언어"
+    }
+  }
+}

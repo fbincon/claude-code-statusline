@@ -27,6 +27,7 @@ Preserve the Python archive; use its [separate reference procedure](archive/pyth
 - Maintain catalog and protocol definitions in `packages/core`, translations in `packages/core/resources/i18n`, and skill templates in `packages/cli/resources`.
 - Update canonical sources and regenerate owned copies; do not edit files marked as generated or regenerate the Python archive. Keep generated Native modules within the host import-file limit; split resources without dropping language or acceptance coverage.
 - Use the existing [resource generator](tools/generation/resources.ts) and [translation guide](docs/development/i18n.md), preserving message keys and named placeholders.
+- Language lifecycle inputs live in `tools/generation/i18n/data`, outside runtime resources. Keep translation-bound acceptance and historical contracts verifiable; use explicit language validation/acceptance operations instead of filling raw packs with English. Development requires complete A languages; every public release requires complete A/B languages through both complete-source and maintenance-source verification.
 
 After changing canonical resources:
 

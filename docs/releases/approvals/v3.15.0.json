@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.15.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-30",
+  "authority": "On 2026-10-30 the maintainer approved the complete I18N-02 implementation plan, including the sequential compatibility and feature PRs, protected merges, v3.15.0 publication on GitHub/npm OIDC/Gitee and test-machine verification. Preserve eight installation targets, 32 Node cases, sixteen fixed hosts and all 271 existing Native capacity cases, adding twelve language cases and installed 36-combination UI/output checks. Development fallback cannot precede compatible accepted-base verification and strict A/B release readiness. Every final PR/main/tag automated gate and language publication gate must pass. Only the six existing issue #96 gaps are accepted and remain unverified. No paid model calls are included. Restore test preferences after real-machine verification while retaining the product upgrade. After publication, keep the released version and file issues for new findings without a patch release.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

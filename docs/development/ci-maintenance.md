@@ -6,6 +6,10 @@
 
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
+## Language evidence compatibility
+
+I18N-02 separates product acceptance from language publication readiness. The accepted-base exporter includes the pure build-only language analyzer; complete and maintenance records bind a versioned language report to their original source and all declared inputs. Main may reuse safe B-language fallback acceptance, while both complete-source and maintenance-source public releases require complete A/B readiness. Missing activated reports cannot use legacy pre-v3.15 compatibility. Language metadata is build-owned and requires generation, consuming checks and actual package comparison; generated fallback membership is presentation data only when exact generation and origin rules agree. Original source/policy digest meanings and receipt identities stay unchanged. See [implementation](i18n-02-delivery.md) and [authoring](i18n.md#incremental-authoring).
+
 ## CI latency and stability work
 
 ### Candidate promotion across PR, main and tag

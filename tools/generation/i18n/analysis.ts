@@ -146,7 +146,7 @@ export function analyze(inputs: Inputs): Analysis {
         signatures[key] = signature(contracts[key]!);
     }
     const effective: Analysis['effective'] = {}, origins: Analysis['origins'] = {}, states: Analysis['states'] = {}, rows: LanguageReport['languages'] = {};
-    const baselinePacks = new Map<string, Record<string, string>>();
+    const baselinePacks = new Map<string, Record<string, string>>(), baselineDigests = new Map<string, string>();
     const baselinePack = (code: string) => {
         if (!baselinePacks.has(code)) baselinePacks.set(code, readJson(inputs, DATA_ROOT + 'baseline/locales/' + code + '.json'));
         return baselinePacks.get(code)!;
@@ -159,7 +159,8 @@ export function analyze(inputs: Inputs): Analysis {
             const baseline = baselinePack(code), source = baselinePack('en');
             for (const language of ['en', code]) {
                 const path = DATA_ROOT + 'baseline/locales/' + language + '.json';
-                assert(proof.files[path] === hash(inputs.get(path)!), 'Unbound baseline language snapshot');
+                if (!baselineDigests.has(path)) baselineDigests.set(path, hash(inputs.get(path)!));
+                assert(proof.files[path] === baselineDigests.get(path), 'Unbound baseline language snapshot');
             }
             assert(Object.hasOwn(baseline, key) && hash(baseline[key]!) === record.translation && source[key] === contract.english && proof.signatures[key] === record.source, 'Baseline does not cover this entry');
         } else {

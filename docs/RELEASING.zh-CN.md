@@ -3,6 +3,10 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## v3.15.0 增量语言工作流
+
+使用[版本决策](releases/approvals/v3.15.0.json)。稳定版和预览版均要求最终 PR／main／tag 门禁及 A/B 语言发布就绪。保留八安装目标、32 Node 情况、十六固定宿主及原 271 项容量案例；新增十二项语言案例（共 283 项）和安装包 36 种界面／输出组合回执。候选验收可以允许安全 B 回退，但公开 tag 提升、维护来源绑定、`release:verify --release`、`release:prepare --stable/--preview` 和 npm 准备必须拒绝。核验原始四交付文件、独立／源码重建、OIDC、六项公开下载和签名任务后，同步 Gitee 引用／附件，升级测试机并恢复偏好。不调用付费模型；发布后新发现只提 issue、不补发修补版。[实现与证据](development/i18n-02-delivery.zh-CN.md)。
+
 ## v3.14.0 自适应与连续背景
 
 使用[版本决策](releases/approvals/v3.14.0.json)。保留八个安装目标、32 项 Node、十六个固定宿主和原 243 项容量案例；新增 28 项实际宿主案例，合计 271 项。要求安装产物场景／语义拟合回执、双编辑器 PTY 和六语言实际入口标题。按现有证据规则通过最终 PR／main／tag，核验四项附件后以 OIDC 发布 npm，并验证原六项公开下载及固定 npm 签名任务。Gitee 使用显式引用同步并逐项核验附件摘要。本机升级后恢复偏好；发布后新发现只提 issue，不补发修补版。[实现与验收](development/adaptive-row-scenarios.zh-CN.md)。

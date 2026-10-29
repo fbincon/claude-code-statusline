@@ -82,7 +82,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 26); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, compareVersions(VERSION, '3.15.0') >= 0 ? 27 : 26); assert(Object.values(report.checks).every(value => value === true));
             assert(report.source_operations&&typeof report.source_operations==='object');
             for(const key of ['separate_approval','interval_300','ttl_independent','non_git','manual_consumer_preserved','last_success_after_failure','execution_summary','bindings_reused','drafts_protected','reviewed_cleanup','settings_unchanged'])assert.equal(report.source_operations[key],true);assert.equal(report.source_operations.model_calls,0);
             assert.equal(report.checks.appearance_scenarios,true);
@@ -108,6 +108,10 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 }
             }
             assert.equal(report.checks.cost_rates, true); assert.equal(report.cost_rate_cases, 4);
+            if (compareVersions(VERSION, '3.15.0') >= 0) {
+                assert.equal(report.checks.i18n_workflow, true);
+                assert.deepEqual(report.i18n_workflow, { languages: LANGUAGES, combinations: 36, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 });
+            }
             assert.equal(report.checks.automatic_refresh, true); assert.equal(report.automatic_refresh_cases, 4);
             assert.equal(report.checks.groups, true); assert.equal(report.group_cases, 4);
             assert.equal(report.checks.indicators, true); assert.equal(report.indicator_cases, 3);

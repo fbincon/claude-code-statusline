@@ -7,11 +7,12 @@ export function resolveLanguage(value: unknown): Language | null {
   const code = typeof value === "string" && Object.hasOwn(LANGUAGE_ALIASES, value) ? LANGUAGE_ALIASES[value] : value;
   return typeof code === "string" && (LANGUAGES as readonly string[]).includes(code) ? code as Language : null;
 }
-import { MESSAGES as locale0 } from './locales/en.ts';
-import { MESSAGES as locale1 } from './locales/zh-CN.ts';
-import { MESSAGES as locale2 } from './locales/zh-TW.ts';
-import { MESSAGES as locale3 } from './locales/zh-HK.ts';
-import { MESSAGES as locale4 } from './locales/ja.ts';
-import { MESSAGES as locale5 } from './locales/ko.ts';
+import { MESSAGES as locale0, FALLBACK_KEYS as fallback0 } from './locales/en.ts';
+import { MESSAGES as locale1, FALLBACK_KEYS as fallback1 } from './locales/zh-CN.ts';
+import { MESSAGES as locale2, FALLBACK_KEYS as fallback2 } from './locales/zh-TW.ts';
+import { MESSAGES as locale3, FALLBACK_KEYS as fallback3 } from './locales/zh-HK.ts';
+import { MESSAGES as locale4, FALLBACK_KEYS as fallback4 } from './locales/ja.ts';
+import { MESSAGES as locale5, FALLBACK_KEYS as fallback5 } from './locales/ko.ts';
 export const LOCALES = {"en":locale0,"zh-CN":locale1,"zh-TW":locale2,"zh-HK":locale3,"ja":locale4,"ko":locale5} as const;
 export type MessageKey = keyof typeof LOCALES.en;
+export const FALLBACK_KEYS = {"en":fallback0,"zh-CN":fallback1,"zh-TW":fallback2,"zh-HK":fallback3,"ja":fallback4,"ko":fallback5} as const;

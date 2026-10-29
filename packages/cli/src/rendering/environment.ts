@@ -19,7 +19,7 @@ export interface EnvironmentOptions {
     observations?: Partial<RenderEnvironment>;
 }
 export async function presentation(language: string): Promise<Presentation> {
-    // Generation rejects partial shipped packs; a known pack needs no English import.
+    // Generation supplies complete effective packs, including safe development fallback.
     const selected = resolveLanguage(language) ?? 'en';
     const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + selected);
     return new Presentation(selected, MESSAGES);

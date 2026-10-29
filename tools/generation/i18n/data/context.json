@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "entries": {
+    "settings.ui-language": {
+      "version": 1,
+      "description": "Editor interface language is persisted immediately and independently of the display draft; cancelling the draft keeps this preference.",
+      "terms": [
+        "interface-language"
+      ]
+    },
+    "native.settings.ui-language": {
+      "version": 1,
+      "description": "Native interface language is persisted immediately; the host retains the display draft and selection.",
+      "terms": [
+        "interface-language"
+      ]
+    },
+    "fields.global.statusline_language.label": {
+      "version": 1,
+      "description": "Main and subagent output language belongs to the display draft and changes persistent output only on display Save; Cancel preserves the saved setting.",
+      "terms": [
+        "statusline-language"
+      ]
+    }
+  }
+}

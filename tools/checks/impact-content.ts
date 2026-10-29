@@ -77,6 +77,34 @@ export function runtimeManifest(bytes: Buffer): string {
 export const localePath = (path: string) => /^packages\/core\/resources\/i18n\/locales\/[^/]+\.json$/u.test(path);
 export const generatedLocalePath = (path: string) => /^packages\/core\/src\/i18n\/(?:generated-locales|statusline\/[^/]+)\.ts$/u.test(path) ||
     /^mods\/statusline-native\/lib\/i18n\/(?:generated-locales|locales\/[^/]+)\.ts$/u.test(path);
+/** Only the generated literal fallback membership is presentation; imports and executable origin rules stay bound. */
+export function languagePresentation(text: string): string {
+    const source = ts.createSourceFile('locale.ts', text, ts.ScriptTarget.ESNext, true);
+    const transformed = ts.transform(source, [context => root => {
+        const data = (node: ts.Expression): ts.Expression | null => {
+            if (ts.isAsExpression(node)) { const value = data(node.expression); return value && context.factory.updateAsExpression(node, value, node.type); }
+            if (ts.isArrayLiteralExpression(node) && node.elements.every(ts.isStringLiteral)) return context.factory.createArrayLiteralExpression();
+            if (ts.isObjectLiteralExpression(node) && node.properties.every(property => ts.isPropertyAssignment(property) && ts.isStringLiteral(property.name))) {
+                const properties: ts.PropertyAssignment[] = [];
+                for (const property of node.properties as ts.NodeArray<ts.PropertyAssignment>) {
+                    const value = data(property.initializer); if (!value) return null;
+                    properties.push(context.factory.updatePropertyAssignment(property, property.name, value));
+                }
+                return context.factory.updateObjectLiteralExpression(node, properties);
+            }
+            return null;
+        };
+        const visit: ts.Visitor = node => {
+            if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'FALLBACK_KEYS' && node.initializer) {
+                const value = data(node.initializer);
+                if (value) return context.factory.updateVariableDeclaration(node, node.name, node.exclamationToken, node.type, value);
+            }
+            return ts.visitEachChild(node, visit, context);
+        };
+        return ts.visitNode(root, visit) as ts.SourceFile;
+    }]);
+    try { return ts.createPrinter().printFile(transformed.transformed[0]!); } finally { transformed.dispose(); }
+}
 export function messageShape(bytes: Buffer): unknown {
     const value = JSON.parse(bytes.toString('utf8'));
     assert(value && typeof value === 'object' && !Array.isArray(value));

@@ -8,7 +8,7 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 export function capacityView(value: typeof CAPACITY_CASES[number]): View {
   const data = Object.fromEntries(Object.entries(value.editor).map(([key, index]) => [key, clone(CAPACITY_VALUES[index])]));
   const editor = Object.assign(new Editor(clone(CAPACITY_DESCRIPTION) as DescribeResult, data.baseline as ReadResult), data);
-  return { editor, language: LANGUAGES.find(language=>value.name.startsWith('appearance-')&&value.name.endsWith('-'+language)) ?? 'zh-CN', input: value.search ? { kind: 'search', scope: 'main', original: '', selected: editor.selected.main } : null,
+  return { editor, language: LANGUAGES.find(language=>(value.name.startsWith('appearance-')||value.name.startsWith('i18n-'))&&value.name.endsWith('-'+language)) ?? 'zh-CN', input: value.search ? { kind: 'search', scope: 'main', original: '', selected: editor.selected.main } : null,
     preview: clone(CAPACITY_VALUES[value.preview]) as PreviewResult, previewBackground: 'dark',
     preferences: preferences([
       { key: 'theme', label: 'Theme', kind: 'choice', value: 'dark', options: ['dark','light','dark-daltonized','light-daltonized','dark-ansi','light-ansi'], provider: { plugin: 'engine', tier: 'core' }, isLocked: false },

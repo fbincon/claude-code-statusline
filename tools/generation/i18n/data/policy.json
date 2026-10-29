@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "signature_version": 1,
+  "validation_version": 1,
+  "languages": {
+    "en": "A",
+    "zh-CN": "A",
+    "zh-TW": "B",
+    "zh-HK": "B",
+    "ja": "B",
+    "ko": "B"
+  }
+}

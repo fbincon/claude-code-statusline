@@ -12,7 +12,7 @@ Claude Code Statusline presents tasks, subagents, projects and usage clearly, wi
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
-[I18N-02](development-plan.md#i18n-02) is the next formal work package, ahead of another feature cycle with substantial new copy. The [multilingual workflow design](i18n-workflow.md) prioritizes English/Simplified Chinese during development and preserves complete official support for all six languages at release. No new language, version or date is assigned. Current complete-pack requirements remain effective until implementation; I18N-01 remains delivered.
+[I18N-02](development-plan.md#i18n-02) is in progress for v3.15.0. The [implementation record](i18n-02-delivery.md) tracks accepted compatibility preparation, incremental maintenance and strict six-language release readiness. No new language is selected; I18N-01 remains delivered.
 
 **Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
 
@@ -29,7 +29,7 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Display composition | Six existing presets, eight complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, six Powerline controls, optional/adaptive percentage bars, linked groups, selective import, static foreground/Powerline-background gradients, continuous final-row backgrounds and explicit main-row alignment | Extend themes, gradients and reuse while preserving existing display choices |
 | Appearance review | Eight themes, eleven gradient presets, visible color editing, fourteen sample scenarios, session-only widths and explicit file diagnosis using the unsaved draft | Extend reuse without changing source authorization |
 | Tasks and projects | Task timing, separate subagent rows, both-editor read-only task browsing, named profiles and project-root bindings | Preserve evidence attribution while extending configuration reuse |
-| Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | I18N-02 first establishes incremental maintenance with strict six-language release readiness; current complete-pack rules remain until implemented |
+| Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | I18N-02 provides incremental maintenance, A-development completeness and strict six-language public-release readiness |
 | Display catalog | 65 main metrics and 15 subagent metrics; 67/17 types including text and spacers | Preserve IDs and metric definitions when adding items |
 | Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI and commands; readable state, check pagination, reference-protected bindings and separately reviewed active-session refresh; optional OSC 8 links | Keep authorization separate from display schemes; clear local bindings only in imported sections |
