@@ -89,8 +89,10 @@ export function languageInputPath(path: string): boolean {
 }
 export function requiresLanguageEvidence(inputs: Inputs): boolean {
     if (inputs.has(POLICY_PATH)) return true;
+    assert(![...inputs.keys()].some(path => path.startsWith(DATA_ROOT)), 'Missing activated language policy');
     const release = inputs.get('packages/core/src/release.ts');
     const version = release && new TextDecoder().decode(release).match(/export const VERSION = ['"](\d+)\.(\d+)\./u);
+    assert(!release || version, 'Cannot verify legacy language source identity');
     assert(!version || Number(version[1]) < 3 || Number(version[1]) === 3 && Number(version[2]) < 15, 'Missing activated language policy');
     return false;
 }
