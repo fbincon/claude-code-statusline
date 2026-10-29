@@ -287,7 +287,7 @@ Entries without an implementation record remain proposed work; current package s
 
 **Goal and scope.** Add an explicit adaptive representation for narrow rows after FIX-02. Fit in this order: shorten an eligible label, shorten the bar, use numeric presentation, then apply existing component-priority omission. Preserve the percentage and used/remaining meaning in every retained representation.
 
-**Ownership and interfaces.** Core fitting works from structured indicator content; both editors and CLI expose the same opt-in choice. Retain existing explicit numeric/bar behavior and custom labels unless the adaptive policy permits their reviewed shortening. Declare compatibility for the new option.
+**Ownership and interfaces.** Core fitting works from structured indicator content; both editors and CLI expose the same opt-in choice. Retain existing explicit numeric/bar behavior. Custom labels and icons always remain whole. Automatic layout retains ordinary wrapping and only shrinks a component or group wider than a complete row. Display schema 17 and editor protocol 30 expose the new option.
 
 **Slices.** Define semantic fallbacks → integrate fitting with shared layout → expose and explain the adaptive choice.
 
