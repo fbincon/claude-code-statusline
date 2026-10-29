@@ -149,6 +149,7 @@ test('new display scenarios preview all six languages and preserve configuration
         const draft={display,host:{...DEFAULT_HOST}};
         for(const scenario of ['normal','warning','critical','missing','many-agents'] as const) for(const width of [40,80,120]) {
             const result=adapter(draft,width,undefined,scenario);assert.equal(result.sample,true);assert.equal(result.scenario,scenario);
+            if(name==='narrow-terminal'&&language==='en'&&scenario==='normal'&&width===40){const text=result.main.flat().map(s=>s.text).join(' ');assert(text.includes('src'));assert(!text.includes('Directory…'));}
             assert(result.main.every(row=>displayWidth(row.map(s=>s.text).join(''))<=width));
             assert.equal(f.call('preview',{draft,width,scenario}).status,0);
         }

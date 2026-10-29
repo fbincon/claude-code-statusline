@@ -247,7 +247,7 @@
           "priority": 87,
           "max_width": null,
           "formatting": {
-            "labels": "short"
+            "labels": "legacy"
           },
           "foreground": null,
           "background": null,
@@ -266,7 +266,7 @@
           "priority": 86,
           "max_width": null,
           "formatting": {
-            "labels": "short"
+            "labels": "legacy"
           },
           "foreground": null,
           "background": null,
@@ -285,7 +285,7 @@
           "priority": 85,
           "max_width": null,
           "formatting": {
-            "labels": "short"
+            "labels": "legacy"
           },
           "foreground": null,
           "background": null,

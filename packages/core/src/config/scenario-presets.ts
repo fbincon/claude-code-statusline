@@ -23,7 +23,7 @@ export function scenarioPreset(config: DisplayDraft, name: keyof typeof SCENARIO
     options: { ...defaultItem(), priority: type_id === 'task-timer' ? 100 : type_id.startsWith('context-') || type_id === 'five-hour-limit' ? 99 : 90 - index,
       max_width: type_id === 'current-dir' ? (narrow ? 12 : 20) : type_id === 'git' ? 24 : null,
       ...(supportsIndicator('main', type_id) ? { presentation: 'adaptive' as const, bar_width: narrow ? 4 : 8 } : {}),
-      formatting: Object.fromEntries(['five-hour-limit', 'weekly-limit', 'five-hour-reset', 'weekly-reset', 'spend-limit', 'session-cost', 'session-cost-rate', 'run-state', 'task-progress', 'active-agents'].includes(type_id) ? [['labels', 'short']] : []),
+      formatting: Object.fromEntries(['five-hour-limit', 'weekly-limit', 'five-hour-reset', 'weekly-reset', 'spend-limit', 'session-cost', 'session-cost-rate', 'run-state', 'task-progress', 'active-agents'].includes(type_id) ? [['labels', 'legacy']] : []),
     },
   }));
   const subagents = defaultSubagents(); subagents.enabled = config.subagents.enabled;
@@ -43,6 +43,6 @@ export function scenarioPreset(config: DisplayDraft, name: keyof typeof SCENARIO
         [{ kind: 'instance' as const, id: 'five-hour-limit' }, { kind: 'instance' as const, id: 'five-hour-reset' }],
         [{ kind: 'instance' as const, id: 'weekly-limit' }, { kind: 'instance' as const, id: 'weekly-reset' }],
       ] }] } : {}) },
-    formatting: { ...config.formatting, model_name: 'short', number_format: 'compact', labels: 'short', icons: 'ascii', allowance: 'remaining', reset_format: 'countdown', reset_timezone: 'local', thresholds: { enabled: true, warning: 70, critical: 90 } },
+    formatting: { ...config.formatting, model_name: 'short', number_format: 'compact', labels: narrow ? 'off' : 'short', icons: 'ascii', allowance: 'remaining', reset_format: 'countdown', reset_timezone: 'local', thresholds: { enabled: true, warning: 70, critical: 90 } },
   });
 }

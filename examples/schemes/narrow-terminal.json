@@ -103,7 +103,7 @@
     "formatting": {
       "model_name": "short",
       "number_format": "compact",
-      "labels": "short",
+      "labels": "off",
       "icons": "ascii",
       "allowance": "remaining",
       "reset_format": "countdown",

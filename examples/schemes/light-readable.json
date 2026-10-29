@@ -269,7 +269,7 @@
           "priority": 85,
           "max_width": null,
           "formatting": {
-            "labels": "short"
+            "labels": "legacy"
           },
           "foreground": null,
           "background": null,
