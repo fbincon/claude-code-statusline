@@ -1,19 +1,20 @@
 /** Maintenance evidence is distinct from the immutable complete product receipts. */
 import assert from 'node:assert/strict';
 import { artifactIdentity, artifactJson, listRunArtifacts, newestArtifact, requireRun, type ArtifactIdentity } from './ci-evidence.ts';
-import { latestRun, runsFor, requireGate } from './ci-sources.ts';
+import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { assertPlan, createImpactPlan, type ImpactPlan } from './impact-plan.ts';
 import { canonical, git, hash, productInputs } from './impact-content.ts';
 import type { ScopedReceipt } from './impact-runner.ts';
 
 export interface MaintenanceReference { run_id: number; commit: string; envelope: ArtifactIdentity; sha256: string }
+export interface ExecutionJob { id: number; name: string; attempt: number; started_at: string; completed_at: string }
 export interface MaintenanceRecord {
     schema_version: 1; kind: 'maintenance'; repository: string; commit: string; tree: string;
     run_id: number; attempt: number; event: string; branch: string; created_at: string; expires_at: string;
     plan: ImpactPlan; plan_sha256: string; product_base: string; product_inputs_sha256: string;
     pr: { number: number; head: string; base: string; draft: boolean } | null;
-    receipts: { artifact: ArtifactIdentity; sha256: string; receipt: ScopedReceipt }[];
+    receipts: { artifact: ArtifactIdentity; sha256: string; receipt: ScopedReceipt; job: ExecutionJob }[];
     reused?: { source: MaintenanceReference; integration: { commit: string; base: string; head: string; pr: number; tree: string }; verifier_commit: string; verifier_sha256: string };
 }
 export function validateScopedReceipt(receipt: ScopedReceipt, plan: ImpactPlan, taskId: string, runId: number): void {
@@ -47,13 +48,15 @@ export function validateMaintenance(record: MaintenanceRecord, run: any, now = D
         for (const item of record.receipts) {
             artifactIdentity({ ...item.artifact, expired: false }, now); assert.equal(hash(canonical(item.receipt)), item.sha256);
             validateScopedReceipt(item.receipt, record.plan, item.receipt.task.id, record.run_id);
+            assert(Number.isSafeInteger(item.job.id) && item.job.id > 0); assert.equal(item.job.name, 'Scoped / ' + item.receipt.task.id);
+            assert.equal(item.job.attempt, Number(item.receipt.execution.attempt));
         }
     }
     if (record.event === 'pull_request') {
         assert(record.pr && !record.pr.draft); assert.equal(record.pr.head, record.commit); assert.equal(record.pr.base, record.plan.base);
     } else assert.equal(record.pr, null);
 }
-async function jobsFor(runId: number, attempt: number): Promise<any[]> {
+export async function jobsFor(runId: number, attempt: number): Promise<any[]> {
     const jobs: any[] = [];
     for (let page = 1; page <= 20; page++) {
         const result = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}/attempts/${attempt}/jobs?per_page=100&page=${page}`);
@@ -61,14 +64,19 @@ async function jobsFor(runId: number, attempt: number): Promise<any[]> {
     }
     throw new Error('Scoped job pagination exceeded');
 }
+export function executionJob(jobs: any[], name: string, attempt: number): ExecutionJob {
+    const matches = jobs.filter(job => job.name === name); assert.equal(matches.length, 1, 'Missing or ambiguous execution: ' + name);
+    const job = matches[0]; assert.equal(job.conclusion, 'success', 'Original execution did not pass: ' + name);
+    assert(Number.isSafeInteger(job.id) && job.id > 0 && Date.parse(job.started_at) <= Date.parse(job.completed_at));
+    return { id: job.id, name, attempt, started_at: job.started_at, completed_at: job.completed_at };
+}
 export async function verifyScopedJobs(record: MaintenanceRecord): Promise<void> {
     for (const attempt of new Set(record.receipts.map(item => Number(item.receipt.execution.attempt)))) {
         const jobs = await jobsFor(record.run_id, attempt);
         for (const item of record.receipts.filter(row => Number(row.receipt.execution.attempt) === attempt)) {
-            const selected = jobs.filter(job => job.name === 'Scoped / ' + item.receipt.task.id);
-            assert.equal(selected.length, 1); assert.equal(selected[0].conclusion, 'success');
-            assert(Date.parse(selected[0].started_at) <= Date.parse(item.receipt.started_at) + 1000);
-            assert(Date.parse(selected[0].completed_at) + 1000 >= Date.parse(item.receipt.completed_at));
+            const selected = executionJob(jobs, 'Scoped / ' + item.receipt.task.id, attempt); assert.deepEqual(selected, item.job);
+            assert(Date.parse(selected.started_at) <= Date.parse(item.receipt.started_at) + 1000);
+            assert(Date.parse(selected.completed_at) + 1000 >= Date.parse(item.receipt.completed_at));
         }
     }
 }
@@ -91,6 +99,7 @@ export async function maintenanceSource(run: any, visited = new Set<number>()): 
         }
         await verifyScopedJobs(record);
     }
+    await requireGate(run);
     return { record, reference: { run_id: run.id, commit: record.commit, envelope: artifactIdentity(artifact), sha256: hash(canonical(record)) } };
 }
 export async function verifyMaintenanceMerge(relation: NonNullable<MaintenanceRecord['reused']>['integration']): Promise<any> {
@@ -117,7 +126,11 @@ export async function selectMaintenanceMain(plan: ImpactPlan, before: string): P
     await requireGate(run);
     if (parts[1] !== pr.base.sha || parts[2] !== pr.head.sha || git('rev-parse', pr.head.sha + '^{tree}') !== plan.tree) return undefined;
     const artifacts = await listRunArtifacts(run.id);
-    if (!artifacts.some(item => item.name === 'ci-maintenance')) return undefined; // Complete compatibility PR: run this main's scoped checks, never invent maintenance evidence.
+    if (maintenanceSourceKind(artifacts) === 'complete') {
+        // Only a genuinely verified complete compatibility PR can use this
+        // transition. Missing supported maintenance evidence must stay blocking.
+        await completeSource(run); return undefined;
+    }
     const source = await maintenanceSource(run);
     if (source.record.plan.base !== parts[1]) return undefined;
     const baseRun = latestRun(await runsFor(parts[1]!), parts[1]!, 'main'); assert(baseRun); await requireGate(baseRun);
@@ -126,14 +139,22 @@ export async function selectMaintenanceMain(plan: ImpactPlan, before: string): P
     return { source: source.reference, integration, verifier_commit: parts[1]!, verifier_sha256: '' };
 }
 export async function collectScopedReceipts(plan: ImpactPlan, runId: number): Promise<MaintenanceRecord['receipts']> {
-    const artifacts = await listRunArtifacts(runId), receipts: MaintenanceRecord['receipts'] = [];
+    const artifacts = await listRunArtifacts(runId), receipts: MaintenanceRecord['receipts'] = [], attempts = new Map<number, any[]>();
     for (const task of plan.tasks) {
         const artifact = artifactIdentity(newestArtifact(artifacts, 'ci-scoped-' + task.id));
         const receipt = await artifactJson({ ...artifact, expired: false }, 'receipt.json') as ScopedReceipt;
         validateScopedReceipt(receipt, plan, task.id, runId);
-        receipts.push({ artifact, receipt, sha256: hash(canonical(receipt)) });
+        const attempt = Number(receipt.execution.attempt);
+        if (!attempts.has(attempt)) attempts.set(attempt, await jobsFor(runId, attempt));
+        receipts.push({ artifact, receipt, sha256: hash(canonical(receipt)), job: executionJob(attempts.get(attempt)!, 'Scoped / ' + task.id, attempt) });
     }
     return receipts;
+}
+export function maintenanceSourceKind(artifacts: { name: string }[]): 'complete' | 'maintenance' {
+    if (artifacts.some(item => item.name === 'ci-maintenance')) return 'maintenance';
+    assert(!artifacts.some(item => item.name === 'ci-impact-plan'), 'Missing supported maintenance evidence');
+    assert(artifacts.some(item => item.name === 'ts06-acceptance'), 'Missing applicable PR evidence');
+    return 'complete';
 }
 export async function verifyMaintenanceWithBase(reused: NonNullable<MaintenanceRecord['reused']>): Promise<void> {
     const pr = await verifyMaintenanceMerge(reused.integration);

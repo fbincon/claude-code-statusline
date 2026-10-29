@@ -8,7 +8,7 @@ import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { createImpactPlan, tasksFor, assertPlan } from '../impact-plan.js';
 import { emitted, productInputs, runtimeLock, canonical, hash } from '../impact-content.js';
 import { checkAssets, pngDimensions } from '../impact-assets.js';
-import { validateScopedReceipt } from '../impact-evidence.js';
+import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
 import { assessImpactNeeds } from '../impact-workflow.js';
 import { scopedTests } from '../impact-runner.js';
 
@@ -76,6 +76,15 @@ test('runtime closure includes dependencies mislabeled dev and ignores unrelated
     assert.equal(runtimeLock(Buffer.from(JSON.stringify(lock))), before);
     lock.packages['node_modules/runtime'].integrity = 'sha512-changed'; assert.notEqual(runtimeLock(Buffer.from(JSON.stringify(lock))), before);
     delete lock.packages['node_modules/runtime']; assert.throws(() => runtimeLock(Buffer.from(JSON.stringify(lock))));
+});
+test('runtime peers stay in the closure and missing maintenance evidence never falls back to fresh main checks', () => {
+    const lock: any = { lockfileVersion: 3, packages: Object.fromEntries(['core', 'platform', 'cli', 'tui'].map(name => ['packages/' + name, { version: '0.0.0', peerDependencies: { peer: '*' } }])) };
+    lock.packages['node_modules/peer'] = { version: '1.0.0', integrity: 'sha512-one', dev: true };
+    const first = runtimeLock(Buffer.from(JSON.stringify(lock))); lock.packages['node_modules/peer'].integrity = 'sha512-two';
+    assert.notEqual(runtimeLock(Buffer.from(JSON.stringify(lock))), first);
+    assert.equal(maintenanceSourceKind([{ name: 'ts06-acceptance' }]), 'complete');
+    assert.equal(maintenanceSourceKind([{ name: 'ci-maintenance' }]), 'maintenance');
+    assert.throws(() => maintenanceSourceKind([])); assert.throws(() => maintenanceSourceKind([{ name: 'ci-impact-plan' }, { name: 'ts06-acceptance' }]));
 });
 test('product identity excludes maintenance source but binds code, instruction resources and runtime dependencies', t => {
     const { git, write, commit } = repository(t); write('packages/core/src/example.ts', 'export const value = 1;'); commit();

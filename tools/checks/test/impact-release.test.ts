@@ -21,8 +21,9 @@ test('new release identity binds original product acceptance and every current d
         delivery: Object.fromEntries(['SHA256SUMS', 'build-manifest.json', 'fbincon-claude-code-statusline-3.13.1.tgz', 'claude-code-statusline-3.13.1-source.tar.gz'].map(name => [name, hash])),
         package_artifact: old.record.artifacts[0]!, comparison: { schema_version: 1, kind: 'package-comparison', base: old.record.source_commit, head: commit, base_sha256: hash, head_sha256: hash, equivalent: true, changed_members: [] },
         smokes: SMOKE_TARGETS.map(target => ({ artifact: old.record.artifacts[0]!, receipt: { status: 'pass', kind: 'integration-smoke', source_commit: commit, integration_commit: commit, target,
-            tarball_sha256: hash, execution: { run_id: 33, attempt: 1 }, model_calls: 0, lifecycle_scripts: false,
+            tarball_sha256: hash, execution: { run_id: 33, attempt: 1, job: 'release-smoke' }, model_calls: 0, lifecycle_scripts: false,
             checks: ['offline-empty-cache-install', 'version', 'install', 'doctor', 'render', 'configuration-read-write', 'uninstall-preserves-unowned-settings'] } })),
+        executions: ['Build current maintenance release source', ...SMOKE_TARGETS.map(target => 'Maintenance release smoke / ' + target)].map((name, index) => ({ id: 300 + index, name, attempt: 1, started_at: '2026-01-01T00:00:00Z', completed_at: '2026-01-01T00:01:00Z' })),
         approval: {}, created_at: new Date().toISOString(), executed: ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval'], reused: old.record.coverage };
     const current = { ...run, id: 33, run_attempt: 1, head_sha: commit, head_branch: tag };
     validateReleaseBinding(binding, selection, current);
@@ -30,6 +31,7 @@ test('new release identity binds original product acceptance and every current d
         (value: ReleaseBinding) => value.comparison.equivalent = false, (value: ReleaseBinding) => value.smokes.pop(),
         (value: ReleaseBinding) => value.smokes[0]!.receipt.source_commit = old.record.source_commit,
         (value: ReleaseBinding) => value.delivery['fbincon-claude-code-statusline-3.13.1.tgz'] = 'f'.repeat(64),
+        (value: ReleaseBinding) => value.executions[0]!.attempt = 2,
         (value: ReleaseBinding) => value.executed.pop()]) {
         const altered = structuredClone(binding); mutate(altered); assert.throws(() => validateReleaseBinding(altered, selection, current));
     }

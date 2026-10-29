@@ -70,7 +70,7 @@ export function runtimeLock(bytes: Buffer): string {
         if (entry.link) { assert(typeof entry.resolved === 'string'); visit(entry.resolved); result[path] = entry; return; }
         const { dev: _dev, devOptional: _devOptional, ...identity } = entry;
         result[path] = identity;
-        for (const name of Object.keys({ ...entry.dependencies, ...entry.optionalDependencies })) {
+        for (const name of Object.keys({ ...entry.dependencies, ...entry.optionalDependencies, ...entry.peerDependencies })) {
             let parent = path, found: string | undefined;
             while (true) {
                 const candidate = (parent ? parent + '/' : '') + 'node_modules/' + name;
@@ -78,6 +78,7 @@ export function runtimeLock(bytes: Buffer): string {
                 if (!parent) break;
                 parent = parent.includes('/node_modules/') ? parent.slice(0, parent.lastIndexOf('/node_modules/')) : '';
             }
+            if (!found && entry.peerDependenciesMeta?.[name]?.optional === true && !entry.dependencies?.[name]) continue;
             assert(found, 'Unresolved runtime dependency: ' + name); visit(found);
         }
     }

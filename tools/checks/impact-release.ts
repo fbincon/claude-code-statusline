@@ -8,7 +8,7 @@ import { canonical, git, hash, productInputs } from './impact-content.ts';
 import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { artifactIdentity, artifactJson, listRunArtifacts, newestArtifact, requireRun, verifyRecordedFiles, type ArtifactIdentity, type CompleteEvidence } from './ci-evidence.ts';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
-import { maintenanceSource, type MaintenanceReference } from './impact-evidence.ts';
+import { maintenanceSource, jobsFor, executionJob, type ExecutionJob, type MaintenanceReference } from './impact-evidence.ts';
 import { integratedCandidate, SMOKE_TARGETS } from './ci-integration.ts';
 import { verifyTagIdentity } from './ci-tag.ts';
 import { withImpactVerifier } from './impact-trust.ts';
@@ -22,7 +22,7 @@ export interface ReleaseBinding {
     schema_version: 1; kind: 'maintenance-release'; status: 'pass'; repository: string; selection: MaintenanceReleaseSelection;
     run_id: number; attempt: number; delivery: Record<string, string>; package_artifact: ArtifactIdentity; comparison: PackageComparison;
     smokes: { artifact: ArtifactIdentity; receipt: any }[]; approval: unknown; created_at: string;
-    executed: string[]; reused: CompleteEvidence['coverage'];
+    executions: ExecutionJob[]; executed: string[]; reused: CompleteEvidence['coverage'];
 }
 async function mainForSource(commit: string): Promise<any | undefined> {
     const direct = latestRun(await runsFor(commit), commit, 'main'); if (direct) return direct;
@@ -81,12 +81,18 @@ export function validateReleaseBinding(binding: ReleaseBinding, selection: Maint
     const version = selection.tag.slice(1); assert.equal(binding.comparison.head_sha256, binding.delivery[`fbincon-claude-code-statusline-${version}.tgz`]);
     assert.deepEqual(Object.keys(binding.delivery).sort(), ['SHA256SUMS', 'build-manifest.json', `fbincon-claude-code-statusline-${version}.tgz`, `claude-code-statusline-${version}-source.tar.gz`].sort());
     assert.deepEqual(binding.reused, selection.product.record.coverage);
+    assert.equal(binding.comparison.schema_version, 1); assert.equal(binding.comparison.kind, 'package-comparison');
     assert.deepEqual(binding.executed, ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval']);
+    assert.deepEqual(binding.executions.map(job => job.name).sort(), ['Build current maintenance release source', ...SMOKE_TARGETS.map(target => 'Maintenance release smoke / ' + target)].sort());
+    assert.equal(new Set(binding.executions.map(job => job.id)).size, 4);
+    for (const job of binding.executions) assert(Number.isSafeInteger(job.id) && job.id > 0 && job.attempt > 0 && job.attempt <= run.run_attempt && Date.parse(job.started_at) <= Date.parse(job.completed_at));
     assert.deepEqual(binding.smokes.map(item => item.receipt.target).sort(), [...SMOKE_TARGETS].sort());
     for (const { receipt } of binding.smokes) {
         assert.equal(receipt.status, 'pass'); assert.equal(receipt.kind, 'integration-smoke'); assert.equal(receipt.source_commit, selection.commit);
         assert.equal(receipt.integration_commit, selection.commit); assert.equal(receipt.tarball_sha256, binding.comparison.head_sha256);
         assert.equal(Number(receipt.execution.run_id), run.id); assert.equal(receipt.model_calls, 0); assert.equal(receipt.lifecycle_scripts, false);
+        assert.equal(receipt.execution.job, 'release-smoke');
+        assert.equal(binding.executions.find(job => job.name === 'Maintenance release smoke / ' + receipt.target)!.attempt, Number(receipt.execution.attempt));
         assert.deepEqual(receipt.checks, ['offline-empty-cache-install', 'version', 'install', 'doctor', 'render', 'configuration-read-write', 'uninstall-preserves-unowned-settings']);
     }
 }
@@ -103,16 +109,20 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
         assert.deepEqual(verifier.comparePackages(comparison.base, comparison.head, baseline, join(delivery, filename)), comparison);
     });
     const buildProof = JSON.parse(fs.readFileSync(join(delivery, 'release-build-proof.json'), 'utf8'));
-    assert.deepEqual(buildProof, { schema_version: 1, commit: selection.commit, tarball_sha256: checked.sha256, source_rebuild_sha256: checked.sha256 });
+    const { execution: buildExecution, ...buildIdentity } = buildProof;
+    assert.deepEqual(buildIdentity, { schema_version: 1, commit: selection.commit, tarball_sha256: checked.sha256, source_rebuild_sha256: checked.sha256 });
     const runId = Number(process.env.GITHUB_RUN_ID), artifacts = await listRunArtifacts(runId), smokes: ReleaseBinding['smokes'] = [];
+    assert.equal(buildExecution.run_id, runId); assert.equal(buildExecution.job, 'release-build'); assert(Number.isSafeInteger(buildExecution.attempt) && buildExecution.attempt > 0);
     for (const target of SMOKE_TARGETS) {
         const artifact = artifactIdentity(newestArtifact(artifacts, 'ci-release-smoke-' + target));
         smokes.push({ artifact, receipt: await artifactJson({ ...artifact, expired: false }, 'smoke.json') });
     }
+    const executions: ExecutionJob[] = [executionJob(await jobsFor(runId, buildExecution.attempt), 'Build current maintenance release source', buildExecution.attempt)];
+    for (const { receipt } of smokes) executions.push(executionJob(await jobsFor(runId, Number(receipt.execution.attempt)), 'Maintenance release smoke / ' + receipt.target, Number(receipt.execution.attempt)));
     const binding: ReleaseBinding = { schema_version: 1, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), package_artifact: artifactIdentity(newestArtifact(artifacts, 'ci-release-package')),
         delivery: Object.fromEntries([filename, `claude-code-statusline-${version}-source.tar.gz`, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, hash(fs.readFileSync(join(delivery, name)))])),
-        comparison, smokes, approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
+        comparison, smokes, executions, approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
         created_at: new Date().toISOString(), executed: ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval'], reused: selection.product.record.coverage };
     const run = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}`);
     validateReleaseBinding(binding, selection, { ...run, status: 'completed', conclusion: 'success' }); // The aggregate still must pass before any consumer accepts this receipt.
@@ -130,6 +140,11 @@ export async function publishedMaintenanceRelease(tag: string, commit: string, r
         assert.deepEqual(artifactIdentity(newestArtifact(artifacts, smoke.artifact.name)), smoke.artifact);
         assert.deepEqual(await artifactJson({ ...smoke.artifact, expired: false }, 'smoke.json'), smoke.receipt);
     }
+    for (const attempt of new Set(binding.executions.map(job => job.attempt))) {
+        const jobs = await jobsFor(run.id, attempt);
+        for (const original of binding.executions.filter(job => job.attempt === attempt)) assert.deepEqual(executionJob(jobs, original.name, attempt), original);
+    }
+    await requireGate(run);
     return binding;
 }
 export async function verifyMaintenanceBundle(binding: ReleaseBinding, directory: string): Promise<void> {

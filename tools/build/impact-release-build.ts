@@ -14,5 +14,6 @@ const original = await buildCandidate(commit, output, undefined, publicChannel()
 const rebuilt = await buildCandidate(commit, resolve(values.rebuild), join(output, original.source.file), publicChannel());
 assert.equal(original.candidate.sha256, rebuilt.candidate.sha256);
 fs.writeFileSync(join(output, 'release-build-proof.json'), JSON.stringify({ schema_version: 1, commit,
-    tarball_sha256: original.candidate.sha256, source_rebuild_sha256: rebuilt.candidate.sha256 }, null, 2) + '\n');
+    tarball_sha256: original.candidate.sha256, source_rebuild_sha256: rebuilt.candidate.sha256,
+    execution: { run_id: Number(process.env.GITHUB_RUN_ID), attempt: Number(process.env.GITHUB_RUN_ATTEMPT), job: 'release-build' } }, null, 2) + '\n');
 if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'filename=' + original.candidate.file + '\n');

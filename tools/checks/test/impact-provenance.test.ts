@@ -41,6 +41,7 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
     };
     artifacts.set(12, [...complete.artifacts, artifact('ts06-acceptance', 'ci-evidence.json', complete.record)]);
     const records: any[] = [];
+    const releaseJobs = ['Build current maintenance release source', ...SMOKE_TARGETS.map(target => 'Maintenance release smoke / ' + target)].map((name, index) => ({ id: 300 + index, name, attempt: 1, conclusion: 'success', started_at: '2026-01-01T00:00:00Z', completed_at: '2026-01-01T00:01:00Z' }));
     for (const [runId, from, to] of [[21, base, first], [22, first, second]] as const) {
         const plan = createImpactPlan(from, to), started = new Date(Date.now() - 1000).toISOString(), finished = new Date().toISOString();
         const receipt = { schema_version: 1, kind: 'scoped-checks', status: 'pass', commit: to, plan_sha256: hash(canonical(plan)), task: plan.tasks[0], checks: plan.tasks[0]!.checks,
@@ -49,7 +50,7 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
         const identity = { id: taskArtifact.id, name: taskArtifact.name, digest: taskArtifact.digest, expires_at: taskArtifact.expires_at };
         const record = { schema_version: 1, kind: 'maintenance', repository: CI_REPOSITORY, commit: to, tree: git('rev-parse', to + '^{tree}'), run_id: runId, attempt: 1, event: 'push', branch: 'main',
             created_at: finished, expires_at: new Date(Date.now() + 86400000).toISOString(), plan, plan_sha256: hash(canonical(plan)), product_base: from, product_inputs_sha256: productInputs(to), pr: null,
-            receipts: [{ artifact: identity, sha256: hash(canonical(receipt)), receipt }] };
+            receipts: [{ artifact: identity, sha256: hash(canonical(receipt)), receipt, job: { id: runId * 10, name: 'Scoped / linux', attempt: 1, started_at: started, completed_at: finished } }] };
         records.push(record); artifacts.set(runId, [taskArtifact, artifact('ci-maintenance', 'maintenance.json', record)]);
     }
     t.mock.method(globalThis, 'fetch', async (input: string | URL | Request, options?: RequestInit) => {
@@ -62,6 +63,7 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
         else if (/^\/actions\/runs\/\d+\/attempts\/\d+\/jobs$/u.test(path)) {
             const id = Number(path.split('/')[3]), record = records.find(row => row.run_id === id);
             const jobs = [{ id: 9999, name: 'Complete candidate evidence', conclusion: 'success' }, ...(id === 12 ? complete.record.executions.map(row => ({ id: row.job_id, name: row.job_name, conclusion: 'success', started_at: row.started_at, completed_at: row.completed_at })).filter((row, index, rows) => rows.findIndex(other => row.id === other.id) === index) : record ? [{ id: id * 10, name: 'Scoped / linux', conclusion: 'success', started_at: record.receipts[0].receipt.started_at, completed_at: record.receipts[0].receipt.completed_at }] : [])];
+            if (id === 33) jobs.push(...releaseJobs);
             result = { jobs, total_count: jobs.length };
         } else if (/^\/actions\/runs\/\d+$/u.test(path)) result = runs.get(Number(path.split('/')[3]));
         else if (path === '/contents/.github/workflows/ci.yml') result = { type: 'file', sha: git('rev-parse', url.searchParams.get('ref') + ':.github/workflows/ci.yml') };
@@ -72,14 +74,14 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
     const selection = await selectMaintenanceRelease(tag, second); assert(selection); assert.equal(selection.product.record.source_commit, base); assert.deepEqual(selection.maintenance.map(row => row.commit), [second, first]);
     const delivery = Object.fromEntries(['SHA256SUMS', 'build-manifest.json', 'fbincon-claude-code-statusline-3.13.1.tgz', 'claude-code-statusline-3.13.1-source.tar.gz'].map(name => [name, 'b'.repeat(64)]));
     const packageArtifact = artifact('ci-release-package', 'unused.json', {}), smokes = SMOKE_TARGETS.map(target => {
-        const receipt = { status: 'pass', kind: 'integration-smoke', source_commit: second, integration_commit: second, target, tarball_sha256: 'b'.repeat(64), execution: { run_id: 33, attempt: 1 }, model_calls: 0, lifecycle_scripts: false,
+        const receipt = { status: 'pass', kind: 'integration-smoke', source_commit: second, integration_commit: second, target, tarball_sha256: 'b'.repeat(64), execution: { run_id: 33, attempt: 1, job: 'release-smoke' }, model_calls: 0, lifecycle_scripts: false,
             checks: ['offline-empty-cache-install', 'version', 'install', 'doctor', 'render', 'configuration-read-write', 'uninstall-preserves-unowned-settings'] };
         return { artifact: artifact('ci-release-smoke-' + target, 'smoke.json', receipt), receipt };
     });
     const identity = (value: any) => ({ id: value.id, name: value.name, digest: value.digest, expires_at: value.expires_at });
     const binding = { schema_version: 1, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection, run_id: 33, attempt: 1, delivery, package_artifact: identity(packageArtifact),
         comparison: { schema_version: 1, kind: 'package-comparison', base, head: second, base_sha256: 'b'.repeat(64), head_sha256: 'b'.repeat(64), equivalent: true, changed_members: [] },
-        smokes: smokes.map(row => ({ ...row, artifact: identity(row.artifact) })), approval: {}, created_at: new Date().toISOString(),
+        smokes: smokes.map(row => ({ ...row, artifact: identity(row.artifact) })), executions: releaseJobs.map(({ conclusion: _conclusion, ...job }) => job), approval: {}, created_at: new Date().toISOString(),
         executed: ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval'], reused: complete.record.coverage };
     artifacts.set(33, [packageArtifact, ...smokes.map(row => row.artifact), artifact('ci-release-binding', 'release-binding.json', binding)]);
     assert.deepEqual(await publishedMaintenanceRelease(tag, second, runs.get(33)), binding);
