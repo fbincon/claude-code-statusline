@@ -93,3 +93,9 @@ claude-statusline config profile import scheme.json --select subagent,statusline
 ## 样例场景
 
 `config profile preview NAME --scenario warning --width 80` 使用所选确定性观测预览已保存方案，省略 `--scenario` 使用正常样例。JSON 包含场景身份，两种预览均不写显示配置。
+
+## 自适应指标与连续背景
+
+可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
+
+五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。

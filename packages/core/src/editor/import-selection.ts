@@ -3,7 +3,7 @@ import type { Draft } from '../contracts/ui.js';
 
 export const IMPORT_FIELDS = [
   'main', 'subagent', 'use_colors', 'palette', 'theme', 'directory_style', 'separator_style', 'scope_labels',
-  'powerline_glyph', 'powerline.padding', 'powerline.separator', 'powerline.start_cap', 'powerline.end_cap', 'powerline.color_mode',
+  'powerline.row_background_gradient', 'powerline_glyph', 'powerline.padding', 'powerline.separator', 'powerline.start_cap', 'powerline.end_cap', 'powerline.color_mode',
   'statusline_language', 'formatting.model_name', 'formatting.number_format', 'formatting.labels', 'formatting.icons',
   'formatting.allowance', 'formatting.reset_format', 'formatting.reset_timezone', 'formatting.thresholds',
 ] as const;
@@ -33,5 +33,6 @@ export function selectImport(base: Draft, incoming: Draft, requested: unknown): 
       target[parts.at(-1)!] = origin[parts.at(-1)!];
     }
   }
+  if (result.display.powerline.row_background_gradient === undefined) delete result.display.powerline.row_background_gradient;
   return result;
 }

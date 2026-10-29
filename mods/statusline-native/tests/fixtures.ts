@@ -31,7 +31,7 @@ export function component(type_id: string, enabled = true): import('../lib/gener
 
 export const BASE: Draft = {
   display: {
-    schema_version: 16, groups: [],
+    schema_version: 17, groups: [],
     theme: "classic",
     powerline_glyph: "ascii",
     powerline: { padding: "both", separator: "arrow", start_cap: false, end_cap: true, color_mode: "semantic" },
@@ -175,7 +175,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 29, result }));
+  return output(JSON.stringify({ protocol_version: 30, result }));
 }
 
 export function sample(text: string) {
@@ -302,6 +302,8 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
         return { value: reply(readResult(store.draft, store.revision)) };
       if (request.operation === 'read_ui_preferences')
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'source_draft')
+        return { value: reply({revision: 'pins'}) };
       if (request.operation === 'review_import') return {value:reply({draft:copyDraft(request.payload.draft),changes:[]})};
       if (request.operation === 'set_ui_language') {
         store.uiLanguage = request.payload.ui_language;

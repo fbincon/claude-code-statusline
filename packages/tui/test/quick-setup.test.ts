@@ -28,7 +28,7 @@ test('Quick setup saves a copy without replacing a pre-existing dirty draft', as
   state.key({key:'end'});state.key({key:'return'});state.key({key:'down'});state.key({key:'down'});
   assert.equal(state.key({key:'return'}),'profiles');
   await performProfileAction(e,{request:async operation=>{assert.equal(operation,'profiles_read');return {version:1,revision:'1'.repeat(64),profiles:[],bindings:[]} as never;}});
-  assert.equal(e.profiles!.page,'form');assert.equal(e.profiles!.candidate!.theme,'terminal');
+  assert.equal(e.profiles!.page,'form');assert.equal(e.profiles!.candidate!.theme,'light');
   state.key({key:'escape'});state.key({key:'escape'});
   assert.equal(JSON.stringify(e.draft),original);
 });

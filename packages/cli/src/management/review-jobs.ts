@@ -77,9 +77,13 @@ export function startPackageReview(context: InspectionContext, request: unknown,
 export function packageReviewJob(context: InspectionContext, id: unknown, owner: unknown, cancel = false): PackageReviewJob {
     if (typeof id !== 'string' || typeof owner !== 'string')
         throw new PackageError('arguments');
-    const record = readReviewRecord(id), job = record.job;
-    if (record.configDir !== context.configDir || job.owner !== owner)
-        throw new PackageError('identity');
+    const readOwned = () => {
+        const current = readReviewRecord(id);
+        if (current.configDir !== context.configDir || current.job.owner !== owner)
+            throw new PackageError('identity');
+        return current;
+    };
+    let record = readOwned(), job = record.job;
     if (cancel) {
         atomicWrite(join(reviewFolder(id), 'cancel.json'), '{}\n');
         const stopped = waitReviewExit(() => {
@@ -94,10 +98,20 @@ export function packageReviewJob(context: InspectionContext, id: unknown, owner:
         // Cancellation was requested, but a live/unverifiable executor still owns its files.
         return readReviewRecord(id).job;
     }
-    if (job.state === 'running' && (Date.now() - Date.parse(job.started_at) > REVIEW_DEADLINE_MS ||
-        Date.now() - Date.parse(record.launched_at ?? job.started_at) > 15000 && (!record.pid || !!record.token && processAlive(record.pid, record.token) === false)))
-        return { ...job, state: 'failed', error: 'interrupted', finished_at: new Date().toISOString() };
+    if (reviewInterrupted(record)) {
+        // A bounded snapshot can precede the worker's final atomic publication.
+        // Reconcile after observing exit before deriving an interruption from it.
+        record = readOwned();
+        job = record.job;
+        if (reviewInterrupted(record))
+            return { ...job, state: 'failed', error: 'interrupted', finished_at: new Date().toISOString() };
+    }
     if (job.state === 'complete' && inspectPackage(context, job.request.prefix).revision !== job.request.expected_revision)
         return { ...job, state: 'failed', review: null, error: 'conflict' };
     return job;
+}
+function reviewInterrupted(record: ReviewRecord): boolean {
+    return record.job.state === 'running' && (Date.now() - Date.parse(record.job.started_at) > REVIEW_DEADLINE_MS ||
+        Date.now() - Date.parse(record.launched_at ?? record.job.started_at) > 15000 &&
+        (!record.pid || !!record.token && processAlive(record.pid, record.token) === false));
 }

@@ -1,3 +1,4 @@
+import { adapt, type Representation } from './fitting.js';
 import type { FitObserver } from './trace.js';
 import type { DisplayDraft, InstanceDraft, Scope } from '../contracts/ui.js';
 import * as layout from './layout.js';
@@ -5,6 +6,8 @@ import * as appearance from './appearance.js';
 import * as styles from './styles.js';
 import * as powerline from './powerline.js';
 export interface Cell<T = unknown> {
+    adaptive?: readonly Representation[];
+    onAdapt?: (stage: Representation['stage']) => void;
     id: string;
     text: string;
     priority: number;
@@ -39,11 +42,12 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
     if (config.powerline.color_mode === 'restart') colors.index = 0;
     const isPowerline = config.separator_style === 'powerline';
     let padding = true, cap = true;
-    const text = (side: Cell<T>[]) => isPowerline ? powerline.row(side, config, padding, cap, colors) : join(side), occupied = () => measure(text(left)) + measure(text(right));
+    const text = (side: Cell<T>[], capture = false) => isPowerline ? powerline.row(side, config, padding, cap, colors, capture) : join(side), occupied = () => measure(text(left)) + measure(text(right));
     if (isPowerline && occupied() > columns)
         padding = false;
     if (isPowerline && occupied() > columns)
         cap = false;
+    adapt([...left, ...right], columns, occupied);
     while (left.length + right.length > 1 && occupied() > columns) {
         const ordered = [...left.map((cell, index) => ({ side: left, index, cell })), ...right.map((cell, index) => ({ side: right, index, cell }))];
         let victim = 0;
@@ -57,13 +61,14 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
     if (occupied() > columns) {
         const side = left.length ? left : right;
         observe?.(side[0]!.id,'truncated');
-        side[0] = { ...side[0]!, text: layout.truncateStyled(side[0]!.text, columns) };
+        side[0] = { ...side[0]!, text: side[0]!.adaptive ? '' : layout.truncateStyled(side[0]!.text, columns) };
     }
-    const a = text(left);
+    const a = text(left, true);
+    if (divider >= 0) colors.capture?.push({ boundary: true });
     if (isPowerline) powerline.advance(left, colors);
     // A spacer divides one physical row; restarting happens once for the whole row.
     const rightConfig = config.powerline.color_mode === 'restart' ? { ...config, powerline: { ...config.powerline, color_mode: 'continuous' as const } } : config;
-    const b = isPowerline ? powerline.row(right, rightConfig, padding, cap, colors) : text(right);
+    const b = isPowerline ? powerline.row(right, rightConfig, padding, cap, colors, true) : text(right);
     if (isPowerline) { powerline.advance(right, colors); if (config.powerline.color_mode === 'restart') colors.index = 0; }
     const gap = divider < 0 ? 0 : Math.max(0, columns - measure(a) - measure(b)), reset = config.use_colors ? styles.RESET : '';
     return layout.ensureReset(a + (gap ? reset + ' '.repeat(gap) : '') + b, reset);

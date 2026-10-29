@@ -176,9 +176,9 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 16 ||
-    !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
-    !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
+    d.schema_version !== 17 ||
+    !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.filter(f => f.key !== 'powerline.row_background_gradient' || Object.hasOwn(d.powerline as object, 'row_background_gradient')).map(f => f.key.slice(10))) ||
+    !POWERLINE_FIELDS.every(f => f.kind === 'text' ? validGradient((d.powerline as Record<string, unknown>)[f.key.slice(10)] ?? null) : f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
     !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
     !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||

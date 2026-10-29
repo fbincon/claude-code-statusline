@@ -1,5 +1,8 @@
 # Development guide
 
+
+[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
+
 **English** | [简体中文](README.zh-CN.md)
 [Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
 

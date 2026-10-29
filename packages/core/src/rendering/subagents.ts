@@ -1,9 +1,10 @@
+import { bounded, type Representation } from './fitting.js';
 import type { RenderTrace } from './trace.js';
 import { sampleAgents, scenarioSource, SAMPLE_NOW } from './sample-scenarios.js';
 import type { PreviewScenario } from '../editor/preview-settings.js';
 import { foregroundPaint } from './gradients.js';
 import { groupedRows } from './groups.js';
-import { indicator } from './indicators.js';
+import { indicator, adaptiveIndicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
 import { fileLink } from '../terminal/links.js';
 import { withLink } from './layout.js';
@@ -29,6 +30,7 @@ const DEFAULT: Palette = { status: '\x1b[1;38;2;142;211;211m', name: '\x1b[1;38;
 const ANSI: Palette = { status: '\x1b[1;36m', name: '\x1b[1;33m', model: '\x1b[1;33m', context: '\x1b[1;33m', elapsed: '\x1b[1;36m', task: '\x1b[1;32m', tokens: '\x1b[1;35m', directory: '\x1b[1;32m', separator: '\x1b[90m', reset: RESET };
 const EMPTY = Object.fromEntries(Object.keys(DEFAULT).map(key => [key, ''])) as Palette;
 interface Part {
+    adaptive?: Representation[];
     item: string;
     text: string;
     style: string;
@@ -152,7 +154,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 const number = fmt.number_format !== 'legacy' ? preferences.number(task.contextWindowSize, fmt) : capacity !== null && capacity !== 0n ? formatters.humanizeTokens(task.contextWindowSize) : null;
                 value = number ? text('context.window', { value: number }) : null; style = p.context; break;
             }
-            case 'context-remaining': case 'context-used': value = options.presentation === 'bar' ? indicator(task, item, 'subagent', options, fmt, language, now / 1000) : context(task, item === 'context-remaining', env); style = p.context; break;
+            case 'context-remaining': case 'context-used': value = ['bar', 'adaptive'].includes(options.presentation ?? 'numeric') ? indicator(task, item, 'subagent', options, fmt, language, now / 1000) : context(task, item === 'context-remaining', env); style = p.context; break;
             case 'elapsed': value = taskElapsed(); style = p.elapsed; break;
             case 'task': {
                 const label = formatters.sanitizePayloadText(task.label) || formatters.sanitizePayloadText(task.description);
@@ -174,11 +176,18 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 env.trace?.mark('subagent',node.id,'condition_hidden'); continue;
             }
         }
-        if (item !== 'external-value' && options.presentation !== 'bar') value = preferences.decorate(value, item, 'subagent', fmt, options, language);
+        if (item !== 'external-value' && !['bar', 'adaptive'].includes(options.presentation ?? 'numeric')) value = preferences.decorate(value, item, 'subagent', fmt, options, language);
         let maximum = options.max_width;
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;
-        if (maximum !== null) {
+        const adaptive = options.presentation === 'adaptive' ? adaptiveIndicator(task, item, 'subagent', options, fmt, language, now / 1000) : null;
+        if (adaptive) {
+            const fitting = { ...adaptive, onAdapt: env.trace?.adapt('subagent', node.id) };
+            if (maximum !== null) bounded(fitting, maximum);
+            value = fitting.text;
+            if (!value) env.trace?.mark('subagent',node.id,'width_omitted');
+        }
+        if (maximum !== null && !adaptive) {
             if(prepared.measure(value)>maximum) env.trace?.mark('subagent',node.id,'truncated');
             value = formatters.truncateText(value, maximum);
         }
@@ -191,7 +200,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 style = styled.slice(0, -value.length);
         }
         if (item === 'current-dir') value = withLink(value, fileLink(task.cwd), options.link, env.links);
-        result.push({ item: node.id, text: value, style, used: risk, type: item });
+        result.push({ item: node.id, text: value, ...(adaptive ? { adaptive: adaptive.adaptive } : {}), style, used: risk, type: item });
     }
     return result;
 }
@@ -234,17 +243,17 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     let parts = partsFor(task, config, nowMs, env, prepared);
     const p = prepared.palette, separator = p.separator ? p.separator + ' · ' + p.reset : ' · ';
     const styled = (part: Part) => part.style + part.text + (part.style ? p.reset : '');
-    if (config.subagents.groups.length) {
+    if (config.subagents.groups.length || config.subagents.instances.some(node => node.options.presentation === 'adaptive')) {
         const byId = new Map(parts.map(part => [part.item, part]));
         const cells: Cell[] = config.subagents.instances.map(node => {
             const part = byId.get(node.id);
-            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
+            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', onAdapt: env.trace?.adapt('subagent', node.id), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
         });
         return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
     }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
-        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
+        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id), onAdapt: env.trace?.adapt('subagent', node.id), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
         return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + (cell.paint?.(cell.text) ?? cell.text)).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
     }
     if (config.separator_style === 'powerline')

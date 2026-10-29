@@ -2,6 +2,8 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
+v3.14.0 is validating APPEARANCE-07, APPEARANCE-06, PROFILE-02 and #178/#180; see [implementation and acceptance](adaptive-row-scenarios.md). Display schema 17/editor protocol 30; publication requires final PR/main/tag gates.
+
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [Delivery and post-publication findings](draft-history-and-reuse.md). v3.12.0 source/command/package management and earlier delivery facts remain historical.
 
 Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
@@ -81,12 +83,12 @@ Keep the original project and authors credited when discussing these references.
 | 3/4/later Versions | [UPDATE-02](development-plan.md#update-02) | Status/review, execution/recovery and protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | DONE |
 | 4 Source operations | [SOURCES-01](development-plan.md#sources-01) | Readable state, saved GitHub check pages, compatible binding reuse and protected cleanup | Existing source services; FIX-03 lifecycle rules | DONE |
 | 4 Scheduling | [COMMAND-02](development-plan.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | DONE |
-| 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | NOT_STARTED |
-| Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | NOT_STARTED |
+| 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | VALIDATING |
+| Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | VALIDATING |
 | Later, interleavable | [UX-03](development-plan.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | DONE |
 | Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | DONE |
 | Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | DONE |
-| Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | NOT_STARTED |
+| Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | VALIDATING |
 | Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | All eighteen packages above and every slice accepted; matching installed artifacts | NOT_STARTED |
 
 Batches express delivery preference, not extra technical dependencies. Themes, task browsing and version review can progress independently after their own prerequisites. UPDATE-02 and SOURCES-01 retain one package identity across their separately deliverable slices; a package completes only when all its slices are accepted. Later improvements can be interleaved under their own dependencies, preserving the delivered binding and history protections.

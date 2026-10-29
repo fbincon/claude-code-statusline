@@ -17,6 +17,7 @@ test('unknown native save keeps source inspection available while blocking unbin
   };
   await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
   await keys(ui,'3',' ','s',{key:'y',ctrl:true},'return');
+  expect(f.calls.some(call=>call.operation==='source_draft'&&call.payload.close===false&&call.payload.bindings.includes(binding.binding))).toBe(true);
   for(let i=0;i<9;i++)await keys(ui,'down');
   await keys(ui,'return','return');
   expect(f.calls.filter(c=>c.operation==='sources_apply').length).toBe(0);

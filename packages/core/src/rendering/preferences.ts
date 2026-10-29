@@ -111,4 +111,4 @@ export function optionsFor(config: DisplayDraft, id: string, scope: Scope = 'mai
     const options = (scope === 'main' ? config.instances : config.subagents.instances).find(node => node.id === id)?.options ?? DEFAULT_ITEM;
     return [{ ...config.formatting, ...options.formatting } as FormattingDraft, options];
 }
-export function legacyFitting(options: readonly ItemOptionsDraft[]): boolean { return options.some(o => o.label !== null || o.icon !== null || Object.keys(o.formatting).length > 0 || o.priority !== 50 || o.max_width !== null || o.presentation === 'bar'); }
+export function legacyFitting(options: readonly ItemOptionsDraft[]): boolean { return options.some(o => o.label !== null || o.icon !== null || Object.keys(o.formatting).length > 0 || o.priority !== 50 || o.max_width !== null || ['bar','adaptive'].includes(o.presentation ?? 'numeric')); }

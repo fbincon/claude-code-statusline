@@ -3,6 +3,16 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.14.0 — 2026-10-29
+
+- Add adaptive bars that retain percentages, used/remaining meaning and complete custom labels/icons.
+- Paint continuous backgrounds across final Powerline rows, preserving overrides, groups, spacers, alignment and warnings.
+- Add five scene schemes; use display schema 17 and editor protocol 30 without rewriting old files on read.
+- Fix six-language Native style/group/history entry captions (#180).
+- Add pinned-npm signature/provenance verification with explicit native full-tree audit limits (#178).
+- Reconcile the latest package-review result after worker exit, preserving completed reviews instead of falsely reporting interruption.
+- [Implementation and acceptance](docs/development/adaptive-row-scenarios.md) · [Release notes](docs/releases/v3.14.0.md).
+
 ## 3.13.0 — 2026-10-29
 
 - Share bounded draft undo/redo, semantic change review and explicit concurrent-edit recovery in both editors.

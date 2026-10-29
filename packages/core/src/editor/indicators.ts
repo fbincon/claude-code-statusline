@@ -7,13 +7,13 @@ export function supportsIndicator(scope: Scope, id: string): boolean {
   return ['context-used', 'context-remaining'].includes(id) || scope === 'main' && ['five-hour-limit', 'weekly-limit', 'spend-limit'].includes(id);
 }
 export const INDICATOR_FIELDS: EditorField[] = [
-  { key: 'presentation', label: 'Indicator presentation', group: 'Item format', kind: 'choice', choices: ['numeric', 'bar'], minimum: 0, maximum: 0, nullable: false },
+  { key: 'presentation', label: 'Indicator presentation', group: 'Item format', kind: 'choice', choices: ['numeric', 'bar', 'adaptive'], minimum: 0, maximum: 0, nullable: false },
   { key: 'bar_width', label: 'Bar width', group: 'Item format', kind: 'integer', choices: [], minimum: 4, maximum: 20, nullable: false },
   { key: 'bar_style', label: 'Bar characters', group: 'Item format', kind: 'choice', choices: ['auto', 'unicode', 'ascii'], minimum: 0, maximum: 0, nullable: false },
 ];
 export function validIndicatorOptions(value: Record<string, unknown>, scope?: Scope, id?: string): boolean {
   if (scope && id && !supportsIndicator(scope, id) && INDICATOR_KEYS.some(key => Object.hasOwn(value, key))) return false;
-  return (value.presentation === undefined || typeof value.presentation === 'string' && ['numeric', 'bar'].includes(value.presentation)) &&
+  return (value.presentation === undefined || typeof value.presentation === 'string' && ['numeric', 'bar', 'adaptive'].includes(value.presentation)) &&
     (value.bar_style === undefined || typeof value.bar_style === 'string' && ['auto', 'unicode', 'ascii'].includes(value.bar_style)) &&
     (value.bar_width === undefined || typeof value.bar_width === 'number' && Number.isInteger(value.bar_width) && value.bar_width >= 4 && value.bar_width <= 20);
 }

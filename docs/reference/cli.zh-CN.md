@@ -983,3 +983,9 @@ claude-statusline source release-draft OWNER [--json]
 ```
 
 `source diagnose ID` 显示共享可读摘要；`--json` 提供高级已保存检查详情。命令自动执行单独审核，默认 300 秒，允许 60–86400 秒，与 TTL 独立。绑定清理重新检查引用和修订；仅释放明确放弃或已恢复的草稿 owner。参见[来源操作](../EXTENSIONS.zh-CN.md)及[包执行](../PACKAGE_MANAGEMENT.zh-CN.md)。
+
+## 自适应指标与连续背景
+
+可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
+
+五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](../development/adaptive-row-scenarios.zh-CN.md)。

@@ -27,13 +27,13 @@ interface Choice {
     surface?: string;
 }
 export function openColors(e: Editor, key: string): boolean {
-    if (!['field:theme', 'item:foreground', 'item:background', 'item:foreground_gradient', 'item:background_gradient'].includes(key))
+    if (!['field:powerline.row_background_gradient', 'field:theme', 'item:foreground', 'item:background', 'item:foreground_gradient', 'item:background_gradient'].includes(key))
         return false;
     if (!e.canMutateDraft())
         return true;
     const kind = key === 'field:theme' ? 'theme' : key.endsWith('_gradient') ? 'gradient' : 'solid';
     const detail = e.detail, node = detail ? e.instance(detail.scope, detail.id) : null;
-    const value = kind === 'theme' ? e.draft.display.theme : node?.options[key.slice(5) as 'foreground'] ?? null;
+    const value = key === 'field:powerline.row_background_gradient' ? e.draft.display.powerline.row_background_gradient ?? null : kind === 'theme' ? e.draft.display.theme : node?.options[key.slice(5) as 'foreground'] ?? null;
     e.colors = { kind, key, scope: detail?.scope ?? 'main', id: detail?.id ?? '', cursor: 0, candidate: Array.isArray(value) ? [...value] : value, generation: e.mutationGeneration, input: null, editing: null, error: false };
     return true;
 }
@@ -62,7 +62,8 @@ export function colorDraft(e: Editor): Draft {
     if (!m)
         return e.draft;
     const draft = copyDraft(e.draft);
-    if (m.kind === 'theme')
+    if (m.key === 'field:powerline.row_background_gradient') draft.display.powerline.row_background_gradient = Array.isArray(m.candidate) ? [...m.candidate] : null;
+    else if (m.kind === 'theme')
         draft.display.theme = m.candidate as Draft['display']['theme'];
     else {
         const node = (m.scope === 'main' ? draft.display.instances : draft.display.subagents.instances).find(n => n.id === m.id);

@@ -3,6 +3,10 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.14.0 adaptive and continuous appearance
+
+Use the [version decision](releases/approvals/v3.14.0.json). Retain eight installations, 32 Node cases, sixteen fixed hosts and the original 243 capacity cases; add 28 actual-host cases for 271 total. Require installed scenario/semantic-fitting receipts, both-editor PTYs and six-language actual entry captions. Follow final PR/main/tag evidence promotion, verify four assets, publish npm with OIDC, then verify six public-download jobs and the pinned-npm signature job. Synchronize explicit Gitee refs and every asset digest. Upgrade the test machine and restore preferences; after publication file issues for new findings without a patch. [Implementation and acceptance](development/adaptive-row-scenarios.md).
+
 ## v3.13.0 draft history and reuse
 
 Use the [version decision](releases/approvals/v3.13.0.json). Preserve 8 installations, 32 Node cases, 16 fixed hosts and all 217 earlier capacity cases; require 26 additional actual-host pages (243 total), installed draft/reuse receipts and both-editor PTYs. Promote immutable final-PR artifacts through verified main/tag evidence, then verify four assets, npm OIDC, GitHub/Gitee publication and public downloads. Upgrade the test machine and restore preferences. After completed publication, file issues for new local findings without publishing a patch. [Implementation and evidence](development/draft-history-and-reuse.md).

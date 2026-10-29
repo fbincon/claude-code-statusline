@@ -57,7 +57,7 @@ test('indicator configuration has identical CLI/editor validation and portable i
   assert.equal(isDraft({ display: invalid, host: DEFAULT_HOST }), false);
   const { groups, subagents, ...old } = defaultDisplay();
   const { groups: agentGroups, ...oldAgents } = subagents;
-  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 16);
+  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 17);
 });
 
 test('shared editor forms preview, cancel, save and reopen indicator choices in all languages', t => {
@@ -153,4 +153,45 @@ test('production bars compose owned labels once in both scopes and all six langu
       }
     }
   }
+});
+
+test('adaptive indicators keep complete numbers and custom content at every width in both scopes', async () => {
+  for (const language of LANGUAGES) for (const separator of ['compact', 'powerline'] as const) {
+    let cfg = config(['context-remaining']); cfg.statusline_language = language; cfg.separator_style = separator;
+    cfg = setField(cfg, 'presentation', 'adaptive', 'main', 'context-remaining');
+    cfg = setField(cfg, 'label', '自定义👩🏽‍💻', 'main', 'context-remaining');
+    cfg = setField(cfg, 'icon', 'I', 'main', 'context-remaining');
+    const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + language);
+    const e = { ...env, language: new Presentation(language, MESSAGES) };
+    for (let width = 2; width <= 70; width++) {
+      const value = rendered({ context_window: { remaining_percentage: 50, used_percentage: 50 } }, cfg, e, width);
+      assert(displayWidth(value) <= width);
+      if (value) { assert(value.includes('50%')); assert(value.includes('自定义👩🏽‍💻')); assert(value.includes('I')); assert(!value.includes('…')); }
+    }
+    let agents = agentConfig(['context-remaining']);
+    agents.separator_style = separator;
+    for (const [key, value] of [['presentation','adaptive'],['label','自定义👩🏽‍💻'],['icon','I']] as const) agents = setField(agents, key, value, 'subagent', 'context-remaining');
+    for (let width=2;width<=70;width++) { const value=renderTask(task({tokenCount:100000}),agents,e,width); assert(displayWidth(value)<=width); if(value){assert(value.includes('50%'));assert(value.includes('自定义👩🏽‍💻'));assert(!value.includes('…'));} }
+    cfg = setField(cfg, 'max_width', 4, 'main', 'context-remaining');
+    assert.equal(rendered({ context_window: { remaining_percentage: 50 } }, cfg, e, 80), '');
+  }
+});
+
+test('adaptive fixed rows degrade semantics before priority omission and auto rows retain normal wrapping', () => {
+  let cfg = config(['model', 'context-remaining']); cfg.use_colors = false;
+  cfg = setField(cfg, 'presentation', 'adaptive', 'main', 'context-remaining');
+  cfg = setField(cfg, 'icons', 'off', 'main', 'context-remaining');
+  cfg = setField(cfg, 'bar_style', 'ascii', 'main', 'context-remaining');
+  cfg = updateDisplay(cfg, { layout: { mode: 'explicit', rows: [['model', 'context-remaining']] } });
+  const input = { model: { display_name: 'M' }, context_window: { remaining_percentage: 50 } };
+  const stages = Array.from({ length: 60 }, (_, i) => rendered(input, cfg, {}, i + 2));
+  assert(stages.some(v => v.includes('M') && v.includes('[##--]') && v.includes('50%')));
+  assert(stages.some(v => v.includes('M') && v.includes('50%') && !v.includes('[')));
+  assert(stages.every(v => !v.includes('50') || v.includes('50%')));
+  cfg = updateDisplay(cfg, { layout: { mode: 'auto', rows: [] } });
+  const wide = rendered(input, cfg, {}, 120);
+  assert(wide.includes('[####----]'));
+  const single = updateDisplay(cfg, { instances: cfg.instances.filter(n=>n.type_id==='context-remaining') });
+  const auto = rendered(input, cfg, {}, displayWidth(rendered(input,single)));
+  assert(auto.includes('\n')); assert(auto.includes('50%'));
 });

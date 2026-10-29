@@ -2,6 +2,8 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
+v3.14.0 is validating APPEARANCE-07, APPEARANCE-06, PROFILE-02 and #178/#180; see [implementation and acceptance](adaptive-row-scenarios.md). Display schema 17/editor protocol 30; publication requires final PR/main/tag gates.
+
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [v3.13.0 delivery and post-publication findings](draft-history-and-reuse.md); retain [v3.12.0 source/command/package management](source-command-package-management.md).
 
 Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
@@ -285,7 +287,7 @@ Entries without an implementation record remain proposed work; current package s
 
 **Goal and scope.** Add an explicit adaptive representation for narrow rows after FIX-02. Fit in this order: shorten an eligible label, shorten the bar, use numeric presentation, then apply existing component-priority omission. Preserve the percentage and used/remaining meaning in every retained representation.
 
-**Ownership and interfaces.** Core fitting works from structured indicator content; both editors and CLI expose the same opt-in choice. Retain existing explicit numeric/bar behavior and custom labels unless the adaptive policy permits their reviewed shortening. Declare compatibility for the new option.
+**Ownership and interfaces.** Core fitting works from structured indicator content; both editors and CLI expose the same opt-in choice. Retain existing explicit numeric/bar behavior. Custom labels and icons always remain whole. Automatic layout retains ordinary wrapping and only shrinks a component or group wider than a complete row. Display schema 17 and editor protocol 30 expose the new option.
 
 **Slices.** Define semantic fallbacks → integrate fitting with shared layout → expose and explain the adaptive choice.
 

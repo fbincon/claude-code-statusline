@@ -1,3 +1,4 @@
+import { parseGradient } from '../editor/gradients.js';
 import { COST_RATE_DEFAULTS } from '../editor/cost-rate.js';
 import { INDICATOR_DEFAULTS } from '../editor/indicators.js';
 import { itemFields as capabilityFields } from '../editor/appearance.js';
@@ -30,6 +31,7 @@ export function editLayout(config: DisplayDraft, mode: string, rows?: string[][]
   return updateDisplay(config, { layout: layout({ ...config.layout, mode, rows: mapped }, mode === 'explicit' ? mapped.flat() : []) });
 }
 export function parseField(spec: EditorField, raw: unknown): unknown {
+  if (spec.key === 'powerline.row_background_gradient') { try { return parseGradient(raw); } catch { fail('gradients.invalid'); } }
   if (spec.key === 'statusline_language') raw = resolveLanguage(raw) ?? raw;
   if (spec.kind === 'boolean') {
     if (typeof raw === 'boolean') return raw;

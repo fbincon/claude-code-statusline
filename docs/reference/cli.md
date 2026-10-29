@@ -1021,3 +1021,9 @@ claude-statusline source release-draft OWNER [--json]
 ```
 
 `source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
+
+## Adaptive indicators and continuous backgrounds
+
+Use `config instance main set context-remaining presentation adaptive` to enable adaptive indicators and `config set powerline-row-background-gradient lagoon` to choose a continuous background; `off` disables it. Backgrounds apply only to colored Powerline output. Custom labels/icons remain whole; a numeric representation that cannot fit is omitted. Auto layout retains ordinary wrapping.
+
+New schemes are `powerline-daily`, `agent-workbench`, `quota-cost`, `narrow-terminal` and `light-readable`, compatible with v3.14.0 onward (display schema 17/protocol 30). Use existing preset/profile selection and import/export. Schemes cannot authorize sources. See [implementation and scenarios](../development/adaptive-row-scenarios.md).
