@@ -9,6 +9,8 @@
 - Review structural edits together with precise alignment repairs and accept them as one undoable action.
 - Copy selected compatible visual fields and reuse complete groups with explicit dependencies, ID mapping and local-source rebinding.
 - Use editor protocol 29; retain display schema 16 and portable/profile 1.
+- External undo/redo uses Ctrl+Z/Ctrl+R; Native uses Ctrl+_/Ctrl+R and history-page U/R under the accepted host compatibility adjustment.
+- Retain v3.13.0 with post-publication findings [#178](https://github.com/fbincon/claude-code-statusline/issues/178), [#179](https://github.com/fbincon/claude-code-statusline/issues/179) and [#180](https://github.com/fbincon/claude-code-statusline/issues/180) open; the delivery record includes the unintended model-request incident and restored preferences.
 - [Release notes](docs/releases/v3.13.0.md) · [Implementation](docs/development/draft-history-and-reuse.md).
 
 ## 3.12.0 — 2026-10-28

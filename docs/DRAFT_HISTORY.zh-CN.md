@@ -40,6 +40,8 @@ claude-statusline config instance main remove b \
 
 打开目标组件详情中的**复制／粘贴视觉样式**，选择当前草稿、便携文件、方案导出文件或已保存方案作为来源，再选择来源组件及要复制的视觉字段。不兼容字段可见但不可勾选。
 
+v3.13.0 Native 简中界面的此入口仍显示英文 **Copy / paste visual style**（[#180](https://github.com/fbincon/claude-code-statusline/issues/180)）。
+
 白名单包含前景／背景色、两类渐变、标签、图标及支持的格式覆盖；来源继承值会恢复目标继承。目标指标类型、数据源绑定、文字内容、顺序、优先级、宽度及可见性保留。审阅差异后按 **A** 接受，再单独保存。
 
 ```bash
@@ -63,4 +65,4 @@ claude-statusline config import source.json --groups main:group-id \
 
 实际应用同样需要审阅返回的目标修订及来源修订。跨配置导入清除本机来源绑定，并列出未解决引用。接受后按 **B** 打开现有来源管理器，明确选择类型、作用域兼容的本机来源，也可暂时保留未绑定。绑定不会启用来源、批准自动执行或触发刷新。同一草稿内的普通整组复制保留既有本地绑定行为。
 
-另见[组件组合](COMPOSITION.zh-CN.md)、[外观](APPEARANCE.zh-CN.md)、[来源](EXTENSIONS.zh-CN.md)及 [CLI 参考](reference/cli.zh-CN.md)。
+另见[组件组合](COMPOSITION.zh-CN.md)、[外观](APPEARANCE.zh-CN.md)、[来源](EXTENSIONS.zh-CN.md)、[CLI 参考](reference/cli.zh-CN.md)及[终端示例与来源记录](images/draft-history-reuse/README.zh-CN.md)。

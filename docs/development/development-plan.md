@@ -2,11 +2,11 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-v3.12.0 delivers all SOURCES-01 slices, COMMAND-02 and the remaining UPDATE-02 slices; all three packages are DONE. Automatic interval defaults to 300 seconds, adjustable from 60–86400 independently of TTL; equal inputs share work and distinct contexts rotate fairly while each source runs serially. [v3.12.0 delivery](source-command-package-management.md).
+v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [v3.13.0 delivery and post-publication findings](draft-history-and-reuse.md); retain [v3.12.0 source/command/package management](source-command-package-management.md).
 
-Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.12.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.12.0 delivery](source-command-package-management.md) is the current product baseline, retaining [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.13.0 delivery](draft-history-and-reuse.md) is the current product baseline, retaining [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
 
 Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
 
@@ -295,8 +295,7 @@ Entries without an implementation record remain proposed work; current package s
 
 ## UX-03 Shared draft history and external recovery
 
-**Status: IN_PROGRESS.** [Implementation and acceptance](draft-history-and-reuse.md).
-
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
 
 **Goal and scope.** Provide bounded undo/redo for display-draft actions, a reviewable change summary and stronger external-editor conflict recovery. One logical copy/delete/group/import/apply-style action is one history entry. UI-language saves, source authorization and host Apply retain independent persistence semantics.
 
@@ -310,6 +309,8 @@ Entries without an implementation record remain proposed work; current package s
 
 ## IMPORT-02 Reuse styles and complete groups
 
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
+
 **Goal and scope.** Extend delivered whole-section import with selected visual-style copying and complete-group reuse. Style copying preserves the destination's metric, source binding, position, priority and visibility; copy only the reviewed visual fields such as colors/gradients, label/icon and formatting. Existing global-appearance import remains available.
 
 **Ownership and interfaces.** Core computes candidate changes and reference closure; cli reuses portable/profile review and transactions; editors show the selected effect. Whole-group import maps instance/group IDs and applicable internal layout/alignment references together. Review or reject references outside the selection; never silently discard them or replace unrelated rows. Imported local bindings become unresolved references and require explicit binding to a compatible local source, without importing authorization.
@@ -321,6 +322,8 @@ Entries without an implementation record remain proposed work; current package s
 <a id="composition-04"></a>
 
 ## COMPOSITION-04 Review alignment repairs with structural edits
+
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
 
 **Goal and scope.** When deleting a referenced component, dissolving a group or changing layout would break alignment, offer a reviewable structural-edit proposal including affected relationships. Keep refusal available when the user does not accept the proposed adjustment.
 

@@ -2,11 +2,11 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-v3.12.0 已完成 SOURCES-01 全部切片、COMMAND-02 和 UPDATE-02 剩余切片，三个工作包均为 DONE。默认自动间隔 300 秒，可调 60–86400 秒，与 TTL 独立；同源串行、相同输入共享、不同上下文公平轮转。[v3.12.0 交付](source-command-package-management.zh-CN.md)。
+v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[v3.13.0 交付与发版后发现](draft-history-and-reuse.zh-CN.md)；沿用 [v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)。
 
-更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.12.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.13.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.12.0 交付](source-command-package-management.zh-CN.md)为当前产品基线，沿用 [v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。本轮正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)为当前产品基线，沿用 [v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。本轮正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
 
 已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.2 专项决定](../releases/approvals/v3.9.2.json)记录该版本对缺口的接受，不代表缺失观察已通过。
 
@@ -295,8 +295,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## UX-03 共享草稿历史与外部恢复
 
-**状态：IN_PROGRESS。** [实现与验收](draft-history-and-reuse.zh-CN.md)。
-
+**状态：DONE（v3.13.0）。** [交付与发版后发现](draft-history-and-reuse.zh-CN.md)。
 
 **目标与范围。** 为显示草稿提供有界撤销／重做、可审阅变更摘要及更完整的外部编辑器冲突恢复。一次复制／删除／分组／导入／应用样式作为一个历史动作。界面语言保存、来源授权及宿主 Apply 保留独立持久语义。
 
@@ -310,6 +309,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## IMPORT-02 样式与完整组复用
 
+**状态：DONE（v3.13.0）。** [交付与发版后发现](draft-history-and-reuse.zh-CN.md)。
+
 **目标与范围。** 在已交付整分区导入之外，增加指定视觉样式复制与完整组复用。样式复制保留目标指标、来源绑定、位置、优先级及可见性，只复制已审阅的颜色／渐变、标签／图标、格式化等视觉字段；既有全局外观导入继续可用。
 
 **职责与接口。** Core 计算候选修改及引用闭包，cli 复用 portable／方案审阅和事务，编辑器展示选定影响。完整组一起映射实例／组 ID 及适用的内部布局／对齐引用；选择外引用须审阅或拒绝，不静默丢弃或替换无关行。导入的本机绑定成为待绑定引用，显式选兼容本机来源，不导入授权。
@@ -321,6 +322,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 <a id="composition-04"></a>
 
 ## COMPOSITION-04 审阅结构编辑中的对齐调整
+
+**状态：DONE（v3.13.0）。** [交付与发版后发现](draft-history-and-reuse.zh-CN.md)。
 
 **目标与范围。** 删除引用组件、解散组或切换布局将破坏对齐时，提供包含受影响关系的可审阅结构调整方案。用户不接受时继续保留拒绝操作的保护。
 

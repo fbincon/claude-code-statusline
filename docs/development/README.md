@@ -3,7 +3,7 @@
 **English** | [简体中文](README.zh-CN.md)
 [Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
 
-[Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
+[Draft history, structural review and reuse](draft-history-and-reuse.md) documents the v3.13.0 UX-03, COMPOSITION-04 and IMPORT-02 delivery, editor protocol 29, acceptance and post-publication findings.
 
 
 [Source operations, command scheduling and package execution](source-command-package-management.md) covers SOURCES-01, COMMAND-02 and UPDATE-02 completion, delivered in v3.12.0.

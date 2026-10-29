@@ -7,6 +7,8 @@
 
 使用[版本授权](releases/approvals/v3.13.0.json)。保留八安装目标、32 Node 情况、十六固定宿主及全部 217 项既有容量用例，要求 26 项新增实际宿主页面（共 243 项）、安装草稿／复用回执及双编辑器 PTY。通过已验证的 main／tag 证据提升最终 PR 不可变产物，核验四附件、npm OIDC、GitHub／Gitee 发布及公开下载，升级测试机并恢复偏好。发布完成后的本机新问题只提 issue，不补发修补版。[实现与证据](development/draft-history-and-reuse.zh-CN.md)。
 
+2026-10-29 完成最终 PR／main／tag 门禁、OIDC、六项公开下载、Gitee 附件摘要和本机升级／偏好检查。保留 v3.13.0，发版后发现 #178–#180 继续开放。交付记录明确报告失败本机诊断误发的两次模型请求，以及随后禁网隔离的重试；失败诊断不记作零调用验收。
+
 ## v3.12.0 来源、命令与包管理
 
 使用[版本决定](releases/approvals/v3.12.0.json)，保留八个安装目标、32 个 Node 组合、十六个固定宿主和基线 197 项容量用例；新增二十项共享实际宿主执行（总计 217），分别记录数量和摘要。要求已安装来源操作、真实 npm 编辑器执行回执、双编辑器 PTY 和本机 Claude 2.1.312 补充，不调用模型。原始不可变 PR 产物通过 main/tag 核验晋级。核对四附件、OIDC／provenance、公开渠道和 Gitee 显式 ref，升级后恢复本机偏好。发布后新发现仅提 issue，保留 v3.12.0。[实现](development/source-command-package-management.zh-CN.md)。
