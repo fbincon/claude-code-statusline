@@ -8,7 +8,7 @@
 
 ## Validation / 验证
 
-<!-- List commands/results actually checked, plus limitations. Documentation/templates use npm run docs:check; code/tool/workflow changes use npm run check and the full applicable CI. / 列出实际检查命令、结果和限制。文档／模板使用 npm run docs:check；代码／工具／工作流变更使用 npm run check 和适用的完整 CI。 -->
+<!-- Record the impact route, selected tasks, actual results and limitations. Maintenance uses ci:plan/ci:check; core behavior uses npm run check and the full product matrix. Documentation also uses docs:check. / 记录影响路线、选中任务、实际结果及限制。维护使用 ci:plan/ci:check；核心行为使用 npm run check 和完整产品矩阵；文档另执行 docs:check。 -->
 
 ## Applicable follow-ups / 按需事项
 

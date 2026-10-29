@@ -72,6 +72,7 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
         return new Response(JSON.stringify(result));
     });
     const selection = await selectMaintenanceRelease(tag, second); assert(selection); assert.equal(selection.product.record.source_commit, base); assert.deepEqual(selection.maintenance.map(row => row.commit), [second, first]);
+    assert.equal(selection.verifier_commit, first); assert.equal(selection.verifier_run, 21, 'Use accepted maintenance policy, not the original product compiler or current tag code');
     const delivery = Object.fromEntries(['SHA256SUMS', 'build-manifest.json', 'fbincon-claude-code-statusline-3.13.1.tgz', 'claude-code-statusline-3.13.1-source.tar.gz'].map(name => [name, 'b'.repeat(64)]));
     const packageArtifact = artifact('ci-release-package', 'unused.json', {}), smokes = SMOKE_TARGETS.map(target => {
         const receipt = { status: 'pass', kind: 'integration-smoke', source_commit: second, integration_commit: second, target, tarball_sha256: 'b'.repeat(64), execution: { run_id: 33, attempt: 1, job: 'release-smoke' }, model_calls: 0, lifecycle_scripts: false,
@@ -79,7 +80,7 @@ test('complete baseline -> two maintenance commits -> tag -> npm retains identit
         return { artifact: artifact('ci-release-smoke-' + target, 'smoke.json', receipt), receipt };
     });
     const identity = (value: any) => ({ id: value.id, name: value.name, digest: value.digest, expires_at: value.expires_at });
-    const binding = { schema_version: 1, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection, run_id: 33, attempt: 1, delivery, package_artifact: identity(packageArtifact),
+    const binding = { schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection, run_id: 33, attempt: 1, delivery, package_artifact: identity(packageArtifact),
         comparison: { schema_version: 1, kind: 'package-comparison', base, head: second, base_sha256: 'b'.repeat(64), head_sha256: 'b'.repeat(64), equivalent: true, changed_members: [] },
         smokes: smokes.map(row => ({ ...row, artifact: identity(row.artifact) })), executions: releaseJobs.map(({ conclusion: _conclusion, ...job }) => job), approval: {}, created_at: new Date().toISOString(),
         executed: ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval'], reused: complete.record.coverage };

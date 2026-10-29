@@ -13,7 +13,7 @@
 
 [The functional roadmap](roadmap.md#milestones) owns current priorities and work-package status; [the development plan](development-plan.md#future-work) defines scope, dependencies, slices and acceptance. Use those sources for the next task and the linked delivery records for implemented behavior. Planning edits do not implement features.
 
-[CI maintenance and Action identities](ci-maintenance.md) documents documentation-only checks, candidate evidence and promotion routes, `npm run actions:check` and weekly update review.
+[CI maintenance and Action identities](ci-maintenance.md) documents impact-scoped checks, candidate and maintenance evidence, promotion routes, Action identities and weekly update review.
 
 [Impact checks and maintenance evidence](impact-checks.md) defines scoped check planning, package comparison and the staged PR/main/tag evidence migration.
 

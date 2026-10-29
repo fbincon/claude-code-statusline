@@ -29,11 +29,13 @@
 
 ## 绑定源码的 CI 证据晋级
 
-常规发版准备先完成最终 PR 矩阵，以 merge commit 合并，并通过 main 集成核验及 Linux／Windows／macOS 安装冒烟。在经该合并于 main 历史中可达的**已验收 PR 源提交**上创建注解版本 tag；tag SHA、包内源码 SHA 和 npm provenance 必须一致。策略变化后的已验收等价文件树也复用，另执行独立已验收 base 校验和晋级专项检查。未验收集成保留完整 main 及同提交 main → tag 后备路径。发布原始安装包／源码／清单／校验和字节，不重新构建或改写来源。npm 工作流核对明确的 PR／main／tag 证据链，按不可变原始附件 ID 下载。缺失、过期或不匹配证据均阻断。参见 [CI 规则与证据](development/ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)。
+发布准备遵循[影响计划](development/impact-checks.zh-CN.md)。核心改动要求最终 PR 完整产品验收、正常合并以及带三平台冒烟的 main 集成核验。等价完整源码保留现有注解标签晋升流程，发布其原始字节。
 
-每个获批准的稳定版本都应新增批准 JSON，并在[批准登记表](releases/approvals/registry.json)增加 `{version, path, approved_on}` 条目。保持精确批准日期和既有六项缺口范围，无需为了登记版本而修改校验器。这些发布数据仍须通过完整最终 PR 验收；已验收合并等价时，main 复用原候选包并执行三个安装冒烟。校验器、构建／验收及证据规则变化采用同一路由，加上独立核验和 main/tag 专项回归；证据不兼容时阻断，直至提供经过审查的迁移。两个数据文件均从原始源码归档核验，批准回执记录它们的摘要。登记／批准缺失、无效或不匹配均阻断发布。
+维护 PR 执行专项检查，main 独立核验源码和回执。已验收维护源码上的标签构建绑定该源码的新安装包／源码／manifest／校验和，核验独立构建和源码归档重建，由已接受代码比较产品内容，再执行三平台安装冒烟。发布关联明确连接原完整产品覆盖及中间维护证据。tag SHA、包源码 SHA 与 npm provenance 一致，不给旧包或旧回执改标。
 
-下方历史版本保留其原始门禁和身份。干跑验证准备过程及字节；每次实际发布都应记录真实 tag／OIDC 发布结果，不替换既有版本。
+每个获批准稳定版本均在[批准登记表](releases/approvals/registry.json)登记决定 JSON、精确批准日期和既有六项缺口范围。单独的批准数据执行发布专项检查，不运行产品矩阵；登记和决定摘要从当前不可变源码归档核验。最新失败运行、证据缺失／过期／损坏、批准无效或协议不兼容均阻断，不能以手动诊断或旧绿灯替代。详见 [CI 路由](development/ci-maintenance.zh-CN.md#路由表与阻断条件)。
+
+下方历史版本保留实际门禁和身份。dry-run 验证准备过程及字节，不代表新的 tag／OIDC 发布。仓库维护不要求产品新版本。
 
 ## v3.9.2 正确性修复
 
@@ -99,7 +101,7 @@ GitHub 已为未来正式发布启用 Release immutability。每次发布先创�
 
 沿用既有正式流程，使用 [v3.1.2 专属批准](releases/approvals/v3.1.2.json)和逐版本精确批准日期，功能门槛保持原样。发布 npm／GitHub／Gitee 前要求最终 head／合并／标签完整 CI、八安装目标、32 项 Node、十三宿主、可复现构建／源码重建、安装包扩展 PTY 及相同字节的已核验附件。[发布说明](releases/v3.1.2.md#简体中文) · [修复与交付证据](development/external-tui-regressions.zh-CN.md)。
 
-普通纯文档 PR／push 使用严格 Markdown 允许清单，仅运行必要文档／空白校验。版本、批准 JSON、生成资源、工作流、未知路径、标签和手动运行仍要求完整 CI；既有汇总门槛继续必需并按失败关闭，纯文档不产生可用于发布的验收回执。批准逐版本限定，不豁免自动化失败。
+v3.1.2 当时的纯文档 PR／push 使用严格 Markdown 允许清单，其他路径执行完整 CI；此处保留该版本的历史策略。当前维护遵循[影响检查](development/impact-checks.zh-CN.md)，保留必需汇总门禁和独立发布证据。批准仍逐版本限定，不豁免自动化失败。
 
 Gitee 说明更新需包含原 `tag_name`、`name` 和 `body`，保留既有正式／预览状态，表单布尔值使用小写；更新后核对元数据、注释标签和附件。[官方 Release 更新参数](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md)也要求 Tag 名称，仅发送正文的 PATCH 不足。
 

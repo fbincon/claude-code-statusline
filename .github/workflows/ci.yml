@@ -17,9 +17,9 @@ on:
 permissions:
   contents: read
 
-# Stage one installs and fully accepts the protocol before scoped scheduling.
+# The compatibility foundation is accepted; maintenance now follows its impact plan.
 env:
-  IMPACT_CHECKS: 'false'
+  IMPACT_CHECKS: 'true'
 
 concurrency:
   group: ts06-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.sha }}
@@ -65,6 +65,7 @@ jobs:
       - name: Check workflow Action identities
         run: node tools/checks/actions.ts
       - id: scope
+        name: Read draft state and legacy compatibility classification
         env:
           CI_EVENT: ${{ github.event_name }}
           CI_REF_TYPE: ${{ github.ref_type }}

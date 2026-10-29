@@ -27,14 +27,16 @@ npm run docs:check
 git diff --check
 ```
 
-For product, dependency, workflow or development-tool changes:
+For core product behavior changes:
 
 ```bash
 npm run check
 git diff --check
 ```
 
-CI uses an explicit documentation/template allowlist. Mixed changes and release approval JSON require the complete final-PR product matrix. Both routes finish at `Complete candidate evidence`; see [CI maintenance](docs/development/ci-maintenance.md). The full test suite uses isolated fixtures; follow [testing and acceptance](docs/development/testing.md) for opt-in installed, terminal, physical or paid checks.
+For other committed changes, use `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json` and the selected `npm run ci:check` tasks. Package-sensitive plans require `--compare`; use a new output path and the task for your actual platform. CI executes the remaining platform/host tasks. Documentation media also requires the asset checks selected by the plan.
+
+CI combines checks for mixed maintenance and reserves the complete product matrix for core behavior. Unknown ownership or incomplete comparisons block. Every route finishes at `Complete candidate evidence`; see [impact checks](docs/development/impact-checks.md) and [CI maintenance](docs/development/ci-maintenance.md). Tests use isolated fixtures; [testing and acceptance](docs/development/testing.md) describes installed, terminal, physical and paid checks.
 
 ## Prepare a pull request
 

@@ -14,10 +14,10 @@ import { parse } from 'yaml';
 
 test('new release identity binds original product acceptance and every current delivery/smoke without relabeling', () => {
     const old = fixture(), commit = 'c'.repeat(40), tag = 'v3.13.1';
-    const selection: MaintenanceReleaseSelection = { schema_version: 1, kind: 'maintenance-release-selection', tag, tag_object: 'd'.repeat(40), commit, integration_commit: 'e'.repeat(40),
+    const selection: MaintenanceReleaseSelection = { schema_version: 2, kind: 'maintenance-release-selection', tag, tag_object: 'd'.repeat(40), commit, integration_commit: 'e'.repeat(40), verifier_commit: 'f'.repeat(40), verifier_run: 21,
         maintenance: [{ run_id: 22, commit, envelope: old.record.artifacts[0]!, sha256: hash }],
         product: { record: old.record, envelope: old.record.artifacts[0]!, artifact_ids: old.record.artifacts.map(item => item.id) } };
-    const binding: ReleaseBinding = { schema_version: 1, kind: 'maintenance-release', status: 'pass', repository: run.repository.full_name, selection, run_id: 33, attempt: 1,
+    const binding: ReleaseBinding = { schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: run.repository.full_name, selection, run_id: 33, attempt: 1,
         delivery: Object.fromEntries(['SHA256SUMS', 'build-manifest.json', 'fbincon-claude-code-statusline-3.13.1.tgz', 'claude-code-statusline-3.13.1-source.tar.gz'].map(name => [name, hash])),
         package_artifact: old.record.artifacts[0]!, comparison: { schema_version: 1, kind: 'package-comparison', base: old.record.source_commit, head: commit, base_sha256: hash, head_sha256: hash, equivalent: true, changed_members: [] },
         smokes: SMOKE_TARGETS.map(target => ({ artifact: old.record.artifacts[0]!, receipt: { status: 'pass', kind: 'integration-smoke', source_commit: commit, integration_commit: commit, target,
@@ -36,6 +36,8 @@ test('new release identity binds original product acceptance and every current d
         const altered = structuredClone(binding); mutate(altered); assert.throws(() => validateReleaseBinding(altered, selection, current));
     }
     assert.throws(() => validateReleaseBinding(binding, selection, { ...current, conclusion: 'failure' }));
+    const self = { ...selection, verifier_commit: commit };
+    assert.throws(() => validateReleaseBinding({ ...binding, selection: self }, self, current));
 });
 test('maintenance verifier executes immutable base modules even when head validators become no-ops', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'impact-trust-test-')), previous = process.cwd();

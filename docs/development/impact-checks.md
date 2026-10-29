@@ -4,7 +4,7 @@
 
 ## Staged adoption
 
-The compatibility foundation adds the impact planner, scoped runners and maintenance/release evidence readers while `IMPACT_CHECKS` remains `false` in CI. This first PR still requires the existing complete product matrix and independently verified main promotion. A second PR enables scoped scheduling only after the foundation is accepted. No product version, release tag, npm publication or installed-product change is required by this migration.
+Scoped scheduling is enabled after the compatibility foundation passed the complete PR matrix and independently verified main promotion. The required checks now follow the impact plan. This migration creates no product version, release tag, npm publication or installed-product change.
 
 The required check remains **Complete candidate evidence**. Its name identifies the protected aggregate, not a claim that every route executed the complete product matrix. The aggregate verifies each route's required jobs and intentional skips. Drafts and manual diagnostics cannot create promotable acceptance.
 
@@ -16,7 +16,7 @@ The classifier reads both immutable Git trees, including additions, deletions, m
 | --- | --- |
 | Maintained documentation and community templates | Links, anchors, bilingual counterparts, template structure and whitespace |
 | Documentation media and JSON records | Referenced files, media framing, PNG CRC/decompression/dimensions and inspectable capture hashes |
-| Translation values and registered theme colors | Message keys/placeholders, exact resource generation, core/TUI tests, Native host tests and package/installation checks |
+| Translation values, human-help value slots and registered theme colors | Message keys/placeholders, exact resource generation, relevant core/CLI/TUI tests, applicable Native host tests and package/installation checks |
 | Tests and shared fixtures | Registered consuming test families and applicable platform/host combinations |
 | Check, workflow, Action and release policy | Workflow identities and check/release contract tests, including failure cases |
 | Benchmarks, acceptance and development tools | Tool-family tests and relevant system checks |
@@ -27,7 +27,9 @@ Documentation checks run on Linux. Pure core tests run on Linux; platform, appli
 
 Several categories combine by taking the union of checks. Unknown responsibilities, unsupported file types, ambiguous modes or unreadable revisions block with a classification diagnostic. They never automatically select the expensive product matrix. Frozen archive changes still face archive integrity checks.
 
-Only existing locale keys/placeholders and registered theme value slots qualify as presentation data. Changed language registration, keys, control flow, defaults or executable expressions remain product changes. Generated copies must match their canonical sources exactly. Product `SKILL.md` files are executable instructions, not ordinary documentation. Comment/format/type-only changes require equivalent emitted operations and an actual package comparison.
+Static production imports override a test/tool/document directory label, including inlined compile-time inputs; those changes require actual package comparison. Generated fixtures always select generation checks. Descriptive workspace metadata is compared without ignoring entrypoints, dependencies or executable package contracts. A non-reused batched push checks its actual push range, so an earlier core change cannot hide behind the last documentation commit.
+
+Only existing locale keys/placeholders, registered human-help literal value slots and theme value slots qualify as presentation data. Help command selectors, property keys, control flow, executable expressions and terminal control characters remain significant. Changed language registration, keys or defaults remain product changes. Generated copies must match their canonical sources exactly. Product `SKILL.md` files are executable instructions, not ordinary documentation. Comment/format/type-only changes require equivalent emitted operations and an actual package comparison.
 
 Dependency classification follows the runtime closure from the four business workspaces, including optional dependencies and linked workspace dependencies. A lockfile's `dev` flag alone cannot remove a runtime dependency from this closure.
 
@@ -61,7 +63,7 @@ A normal equivalent two-parent main merge reuses the final PR's maintenance evid
 
 Ordinary maintenance does not download an old product candidate merely to update documentation or tools. Release reuse follows the recorded maintenance ancestry to an available complete product baseline. Every required envelope, original execution and artifact must still be valid; expired/corrupt/missing evidence or a latest failed run blocks reuse. A previous green run and manual diagnostic cannot substitute. Existing 30-day evidence retention is unchanged.
 
-A maintenance-source tag builds its **own** package, source archive, manifest and checksums. Two independent builds and a source-archive rebuild must agree. Linux/Windows/macOS installation smoke exercises those new bytes. The accepted product verifier independently compares original and new runtime payloads; current source-bound release approval is checked separately. `ci-release-binding` records current checks and original reused coverage, with distinct source/package identities. npm resolves this binding and publishes only the verified current-tag package. The tag, package source and OIDC provenance must agree.
+A maintenance-source tag builds its **own** package, source archive, manifest and checksums. Two independent builds and a source-archive rebuild must agree. Linux/Windows/macOS installation smoke exercises those new bytes. The already accepted first-parent main verifier independently compares original and new runtime payloads; current source-bound release approval is checked separately. Release-selection/binding schema 2 records that verifier commit/run separately from original complete product acceptance. This permits validated policy maintenance without rerunning the product matrix or changing historical per-source input digests. `ci-release-binding` records current checks and original reused coverage, with distinct source/package identities. npm resolves this binding and publishes only the verified current-tag package. The tag, package source and OIDC provenance must agree.
 
 Existing complete-source tags and historical npm releases retain their existing reader. Published tags and assets are never changed to test the new route. A dry-run checks preparation and bytes; it does not establish a new publication or validate a new trusted-publisher binding.
 

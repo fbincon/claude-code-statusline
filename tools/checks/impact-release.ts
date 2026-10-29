@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { canonical, git, hash, productInputs } from './impact-content.ts';
+import { git, hash } from './impact-content.ts';
 import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { artifactIdentity, artifactJson, listRunArtifacts, newestArtifact, requireRun, verifyRecordedFiles, type ArtifactIdentity, type CompleteEvidence } from './ci-evidence.ts';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
@@ -15,11 +15,12 @@ import { withImpactVerifier } from './impact-trust.ts';
 import { comparePackages, type PackageComparison } from '../build/impact-package.ts';
 
 export interface MaintenanceReleaseSelection {
-    schema_version: 1; kind: 'maintenance-release-selection'; tag: string; tag_object: string; commit: string; integration_commit: string;
+    schema_version: 2; kind: 'maintenance-release-selection'; tag: string; tag_object: string; commit: string; integration_commit: string;
+    verifier_commit: string; verifier_run: number;
     maintenance: MaintenanceReference[]; product: { record: CompleteEvidence; envelope: ArtifactIdentity; artifact_ids: number[] };
 }
 export interface ReleaseBinding {
-    schema_version: 1; kind: 'maintenance-release'; status: 'pass'; repository: string; selection: MaintenanceReleaseSelection;
+    schema_version: 2; kind: 'maintenance-release'; status: 'pass'; repository: string; selection: MaintenanceReleaseSelection;
     run_id: number; attempt: number; delivery: Record<string, string>; package_artifact: ArtifactIdentity; comparison: PackageComparison;
     smokes: { artifact: ArtifactIdentity; receipt: any }[]; approval: unknown; created_at: string;
     executions: ExecutionJob[]; executed: string[]; reused: CompleteEvidence['coverage'];
@@ -42,7 +43,7 @@ export async function selectMaintenanceRelease(tag: string, commit: string): Pro
     if (!initial.some(item => item.name === 'ci-maintenance')) {
         assert(!initial.some(item => item.name === 'ci-impact-plan'), 'Missing supported maintenance evidence'); return null;
     }
-    const maintenance: MaintenanceReference[] = [], seen = new Set<string>(); let run = main;
+    const maintenance: MaintenanceReference[] = [], seen = new Set<string>(); let run = main, verifierCommit = '', verifierRun = 0;
     for (let depth = 0; depth < 100; depth++) {
         assert(!seen.has(run.head_sha), 'Cyclic maintenance ancestry'); seen.add(run.head_sha);
         const artifacts = await listRunArtifacts(run.id);
@@ -52,7 +53,9 @@ export async function selectMaintenanceRelease(tag: string, commit: string): Pro
                 assert([source.record.commit, source.record.plan.head].includes(commit), 'Tag is not the accepted maintenance source');
                 assert.equal(git('rev-parse', commit + '^{tree}'), source.record.tree);
             }
-            run = latestRun(await runsFor(source.record.product_base), source.record.product_base, 'main'); assert(run, 'Missing product baseline main'); continue;
+            run = latestRun(await runsFor(source.record.product_base), source.record.product_base, 'main'); assert(run, 'Missing product baseline main');
+            if (depth === 0) { await requireGate(run); verifierCommit = run.head_sha; verifierRun = run.id; }
+            continue;
         }
         let product: MaintenanceReleaseSelection['product'];
         if (artifacts.some(item => item.name === 'ci-promotion')) {
@@ -61,20 +64,23 @@ export async function selectMaintenanceRelease(tag: string, commit: string): Pro
             const accepted = await integratedCandidate(promotion.source_commit); assert(accepted && accepted.integration_run === run.id);
             product = { record: accepted.source_record!, envelope: accepted.source_envelope!, artifact_ids: accepted.artifact_ids! };
         } else product = await completeSource(run);
-        assert.equal(productInputs(product.record.source_commit), productInputs(commit), 'Core product inputs changed since complete acceptance');
-        return { schema_version: 1, kind: 'maintenance-release-selection', tag, tag_object: verifyTagIdentity(tag, commit), commit,
-            integration_commit: main.head_sha, maintenance, product };
+        // Per-source input identities are retained unchanged. Cross-source reuse
+        // is proven by actual payload comparison under an already accepted policy.
+        return { schema_version: 2, kind: 'maintenance-release-selection', tag, tag_object: verifyTagIdentity(tag, commit), commit,
+            integration_commit: main.head_sha, verifier_commit: verifierCommit, verifier_run: verifierRun, maintenance, product };
     }
     throw new Error('Maintenance chain exceeds bound');
 }
 export async function verifyReleaseSelection(selection: MaintenanceReleaseSelection): Promise<void> {
-    assert.equal(selection.schema_version, 1); assert.equal(selection.kind, 'maintenance-release-selection');
+    assert.equal(selection.schema_version, 2); assert.equal(selection.kind, 'maintenance-release-selection');
     const current = await selectMaintenanceRelease(selection.tag, selection.commit); assert.deepEqual(current, selection, 'Release evidence changed');
 }
 export function validateReleaseBinding(binding: ReleaseBinding, selection: MaintenanceReleaseSelection, run: any): void {
-    assert.equal(binding.schema_version, 1); assert.equal(binding.kind, 'maintenance-release'); assert.equal(binding.status, 'pass');
+    assert.equal(binding.schema_version, 2); assert.equal(binding.kind, 'maintenance-release'); assert.equal(binding.status, 'pass');
     assert.equal(binding.repository, CI_REPOSITORY); requireRun(run, selection.commit, selection.tag); assert.deepEqual(binding.selection, selection);
     assert.equal(binding.run_id, run.id); assert.equal(binding.attempt, run.run_attempt);
+    assert.match(selection.verifier_commit, /^[a-f0-9]{40}$/u); assert(selection.verifier_commit !== selection.commit);
+    assert(Number.isSafeInteger(selection.verifier_run) && selection.verifier_run > 0);
     assert.equal(binding.comparison.base, selection.product.record.source_commit); assert.equal(binding.comparison.head, selection.commit);
     assert.equal(binding.comparison.equivalent, true); assert.deepEqual(binding.comparison.changed_members, []);
     assert.equal(binding.comparison.base_sha256, selection.product.record.delivery[`fbincon-claude-code-statusline-${selection.product.record.version}.tgz`]);
@@ -104,7 +110,7 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
     assert.equal(checked.source.application_version, version); verifyRecordedFiles(selection.product.record, original);
     const baseline = join(original, 'ts06-candidate', `fbincon-claude-code-statusline-${selection.product.record.version}.tgz`);
     const comparison = comparePackages(selection.product.record.source_commit, selection.commit, baseline, join(delivery, filename)); assert(comparison.equivalent, 'Release changes product payload');
-    await withImpactVerifier(selection.product.record.source_commit, async directory => {
+    await withImpactVerifier(selection.verifier_commit, async directory => {
         const verifier = await import(pathToFileURL(join(directory, 'tools/build/impact-package.ts')).href);
         assert.deepEqual(verifier.comparePackages(comparison.base, comparison.head, baseline, join(delivery, filename)), comparison);
     });
@@ -119,7 +125,7 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
     }
     const executions: ExecutionJob[] = [executionJob(await jobsFor(runId, buildExecution.attempt), 'Build current maintenance release source', buildExecution.attempt)];
     for (const { receipt } of smokes) executions.push(executionJob(await jobsFor(runId, Number(receipt.execution.attempt)), 'Maintenance release smoke / ' + receipt.target, Number(receipt.execution.attempt)));
-    const binding: ReleaseBinding = { schema_version: 1, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
+    const binding: ReleaseBinding = { schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), package_artifact: artifactIdentity(newestArtifact(artifacts, 'ci-release-package')),
         delivery: Object.fromEntries([filename, `claude-code-statusline-${version}-source.tar.gz`, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, hash(fs.readFileSync(join(delivery, name)))])),
         comparison, smokes, executions, approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
