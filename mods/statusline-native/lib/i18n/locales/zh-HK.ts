@@ -2263,7 +2263,7 @@ export const MESSAGES = {
   "reuse.help": "選擇來源後，先檢閱再套用。",
   "reuse.cancel_help": "Enter 選擇 · Space 勾選 · Esc 取消",
   "reuse.review_groups_help": "A 接受 · X 參照處理 · L 版面轉換 · Backspace 編輯 · Q 取消 · Tab ID／差異",
-  "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消 · Tab ID／差異",
+  "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消",
   "settings.change-history": "變更與歷史",
   "settings.reuse-style": "複製／貼上視覺樣式",
   "settings.reuse-groups": "重用完整群組",
@@ -2286,5 +2286,6 @@ export const MESSAGES = {
   "reuse.field.formatting.reset_format": "重設格式",
   "reuse.field.formatting.reset_timezone": "重設時區",
   "history.input_help": "Enter 讀取 · Esc 取消",
-  "reuse.dependency": "群組外相依項目"
+  "reuse.dependency": "群組外相依項目",
+  "reuse.reference_policy": "組外引用處理"
 } as const;

@@ -2263,7 +2263,7 @@ export const MESSAGES = {
   "reuse.help": "원본을 선택하고 적용 전에 검토하세요.",
   "reuse.cancel_help": "Enter 선택 · Space 전환 · Esc 취소",
   "reuse.review_groups_help": "A 적용 · X 참조 · L 배치 변환 · Backspace 편집 · Q 취소 · Tab ID / 차이",
-  "reuse.review_style_help": "A 적용 · Enter 상세 · Backspace 필드 · Q 취소 · Tab ID / 차이",
+  "reuse.review_style_help": "A 적용 · Enter 상세 · Backspace 필드 · Q 취소",
   "settings.change-history": "변경 및 기록",
   "settings.reuse-style": "표시 스타일 복사 / 붙여넣기",
   "settings.reuse-groups": "전체 그룹 재사용",
@@ -2286,5 +2286,6 @@ export const MESSAGES = {
   "reuse.field.formatting.reset_format": "초기화 표시 형식",
   "reuse.field.formatting.reset_timezone": "초기화 시간대",
   "history.input_help": "Enter 읽기 · Esc 취소",
-  "reuse.dependency": "외부 종속 항목"
+  "reuse.dependency": "외부 종속 항목",
+  "reuse.reference_policy": "외부 참조 처리"
 } as const;

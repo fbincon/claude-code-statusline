@@ -2263,7 +2263,7 @@ export const MESSAGES = {
   "reuse.help": "Select a source, then review before applying.",
   "reuse.cancel_help": "Enter select · Space toggle · Esc cancel",
   "reuse.review_groups_help": "A accept · X references · L layout conversion · Backspace edit · Q cancel · Tab IDs / differences",
-  "reuse.review_style_help": "A accept · Enter details · Backspace fields · Q cancel · Tab IDs / differences",
+  "reuse.review_style_help": "A accept · Enter details · Backspace fields · Q cancel",
   "settings.change-history": "Changes and history",
   "settings.reuse-style": "Copy / paste visual style",
   "settings.reuse-groups": "Reuse complete groups",
@@ -2286,5 +2286,6 @@ export const MESSAGES = {
   "reuse.field.formatting.reset_format": "Reset Format",
   "reuse.field.formatting.reset_timezone": "Reset Timezone",
   "history.input_help": "Enter read · Esc cancel",
-  "reuse.dependency": "Outside dependency"
+  "reuse.dependency": "Outside dependency",
+  "reuse.reference_policy": "Reference handling"
 } as const;

@@ -4,6 +4,7 @@ import { withinBudget, frameTree } from '../../ui/frame.ts';
 import { CAPACITY_DESCRIPTION, CAPACITY_CASES } from '../generated-capacity-fixtures.ts';
 import { capacityView } from '../capacity-fixtures.ts';
 import { PANE } from '../fixtures.ts';
+import { t } from '../../lib/i18n/index.ts';
 
 export function registerCapacityCases(start:number,end:number):void {
 const selected=CAPACITY_CASES.slice(start,end);
@@ -17,7 +18,13 @@ for (const value of selected.filter(value => value.name !== 'extreme-10000x10000
     const ui = await $.ui.mount({ ...PANE, requestId: 'capacity-fixture', viewport: { columns: value.columns + 28, rows: value.rows + 6 }, props: { ...PANE.props, bodyColumns: value.columns, scroll: { offset: 0, bodyRows: value.rows }, title: 'capacity:' + CAPACITY_CASES.indexOf(value) } });
     expect(await ui.find({ key: 'capacity-client' })).toBeDefined();
     expect((await ui.findAll({ in: 'capacity-client', type: 'Text' })).length > 5).toBe(true);
+    if(/^draft-reuse-(style-review|groups-review|structure)-w/u.test(value.name))
+      expect(await ui.find({in:'capacity-client',type:'Text',text:/\[\+\]/u})).toBeDefined();
+    if(value.name==='draft-reuse-groups-dependencies-w32')
+      expect(await ui.find({in:'capacity-client',type:'Text',text:new RegExp(t('reuse.review','zh-CN'))})).toBeDefined();
     await ui.key({ in: 'capacity-client', key: 'down' });
+    if(value.name==='draft-reuse-groups-dependencies-w32')
+      expect(await ui.find({in:'capacity-client',type:'Text',text:new RegExp('^'+t('values.on','zh-CN')+': ')})).toBeDefined();
     const reply = (await ui.find({ key: 'capacity-client' }))!.props.props as { ack: number };
     expect(reply.ack).toBe(1);
     expect((await ui.findAll({ in: 'capacity-client', type: 'Text' })).length > 5).toBe(true);

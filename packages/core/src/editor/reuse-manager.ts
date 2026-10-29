@@ -36,6 +36,10 @@ function refresh(e: Editor): void {
     m.review = createReview(m.result); m.details = m.result.blocked.length > 0; m.scroll=0; m.message = m.result.blocked.length ? text(m.result.blocked[0]!) : null;
   } catch (error) { m.result=null;m.review=null;m.message=text(error instanceof Error && error.message==='reuse.incompatible'?'reuse.incompatible':'reuse.invalid'); }
 }
+function reviewCapacity(m: ReuseManager,height:number):number {
+  const headers=1+Number(height>=4)+Number(m.kind==='style'&&height>=5)+Number(m.kind==='groups'&&height>=6)+Number(m.kind==='groups'&&height>=7);
+  return Math.max(1,height-headers-1);
+}
 function rows(e: Editor, language: Language): string[] {
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language);
   if(m.page==='source')return ['current','portable','profile_file','profiles'].map(tr);
@@ -66,14 +70,14 @@ export function reuseKey(e: Editor,event:TextKey,language:Language,width:number,
   if(m.page==='complete'){if(key.toLowerCase()==='b'){e.reuse=null;openSources(e);return 'sources';}const total=rows(e,language).length;if(['up','down','pageup','pagedown','home','end'].includes(key))m.cursor=Math.max(0,Math.min(total-1,key==='home'?0:key==='end'?total-1:m.cursor+(key==='up'?-1:key==='down'?1:key==='pageup'?-Math.max(1,height-3):Math.max(1,height-3))));return null;}
   if(m.generation!==e.mutationGeneration||m.target!==targetIdentity(e.baseline)||!e.canMutateDraft()){m.message=text('history.stale');return null;}
   if(m.page==='review'){
-    if(key==='tab'){m.details=!m.details;m.scroll=0;return null;}
-    if(m.details&&['up','down','pageup','pagedown','home','end'].includes(key)) {const maximum=Math.max(0,detailRows(m,language).length-Math.max(1,height-5));m.scroll=Math.max(0,Math.min(maximum,key==='home'?0:key==='end'?maximum:m.scroll+(key==='up'?-1:key==='down'?1:key==='pageup'?-Math.max(1,height-5):Math.max(1,height-5))));return null;}
+    if(key==='tab'&&m.kind==='groups'){m.details=!m.details;m.scroll=0;return null;}
+    if(m.details&&['up','down','pageup','pagedown','home','end'].includes(key)) {const capacity=reviewCapacity(m,height),maximum=Math.max(0,detailRows(m,language).length-capacity);m.scroll=Math.max(0,Math.min(maximum,key==='home'?0:key==='end'?maximum:m.scroll+(key==='up'?-1:key==='down'?1:key==='pageup'?-capacity:capacity)));return null;}
     if(key.toLowerCase()==='a'){
       if(m.result&&!m.result.blocked.length&&e.commitDraft(m.result.draft,text('reuse.action'))){m.page='complete';m.cursor=0;m.scroll=0;}
     }else if(key.toLowerCase()==='x'&&m.kind==='groups'){m.references=m.references==='review'?'expand':m.references==='expand'?'exclude':'review';refresh(e);}
     else if(key.toLowerCase()==='l'&&m.kind==='groups'){m.explicit=!m.explicit;refresh(e);}
     else if(key==='backspace'){m.page=m.kind==='style'?'fields':'select';m.cursor=0;}
-    else if(m.review)navigateReview(m.review,key,language,width,Math.max(1,height-5));
+    else if(m.review)navigateReview(m.review,key,language,width,reviewCapacity(m,height));
     return null;
   }
   const values=rows(e,language),length=values.length;
@@ -105,6 +109,10 @@ export function reuseKey(e: Editor,event:TextKey,language:Language,width:number,
 function detailRows(m:ReuseManager,language:Language):{text:string;heading:boolean;section:string}[]{
   const tr=(key:string)=>t('reuse.'+key,language);
   return [
+    ...(m.kind==='groups'?[
+      {text:tr(m.references)+' · '+tr('reference_policy'),heading:false,section:''},
+      {text:t('values.'+(m.explicit?'on':'off'),language)+': '+tr('layout'),heading:false,section:''}
+    ]:[]),
     ...(m.result?.dependencies.map(id=>({text:tr('dependency')+': '+id,heading:false,section:''}))??[]),
     ...Object.entries(m.result?.mappings??{}).flatMap(([kind,map])=>Object.entries(map).map(([a,b])=>({text:kind+': '+a+' → '+b,heading:false,section:''}))),
     ...(m.result?.unresolved.map(u=>({text:tr('unbound')+': '+u.id+' · '+u.hint,heading:false,section:''}))??[])
@@ -114,13 +122,13 @@ export function reuseView(e:Editor,language:Language,width:number,height:number)
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language),header=tr(m.kind==='style'?'style':'groups');
   if(m.page==='path')return [{text:header},{text:tr('path')},{text:inputView({...m.input},width)},{text:tr('path_help')}].slice(0,height).map(row=>({...row,text:clip(row.text,width)}));
   if(m.page==='review'){
-    const capacity=Math.max(1,height-5),review=m.review;
+    const capacity=reviewCapacity(m,height),review=m.review;
     const values=m.details?detailRows(m,language):review?reviewRows(review,language,width):[];
     const offset=m.details?Math.max(0,Math.min(m.scroll,values.length-capacity)):Math.max(0,Math.min(review?.scroll??0,values.length-capacity));
-    const mappings=m.result?Object.entries(m.result.mappings.instances).slice(0,2).map(([a,b])=>a+'→'+b):[];
-    return [{text:header},{text:m.message?renderMessage(m.message,language):tr('draft_only')},
-      {text:tr('references')+': '+tr(m.references)+' · '+tr('layout')+': '+t('values.'+(m.explicit?'on':'off'),language)},
-      {text:mappings.length?mappings.join(' · '):m.destination},
+    return [{text:header},...(height>=4?[{text:m.message?renderMessage(m.message,language):tr('draft_only')}]:[]),
+      ...(m.kind==='groups'&&height>=6?[{text:tr(m.references)+' · '+tr('reference_policy')}]:[]),
+      ...(m.kind==='groups'&&height>=7?[{text:t('values.'+(m.explicit?'on':'off'),language)+': '+tr('layout')}]:[]),
+      ...(m.kind==='style'&&height>=5?[{text:tr('scope')+': '+m.fromScope+' · '+m.from+' → '+m.destination}]:[]),
       ...values.slice(offset,offset+capacity).map(r=>({text:r.text,selected:r.heading&&r.section===review?.selected})),{text:tr(m.kind==='groups'?'review_groups_help':'review_style_help')}].slice(0,height).map(row=>({...row,text:clip(row.text,width)}));
   }
   const values=rows(e,language),capacity=Math.max(1,height-3);let start=Math.max(0,Math.min(m.scroll,m.cursor));if(m.cursor>=start+capacity)start=m.cursor-capacity+1;

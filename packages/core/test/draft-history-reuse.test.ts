@@ -1,4 +1,6 @@
-import { openReuse, reuseView } from '../src/editor/reuse-manager.js';
+import { openReuse, reuseKey, reuseView } from '../src/editor/reuse-manager.js';
+import { LANGUAGES } from '../src/i18n/registry.js';
+import { t } from '../src/i18n/messages.js';
 import { textInput } from '../src/editor/text-input.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -98,4 +100,28 @@ test('history review undo and redo refresh the comparison and retain unresolved-
   changesKey(e,{key:'r'},'en',32,12);assert.deepEqual(e.draft,changed);assert(e.changeReview!.review.result.changes.length>0);
   e.beginSave();e.saveFailed('io_error');openChanges(e);const before=JSON.stringify(e.history);
   changesKey(e,{key:'u'},'en',32,12);assert.deepEqual(e.draft,changed);assert.equal(JSON.stringify(e.history),before);
+});
+
+test('style review omits group policies and retains its differences when Tab is pressed in all six languages',()=>{
+  for(const language of LANGUAGES){
+    const e=editor();openReuse(e,'style');e.reuse!.incoming.display.instances[0]!.options.label='Copied';
+    for(const key of ['return','down','return','end','return'])reuseKey(e,{key},language,72,16);
+    assert.equal(e.reuse!.page,'review');assert.equal(e.reuse!.details,false);
+    const rows=reuseView(e,language,120,18).map(r=>r.text).join('\n');
+    assert(!rows.includes(t('reuse.references',language)));assert(!rows.includes(t('reuse.layout',language)));
+    assert(reuseView(e,language,32,4).some(row=>row.selected),'Minimum Native body must expose a difference row');
+    reuseKey(e,{key:'tab'},language,72,16);assert.equal(e.reuse!.details,false);
+    assert(e.reuse!.review!.result.changes.length>0);assert.equal(e.history.undo.length,0);
+  }
+});
+
+test('narrow group review pages retain visible policy decisions, mappings and semantic differences',()=>{
+  const e=editor(grouped());openReuse(e,'groups');
+  for(const key of ['return','down',' ','end','return','x'])reuseKey(e,{key},'en',32,4);
+  assert.equal(e.reuse!.page,'review');assert.deepEqual(e.reuse!.result!.blocked,[]);
+  assert(reuseView(e,'en',32,4).some(row=>row.selected));
+  reuseKey(e,{key:'tab'},'en',32,4);
+  assert(reuseView(e,'en',32,4).some(row=>row.text.includes('Expand dependencies')));
+  reuseKey(e,{key:'down'},'en',32,4);assert(reuseView(e,'en',32,4).some(row=>row.text.startsWith(t('values.off','en')+':')));
+  reuseKey(e,{key:'end'},'en',32,4);assert(reuseView(e,'en',32,4).some(row=>row.text.includes('alignments:')));
 });

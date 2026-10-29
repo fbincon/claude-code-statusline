@@ -33,6 +33,8 @@ On 2026-10-29, the complete source check passes 1,404 tests with six platform-on
 
 The first immutable candidate additionally passed all 25 installed categories. Its 42 real PTY journeys found the Native Ctrl+Z interception; the other 41 passed. The collector's old expected total of 34 and Native's unsupported `paste` event-property checks were corrected before final acceptance. Initial failed runs remain diagnostic evidence and are not promoted to release receipts.
 
+The second candidate passed all 25 installed categories, all 42 journeys and a delivered-source rebuild with identical bytes. Screenshot review then removed group-only policy hints and an empty ID tab from style review. Minimum-size review now reserves a visible difference row; group dependency decisions remain available through paging. Core regressions cover all six languages and the minimum body, and actual-host capacity assertions check visible differences and policy paging. The final source must repeat source-bound acceptance. One superseded Windows ARM job timed out preparing system PowerShell before invoking any candidate; this is retained as a failed environment attempt, never accepted as product evidence.
+
 ## Delivery evidence
 
 Pending final source checks, installed/official-host/terminal acceptance, final PR/main/tag evidence, immutable four-file assets, npm OIDC, GitHub/Gitee publication, public downloads and test-machine upgrade/preferences verification. The [version-specific approval](../releases/approvals/v3.13.0.json) accepts only the six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) gaps. Newly discovered post-publication local problems become issues while preserving the published version.

@@ -2272,7 +2272,7 @@ export const LOCALES = {
     "reuse.help": "Select a source, then review before applying.",
     "reuse.cancel_help": "Enter select · Space toggle · Esc cancel",
     "reuse.review_groups_help": "A accept · X references · L layout conversion · Backspace edit · Q cancel · Tab IDs / differences",
-    "reuse.review_style_help": "A accept · Enter details · Backspace fields · Q cancel · Tab IDs / differences",
+    "reuse.review_style_help": "A accept · Enter details · Backspace fields · Q cancel",
     "settings.change-history": "Changes and history",
     "settings.reuse-style": "Copy / paste visual style",
     "settings.reuse-groups": "Reuse complete groups",
@@ -2295,7 +2295,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "Reset Format",
     "reuse.field.formatting.reset_timezone": "Reset Timezone",
     "history.input_help": "Enter read · Esc cancel",
-    "reuse.dependency": "Outside dependency"
+    "reuse.dependency": "Outside dependency",
+    "reuse.reference_policy": "Reference handling"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -4561,7 +4562,7 @@ export const LOCALES = {
     "reuse.help": "选择来源后，先审阅再应用。",
     "reuse.cancel_help": "Enter 选择 · Space 勾选 · Esc 取消",
     "reuse.review_groups_help": "A 接受 · X 引用处理 · L 布局转换 · Backspace 编辑 · Q 取消 · Tab ID／差异",
-    "reuse.review_style_help": "A 接受 · Enter 详情 · Backspace 字段选择 · Q 取消 · Tab ID／差异",
+    "reuse.review_style_help": "A 接受 · Enter 详情 · Backspace 字段选择 · Q 取消",
     "settings.change-history": "变更与历史",
     "settings.reuse-style": "复制／粘贴视觉样式",
     "settings.reuse-groups": "复用完整分组",
@@ -4584,7 +4585,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "重置格式",
     "reuse.field.formatting.reset_timezone": "重置时区",
     "history.input_help": "Enter 读取 · Esc 取消",
-    "reuse.dependency": "组外依赖"
+    "reuse.dependency": "组外依赖",
+    "reuse.reference_policy": "组外引用处理"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -6850,7 +6852,7 @@ export const LOCALES = {
     "reuse.help": "選擇來源後，先檢閱再套用。",
     "reuse.cancel_help": "Enter 選擇 · Space 勾選 · Esc 取消",
     "reuse.review_groups_help": "A 接受 · X 參照處理 · L 版面轉換 · Backspace 編輯 · Q 取消 · Tab ID／差異",
-    "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消 · Tab ID／差異",
+    "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消",
     "settings.change-history": "變更與歷史",
     "settings.reuse-style": "複製／貼上視覺樣式",
     "settings.reuse-groups": "重用完整群組",
@@ -6873,7 +6875,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "重設格式",
     "reuse.field.formatting.reset_timezone": "重設時區",
     "history.input_help": "Enter 讀取 · Esc 取消",
-    "reuse.dependency": "群組外相依項目"
+    "reuse.dependency": "群組外相依項目",
+    "reuse.reference_policy": "組外引用處理"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -9139,7 +9142,7 @@ export const LOCALES = {
     "reuse.help": "選擇來源後，先檢閱再套用。",
     "reuse.cancel_help": "Enter 選擇 · Space 勾選 · Esc 取消",
     "reuse.review_groups_help": "A 接受 · X 參照處理 · L 版面轉換 · Backspace 編輯 · Q 取消 · Tab ID／差異",
-    "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消 · Tab ID／差異",
+    "reuse.review_style_help": "A 接受 · Enter 詳情 · Backspace 欄位選擇 · Q 取消",
     "settings.change-history": "變更與歷史",
     "settings.reuse-style": "複製／貼上視覺樣式",
     "settings.reuse-groups": "重用完整群組",
@@ -9162,7 +9165,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "重設格式",
     "reuse.field.formatting.reset_timezone": "重設時區",
     "history.input_help": "Enter 讀取 · Esc 取消",
-    "reuse.dependency": "群組外相依項目"
+    "reuse.dependency": "群組外相依項目",
+    "reuse.reference_policy": "組外引用處理"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -11428,7 +11432,7 @@ export const LOCALES = {
     "reuse.help": "入力元を選択し、確認してから適用してください。",
     "reuse.cancel_help": "Enter 選択 · Space 切替 · Esc 中止",
     "reuse.review_groups_help": "A 適用 · X 参照 · L 配置変換 · Backspace 編集 · Q 中止 · Tab ID／差分",
-    "reuse.review_style_help": "A 適用 · Enter 詳細 · Backspace 項目 · Q 中止 · Tab ID／差分",
+    "reuse.review_style_help": "A 適用 · Enter 詳細 · Backspace 項目 · Q 中止",
     "settings.change-history": "変更と履歴",
     "settings.reuse-style": "表示スタイルをコピー／貼り付け",
     "settings.reuse-groups": "グループ全体を再利用",
@@ -11451,7 +11455,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "リセット表示形式",
     "reuse.field.formatting.reset_timezone": "リセットのタイムゾーン",
     "history.input_help": "Enter 読込 · Esc 中止",
-    "reuse.dependency": "範囲外の依存関係"
+    "reuse.dependency": "範囲外の依存関係",
+    "reuse.reference_policy": "外部参照の処理"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -13717,7 +13722,7 @@ export const LOCALES = {
     "reuse.help": "원본을 선택하고 적용 전에 검토하세요.",
     "reuse.cancel_help": "Enter 선택 · Space 전환 · Esc 취소",
     "reuse.review_groups_help": "A 적용 · X 참조 · L 배치 변환 · Backspace 편집 · Q 취소 · Tab ID / 차이",
-    "reuse.review_style_help": "A 적용 · Enter 상세 · Backspace 필드 · Q 취소 · Tab ID / 차이",
+    "reuse.review_style_help": "A 적용 · Enter 상세 · Backspace 필드 · Q 취소",
     "settings.change-history": "변경 및 기록",
     "settings.reuse-style": "표시 스타일 복사 / 붙여넣기",
     "settings.reuse-groups": "전체 그룹 재사용",
@@ -13740,7 +13745,8 @@ export const LOCALES = {
     "reuse.field.formatting.reset_format": "초기화 표시 형식",
     "reuse.field.formatting.reset_timezone": "초기화 시간대",
     "history.input_help": "Enter 읽기 · Esc 취소",
-    "reuse.dependency": "외부 종속 항목"
+    "reuse.dependency": "외부 종속 항목",
+    "reuse.reference_policy": "외부 참조 처리"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;
