@@ -7,6 +7,8 @@
 
 使用[版本决策](releases/approvals/v3.14.0.json)。保留八个安装目标、32 项 Node、十六个固定宿主和原 243 项容量案例；新增 28 项实际宿主案例，合计 271 项。要求安装产物场景／语义拟合回执、双编辑器 PTY 和六语言实际入口标题。按现有证据规则通过最终 PR／main／tag，核验四项附件后以 OIDC 发布 npm，并验证原六项公开下载及固定 npm 签名任务。Gitee 使用显式引用同步并逐项核验附件摘要。本机升级后恢复偏好；发布后新发现只提 issue，不补发修补版。[实现与验收](development/adaptive-row-scenarios.zh-CN.md)。
 
+于 2026-10-30 完成：最终 PR／main／带注释 tag 门禁、新版本 npm OIDC 发布、全部七项公开验证任务、GitHub／Gitee 附件摘要及本机升级／偏好恢复均已通过。[#178](https://github.com/fbincon/claude-code-statusline/issues/178) 与 [#180](https://github.com/fbincon/claude-code-statusline/issues/180) 以 completed 关闭。原生全树 npm 审计仍不支持随包私有工作区；专用签名入口已验证真实公开包及六个公开上游。[最终来源与发布证据](development/adaptive-row-scenarios.zh-CN.md#最终来源与发布身份)。
+
 ## v3.13.0 草稿历史与复用
 
 使用[版本授权](releases/approvals/v3.13.0.json)。保留八安装目标、32 Node 情况、十六固定宿主及全部 217 项既有容量用例，要求 26 项新增实际宿主页面（共 243 项）、安装草稿／复用回执及双编辑器 PTY。通过已验证的 main／tag 证据提升最终 PR 不可变产物，核验四附件、npm OIDC、GitHub／Gitee 发布及公开下载，升级测试机并恢复偏好。发布完成后的本机新问题只提 issue，不补发修补版。[实现与证据](development/draft-history-and-reuse.zh-CN.md)。

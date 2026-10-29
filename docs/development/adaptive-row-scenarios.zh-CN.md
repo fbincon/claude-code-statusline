@@ -2,7 +2,7 @@
 
 [English](adaptive-row-scenarios.md) | **简体中文**
 
-v3.14.0 实现 APPEARANCE-07、APPEARANCE-06、PROFILE-02，以及 [#178](https://github.com/fbincon/claude-code-statusline/issues/178)、[#180](https://github.com/fbincon/claude-code-statusline/issues/180)。开发起点为 `7dc3beec326f87864dc2401a18dffe45b7f93da3`，发布验收仍须满足下述最终 PR／main／tag 门禁。
+v3.14.0 实现 APPEARANCE-07、APPEARANCE-06、PROFILE-02，以及 [#178](https://github.com/fbincon/claude-code-statusline/issues/178)、[#180](https://github.com/fbincon/claude-code-statusline/issues/180)。开发起点为 `7dc3beec326f87864dc2401a18dffe45b7f93da3`。最终 PR／main／tag 门禁、公开渠道与实际机器验证均已通过；下文最终证据保留各自原始来源身份。
 
 ## 共享表示与最终着色
 
@@ -67,3 +67,61 @@ npm run release:signatures -- --version 3.14.0 --commit FULL_SOURCE_SHA --artifa
 发布前 macOS Intel 验收暴露包审阅完成竞态。原始 `75128bf` 候选的诊断观察到私有结果在 `15:10:19.506Z` 已完成，随后 `15:10:19.607Z` 却派生出中断：状态查询确认进程退出时仍持有较早的“运行中”快照。状态现于判定中断前重新读取有界私有记录，并再次检查所属编辑器、配置修订和存活状态。原子发布回归覆盖完成、失败、取消及存活未知结果，以及所属编辑器／配置变化和修订冲突。现有启动、总体及测试期限均不扩大；此诊断与最终源验收分别记录。
 
 初版回归夹具在读取句柄仍打开时尝试发布，被 Windows／Node 22.0 正确拒绝并返回 EPERM。可移植夹具改为读取旧快照并关闭句柄后、检查存活状态前发布；旧产品仍复现相同失败，修复后的断言和期限均保留。此夹具修正不改变产品行为。
+
+## 最终来源与发布身份
+
+于 **2026-10-30**（Asia/Shanghai）完成。[PR #184](https://github.com/fbincon/claude-code-statusline/pull/184) 交付来源 `4146e2738ac390743c5d2d284ac91d7ac4dfc8f0`。普通双父 main 合并为 `dc76c3c426956d1a3238e5e0d3397f6c65acb93d`，两者树完全相同。带注释 `v3.14.0` tag 对象为 `b52fb1672056a33f553787e7e911df639dac755f`，指向原产品来源。后续文档维护保留包、tag 与 npm provenance 的原始来源身份。
+
+| 门禁 | 结果与原始证据 |
+| --- | --- |
+| 最终 PR | [第 2 次通过](https://github.com/fbincon/claude-code-statusline/actions/runs/40905911155/attempts/2)：60 个成功任务、11 个预期路由跳过；8 个安装目标、32 个 Node 案例、16 个固定宿主、271 项容量案例 |
+| main 集成 | [第 2 次通过](https://github.com/fbincon/claude-code-statusline/actions/runs/40927143667/attempts/2)；保留原三平台集成 smoke 与独立的已接受基线验证器 |
+| 带注释 tag | [通过](https://github.com/fbincon/claude-code-statusline/actions/runs/40928310893)；提升同一来源与原始候选文件 |
+| npm OIDC | [发布及后续验证](https://github.com/fbincon/claude-code-statusline/actions/runs/40930105973)：第 1 次完成新版本发布，第 2 次验证已发布版本 |
+| 公开发布 | [7 项全部通过](https://github.com/fbincon/claude-code-statusline/actions/runs/40931917519)：6 个 OS／Node 下载安装任务与固定工具链签名验证 |
+
+原始候选附件 `12912685067` 的 ZIP SHA-256 为 `a822d710b3a581b93f08b8c4afe9d7bf46bcffa72d14bdfb5a3a914ef217dc9d`。四项文件与两次独立构建、交付源码包重建完全一致；发布验证覆盖全部 1,062 个文件与四个产品目标。最终验收附件 `12920128077` 的 ZIP SHA-256 为 `001ab7e32a3fa899d2abaf3e2f8879f606f307a615fccafa6fdc5ddb65f6ddc8`；main／tag 提升附件为 `12921691677`／`12922090837`。
+
+| 文件 | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.14.0.tgz` | `67ea588312c9f4dbb1927f2eb56de312f67a4d9981e78bc059fbcc785ae5c552` |
+| `claude-code-statusline-3.14.0-source.tar.gz` | `644ffe7e387a941ccc8ee3108dc038ba212a431fde32586e07a7f41cfe26b1f6` |
+| `build-manifest.json` | `a3bf7671baa7bd7af1151f66b545efec252feea21754ce0cc2fdc4d1f628b54d` |
+| `SHA256SUMS` | `1252604ec30d65648ee7598407ed6275d0d9004e376dd9560c33cd8b3858e112` |
+
+### 检查、重试与证据边界
+
+最终来源的 `npm run check` 通过 1,443 项测试、6 项仅其他平台适用的跳过、92 项生成资源、3,881 个文档链接、冻结归档及完整迁移清单核验。精确最终 tgz 通过 27 项安装测试／26 个必需类别，以及 Claude Code 2.1.312 上全部 42 项已安装 Native／外部 PTY 流程，模型调用为零。五份完整场景回执分别保留六语言、五种样例、三种宽度及持久化／传输断言，并保持每场景原有 120 秒上限。
+
+早期图像保留实际来源：`492d3d5` 对应 732 项样例重建与五张文档图；`ce1e159` 对应固定 2.1.310 的 Mod／类型／容量／安装／版本检查、1,080 项深浅色图像及四项单色检查。`75128bf` 与 `ee39ca5` 各自独立完成 1,080 项图像与四项单色检查，恢复终端状态且零模型调用。`ee39ca5` 的全部 1,061 个产品文件与最终候选相同，仅来源身份清单不同；不将这些图像改记为最终来源的执行。
+
+上文保留发布前失败及修复。原合并场景进程超过 120 秒；拆为完整独立场景后保留每项断言与原进程上限。macOS 诊断证实，包审查已完成时，早先的运行中快照仍可能导致误报中断；产品修复重读有界状态，保留归属、修订、未知存活状态与期限检查。可移植 Windows 回归在关闭旧快照后发布，仍能使旧产品失败、修复后产品通过。
+
+最终 PR 第 1 次记录 55 个成功任务、4 个失败验收任务及被阻断的聚合。四项均在同一来源上通过正式重试，断言和期限不变：
+
+| 执行 | 原始失败 | 正式重试 |
+| --- | --- | --- |
+| Windows 2025／Claude 2.1.310 | 175 项 Native 测试与类型检查通过后，容量子进程失败 | 完整 Mod／类型／安装／版本流程与全部 271 项容量通过；附件 `12918912507` |
+| macOS 15／Claude 2.1.294 | 未知保存结果测试超过 5,000 ms | 同一案例 1,669.58 ms 通过，完整宿主检查通过；附件 `12916953686` |
+| Windows ARM 安装 | 独立管理器清理时 Koffi 模块被锁定 | 27 项安装测试与完整平台套件通过；附件 `12921240856` |
+| Windows ARM／Node 22.x | 历史 3.8.0 基线阶段超过 900,000 ms | 基线 431,933.92 ms、编辑器执行 532,396.44 ms，均低于原上限；附件 `12919224115` |
+
+[独立诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40908901263) 与[完整上下文诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40910688447) 也分别在 280,916／283,763 ms 内通过未修改的 271 项容量子进程，保持原 300,000 ms 上限。它们仅为不可提升的诊断；正式重试聚合 `123633695079` 提供验收。main 第 1 次保留三项成功集成 smoke，但在内容断言之前因 GitHub `UND_ERR_SOCKET` 响应失败；同源失败任务重试通过。未豁免任何失败或缺失门禁。
+
+### 发布、签名与公开字节
+
+[OIDC dry-run](https://github.com/fbincon/claude-code-statusline/actions/runs/40929421880/attempts/2) 通过；第 1 次在准备包之前因 GitHub HTTP 502 中断，仅建立准备证据。新版本发布于 `2026-10-29T18:23:48Z` 被接受；验证后的证明指向[第 1 次执行](https://github.com/fbincon/claude-code-statusline/actions/runs/40930105973/attempts/1)、来源 `4146e2738ac390743c5d2d284ac91d7ac4dfc8f0` 与透明日志项 `3573461773`。
+
+注册表最初对刚接受的 tarball 返回 404，导致发布后验证失败；没有重复发布。匿名读取确认精确 tarball 于 `18:31:05Z` 可下载，SHA-256／SHA-512 与原始 CI 包一致。失败任务重试成功，日志明确为 `already-published` 与 `oidc_verified:false`：它验证已有字节，不建立第二次 OIDC 发布。第 1 次在写入 `npm-publication` 回执之前结束；已接受发布日志和已验证公开证明保留真实发布身份。
+
+[GitHub immutable stable／Latest Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.14.0) 于 `18:33:21Z` 发布，匿名下载核验全部四项原始附件。本地公开下载检查还通过空缓存精确版本与 `latest` 安装。npm `latest` 为 `3.14.0`，`beta` 保持 `3.0.0-beta.1`。
+
+本地公开字节验证与公开签名任务均使用 npm 11.19.0 通过：外层两个注册表签名、两个证明 bundle、精确来源／tag／工作流、完整清单，以及六个精确公开上游与签名归档文件比对。上游未提供证明时明确记为缺失。公开签名附件 `12922498508` 的 ZIP SHA-256 为 `97305f22b8af7bf6067e497f481b11481f862d8db0db31fdbacb7b100a6b0ccd`。真实 3.13.0 基线也通过；受控失败拒绝损坏签名（`EINTEGRITYSIGNATURE`）、Sigstore 验证失败（`EATTESTATIONVERIFY`）、来源／摘要不符及清单遗漏。原生全树 `npm audit signatures` 仍无法遍历随包私有工作区，不声称全树审计通过。
+
+[Gitee stable Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.14.0)（ID `1254758`）保留相同 tag／来源及四项显式上传文件；逐项匿名下载均与上表一致。Gitee 自动提供的两个源码归档与四项交付附件分别记录。原已验证 main 与带注释 tag 使用显式非强制 refspec 同步并核验远端；后续文档维护仅同步已验证 main，已发布 tag 对象与附件字节不变。
+
+### 实际机器与收尾
+
+本机经已验证、无冲突的 dry-run 后，由 3.13.0 升级至 3.14.0；全部 1,062 个已安装文件与验证后的公开包逐字节一致。Claude Code 2.1.312 上，实际外部编辑器（英语，120 × 32）与 Native 编辑器（简体中文，200 × 50）均通过五场景预览／取消／接受、行背景渐变编辑／取消、草稿导出、撤销重做及本地化样式／分组／历史管理器流程。Native 使用无外部路由的 Linux 用户／网络命名空间，核验 `ENETUNREACH`，模型请求尝试为零。九项原显示／界面／方案／来源／宿主偏好路径恢复并保留字节、权限及缺失状态，仅将项目拥有的后端版本升至 `3.14.0`。随后实际配置的 statusline 命令通过样例渲染，模型 ID、目录与上下文剩余含义符合预期，并再次核验偏好。本次发版后验证未发现新的产品问题。
+
+[#178](https://github.com/fbincon/claude-code-statusline/issues/178) 与 [#180](https://github.com/fbincon/claude-code-statusline/issues/180) 已以 completed 关闭，并关联公开签名及实际机器证据。#179 在本轮范围外，保留原有 `closed / not_planned` 状态。仅沿用六项既有 [#96 缺口](https://github.com/fbincon/claude-code-statusline/issues/96)，仍为接受但未验证。自动终端和代理检查的重建图不代表物理验收或新增人工验收。SHOWCASE-01 保持 NOT_STARTED。发版后新增本机发现另提 issue 并保留 v3.14.0，本轮不追加修补版本。
