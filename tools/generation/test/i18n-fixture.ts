@@ -4,6 +4,8 @@ import { DATA_ROOT, RESOURCE_ROOT, canonical, contextFor, hash, placeholders, re
 export const put = (inputs: Map<string, Uint8Array>, path: string, value: unknown) => inputs.set(path, Buffer.from(JSON.stringify(value)));
 export function fixture(community = false): Map<string, Uint8Array> {
     const inputs = new Map<string, Uint8Array>();
+    inputs.set('tools/generation/resources.ts', Buffer.from('// Synthetic generator identity\n'));
+    inputs.set('tools/generation/i18n/analysis.ts', Buffer.from('// Synthetic analysis identity\n'));
     const codes = ['en', 'zh-CN', 'ja', ...(community ? ['fr'] : [])];
     put(inputs, RESOURCE_ROOT + 'languages.json', codes.map(code => ({ code, name: code })));
     const english = { hello: 'Hello {name}', 'statusline.example': 'Count {count}', term: 'Git' };

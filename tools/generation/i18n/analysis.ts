@@ -96,6 +96,7 @@ export function requiresLanguageEvidence(inputs: Inputs): boolean {
 }
 
 export function analyze(inputs: Inputs): Analysis {
+    assert(inputs.has('tools/generation/resources.ts') && inputs.has('tools/generation/i18n/analysis.ts'), 'Missing generator identity');
     const registry = readJson(inputs, RESOURCE_ROOT + 'languages.json');
     assert(Array.isArray(registry) && registry.length && registry[0]?.code === 'en', 'English must be the first language');
     const codes = new Set<string>(), modules = new Set<string>();

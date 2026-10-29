@@ -12,6 +12,8 @@ import { documentationOnly, assessCiNeeds } from '../ci-scope.js';
 import { CI_REPOSITORY } from '../ci-watch.js';
 import { BASE_VERIFICATION_CHECKS } from '../ci-trust.js';
 import { fixture, run, hash } from './fixtures/ci-evidence.js';
+import { fixture as languageFixture, editPack } from '../../generation/test/i18n-fixture.js';
+import { languageEvidence, languageInputsAt } from '../i18n-evidence.js';
 
 function envelope(file: string, value: unknown): Buffer {
     const name = Buffer.from(file), body = Buffer.from(JSON.stringify(value));
@@ -27,7 +29,7 @@ const changes = [
     'docs/releases/approvals/registry.json', 'packages/core/src/render.ts', 'packages/cli/resources/generated.json',
     'tools/acceptance/new-journey.ts', 'tools/acceptance/screenshots.ts', 'tools/checks/ci-watch.ts',
     'tools/release/notes.ts', 'tools/acceptance/package-lock.json', 'tools/build/pack.ts',
-    '.github/workflows/ci.yml', 'tools/release/approval.ts', 'tools/checks/ci-evidence.ts', 'tools/checks/ci-sources.ts',
+    '.github/workflows/ci.yml', 'tools/release/approval.ts', 'tools/checks/ci-evidence.ts', 'tools/checks/ci-sources.ts', 'language-fallback',
 ];
 for (const changedPath of changes) test(changedPath + ': full PR evidence reuses the identical bytes through main, tag and npm', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'ci routing ')), originalCwd = process.cwd();
@@ -52,7 +54,10 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     const version = '9.9.9', path = `docs/releases/approvals/v${version}.json`;
     write('docs/releases/approvals/registry.json', JSON.stringify({ schema_version: 1, approvals: [{ version, path, approved_on: '2026-10-28' }] }));
     write(path, JSON.stringify({ version })); write('packages/core/src/release.ts', `export const VERSION = '${version}';\n`);
-    if (changedPath !== 'docs/releases/approvals/registry.json') write(changedPath, '// Accepted change\n');
+    if (!['docs/releases/approvals/registry.json', 'language-fallback'].includes(changedPath)) write(changedPath, '// Accepted change\n');
+    const languages = languageFixture();
+    if (changedPath === 'language-fallback') editPack(languages, 'ja', pack => { delete pack.hello; });
+    for (const [path, bytes] of languages) write(path, new TextDecoder().decode(bytes));
     git('add', '.'); git('commit', '-m', 'release data'); const head = git('rev-parse', 'HEAD');
     assert.equal(policyDigest(base, git) === policyDigest(head, git), !changedPath.startsWith('tools/') && !changedPath.startsWith('.github/'));
     assert.notEqual(git('rev-parse', base + '^{tree}'), git('rev-parse', head + '^{tree}'));
@@ -64,6 +69,7 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     source.source_commit = head; source.tree = git('rev-parse', head + '^{tree}'); source.workflow_sha = head;
     source.policy_sha256 = policyDigest(head); source.event = 'pull_request'; source.branch = 'release-fixture';
     source.pr = { number: 23, head, base, base_ref: 'main', draft: false }; source.version = version;
+    source.language = languageEvidence(languageInputsAt(head), head);
     source.delivery = Object.fromEntries(Object.entries(source.delivery).map(([name, value]) => [name.replaceAll('3.9.1', version), value]));
     const prRun = { ...run, head_sha: head, head_branch: source.branch, event: 'pull_request' };
     const baseRun = { ...run, id: 1, head_sha: base }, mainRun = { ...run, id: 44, head_sha: commit };
@@ -145,6 +151,10 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
         source_envelope: tag.source_envelope, source_record_sha256: digest(JSON.stringify(source)), delivery: source.delivery,
         integration: tag.integration, integration_run: tag.integration_run, integration_envelope: tag.integration_envelope, integration_record_sha256: tag.integration_record_sha256 };
     tagArtifacts = [artifact(3000, 'ci-promotion', 'promotion.json', promoted)];
+    if (changedPath === 'language-fallback') {
+        await assert.rejects(publishedTagEvidence('v' + version, head, tagRun), /Release language gate failed/);
+        return;
+    }
     const published = await publishedTagEvidence('v' + version, head, tagRun);
     assert.equal(published?.sourceRun, prRun.id); assert.equal(published?.integrationRun, mainRun.id);
     assert.equal(predictMain(head, base).route, 'main');
