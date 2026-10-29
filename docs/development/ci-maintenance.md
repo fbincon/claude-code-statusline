@@ -2,6 +2,8 @@
 
 **English** | [简体中文](ci-maintenance.zh-CN.md)
 
+[Impact checks and maintenance evidence](impact-checks.md) describes the staged compatibility foundation. The first stage retains the routing below until its full PR/main acceptance permits the separate scoped-scheduling change.
+
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
 ## CI latency and stability work

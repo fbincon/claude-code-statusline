@@ -9,9 +9,13 @@ import { completeSource, runsFor, latestRun } from './ci-sources.ts';
 import { selectMain, integratedCandidate, verifyMerge, recordIntegration } from './ci-integration.ts';
 export { completeSource, runsFor, latestRun } from './ci-sources.ts';
 import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestArtifact, requireRun, verifyRecordedFiles, type CompleteEvidence, type ArtifactIdentity } from './ci-evidence.ts';
+import type { MaintenanceReleaseSelection } from './impact-release.ts';
+import { verifyTagIdentity } from './ci-tag.ts';
+export { verifyTagIdentity } from './ci-tag.ts';
 
 export interface PromotionSelection {
-    schema_version: 1; route: 'full' | 'tag' | 'main'; reason: string; commit: string; tag?: string; tag_object?: string;
+    schema_version: 1; route: 'full' | 'tag' | 'main' | 'maintenance' | 'release'; reason: string; commit: string; tag?: string; tag_object?: string;
+    release?: MaintenanceReleaseSelection;
     source_run?: number; source_commit?: string; filename?: string; source_record?: CompleteEvidence; source_envelope?: ArtifactIdentity; artifact_ids?: number[];
     integration?: { commit: string; base: string; head: string; pr: number; tree: string };
     integration_run?: number; integration_envelope?: ArtifactIdentity; integration_record_sha256?: string;
@@ -28,15 +32,16 @@ export function predictMain(head: string, base: string): NonNullable<PromotionSe
         return { route: 'main', head, base, reason: 'Merge commit with this base/tree can reuse final complete PR evidence, subject to live provenance and accepted-base verification' };
     } catch { return { route: 'full', head, base, reason: 'Update the PR base or supply a supported accepted verifier before an equivalent merge can be proven' }; }
 }
-export function verifyTagIdentity(tag: string, commit: string, read = git): string {
-    assert.match(tag, /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
-    assert.equal(read('cat-file', '-t', 'refs/tags/' + tag), 'tag', 'Annotated release tag required');
-    assert.equal(read('rev-parse', 'refs/tags/' + tag + '^{commit}'), commit, 'Tag moved');
-    read('merge-base', '--is-ancestor', commit, 'refs/remotes/origin/main');
-    return read('rev-parse', 'refs/tags/' + tag);
-}
 export async function selectTag(tag: string, commit: string): Promise<PromotionSelection> {
     const tagObject = verifyTagIdentity(tag, commit);
+    let impact = false;
+    try { git('cat-file', '-e', commit + ':tools/checks/impact-release.ts'); impact = true; } catch { /* Historical evidence retains its original reader. */ }
+    if (impact) {
+        const { selectMaintenanceRelease } = await import('./impact-release.ts');
+        const release = await selectMaintenanceRelease(tag, commit);
+        if (release) return { schema_version: 1, route: 'release', reason: 'Build the current maintenance source and bind it to original product acceptance', commit, tag, tag_object: tagObject,
+            release, source_run: release.product.record.run_id, source_commit: release.product.record.source_commit, artifact_ids: release.product.artifact_ids };
+    }
     const full: PromotionSelection = { schema_version: 1, route: 'full', reason: 'No reusable complete main evidence', commit, tag, tag_object: tagObject };
     // Historical sources retain their original full-gate policy.
     try { git('cat-file', '-e', commit + ':tools/checks/ci-evidence.ts'); } catch { return { ...full, reason: 'Legacy source requires full tag acceptance' }; }
@@ -139,16 +144,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         try {
             const diagnostic = process.env.CI_EVENT === 'workflow_dispatch' && process.env.CI_VALIDATION === 'promotion-shadow';
             if (diagnostic) assert.equal(process.env.CI_REF_NAME, 'main', 'Promotion shadow must run on main');
-            const result = diagnostic ? { ...await selectMain(commit, git('rev-parse', commit + '^1')), mode: 'diagnostic' as const } :
+            const result = process.env.CI_IMPACT_ROUTE === 'maintenance' ? { schema_version: 1, route: 'maintenance', reason: 'Scoped impact checks; no complete product receipt is created', commit } as PromotionSelection :
+                diagnostic ? { ...await selectMain(commit, git('rev-parse', commit + '^1')), mode: 'diagnostic' as const } :
                 process.env.CI_EVENT === 'push' && process.env.CI_REF_TYPE === 'tag' ? await selectTag(process.env.CI_REF_NAME!, commit) :
                 process.env.CI_EVENT === 'push' && process.env.CI_REF_NAME === 'main' && process.env.CI_DOCS_ONLY !== 'true' ? await selectMain(commit, process.env.CI_BASE ?? '') :
                 { schema_version: 1, route: 'full', reason: process.env.CI_EVENT === 'workflow_dispatch' ? 'Explicit manual validation; not PR or release evidence' :
                     process.env.CI_DOCS_ONLY === 'true' ? 'Documentation allowlist; no candidate acceptance' : 'Complete final PR acceptance required', commit } as PromotionSelection;
             if (diagnostic) assert.equal(result.route, 'main', 'No reusable candidate for shadow diagnostics; use explicit full validation');
             result.mode ??= process.env.CI_EVENT === 'workflow_dispatch' ? 'full' : 'automatic';
-            if (process.env.CI_EVENT === 'pull_request' && process.env.CI_DOCS_ONLY !== 'true') result.prediction = predictMain(commit, process.env.CI_BASE ?? '');
+            if (process.env.CI_EVENT === 'pull_request' && process.env.CI_DOCS_ONLY !== 'true' && result.route === 'full') result.prediction = predictMain(commit, process.env.CI_BASE ?? '');
             fs.writeFileSync(values.output!, JSON.stringify(result, null, 2) + '\n');
-            if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `route=${result.route}\npromotion_route=${result.route === 'full' ? '' : result.route}\nmode=${result.mode}\nsource_run=${result.source_run ?? ''}\nsource_commit=${result.source_commit ?? ''}\nfilename=${result.filename ?? ''}\nartifact_ids=${result.artifact_ids?.join(',') ?? ''}\n`);
+            if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `route=${result.route}\npromotion_route=${['main', 'tag'].includes(result.route) ? result.route : ''}\nmode=${result.mode}\nsource_run=${result.source_run ?? ''}\nsource_commit=${result.source_commit ?? ''}\nfilename=${result.filename ?? ''}\nartifact_ids=${result.artifact_ids?.join(',') ?? ''}\n`);
             const summary = { route: process.env.CI_DOCS_ONLY === 'true' ? 'documentation' : result.route, mode: result.mode, reason: result.reason,
                 prediction: result.prediction, integration: result.integration, push_before: result.push_before, base_run: result.base_run,
                 source_run: result.source_run, source_commit: result.source_commit, source_envelope: result.source_envelope,

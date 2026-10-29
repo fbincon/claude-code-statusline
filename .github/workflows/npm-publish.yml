@@ -57,7 +57,6 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.resolve.outputs.ci_run }}
           artifact-ids: ${{ steps.resolve.outputs.artifact_ids }}
-          pattern: ts06-*
           path: ${{ runner.temp }}/evidence
       - name: Verify exact CI package bytes, full acceptance and registry state
         env:

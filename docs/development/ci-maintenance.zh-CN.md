@@ -2,6 +2,8 @@
 
 [English](ci-maintenance.md) | **简体中文**
 
+[按影响检查与维护证据](impact-checks.zh-CN.md)说明分阶段兼容层。首阶段保留下述路由；完整 PR／main 验收通过后，再通过独立改动启用专项调度。
+
 当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
 
 ## CI 耗时与稳定性优化

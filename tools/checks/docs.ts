@@ -17,7 +17,7 @@ export function anchors(body: string): Set<string> {
     }
     return result;
 }
-export function checkDocs(root: string): {
+export function checkDocs(root: string, additional: readonly string[] = []): {
     links: number;
     errors: string[];
 } {
@@ -29,6 +29,10 @@ export function checkDocs(root: string): {
             pages.push(join(root, 'docs', name));
     const pullRequestTemplate = join(root, '.github', 'pull_request_template.md');
     if (fs.existsSync(pullRequestTemplate)) pages.push(pullRequestTemplate);
+    for (const name of additional) {
+        const page = resolve(root, name), local = relative(root, page);
+        if (name.endsWith('.md') && !local.startsWith('..') && fs.existsSync(page) && !pages.includes(page)) pages.push(page);
+    }
     for (const page of pages.filter(p => !LOCAL_ONLY.has(basename(p)))) {
         const body = fs.readFileSync(page, 'utf8'), name = relative(root, page).split(sep).join('/');
         const counterpart = page.endsWith('.zh-CN.md') ? page.replace(/\.zh-CN\.md$/u, '.md') : page.replace(/\.md$/u, '.zh-CN.md');

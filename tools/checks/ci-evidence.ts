@@ -70,7 +70,7 @@ export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
     return names.map(name => artifactIdentity(newestArtifact(artifacts, name)));
 }
 export async function artifactJson(artifact: any, file: string, expectedHash?: string): Promise<any> {
-    assert(['ci-evidence.json', 'promotion.json', 'smoke.json'].includes(file));
+    assert(['ci-evidence.json', 'promotion.json', 'smoke.json', 'maintenance.json', 'receipt.json', 'release-binding.json'].includes(file));
     const identity = artifactIdentity(artifact), path = `repos/${CI_REPOSITORY}/actions/artifacts/${identity.id}/zip`;
     let bytes: Buffer;
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;

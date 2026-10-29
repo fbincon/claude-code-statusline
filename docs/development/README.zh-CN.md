@@ -1,6 +1,8 @@
 # 开发指南
 
 [English](README.md) | **简体中文**
+
+[按影响检查与维护证据](impact-checks.zh-CN.md)定义专项检查规划、包内容比较及分阶段 PR/main/tag 证据迁移。
 [任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
 
 [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md)记录 v3.13.0 的 UX-03、COMPOSITION-04、IMPORT-02 交付、编辑器协议 29、验收及发版后发现。

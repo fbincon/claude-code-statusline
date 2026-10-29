@@ -15,6 +15,8 @@
 
 [CI maintenance and Action identities](ci-maintenance.md) documents documentation-only checks, candidate evidence and promotion routes, `npm run actions:check` and weekly update review.
 
+[Impact checks and maintenance evidence](impact-checks.md) defines scoped check planning, package comparison and the staged PR/main/tag evidence migration.
+
 [Contributing](../../CONTRIBUTING.md) covers feedback, translation and PR workflow; [repository maintenance](repository-governance.md) records main protection, security entry points, dependency alerts and release identity policy.
 
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
