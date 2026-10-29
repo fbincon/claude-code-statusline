@@ -18,7 +18,7 @@ export function explanationLines(editor:Editor,language:Language,width:number): 
   const view=editor.explanation!;
   const tr=(key:string,params:Record<string,unknown>={})=>t('explain.'+key,language,params);
   const item=view.result?.instances.find(item=>item.id===view.id);
-  const lines=[tr('sample'),editor.instanceLabel(view.scope,view.id,language)+' ('+view.id+')'];
+  const lines=[tr('sample')+' · '+t('preview.scenario.'+(view.result?.preview.scenario??editor.previewScenario),language),editor.instanceLabel(view.scope,view.id,language)+' ('+view.id+')'];
   if(!item) return wrapText([...lines,view.error||tr('loading')],width);
   for(const [heading,origins] of [['configuration',['configuration']],['requirements',['local_configuration','host_capability','unknown']]] as const) {
     lines.push('',tr(heading));
@@ -29,6 +29,7 @@ export function explanationLines(editor:Editor,language:Language,width:number): 
   for(const sample of item.samples) {
     lines.push(tr('row.'+sample.row_id)+': '+tr('reason.'+sample.outcome));
     if(sample.truncated) lines.push(tr('reason.sample_truncated'));
+    for(const reason of sample.style_reasons??[])lines.push(tr('style.'+reason.code)+(reason.owner_id?' ('+reason.owner_id+')':''));
   }
   lines.push('',tr('panel_note'));
   return wrapText(lines,width);

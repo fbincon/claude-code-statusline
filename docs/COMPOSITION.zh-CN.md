@@ -2,6 +2,9 @@
 
 [English](COMPOSITION.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
+
 组件类型描述一个值，例如模型或 token 数量；实例决定这个组件如何出现在状态栏中。
 同一类型可以添加多次，每个实例独立设置标签、格式、颜色、条件和宽度。
 保存、重新打开和导出会保留每份实例的身份与设置。
@@ -156,3 +159,9 @@ claude-statusline config alignment remove summary
 将大写占位符替换为实际单位 ID。逗号连接同列成员，分号分隔各列。普通组件／组复制不自动加入对齐；完整方案复制和主区导入保持引用与单位一致。删除、移动、解组或调整行／布局模式导致关系失效时，保存前拒绝修改并指出关系 ID，请先修改或移除该关系。默认布局及预设不会自动开启对齐。
 
 显示配置使用 schema 15，编辑器协议为 24；portable／方案外层格式和界面偏好仍为 1，运行时观察协议仍为 3。旧配置读取和预览仅在内存迁移，实际保存或安装才备份并升级。降级前使用 `recover --restore-config TRANSACTION_ID` 显式恢复兼容备份；版本管理器拒绝新 schema，并负责交接已校验的旧版 Mod 资源及绑定，不能手改 schema 数字伪装迁移。
+
+## 自适应指标与连续背景
+
+可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
+
+五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。

@@ -22,10 +22,12 @@ See the [user guide](../EXTENSIONS.md) for configuration and examples.
   POSIX uses an `execve` handoff so an unrecognized executable cannot trigger
   the implicit `/bin/sh` fallback of `execvp`, even on older Node runtimes
   ([exec family contract](https://man7.org/linux/man-pages/man3/exec.3.html)).
-  Windows supervisor bootstrap reads only OS folder variables from the loaded
-  profile and explicitly loads system PowerShell modules. The command receives
-  its separately serialized minimum environment, including the caller's HOME;
-  bootstrap folder recovery does not grant it the host's full environment.
+  The Windows supervisor is an isolated Node process using the existing native
+  adapter, avoiding a PowerShell launch and C# compilation for every command.
+  The command receives its separately serialized minimum environment, including
+  the caller's HOME; the supervisor does not grant it the host's full environment.
+  Package management starts from its independent recovery copy before loading
+  native code, so replacing the original package cannot lock its own adapter.
 - CLI source services own the separate registry transaction, short-lived refresh
   jobs, revision checks, observation cache and GitHub provider. Jobs have one
   exclusive execution claim, a deadline, cancellation state and a source revision.

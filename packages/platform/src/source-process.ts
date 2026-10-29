@@ -1,9 +1,7 @@
 import { spawn } from 'node:child_process';
-import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { which } from './commands.js';
-import { windowsJobScript } from './windows-source-job.js';
-import { windowsSourceEnvironment, windowsCommandEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
+import { windowsCommandEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
 import { decodeUtf8 } from './utf8.js';
 export interface SourceProcessOptions {
     executable: string;
@@ -45,11 +43,12 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
         }
         let executable = found, args = [...options.args];
         if (windows) {
-            try { environment = windowsSourceEnvironment(commandEnvironment); }
-            catch { resolve({ code: null, stdout: '', reason: 'io_error' }); return; }
+            environment = sourceEnvironment(commandEnvironment);
             environment.STATUSLINE_SOURCE_LAUNCH = JSON.stringify({ executable, args, cwd: options.cwd, environment: commandEnvironment });
-            executable = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
-            args = ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(windowsJobScript, 'utf16le').toString('base64')];
+            // Load native code only in the disposable supervisor. Management
+            // callers already execute from their independent recovery copy.
+            executable = process.execPath;
+            args = [fileURLToPath(new URL('./windows-source-exec.js', import.meta.url))];
         } else {
             // Node/libuv uses execvp, whose ENOEXEC fallback can run plain text
             // in /bin/sh even with shell:false. Hand off through execve instead.

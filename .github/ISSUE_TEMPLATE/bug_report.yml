@@ -1,0 +1,53 @@
+name: Bug report / 问题报告
+description: Report a reproducible installation or product problem / 报告可复现的安装或产品问题
+title: '[Bug] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the [user guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md) / [用户指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md) first. For a vulnerability, use [private reporting](https://github.com/fbincon/claude-code-statusline/security/advisories/new). / 潜在漏洞请使用私有报告。
+        Remove credentials, tokens, private transcripts and unrelated personal data. / 删除凭据、token、私密对话及无关个人信息。
+  - type: input
+    id: version
+    attributes:
+      label: Product version / 产品版本
+      description: Copy claude-statusline --version; use unknown if installation failed before it became available. / 填写命令输出；安装失败而无法获取时填写“未知”。
+    validations:
+      required: true
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Installation channel / 安装渠道
+      options:
+        - npm stable / 稳定版
+        - npm exact version / 固定版本
+        - npm prerelease / 预发布版
+        - GitHub attachment / 附件
+        - Gitee attachment / 附件
+        - Source build / 源码构建
+        - Other or unknown / 其他或未知
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS/version, terminal, Node and Claude Code versions; include WSL distro/Windows host or architecture where relevant. State unknown for unavailable details. / 系统与版本、终端、Node 和 Claude Code 版本；按需说明 WSL 发行版／Windows 宿主或架构，无法获取的项目填“未知”。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction, expected behavior and actual result / 复现、预期与实际结果
+      description: Give the smallest set of steps, the expected outcome and what happened instead. / 提供最少复现步骤、期望结果和实际现象。
+      placeholder: |
+        Steps / 步骤:
+        Expected / 预期:
+        Actual / 实际:
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional sanitized diagnostics, configuration or screenshots / 可选脱敏诊断、配置或截图
+      description: If helpful, attach claude-statusline doctor output or the smallest relevant configuration/log excerpt. Remove secrets and private content before sharing. / 按需提供诊断输出或最小配置／日志片段，先删除秘密和私密内容。

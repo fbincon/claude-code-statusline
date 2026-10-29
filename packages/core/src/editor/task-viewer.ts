@@ -1,0 +1,318 @@
+import type { TaskDetails, TaskEvidence, TaskAgentDetail } from '../contracts/ui.js';
+import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/messages.js';
+import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { wrapText } from './text.js';
+import { clip as clipText } from '../unicode/index.js';
+import { BackendError } from './backend.js';
+export interface TaskRow {
+    key: string;
+    text: string;
+    agent?: string;
+    selected?: boolean;
+}
+export interface TaskViewer {
+    session: string;
+    prompt: string | null;
+    report: TaskDetails | null;
+    language: Language;
+    warning: LocalizedText | null;
+    error: LocalizedText | string | null;
+    busy: boolean;
+    closed: boolean;
+    generation: number;
+    query: string;
+    status: string;
+    evidence: boolean;
+    collapsed: string[];
+    selected: string;
+    scroll: number;
+    rows: TaskRow[];
+    capacity: number;
+    cache: {
+        report: TaskDetails | null;
+        key: string;
+        rows: TaskRow[];
+    } | null;
+    input: 'session' | 'prompt' | 'search' | null;
+    sessionInput: TextInput;
+    promptInput: TextInput;
+    searchInput: TextInput;
+}
+export function taskViewer(session = '', prompt: string | null = null, language: Language = 'en'): TaskViewer {
+    return { session, prompt, language, report: null, warning: null, error: null, busy: false, closed: false, generation: 0,
+        query: '', status: '', evidence: false, collapsed: [], selected: '', scroll: 0, rows: [], capacity: 1, cache: null,
+        input: session ? null : 'session', sessionInput: textInput(session), promptInput: textInput(prompt ?? ''), searchInput: textInput('') };
+}
+export function receiveTask(view: TaskViewer, report: TaskDetails): void {
+    if (view.report && report.evidence.length && report.evidence.every(e => ['source_unavailable', 'invalid_field', 'session_mismatch', 'preferences_unavailable'].includes(e.status)))
+        throw new BackendError('task_read_failed', text('task.viewer.read_failed'));
+    if (report.session_id !== view.session || view.prompt !== null && report.prompt_id === null)
+        throw new BackendError('invalid_request', text('task.error.input'));
+    if (view.report && view.report.prompt_id !== report.prompt_id) {
+        view.selected = '';
+        view.scroll = 0;
+        view.collapsed = [];
+    }
+    view.report = report;
+    view.collapsed = view.collapsed.filter(id => report.agents.some(agent => agent.id === id));
+    view.error = null;
+}
+export async function readTask(view: TaskViewer, backend: {
+    request(operation: 'read_ui_preferences' | 'task_details', payload?: unknown): unknown | Promise<unknown>;
+}, hostAgents?: unknown, fixedLanguage?: Language): Promise<void> {
+    if (view.busy || view.closed || !view.session)
+        return;
+    view.busy = true;
+    const generation = view.generation;
+    try {
+        try {
+            const preference = await backend.request('read_ui_preferences') as {
+                ui_language: Language;
+                warning: LocalizedText | null;
+            };
+            if (view.closed || view.generation !== generation)
+                return;
+            view.language = fixedLanguage ?? preference.ui_language;
+            view.warning = preference.warning;
+        }
+        catch {
+            if (view.closed || view.generation !== generation)
+                return;
+            view.language = fixedLanguage ?? 'en';
+            view.warning = text('task.language_unavailable');
+        }
+        const report = await backend.request('task_details', { session_id: view.session, prompt_id: view.prompt,
+            ...(hostAgents ? { host_agents: hostAgents } : {}) }) as TaskDetails;
+        if (view.closed || view.generation !== generation)
+            return;
+        receiveTask(view, report);
+    }
+    catch (error) {
+        if (!view.closed && view.generation === generation)
+            view.error = error instanceof BackendError && error.localization ? error.localization : text('task.viewer.read_failed');
+    }
+    finally {
+        if (view.generation === generation)
+            view.busy = false;
+    }
+}
+const safe = (value: string) => value.replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu, '').replace(/[\p{Cc}\p{Cs}]/gu, '');
+const validIdentity = (value: string) => !!value && [...value].length <= 1024 && !/[\p{Cc}\p{Cs}]/u.test(value);
+export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
+    const cacheKey = JSON.stringify([width, view.language, view.query, view.status, view.evidence, view.collapsed, view.busy]);
+    if (view.cache?.report === view.report && view.cache?.key === cacheKey)
+        return view.cache.rows;
+    const language = view.language, tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params);
+    const status = (value: string | null) => value === null ? tr('task.unknown') : t('task.value.' + value, language, {}, value);
+    const duration = (value: number | null) => value === null ? tr('task.unknown') : value.toFixed(1) + 's';
+    const rows: TaskRow[] = [], add = (key: string, value: string, agent?: string) => {
+        wrapText([safe(value)], Math.max(2, width)).forEach((text, index) => rows.push({ key: key + ':' + index, text, ...(agent ? { agent } : {}) }));
+    };
+    const evidence = (prefix: string, values: TaskEvidence[]) => values.forEach((e, index) => add(prefix + ':' + e.source + ':' + e.scope + ':' + index, tr('task.evidence', { source: e.source, scope: e.scope, status: status(e.status), time: e.observed_at ?? tr('task.unknown'), freshness: status(e.freshness) })));
+    const report = view.report;
+    if (!report) {
+        add('empty', tr(view.busy ? 'profiles.loading' : 'task.unknown'));
+        return rows;
+    }
+    add('captured', tr('task.captured', { value: report.captured_at }));
+    add('status', tr('task.status', { value: status(report.status), phase: status(report.phase) }));
+    add('elapsed', tr('task.elapsed', { value: duration(report.elapsed_seconds) }));
+    add('active', tr('task.active', { value: duration(report.active_seconds) }));
+    add('progress', tr('task.progress', { value: report.progress ? report.progress.completed + '/' + report.progress.total : tr('task.unknown') }));
+    add('agents', tr('task.agents'));
+    const agents = new Map(report.agents.map(agent => [agent.id, agent]));
+    const childrenByParent = new Map<string, TaskAgentDetail[]>();
+    for (const agent of report.agents)
+        if (agent.parent_id) {
+            const children = childrenByParent.get(agent.parent_id) ?? [];
+            children.push(agent);
+            childrenByParent.set(agent.parent_id, children);
+        }
+    const collapsedAgents = new Set(view.collapsed);
+    const matched = new Set(report.agents.filter(agent => (!view.status || (agent.status ?? 'unknown') === view.status) &&
+        (!view.query || (agent.id + '\n' + (agent.name ?? '')).toLowerCase().includes(view.query.toLowerCase()))).map(agent => agent.id));
+    const included = new Set(matched);
+    for (const id of matched) {
+        let parent = agents.get(id)?.parent_id;
+        const seen = new Set([id]);
+        while (parent && agents.has(parent) && !seen.has(parent) && !included.has(parent)) {
+            seen.add(parent);
+            included.add(parent);
+            parent = agents.get(parent)?.parent_id ?? null;
+        }
+    }
+    const visited = new Set<string>(), filtering = !!(view.query || view.status);
+    const append = (agent: TaskAgentDetail, depth: number) => {
+        if (visited.has(agent.id) || !included.has(agent.id))
+            return;
+        visited.add(agent.id);
+        const children = (childrenByParent.get(agent.id) ?? []).filter(child => included.has(child.id));
+        const collapsed = !filtering && collapsedAgents.has(agent.id);
+        add('agent:' + agent.id, '  '.repeat(Math.min(depth, 8)) + (children.length ? collapsed ? '▸ ' : '▾ ' : '  ') +
+            (agent.name ?? agent.id) + ' [' + agent.id + ']: ' + status(agent.status) +
+            (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), agent.id);
+        if (view.evidence)
+            evidence('agent-evidence:' + agent.id, agent.evidence);
+        if (!collapsed)
+            children.forEach(child => append(child, depth + 1));
+    };
+    report.agents.filter(agent => !agent.parent_id || !agents.has(agent.parent_id)).forEach(agent => append(agent, 0));
+    // Defensive cycle handling for a malformed wire response; never invent a parent.
+    report.agents.filter(agent => included.has(agent.id) && !visited.has(agent.id) &&
+        !(agent.parent_id && agents.has(agent.parent_id) && collapsedAgents.has(agent.parent_id) && !filtering)).forEach(agent => {
+        let parent = agent.parent_id;
+        const seen = new Set([agent.id]);
+        while (parent && agents.has(parent) && !seen.has(parent)) {
+            if (!filtering && collapsedAgents.has(parent))
+                return;
+            seen.add(parent);
+            parent = agents.get(parent)?.parent_id ?? null;
+        }
+        if (parent && seen.has(parent))
+            append(agent, 0);
+    });
+    if (!matched.size)
+        add('no-agents', tr('task.viewer.no_matches'));
+    if (view.evidence) {
+        add('sources', tr('task.sources'));
+        evidence('evidence', report.evidence);
+    }
+    report.limitations.forEach(reason => add('limit:' + reason, t('task.limit.' + reason, language, {}, reason)));
+    view.cache = { report: view.report, key: cacheKey, rows };
+    return rows;
+}
+/** Header identity and error remain visible while the evidence body pages. */
+export function taskViewerView(view: TaskViewer, width: number, height: number): TaskRow[] {
+    const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language, params);
+    const header: TaskRow[] = [
+        { key: 'identity-session', text: tr('task.session', { value: view.input === 'session' ? inputView(view.sessionInput, Math.max(2, width - 12)) : view.session || tr('task.unknown') }) },
+        { key: 'identity-prompt', text: tr('task.prompt', { value: view.input === 'prompt' ? inputView(view.promptInput, Math.max(2, width - 12)) : view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current') }) },
+    ];
+    const detail = view.input === 'session' || view.input === 'prompt' ? tr('task.viewer.identity_help') : view.input === 'search' ? '/ ' + inputView(view.searchInput, Math.max(2, width - 2)) :
+        tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' });
+    header.push({ key: 'controls', text: detail });
+    if (view.warning)
+        header.push({ key: 'warning', text: renderMessage(view.warning, view.language) });
+    if (view.error)
+        header.push({ key: 'error', text: renderMessage(view.error, view.language) + (view.report ? ' · ' + tr('task.captured', { value: view.report.captured_at }) : '') });
+    const rows = taskViewerRows(view, width);
+    const previous = view.rows.findIndex(row => row.key === view.selected);
+    let index = rows.findIndex(row => row.key === view.selected);
+    if (index < 0 && view.selected) {
+        const logical = view.selected.replace(/:\d+$/u, '');
+        index = rows.findIndex(row => row.key.replace(/:\d+$/u, '') === logical);
+    }
+    if (index < 0)
+        index = Math.max(0, Math.min(previous, rows.length - 1));
+    view.selected = rows[index]?.key ?? '';
+    view.rows = rows;
+    view.capacity = Math.max(1, height - header.length);
+    view.scroll = Math.max(0, Math.min(view.scroll, index, Math.max(0, rows.length - view.capacity)));
+    if (index >= view.scroll + view.capacity)
+        view.scroll = index - view.capacity + 1;
+    // Body rows were sanitized and wrapped for this width once. Re-scanning every
+    // grapheme on each page or native capacity probe makes large reports costly.
+    const boundedHeader = header.map(row => ({ ...row, text: clipText(safe(row.text), Math.max(1, width)) }));
+    const body = rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row,
+        ...(width < 2 ? { text: clipText(row.text, 1) } : {}), selected: row.key === view.selected }));
+    return [...boundedHeader, ...body].slice(0, Math.max(1, height));
+}
+export function taskViewerKey(view: TaskViewer, event: TextKey): 'read' | 'close' | null {
+    const key = event.key === 'return' ? 'enter' : event.key;
+    const cancel = !event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
+    if (view.input) {
+        if (cancel) {
+            view.input = null;
+            return null;
+        }
+        if (!event.text && !event.paste && key === 'tab' && view.input !== 'search') {
+            view.input = view.input === 'session' ? 'prompt' : 'session';
+            return null;
+        }
+        if (!event.text && !event.paste && key === 'enter') {
+            if (view.input === 'search') {
+                view.query = view.searchInput.value;
+                view.input = null;
+                return null;
+            }
+            if (!validIdentity(view.sessionInput.value) || view.promptInput.value && !validIdentity(view.promptInput.value)) {
+                view.error = text('task.error.input');
+                return null;
+            }
+            const changed = view.session !== view.sessionInput.value || view.prompt !== (view.promptInput.value || null);
+            if (changed) {
+                view.generation++;
+                view.busy = false;
+                view.report = null;
+                view.selected = '';
+                view.scroll = 0;
+                view.collapsed = [];
+                view.query = '';
+                view.status = '';
+            }
+            view.session = view.sessionInput.value;
+            view.prompt = view.promptInput.value || null;
+            view.input = null;
+            return 'read';
+        }
+        const field = view.input === 'session' ? 'sessionInput' : view.input === 'prompt' ? 'promptInput' : 'searchInput';
+        const result = inputKey(view[field].value, view[field], event, field === 'searchInput' ? 256 : 1024);
+        view[field] = result.state;
+        if (result.error)
+            view.error = text('input.' + result.error, { limit: field === 'searchInput' ? 256 : 1024 });
+        return null;
+    }
+    if (event.text || event.paste || event.meta)
+        return null;
+    if (cancel || !event.ctrl && key.toLowerCase() === 'q') {
+        view.closed = true;
+        view.generation++;
+        return 'close';
+    }
+    if (event.ctrl)
+        return null;
+    if (key.toLowerCase() === 'r')
+        return 'read';
+    if (key.toLowerCase() === 's') {
+        view.sessionInput = textInput(view.session);
+        view.promptInput = textInput(view.prompt ?? '');
+        view.input = 'session';
+        return null;
+    }
+    if (key === '/') {
+        view.searchInput = textInput(view.query);
+        view.input = 'search';
+        return null;
+    }
+    if (key.toLowerCase() === 'e') {
+        view.evidence = !view.evidence;
+        return null;
+    }
+    if (key.toLowerCase() === 'f') {
+        const statuses = ['', ...new Set(view.report?.agents.map(agent => agent.status ?? 'unknown') ?? [])].sort();
+        view.status = statuses[(statuses.indexOf(view.status) + 1) % statuses.length]!;
+        return null;
+    }
+    let index = Math.max(0, view.rows.findIndex(row => row.key === view.selected));
+    if (key === 'up')
+        index--;
+    if (key === 'down')
+        index++;
+    if (key === 'pageup' || key.toLowerCase() === 'k')
+        index -= view.capacity;
+    if (key === 'pagedown' || key.toLowerCase() === 'j')
+        index += view.capacity;
+    if (key === 'home')
+        index = 0;
+    if (key === 'end')
+        index = view.rows.length - 1;
+    const agent = view.rows[index]?.agent;
+    if (agent && ['left', 'right', 'enter'].includes(key)) {
+        if (key === 'left' || key === 'enter' && !view.collapsed.includes(agent))
+            view.collapsed = [...new Set([...view.collapsed, agent])];
+        else
+            view.collapsed = view.collapsed.filter(id => id !== agent);
+    }
+    view.selected = view.rows[Math.max(0, Math.min(index, view.rows.length - 1))]?.key ?? '';
+    return null;
+}

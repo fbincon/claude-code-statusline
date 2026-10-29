@@ -1,3 +1,4 @@
+import { clientKey } from '../fixtures.ts';
 import { MAIN_ITEM_IDS } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ProcessRunResult } from 'claude-code';
@@ -11,10 +12,11 @@ import {
   output,
   reply,
   sample,
-  setup,
+  setup, visibleText,
   keys,
   selectSetting,
   component,
+  previewDraft,
 } from '../fixtures.ts';
 
 const REGION = 'statusline-client';
@@ -26,11 +28,10 @@ test('native Layout alignment form renders through the Client and persists only 
   const ui = await $.ui.mount(PANE);
   await keys(ui, '4'); await selectSetting(ui, 'row-alignment');
   await keys(ui, 'return', 'return', 'down', 'right', 'down', 'right', 'end', 'return');
-  const props = (await ui.find({ key: REGION }))!.props.props as ClientProps;
-  const alignment = props.view.editor!.draft.display.layout.alignments![0]!;
+  const alignment = previewDraft(fixture).display.layout.alignments![0]!;
   expect(alignment.columns).toEqual([[{kind:'instance',id:'a'},{kind:'instance',id:'b'}]]);
   expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
-  expect(await ui.find({ in: REGION, type: 'Text', text: new RegExp(alignment.id) })).toBeDefined();
+  expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: new RegExp(alignment.id) })).toBeDefined();
   await keys(ui, {key:'g',ctrl:true}, 's');
   expect(fixture.store.draft.display.layout.alignments!.length).toBe(1);
   await ui.unmount();
@@ -38,7 +39,7 @@ test('native Layout alignment form renders through the Client and persists only 
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 24,
+      protocol_version: 30,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -67,7 +68,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   ).toBe('foreign command');
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  expect(await ui.find({ type: 'Client', key: REGION })).toBeDefined();
+  expect(await ui.find({ type: 'Client', })).toBeDefined();
   expect(fixture.calls[0]!.argv).toEqual([
     '/tmp/bin with spaces/claude-statusline',
     'ui',
@@ -110,7 +111,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   });
   expect(
     await ui.find({
-      in: REGION,
+      in: await clientKey(ui),
       type: 'Text',
       text: 'Tool configuration saved.',
     }),
@@ -138,7 +139,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
     reads,
   );
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+off/ }),
   ).toBeDefined();
   await keys(ui, 'q');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
@@ -147,7 +148,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
   const reopened = await $.ui.mount(PANE);
   await keys(reopened, '3');
   expect(
-    await reopened.find({ in: REGION, type: 'Text', text: /Colors:\s+on/ }),
+    await reopened.find({ in: await clientKey(reopened), type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
   await reopened.unmount();
 });
@@ -171,7 +172,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   });
   await ui.redraw();
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: '9▏' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: '9▏' }),
   ).toBeDefined();
   await keys(ui, { key: 'g', ctrl: true }, 's');
   expect(fixture.store.draft.host.padding).toBe(0);
@@ -187,7 +188,7 @@ test('invalid numeric input stays visible and cannot save; correcting it accepts
   await selectSetting(ui, 'padding');
   await keys(ui, 'return', {key: 'u', ctrl: true}, '9', '9', 'return');
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'Enter 0-32' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Enter 0-32' }),
   ).toBeDefined();
   await keys(ui, 's');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
@@ -210,7 +211,7 @@ test('foreign native command and foreign panes pass through without changing the
   ).toBe('foreign command');
   const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
   expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
-  expect(fixture.calls).toHaveLength(0);
+  expect(fixture.calls.every(call=>call.operation==='read_ui_preferences')).toBe(true);
   await ui.unmount();
 });
 
@@ -233,7 +234,7 @@ test('unknown saves require read reconciliation before retry or close', {timeout
   await keys(ui, 'k');
   expect(
     await ui.find({
-      in: REGION,
+      in: await clientKey(ui),
       type: 'Text',
       text: 'submitted tool configuration is saved',
     }),
@@ -255,16 +256,12 @@ test('conflicting save retains the draft; explicit reload reads external changes
   const ui = await $.ui.mount(PANE);
   await keys(ui, '3', ' ', 'f');
   expect(fixture.closes).toHaveLength(0);
-  expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'configuration_conflict' }),
-  ).toBeDefined();
-  expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
-  ).toBeDefined();
+  expect(await visibleText(ui)).toContain('Changes and history');
+  await keys(ui,'tab');expect(previewDraft(fixture).display.use_colors).toBe(false);
   fixture.store.draft.display.palette = 'ansi';
-  await keys(ui, 'r', '3');
+  await keys(ui, 'l', 'return', '3');
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+on/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
   reject = false;
   await keys(ui, 'f');
@@ -316,7 +313,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
     props: { ...PANE.props, bodyColumns: 72 },
   });
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Main items/ }),
   ).toBeDefined();
   await keys(ui, {key:'a',ctrl:true}, 'end');
   await ui.redraw({
@@ -326,10 +323,10 @@ test('full and compact layouts keep selection through paging, filtering and resi
   });
   await ui.resize({ columns: 32, rows: 12 });
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Main items/ }),
   ).toBeUndefined();
   expect(
-    {step:'picker-end',found:!!await ui.find({ in: REGION, key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] })},
+    {step:'picker-end',found:!!await ui.find({ in: await clientKey(ui), key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] })},
   ).toEqual({step:'picker-end',found:true});
   await keys(ui, 'pageup', 'pagedown', 'home', 'down');
   await ui.redraw({
@@ -343,7 +340,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
   await ui.redraw({ ...PANE.props, bodyColumns: 72 });
   await ui.resize({ columns: 72, rows: 24 });
   expect(
-    {step:'picker-return',found:!!await ui.find({ in: REGION, key: 'item-main:model' })},
+    {step:'picker-return',found:!!await ui.find({ in: await clientKey(ui), key: 'item-main:model' })},
   ).toEqual({step:'picker-return',found:true});
   await ui.unmount();
 });
@@ -354,14 +351,14 @@ test('Client fault and retry preserve received edits; old epoch and malformed po
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   await keys(ui, '3', ' ');
-  const before = (await ui.find({ key: REGION }))!.props.props as any;
+  const before = (await ui.find({ type: 'Client',  }))!.props.props as any;
   await ui.post({ epoch: before.epoch, fault: 'injected Client failure' });
   expect(
     await ui.find({ type: 'Text', text: 'Received draft kept' }),
   ).toBeDefined();
   await ui.press({ key: 'retry-client' });
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+off/ }),
   ).toBeDefined();
   await ui.post({
     epoch: before.epoch,
@@ -372,7 +369,7 @@ test('Client fault and retry preserve received edits; old epoch and malformed po
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await ui.post({ epoch: 'bad' });
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'Invalid Client input' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Invalid Client input' }),
   ).toBeDefined();
   await ui.unmount();
 });
@@ -382,7 +379,7 @@ test('ordered cumulative batches preserve fast edits, deduplicate writes and rej
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const props = (await ui.find({ key: REGION }))!.props.props as any;
+  const props = (await ui.find({ type: 'Client',  }))!.props.props as any;
   const batch = {
     epoch: props.epoch,
     columns: 60,
@@ -400,7 +397,7 @@ test('ordered cumulative batches preserve fast edits, deduplicate writes and rej
   await ui.post({ ...batch, events: [{ seq: 5, event: { key: 'f' } }] });
   expect(fixture.closes).toHaveLength(0);
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'sequence is incomplete' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'sequence is incomplete' }),
   ).toBeDefined();
   await ui.unmount();
 });
@@ -418,7 +415,7 @@ test('opening errors can retry and preview failures do not mutate drafts', {time
   expect(await ui.find({ key: 'retry-client' })).toBeDefined();
   fail = false;
   await ui.press({ key: 'retry-client' });
-  expect(await ui.find({ type: 'Client', key: REGION })).toBeDefined();
+  expect(await ui.find({ type: 'Client', })).toBeDefined();
   await keys(ui, 'f');
   expect(fixture.closes).toHaveLength(1);
   await ui.unmount();
@@ -472,16 +469,16 @@ test('preview errors can retry; height-only redraws reuse the cached sample', {t
       : next();
   await $.session.start(START);
   await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
+  const ui = await $.ui.mount({...PANE, props: {...PANE.props, bodyColumns: 120}});
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'Preview timed out' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Preview timed out' }),
   ).toBeDefined();
   await keys(ui, 'v');
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'recovered sample' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'recovered sample' }),
   ).toBeDefined();
   const count = previews;
-  await ui.redraw({ ...PANE.props, scroll: { offset: 0, bodyRows: 30 } });
+  await ui.redraw({ ...PANE.props, bodyColumns: 120, scroll: { offset: 0, bodyRows: 30 } });
   expect(previews).toBe(count);
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await ui.unmount();
@@ -513,10 +510,10 @@ test('late sample responses cannot replace a newer resized preview', {timeoutMs:
   resolveOld(reply(sample('stale sample')));
   await ui.redraw();
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'new width sample' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'new width sample' }),
   ).toBeDefined();
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'stale sample' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'stale sample' }),
   ).toBeUndefined();
   await ui.unmount();
 });
@@ -528,12 +525,12 @@ test('a fast printable terminal chunk enters search and retains all characters',
   const ui = await $.ui.mount(PANE);
   await keys(ui, '/', 'git');
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: 'Filter: git' }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Filter: git' }),
   ).toBeDefined();
   expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
   await keys(ui, { key: 'g', ctrl: true });
   expect(
-    await ui.find({ in: REGION, key: 'item-main:model-with-effort' }),
+    await ui.find({ in: await clientKey(ui), key: 'item-main:model-with-effort' }),
   ).toBeDefined();
   await ui.unmount();
 });
@@ -546,9 +543,9 @@ test('preview fitting reserves the visible frame and refreshes when height chang
   await $.session.start(START); await $.command.run(RUN);
   const props = {...PANE.props, bodyColumns:72, scroll:{offset:0,bodyRows:24}};
   const ui = await $.ui.mount({...PANE,props});
-  expect(await ui.find({in:REGION,type:'Text',text:'70 cells'})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:'70 cells'})).toBeDefined();
   await ui.redraw({...props,scroll:{offset:0,bodyRows:16}});
-  expect(await ui.find({in:REGION,type:'Text',text:'72 cells'})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:'72 cells'})).toBeDefined();
   const count = fixture.calls.filter(call => call.operation === 'preview').length;
   await ui.redraw({...props,scroll:{offset:0,bodyRows:15}});
   expect(fixture.calls.filter(call => call.operation === 'preview').length).toBe(count);

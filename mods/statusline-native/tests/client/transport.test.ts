@@ -5,7 +5,7 @@ import { clientProps } from '../../lib/session.ts';
 import type { View } from '../../lib/session.ts';
 import { keyEvents, parseBatch, MAX_BATCH } from '../../lib/client/messages.ts';
 import StatuslineClient from '../../ui/client/surface.ts';
-import { description, readResult } from '../fixtures.ts';
+import { description, readResult, nodeText } from '../fixtures.ts';
 
 function view(): View {
   return {
@@ -39,12 +39,14 @@ test('port snapshots can be deeply frozen without freezing the live draft', () =
     Object.values(value).forEach(freeze);
     Object.freeze(value);
   };
+  const before = JSON.stringify(snapshot);
   freeze(snapshot);
   live.editor!.instanceAction('main','add','git');
   live.editor!.filter('main', 'git');
   expect(live.editor!.draft.display.instances.filter(i=>i.enabled).map(i=>i.type_id)).toContain('git');
-  expect(snapshot.view.editor!.draft.display.instances.filter(i=>i.enabled).map(i=>i.type_id)).not.toContain('git');
-  expect(snapshot.view.editor!.search.main).toBe('');
+  expect(JSON.stringify(snapshot)).toBe(before);
+  expect(Object.keys(snapshot)).not.toContain('view');
+  expect(nodeText(snapshot.frame, snapshot.frame.length - 1)).toContain('Model and effort');
 });
 
 test('strict batches reject unbounded, malformed and non-increasing input', () => {
@@ -84,16 +86,8 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
     columns: 60,
     rows: 24,
     elements: {
-      Box: (props: any) => ({
-        type: 'Box',
-        props,
-        children: props.children || [],
-      }),
-      Text: (props: any) => ({
-        type: 'Text',
-        props,
-        children: props.children || [],
-      }),
+      Box: ({children = [], ...props}: any) => ({type: 'Box', props, children}),
+      Text: ({children = [], ...props}: any) => ({type: 'Text', props, children}),
     } as any,
     onKey: (next) => {
       listener = next;
@@ -132,4 +126,12 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   expect(JSON.stringify(large).length<50000).toBe(true);
   expect(large.events.filter((item:any)=>item.event.overflow)).toHaveLength(1);
   expect(parseBatch(large)).not.toBeNull();
+});
+
+test('an indivisible oversized grapheme fails projection without changing its host draft', () => {
+  const live = view();
+  live.message = 'x' + '\u0301'.repeat(12000);
+  const before = JSON.stringify(live);
+  expect(() => clientProps(live, 1, 0, 1, 72, 24)).toThrow('capacity budget');
+  expect(JSON.stringify(live)).toBe(before);
 });

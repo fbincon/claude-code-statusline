@@ -1,0 +1,59 @@
+{
+  "source": "492d3d50c8d0d72b6230aff956425958b86f5417",
+  "package_sha256": "8fd4b89d82446ab2185fbf12181d324aedc6a68f28c4c3261b2a63b6cdd0abff",
+  "node": "24.21.0",
+  "kind": "fixed samples through the installed production renderer; terminal-cell reconstructions",
+  "model_calls": 0,
+  "physical_visual_acceptance": false,
+  "fonts": {
+    "DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+    "NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+  },
+  "records": [
+    {
+      "file": "powerline-daily-en-120-dark-standard-compact.png",
+      "sample": true,
+      "columns": 120,
+      "rows": 5,
+      "png_sha256": "1d89a536062c1a1ad39f42578a3c0a85fc86d08ccd3323bd30469b4b9e698d97",
+      "cells_sha256": "1971a2d3fababe7b09391f859909f56d43b0079e2c7cd66b4d027b14ad8c4e08",
+      "ansi_sha256": "5d4e04e330b8828536f9119f1a99ee0fb6427f892743dd70ffc3c671079e91cb"
+    },
+    {
+      "file": "agent-workbench-en-120-dark-standard-compact.png",
+      "sample": true,
+      "columns": 120,
+      "rows": 4,
+      "png_sha256": "362d2f78be91fbc9b4df2cd759a564da3a828ad8a2939cfb790515a3c2905eea",
+      "cells_sha256": "6719f7f883f599c949125bb7c18171e490dee3a68664766365fe91827cbaa05e",
+      "ansi_sha256": "ec041e02de33cc9bb964882bc8a910d59788d4499591f2af83c65fcdc9429be3"
+    },
+    {
+      "file": "quota-cost-zh-CN-120-dark-standard-compact.png",
+      "sample": true,
+      "columns": 120,
+      "rows": 7,
+      "png_sha256": "d2dabde01406b28ef72b99fd42b678e85d664410191e1564a2cbe4e6d240d138",
+      "cells_sha256": "41732c493ad9cb5c49d4d927ed4e66d1b32d5cdb70491a47ece41f47880408a9",
+      "ansi_sha256": "385c7e62a3ac6dc1669f78453984ac543a9a10042b27618276222d33548c9b9b"
+    },
+    {
+      "file": "narrow-terminal-en-40-terminal-standard-compact.png",
+      "sample": true,
+      "columns": 40,
+      "rows": 6,
+      "png_sha256": "6915e4d25746a37155e448e7719faa3c3f44f6d3e4d73790d41b79985d22537f",
+      "cells_sha256": "dd49c1592e12d43a8a550e25c3331807a2fe388fef7d6f99cebd32c0d5757eff",
+      "ansi_sha256": "e85aff952e52f40290b46b8a3ec68462622acc98f4bcaafbdbd65085b4422030"
+    },
+    {
+      "file": "light-readable-zh-CN-80-light-standard-compact.png",
+      "sample": true,
+      "columns": 80,
+      "rows": 5,
+      "png_sha256": "df9c4249e5dc1eaffddb4d4a3905443a2eb1617a82b78f08cc9c80b3670c0de8",
+      "cells_sha256": "16b3208e525fd848544ec154398a13f39a63738d6e3dbefa87793fd099fde048",
+      "ansi_sha256": "4cfae43c6cbccb83eecaf6b47b840750406248e841dc94cac531104712529c27"
+    }
+  ]
+}

@@ -86,3 +86,14 @@ test('plain styled text neutralizes controls before measuring the row', () => {
   const row = previewLine(elements, [{text:'A\x1b[2J\x9bZ',bold:false,foreground:null,background:null}], 10) as unknown as Node;
   expect(text(row)).toBe('A [2J Z   ');
 });
+
+test('equal styles coalesce while gradient steps and complete graphemes stay distinct', () => {
+  const spans = ['中', '文', 'é', '尾'].map((value, index) => ({ text: value, bold: false,
+    foreground: { kind: 'rgb' as const, value: index === 3 ? '#445566' : '#112233' }, background: null }));
+  const original = JSON.stringify(spans), row = previewLine(elements, spans, 7) as unknown as Node;
+  const colored = nodes(row).filter(node => node.type === 'Text' && node.props.color);
+  expect(colored).toHaveLength(2);
+  expect(text(colored[0]!)).toBe('中文é');
+  expect(text(colored[1]!)).toBe('尾');
+  expect(JSON.stringify(spans)).toBe(original);
+});

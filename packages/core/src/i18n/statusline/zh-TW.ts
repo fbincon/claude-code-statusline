@@ -258,5 +258,7 @@ export const MESSAGES = {
   "statusline.cost.rate_session": "費用速率 ~${value}/會話小時",
   "statusline.cost.rate_api": "費用速率 ~${value}/API 小時",
   "statusline.prefix.main.session-cost-rate": "費用速率",
-  "statusline.short.main.session-cost-rate": "費用速率"
+  "statusline.short.main.session-cost-rate": "費用速率",
+  "statusline.indicator.remaining": "剩餘 {percentage}%",
+  "statusline.indicator.used": "已用 {percentage}%"
 } as const;

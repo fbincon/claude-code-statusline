@@ -14,6 +14,35 @@ permissions:
   contents: read
 
 jobs:
+  signatures:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify public bytes, signatures and source provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          release_commit=$(git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}")
+          npm run release:downloads -- --tag "$RELEASE_TAG" --commit "$release_commit" --verifier-commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/signature-downloads"
+          npm run release:signatures -- --version "${RELEASE_TAG#v}" --commit "$release_commit" --artifact "$RUNNER_TEMP/signature-downloads/fbincon-claude-code-statusline-${RELEASE_TAG#v}.tgz" --output "$RUNNER_TEMP/signature-downloads/signatures.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: public-signatures
+          path: ${{ runner.temp }}/signature-downloads/*.json
+          if-no-files-found: error
   downloads:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v3.')
     strategy:

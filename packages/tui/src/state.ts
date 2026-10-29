@@ -1,3 +1,10 @@
+import { openChanges, changesKey } from '@fbincon/statusline-core/editor/change-review';
+import { openReuse, reuseKey } from '@fbincon/statusline-core/editor/reuse-manager';
+import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
+import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
+import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
+import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';
+import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '@fbincon/statusline-core/editor/preview-settings';
 import { openAlignments, alignmentsKey } from '@fbincon/statusline-core/editor/alignment-manager';
 import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-manager';
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
@@ -14,7 +21,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'changes' | 'reuse' | 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -40,7 +47,7 @@ export interface Row extends SettingRow {
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
 const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
 const pages = ['main', 'subagents', 'settings', 'layout'] as const;
-const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface'];
+const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Inspection', 'Preview', 'Interface'];
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
     editor: Editor;
@@ -77,7 +84,7 @@ export class State {
         const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
         const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
-            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
+            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'),...(!e.adding?[row('diagnose-file','Diagnose input file','','Item format','action'),row('reuse-style','Copy / paste visual style','','Item format','action')]:[]), ...fields];
         if (e.page === 'layout')
             return d.instances.length ? [fields[0]!, row('row-alignment', 'Align explicit main rows', 'Enter', 'Layout', 'action'), ...fields.slice(1)] : fields;
         const result: Row[] = [
@@ -87,8 +94,10 @@ export class State {
             row('vim-indicator', 'Built-in Vim indicator', h.hide_vim_mode_indicator ? 'hide' : 'show', 'Refresh / behavior'),
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
+            row('preview-scenario','Sample scenario',e.previewScenario,'Preview','choice'),row('preview-width','Preview width',e.previewWidth,'Preview','choice'),
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['change-history','reuse-groups','diagnose-file','component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['task-details','package-management'].map(key=>row(key,key,'','Inspection','action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -123,7 +132,10 @@ export class State {
         return inputView(input.edit, width);
     }
     adjust(delta: -1 | 1): Effect {
-        const e = this.editor, row = this.selectedRow(), d = e.draft.display;
+        const e = this.editor, row = this.selectedRow(), candidate = copyDraft(e.draft), d = candidate.display;
+        if(row.key==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return null;}
+        if(row.key==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return null;}
+        if (row.key !== 'ui-language' && !e.canMutateDraft()) {this.notice(e.compositionError);return null;}
         if (row.form) {
             if (adjustForm(this, row.form, delta) && this.localized.message?.key.startsWith('native.lib.client.forms.'))
                 this.notice('');
@@ -153,23 +165,25 @@ export class State {
                 d.scope_labels = cycle(e.description.options['scope-labels'].choices, d.scope_labels) as typeof d.scope_labels;
                 break;
             case 'vim-indicator':
-                e.draft.host.hide_vim_mode_indicator = !e.draft.host.hide_vim_mode_indicator;
+                candidate.host.hide_vim_mode_indicator = !candidate.host.hide_vim_mode_indicator;
                 break;
             case 'custom-subagent-rows':
                 d.subagents.enabled = !d.subagents.enabled;
                 break;
             case 'padding':
-                e.draft.host.padding = Math.max(0, Math.min(32, e.draft.host.padding + delta));
+                candidate.host.padding = Math.max(0, Math.min(32, candidate.host.padding + delta));
                 e.cancelNumeric('padding');
                 break;
             case 'refresh_interval': {
-                const current = e.draft.host.refresh_interval;
+                const current = candidate.host.refresh_interval;
                 const choices: (number | 'event')[] = ['event', ...[...new Set([1, 2, 5, 10, 30, 60, 300, 600, 3600, ...(current === 'event' ? [] : [current])])].sort((a, b) => a - b)];
-                e.draft.host.refresh_interval = cycle(choices, current);
+                candidate.host.refresh_interval = cycle(choices, current);
                 e.cancelNumeric('refresh_interval');
                 break;
             }
         }
+        e.commitDraft(candidate);
+        e.cancelNumeric();
         return null;
     }
     private numeric(field: 'padding' | 'refresh_interval', value: string): void {
@@ -180,7 +194,7 @@ export class State {
         input.buffer = value;
         e.setBuffer(field, value);
         // Preserve the last valid number while showing an invalid partial edit.
-        if (e.acceptNumeric(field)) {
+        if (e.acceptNumeric(field, true)) {
             e.setBuffer(field, value);
             this.notice('');
         }
@@ -192,9 +206,21 @@ export class State {
         const size = dimensions(columns, rows), height = size.listHeight;
         if (ctrl && k === 'c')
             return 'interrupt';
+        if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' && !event.text && !event.paste) return 'reconcile';
+        if (e.saveState === 'pending') return null;
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if(e.changeReview)return changesKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
+        if(e.reuse)return reuseKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
+        if(ctrl&&!event.text&&!event.paste&&k.toLowerCase()==='t'&&!this.input){openChanges(e);return null;}
+        if(ctrl&&!event.text&&!event.paste&&['z','r'].includes(k.toLowerCase())&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(k.toLowerCase()==='r');return null;}
+        if(e.packages)return packageKey(e.packages,event);
+        if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?'cancel':null;}
+        if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
+        if(e.diagnosis)return diagnosisKey(e,event);
+        if(e.colors)return colorsKey(e,event,this.language);
+        if(ctrl&&k.toLowerCase()==='l'&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
         if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
         if (ctrl && k.toLowerCase() === 'b' && !this.input && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text && !event.paste) { openGroups(e); return null; }
@@ -206,8 +232,10 @@ export class State {
             return null;
         }
         if (event.paste && (!this.input || this.input.kind === 'category')) return null;
+        if(ctrl&&['v','w','n'].includes(k.toLowerCase())&&!this.input){if(k.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(k.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,this.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
         if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
+        if (e.saveState === 'unknown') {this.notice(text('editor.save_unknown'));return null;}
         if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review && !e.explanation) {
             if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
             return null;
@@ -348,6 +376,12 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
+            if(row.key==='change-history'){openChanges(e);return null;}
+            if(row.key==='reuse-style'||row.key==='reuse-groups'){openReuse(e,row.key==='reuse-style'?'style':'groups');return null;}
+            if(row.key==='package-management'){e.packages=packageManager();return 'packages';}
+            if(row.key==='task-details'){e.taskViewer=taskViewer('',null,this.language);return null;}
+            if(row.key==='diagnose-file'){openDiagnosis(e);return null;}
+            if(openColors(e,row.key))return null;
             if (row.key === 'row-alignment') { openAlignments(e); return null; }
             if (row.key === 'component-groups') { openGroups(e); return null; }
             if (row.key === 'sources') { openSources(e); return 'sources'; }
@@ -410,7 +444,7 @@ export class State {
         else if (!e.detail && e.page === 'settings' && !ctrl) {
             const row = this.selectedRow();
             if (k === 'e' && row.key === 'refresh_interval') {
-                e.draft.host.refresh_interval = 'event';
+                const candidate=copyDraft(e.draft);candidate.host.refresh_interval='event';e.commitDraft(candidate);
                 e.cancelNumeric('refresh_interval');
             }
             else if (/^\d$/u.test(k) && (row.key === 'padding' || row.key === 'refresh_interval'))

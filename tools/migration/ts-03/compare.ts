@@ -5,7 +5,7 @@ import { canonical, decode, isLosslessNumber } from '@fbincon/statusline-core/js
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
-import { PROTOCOL_VERSION, PRESETS } from '@fbincon/statusline-core/contracts/ui';
+import { THEME_VALUES, PROTOCOL_VERSION, PRESETS, OPERATIONS } from '@fbincon/statusline-core/contracts/ui';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { appearanceBaseline } from './appearance-compatibility.js';
@@ -77,9 +77,10 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (runtimeDefaultDifference(id, path, a, b)) return;
     if (runtimeProtocolDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
+    if(id==='ui-describe'&&['/value/response/result/editor_fields/global/0/choices','/value/response/result/options/theme/choices'].includes(path)&&canonical(a)===canonical(['classic','dark','light','terminal'])&&canonical(b)===canonical(THEME_VALUES))return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
-      if(canonical(a)===canonical(old) && canonical(b)===canonical(['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose',...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
+      if(canonical(a)===canonical(old) && canonical(b)===canonical(OPERATIONS)) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
       const extensionIds = ['external-value','github-pr','github-ci','session-cost-rate'];
@@ -109,6 +110,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b) && !isLosslessNumber(a) && !isLosslessNumber(b)) {
       const left = a as Record<string, unknown>, right = b as Record<string, unknown>;
       for (const key of new Set([...Object.keys(left), ...Object.keys(right)])) {
+        if(id==='ui-preview'&&path==='/value/response/result'&&key==='scenario'&&!Object.hasOwn(left,key)&&right[key]==='normal')continue;
         if (!Object.hasOwn(left, key) || !Object.hasOwn(right, key)) errors.push(`${id}${path}/${key}: missing or extra field`);
         else walk(left[key], right[key], path + '/' + key.replaceAll('~', '~0').replaceAll('/', '~1'), id);
       }

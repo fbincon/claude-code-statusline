@@ -1,3 +1,11 @@
+import { reuseDraft, reuseRequest } from '@fbincon/statusline-core/editor/reuse';
+import { startExecution, executionStatus, detachExecution } from '../management/execution.js';
+import { reviewHistory, cleanupHistory } from '../management/history.js';
+import { PackageError } from '@fbincon/statusline-core/management/package';
+import { inspectPackage, packageReason } from '../management/inspection.js';
+import { startPackageReview, packageReviewJob } from '../management/review-jobs.js';
+import { diagnosticInputFile } from '../diagnostics/input.js';
+import { isScenario, type PreviewScenario } from '@fbincon/statusline-core/editor/preview-settings';
 import { SourceService } from '../sources/service.js';
 import { contextFor } from '../sources/context.js';
 import { sourceContext } from '@fbincon/statusline-core/extensions/model';
@@ -27,8 +35,8 @@ import { errorDescription } from '@fbincon/statusline-platform/errors';
 import { ProfileService } from '../config/profiles.js';
 import { taskAdapter } from '../tasks/service.js';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
-export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
+export const OPERATIONS = contracts.OPERATIONS;
+export type Preview = (draft: Draft, width: number, trace?: RenderTrace, scenario?: PreviewScenario) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
         host_version: version?.join('.') ?? null,
@@ -47,6 +55,10 @@ export function configurationOptions(): contracts.ConfigurationOptions {
         padding: { minimum: 0, maximum: 32 }, 'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' }, 'hide-vim-mode-indicator': { choices: [true, false] },
     };
 }
+/** Pure production description, shared with generated native acceptance fixtures. */
+export function configurationDescription(version: readonly number[] | null) {
+    return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: [...ITEMS], options: configurationOptions(), capabilities: capabilities(version), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
+}
 export class ConfigurationProtocol {
     constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose) { }
     readResult(effective: EffectiveConfig & { configuration?: contracts.ResolvedConfiguration }): Record<string, unknown> {
@@ -61,18 +73,44 @@ export class ConfigurationProtocol {
         if (typeof operation !== 'string' || !(OPERATIONS as readonly string[]).includes(operation))
             throw new ConfigError('errors.protocol.unsupported_configuration_operation', {}, 'unsupported_operation');
         const payload = request.payload;
+        if (operation.startsWith('package_')) {
+            const context={configDir:this.service.context.configDir,origin:this.service.context.launch.args[0]??this.service.context.launch.executable,hostVersion:this.service.context.hostVersion};
+            try {
+                if(operation==='package_execute_start'){requestObject(payload,['id','owner'],'payload');return startExecution(context,payload.id,payload.owner);}
+                if(operation==='package_execute_status'||operation==='package_execute_detach'){
+                    requestObject(payload,operation==='package_execute_detach'?['id','owner']:['id'],'payload');if(typeof payload.id!=='string'||operation==='package_execute_detach'&&typeof payload.owner!=='string')throw new PackageError('arguments');return operation==='package_execute_detach'?detachExecution(context.configDir,payload.id,payload.owner as string):executionStatus(context.configDir,payload.id);
+                }
+                if(operation==='package_cleanup_review'||operation==='package_cleanup_apply'){
+                    requestObject(payload,operation==='package_cleanup_review'?['prefix','offset']:['prefix','revision','ids'],'payload');if(typeof payload.prefix!=='string'||!payload.prefix)throw new PackageError('arguments');return operation==='package_cleanup_review'?reviewHistory(context,payload.prefix,Number(payload.offset)):cleanupHistory(context,payload.prefix,payload.revision,payload.ids);
+                }
+                if(operation==='package_status') {
+                    requestObject(payload,['prefix','offset'],'payload');
+                    const offset=safeInteger(payload.offset);
+                    if(!(payload.prefix===null||typeof payload.prefix==='string'&&payload.prefix.length>0&&payload.prefix.length<=8192&&!/[\p{Cc}\p{Cs}]/u.test(payload.prefix))||offset===null||offset<0)throw new PackageError('arguments');
+                    return inspectPackage(context,payload.prefix as string|null,offset!);
+                }
+                requestObject(payload,operation==='package_review_start'?['request','owner']:['id','owner'],'payload');
+                return operation==='package_review_start'?startPackageReview(context,payload.request,payload.owner):packageReviewJob(context,payload.id,payload.owner,operation==='package_review_cancel');
+            }catch(error){if(error instanceof ConfigError)throw error;const reason=packageReason(error);throw new ConfigError('package.reason_'+reason,{},reason);}
+        }
         if (operation.startsWith('source')) {
             const sources = new SourceService(this.service);
             if (operation === 'sources_read') { requestObject(payload, [], 'payload'); return sources.read(); }
             if (operation === 'sources_apply') return sources.mutate(payload);
+            if(operation==='source_bindings_review'){requestObject(payload,['offset'],'payload');return sources.bindings().review(payload.offset);}
+            if(operation==='source_bindings_cleanup'){requestObject(payload,['revision','ids'],'payload');return sources.bindings().cleanup(payload.revision,payload.ids);}
+            if(operation==='source_draft'){requestObject(payload,['owner','bindings','close'],'payload');if(typeof payload.close!=='boolean')throw new ConfigError('sources.error.invalid');return sources.bindings().pin(payload.owner,payload.bindings,payload.close);}
+            if(operation==='source_inspect'){requestObject(payload,['id','context','offset'],'payload');return sources.inspect(payload.id,sourceContext(payload.context),payload.offset);}
+
             if (operation === 'source_context') {
                 requestObject(payload, ['project','session','agent'], 'payload');
                 for (const key of ['project','session','agent']) if (payload[key] !== null && typeof payload[key] !== 'string') throw new ConfigError('sources.error.invalid');
                 return contextFor(payload.project as string | null ?? process.cwd(), payload.session as string | null, payload.agent as string | null);
             }
-            requestObject(payload, operation === 'source_refresh' ? ['id','context','owner'] : operation === 'source_diagnose' ? ['id','context'] : ['id'], 'payload');
+            requestObject(payload, operation === 'source_refresh' ? ['id','context','owner'] : operation === 'source_release' ? ['id','owner'] : operation === 'source_diagnose' ? ['id','context'] : ['id'], 'payload');
             if (operation === 'source_review') return sources.review(payload.id);
             if (operation === 'source_status') return sources.job(payload.id);
+            if (operation === 'source_release') return sources.release(payload.id,payload.owner);
             if (operation === 'source_cancel') return sources.cancel(payload.id);
             if (operation === 'source_diagnose') return sources.diagnose(payload.id, sourceContext(payload.context));
             return sources.start(payload.id, payload.context, payload.owner);
@@ -95,6 +133,14 @@ export class ConfigurationProtocol {
             if (typeof payload.name !== 'string' || typeof payload.overwrite !== 'boolean')
                 throw new ConfigError('profiles.error.invalid', { value: '' }, 'invalid_request');
             return profiles.export(payload.path, payload.name, payload.display, payload.overwrite);
+        }
+        if (operation === 'review_reuse') {
+            requestObject(payload, ['draft','path','profile','request'], 'payload');
+            const base = validateDraft(payload.draft, true);
+            if (!(payload.path === null || typeof payload.path === 'string' && payload.path.trim() && !payload.path.includes('\0')) || typeof payload.profile !== 'boolean') throw new ConfigError('reuse.invalid', {}, 'invalid_request');
+            const incoming = payload.path === null ? base : payload.profile ? { display: new ProfileService(this.service).import(payload.path as string).display, host: base.host } : importFile(payload.path as string, base);
+            try { return reuseDraft(base, incoming, reuseRequest(payload.request), this.nextId, ITEMS, payload.path === null); }
+            catch (error) { throw new ConfigError(error instanceof Error && error.message === 'reuse.incompatible' ? 'reuse.incompatible' : 'reuse.invalid', {}, 'invalid_request'); }
         }
         if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
             requestObject(payload, operation === 'read_ui_preferences' ? [] : ['ui_language'], 'payload');
@@ -124,7 +170,7 @@ export class ConfigurationProtocol {
         if (operation === 'describe' || operation === 'read')
             requestObject(payload, operation === 'read' && object(payload) && Object.hasOwn(payload, 'target') ? ['target'] : [], 'payload');
         if (operation === 'describe')
-            return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: ITEMS, options: configurationOptions(), capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
+            return configurationDescription(this.service.context.hostVersion());
         if (operation === 'read') {
             const scoped = object(payload) && Object.hasOwn(payload, 'target');
             return this.readResult(scoped ? new ProfileService(this.service).readTarget(payload.target) : this.service.read());
@@ -138,11 +184,20 @@ export class ConfigurationProtocol {
             const result = scoped ? new ProfileService(this.service).applyTarget(parsed, revision, payload.target) : this.service.apply(parsed, revision);
             return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
         }
+        if(operation==='diagnose_file'){
+            requestObject(payload,['draft','path','scope','width',...(object(payload)?['observed_at','include_local'].filter(key=>Object.hasOwn(payload,key)):[])],'payload');
+            if(!this.diagnose)throw new Error('Diagnosis adapter has not been bound');
+            const file=diagnosticInputFile(payload.path);
+            if(payload.scope==='subagent'&&!Object.hasOwn(file.input,'tasks')&&['model','workspace','context_window','cost'].some(key=>Object.hasOwn(file.input,key))||payload.scope==='main'&&Array.isArray(file.input.tasks)&&!['model','workspace','context_window','cost'].some(key=>Object.hasOwn(file.input,key)))throw new ConfigError('diagnose.error.scope',{},'invalid_request');
+            return this.diagnose({draft:payload.draft,scope:payload.scope,width:payload.width,input:file.input,source:file.path,observed_at:payload.observed_at??null,include_local:payload.include_local??false});
+        }
         if (operation === 'diagnose') {
             if (!this.diagnose) throw new Error('Diagnosis adapter has not been bound');
             return this.diagnose(payload);
         }
-        requestObject(payload, operation==='explain'?['draft','scope','width']:['draft', 'width'], 'payload');
+        requestObject(payload, [...(operation==='explain'?['draft','scope','width']:['draft','width']), ...(object(payload)&&Object.hasOwn(payload,'scenario')?['scenario']:[])], 'payload');
+        const scenario=payload.scenario ?? 'normal';
+        if(!isScenario(scenario))throw new ConfigError('preview.invalid_scenario',{},'invalid_request');
         if (operation==='explain' && payload.scope!=='main' && payload.scope!=='subagent') throw new ConfigError('explain.invalid_scope',{},'invalid_request');
         const parsed = validateDraft(payload.draft);
         let width: number;
@@ -156,10 +211,10 @@ export class ConfigurationProtocol {
             throw new Error('Preview adapter has not been bound');
         if(operation==='explain') {
             const trace=new RenderTrace(parsed.display);
-            const preview=this.preview(parsed,width,trace);
+            const preview=this.preview(parsed,width,trace,scenario);
             return explain(parsed,payload.scope as contracts.Scope,width,preview,trace,explanationFacts(this.service));
         }
-        return this.preview(parsed, width);
+        return this.preview(parsed, width, undefined, scenario);
     }
     handle(raw: string, diagnostics: (error: unknown) => void = error => console.error(error)): {
         response: unknown;

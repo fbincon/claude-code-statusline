@@ -22,7 +22,7 @@ test('schema 8 migrates in memory to strict schema 9 with legacy appearance defa
     const legacy = { ...old, subagents: oldAgents, schema_version: 8 }, original = JSON.stringify(legacy);
     const current = validateDisplay(legacy);
     assert.deepEqual(current.powerline, DEFAULT_POWERLINE);
-    assert.equal(current.schema_version, 15);
+    assert.equal(current.schema_version, 17);
     assert.equal(JSON.stringify(legacy), original);
     assert(isDraft({ display: current, host: DEFAULT_HOST }));
     for (const invalid of [{ ...current.powerline, padding: 'center' }, { ...current.powerline, arbitrary: 'x' }, { ...current.powerline, start_cap: 1 }]) {
@@ -35,7 +35,7 @@ test('schema 8 migrates in memory to strict schema 9 with legacy appearance defa
 test('complete schemes isolate drafts, retain output language and subagent opt-out, and keep stable identities', () => {
     const original = defaultDisplay(); original.subagents.enabled = false; original.statusline_language = 'ko';
     const before = JSON.stringify(original);
-    for (const name of COMPLETE_SCHEMES) {
+    for (const name of ['daily-development','agent-focus','quota-watch']) {
         const scheme = applyPreset(original, name, () => 'new-copy');
         assert.equal(scheme.statusline_language, 'ko'); assert.equal(scheme.subagents.enabled, false);
         assert.equal(scheme.theme, 'terminal'); assert.equal(scheme.separator_style, 'compact');

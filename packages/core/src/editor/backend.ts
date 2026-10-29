@@ -1,13 +1,15 @@
+import { isPackageResult } from './package-validation.js';
+import { isScenario } from './preview-settings.js';
 import { validAlignments } from './alignments.js';
 import { GRADIENT_KEYS, validGradient } from './gradients.js';
 import { validCostRateOptions } from './cost-rate.js';
 import { validGroups } from './groups.js';
 import { INDICATOR_KEYS, validIndicatorOptions } from './indicators.js';
-import { SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from '../contracts/ui.js';
+import { STYLE_REASONS, SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from '../contracts/ui.js';
 import { text as localizedText } from '../i18n/messages.js';
 /** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
 import {
-  PROTOCOL_VERSION,
+  PROTOCOL_VERSION, OPERATIONS,
   MAIN_ITEM_IDS,
   SUBAGENT_ITEM_IDS,
   PALETTE_VALUES, THEME_VALUES, POWERLINEGLYPH_VALUES,
@@ -174,9 +176,9 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 15 ||
-    !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
-    !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
+    d.schema_version !== 17 ||
+    !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.filter(f => f.key !== 'powerline.row_background_gradient' || Object.hasOwn(d.powerline as object, 'row_background_gradient')).map(f => f.key.slice(10))) ||
+    !POWERLINE_FIELDS.every(f => f.kind === 'text' ? validGradient((d.powerline as Record<string, unknown>)[f.key.slice(10)] ?? null) : f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
     !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
     !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
@@ -472,10 +474,16 @@ export function parseResponse<O extends Operation>(
         !(result.backup_dir === null || typeof result.backup_dir === 'string'))
     )
       fail();
+  } else if (operation === 'review_reuse') {
+    if (!exact(result, ['draft','changes','mappings','dependencies','unresolved','blocked']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange) ||
+      !object(result.mappings) || !exact(result.mappings,['instances','groups','alignments']) || !Object.values(result.mappings).every(m => object(m) && Object.entries(m).every(([key,value]) => /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(key) && typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(value))) ||
+      !strings(result.dependencies) || !strings(result.blocked) || !Array.isArray(result.unresolved) || !result.unresolved.every(v => object(v) && exact(v,['scope','id','hint']) && ['main','subagent'].includes(String(v.scope)) && text(v.id) && text(v.hint))) fail();
   } else if (operation === 'review_import') {
     if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {
     if (!isDraft(result.draft)) fail();
+  } else if (operation.startsWith('package_')) {
+    if (!isPackageResult(operation,result)) fail();
   } else if (operation.startsWith('source')) {
     if (!isSourceResult(operation,result)) fail();
   } else if (operation === 'profiles_read' || operation === 'profiles_apply') {
@@ -489,7 +497,7 @@ export function parseResponse<O extends Operation>(
   } else if (operation === 'explain') {
     if (!exact(result,['sample','scope','width','actual_availability','preview','instances']) || result.sample!==true ||
         !['main','subagent'].includes(String(result.scope)) || !Number.isInteger(result.width) || Number(result.width)<2 || Number(result.width)>10000 || result.actual_availability!=='not_observed' ||
-        !object(result.preview) || result.preview.sample!==true || !Array.isArray(result.preview.main) || !Array.isArray(result.preview.subagents) ||
+        !object(result.preview) || result.preview.scenario!==undefined&&!isScenario(result.preview.scenario) || result.preview.sample!==true || !Array.isArray(result.preview.main) || !Array.isArray(result.preview.subagents) ||
         ![...result.preview.main,...result.preview.subagents].every(row=>Array.isArray(row)&&row.every(isSpan)) ||
         !Array.isArray(result.instances) || result.instances.length>10000) fail();
     const ids=new Set<string>();
@@ -497,13 +505,13 @@ export function parseResponse<O extends Operation>(
       if(!object(item)||!exact(item,['id','type_id','enabled','reasons','samples'])||!text(item.id)||ids.has(item.id)||!text(item.type_id)||typeof item.enabled!=='boolean'||!Array.isArray(item.reasons)||!Array.isArray(item.samples)) fail();
       ids.add(item.id as string);
       if(!item.reasons.every((reason:unknown)=>object(reason)&&exact(reason,['code','origin'])&&EXPLAIN_REASONS.includes(reason.code as typeof EXPLAIN_REASONS[number])&&['configuration','local_configuration','host_capability','unknown'].includes(String(reason.origin)))) fail();
-      if(!item.samples.every((row:unknown)=>object(row)&&exact(row,['row_id','outcome','truncated'])&&text(row.row_id)&&SAMPLE_REASONS.includes(row.outcome as typeof SAMPLE_REASONS[number])&&typeof row.truncated==='boolean')) fail();
+      if(!item.samples.every((row:unknown)=>object(row)&&exact(row,['row_id','outcome','truncated',...(row.style_reasons!==undefined?['style_reasons']:[])])&&text(row.row_id)&&SAMPLE_REASONS.includes(row.outcome as typeof SAMPLE_REASONS[number])&&typeof row.truncated==='boolean'&&validStyleReasons(row.style_reasons))) fail();
     }
-  } else if (operation === 'diagnose') {
+  } else if (operation === 'diagnose'||operation==='diagnose_file') {
     if (!isDiagnosis(result)) fail();
   } else if (operation === 'preview') {
     if (
-      result.sample !== true ||
+      result.sample !== true || result.scenario!==undefined&&!isScenario(result.scenario) ||
       !Array.isArray(result.main) ||
       !Array.isArray(result.subagents) ||
       ![...result.main, ...result.subagents].every(
@@ -517,8 +525,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
-      result.operations.length !== 25 ||
+      !selection(result.operations, OPERATIONS) ||
+      result.operations.length !== OPERATIONS.length ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||
@@ -587,7 +595,7 @@ function isDiagnosis(value: Record<string, unknown>): boolean {
     ids.add(item.id);
     return item.reasons.every((reason: unknown) => object(reason) && exact(reason,['code','origin']) && EXPLAIN_REASONS.includes(reason.code as typeof EXPLAIN_REASONS[number]) && ['configuration','local_configuration','host_capability','unknown'].includes(String(reason.origin))) &&
       item.evidence.every((e: unknown) => object(e) && exact(e,['source','scope','status','observed_at','freshness','fields']) && text(e.source) && text(e.scope) && EVIDENCE_STATUSES.includes(e.status as typeof EVIDENCE_STATUSES[number]) && stamp(e.observed_at) && ['current','stale','unknown','newer_than_input'].includes(String(e.freshness)) && Array.isArray(e.fields) && e.fields.every((f: unknown) => object(f) && exact(f,['path','status']) && text(f.path) && ['observed','not_observed','invalid_field'].includes(String(f.status)))) &&
-      item.rows.every((row: unknown) => object(row) && exact(row,['row_id','outcome','truncated']) && text(row.row_id) && LAYOUT_REASONS.includes(row.outcome as typeof LAYOUT_REASONS[number]) && typeof row.truncated === 'boolean');
+      item.rows.every((row: unknown) => object(row) && exact(row,['row_id','outcome','truncated',...(row.style_reasons!==undefined?['style_reasons']:[])]) && text(row.row_id) && LAYOUT_REASONS.includes(row.outcome as typeof LAYOUT_REASONS[number]) && typeof row.truncated === 'boolean');
   })) return false;
   const tree = value.host_fields.worktree, cache = value.host_fields.cache_miss;
   return exact(value.host_fields,['worktree','cache_miss']) && object(tree) && exact(tree,['session_name','git_name','selected_source']) && nullable(tree.session_name) && nullable(tree.git_name) && [null,'worktree.name','workspace.git_worktree'].includes(tree.selected_source as string | null) &&
@@ -602,3 +610,5 @@ export function spanColor(span: Span, channel: 'foreground' | 'background' = 'fo
     return `ansi256(${Number(color.value)})`;
   return undefined;
 }
+
+function validStyleReasons(value:unknown):boolean {return value===undefined||Array.isArray(value)&&value.every(r=>object(r)&&exact(r,['code','owner_id'])&&STYLE_REASONS.includes(r.code as typeof STYLE_REASONS[number])&&(r.owner_id===null||text(r.owner_id)));}

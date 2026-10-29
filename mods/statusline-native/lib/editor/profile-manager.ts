@@ -162,7 +162,11 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
     if (!m || !effect) return;
     m.effect = null;
     let writing = false;
+    let savingDisplay = false;
     try {
+        let generation=e.mutationGeneration;
+        const permitted=()=>e.profiles===m && e.canMutateDraft(generation);
+        if (!['load','export'].includes(effect.kind) && !e.canMutateDraft()) { m.message=e.compositionError;return; }
         if (effect.kind === 'load') {
             const copy = m.action === 'save' && m.candidate !== null;
             m.library = await backend.request('profiles_read'); m.page = 'list'; m.cursor = 0;
@@ -172,12 +176,13 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
         if (effect.kind === 'switch') {
             if (effect.save) {
                 if (!e.acceptNumeric()) throw new BackendError('invalid_draft', text('profiles.invalid_draft'));
-                writing = true;
-                const saved = await backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision,
-                    ...(e.baseline.configuration ? { target: e.baseline.configuration.target } : {}) });
-                e.committed(saved); writing = false;
+                const submitted=e.beginSave();writing = true;savingDisplay=true;
+                const saved = await backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
+                    ...(submitted.target ? { target: submitted.target } : {}) });
+                e.committed(saved); writing = false;savingDisplay=false;generation=e.mutationGeneration;
             }
             const current = await backend.request('read', { target: effect.next.target });
+            if(!permitted()) {m.message=e.compositionError;return;}
             e.committed(current);
             e.replaceDraft(current.draft);
             if (effect.next.display) e.replaceDraft({ ...current.draft, display: JSON.parse(JSON.stringify(effect.next.display)) as DisplayDraft });
@@ -186,6 +191,7 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
         if (effect.kind === 'import' || effect.kind === 'reuse') {
             const original = JSON.stringify(e.draft);
             const result = await backend.request('profile_import', { path: effect.path });
+            if(!permitted()) {m.message=e.compositionError;return;}
             if (effect.kind === 'reuse') {
                 if (JSON.stringify(e.draft) !== original || e.profiles !== m) throw new BackendError('stale_import', text('review.stale'));
                 const draft = { display: result.display, host: e.draft.host };
@@ -204,10 +210,12 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
             if (effect.payload.bind_path && typeof effect.payload.bind_path === 'string') {
                 const host = e.draft.host;
                 const current = await backend.request('read', { target: { kind: 'project', path: effect.payload.bind_path } });
+                if(!permitted()) {m.message=e.compositionError;return;}
                 e.committed(current); e.replaceDraft({ ...current.draft, host });
             } else if (e.baseline.configuration && (e.baseline.configuration.target.kind !== 'profile' ||
                 m.library.profiles.some(p=>p.id===e.baseline.configuration!.profile_id))) {
                 const current = await backend.request('read', { target: e.baseline.configuration.target });
+                if(!permitted()) {m.message=e.compositionError;return;}
                 if (current.configuration?.profile_id === e.baseline.configuration.profile_id &&
                     JSON.stringify(current.draft) === JSON.stringify(e.baseline.draft)) e.baseline = current;
             }
@@ -215,12 +223,13 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
         m.page = 'list'; m.cursor = 0; m.candidate = null; m.confirmation = null; m.message = text('profiles.saved');
     } catch (error) {
         const code = error instanceof BackendError ? error.code : '';
+        if(savingDisplay)e.saveFailed(code);
         if (code === 'profile_duplicate' || code === 'profile_bound' || effect.kind === 'export' && code === 'io_error' && /EEXIST/u.test(String(error))) {
             m.confirmation = effect.kind === 'mutation' ? { ...effect, payload: { ...effect.payload, overwrite: true } }
                 : effect.kind === 'export' ? { ...effect, overwrite: true } : null;
             m.page = 'confirm'; m.cursor = 1; m.message = text('profiles.overwrite');
         } else {
-            m.uncertain = writing && !['profile_conflict','profile_referenced','profile_invalid','profile_name','profile_path','ownership_mismatch','configuration_conflict','invalid_request','profile_size'].includes(code);
+            m.uncertain = !savingDisplay && writing && !['profile_conflict','profile_referenced','profile_invalid','profile_name','profile_path','ownership_mismatch','configuration_conflict','invalid_request','profile_size'].includes(code);
             m.message = error instanceof BackendError && error.localization ? error.localization : text('profiles.failed', { value: error instanceof Error ? error.message : String(error) });
         }
     }

@@ -7,6 +7,9 @@ import { compatibility, LEGACY_370_SHA256, type PackageCompatibility } from '@fb
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { which, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
+import { phaseTimer } from './performance.js';
+import { readSourceFile } from './source-files.js';
+import { decodeUtf8 } from './utf8.js';
 export interface NpmLayout {
     prefix: string;
     root: string;
@@ -25,7 +28,21 @@ export interface RegistryPackage {
 }
 export const globalPackageRoot = (prefix: string) => join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules', PACKAGE_NAME);
 export const globalPackageBin = (prefix: string) => join(prefix, process.platform === 'win32' ? 'claude-statusline.cmd' : 'bin/claude-statusline');
+/** Authoritative manifest reads run in the independent worker, after bootstrap. */
+export function readPackageManifest(root: string): Record<string, any> {
+    try {
+        const bytes = readSourceFile(join(root, 'package.json'));
+        if (!bytes) throw new Error('missing manifest');
+        const value: unknown = JSON.parse(decodeUtf8(bytes));
+        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid manifest');
+        return value as Record<string, any>;
+    } catch { throw new PackageError('identity'); }
+}
 export function verifyArchive(path: string, target: RegistryPackage): void {
+    const finish = phaseTimer('package.verify-archive');
+    try { verifyArchiveBytes(path, target); } finally { finish(); }
+}
+function verifyArchiveBytes(path: string, target: RegistryPackage): void {
     const stat = fs.lstatSync(path);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 64 * 1024 * 1024)
         throw new PackageError('integrity');
@@ -52,6 +69,8 @@ export function productIdentity(root: string, prefix = ''): PackageIdentity | nu
     try {
         if (fs.lstatSync(root).isSymbolicLink())
             throw new Error('linked product');
+        // Preliminary identity is also used before the bootstrap copy. Do not
+        // load the installed native adapter here; the worker verifies manifests.
         const manifest = JSON.parse(fs.readFileSync(join(root, 'package.json'), 'utf8'));
         if (manifest.name !== PACKAGE_NAME || !exactVersion(manifest.version) || manifest.bin?.['claude-statusline'] !== 'bin/claude-statusline.js')
             throw new Error('identity');
@@ -103,6 +122,8 @@ export class Npm {
     onProcess?: (pid: number | null) => void;
     constructor(readonly environment: NodeJS.ProcessEnv = process.env, readonly runner: (options: SourceProcessOptions) => Promise<SourceProcessResult> = runSourceProcess, entry?: string, readonly signal?: AbortSignal) { this.entry = entry ?? npmEntry(environment); }
     async run(args: readonly string[], cwd = process.cwd(), timeoutMs = 30000): Promise<string> {
+        const finish = phaseTimer('npm.' + (['prefix', 'root', '--version', 'config', 'view', 'pack', 'install'].includes(args[0]!) ? args[0] : 'command'));
+        try {
         const result = await this.runner({ executable: process.execPath, args: [this.entry, ...args], cwd, input: '', timeoutMs, signal: this.signal, onProcess: this.onProcess,
             environment: { ...this.environment, npm_config_update_notifier: 'false', npm_config_audit: 'false', npm_config_fund: 'false' } });
         if (result.reason !== 'completed') {
@@ -118,6 +139,7 @@ export class Npm {
             throw new PackageError(result.reason === 'cancelled' ? 'interrupted' : result.reason === 'timeout' ? 'timeout' : 'npm_failed');
         }
         return result.stdout.trim();
+        } finally { finish(); }
     }
     async layout(explicit?: string): Promise<NpmLayout> {
         const reported = explicit ?? await this.run(['prefix', '--global']);
@@ -130,9 +152,15 @@ export class Npm {
         // preflight, including the native Windows process supervisor startup.
         const moduleRoot=await this.run(['root', '--global', '--prefix', prefix]);
         const npmVersion=await this.run(['--version']);
-        const scoped=await this.run(['config', 'get', '@fbincon:registry']);
-        const cache=await this.run(['config', 'get', 'cache']);
-        const registry = scoped && scoped !== 'undefined' && scoped !== 'null' ? scoped : await this.run(['config', 'get', 'registry']);
+        let configuration: unknown;
+        try { configuration = JSON.parse(await this.run(['config', 'list', '--json'])); }
+        catch (error) { if (error instanceof PackageError) throw error; throw new PackageError('metadata'); }
+        if (!configuration || typeof configuration !== 'object' || Array.isArray(configuration)) throw new PackageError('metadata');
+        const config = configuration as Record<string, unknown>;
+        const scoped = config['@fbincon:registry'], cache = config.cache;
+        const registry = scoped && scoped !== 'undefined' && scoped !== 'null' ? scoped : config.registry;
+        if (typeof registry !== 'string') throw new PackageError('registry');
+        if (typeof cache !== 'string') throw new PackageError('prefix');
         try {
             const url = new URL(registry);
             if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash)
@@ -214,7 +242,7 @@ export class Npm {
         const root = globalPackageRoot(prefix), identity = productIdentity(root, prefix);
         if (!identity || identity.version !== target.version)
             throw new PackageError('identity');
-        const manifest = JSON.parse(fs.readFileSync(join(root, 'package.json'), 'utf8'));
+        const manifest = readPackageManifest(root);
         if (manifest.engines?.node !== target.nodeEngine || !equalSettings(compatibility(manifest.statuslineCompatibility, target.version), target.compatibility) || (manifest.statuslineCompatibility === undefined) !== target.legacy)
             throw new PackageError('identity');
         await this.verify(identity, globalPackageBin(prefix));

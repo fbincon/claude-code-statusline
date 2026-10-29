@@ -62,6 +62,13 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const { bootstrap } = await import('./management/bootstrap.js');
         return bootstrap(args, stderr);
     }
+    const interactiveCommand=args[0]==='--language'?args[2]:args[0]?.startsWith('--language=')?args[1]:args[0];
+    // Creating Node's stdin stream can make a pipe nonblocking. Inspect the
+    // command first so machine protocols keep their synchronous input contract.
+    if((interactiveCommand==='configure'||interactiveCommand==='setup')&&Object.keys(environment).length===0&&process.stdin.isTTY&&process.stdout.isTTY){
+        const {independentEditor}=await import('./integration/editor-bootstrap.js');
+        const code=await independentEditor(args);if(code!==null)return code;
+    }
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion, resolvedPath } = await import('@fbincon/statusline-platform/commands');
@@ -155,6 +162,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { taskCommand } = await import('./tasks/command.js');
             const { runtimeContext } = await import('./runtime/context.js');
             try {
+                if(args[0]==='view'){const {taskViewCommand}=await import('./tasks/view.js');return await taskViewCommand(args,environment.runtime??runtimeContext(configDir),language,selectedLanguage as Language|undefined);}
                 stdout(taskCommand(args, environment.runtime ?? runtimeContext(configDir), language) + '\n');
                 return 0;
             } catch (error) {
@@ -212,7 +220,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { configure } = await import('./integration/configure.js');
             const { ProfileService } = await import('./config/profiles.js');
             const { editorTarget } = await import('./config/profile-command.js');
-            return configure(service, language, stdout, stderr, process.env, editorTarget(args, new ProfileService(service), process.cwd()));
+            return configure(service, language, stdout, stderr, process.env, editorTarget(args, new ProfileService(service), process.cwd()), selectedLanguage as Language|undefined);
         }
         if (command === 'ui') {
             const { PROTOCOL_VERSION } = await import('@fbincon/statusline-core/contracts/ui');

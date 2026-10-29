@@ -2,13 +2,17 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-26** (Asia/Shanghai) · Product baseline: **v3.9.0** · Planning baseline: **`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
+v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
 
-This plan defines work-package scope, dependencies and functional acceptance; the [roadmap](roadmap.md) owns product priority and current status. M8–M12 are complete. IMPORT-01, APPEARANCE-04 and COMPOSITION-03 are delivered in v3.9.0; SHOWCASE-01 remains NOT_STARTED under M13. Independent GIT-01, TERMINAL-01 and CI-01 maintenance are DONE. See [M10–M12 delivery](m10-m12-delivery.md) for actual source, interfaces and release evidence, with historical evidence retained in [M4–M7](m4-m7-delivery.md) and [Git, terminal and M8–M9](m8-m9-delivery.md).
+v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [v3.13.0 delivery and post-publication findings](draft-history-and-reuse.md); retain [v3.12.0 source/command/package management](source-command-package-management.md).
 
-Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.0 decision](../releases/approvals/v3.9.0.json) records their acceptance for that release.
+Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.14.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-**Navigation:** [Index](#work-index) · [Shared design](#design-rules) · [Future work](#future-work) · [Git review](#git-01) · [Windows previews](#terminal-01) · [First entry](#setup-02) · [Version management](#update-01) · [Selective import](#import-01) · [Gradients](#appearance-04) · [Alignment](#composition-03) · [Demonstrations](#showcase-01) · [Candidates](#candidate-boundaries) · [M4–M7 designs](#appearance-03) · [Earlier designs](#delivered-designs) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff)
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.14.0 delivery](adaptive-row-scenarios.md) is the current product baseline, retaining [v3.13.0 draft history and reuse](draft-history-and-reuse.md), [v3.12.0 source/command/package management](source-command-package-management.md), [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
+
+Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
+
+**Navigation:** [Index](#work-index) · [Shared design](#design-rules) · [Review baseline](#review-baseline) · [Future work](#future-work) · [Git review](#git-01) · [Windows previews](#terminal-01) · [First entry](#setup-02) · [Version management](#update-01) · [Selective import](#import-01) · [Gradients](#appearance-04) · [Alignment](#composition-03) · [Demonstrations](#showcase-01) · [Candidates](#candidate-boundaries) · [M4–M7 designs](#appearance-03) · [Earlier designs](#delivered-designs) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff)
 
 <a id="work-index"></a>
 
@@ -16,11 +20,17 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 ### Planned work
 
-| Stage | Work package | Dependencies and scheduling | Status |
-| --- | --- | --- | --- |
-| M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
+| Batch | Work packages and slices | Scope and real prerequisites |
+| --- | --- | --- |
+| 1 Correctness/maintenance | [FIX-01](#fix-01), [FIX-02](#fix-02), [FIX-03](#fix-03), [FIX-04](#fix-04), [I18N-01](#i18n-01) | Existing save, render, source, diagnosis and task-language gaps; independent regression cases |
+| 2 Appearance/understanding | [APPEARANCE-05](#appearance-05), [PREVIEW-01](#preview-01), [EXPLAIN-02](#explain-02) | Reuse current appearance, sample renderer and explanation; extension diagnosis depends on FIX-04 |
+| 3 Entry points | [TASK-02](#task-02), [UPDATE-02](#update-02) slice 1 | Existing task model and package-review services; task language follows I18N-01 |
+| 4 Execution | [SOURCES-01](#sources-01) slices 1/2, [COMMAND-02](#command-02), [UPDATE-02](#update-02) slice 2 | Shared refresh lifecycle follows FIX-03; package execution follows review and safe draft/process handoff |
+| 5 Continuous gradients | [APPEARANCE-06](#appearance-06) | Existing final layout, groups, Powerline and alignment |
+| Later, interleavable | [APPEARANCE-07](#appearance-07), [UX-03](#ux-03), [IMPORT-02](#import-02), [COMPOSITION-04](#composition-04), SOURCES-01 slice 3, UPDATE-02 slice 3, [PROFILE-02](#profile-02) | Respective shared rules; scene schemes depend only on the capabilities they use |
+| Final | [SHOWCASE-01](#showcase-01) | Acceptance of all eighteen new packages and every slice, followed by matching installed artifacts |
 
-M8–M12 are accepted, including both selective-import slices. Only M13/SHOWCASE-01 remains planned; it is not started and has no assigned product version or deadline. Use a matching accepted artifact and the TERMINAL-01 Windows preview outcomes. The delivery record preserves the original M10 → M11 → M12 implementation order; other candidates add no demonstration prerequisites.
+The roadmap is the current status register. Batches are scheduling preferences, not an extra dependency chain. UPDATE-02 and SOURCES-01 each retain one package identity across slices; record slice completion in handoffs and complete the package only after all its slices are accepted. Remaining candidates do not block this mainline. Keep M1–M12 numbering and prior M13/SHOWCASE-01 scheduling in their historical context.
 
 ### Delivered work
 
@@ -47,7 +57,7 @@ M8–M12 are accepted, including both selective-import slices. Only M13/SHOWCASE
 | As needed | [CAPABILITIES-01](#capabilities-01) | Include when related features expose specific duplicate or inconsistent metadata | DONE |
 | Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | DONE |
 
-M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-01 was originally scheduled with M2, then M8; it retains its ID and remains unstarted under M13. Documentation updates do not change feature statuses. CI-01 includes weekly Dependabot proposals for same-major Actions updates. See [implementation and validation](ci-maintenance.md).
+M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-01 was originally scheduled with M2, M8 and M13; its retained ID now follows all selected improvement packages. Documentation updates do not change feature statuses. CI-01 includes weekly Dependabot proposals for same-major Actions updates. See [implementation and validation](ci-maintenance.md).
 
 <a id="design-rules"></a>
 
@@ -56,16 +66,298 @@ M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-
 - **Product focus:** the status line presents tasks, agents, projects and usage clearly; existing on-demand entry points provide detail and explanation. Preserve real zero and distinct missing, stale, partial or unsupported states. Do not infer task outcomes without evidence.
 - **Shared implementation:** core owns pure configuration, catalog, Unicode, layout and explanation; platform owns files, processes and terminals; cli orchestrates services; tui and native Mods adapt interactions. Reuse existing transactions and task stores. [Current architecture](architecture.md).
 - **Configuration boundaries:** UI language saves immediately, display language and appearance follow display Save, and Claude preferences retain separate Apply. Preview, import review and scheme selection produce candidate drafts. Make user default, named profile and project editing targets clear. [Profile semantics](../PROFILES.md).
-- **Compatibility:** the current baseline is display schema 15, editor protocol 24, source registry/jobs 2, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
+- **Compatibility:** the current baseline is display schema 16, editor protocol 29, source registry 3/jobs 4, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
 - **Extension authorization:** default capabilities use host input and local state. External file sources, network providers and commands are separately enabled and registered in user configuration. A display scheme may reference a source, but import, preset selection and project binding cannot grant execution or network access.
-- **Scope boundaries:** complete the selected packages' concrete journeys. Selective import, static foreground/Powerline-background gradients and explicit main-row alignment now have their own work packages. Other data, supporting and longer-term directions retain separate entry conditions in the [candidate pool](roadmap.md#candidates). Existing setup, GitHub PR/CI and refresh, cache views and CI maintenance are delivered capabilities, not new gaps.
+- **Scope boundaries:** the formal follow-up is listed above. Existing setup, selective import, static component gradients, explicit row alignment, GitHub automatic refresh and CLI version management remain delivered. Further providers, data and longer-term directions retain separate entry conditions in the [candidate pool](roadmap.md#candidates). Reuse existing global-appearance import; component-style and group reuse belong to IMPORT-02.
 - **Future interfaces:** describe configuration intent, data flow and compatibility before assigning future schema/protocol versions or public command spellings. Reuse catalog capabilities and generated editor resources. New options must survive preview, save/reopen, profile selection, import/export and conflict handling; reading an old configuration does not enable new behavior.
+- **Native presentation:** preserve v3.9.1's host-retained complete state and bounded visible frames. New managers, task details, histories and previews must budget outbound props, the outer Pane and the Client tree independently, including plain Pane paths. Keep paging, selected content, whole graphemes and colored previews; shrink presentation rather than stored configuration. Recovery stays outside a rejected tree, retains the draft and distinguishes saved, pending and unknown outcomes. Use the existing [capacity and recovery](native-capacity.md) rules and applicable actual-host coverage.
+- **Frontend capability:** both editors use the same business rules and principal capabilities, with platform-appropriate layouts and controls. Page long lists/details; keep libraries, candidate drafts and undo history in the host. Read-only views and review must preserve their side-effect boundaries.
+- **Focused validation:** select a changed user journey and adjacent regression combinations from the affected rules. Extend existing suites without requiring a new complete journey, separate PR or Cartesian matrix per slice. Ready product PRs and candidate promotion retain their current [CI requirements](ci-maintenance.md); this planning update changes no acceptance policy.
+
+<a id="review-baseline"></a>
+
+## Review baseline and evidence limits
+
+The [discussion](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b) was checked against `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`, product v3.9.1, on 2026-10-28. The following probes used synthetic inputs and in-memory storage/backend substitutes; they did not write the user's configuration, launch source commands or establish installed-host acceptance. Rendering/source/diagnosis probes used the existing compiled implementation checked against the corresponding source; the native key probe loaded the TypeScript handler directly.
+
+| Finding | Evidence at the planning baseline | Follow-up |
+| --- | --- | --- |
+| Unknown save permits source-manager entry | An isolated `handleKey` call with `uncertain=true` accepts Ctrl+Y. Source inspection confirms unbind mutates the draft and successful reconciliation replaces it. The complete host save-loss journey was not rerun. | FIX-01; [key dispatch](../../mods/statusline-native/lib/client/keys.ts), [shared source manager](../../packages/core/src/editor/source-manager.ts), [reconciliation](../../mods/statusline-native/hooks/register.ts) |
+| Bar labels are decorated incorrectly | Production render with 50% remaining and labels off yields `[####----] Context 50% left`; custom `CTX` yields `CTX [####----] Context 50% left`. Numeric presentation removes/replaces the legacy label correctly. | FIX-02; [indicator](../../packages/core/src/rendering/indicators.ts), [decoration](../../packages/core/src/rendering/preferences.ts) |
+| Refresh cancellation crosses consumers | Two in-memory GitHub refresh requests reuse one job owned by editor A; closing A requests cancellation of the same job returned to B. This did not execute a real worker. | FIX-03; [source service](../../packages/cli/src/sources/service.ts), shared source-manager close |
+| Extension diagnosis uses later data and overwrites agent evidence | An 11:00 input includes a supplied source view observed at 12:00 as `observed/current` and renders its value. Two agents both request a source, but final evidence contains only the second. | FIX-04; [diagnosis adapter](../../packages/cli/src/diagnostics/service.ts) |
+| Task language depends on successful details | Source initializes English, opens/registers the title before preference loading and assigns the loaded preference only after task reading succeeds. Failure-path behavior was source-confirmed, not a new host reproduction. | I18N-01; native task registration and refresh |
+| Missing UI/extension capabilities | At the planning baseline, source and maintained guides showed four themes, three gradient presets, existing GitHub automatic refresh, manual command refresh, CLI package management and native/CLI task details. External interactive task details, editor package pages and cross-block gradients are proposed additions. | APPEARANCE-05/06, TASK-02, UPDATE-02, COMMAND-02 |
+
+[#154](https://github.com/fbincon/claude-code-statusline/issues/154) and [#155](https://github.com/fbincon/claude-code-statusline/issues/155) are closed with separate [v3.9.1 delivery evidence](native-capacity.md). Preserve their transport/tree distinction as a design constraint; do not reopen them by treating their original reports as the current implementation. The five correctness packages completed [acceptance and publication](correctness-maintenance.md); the [roadmap](roadmap.md#milestones) records subsequent deliveries and remaining acceptance obligations. The six #96 gaps retain their original unverified status.
 
 <a id="future-work"></a>
 
 ## Mainline product and maintenance packages
 
-Unstarted sections describe planned behavior. Completed sections retain their original design and acceptance intent; the linked delivery record establishes available behavior and actual checks. Each future implementation records its starting `main`, interface decisions and first deliverable slice. Apply the shared [acceptance matrix](#acceptance-matrix) alongside the package-specific criteria.
+Entries without an implementation record remain proposed work; current package status is maintained only in the [roadmap](roadmap.md#milestones). Each implementation records its starting main, selected slice, interface decisions and actual results. Apply focused package acceptance with the shared [acceptance matrix](#acceptance-matrix). Exact future command names, schema/protocol numbers and color values are decided with their implementation; they are not current public interfaces.
+
+<a id="fix-01"></a>
+
+## FIX-01 Protect drafts while save results are unknown
+
+**Goal and scope.** Prevent a pending save's later reconciliation from overwriting intervening display edits. Keep read-only source/status inspection available, while every display mutation follows one shared permission rule across pages, shortcuts and buttons. Source authorization and host Apply retain their own commit semantics.
+
+**Ownership and compatibility.** Core owns the draft-mutation guard; native hooks own pending-save identity and read-only reconciliation. Apply the same rule to shared source/profile/import/group/alignment edits and external recovery where applicable. Preserve the submitted snapshot, revision checks, locks and backups; no display-format change is presumed.
+
+**Slices.** Inventory display mutations → centralize the guard and wire callers → verify reconciliation and continued editing after a definitive result.
+
+**Acceptance.** An unknown save blocks bind/unbind, replacement and structural edits even through an already-open manager. Test saved, not committed, concurrent-conflict and still-unknown readbacks. Inspection remains usable; recovery/retry does not repeat a write or erase the retained draft. Add an applicable native interaction regression to the existing suite.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
+<a id="fix-02"></a>
+
+## FIX-02 Compose bars and labels consistently
+
+**Goal and scope.** Apply label rules exactly once to main and subagent indicators. Organize bar, label, numeric value and used/remaining direction before final styling instead of recovering a label from a bar-prefixed string.
+
+**Ownership and compatibility.** Core rendering/formatting owns the composition; CLI and both editors consume it. Preserve current numeric/bar options, metric definitions, thresholds, explicit zero and missing-data behavior. Adaptive fitting is a separate APPEARANCE-07 addition.
+
+**Slices.** Establish expected numeric/bar labels → repair shared composition → add targeted main/subagent regressions.
+
+**Acceptance.** Cover legacy, hidden, short and custom labels with icons, thresholds and all six languages. Assert retained percentage/direction, absence of duplicate labels, intact graphemes and color resets, and existing width limits. Do not treat a width-only assertion as proof of correct content.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
+<a id="fix-03"></a>
+
+## FIX-03 Separate refresh execution from waiting consumers
+
+**Goal and scope.** Distinguish a shared refresh job from the editor, CLI or automatic policy waiting for it. Leaving or interrupting one consumer releases only its interest. Keep explicit whole-job cancellation a separate operation; cancel an unneeded execution only after its last applicable interest is gone.
+
+**Ownership and compatibility.** Cli source services own durable execution/consumer lifecycle; platform handles process termination; core contracts and shared managers express join/release/status. Specify old-job interpretation and migration before changing source-job interfaces. Preserve source revision, context identity and automatic/manual attribution.
+
+**Slices.** Define ownership and last-consumer rules → update service, editor close and CLI signal paths → verify manual/automatic overlap and expiry.
+
+**Acceptance.** Cover two editors, editor plus CLI, and manual plus automatic refresh sharing one identity. One exit preserves the remaining consumer; last-consumer release, explicit cancel, source disable/edit and lease expiry have distinct outcomes. Late results cannot publish to another revision or context.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
+<a id="fix-04"></a>
+
+## FIX-04 Make extension diagnosis time- and agent-applicable
+
+**Goal and scope.** Apply the supplied input's observation time to extension values and supporting fields. Exclude later evidence from historical reconstruction; keep absent timestamps unknown. Preserve evidence for every component-instance/agent pair rather than overwriting by instance ID.
+
+**Ownership and compatibility.** Cli observation adapters and core diagnosis share temporal/status rules. Keep current live-render behavior distinct from explicit historical diagnosis, and retain the input time separately from diagnosis time. Review any diagnosis-result interface extension for existing consumers.
+
+**Slices.** Define applicability and evidence identity → filter source views and accumulate agent evidence → verify rendering and machine-readable explanations together.
+
+**Acceptance.** Cover earlier/equal/later/unknown observation times, stale and partial data, explicit zero, multiple agents sharing a component and separate component copies. A later value or auxiliary PR/check field cannot affect historical output or be reported as current evidence. Input-only diagnosis remains read-only and source-free.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
+<a id="i18n-01"></a>
+
+## I18N-01 Initialize task-detail language independently
+
+**Goal and scope.** Resolve available UI preferences before generating task command descriptions, initial pane titles and results. A failed task read must not discard a successfully loaded language preference. Use the documented fallback when preferences themselves cannot be read.
+
+**Ownership and compatibility.** Native registration/refresh owns sequencing; shared core messages remain canonical. Preserve command ownership and task identity checks. TASK-02 reuses the same preference behavior.
+
+**Slices.** Separate preference and task-result initialization → localize first presentation and retry → cover failure transitions.
+
+**Acceptance.** Exercise all six languages for first open, no data, task failure, retry and reopening after a language change; include preference-read failure and a successful preference read followed by task failure. Verify title, description, controls and guidance rather than message-key coverage alone.
+
+**Delivered:** v3.9.2 is complete; the [correctness record](correctness-maintenance.md) contains actual interfaces, regressions and channel evidence.
+
+<a id="appearance-05"></a>
+
+## APPEARANCE-05 Expand themes and gradient selection
+
+**Goal and scope.** Provide distinct additional themes and curated cold, warm, muted and soft gradient choices. Keep semantic themes, gradient color stops and complete display schemes separate. Select the concrete palette set in the implementation review and preserve the four existing theme identities.
+
+**Ownership and interfaces.** Core maintains one theme definition source for choices, validation and actual foreground/Powerline colors; generated resources feed both editors. Show names with actual color bands and foreground/background suitability. Support reversing stops, restoring inheritance and editing individual colors. Cross-component style copying belongs to IMPORT-02; global appearance reuse already exists in IMPORT-01.
+
+**Slices.** Consolidate theme registration → add reviewed palettes/presets → add bounded selectors and gradient edits. Saved gradients continue to contain concrete colors, preserving effects if preset names change. Specify compatibility for new theme values before choosing format versions.
+
+**Acceptance.** Compare text, block backgrounds, warning/critical overrides and inherited/custom choices in main/subagent output, previews and both editors. Cover no color, terminal/ANSI fallback, save/reopen and selective appearance import without replacing components/layout. Native selectors send only the visible color choices.
+
+**Delivered:** v3.10.0 uses schema 16 and protocol 26. Palettes, interaction rules, acceptance and publication evidence are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+
+<a id="preview-01"></a>
+
+## PREVIEW-01 Select sample scenarios
+
+**Goal and scope.** Offer normal, warning, critical, missing/stale/failed-source, long-path/label, clean/modified/conflicted-Git and no/few/many-agent sample scenarios with width choices. Keep the sample identity visible; switching scenarios changes observation input rather than the saved display.
+
+**Ownership and interfaces.** Core sample definitions and production rendering supply both editors and applicable preview entry points; cli injects observations. Use a bounded scenario ID/selection in the existing preview flow and define backward-compatible defaults. Preview never starts a command, network request or live collector.
+
+**Slices.** Define named deterministic observations → connect selectors to shared rendering → add scenario-specific presentation checks.
+
+**Acceptance.** Confirm unchanged configuration on selection/cancel, identical renderer rules, real zero versus absence, conditional hiding, groups, alignment and applicable color overrides. Exercise targeted narrow/ordinary/wide cases and large agent lists without transporting hidden previews or the whole scenario library to the Client.
+
+**Delivered:** v3.10.0 is complete; actual behavior and validation are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+
+<a id="explain-02"></a>
+
+## EXPLAIN-02 Explain inactive configuration and explicit input
+
+**Goal and scope.** Explain background gradients outside Powerline, group-owned backgrounds, threshold overrides, disabled/converted colors and enabled sources without an applicable session/integration. Add an explicit file-input diagnosis entry distinct from sample explanation.
+
+**Ownership and interfaces.** Core reason codes follow the actual render/availability decision; cli reuses existing read-only diagnose/file validation; editors choose sample explanation or a user-selected input. Retain source/time labels and input-only behavior. Define minimal protocol extensions when implemented; FIX-04 precedes claims about extension historical evidence.
+
+**Slices.** Add missing reasons → expose the explicit file path and review context → present localized paged explanations and failure guidance.
+
+**Acceptance.** Each reason matches the same configuration/input's output; an override cannot be described as a missing observation. Invalid/unreadable files, scope mismatch, missing time and source failure remain distinct. Diagnosis does not enable collection, save a draft or execute a source. Large reports preserve native capacity and return to the same draft.
+
+**Delivered:** v3.10.0 is complete; actual behavior and validation are in [appearance, previews and diagnosis](appearance-preview-diagnosis.md).
+
+<a id="task-02"></a>
+
+## TASK-02 External read-only task details
+
+**Delivered:** [TASK-02 and UPDATE-02 slice 1](task-version-review.md), published in v3.11.0. The subsequently reported version-page warning #173 is fixed in [v3.12.0 delivery](source-command-package-management.md).
+
+**Goal and scope.** Add a standalone external task viewer and an entry from the external configuration editor. Select session/task identity explicitly and keep it visible. Reuse the existing `task_details` model/service for summary, agents, known parent relations, checklist progress and timing evidence; preserve `task show` semantics. The published interactive command is `task view`.
+
+**Ownership and interfaces.** Cli selects identity and reads known task state; core owns view/navigation rules and tui handles terminals. Do not infer names or outcomes unavailable outside the native host. Return from the viewer to the retained configuration draft and editing target.
+
+**Slices.** First deliver read-only browsing, paging, manual refresh, exit, six-language and resize behavior. Then add shared status filtering, name/ID search, expand/collapse, summary/evidence layers and stable selection/reading position. I18N-01 supplies initial/failure language behavior.
+
+**Acceptance.** Cover no/partial/stale data, missing parents, identity conflicts, large agent lists, resize and refresh failure. Retain the last successful report with its time on failure and preserve reading position where its item still exists. No transcript scan, source execution, model call or background polling is introduced. Both frontends retain bounded presentation and read-only evidence semantics.
+
+<a id="update-02"></a>
+
+## UPDATE-02 Version review, execution and protected history
+
+**Delivery:** Slice 1 was published in v3.11.0; slices 2/3 and the [#173](https://github.com/fbincon/claude-code-statusline/issues/173) repair are complete in [v3.12.0 delivery](source-command-package-management.md).
+
+**Goal and ownership.** Both editors expose the existing package-management capabilities through shared cli services, with platform package/process effects and core review models. Entering the page reads local identity/history; network checks and package changes require explicit actions. Reuse UPDATE-01 compatibility, prefix ownership, locks, external recovery runner and stage journal.
+
+**Slice 1 — status and review, batch 3.** Show installed version, actual prefix/entry, configuration directory, channel, Node/host compatibility, prior successful version, available backups and unfinished transactions. An explicit metadata check distinguishes unverified artifacts from a downloaded/verified dry-run review. Review current/target identity and recovery options without replacing the package or configuration.
+
+**Slice 2 — execution and recovery, batch 4.** Follow the accepted review with a fresh identity/revision check. Before execution require saved, explicitly exported, explicitly discarded or retained-by-cancelling draft handling; export does not mark a draft saved. Run long work outside the replaced package and expose persistent progress by transaction identity instead of keeping an ordinary native backend call open. Lock the old editor against further writes/duplicate execution. Closing detaches the view; durable stage state and process identity determine recovery. Show completed/remaining stages and require reopening the external editor or restarting Claude to load matching resources. Review package rollback and configuration restoration separately. FIX-01 protections apply during unresolved saves.
+
+**Slice 3 — history and cleanup, later.** List transaction outcomes and retained recovery materials. Explicitly review cleanup of completed, unreferenced records. Preserve pending transactions, running executors, previous-version rollback inputs and required configuration snapshots; ambiguous ownership/reference checks prevent deletion.
+
+**Interfaces and acceptance.** Extend shared review/job-status interfaces only as needed, with old Mod/backend mismatch and partially replaced installations handled explicitly. Test no-network page entry, failed checks, incompatible targets, dirty/unknown drafts, concurrent managers, window closure, interruption, package success followed by integration failure, reattach/recover and protected cleanup. Keep stage outcomes truthful, preserve unrelated configuration and source authorization, and never auto-elevate. Native status/history pages remain bounded.
+
+<a id="sources-01"></a>
+
+## SOURCES-01 Readable source operations and binding maintenance
+
+**Delivered:** All slices and acceptance are complete in [v3.12.0 delivery](source-command-package-management.md).
+
+**Goal and ownership.** Shared source services/models drive localized editor summaries and applicable CLI output. Keep raw JSON as advanced details while showing enabled/automatic state, running/waiting/paused status, last success/failure, next execution, project/branch/session ownership and actionable failure reasons. FIX-03 supplies consumer-aware lifecycle semantics.
+
+**Slice 1 — operations, batch 4.** Clearly separate cancel-current, disable-automatic and disable-source actions. Retain a bounded execution result/error summary and last successful observation with current failure/staleness visible. COMMAND-02 adds its source-specific scheduling state through this shared view.
+
+**Slice 2 — GitHub details, batch 4.** Preserve relevant failed/pending check names and validated links, tied to the selected repository/branch/HEAD and observation time. Paginate details; do not query merely to open a review or replace unknown/missing checks with success.
+
+**Slice 3 — bindings, later.** Inventory unused/duplicate binding records, reuse compatible existing bindings and provide explicit reviewed cleanup. Check user defaults, named profiles, project bindings and known pending drafts/transactions under revision protection; uncertainty prevents deletion. Cancelling a display edit does not grant source execution permission.
+
+**Interfaces and acceptance.** Specify additional observation/job-summary fields and old-record defaults before versioning. Cover localized failure states, source edits and late results, multiple check pages, no data, stale success after failure, repeated bind/unbind/cancel and references outside the active profile. Cleanup preserves live references and source definitions/authorization; valid large libraries remain operable in Native.
+
+<a id="command-02"></a>
+
+## COMMAND-02 Commands scheduled by active sessions
+
+**Delivered:** All slices and acceptance are complete in [v3.12.0 delivery](source-command-package-management.md).
+
+**Goal and scope.** Extend the delivered manual COMMAND-01 capability with separately reviewed periodic execution during applicable active sessions. Execution permission and automatic permission are distinct; no applicable live lease pauses dispatch. This first version uses existing session lifecycle integration and does not install a system daemon.
+
+**Ownership and interfaces.** Cli reuses suitable scheduler/lease logic after FIX-03; platform retains literal executable/argv, cancellation and child cleanup; core describes policies and states. The interval is independent of observation TTL. Allow at most one running job per command source and skip a busy tick. Result identity includes source ID/revision, declared scope and the actual project/session/agent inputs used. Preserve GitHub-specific authorization/identity rules when sharing scheduling code.
+
+**Slices.** Define authorization/lifecycle/identity rules → add periodic dispatch and invalidation → connect SOURCES-01 review, status and stop controls. Source changes invalidate prior automatic approval; old jobs cannot publish into the new definition.
+
+**Acceptance.** Distinguish cancel-current, stop-automatic and disable-source. Stopping automatic work releases its interest while preserving applicable manual consumers; disabling a source blocks new work and cancels its unfinished jobs. Cover lease expiry, overlapping sessions, missing executable, nonzero exit, timeout, output limit/format failures, backoff/pause, edits and late completion. Retain last success only with explicit failure/stale state; imports/previews cannot start work or grant permission.
+
+<a id="appearance-06"></a>
+
+## APPEARANCE-06 Continuous backgrounds within a row
+
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
+
+**Goal and scope.** Add an opt-in background gradient spanning adjacent Powerline blocks of one final displayed row. Existing `color_mode=continuous` is palette-sequence continuity and keeps its meaning. Preserve APPEARANCE-04's completed per-component gradients.
+
+**Rules and ownership.** Core finishes visibility, grouping, wrapping and width fitting before coloring by final visible terminal-cell position. Recalculate after hidden/omitted components; restart each row. A spacer breaks the colored run and stays uncolored; alignment padding is uncolored and excluded. A shared-background group is one block. An explicitly assigned component/group background, including an individual background gradient, overrides the row gradient and creates a run boundary. Keep warning/critical priority and readable foregrounds; separators and caps use adjacent blocks' actual edge colors.
+
+**Slices.** Define the opt-in scope/precedence → implement coloring after final layout → expose matching preview/editor/import/explanation support. Cross-row continuation is outside this first version. Choose compatible configuration/protocol extensions at implementation; old configurations retain their rendering.
+
+**Acceptance.** Cover targeted group, hidden middle item, spacer, alignment, unequal width, clipping, automatic/explicit rows and main/subagent combinations, including Chinese/emoji, links and ANSI/no-color fallback. Verify color boundaries and semantic warnings as well as width, round-trip and Native presentation budgets.
+
+<a id="appearance-07"></a>
+
+## APPEARANCE-07 Adaptive bars that preserve numeric meaning
+
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
+
+**Goal and scope.** Add an explicit adaptive representation for narrow rows after FIX-02. Fit in this order: shorten an eligible label, shorten the bar, use numeric presentation, then apply existing component-priority omission. Preserve the percentage and used/remaining meaning in every retained representation.
+
+**Ownership and interfaces.** Core fitting works from structured indicator content; both editors and CLI expose the same opt-in choice. Retain existing explicit numeric/bar behavior. Custom labels and icons always remain whole. Automatic layout retains ordinary wrapping and only shrinks a component or group wider than a complete row. Display schema 17 and editor protocol 30 expose the new option.
+
+**Slices.** Define semantic fallbacks → integrate fitting with shared layout → expose and explain the adaptive choice.
+
+**Acceptance.** Test boundaries around each fallback with main/subagent indicators, six languages, custom labels/icons, grouping, thresholds and explicit spacer rows. A retained bar must not hide its number through arbitrary string clipping; at widths where even the minimal numeric form cannot fit, omit the component through the existing policy. Reopening/exporting retains the choice.
+
+<a id="ux-03"></a>
+
+## UX-03 Shared draft history and external recovery
+
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
+
+**Goal and scope.** Provide bounded undo/redo for display-draft actions, a reviewable change summary and stronger external-editor conflict recovery. One logical copy/delete/group/import/apply-style action is one history entry. UI-language saves, source authorization and host Apply retain independent persistence semantics.
+
+**Ownership and interfaces.** Core owns draft history and semantic changes; hosts retain that history, while cli supplies revision-bound read/reload/export. Native transports only visible summaries. New edits after undo discard the redo branch. A definitive save establishes a new baseline/history boundary; undo cannot revert already committed external effects. FIX-01 freezes history mutations during unresolved saves.
+
+**Slices.** Add shared history and change summary → connect editor controls → add external compare-current, export-draft, explicit reload/discard and safe retry after review. Preserve the draft after failed/conflicting saves; never silently merge or overwrite concurrent changes.
+
+**Acceptance.** Cover undo/redo around structural edits, style/group import, cancellation, history bounds and save boundaries. Verify independent immediate writes remain intact. A conflict permits comparison/export without losing the draft; reloading requires explicit discard, and a later save uses the newly reviewed revision. Native recovery and both editors retain target identity.
+
+<a id="import-02"></a>
+
+## IMPORT-02 Reuse styles and complete groups
+
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
+
+**Goal and scope.** Extend delivered whole-section import with selected visual-style copying and complete-group reuse. Style copying preserves the destination's metric, source binding, position, priority and visibility; copy only the reviewed visual fields such as colors/gradients, label/icon and formatting. Existing global-appearance import remains available.
+
+**Ownership and interfaces.** Core computes candidate changes and reference closure; cli reuses portable/profile review and transactions; editors show the selected effect. Whole-group import maps instance/group IDs and applicable internal layout/alignment references together. Review or reject references outside the selection; never silently discard them or replace unrelated rows. Imported local bindings become unresolved references and require explicit binding to a compatible local source, without importing authorization.
+
+**Slices.** First add style-field selection and paste → add complete-group import with ID/reference review → guide explicit local-source rebinding. Integrate each accepted candidate as one draft action with UX-03 history when available.
+
+**Acceptance.** Verify preserved destination identity, unrelated configuration and unselected fields; duplicate IDs, missing/outside references, linked/shared-background groups and alignment relationships receive explicit outcomes. Cancel/import review is side-effect-free; save/reopen/export remain consistent, and source enablement never follows a portable import.
+
+<a id="composition-04"></a>
+
+## COMPOSITION-04 Review alignment repairs with structural edits
+
+**Status: DONE (v3.13.0).** [Delivery and post-publication findings](draft-history-and-reuse.md).
+
+**Goal and scope.** When deleting a referenced component, dissolving a group or changing layout would break alignment, offer a reviewable structural-edit proposal including affected relationships. Keep refusal available when the user does not accept the proposed adjustment.
+
+**Ownership and interfaces.** Core computes a complete candidate and validates references before one draft transition; both editors/CLI review the same affected IDs and relationships. Preserve current alignment protection until acceptance, then apply the structural edit and its approved reference changes together. It is one undoable action when UX-03 is available.
+
+**Slices.** Define impact/proposal results → connect review/accept/cancel → add combined structural/reference regressions. Any protocol addition describes the proposal rather than weakening stored configuration validation.
+
+**Acceptance.** Cover referenced/unreferenced deletion, group dissolution, layout changes, multiple relationships, stale proposals and cancellation. Rejected or invalid proposals leave all state untouched; accepted ones preserve unrelated references and survive preview/save/reopen/import/export with valid IDs.
+
+<a id="profile-02"></a>
+
+## PROFILE-02 Scenario schemes using delivered capabilities
+
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
+
+**Goal and scope.** Add reviewed schemes for Powerline daily work, multi-agent tasks, quota/cost monitoring, narrow terminals and light/high-contrast reading. Use the delivered progress, gradient, group and alignment choices appropriate to each scene; preserve the existing three complete schemes and their identities.
+
+**Ownership and interfaces.** Core preset/profile definitions remain canonical and feed Quick setup, CLI and both editors. Depend only on capabilities a scheme actually uses. Schemes change display intent and cannot install tools, bind local credentials or enable sources; external components remain clearly unresolved until locally bound.
+
+**Slices.** Select scene intent and required delivered features → build/review matching configurations → verify selection, partial appearance reuse and provenance. SHOWCASE-01 records their final presentation after all formal packages finish.
+
+**Acceptance.** Use PREVIEW-01 cases to inspect ordinary, risk, missing-source, narrow and multi-agent states. Verify six-language labels, readable warning colors, terminal fallbacks, cancel, save/reopen, import/export and preservation of source authorization. State the compatible product versions; samples are identified as samples.
+
+<a id="delivered-mainline"></a>
+
+## Delivered mainline designs
+
+The following sections retain their original design and acceptance intent; the linked delivery records establish current behavior and actual results. Their historical version numbers and requested checks are not new planning decisions.
 
 <a id="git-01"></a>
 
@@ -271,13 +563,13 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## Candidate boundaries
 
-The [roadmap candidate pool](roadmap.md#candidates) owns the functional, supporting and longer-term tiers, with a user scenario, minimum slice, evidence and entry condition for each. Selective import, gradients and explicit main-row alignment now belong to IMPORT-01, APPEARANCE-04 and COMPOSITION-03; do not keep duplicate candidate statuses. Token-rate/cache extensions must preserve existing definitions, and daily budgets/pacing need verified amounts, scope and timing. Command repetition, each forge provider, service status and Voice/Sandbox configuration hints require separate source/authorization and availability decisions. Contribution guidance, general feedback templates and migration guidance remain supporting candidates; JJ, other clients, a marketplace, script downloads and general Shell remain longer-term directions. None is a prerequisite or completion condition for M8–M13.
+The [roadmap pool](roadmap.md#candidates) retains unselected functional, supporting and longer-term directions with entry conditions. Automatic command execution is now COMMAND-02; all other selected improvements are formal packages above. Contribution guidance, the Bug form and blank question/feature Issues already exist and remain maintenance. Token/cache additions preserve existing definitions; budgets and pacing require verified amounts, scope and time. Other providers, service status and Voice/Sandbox hints require their own source/availability decisions. Migration guidance, JJ, other clients, a marketplace, script downloads and general Shell mode remain unselected and do not add SHOWCASE-01 prerequisites.
 
 <a id="delivered-designs"></a>
 
 ## Delivered designs and retained demonstration package
 
-Completed packages below retain historical scope and evidence. SHOWCASE-01 remains a future package at its existing anchor, now scheduled as M13 after the selected M8–M12 functionality.
+Completed work below retains historical scope and evidence. SHOWCASE-01 keeps its original anchor; its updated prerequisites are the eighteen formal improvement packages and every slice.
 
 <a id="setup-01"></a>
 
@@ -358,36 +650,15 @@ Completed packages below retain historical scope and evidence. SHOWCASE-01 remai
 
 ## SHOWCASE-01 Homepage and usage demonstrations
 
-**Status: NOT_STARTED.**
+**Scheduling.** Keep the existing ID and use the [roadmap](roadmap.md#milestones) for status. Begin only after all eighteen formal follow-up packages and every UPDATE-02/SOURCES-01/TASK-02 and other package slice are accepted. This supersedes the earlier M13 placement after M8–M12. Unselected candidates add no prerequisites.
 
-**Scheduling.** M13, after SETUP-02, UPDATE-01, both IMPORT-01 slices, APPEARANCE-04 and COMPOSITION-03 have all completed functional acceptance. Retain the existing ID and delivered SETUP-01/APPEARANCE-01/APPEARANCE-02 journeys. Use a matching accepted installed artifact and incorporate TERMINAL-01 outcomes for Windows previews. Other candidates do not block this package. This planning update does not edit the product homepage, create media or run demonstration sessions.
+**Goal and scope.** Give users reproducible installation, configuration, task-viewing, version-management, source-operation and appearance examples with the final accepted artifacts. Preserve the SETUP-01/APPEARANCE-01/APPEARANCE-02 journeys and add PROFILE-02 scene configurations, richer previews, reuse and continuous-gradient examples where applicable.
 
-**Problem and goal.** The homepage already contains many platform screenshots and feature explanations. Let visitors first see task/subagent strengths, available schemes and entry points, then reach detailed platform guides as needed.
+**Ownership and interfaces.** Maintain bilingual homepage/quick-start narratives and the image index only when this package is implemented. Demonstrations describe implemented public behavior and compatible versions; they add no command, protocol or default change. Keep concise homepage material linked to complete walkthroughs and troubleshooting.
 
-**Page design.** Start README with one product sentence, a short demonstration, three scenario schemes, the recommended installation/setup path and documentation links. Retain platform images and provenance in the corresponding image index or collapsed sections; English and Chinese convey the same information. Unreleased commands stay in development guidance rather than stable installation instructions.
+**Slices.** Verify all prerequisite acceptance references → fix scripts against matching installed artifacts → capture demonstrations and scene configurations → update bilingual navigation and inspect links, alternate text and reproducibility. Use applicable TERMINAL-01 outcomes and native capacity/recovery behavior.
 
-| Demonstration part | User action | Verifiable result |
-| --- | --- | --- |
-| First entry and integration | Use the accepted first entry, review durable installation and select a scheme through setup | Exact version/location, explicit changes, integration outcome and restart guidance are visible |
-| Version management | Inspect versions, perform an explicit upgrade and demonstrate a reviewed rollback case | Package and configuration outcomes are distinguished; recovery does not silently erase newer edits |
-| Selective reuse | Import global appearance, then a complete display section into an example profile | Unselected content stays intact; groups/layout references survive and local source authorization is not imported |
-| Appearance and layout | Adjust foreground/Powerline-background gradients and align explicit main rows | Preview, saved actual display, narrow-row behavior and supported color fallback agree |
-| Component adjustment | Edit a label, duplicate/reorder a component and save | Draft preview changes and actual display agree |
-| Multi-agent work | Show task/agent states with explicit provenance and open task details | Main task and agents remain distinct; sources and coverage are understandable |
-| Reuse | Save a profile copy and bind an example project | Reopening identifies the target and selected profile clearly |
-
-**Data and modules.** Later production uses a functionally accepted installed package, [terminal capture tools](../../tools/acceptance) and the [image provenance index](../images/README.md). Label fixed samples and actual sessions separately. Distinguish human desktop captures, PTY reconstructions and manually composed material. Record filenames, version, platform, terminal width, colors and input source; remove private paths and session content from actual captures.
-
-**Interface and compatibility.** Demonstrations document implemented public behavior and supported versions; they introduce no commands, protocol changes or default configuration. Full walkthroughs may accompany a short homepage demonstration so omitted steps are not represented as unnecessary. Preserve troubleshooting and platform guidance, including unresolved acceptance limits.
-
-**Implementation slices.**
-
-1. Confirm acceptance of all M8–M12 packages, then freeze scripts against their matching installed artifact, retaining SETUP-01/APPEARANCE-01/APPEARANCE-02 journeys.
-2. Record the main demonstration and three scheme views.
-3. Update bilingual README, quick-start guidance and image index.
-4. Verify installation steps, links, alternative text, collapsed reading and provenance. Keep version and update notes in release documentation.
-
-**Functional acceptance.** Every demonstrated operation is reproducible in the named version; installation commands and support claims agree. Walk through cancel/failure/recovery explanations without masking partial changes. Samples are not represented as actual user results. A new reader can locate installation, version management, selective reuse, appearance/alignment, the three schemes and troubleshooting. Evidence includes M8–M12 acceptance references, applicable Windows preview outcomes, script walkthroughs, screenshot/video provenance and bilingual link checks. Completion does not automatically establish that human usability research passed.
+**Acceptance.** Every shown operation is reproducible with its named package/version. Document cancellation, failure and partial completion without implying automatic rollback. Record platform, terminal width, theme, source/input identity and sanitized provenance for screenshots/video/configuration. Distinguish real terminal captures, PTY reconstruction, agent observation and human acceptance. Include the formal packages' acceptance references, readable scene variants and troubleshooting; retain #96 limitations. This package's completion does not establish a new human usability study.
 
 <a id="extensions-01"></a>
 
@@ -523,20 +794,24 @@ Completed packages below retain historical scope and evidence. SHOWCASE-01 remai
 
 | Area | Applies to | Completion evidence |
 | --- | --- | --- |
-| User journey | Every user-visible package | Entry → edit/select → preview → apply → reopen/actual result, including complete cancel/error paths |
+| User journey | Changed user-visible flows | Relevant entry/action/result and cancel/error paths; add save/reopen or recovery where the change affects them, reusing existing journeys |
 | Both editors and CLI | Configuration and components | The same input/configuration yields consistent rules, options and explanations |
 | Six languages and terminal | UI, display and guidance | `en/zh-CN/zh-TW/zh-HK/ja/ko`; main/subagent 40/80/120 columns; native minimum 32×12 and external minimum 64×18, including undersized handling |
 | Data sources | Extensions, tasks and diagnosis | Distinguishable sample/actual, source/scope and zero/missing/stale/partial/error states |
 | Save and recovery | Installation and persistence | Old configuration, instance identity, project bindings, concurrent revisions, migration backups, cancellation and failure recovery |
 | External capabilities | EXTENSIONS-01/WORKFLOW-01/COMMAND-01 | Off by default, explicitly enabled and independently disabled; import/preview cannot execute or access the network |
 | Indicators/groups/rates | APPEARANCE-03/COMPOSITION-02/METRICS-01 | Unchanged defaults, explicit instance choices, trustworthy data meaning, linked visibility and valid configuration round trips |
-| Automatic lifecycle and future Git policy | WORKFLOW-02/GIT-01 | Separate automatic enablement, visible stop/failure behavior, identity isolation and verified invocation compatibility |
+| Automatic lifecycle | FIX-03/COMMAND-02/SOURCES-01; delivered WORKFLOW-02 | Consumer-aware release, explicit whole-job cancel, separate automatic approval, active-session leases, revision/context isolation and late-result rejection |
 | Windows preview consistency | TERMINAL-01 and affected appearance/demonstrations | Same artifact/configuration across setup, configure and slash paths; actual console evidence, explicit capability overrides and terminal restoration |
 | Durable installation and version transitions | SETUP-02/UPDATE-01 | Reviewed exact version/prefix, persistent binding, no automatic elevation, explicit stage outcomes and separate package/configuration recovery |
 | Selective reuse | IMPORT-01 and later display options | Both slices accepted; unselected state preserved, reference closure/ID mapping valid, no imported source authorization, preview/save/reopen parity |
 | Gradients and alignment | APPEARANCE-04/COMPOSITION-03 | Foreground and background both verified; warnings and group edges intact; explicit main-row relationships, narrow fitting and terminal fallbacks correct |
 | Platforms and hosts | Features affecting them | Existing Node 22/24, supported platforms and applicable host verification; gaps retain their actual status |
-| Artifacts and demonstrations | Feature delivery and SHOWCASE-01 | All M8–M12 packages accepted before M13; reproducible installed-artifact behavior and explicit provenance, version and input |
+| Artifacts and demonstrations | Feature delivery and SHOWCASE-01 | All eighteen formal follow-up packages and every slice accepted before demonstrations; reproducible matching artifacts with explicit version/input/provenance |
+| Native capacity/recovery | Every new or changed native page, including task details | Independently bounded props, Pane and Client trees; production-sized data, large/tall panes, paging/resize and retained draft/save outcomes, using applicable actual-host suites |
+| Focused combinations | Relevant changed rules | Bars × labels/icons; gradients × groups/visibility/spacer/alignment; source execution × consumers/cancel/revisions; updates × dirty drafts/interruption/old resources; imports × bindings/references/conflicts; tasks × identity/staleness/refresh/reading position |
+
+Select targeted combinations above within existing suites; do not expand every axis into a Cartesian matrix or require an extra full acceptance run per slice. Existing ready-PR gates and verified main/tag promotion remain governed by [CI maintenance](ci-maintenance.md).
 
 Functional tests use isolated directories and synthetic or sanitized inputs, without reading/writing the user's actual configuration. Network verification and actual tool execution follow the explicit scope of the corresponding development task. Follow the then-applicable [testing guide](testing.md) and [release procedure](../RELEASING.md). Record automated checks, PTY reconstruction, agent visual inspection and human acceptance separately. Retain the six existing #96 gaps; version-specific acceptance, including v3.7.0, does not establish future-version verification.
 
@@ -550,6 +825,6 @@ A handoff includes package/status, completed slices, remaining issues, source/PR
 
 The [roadmap](roadmap.md) owns priority/status and this plan owns scope/acceptance. Both are public repository documents with complete Simplified Chinese counterparts. Keep local historical snapshots and raw validation records separate; public navigation must work without them. Migration-stage status remains in the [migration plan](typescript-migration.md), and feature delivery evidence stays in the corresponding implementation record.
 
-For documentation acceptance, compare IDs, order, dependencies and statuses across the four active planning files and navigation in both development guides; check delivered facts, links and anchors. Run `npm run docs:check` and `git diff --check`, including a documentation check against a checkout containing only committed files. Record documentation validation without claiming future features have passed acceptance. Keep product README, stable usage guides, release records, generated resources and code outside this planning-only update.
+For documentation acceptance, compare IDs, order, dependencies, roadmap-owned statuses, slice coverage and navigation across all six bilingual planning/index files; check delivered facts, links and anchors. Run `npm run docs:check` and `git diff --check`, including a documentation check against a checkout containing only committed files. Record documentation validation without claiming future features have passed acceptance. Keep product README, stable usage guides, release records, generated resources and code outside this planning-only update.
 
-IMPORT-01, APPEARANCE-04 and COMPOSITION-03 are DONE on display schema 15/editor protocol 24. See [M10–M12 delivery](m10-m12-delivery.md). SHOWCASE-01 remains NOT_STARTED.
+The [roadmap](roadmap.md#milestones) is the current status register. Preserve [M10–M12 delivery](m10-m12-delivery.md) and [v3.9.1 native delivery](native-capacity.md) as completed evidence; documentation checks do not establish feature acceptance.

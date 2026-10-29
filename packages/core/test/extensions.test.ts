@@ -11,6 +11,26 @@ import { itemFields } from '../src/config/editor-fields.js';
 import type { SourceContext } from '../src/contracts/ui.js';
 const context: SourceContext={project:'/project',session:'session',agent:null,branch:'main',head:'a'.repeat(40)};
 const source=definition({id:'test',name:'Test',kind:'json',scope:{project:'/project',session:null,agent:null},ttl_seconds:300,settings:{path:'/value.json'},enabled:true,revision:'r1'});
+test('historical source views filter current and fallback before choosing values or auxiliary fields', () => {
+    const at = Date.parse('2026-10-28T11:00:00Z');
+    const entry = (observed_at: string | null, value = 0) => ({...parseObservation({value,observed_at},source,context), fields:{pr:42,ci:'success',url:'https://github.com/example/repo/pull/42'}});
+    for (const observed_at of ['2026-10-28T10:55:00Z','2026-10-28T11:00:00Z']) {
+        const view=sourceView(source,context,entry(observed_at),null,at+3600000,at);
+        assert.equal(view.value,0);assert.equal(view.freshness,'current');assert.equal(view.fields?.pr,42);
+    }
+    assert.equal(sourceView(source,context,entry('2026-10-28T10:54:59Z'),null,at,at).freshness,'stale');
+    const future=entry('2026-10-28T12:00:00Z',99),unknown=entry(null,77);
+    for(const current of [future,unknown]) {
+        const rejected=sourceView(source,context,current,current,at+3600000,at);
+        assert.equal(rejected.value,null);assert.equal(rejected.fields,undefined);assert.equal(rejected.freshness,'unknown');
+        assert.equal(rejected.reason,current===future?'newer_than_input':'association_unavailable');
+        const earlier=sourceView(source,context,current,entry('2026-10-28T10:59:00Z'),at+3600000,at);
+        assert.equal(earlier.value,0);assert.equal(earlier.freshness,'current');assert.equal(earlier.observed_at,'2026-10-28T10:59:00.000Z');
+    }
+    assert.equal(sourceView(source,context,unknown,null,at).value,77,'ordinary live rendering retains unknown-time values');
+    const partial={...entry('2026-10-28T11:00:00Z'),state:'partial' as const};
+    assert.equal(sourceView(source,context,partial,null,at,at).state,'partial');
+});
 test('source values preserve zero/false and cannot execute JSON Pointer expressions',()=>{
     for(const value of [0,false,''])assert.equal(parseObservation({value},source,context).value,value);
     assert.equal(selectPointer({'a/b':{'~':42}},'/a~1b/~0'),42);

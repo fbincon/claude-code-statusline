@@ -11,19 +11,23 @@ import type { Language } from '../../lib/i18n/index.ts';
 export function previewLine(ui: ClientElements, spans: readonly Span[], width: number, background: PreviewBackground = 'dark'): RenderElement {
   let remaining = Math.max(0, width);
   const children: RenderElement[] = [];
+  const runs: { text: string; color: ReturnType<typeof spanColor>; background: ReturnType<typeof spanColor>; bold: boolean }[] = [];
   for (const span of clipSpans(spans, width)) {
     if (remaining <= 0) break;
     const text = span.text;
     if (!text) continue;
     const color = spanColor(span);
     const spanBackground = spanColor(span, 'background');
-    children.push(ui.Text({
-      ...(color === undefined ? {} : { color }),
-      ...(spanBackground === undefined ? {} : { backgroundColor: spanBackground }),
-      bold: span.bold, dimColor: false, children: [text],
-    }));
+    const previous = runs[runs.length - 1];
+    if (previous && previous.color === color && previous.background === spanBackground && previous.bold === span.bold) previous.text += text;
+    else runs.push({ text, color, background: spanBackground, bold: span.bold });
     remaining -= displayWidth(text);
   }
+  for (const run of runs) children.push(ui.Text({
+    ...(run.color === undefined ? {} : { color: run.color }),
+    ...(run.background === undefined ? {} : { backgroundColor: run.background }),
+    bold: run.bold, dimColor: false, children: [run.text],
+  }));
   // Explicit spaces erase old sample cells after a shorter or empty redraw.
   if (remaining) children.push(ui.Text({ children: [' '.repeat(remaining)] }));
   return ui.Box({

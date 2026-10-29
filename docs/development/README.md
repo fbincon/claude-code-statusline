@@ -1,10 +1,26 @@
 # Development guide
 
+
+[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
+
 **English** | [简体中文](README.zh-CN.md)
+[Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
 
-[Future functional roadmap](roadmap.md#milestones) and [development work packages](development-plan.md#future-work) schedule M8–M13 as first-entry npm global installation → explicit upgrades/rollback → selective import → foreground/Powerline-background gradients → explicit main-row alignment → demonstrations after all selected functionality is accepted. GIT-01 and TERMINAL-01 are priority independent maintenance, with Windows preview outcomes carried into affected acceptance. All eight future packages remain NOT_STARTED, without assigned versions or dates. M4–M7 shipped in v3.7.0 and CI-01 is DONE; planning updates do not implement features.
+[Draft history, structural review and reuse](draft-history-and-reuse.md) documents the v3.13.0 UX-03, COMPOSITION-04 and IMPORT-02 delivery, editor protocol 29, acceptance and post-publication findings.
 
-[CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
+
+[Source operations, command scheduling and package execution](source-command-package-management.md) covers SOURCES-01, COMMAND-02 and UPDATE-02 completion, delivered in v3.12.0.
+
+
+[Appearance, sample scenarios and explicit file diagnosis](appearance-preview-diagnosis.md) documents APPEARANCE-05, PREVIEW-01 and EXPLAIN-02.
+
+[The functional roadmap](roadmap.md#milestones) owns current priorities and work-package status; [the development plan](development-plan.md#future-work) defines scope, dependencies, slices and acceptance. Use those sources for the next task and the linked delivery records for implemented behavior. Planning edits do not implement features.
+
+[CI maintenance and Action identities](ci-maintenance.md) documents impact-scoped checks, candidate and maintenance evidence, promotion routes, Action identities and weekly update review.
+
+[Impact checks and maintenance evidence](impact-checks.md) defines scoped check planning, package comparison and the staged PR/main/tag evidence migration.
+
+[Contributing](../../CONTRIBUTING.md) covers feedback, translation and PR workflow; [repository maintenance](repository-governance.md) records main protection, security entry points, dependency alerts and release identity policy.
 
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
 
@@ -22,15 +38,18 @@ Start here to set up a development environment, run checks and build the package
 
 The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
 
+[First-batch correctness repairs and validation](correctness-maintenance.md) covers FIX-01–FIX-04, I18N-01, editor protocol 25 and source jobs 3.
+
 ## Technical documentation
 
 ### Current development
 
-- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): M8–M13 order, priority independent maintenance, scope, dependencies, compatibility and functional acceptance; functional/supporting/longer-term candidates have separate entry conditions and delivered designs/evidence remain separate.
+- [Repository agent guidance](../../AGENTS.md): shared workspace boundaries, canonical sources, validation and PR rules; maintained in English only.
+- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): current priorities/status, confirmed findings, scope, dependencies, compatibility and focused functional acceptance; delivered designs and evidence remain separate.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
-- [Native editor integration](native.md).
+- [Native editor integration](native.md). [Capacity and recovery](native-capacity.md).
 - [Task timing](timer.md) and [live metrics](live.md).
 - [Release process](../RELEASING.md).
 
@@ -81,7 +100,7 @@ Development is independent of the installed pipx product. Normal workflows need 
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
 `tools/generation/` maintains six languages, two Mods and skill templates; it never regenerates the Python archive.
-Eight installations and thirteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately.
+Eight installations, 32 Node runtime cases and sixteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately. See [CI maintenance](ci-maintenance.md) for execution sharing, draft checks and diagnostics.
 
 ### Clean compiled outputs
 

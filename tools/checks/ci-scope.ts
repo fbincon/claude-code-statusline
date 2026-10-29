@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const DOCUMENTATION = new Set([
+    'AGENTS.md',
     'README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md',
     'SECURITY.md', 'SECURITY.zh-CN.md', 'CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md',
     '.github/pull_request_template.md', '.github/ISSUE_TEMPLATE/bug_report.yml',
@@ -32,9 +33,42 @@ export function changedDocumentationOnly(event: string, refType: string, base: s
 
 export function assessCiNeeds(needs: Record<string, { result: string; outputs?: Record<string, string> }>): void {
     assert.equal(needs.scope?.result, 'success', 'CI scope classification did not pass');
+    assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
+    const route = needs.scope.outputs?.route ?? 'full';
+    assert(['full', 'tag', 'main', 'maintenance', 'release'].includes(route), 'Unknown acceptance route');
+    if (route === 'maintenance') {
+        assert.equal(needs.maintenance?.result, 'success', 'Scoped evidence did not pass');
+        assert.equal(needs.scoped?.result, needs.scope.outputs?.impact_reused === 'true' ? 'skipped' : 'success');
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods', 'integration', 'promotion']) assert.equal(needs[name]?.result, 'skipped');
+        return;
+    }
+    if (route === 'release') {
+        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'tag');
+        for (const name of ['release-build', 'release-smoke', 'release-binding']) assert.equal(needs[name]?.result, 'success', 'Maintenance release check failed: ' + name);
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods', 'integration', 'promotion', 'scoped', 'maintenance']) assert.equal(needs[name]?.result, 'skipped');
+        return;
+    }
+    const integrated = route === 'main';
+    const diagnostic = needs.scope.outputs?.mode === 'diagnostic';
+    if (integrated) {
+        assert.equal(process.env.CI_EVENT, diagnostic ? 'workflow_dispatch' : 'push');
+        if (diagnostic) assert.equal(process.env.CI_VALIDATION, 'promotion-shadow');
+        assert.equal(process.env.CI_REF_TYPE, 'branch'); assert.equal(process.env.CI_REF_NAME, 'main');
+        assert.equal(needs.integration?.result, 'success', 'Three-platform integration did not pass');
+        assert.equal(needs.promotion?.result, 'success', 'Main promotion did not pass');
+    }
+    if (route === 'tag' || route === 'main') {
+        assert.equal(process.env.CI_EVENT, diagnostic ? 'workflow_dispatch' : 'push'); assert.equal(process.env.CI_REF_TYPE, route === 'tag' ? 'tag' : 'branch');
+        if (route === 'tag') assert.equal(diagnostic, false);
+        if (route === 'tag') assert.equal(needs.integration?.result, 'skipped', 'Unexpected integration during tag verification');
+        assert.equal(needs.promotion?.result, 'success', 'Release promotion did not pass');
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected execution during promotion');
+        return;
+    }
     const documentation = needs.scope.outputs?.docs_only === 'true';
-    if (documentation) assert.equal(needs.documentation?.result, 'success', 'Documentation checks did not pass');
-    for (const name of ['candidate', 'installed', 'runtime', 'mods'])
+    if (!integrated) for (const name of ['integration', 'promotion']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected promotion execution');
+    if (documentation) assert.equal(needs.scope.outputs?.docs_checked, 'true', 'Documentation checks did not pass');
+    for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods'])
         assert.equal(needs[name]?.result, documentation ? 'skipped' : 'success', 'Unexpected CI result for ' + name);
 }
 
@@ -44,6 +78,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         const result = changedDocumentationOnly(process.env.CI_EVENT ?? '', process.env.CI_REF_TYPE ?? '', process.env.CI_BASE ?? '', process.env.CI_HEAD ?? '');
         assert(process.env.GITHUB_OUTPUT, 'Missing CI output path');
         appendFileSync(process.env.GITHUB_OUTPUT, `docs_only=${result}\n`);
+        appendFileSync(process.env.GITHUB_OUTPUT, `draft=${process.env.CI_EVENT === 'pull_request' && process.env.CI_DRAFT === 'true'}\n`);
         console.log(result ? 'Documentation allowlist: necessary checks only' : 'Full candidate and product matrix required');
     }
 }

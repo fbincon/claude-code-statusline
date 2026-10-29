@@ -1,3 +1,5 @@
+import { structuralFlags, structuralOperation } from './structural-review.js';
+import { reuseFlags, reuseImport } from './reuse.js';
 import { editAlignment, parseAlignmentColumns, AlignmentReferenceError } from '@fbincon/statusline-core/editor/alignments';
 import { selectiveImport } from './selective-import.js';
 import { editGroup, groupScope, type GroupEdit } from '@fbincon/statusline-core/editor/groups';
@@ -98,6 +100,10 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
         } else if (args.subaction === 'move') {
             request.before = flags.before as string | undefined; request.after = flags.after as string | undefined;
         }
+        if (structuralFlags(flags)) {
+            const result=structuralOperation(service,flags,'config-group-'+args.subaction,config=>editGroup(config,scope,request,nextId));
+            return typeof result==='string'?result:formatMutation(result,language);
+        }
         const result = service.mutate('config-group-' + args.subaction, config => {
             try { return [validateDisplay(editGroup(config, scope, request, nextId)), UNCHANGED]; }
             catch (error) { if (error instanceof AlignmentReferenceError) throw new ConfigError('alignment.references', { ids: error.ids.join(', ') }); throw new ConfigError('composition.groups.invalid'); }
@@ -120,6 +126,10 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
             return flags.json ? pretty(nodes) : nodes.map(node => `${node.enabled ? '[x]' : '[ ]'} ${node.id}  ${node.type_id}`).join('\n');
         }
         let selected: string | null = null;
+        if (structuralFlags(flags)) {
+            const result=structuralOperation(service,flags,`config-instance-${args.subaction}`,config=>edit(config,args.scope!,{action:args.subaction!,id:args.id,type_id:args.type_id,option:args.option,value:args.value,after:flags.after as string|undefined,before:flags.before as string|undefined,text:flags.text as string|undefined},nextId).config);
+            return typeof result==='string'?result:formatMutation(result,language);
+        }
         const result = service.mutate(`config-instance-${args.subaction}`, config => {
             const changed = edit(config, args.scope!, { action: args.subaction!, id: args.id, type_id: args.type_id, option: args.option, value: args.value, after: flags.after as string | undefined, before: flags.before as string | undefined, text: flags.text as string | undefined }, nextId);
             selected = changed.selected;
@@ -134,6 +144,7 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
     if (action === 'apply')
         return formatMutation(applyFlags(service, flags), language);
     if (action === 'preset' || action === 'import' || action === 'export') {
+        if (action === 'import' && reuseFlags(flags)) return reuseImport(service,args.path!,flags);
         if (action === 'import' && flags.select !== undefined) return selectiveImport(service, args.path!, flags);
         if (action === 'import' && ['user','profile','project'].some(key => flags[key] !== undefined)) throw new ConfigError('review.selection.invalid');
         const current = service.read(), protocol = new ConfigurationProtocol(service, undefined, nextId);
@@ -155,6 +166,14 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
         return formatMutation(service.apply(transformed.draft, current.revision), language);
     }
     if (action === 'item' || action === 'layout') {
+        if (action==='layout' && structuralFlags(flags)) {
+            const result=structuralOperation(service,flags,'config-layout',config=>{
+                let rows=args.rows!.map(row=>row.split(','));
+                if(!flags['by-instance']){legacyIds(config,'main',[],true);rows=rows.map(row=>row.map(type=>legacyId(config,'main',type)));}
+                return editLayout(config,args.mode!,rows);
+            });
+            return typeof result==='string'?result:formatMutation(result,language);
+        }
         const result = service.mutate(`config-${action}`, config => {
             let updated;
             if (action === 'item')

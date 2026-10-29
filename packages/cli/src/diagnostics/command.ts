@@ -1,13 +1,13 @@
+import { diagnosticInputFile, parseDiagnosticInput } from './input.js';
 import { resolve } from 'node:path';
 import type { DiagnoseResult } from '@fbincon/statusline-core/contracts/ui';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
-import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { CACHE_CAUSES } from '@fbincon/statusline-core/rendering/host-fields';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { readLimitedInput } from '@fbincon/statusline-platform/input';
-import { MAX_DIAGNOSTIC_BYTES, readDiagnosticFile } from '@fbincon/statusline-platform/diagnostic-files';
+import { MAX_DIAGNOSTIC_BYTES } from '@fbincon/statusline-platform/diagnostic-files';
 import { localizedError } from '../errors.js';
 import type { ConfigurationService } from '../config/service.js';
 import type { RuntimeContext } from '../runtime/context.js';
@@ -43,7 +43,7 @@ export function diagnosticText(result: DiagnoseResult, language: Language): stri
             lines.push('  ' + tr('evidence', { source: observation.source, scope: observation.scope, status: tr('status.' + observation.status), time: observation.observed_at ?? tr('unknown'), freshness: tr('freshness.' + observation.freshness) }));
             for (const field of observation.fields) lines.push('    ' + field.path + ': ' + tr('status.' + field.status));
         }
-        for (const row of item.rows) lines.push('  ' + row.row_id + ': ' + tr('layout.' + row.outcome) + (row.truncated ? ' · ' + tr('layout.truncated') : ''));
+        for (const row of item.rows) {lines.push('  ' + row.row_id + ': ' + tr('layout.' + row.outcome) + (row.truncated ? ' · ' + tr('layout.truncated') : ''));for(const reason of row.style_reasons??[])lines.push('  '+t('explain.style.'+reason.code,language)+(reason.owner_id?' ('+reason.owner_id+')':''));}
     }
     const tree = result.host_fields.worktree, miss = result.host_fields.cache_miss;
     if (result.configuration) lines.push(t('profiles.resolution', language, {
@@ -61,15 +61,7 @@ export async function diagnosticCommand(args: readonly string[], service: Config
     const json = args.includes('--json');
     try {
         const values = argumentsFor(args), path = values['--input'] as string;
-        const raw = path === '-' ? options.stdin?.() ?? decodeUtf8(readLimitedInput(MAX_DIAGNOSTIC_BYTES)) : (() => {
-            const bytes = readDiagnosticFile(resolve(path), true);
-            if (bytes === null) throw new ConfigError('diagnose.error.file', { value: path }, 'io_error');
-            return decodeUtf8(bytes);
-        })();
-        if (Buffer.byteLength(raw) > MAX_DIAGNOSTIC_BYTES) throw new ConfigError('diagnose.error.size', {}, 'invalid_request');
-        let input: unknown;
-        try { input = readJson(raw.replace(/^\uFEFF/u, ''), { duplicate() { throw new Error('Duplicate key'); }, constant() { throw new Error('Nonfinite number'); } }); }
-        catch { throw new ConfigError('diagnose.error.json', {}, 'invalid_json'); }
+        const input = path === '-' ? parseDiagnosticInput(options.stdin?.() ?? decodeUtf8(readLimitedInput(MAX_DIAGNOSTIC_BYTES))) : diagnosticInputFile(path).input;
         const adapter = await diagnosisAdapter(service, options);
         const width = values['--width'];
         if (typeof width === 'string' && !/^\d+$/u.test(width)) throw new ConfigError('errors.protocol.width_must_be_an_integer_from_2', {}, 'invalid_request');

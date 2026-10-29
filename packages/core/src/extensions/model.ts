@@ -1,3 +1,4 @@
+import { graphemes, clip } from '../unicode/index.js';
 import type { AutomaticPolicy, SourceContext, SourceDefinition, SourceObservation, SourceReference, SourceRegistry, SourceScope, SourceSettings, SourceView } from '../contracts/ui.js';
 import { ConfigError, object, exact, integer, isSchema } from '../config/validation.js';
 import { numeric } from '../runtime/values.js';
@@ -125,7 +126,7 @@ export function registry(value: unknown): SourceRegistry {
     if (!object(value)) sourceError('invalid');
     const legacy = isSchema(value.version, 1);
     exact(value, ['version', 'sources', 'bindings', ...(legacy ? [] : ['automatic'])], 'source registry');
-    if (!(legacy || isSchema(value.version, 2)) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
+    if (!(legacy || isSchema(value.version, 2) || isSchema(value.version, 3)) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
         sourceError('invalid');
     const sources = value.sources.map(definition), ids = new Set(sources.map(source => source.id));
     if (ids.size !== sources.length)
@@ -138,12 +139,12 @@ export function registry(value: unknown): SourceRegistry {
         return value.automatic.map(raw => {
             exact(raw, ['source_id', 'enabled', 'review_revision', 'interval_seconds', 'auth_revision'], 'automatic policy');
             const source = sources.find(s => s.id === raw.source_id);
-            if (!source || source.kind !== 'github' || typeof raw.enabled !== 'boolean' || raw.review_revision !== source.revision || typeof raw.auth_revision !== 'string' || !/^[a-f0-9]{64}$/.test(raw.auth_revision) || raw.enabled && !source.enabled) sourceError('review');
+            if (!source || (source.kind !== 'github' && !(isSchema(value.version, 3) && source.kind === 'command')) || typeof raw.enabled !== 'boolean' || raw.review_revision !== source.revision || typeof raw.auth_revision !== 'string' || !/^[a-f0-9]{64}$/.test(raw.auth_revision) || raw.enabled && !source.enabled) sourceError('review');
             return { source_id: source.id, enabled: raw.enabled, review_revision: source.revision, interval_seconds: integer(raw.interval_seconds, 60, 86400, 'interval_seconds'), auth_revision: raw.auth_revision };
         });
     })();
     if (new Set(automatic.map(p => p.source_id)).size !== automatic.length) sourceError('invalid');
-    return { version: 2, sources, bindings, automatic };
+    return { version: isSchema(value.version, 3) ? 3 : 2, sources, bindings, automatic };
 }
 export function stamp(value: unknown): string | null {
     if (value == null)
@@ -219,7 +220,11 @@ export function parseObservation(raw: unknown, source: SourceDefinition, context
     }
     return result;
 }
-export function sourceView(source: SourceDefinition | undefined, context: SourceContext, current: SourceObservation | null, good: SourceObservation | null, now: number): SourceView {
+/** Missing times cannot establish applicability at an explicitly supplied historical instant. */
+export function observationAt(entry: SourceObservation | null, at: number): SourceObservation | null {
+    return entry?.observed_at !== null && entry?.observed_at !== undefined && Date.parse(entry.observed_at) <= at ? entry : null;
+}
+export function sourceView(source: SourceDefinition | undefined, context: SourceContext, current: SourceObservation | null, good: SourceObservation | null, now: number, historicalAt?: number): SourceView {
     const result: SourceView = { source_id: source?.id ?? null, name: source?.name ?? '', state: 'unbound', reason: 'unbound', observed_at: null, freshness: 'unknown', value: null, unit: null };
     if (!source)
         return result;
@@ -227,6 +232,16 @@ export function sourceView(source: SourceDefinition | undefined, context: Source
         return { ...result, state: 'disabled', reason: 'disabled' };
     if (!matchesScope(source.scope, context))
         return { ...result, state: 'mismatch', reason: 'scope' };
+    if (historicalAt !== undefined) {
+        const original = [current, good], eligibleCurrent = observationAt(current, historicalAt), eligibleGood = observationAt(good, historicalAt);
+        current = eligibleCurrent ?? eligibleGood;
+        good = eligibleGood;
+        now = historicalAt;
+        if (!current) {
+            const later = original.find(entry => entry?.observed_at && Date.parse(entry.observed_at) > historicalAt);
+            return { ...result, state: 'missing', reason: later ? 'newer_than_input' : original.some(Boolean) ? 'association_unavailable' : 'not_refreshed', observed_at: later?.observed_at ?? null };
+        }
+    }
     const valid = (entry: SourceObservation | null) => entry && entry.source_id === source.id && entry.source_revision === source.revision && sameContext(entry.context, context);
     if (current && !valid(current))
         return { ...result, state: 'mismatch', reason: 'identity' };
@@ -238,4 +253,11 @@ export function sourceView(source: SourceDefinition | undefined, context: Source
     const time = latest.observed_at === null ? null : Date.parse(latest.observed_at), age = time === null ? null : now - time;
     return { ...result, state: current.state, reason: current.reason, value: latest.value, unit: latest.unit, observed_at: latest.observed_at,
         freshness: age === null || age < 0 ? 'unknown' : age > source.ttl_seconds * 1000 ? 'stale' : 'current', ...(latest.fields ? { fields: latest.fields } : {}) };
+}
+
+/** Bounded summaries never retain half a grapheme or terminal control sequence. */
+export function executionSummary(raw:string):string {
+    const clean=raw.replace(/\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\))/gu,'').replace(/[\p{Cc}\p{Cs}\p{Zl}\p{Zp}]/gu,' ');
+    let bounded='';for(const cluster of graphemes(clean)){if(bounded.length+cluster.length>4096)break;bounded+=cluster;}
+    return clip(bounded,2048);
 }

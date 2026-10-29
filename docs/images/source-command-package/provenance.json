@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "source_commit": "d16dacb5b6b937c4f04925b05047dd53538e3206",
+  "tarball_sha256": "42d3c8ad2d98c3be08fbd5adc6080f355cef0aa64cb55f5e2131711bcffcc8fc",
+  "application_version": "3.12.0",
+  "platform": "linux-x64",
+  "node": "24.21.0",
+  "kind": "installed-pty-cell-reconstruction",
+  "model_calls": 0,
+  "physical_visual_acceptance": false,
+  "renderer_sha256": "9debd05e423ad71ccd07a8ce49dacecd342e7436fbffca29f4d7eaa2051ebddd",
+  "fonts": [
+    {
+      "name": "DejaVuSansMono.ttf",
+      "sha256": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab"
+    },
+    {
+      "name": "NotoSansCJK-Regular.ttc",
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+    }
+  ],
+  "captures": [
+    {
+      "language": "en",
+      "page": "source-summary",
+      "file": "en-source-summary.png",
+      "png_sha256": "45afc08e4c1432d6011ac828a122525f4bdb8b59ae8a0fe387c6543b9537e7ce",
+      "ansi_sha256": "dd9563579af4af349891efd6f6671ee37929bf136daa1fde88f7d86e21692ca2",
+      "cells_sha256": "80ffe3aa4b154d9223594a51d8090cfa788ac228246fbf17cad169b1f0c9e5f1",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    },
+    {
+      "language": "en",
+      "page": "source-bindings",
+      "file": "en-source-bindings.png",
+      "png_sha256": "cc3b810e62873fbcfb98be8a93aad1b1f8af54dcb32c17a69176fa90213b0729",
+      "ansi_sha256": "05b31eea1910356d9e1332422431271773ef0718dccaba1da3e497d817a92762",
+      "cells_sha256": "3e8d8e3fde94909fa80f701ceedda69b95d8f10fd238498351b58f342ca3df33",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    },
+    {
+      "language": "en",
+      "page": "automatic-review",
+      "file": "en-automatic-review.png",
+      "png_sha256": "6fa57f816f9ab55e5c3402cc218298f06ab75cf94690f2a63888613188dd673e",
+      "ansi_sha256": "9ec3df15f447acb7a332d4952c87e62fb6ccc2bb740ea56052b0a2ebc3bca923",
+      "cells_sha256": "f4d0db7a85ad894b29557ea37a7dce8196166809485404e59def4b8c1c46b64f",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "page": "source-summary",
+      "file": "zh-CN-source-summary.png",
+      "png_sha256": "ecd4b0b80cc69d1940456f45a60402423491551309691acb5f1c9d5c3603042e",
+      "ansi_sha256": "a9cced0c899bf3bccec00cf408d7a486cb2fb3a99951b982790eeaaed055fdec",
+      "cells_sha256": "3fa223f1d13ecb762adf433b9946c88826e9cb2e7f346553921136f64dc283b3",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "page": "source-bindings",
+      "file": "zh-CN-source-bindings.png",
+      "png_sha256": "0e82006e4037a6246603d22897f1dae0f03cd5c2493b2fe53ab44edf6eed64de",
+      "ansi_sha256": "0650748e660302b43c5d25250c3cd8a89f30c44f35d84f67aaef72238264bc8e",
+      "cells_sha256": "7e34bfea6ed378ffbe7b8c07577bcfc505f7ae502a1e6ec865503b5a4ee11e98",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "page": "automatic-review",
+      "file": "zh-CN-automatic-review.png",
+      "png_sha256": "1390f2c87f2a627aa2aa8f9dc0a2726e233b671fad32a14000c6cd8e20b5252a",
+      "ansi_sha256": "e3d7d28b1c80b4d12f3895b38a55a9aeefad34123453a31caba55d25159b843c",
+      "cells_sha256": "d977e7867a0a4f156ff2c69f189a835b1f62fb57436282d19892429341d1bc30",
+      "width": 1464,
+      "height": 792,
+      "columns": 120,
+      "rows": 32,
+      "theme": "dark",
+      "crop": [
+        0,
+        0,
+        120,
+        32
+      ]
+    }
+  ]
+}

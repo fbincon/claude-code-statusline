@@ -89,3 +89,13 @@ claude-statusline config profile import scheme.json --select subagent,statusline
 `--user`、`--profile NAME_OR_ID`、`--project PATH` 最多指定一个；省略时使用用户默认。项目目标沿用现有解析规则，包括回退到用户默认。命名目标保留名称、ID 与绑定，JSON 结果说明目标及共享项目。选择性方案导入更新该目标，不能与 `--name` 或 `--overwrite` 混用；原有完整方案导入仍创建命名副本。
 
 未选择设置及其本地来源绑定保留；导入区域清除本地绑定，来源注册和权限始终不导入。选择性导入保留 host 设置、界面语言和告警阈值，只有显式选择显示阈值才会修改后者。预览、取消和无效输入不写入；并发保存导致旧版本事务被拒绝。
+
+## 样例场景
+
+`config profile preview NAME --scenario warning --width 80` 使用所选确定性观测预览已保存方案，省略 `--scenario` 使用正常样例。JSON 包含场景身份，两种预览均不写显示配置。
+
+## 自适应指标与连续背景
+
+可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
+
+五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。

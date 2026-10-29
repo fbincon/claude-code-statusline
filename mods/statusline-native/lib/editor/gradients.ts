@@ -5,6 +5,14 @@ export const GRADIENT_PRESETS = {
   ocean: ['#22d3ee', '#3b82f6'],
   sunset: ['#fb923c', '#f472b6', '#a78bfa'],
   aurora: ['#34d399', '#22d3ee', '#a78bfa'],
+  glacier: ['#67e8f9', '#60a5fa', '#818cf8'],
+  lagoon: ['#0c4a6e', '#164e63', '#1e3a8a'],
+  flame: ['#fbbf24', '#f97316', '#ef4444'],
+  copper: ['#7c2d12', '#78350f', '#831843'],
+  steel: ['#94a3b8', '#b8c4d1', '#cbd5e1'],
+  sage: ['#304c40', '#405647', '#455663'],
+  petal: ['#fbcfe8', '#e9d5ff', '#dbeafe'],
+  twilight: ['#c4b5fd', '#f9a8d4', '#fdba74'],
 } as const;
 export const GRADIENT_KEYS = ['foreground_gradient', 'background_gradient'] as const;
 export const GRADIENT_DEFAULTS = { foreground_gradient: null, background_gradient: null };
@@ -27,3 +35,5 @@ export function gradientName(value: unknown): string {
   if (value == null) return 'off';
   return Object.entries(GRADIENT_PRESETS).find(([, colors]) => JSON.stringify(colors) === JSON.stringify(value))?.[0] ?? String(value);
 }
+
+export const GRADIENT_SURFACES: Record<keyof typeof GRADIENT_PRESETS, 'dark' | 'light'> = {ocean:'dark',sunset:'dark',aurora:'dark',glacier:'dark',lagoon:'light',flame:'dark',copper:'light',steel:'dark',sage:'light',petal:'dark',twilight:'dark'};

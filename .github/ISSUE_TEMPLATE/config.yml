@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: User guide / 用户指南
+    url: https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md
+    about: Installation, configuration and troubleshooting, with a Chinese language switch. / 安装、配置与排障，页面提供中文切换。
+  - name: Private security report / 私有安全报告
+    url: https://github.com/fbincon/claude-code-statusline/security/advisories/new
+    about: Report potential vulnerabilities privately; do not disclose them in a public Issue. / 私密报告潜在漏洞，不在公开 Issue 中披露。

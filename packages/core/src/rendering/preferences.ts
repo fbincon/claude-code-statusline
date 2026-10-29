@@ -1,3 +1,6 @@
+import { riskColor } from './appearance.js';
+import { serialize } from './styles.js';
+import type { RenderTrace } from './trace.js';
 import type { DisplayDraft, FormattingDraft, ItemOptionsDraft, Scope } from '../contracts/ui.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
 import { BY_SCOPE } from '../config/catalog.js';
@@ -44,8 +47,8 @@ const SYMBOLS = '✓⏱✗■…⏳⚡', ICONS: Record<string, readonly [
     string,
     string
 ]> = { model: ['◆', 'M'], location: ['⌂', 'D'], repo: ['↗', 'G'], context: ['◉', 'C'], limits: ['◷', 'L'], usage: ['∑', 'U'], task: ['›', '>'] };
-export function decorate(text: string, item: string, scope: Scope, fmt: FormattingDraft, options: ItemOptionsDraft, language: Presentation): string {
-    if (fmt.labels === 'legacy' && fmt.icons === 'legacy' && options.label === null && options.icon === null)
+export function decorate(text: string, item: string, scope: Scope, fmt: FormattingDraft, options: ItemOptionsDraft, language: Presentation, indicator?: { bar: string; label: string }): string {
+    if (!indicator && fmt.labels === 'legacy' && fmt.icons === 'legacy' && options.label === null && options.icon === null)
         return text;
     const ownsIcon = (scope === 'main' ? ['task-timer'] : ['status', 'status-elapsed']).includes(item), custom = options.label !== null;
     const prefix = custom || fmt.labels !== 'legacy' ? language.prefix(scope, item) : null;
@@ -64,6 +67,10 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
         return null;
     };
     const label = custom ? options.label! : fmt.labels === 'short' ? language.shortLabel(scope, item) : '';
+    if (indicator) {
+        const legacy = !custom && fmt.labels === 'legacy';
+        return [getIcon(), ...(legacy ? [indicator.bar, indicator.label] : [label, indicator.bar]), text].filter(Boolean).join(' ');
+    }
     if (!removesIcon && !removesLabel) {
         const icon = getIcon();
         let value = (icon ? icon + ' ' : '') + (label ? label + ' ' : '') + text;
@@ -88,18 +95,14 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
         units = [...layout.styledUnits(icon + ' '), ...units];
     return layout.renderStyledUnits(units);
 }
-export function threshold(text: string, used: number | null, fmt: FormattingDraft, config: DisplayDraft, normal: string): string {
+export function threshold(text: string, used: number | null, fmt: FormattingDraft, config: DisplayDraft, normal: string, trace?:RenderTrace,id?:string,scope:Scope='main'): string {
     if (!config.use_colors || !fmt.thresholds.enabled || used === null)
         return text;
-    const level = fmt.thresholds;
-    let color: string;
-    if (used >= level.critical)
-        color = config.palette === 'ansi' ? '\x1b[1;31m' : '\x1b[1;38;2;242;134;134m';
-    else if (used >= level.warning)
-        color = config.palette === 'ansi' ? '\x1b[1;33m' : '\x1b[1;38;2;242;181;80m';
-    else
-        return text;
-    return normal ? text.replaceAll(normal, color) : text;
+    const risk=riskColor(used,{...config,formatting:fmt});
+    if(!risk)return text;
+    if(id&&normal&&text.includes(normal))trace?.style(scope,id,used>=fmt.thresholds.critical?'threshold_critical':'threshold_warning');
+    const color=serialize({bold:true,foreground:risk,background:null});
+    return normal ? text.replaceAll(normal,color) : text;
 }
 export function optionsFor(config: DisplayDraft, id: string, scope: Scope = 'main'): readonly [
     FormattingDraft,
@@ -108,4 +111,4 @@ export function optionsFor(config: DisplayDraft, id: string, scope: Scope = 'mai
     const options = (scope === 'main' ? config.instances : config.subagents.instances).find(node => node.id === id)?.options ?? DEFAULT_ITEM;
     return [{ ...config.formatting, ...options.formatting } as FormattingDraft, options];
 }
-export function legacyFitting(options: readonly ItemOptionsDraft[]): boolean { return options.some(o => o.label !== null || o.icon !== null || Object.keys(o.formatting).length > 0 || o.priority !== 50 || o.max_width !== null || o.presentation === 'bar'); }
+export function legacyFitting(options: readonly ItemOptionsDraft[]): boolean { return options.some(o => o.label !== null || o.icon !== null || Object.keys(o.formatting).length > 0 || o.priority !== 50 || o.max_width !== null || ['bar','adaptive'].includes(o.presentation ?? 'numeric')); }

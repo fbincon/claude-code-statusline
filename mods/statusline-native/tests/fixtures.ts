@@ -1,3 +1,5 @@
+import type { ClientProps } from '../lib/session.ts';
+import type { Frame } from '../ui/frame.ts';
 import { LANGUAGES } from '../lib/i18n/index.ts';
 import type {
   CommandInfo,
@@ -9,7 +11,7 @@ import type {
   ProcessRunResult,
 } from 'claude-code';
 import {
-  MAIN_ITEM_IDS, ITEM_DEFAULTS,
+  THEME_VALUES, MAIN_ITEM_IDS, ITEM_DEFAULTS, OPERATIONS,
   FORMAT_DEFAULTS, FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, POWERLINE_OPTIONS,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
@@ -29,7 +31,7 @@ export function component(type_id: string, enabled = true): import('../lib/gener
 
 export const BASE: Draft = {
   display: {
-    schema_version: 15, groups: [],
+    schema_version: 17, groups: [],
     theme: "classic",
     powerline_glyph: "ascii",
     powerline: { padding: "both", separator: "arrow", start_cap: false, end_cap: true, color_mode: "semantic" },
@@ -119,12 +121,12 @@ export function description(): DescribeResult {
     editor_fields: JSON.parse(JSON.stringify(EDITOR_FIELDS)),
     presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'],
+    operations: [...OPERATIONS],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },
       palette: { choices: ['default', 'ansi'] },
-      theme: { choices: ['classic', 'dark', 'light', 'terminal'] },
+      theme: { choices: [...THEME_VALUES] },
       ...POWERLINE_OPTIONS,
       'powerline-glyph': { choices: ['ascii', 'powerline'] },
       'directory-style': {
@@ -173,7 +175,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 24, result }));
+  return output(JSON.stringify({ protocol_version: 30, result }));
 }
 
 export function sample(text: string) {
@@ -237,6 +239,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
     behavior,
     commands: [] as CommandInfo[],
     registrations: [] as string[],
+    descriptions: {} as Record<string,string>,
     registered: false,
   };
   on('session.start', () => ({ cwd: '/work' }));
@@ -245,6 +248,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
   on('command.list', () => ({ value: fixture.commands }));
   on('command.register', ($, e) => {
     fixture.registrations.push(e.name);
+    fixture.descriptions[e.name]=e.description;
     fixture.registered = true;
     return { value: { command: RUN.command } };
   });
@@ -298,6 +302,8 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
         return { value: reply(readResult(store.draft, store.revision)) };
       if (request.operation === 'read_ui_preferences')
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'source_draft')
+        return { value: reply({revision: 'pins'}) };
       if (request.operation === 'review_import') return {value:reply({draft:copyDraft(request.payload.draft),changes:[]})};
       if (request.operation === 'set_ui_language') {
         store.uiLanguage = request.payload.ui_language;
@@ -342,24 +348,56 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
 }
 
 export async function keys(
-  ui: { key: (event: ClientKeyEvent & { in?: string }) => Promise<void> },
+  ui: { key: (event: ClientKeyEvent & { in?: string }) => Promise<void>; find: (query: {type: 'Client'}) => Promise<any> },
   ...events: (string | ClientKeyEvent)[]
 ) {
   for (const event of events) {
     await ui.key({
       ...(typeof event === 'string' ? { key: event } : event),
-      in: 'statusline-client',
+      in: await clientKey(ui),
     });
   }
 }
 
 /** Select a stable field identity, independent of optional UI preference rows. */
 export async function selectSetting(ui: any, key: string): Promise<void> {
-  await keys(ui, 'home');
+  // Host preferences follow tool settings. Start at that visible edge instead
+  // of traversing the whole tool form for each independent host-row assertion.
+  const host = key.startsWith('host-');
+  await keys(ui, host ? 'end' : 'home');
   for (let i = 0; i < 100; i++) {
-    const client = (await ui.find({ key: 'statusline-client' }))!.props.props;
-    if (client.view.editor?.setting === key) return;
-    await keys(ui, 'down');
+    const { frame, epoch } = await presentation(ui);
+    const index = frame.findIndex(node => node[1].key === 'setting-' + key);
+    if (index >= 0 && nodeText(frame, index).startsWith('›')) return;
+    // This navigation never changes the mount epoch. Reuse the observed frame
+    // instead of querying the same Client again just to obtain its key.
+    await ui.key({ in: 'statusline-client-' + epoch, key: host ? 'up' : 'down' });
   }
   throw new Error('Setting could not be selected: ' + key);
+}
+
+/** Inspect only what the Client actually displays, not a private Editor snapshot. */
+export async function presentation(ui: any): Promise<ClientProps> {
+  return (await ui.find({ type: 'Client' }))!.props.props as ClientProps;
+}
+export function nodeText(frame: Frame, index: number): string {
+  return frame[index]![2].map(child => typeof child === 'string' ? child : nodeText(frame, child)).join('');
+}
+export async function selectedSetting(ui: any, key: string): Promise<boolean> {
+  const { frame } = await presentation(ui);
+  const index = frame.findIndex(node => node[1].key === 'setting-' + key);
+  return index >= 0 && nodeText(frame, index).startsWith('›');
+}
+export async function visibleText(ui: any): Promise<string> {
+  return (await presentation(ui)).frame.flatMap(node => node[2].filter(child => typeof child === 'string')).join(' ');
+}
+export function previewDraft(fixture: ReturnType<typeof setup>): Draft {
+  const call = fixture.calls.filter(call => call.operation === 'preview' || call.operation === 'explain').at(-1);
+  if (!call) throw new Error('The backend has not received a preview request');
+  return call.payload.draft;
+}
+
+/** Epoch is also the mount identity, so retry replaces a host-unmounted instance. */
+export async function clientKey(ui: any): Promise<string> {
+  return 'statusline-client-' + (await presentation(ui)).epoch;
 }

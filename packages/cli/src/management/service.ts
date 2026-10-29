@@ -1,3 +1,4 @@
+import { phaseMarker } from '@fbincon/statusline-platform/performance';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -5,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { PackageError, type PackageIdentity, type PackageReview } from '@fbincon/statusline-core/management/package';
 import { compatibility, compareVersions, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
-import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
+import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, readPackageManifest, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
@@ -22,9 +23,12 @@ import { configurationBytes, configurationHashes, configurationCompatibility, as
 import { refreshIntegration } from './integration.js';
 import { restoreConfiguration } from './restore.js';
 import { ArgumentError } from '../config/arguments.js';
-import { processMatches } from '@fbincon/statusline-platform/processes';
+import { processAlive } from '@fbincon/statusline-platform/processes';
 export interface ManagementEnvironment {
     origin: string;
+    signal?: AbortSignal;
+    review?: (review: PackageReview | import('./restore.js').ConfigurationRestoreReview) => void;
+    failure?: (reason: string) => void;
     stdout: (text: string) => void;
     stderr: (text: string) => void;
     environment?: NodeJS.ProcessEnv;
@@ -33,6 +37,8 @@ export interface ManagementEnvironment {
     confirm?: () => Promise<boolean>;
     host?: () => readonly number[] | null;
     integrate?: typeof refreshIntegration;
+    beforeMutation?: (review: PackageReview) => void;
+    operationStarted?: (operation: PackageOperation) => void;
     checkpoint?: (stage: string, operation: PackageOperation) => void;
 }
 export function mutationAuthorized(flags: ManagementOptions, tty: boolean): void {
@@ -67,14 +73,14 @@ function selection(flags: ManagementOptions, before: PackageIdentity, history: R
     return { selector: channel, channel };
 }
 function installedCompatibility(current: PackageIdentity) {
-    const manifest = JSON.parse(fs.readFileSync(join(current.root, 'package.json'), 'utf8'));
+    const manifest = readPackageManifest(current.root);
     return compatibility(manifest.statuslineCompatibility, current.version);
 }
 function observedPackage(layout: NpmLayout, operation: PackageOperation): {
     identity: PackageIdentity | null;
     state: string;
 } {
-    if (operation.executors?.some(p => processMatches(p.pid, p.token)))
+    if (operation.executors?.some(p => processAlive(p.pid, p.token) !== false))
         throw new PackageError('busy');
     try {
         const identity = productIdentity(layout.root, layout.prefix);
@@ -87,7 +93,7 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
             throw error;
         const manifest = join(layout.root, 'package.json');
         if (fs.existsSync(manifest)) {
-            const value = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+            const value = readPackageManifest(layout.root);
             if (value.name !== '@fbincon/claude-code-statusline' || ![operation.version, operation.before?.version].includes(value.version))
                 throw new PackageError('identity');
         }
@@ -111,9 +117,12 @@ function targetIntegration(configDir: string, before: PackageIdentity, flags: Ma
     return binding !== null;
 }
 export async function manage(argv: readonly string[], options: ManagementEnvironment): Promise<number> {
+    const mark = phaseMarker();
     const { stdout, stderr } = options, environment = options.environment ?? process.env;
     let flags: ManagementOptions | undefined, language: Language = 'en', temporary: string | undefined, release: (() => void) | undefined, operation: PackageOperation | undefined;
     const controller = new AbortController(), cancel = () => controller.abort();
+    options.signal?.addEventListener('abort',cancel,{once:true});
+    if(options.signal?.aborted)controller.abort();
     process.on('SIGINT', cancel);
     process.on('SIGTERM', cancel);
     try {
@@ -126,13 +135,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             const prefix = resolvedPath(flags.prefix);
             if (within(configDir, globalPackageRoot(prefix)))
                 throw new PackageError('prefix');
-            return await restoreConfiguration(flags, configDir, prefix, language, stdout, options.confirm, controller.signal);
+            return await restoreConfiguration(flags, configDir, prefix, language, stdout, options.confirm, controller.signal, options.review);
         }
         const npm = options.npm ?? new Npm(environment, undefined, undefined, controller.signal), layout = await npm.layout(flags.prefix);
         if (within(configDir, layout.root))
             throw new PackageError('prefix');
         if (flags.restoreConfig)
-            return await restoreConfiguration(flags, configDir, layout.prefix, language, stdout, options.confirm, controller.signal);
+            return await restoreConfiguration(flags, configDir, layout.prefix, language, stdout, options.confirm, controller.signal, options.review);
         let before: PackageIdentity | null = null;
         if (!flags.package)
             before = currentPackage(layout);
@@ -178,6 +187,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         if (configReasons.length)
             reasons.push('configuration');
         const review: PackageReview = { schema_version: 1, action: flags.package ? 'recover-package' : flags.command as 'update' | 'rollback', current: before?.version ?? null, observed_package: observed ?? before?.version ?? null, target: target.version, registry: target.registry, prefix: layout.prefix, entry: join(layout.root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js'), node: process.execPath, npm_entry: npm.entry, config_dir: configDir, node_version: process.versions.node, node_engine: target.nodeEngine, host: host?.join('.') ?? null, channel, integrated, compatibility: target.compatibility, integrity: target.integrity, compatible: !reasons.length, reasons, configuration_conflicts: configReasons, backup_id: operation?.id ?? history?.transaction ?? null, artifact_verified: false };
+        options.review?.(review);
         if (flags.check) {
             stdout(JSON.stringify(review, null, 2) + '\n');
             return reasons.length ? 2 : 0;
@@ -188,7 +198,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
                 stderr(t('package.reason_' + reasons[0], language) + '\n');
             return 2;
         }
-        if (!flags.package && target.version === before!.version) {
+        if (!flags.package && target.version === before!.version && !(flags.dryRun && options.review)) {
             stdout(flags.json ? JSON.stringify({ ...review, unchanged: true }) + '\n' : t('management.current', language, { version: target.version }) + '\n');
             return 0;
         }
@@ -212,6 +222,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         if (integrated)
             await (options.integrate ?? refreshIntegration)(staged.root, expected, configDir, host, hashes, temporary, true, environment, controller.signal);
         review.artifact_verified = true;
+        options.review?.(review);
         if (!flags.json)
             stdout(t('management.review', language) + '\n');
         stdout(JSON.stringify(review, null, 2) + '\n');
@@ -238,11 +249,14 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         else {
             if (!installed || !sameIdentity(installed, before!) || fs.existsSync(pendingPath(layout.prefix)))
                 throw new PackageError('conflict');
+            options.beforeMutation?.(review);
             operation = startOperation(configDir, layout.prefix, target.version, target.registry, before, flags.command as 'update' | 'rollback');
             operation.snapshot = createStorage().lock(configDir, () => { assertConfiguration(configDir, hashes); return saveSnapshot(configDir, dirname(operationPath(operation!)), bytes); });
             operation.beforeCompatibility = installedCompatibility(before!);
             operation.previousChannel = history?.channel ?? null;
         }
+        if(flags.package) options.beforeMutation?.(review);
+        options.operationStarted?.(operation);
         if (operation.before && !operation.snapshot) {
             if (!installed || installed.version !== operation.before.version)
                 throw new PackageError('backup');
@@ -276,11 +290,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         saveOperation(operation);
         const observeProcess = observeOperation(operation);
         npm.onProcess = observeProcess;
+        mark('reviewed');
         options.checkpoint?.('reviewed', operation);
         verifyArchive(savedArchive, target);
         if (installed?.version !== target.version) {
             operation.stage = 'installing';
             saveOperation(operation);
+            mark('installing');
             options.checkpoint?.('installing', operation);
             await npm.installArchive(savedArchive, layout.prefix);
         }
@@ -288,11 +304,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         operation.stage = 'package_verified';
         operation.results.package = true;
         saveOperation(operation);
+        mark('package-verified');
         options.checkpoint?.('package_verified', operation);
         assertConfiguration(configDir, hashes);
         if (integrated) {
             operation.stage = 'integrating';
             saveOperation(operation);
+            mark('integrating');
             options.checkpoint?.('integrating', operation);
             await (options.integrate ?? refreshIntegration)(layout.root, operation.after, configDir, host, hashes, temporary, false, environment, controller.signal, observeProcess);
         }
@@ -301,6 +319,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         saveOperation(operation);
         recordInstallation(operation);
         finishOperation(operation);
+        mark('complete');
         stdout(t('management.complete', language, { version: target.version, prefix: layout.prefix, backup: operation.snapshot ? operation.id : '—' }) + '\n');
         if (runnerRoot)
             stdout(t('management.runner', language, { entry: join(recoveryRunner, 'bin/claude-statusline.js') }) + '\n');
@@ -317,6 +336,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             }
             catch { /* Preserve the last durable phase if the journal volume is unavailable. */ }
         }
+        options.failure?.(reason);
         const message = t('package.reason_' + reason, language);
         if (flags?.json)
             stdout(JSON.stringify({ schema_version: 1, error: { code: reason, message } }) + '\n');
@@ -327,6 +347,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         return reason === 'interrupted' ? 130 : 2;
     }
     finally {
+        options.signal?.removeEventListener('abort',cancel);
         release?.();
         process.off('SIGINT', cancel);
         process.off('SIGTERM', cancel);

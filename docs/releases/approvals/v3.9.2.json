@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.9.2",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-28",
+  "authority": "On 2026-10-28 the maintainer explicitly confirmed implementation of the FIX-01, FIX-02, FIX-03, FIX-04 and I18N-01 plan, including shared save protection in both editors, excluding untimestamped historical extension values, and stable v3.9.2 publication to npm, GitHub and Gitee. Commits, pushes, PR creation and merge, annotated tags, draft assets, publication, Gitee synchronization and updating this test machine are authorized after all required final PR/main/tag automated gates pass. The existing eight installation targets, 32 Node runtime cases, sixteen fixed hosts and 197 native capacity cases remain required with applicable installed terminal checks. Restore the original display and UI preferences after validation. Only the six pre-existing issue #96 gaps remain accepted and unverified; no new failed, missing or skipped automated gate is waived. No paid model tests are authorized.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

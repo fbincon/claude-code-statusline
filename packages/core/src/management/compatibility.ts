@@ -1,4 +1,6 @@
+import { SCHEMA_VERSION } from '../config/display.js';
 import { PackageError, exactVersion } from './package.js';
+import { PROTOCOL_VERSION } from '../contracts/ui.js';
 export const CONFIG_FORMATS = {
     'claude-statusline.json': 'display',
     'claude-statusline-profiles.json': 'profiles',
@@ -30,8 +32,9 @@ const LEGACY_370_COMPATIBILITY: PackageCompatibility = {
     read: { display: [1, 13], profiles: [1, 1], sources: [1, 2], runtime_preferences: [1, 2], native_preferences: [1, 1], external_preferences: [1, 1], ui_preferences: [1, 1] },
     editor_protocol: 21, runtime_protocol: 3,
 };
-export const PACKAGE_COMPATIBILITY: PackageCompatibility = { ...JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY)), editor_protocol: 24 };
-PACKAGE_COMPATIBILITY.read.display = [1, 15];
+export const PACKAGE_COMPATIBILITY: PackageCompatibility = { ...JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY)), editor_protocol: PROTOCOL_VERSION };
+PACKAGE_COMPATIBILITY.read.display = [1, SCHEMA_VERSION];
+PACKAGE_COMPATIBILITY.read.sources = [1, 3];
 export const LEGACY_370_SHA256 = 'b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95';
 export function compareVersions(left: string, right: string): number {
     if (!exactVersion(left) || !exactVersion(right))

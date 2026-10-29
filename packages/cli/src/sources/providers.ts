@@ -1,5 +1,7 @@
-import type { SourceDefinition, SourceContext, SourceObservation } from '@fbincon/statusline-core/contracts/ui';
-import { parseObservation, emptyObservation, scalar, sourceError } from '@fbincon/statusline-core/extensions/model';
+import { safeLink } from '@fbincon/statusline-core/terminal/links';
+import { clip } from '@fbincon/statusline-core/unicode/index';
+import type { SourceDefinition, SourceContext, SourceObservation, SourceCheck } from '@fbincon/statusline-core/contracts/ui';
+import { parseObservation, emptyObservation, scalar, sourceError, executionSummary } from '@fbincon/statusline-core/extensions/model';
 import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
@@ -23,18 +25,20 @@ export function readLocal(source: SourceDefinition, context: SourceContext): Sou
 }
 export type SourceRunner = (options: SourceProcessOptions) => Promise<SourceProcessResult>;
 export async function refreshCommand(source: SourceDefinition, context: SourceContext, signal: AbortSignal, run: SourceRunner = runSourceProcess): Promise<SourceObservation> {
+    const started = performance.now();
     const s = source.settings;
     const input = Object.fromEntries(Object.entries(s.input ?? {}).map(([key, field]) => [key, context[field as keyof SourceContext]]));
     const result = await run({ executable: s.executable!, args: s.args!, cwd: s.cwd!, input: JSON.stringify(input) + '\n', timeoutMs: s.timeout_ms!, signal });
+    const execution = { finished_at: new Date().toISOString(), duration_ms: Math.max(0, Math.round(performance.now()-started)), exit_code: result.code, reason: result.reason, summary: executionSummary(result.stdout) };
     if (result.reason !== 'completed')
-        return emptyObservation(source, context, result.reason);
+        return { ...emptyObservation(source, context, result.reason), execution };
     try {
         if (s.output === 'json')
-            return parseObservation(readJson(result.stdout, { duplicate: () => sourceError('invalid_output'), constant: () => sourceError('type') }), source, context, true);
-        return { ...emptyObservation(source, context, 'valid', 'valid'), value: scalar(result.stdout.trimEnd()), observed_at: new Date().toISOString() };
+            return { ...parseObservation(readJson(result.stdout, { duplicate: () => sourceError('invalid_output'), constant: () => sourceError('type') }), source, context, true), execution };
+        return { ...emptyObservation(source, context, 'valid', 'valid'), value: scalar(result.stdout.trimEnd()), observed_at: execution.finished_at, execution };
     }
     catch (error) {
-        return failure(source, context, error);
+        return { ...emptyObservation(source, context, 'invalid_output'), execution: { ...execution, reason: 'invalid_output', summary: '' } };
     }
 }
 export function checkSummary(value: unknown): string {
@@ -112,9 +116,19 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
         const after = await invoke(['pr', 'view', String(pr.number), '--repo', repo, '--json', 'headRefOid']);
         if (!object(after) || after.headRefOid !== context.head || authRevision() !== fingerprint)
             sourceError('identity');
-        const ci = checkSummary(checks);
-        return { ...result, state: ci === 'unknown' ? 'partial' : 'valid', reason: ci === 'unknown' ? 'unknown_checks' : 'valid', value: pr.number, observed_at: new Date().toISOString(),
-            fields: { pr: pr.number, review: typeof pr.reviewDecision === 'string' ? scalar(pr.reviewDecision) : '', ci, url, ci_url: url + '/checks' },
+        const ci = checkSummary(checks), details: SourceCheck[] = [];
+        let bytes = 0;
+        for (const check of checks) {
+            if (!object(check)) continue;
+            const link = safeLink(check.link);
+            const detail = { name: clip(String(scalar(typeof check.name === 'string' ? check.name : '')),256), state: clip(String(scalar(typeof check.state === 'string' ? check.state : 'unknown')),64), bucket: ['pass','fail','pending','cancel','skipping'].includes(String(check.bucket)) ? String(check.bucket) : 'unknown', url: link && /^https?:/u.test(link) ? link : null };
+            const size=Buffer.byteLength(JSON.stringify(detail));
+            if(bytes+size>256*1024)break;bytes+=size;details.push(detail);
+        }
+        const truncated=details.length<checks.length;
+        return { ...result, state: ci === 'unknown' || truncated ? 'partial' : 'valid', reason: truncated ? 'check_details_truncated' : ci === 'unknown' ? 'unknown_checks' : 'valid', value: pr.number, observed_at: new Date().toISOString(),
+            checks: details,
+            fields: { check_count: checks.length, pr: pr.number, review: typeof pr.reviewDecision === 'string' ? scalar(pr.reviewDecision) : '', ci, url, ci_url: url + '/checks' },
             identity: { host: s.host!, repository: s.repository!, account: s.account!, auth_revision: fingerprint } };
     }
     catch (error) {
