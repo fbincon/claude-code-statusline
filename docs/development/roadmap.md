@@ -73,7 +73,7 @@ Keep the original project and authors credited when discussing these references.
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Next workflow | [I18N-02](development-plan.md#i18n-02) | Current-source language fallback during development and complete six-language releases | Existing generator/messages, registered metadata ownership and compatible PR/main/tag verification; [design and slices](i18n-workflow.md#delivery-slices) | NOT_STARTED |
+| Next workflow | [I18N-02](development-plan.md#i18n-02) | Current-source language fallback during development and complete six-language releases | Existing generator/messages, registered metadata ownership and compatible PR/main/tag verification; [design and slices](i18n-workflow.md#delivery-slices) | IN_PROGRESS |
 | 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
 | 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
 | 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |

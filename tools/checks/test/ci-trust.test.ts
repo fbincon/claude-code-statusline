@@ -24,17 +24,20 @@ export const latestRun = (_runs, _commit, _branch, event) => ({id: event === 'pu
 export const completeSource = async () => JSON.parse(fs.readFileSync('source.json', 'utf8'));
 `,
         'ci-evidence.ts': `import fs from 'node:fs'; import assert from 'node:assert/strict'; import { createHash } from 'node:crypto';
+import { verifyBytes } from '../generation/i18n/analysis.ts';
 export const digest = value => createHash('sha256').update(value).digest('hex');
-export const verifyRecordedFiles = (_record, directory) => assert.equal(fs.readFileSync(directory + '/original.tgz', 'utf8'), 'accepted bytes', 'OLD verifier rejects changed bytes');
+export const verifyRecordedFiles = (_record, directory) => verifyBytes(fs.readFileSync(directory + '/original.tgz', 'utf8'));
 `,
         'ci-integration.ts': `import assert from 'node:assert/strict';
 export const verifyMerge = async relation => assert.equal(relation.pr, 23, 'OLD verifier rejects wrong PR');
 `,
     };
     for (const [name, content] of Object.entries(modules)) write('tools/checks/' + name, content);
+    write('tools/generation/i18n/analysis.ts', "import assert from 'node:assert/strict'; export const verifyBytes = value => assert.equal(value, 'accepted bytes', 'OLD verifier rejects changed bytes');\n");
     git('init', '--initial-branch=main'); git('add', '.'); git('commit', '-m', 'trusted contract'); const base = git('rev-parse', 'HEAD');
     git('switch', '-c', 'change');
     for (const name of Object.keys(modules)) write('tools/checks/' + name, 'export const verifyRecordedFiles = () => {};\n');
+    write('tools/generation/i18n/analysis.ts', 'export const verifyBytes = () => {};\n');
     git('add', '.'); git('commit', '-m', 'untrusted no-op checker'); const head = git('rev-parse', 'HEAD');
     git('switch', 'main'); git('merge', '--no-ff', 'change', '-m', 'merge'); const commit = git('rev-parse', 'HEAD');
     const record = { branch: 'change', pr: { head, base, number: 23 }, tree: git('rev-parse', head + '^{tree}') };
@@ -45,6 +48,7 @@ export const verifyMerge = async relation => assert.equal(relation.pr, 23, 'OLD 
     process.chdir(root);
     const exported = join(root, 'exported'); exportBaseVerifiers(base, exported);
     assert.equal(fs.readFileSync(join(exported, 'tools/checks/ci-evidence.ts'), 'utf8'), modules['ci-evidence.ts']);
+    assert(fs.readFileSync(join(exported, 'tools/generation/i18n/analysis.ts'), 'utf8').includes('OLD verifier rejects changed bytes'));
     const report = await verifyWithAcceptedBase(selection, join(root, 'evidence'));
     assert.equal(report.verifier_commit, base); assert.equal(report.source_record_sha256, digest(JSON.stringify(record)));
     write('evidence/original.tgz', 'tampered bytes');

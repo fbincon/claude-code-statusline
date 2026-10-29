@@ -17,11 +17,11 @@ export function exportBaseVerifiers(base: string, directory: string): void {
     assert.match(base, /^[a-f0-9]{40}$/u);
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(join(directory, 'package.json'), '{"private":true,"type":"module"}\n', { flag: 'wx' });
-    for (const row of git('ls-tree', '-r', base, '--', 'tools/checks').split('\n')) {
+    for (const row of git('ls-tree', '-r', base, '--', 'tools/checks', 'tools/generation/i18n').split('\n')) {
         const [identity, path] = row.split('\t');
         if (!path?.endsWith('.ts')) continue;
         assert(identity?.startsWith('100644 blob ') || identity?.startsWith('100755 blob '), 'Verifier must be a regular Git blob');
-        assert(path.startsWith('tools/checks/') && !path.includes('\\') && !path.split('/').some(part => part === '..' || part === '.'));
+        assert((path.startsWith('tools/checks/') || /^tools\/generation\/i18n\/[^/]+\.ts$/u.test(path)) && !path.includes('\\') && !path.split('/').some(part => part === '..' || part === '.'));
         const target = join(directory, path); fs.mkdirSync(dirname(target), { recursive: true });
         fs.writeFileSync(target, execFileSync('git', ['show', base + ':' + path], { maxBuffer: 4 * 1024 * 1024 }), { flag: 'wx' });
     }

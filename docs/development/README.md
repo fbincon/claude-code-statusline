@@ -1,5 +1,8 @@
 # Development guide
 
+[I18N-02 implementation](i18n-02-delivery.md) records the compatibility preparation. Incremental language generation is not activated yet.
+
+
 
 [Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
 

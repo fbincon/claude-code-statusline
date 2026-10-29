@@ -73,7 +73,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 
 | 批次 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| 下一工作流 | [I18N-02](development-plan.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 既有生成器／消息、已登记元数据归属及兼容 PR／main／tag 核验；[设计与切片](i18n-workflow.zh-CN.md#delivery-slices) | NOT_STARTED |
+| 下一工作流 | [I18N-02](development-plan.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 既有生成器／消息、已登记元数据归属及兼容 PR／main／tag 核验；[设计与切片](i18n-workflow.zh-CN.md#delivery-slices) | IN_PROGRESS |
 | 1 正确性 | [FIX-01](development-plan.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | DONE |
 | 1 正确性 | [FIX-02](development-plan.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | DONE |
 | 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |

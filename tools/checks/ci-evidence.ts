@@ -9,6 +9,7 @@ import { parseArgs } from 'node:util';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { TARGETS, HOSTS } from './runtime-inputs.ts';
 import { envelopeBytes } from './evidence-zip.ts';
+import { languageEvidence, type LanguageEvidence } from './i18n-evidence.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -24,6 +25,7 @@ export interface CompleteEvidence {
     inputs: unknown; delivery: Record<string, string>; receipts: Record<string, string>;
     acceptance_sha256: string; input_file_sha256: string; compiled: Record<string, string>;
     artifacts: ArtifactIdentity[]; executions: any[];
+    language?: LanguageEvidence;
 }
 /** Release registrations are data; executable release checks remain acceptance policy. */
 export function acceptancePolicyPath(path: string): boolean {
@@ -233,7 +235,8 @@ export async function recordComplete(evidence: string, selectionFile: string, ac
             node_sha256: report.node_sha256, host: report.host ?? null, host_sha256: report.host_sha256 ?? null, execution,
             job_id: matching[0].id, job_name: name, started_at: matching[0].started_at, completed_at: matching[0].completed_at });
     }
-    const record: CompleteEvidence = { schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: build.commit,
+    const language = languageEvidence(verified.sourceEntries, build.commit);
+    const record: CompleteEvidence = { ...(language ? { language } : {}), schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: build.commit,
         tree: git('rev-parse', 'HEAD^{tree}'), run_id: runId, attempt, event: process.env.GITHUB_EVENT_NAME!,
         branch: pr ? event.pull_request.head.ref : process.env.GITHUB_REF_NAME!, workflow: '.github/workflows/ci.yml', workflow_sha: process.env.GITHUB_WORKFLOW_SHA!, pr,
         created_at: created.toISOString(), expires_at: new Date(created.getTime() + 30 * 86400000).toISOString(), policy_sha256: policyDigest(build.commit), version: accepted.application_version,

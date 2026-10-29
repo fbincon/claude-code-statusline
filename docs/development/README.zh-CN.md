@@ -1,5 +1,8 @@
 # 开发指南
 
+[I18N-02 实现记录](i18n-02-delivery.zh-CN.md)记录兼容性准备；增量语言生成尚未启用。
+
+
 
 [自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
 

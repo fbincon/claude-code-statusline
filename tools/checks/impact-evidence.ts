@@ -6,10 +6,12 @@ import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { assertPlan, createImpactPlan, type ImpactPlan } from './impact-plan.ts';
 import { canonical, git, hash, productInputs } from './impact-content.ts';
 import type { ScopedReceipt } from './impact-runner.ts';
+import { verifySourceLanguage, type LanguageEvidence } from './i18n-evidence.ts';
 
 export interface MaintenanceReference { run_id: number; commit: string; envelope: ArtifactIdentity; sha256: string }
 export interface ExecutionJob { id: number; name: string; attempt: number; started_at: string; completed_at: string }
 export interface MaintenanceRecord {
+    language?: LanguageEvidence;
     schema_version: 1; kind: 'maintenance'; repository: string; commit: string; tree: string;
     run_id: number; attempt: number; event: string; branch: string; created_at: string; expires_at: string;
     plan: ImpactPlan; plan_sha256: string; product_base: string; product_inputs_sha256: string;
@@ -37,6 +39,7 @@ export function validateMaintenance(record: MaintenanceRecord, run: any, now = D
     assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now && Date.parse(record.expires_at) - Date.parse(record.created_at) <= 30 * 86400000);
     assertPlan(record.plan); assert.equal(record.plan.route, 'maintenance'); assert.equal(record.plan_sha256, hash(canonical(record.plan)));
     assert.equal(record.product_inputs_sha256, productInputs(record.commit)); assert.equal(record.product_base, record.plan.base);
+    verifySourceLanguage(record.language, record.plan.head);
     if (record.reused) {
         assert.equal(record.event, 'push'); assert.equal(record.branch, 'main');
         assert.equal(record.reused.integration.commit, record.commit); assert.equal(record.reused.integration.head, record.plan.head);

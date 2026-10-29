@@ -13,6 +13,7 @@ import { integratedCandidate, SMOKE_TARGETS } from './ci-integration.ts';
 import { verifyTagIdentity } from './ci-tag.ts';
 import { withImpactVerifier } from './impact-trust.ts';
 import { comparePackages, type PackageComparison } from '../build/impact-package.ts';
+import { verifyLanguageEvidence, verifySourceLanguage, type LanguageEvidence } from './i18n-evidence.ts';
 
 export interface MaintenanceReleaseSelection {
     schema_version: 2; kind: 'maintenance-release-selection'; tag: string; tag_object: string; commit: string; integration_commit: string;
@@ -20,6 +21,7 @@ export interface MaintenanceReleaseSelection {
     maintenance: MaintenanceReference[]; product: { record: CompleteEvidence; envelope: ArtifactIdentity; artifact_ids: number[] };
 }
 export interface ReleaseBinding {
+    language?: LanguageEvidence;
     schema_version: 2; kind: 'maintenance-release'; status: 'pass'; repository: string; selection: MaintenanceReleaseSelection;
     run_id: number; attempt: number; delivery: Record<string, string>; package_artifact: ArtifactIdentity; comparison: PackageComparison;
     smokes: { artifact: ArtifactIdentity; receipt: any }[]; approval: unknown; created_at: string;
@@ -108,6 +110,7 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
     const { sourceStableApproval } = await import('../release/approval.ts');
     const version = selection.tag.slice(1), filename = `fbincon-claude-code-statusline-${version}.tgz`, checked = verifyDelivery(join(delivery, filename), selection.commit);
     assert.equal(checked.source.application_version, version); verifyRecordedFiles(selection.product.record, original);
+    verifyLanguageEvidence(checked.language, checked.sourceEntries, selection.commit, true);
     const baseline = join(original, 'ts06-candidate', `fbincon-claude-code-statusline-${selection.product.record.version}.tgz`);
     const comparison = comparePackages(selection.product.record.source_commit, selection.commit, baseline, join(delivery, filename)); assert(comparison.equivalent, 'Release changes product payload');
     await withImpactVerifier(selection.verifier_commit, async directory => {
@@ -125,7 +128,7 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
     }
     const executions: ExecutionJob[] = [executionJob(await jobsFor(runId, buildExecution.attempt), 'Build current maintenance release source', buildExecution.attempt)];
     for (const { receipt } of smokes) executions.push(executionJob(await jobsFor(runId, Number(receipt.execution.attempt)), 'Maintenance release smoke / ' + receipt.target, Number(receipt.execution.attempt)));
-    const binding: ReleaseBinding = { schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
+    const binding: ReleaseBinding = { ...(checked.language ? { language: checked.language } : {}), schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), package_artifact: artifactIdentity(newestArtifact(artifacts, 'ci-release-package')),
         delivery: Object.fromEntries([filename, `claude-code-statusline-${version}-source.tar.gz`, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, hash(fs.readFileSync(join(delivery, name)))])),
         comparison, smokes, executions, approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
@@ -141,6 +144,7 @@ export async function publishedMaintenanceRelease(tag: string, commit: string, r
     }
     const binding = await artifactJson(newestArtifact(artifacts, 'ci-release-binding'), 'release-binding.json') as ReleaseBinding;
     await requireGate(run); await verifyReleaseSelection(binding.selection); validateReleaseBinding(binding, binding.selection, run);
+    verifySourceLanguage(binding.language, binding.selection.commit, true);
     assert.deepEqual(artifactIdentity(newestArtifact(artifacts, 'ci-release-package')), binding.package_artifact);
     for (const smoke of binding.smokes) {
         assert.deepEqual(artifactIdentity(newestArtifact(artifacts, smoke.artifact.name)), smoke.artifact);
@@ -159,6 +163,8 @@ export async function verifyMaintenanceBundle(binding: ReleaseBinding, directory
     for (const [name, digest] of Object.entries(binding.delivery)) assert.equal(hash(fs.readFileSync(join(directory, name))), digest, 'Release delivery bytes changed');
     const { verifyDelivery } = await import('../build/verify.ts'), { sourceStableApproval } = await import('../release/approval.ts');
     const checked = verifyDelivery(join(directory, `fbincon-claude-code-statusline-${selection.tag.slice(1)}.tgz`), selection.commit);
+    verifyLanguageEvidence(checked.language, checked.sourceEntries, selection.commit, true);
+    assert.deepEqual(binding.language, checked.language, 'Release language binding differs');
     if (checked.source.channel === 'stable') assert.deepEqual(sourceStableApproval(checked.sourceEntries, checked.source.application_version), binding.approval);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

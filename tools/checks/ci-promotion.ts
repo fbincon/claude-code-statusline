@@ -1,5 +1,6 @@
 /** Select and verify existing acceptance; this tool never creates refs or publishes. */
 import assert from 'node:assert/strict';
+import { verifyLanguageEvidence, verifySourceLanguage } from './i18n-evidence.ts';
 import * as fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -87,8 +88,10 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     const { verifyDelivery } = await import('../build/verify.js');
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
     const checked = verifyDelivery(join(directory, selection.filename), selection.source_commit);
+    verifyLanguageEvidence(record.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
     const accepted = assessEvidence(evidenceFiles(evidence), selection.source_commit, checked.sha256);
     const previous = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance/candidate-acceptance.json'), 'utf8'));
+    verifyLanguageEvidence(previous.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
     assert.equal(previous.status, accepted.status); assert.equal(previous.commit, selection.source_commit); assert.equal(previous.tarball_sha256, checked.sha256);
     assert.equal(previous.application_version, record.version);
     // Recheck version-scoped approval from the immutable source, not the current working tree.
@@ -96,8 +99,8 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     if (checked.source.channel === 'stable') {
         const approval = sourceStableApproval(checked.sourceEntries, record.version);
         assert.deepEqual(previous.maintainer_approval, approval, 'Original approval evidence differs');
-        assert.equal(previous.stable_ready, true);
-    } else { assert.equal(checked.source.channel, 'preview'); assert.equal(previous.preview_ready, true); }
+        assert.equal(previous.stable_ready, checked.language?.report.release_ready ?? true);
+    } else { assert.equal(checked.source.channel, 'preview'); assert.equal(previous.preview_ready, checked.language?.report.release_ready ?? true); }
     assert.deepEqual(record.toolchain, { node: checked.source.node, npm: checked.source.npm, typescript: checked.source.typescript, lock_sha256: checked.source.lock_sha256 });
     if (selection.route === 'main') {
         assert(smokes && smokeSelection && verificationFile);
@@ -134,6 +137,7 @@ export async function publishedTagEvidence(tag: string, commit: string, run: any
     }
     assert.deepEqual(original.envelope, promotion.source_envelope); assert.equal(digest(JSON.stringify(original.record)), promotion.source_record_sha256);
     assert.deepEqual(original.record.delivery, promotion.delivery);
+    verifySourceLanguage(original.record.language, original.record.source_commit, true);
     return { sourceRun: promotion.source_run, integrationRun, promotion, artifacts: original.artifact_ids, record: original.record };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

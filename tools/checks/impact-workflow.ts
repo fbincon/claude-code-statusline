@@ -12,6 +12,7 @@ import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { listRunArtifacts, newestArtifact, artifactIdentity } from './ci-evidence.ts';
 import { resolveComparison } from './impact-comparison.ts';
+import { languageEvidence, languageInputsAt } from './i18n-evidence.ts';
 
 export interface ImpactSelection { schema_version: 1; plan: ImpactPlan; reused?: MaintenanceRecord['reused']; package?: { file: string; comparison_sha256: string }; source_package_artifact?: number; source_run?: number }
 export async function selectImpact(directory: string): Promise<ImpactSelection> {
@@ -66,7 +67,8 @@ export async function recordMaintenance(selection: ImpactSelection, output: stri
         }
     }
     const runId = Number(process.env.GITHUB_RUN_ID), created = new Date();
-    const record: MaintenanceRecord = { schema_version: 1, kind: 'maintenance', repository: CI_REPOSITORY, commit, tree: git('rev-parse', commit + '^{tree}'),
+    const language = languageEvidence(languageInputsAt(plan.head), plan.head);
+    const record: MaintenanceRecord = { ...(language ? { language } : {}), schema_version: 1, kind: 'maintenance', repository: CI_REPOSITORY, commit, tree: git('rev-parse', commit + '^{tree}'),
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), event, branch: process.env.CI_BRANCH!, created_at: created.toISOString(), expires_at: new Date(created.getTime() + 30 * 86400000).toISOString(),
         plan, plan_sha256: hash(canonical(plan)), product_base: plan.base, product_inputs_sha256: productInputs(commit),
         pr: event === 'pull_request' ? { number: Number(process.env.CI_PR), head: plan.head, base: plan.base, draft: process.env.CI_DRAFT === 'true' } : null,

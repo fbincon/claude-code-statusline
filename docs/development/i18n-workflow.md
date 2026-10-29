@@ -2,7 +2,7 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](development-plan.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-**Design only; not implemented.** I18N-02 is the next formal work package, ahead of another feature cycle with substantial new copy. The roadmap owns its `NOT_STARTED` status. No version, date or additional language is assigned. Publishing this document does not relax current generation or release checks.
+**Compatibility preparation in progress; incremental generation is not activated.** The roadmap owns I18N-02 status. The approved implementation targets v3.15.0 without adding languages; see the [implementation record](i18n-02-delivery.md). Current complete-pack checks remain effective until the full workflow is enabled.
 
 Reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs has 2,311 keys. The [generator](../../tools/generation/resources.ts) requires complete packs, rejects unknown keys and mismatched placeholders, and emits Node and Native resources. Its coverage report measures key completeness; neither the report nor runtime English fallback tracks changed source meaning or translation acceptance. These are the capabilities proposed below.
 
