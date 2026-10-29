@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { readTar, sha256, sums, verifyChecksums } from './files.js';
 import { BUSINESS, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
+import { languageEvidence, verifyPackLanguages } from '../checks/i18n-evidence.ts';
 export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
     const source = read('candidate.json') as Candidate, manifest = read('package.json');
@@ -111,13 +112,20 @@ export function verifyDelivery(path: string, commit: string) {
     const snapshot = JSON.parse(raw.toString()); assert.equal(snapshot.commit, commit);
     assert.deepEqual(Object.keys(snapshot.files).sort(), [...entries.keys()].filter(name => name !== '.candidate-source.json').sort());
     for (const [name, hash] of Object.entries(snapshot.files)) assert.equal(sha256(entries.get(name)!), hash, 'Source archive differs');
-    return { ...candidate, sourceEntries: entries };
+    const language = languageEvidence(entries, commit);
+    verifyPackLanguages(entries, readTar(path));
+    return { ...candidate, sourceEntries: entries, ...(language ? { language } : {}) };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, checksums: { type: 'string' }, report: { type: 'string' }, release: { type: 'boolean' } } });
     if (!values.artifact || !values.commit) throw new Error('Require --artifact TGZ --commit FULL_SHA [--checksums FILE]');
     const result = values.checksums ? verifyCandidate(resolve(values.artifact), values.commit, resolve(values.checksums)) : verifyDelivery(resolve(values.artifact), values.commit);
-    if (values.release) assert(['preview', 'stable'].includes(result.source.channel ?? ''), 'A public release package is required');
+    if (values.release) {
+        assert(['preview', 'stable'].includes(result.source.channel ?? ''), 'A public release package is required');
+        assert(!values.checksums, 'Release verification requires the complete source delivery');
+        const delivery = result as ReturnType<typeof verifyDelivery>;
+        if (delivery.language) assert(delivery.language.report.release_ready, 'Release language gate failed');
+    }
     const report = { status: 'pass', commit: result.source.commit, tarball_sha256: result.sha256, files: result.entries.length, targets: result.source.targets };
     if (values.report) fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report));

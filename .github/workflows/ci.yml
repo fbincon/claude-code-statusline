@@ -707,8 +707,12 @@ jobs:
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: |
           mkdir -p "$RUNNER_TEMP/acceptance"
-          release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
-          node dist/typescript/tools/release/prepare.js --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/acceptance/candidate-acceptance.json"
+          acceptance_mode=--candidate
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
+            acceptance_mode=--"$release_channel"
+          fi
+          node dist/typescript/tools/release/prepare.js "$acceptance_mode" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/acceptance/candidate-acceptance.json"
       - name: Bind complete acceptance to its original source and artifacts
         env:
           GH_TOKEN: ${{ github.token }}

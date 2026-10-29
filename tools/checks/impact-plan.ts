@@ -72,6 +72,7 @@ function classify(path: string, before: Blob | undefined, after: Blob | undefine
     if (/^(?:tsconfig[^/]*\.json|\.node-version|\.gitattributes|\.gitignore|LICENSE|packages\/[^/]+\/tsconfig[^/]*\.json|mods\/[^/]+\/(?:package(?:-lock)?\.json|tsconfig\.json))$/u.test(path))
         return result('build', ['packaging', 'build'], 'Build/dependency/export settings require payload comparison');
     if (/^examples\//u.test(path)) return result('tools', ['core', 'docs'], 'Example configuration validation');
+    if (path.startsWith('tools/generation/i18n/data/')) return result('build', ['build', 'generation', 'checks', 'release', 'core', 'tui', 'native', 'packaging'], 'Build-only language state; validate effective resources and compare runtime payload');
     if (path.startsWith('tools/unicode/')) return result('build', ['generation', 'core', 'packaging'], 'Unicode generator inputs require output comparison');
     const tool = path.match(/^tools\/(checks|release|build|generation|acceptance|benchmarks|migration|typescript|testing)\//u)?.[1];
     if (tool) {

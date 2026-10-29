@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { artifactIdentity, artifactJson, git, listRunArtifacts, newestArtifact, policyDigest, requireRun, validateComplete, verifyWorkflowSource, type CompleteEvidence, type ArtifactIdentity } from './ci-evidence.ts';
+import { verifySourceLanguage } from './i18n-evidence.ts';
 export async function runsFor(commit: string, event = 'push'): Promise<any[]> {
     assert.match(commit, /^[a-f0-9]{40}$/u);
     const runs: any[] = [];
@@ -57,5 +58,6 @@ export async function completeSource(run: any): Promise<{ record: CompleteEviden
     await verifyWorkflowSource(record);
     assert.equal(record.tree, git('rev-parse', record.source_commit + '^{tree}'), 'Accepted tree differs');
     assert.equal(record.policy_sha256, policyDigest(record.source_commit), 'Acceptance policy differs');
+    verifySourceLanguage(record.language, record.source_commit);
     return { record, envelope: artifactIdentity(envelope), artifact_ids: [...record.artifacts.map(value => value.id), envelope.id] };
 }

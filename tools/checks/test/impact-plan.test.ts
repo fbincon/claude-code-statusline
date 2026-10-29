@@ -51,6 +51,12 @@ test('unknown files and executable renames do not hide behind documentation exte
     write('docs/README.md', '# Fixture'); git('mv', 'packages/cli/src/move.ts', 'docs/moved.md'); assert.equal(createImpactPlan(base, commit()).route, 'product');
     assert.throws(() => createImpactPlan('0'.repeat(40), base));
 });
+test('language lifecycle inputs require all consuming checks and actual package comparison', t => {
+    const { git, write, commit } = repository(t), base = git('rev-parse', 'HEAD');
+    write('tools/generation/i18n/data/accepted/ja.json', '{}');
+    const plan = createImpactPlan(base, commit()); assert.equal(plan.route, 'compare'); assert.deepEqual(plan.unknown, []);
+    for (const check of ['generation', 'checks', 'release', 'core', 'tui', 'native', 'packaging']) assert(plan.checks.includes(check as any));
+});
 test('translation values and theme slots are scoped but keys, placeholders and executable operations are core', t => {
     const { git, write, commit } = repository(t), path = 'packages/core/resources/i18n/locales/en.json';
     write(path, '{"hello":"Hello {name}"}'); commit();
