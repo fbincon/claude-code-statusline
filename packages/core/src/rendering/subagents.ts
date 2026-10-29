@@ -181,7 +181,12 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;
         const adaptive = options.presentation === 'adaptive' ? adaptiveIndicator(task, item, 'subagent', options, fmt, language, now / 1000) : null;
-        if (adaptive) { if (maximum !== null) bounded(adaptive, maximum); value = adaptive.text; }
+        if (adaptive) {
+            const fitting = { ...adaptive, onAdapt: env.trace?.adapt('subagent', node.id) };
+            if (maximum !== null) bounded(fitting, maximum);
+            value = fitting.text;
+            if (!value) env.trace?.mark('subagent',node.id,'width_omitted');
+        }
         if (maximum !== null && !adaptive) {
             if(prepared.measure(value)>maximum) env.trace?.mark('subagent',node.id,'truncated');
             value = formatters.truncateText(value, maximum);
@@ -242,13 +247,13 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
         const byId = new Map(parts.map(part => [part.item, part]));
         const cells: Cell[] = config.subagents.instances.map(node => {
             const part = byId.get(node.id);
-            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', onAdapt: stage => env.trace?.style('subagent', node.id, ['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric'][stage] as 'adaptive_numeric'), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
+            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', onAdapt: env.trace?.adapt('subagent', node.id), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
         });
         return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
     }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
-        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id), onAdapt: stage => env.trace?.style('subagent', node.id, ['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric'][stage] as 'adaptive_numeric'), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
+        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id), onAdapt: env.trace?.adapt('subagent', node.id), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
         return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + (cell.paint?.(cell.text) ?? cell.text)).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
     }
     if (config.separator_style === 'powerline')

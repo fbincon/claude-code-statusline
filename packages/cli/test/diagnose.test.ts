@@ -20,10 +20,46 @@ import { diagnosticText } from '../src/diagnostics/command.js';
 import { main } from '../src/main.js';
 import { SourceService } from '../src/sources/service.js';
 import { newInstance } from '@fbincon/statusline-core/editor/instances';
+import { setField } from '@fbincon/statusline-core/config/editor-fields';
 
 const draft = (items: string[]): Draft => ({ display: config(items), host: { ...DEFAULT_HOST, padding: 0 } });
 const output = (r: ReturnType<Awaited<ReturnType<typeof diagnosisAdapter>>>) => r.output.map(row => row.spans.map(s => s.text).join('')).join('\n');
 const fail = () => assert.fail('Diagnosis attempted a side effect or host process');
+
+test('adaptive item width limits retain semantic fitting evidence in diagnosis and sample explanations', async t => {
+    const f = setup(t), adapter = await diagnosisAdapter(f.service, { files: { read: fail } });
+    const before = allFiles(f.root);
+    const input = { context_window: { remaining_percentage: 50 }, tasks: [task({ tokenCount: 100000 })] };
+    for (const scope of ['main','subagent'] as const) for (const separator_style of ['compact','powerline'] as const) {
+        let display = scope === 'main' ? config(['context-remaining']) : agentConfig(['context-remaining']);
+        display.separator_style = separator_style;
+        display.subagents.hide_completed = false;
+        display = setField(display,'presentation','adaptive',scope,'context-remaining');
+        for (const maximum of [4,14,40]) {
+            const bounded = setField(display,'max_width',maximum,scope,'context-remaining');
+            const current = { display: bounded, host: { ...DEFAULT_HOST, padding: 0 } };
+            const actual = adapter({ draft: current, scope, width: 80, input, include_local: false });
+            const actualNode = actual.instances.find(node=>node.id==='context-remaining')!;
+            const sample = f.call('explain',{draft:current,scope,width:80}).response.result;
+            const sampleNode = sample.instances.find((node:any)=>node.id==='context-remaining');
+            assert(actualNode.evidence.some(row=>row.status==='observed'));
+            assert(actualNode.reasons.some(reason=>reason.code==='indicator_bar'));
+            assert(sampleNode.reasons.some((reason:any)=>reason.code==='indicator_bar'));
+            for (const rows of [actualNode.rows,sampleNode.samples]) {
+                assert(rows.length>0);
+                const visible = rows.filter((row:any)=>row.outcome.endsWith('visible'));
+                if (maximum===4) { assert(rows.some((row:any)=>row.outcome.endsWith('width_omitted')&&!row.truncated)); assert.equal(visible.length,0); }
+                else {
+                    assert(visible.length>0);
+                    if (maximum===14) assert(visible.every((row:any)=>row.style_reasons.some((reason:any)=>reason.code==='adaptive_numeric')));
+                }
+            }
+            if (maximum===4) assert.equal(output(actual),'');
+            else assert(output(actual).includes('50%'));
+        }
+    }
+    assert.deepEqual(allFiles(f.root),before);
+});
 
 test('extension diagnosis uses input time and preserves evidence for each instance and agent without writes', async t => {
     const f=setup(t),path=join(f.root,'extension.json'),sources=new SourceService(f.service);

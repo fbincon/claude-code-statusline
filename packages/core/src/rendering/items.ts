@@ -314,9 +314,9 @@ export class RenderState {
             text = appearance.apply(text, this.config, item, options, 'main', used,this.env.trace,id);
         return text;
         };
-        const result = { text: style(rendered.text), ...(adaptive ? { adaptive: adaptive.adaptive.map(part => ({ ...part, text: style(part.text) })) } : {}) };
+        const result = { text: style(rendered.text), ...(adaptive ? { adaptive: adaptive.adaptive.map(part => ({ ...part, text: style(part.text) })), onAdapt: this.env.trace?.adapt('main', id) } : {}) };
         if (options.max_width !== null) {
-            if (adaptive) bounded(result, options.max_width);
+            if (adaptive) { bounded(result, options.max_width); if (!result.text) this.env.trace?.mark('main',id,'width_omitted'); }
             else { if(layout.displayWidth(result.text)>options.max_width) this.env.trace?.mark('main',id,'truncated'); result.text = layout.truncateStyled(result.text, options.max_width); }
         }
         let text = result.text;
@@ -324,7 +324,7 @@ export class RenderState {
         text = layout.withLink(text, target, options.link, this.env.links);
         if(text) this.env.trace?.mark('main',id,'visible');
         const paint = foregroundPaint(options.foreground_gradient, this.config, appearance.riskColor(used, this.config));
-        return { ...rendered, ...result, ...(adaptive ? { onAdapt: (stage: Representation['stage']) => this.env.trace?.style('main', id, ['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric'][stage] as 'adaptive_numeric') } : {}), text, ...(paint ? { paint } : {}) };
+        return { ...rendered, ...result, text, ...(paint ? { paint } : {}) };
     }
 }
 export type StateFactory = (data: unknown, config: DisplayDraft, palette: Palette, inner: string, env: RenderEnvironment) => RenderState;

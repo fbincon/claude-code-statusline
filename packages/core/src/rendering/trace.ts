@@ -1,4 +1,5 @@
 import type { DisplayDraft, Scope, SampleReason, InstanceSample, LayoutReason, InstanceLayout, StyleDecision } from '../contracts/ui.js';
+import type { Representation } from './fitting.js';
 
 export type FitObserver = (id: string, reason: 'group_hidden' | 'priority_omitted' | 'width_omitted' | 'truncated') => void;
 /** Opt-in evidence from actual rendering decisions; never collects observations. */
@@ -35,6 +36,10 @@ export class RenderTrace {
     if(!row)return;
     const reasons=row.style_reasons??=[];
     if(!reasons.some(r=>r.code===code&&r.owner_id===owner_id))reasons.push({code,owner_id});
+  }
+  adapt(scope:Scope,id:string):(stage:Representation['stage'])=>void {
+    const reasons=['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric'] as const;
+    return stage=>this.style(scope,id,reasons[stage]);
   }
   fit(scope: Scope): FitObserver { return (id,reason)=>this.mark(scope,id,reason); }
   alignment(id:string,collapsed:boolean):void { this.alignments.set(id,collapsed); }
