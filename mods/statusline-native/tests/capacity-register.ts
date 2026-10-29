@@ -3,6 +3,7 @@ import type { Register } from 'claude-code';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
 import { parseBatch } from '../lib/client/messages.ts';
+import { handleKey } from '../lib/client/keys.ts';
 import { CAPACITY_CASES } from './generated-capacity-fixtures.ts';
 import { capacityView } from './capacity-fixtures.ts';
 
@@ -22,6 +23,8 @@ export const register: Register = on => {
     if (!batch || !view) throw new Error('Unexpected Client failure or invalid input: ' + JSON.stringify(e.data));
     ack = Math.max(ack, ...batch.events.map(item => item.seq));
     const value = CAPACITY_CASES[index]!;
+    if(value.name.startsWith('draft-reuse-'))for(const item of batch.events)
+      handleKey(view,item.event,value.columns,value.rows);
     $.ui.invalidate('ui.render');
     return { props: clientProps(view, 1, ack, ++generation, value.columns, value.rows) };
   });

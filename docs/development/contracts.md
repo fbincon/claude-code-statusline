@@ -2,6 +2,9 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
+
+[Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
+
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
 
@@ -11,7 +14,7 @@ Current native capacity and recovery use bounded visible frames and add three-pl
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
 
-Protocol v27 is the internal interface for the bundled/source native frontend. Display persistence uses schema v16, including in-memory v1–v15 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v29 is the internal interface for the bundled/source native frontend. Display persistence uses schema v16, including in-memory v1–v15 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -33,10 +36,10 @@ current session. `config list-items --json` exposes the same additive metadata.
 Run `claude-statusline ui --config-dir PATH` (Windows npm shim: `claude-statusline.cmd`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":27,"operation":"read","payload":{}}
+{"protocol_version":29,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":27,"result":{...}}`; failure is `{"protocol_version":27,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":29,"result":{...}}`; failure is `{"protocol_version":29,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -122,7 +125,7 @@ scope. A accepts the in-memory candidate into the draft; cancelling keeps the
 previous draft. Acceptance does not reread the file or change the opening revision.
 Saving remains a separate revision-checked transaction. Interface preferences,
 independent host preferences and collection switches are outside portable files.
-Selective import accepts only the explicit global whitelist and complete main/subagent sections. Arbitrary component merges are not supported; unselected state and local source bindings remain intact. See [selective import](#selective-import-contract). The original `import`
+Section selection retains its explicit global whitelist and complete main/subagent sections. Protocol 29 also provides reviewed visual-style and complete-group reuse through `review_reuse`; see [draft reuse](../DRAFT_HISTORY.md). Unselected state and local source bindings remain intact. See [selective import](#selective-import-contract). The original `import`
 operation remains available to matching protocol clients. Protocol v27 and display
 schema v16 evolve independently; reinstall matching frontend/backend resources.
 

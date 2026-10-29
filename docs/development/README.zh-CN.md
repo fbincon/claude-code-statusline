@@ -3,6 +3,9 @@
 [English](README.md) | **简体中文**
 [任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
 
+[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。
+
+
 [来源操作、命令调度与包执行](source-command-package-management.zh-CN.md)记录 SOURCES-01、COMMAND-02 和 UPDATE-02 交付（v3.12.0）。
 
 

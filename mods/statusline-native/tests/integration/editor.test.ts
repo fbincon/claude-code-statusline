@@ -12,7 +12,7 @@ import {
   output,
   reply,
   sample,
-  setup,
+  setup, visibleText,
   keys,
   selectSetting,
   component,
@@ -39,7 +39,7 @@ test('native Layout alignment form renders through the Client and persists only 
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 28,
+      protocol_version: 29,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -256,14 +256,10 @@ test('conflicting save retains the draft; explicit reload reads external changes
   const ui = await $.ui.mount(PANE);
   await keys(ui, '3', ' ', 'f');
   expect(fixture.closes).toHaveLength(0);
-  expect(
-    await ui.find({ in: await clientKey(ui), type: 'Text', text: 'configuration_conflict' }),
-  ).toBeDefined();
-  expect(
-    await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+off/ }),
-  ).toBeDefined();
+  expect(await visibleText(ui)).toContain('Changes and history');
+  await keys(ui,'tab');expect(previewDraft(fixture).display.use_colors).toBe(false);
   fixture.store.draft.display.palette = 'ansi';
-  await keys(ui, 'r', '3');
+  await keys(ui, 'l', 'return', '3');
   expect(
     await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();

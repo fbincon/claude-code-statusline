@@ -54,14 +54,14 @@ test('invalid imports and post-acceptance save conflicts preserve the draft', {t
   imported.host.padding=7;
   let invalid=true;
   fixture.behavior.process=(request,next)=> {
-    if(request.operation==='review_import') return invalid ? {value:output(JSON.stringify({protocol_version:28,error:{code:'invalid_configuration',message:'Invalid file',localization:null}}),2)} : {value:reply({draft:imported,changes:[change]})};
-    if(request.operation==='apply') return {value:output(JSON.stringify({protocol_version:28,error:{code:'configuration_conflict',message:'Changed externally',localization:null}}),2)};
+    if(request.operation==='review_import') return invalid ? {value:output(JSON.stringify({protocol_version:29,error:{code:'invalid_configuration',message:'Invalid file',localization:null}}),2)} : {value:reply({draft:imported,changes:[change]})};
+    if(request.operation==='apply') return {value:output(JSON.stringify({protocol_version:29,error:{code:'configuration_conflict',message:'Changed externally',localization:null}}),2)};
     return next();
   };
   await $.session.start(START); await $.command.run(RUN); const ui=await $.ui.mount(PANE);
   await keys(ui,'3',' '); await selectSetting(ui,'import-file'); await keys(ui,'return','return');
   expect(await visibleText(ui)).toContain('Tool settings');expect(previewDraft(fixture).display.use_colors).toBe(false);
-  invalid=false; await keys(ui,'return','return','a','s');
+  invalid=false; await keys(ui,'return','return','a','s','tab');
   expect(previewDraft(fixture).host.padding).toBe(7);
   expect(fixture.store.revision).toBe('0'.repeat(64));
   expect(fixture.store.draft.host.padding).toBe(0);

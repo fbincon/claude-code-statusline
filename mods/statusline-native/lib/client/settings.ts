@@ -1,3 +1,4 @@
+import { copyDraft } from '../editor/draft.ts';
 import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
@@ -16,7 +17,7 @@ export interface SettingRow {
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
-  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true},...(!e.adding?[{key:'diagnose-file',label:'Diagnose input file',group:'Item format',value:'Enter',editable:true}]:[]), ...formRows(view)];
+  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true},...(!e.adding?[{key:'diagnose-file',label:'Diagnose input file',group:'Item format',value:'Enter',editable:true},{key:'reuse-style',label:'Copy / paste visual style',group:'Item format',value:'Enter',editable:true}]:[]), ...formRows(view)];
   if (e.page === 'layout') {
     const fields = formRows(view);
     if (!e.draft.display.instances.length) return fields;
@@ -109,6 +110,8 @@ export function settingRows(view: View): SettingRow[] {
     { key: 'quick-setup', label: 'Quick setup', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
     { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },
+    {key:'change-history',label:'Changes and history',group:'Presets / portable files',value:'Enter',editable:true},
+    {key:'reuse-groups',label:'Reuse complete groups',group:'Presets / portable files',value:'Enter',editable:true},
     { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'file path; save later', editable: true },
     { key: 'export-file', label: 'Export current draft', group: 'Presets / portable files', value: 'new file path (may be unsaved)', editable: true },
     { key: 'package-management', label: 'Version and installation', group: 'Inspection', value: 'Enter', editable: true },
@@ -130,7 +133,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
   if(e.setting==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return;}
   if(e.setting==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return;}
   if (!e.canMutateDraft() && !['ui-language','preview-background'].includes(e.setting) && !e.setting.startsWith('host-')) { setMessage(view, 'message', e.compositionError);return; }
-  const d = e.draft.display;
+  const candidate = copyDraft(e.draft), d = candidate.display;
   const form = formRows(view).find((row) => row.key === e.setting);
   if (form) { adjustForm(view, form, delta); return; }
   if (e.setting === 'preset-select') {
@@ -181,8 +184,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
       ) as typeof d.scope_labels;
       break;
     case 'vim-indicator':
-      e.draft.host.hide_vim_mode_indicator =
-        !e.draft.host.hide_vim_mode_indicator;
+      candidate.host.hide_vim_mode_indicator = !candidate.host.hide_vim_mode_indicator;
       break;
     case 'settings-subagent-statusline':
       d.subagents.enabled = !d.subagents.enabled;
@@ -208,7 +210,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
         ),
       );
       e.acceptNumeric(field);
-      break;
+      return;
     }
     default: {
       const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
@@ -229,4 +231,5 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
       p.result = '';
     }
   }
+  e.commitDraft(candidate);
 }

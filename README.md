@@ -2,6 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](docs/DRAFT_HISTORY.md).
+
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)

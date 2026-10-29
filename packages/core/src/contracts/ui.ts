@@ -3,7 +3,7 @@ import { THEME_IDS } from "../editor/themes.js";
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 28 as const;
+export const PROTOCOL_VERSION = 29 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
@@ -508,7 +508,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export const OPERATIONS = ['package_execute_start', 'package_execute_detach', 'package_execute_status', 'package_cleanup_review', 'package_cleanup_apply', 'source_inspect', 'source_bindings_review', 'source_bindings_cleanup', 'source_draft', 'package_status', 'package_review_start', 'package_review_status', 'package_review_cancel', 'sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'diagnose_file', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export const OPERATIONS = ['review_reuse', 'package_execute_start', 'package_execute_detach', 'package_execute_status', 'package_cleanup_review', 'package_cleanup_apply', 'source_inspect', 'source_bindings_review', 'source_bindings_cleanup', 'source_draft', 'package_status', 'package_review_start', 'package_review_status', 'package_review_cancel', 'sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'diagnose_file', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
 export type Operation = typeof OPERATIONS[number];
 export interface ItemGuidance {
   source_kinds: string[];
@@ -1009,6 +1009,12 @@ export interface ImportReviewResult {
   draft: Draft;
   changes: ImportChange[];
 }
+export type ReuseRequest = { kind: 'style'; scope: Scope; from_scope: Scope; from_id: string; to_ids: string[]; fields: string[] }
+  | { kind: 'groups'; scope: Scope; group_ids: string[]; references: 'review' | 'expand' | 'exclude'; explicit: boolean };
+export interface ReuseReviewResult extends ImportReviewResult {
+  mappings: { instances: Record<string, string>; groups: Record<string, string>; alignments: Record<string, string> };
+  dependencies: string[]; unresolved: { scope: Scope; id: string; hint: string }[]; blocked: string[];
+}
 export interface ExportResult {
   path: string;
 }
@@ -1065,6 +1071,7 @@ export interface ResultMap {
   apply: ApplyResult;
   import: TransferResult;
   review_import: ImportReviewResult;
+  review_reuse: ReuseReviewResult;
   export: ExportResult;
   preset: TransferResult;
   read_ui_preferences: UiPreferencesResult;
@@ -1081,5 +1088,5 @@ export interface Request {
   operation: Operation;
   payload: unknown;
 }
-export type Result = PackageExecution | PackageCleanupReview | PackageStatus | PackageReviewJob | DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult | ProfilesResult | ProfileImportResult | TaskDetails;
+export type Result = ReuseReviewResult | PackageExecution | PackageCleanupReview | PackageStatus | PackageReviewJob | DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult | ProfilesResult | ProfileImportResult | TaskDetails;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

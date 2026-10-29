@@ -474,6 +474,10 @@ export function parseResponse<O extends Operation>(
         !(result.backup_dir === null || typeof result.backup_dir === 'string'))
     )
       fail();
+  } else if (operation === 'review_reuse') {
+    if (!exact(result, ['draft','changes','mappings','dependencies','unresolved','blocked']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange) ||
+      !object(result.mappings) || !exact(result.mappings,['instances','groups','alignments']) || !Object.values(result.mappings).every(m => object(m) && Object.entries(m).every(([key,value]) => /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(key) && typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(value))) ||
+      !strings(result.dependencies) || !strings(result.blocked) || !Array.isArray(result.unresolved) || !result.unresolved.every(v => object(v) && exact(v,['scope','id','hint']) && ['main','subagent'].includes(String(v.scope)) && text(v.id) && text(v.hint))) fail();
   } else if (operation === 'review_import') {
     if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {

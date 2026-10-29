@@ -1,3 +1,4 @@
+import { reuseDraft, reuseRequest } from '@fbincon/statusline-core/editor/reuse';
 import { startExecution, executionStatus, detachExecution } from '../management/execution.js';
 import { reviewHistory, cleanupHistory } from '../management/history.js';
 import { PackageError } from '@fbincon/statusline-core/management/package';
@@ -132,6 +133,14 @@ export class ConfigurationProtocol {
             if (typeof payload.name !== 'string' || typeof payload.overwrite !== 'boolean')
                 throw new ConfigError('profiles.error.invalid', { value: '' }, 'invalid_request');
             return profiles.export(payload.path, payload.name, payload.display, payload.overwrite);
+        }
+        if (operation === 'review_reuse') {
+            requestObject(payload, ['draft','path','profile','request'], 'payload');
+            const base = validateDraft(payload.draft, true);
+            if (!(payload.path === null || typeof payload.path === 'string' && payload.path.trim() && !payload.path.includes('\0')) || typeof payload.profile !== 'boolean') throw new ConfigError('reuse.invalid', {}, 'invalid_request');
+            const incoming = payload.path === null ? base : payload.profile ? { display: new ProfileService(this.service).import(payload.path as string).display, host: base.host } : importFile(payload.path as string, base);
+            try { return reuseDraft(base, incoming, reuseRequest(payload.request), this.nextId, ITEMS, payload.path === null); }
+            catch (error) { throw new ConfigError(error instanceof Error && error.message === 'reuse.incompatible' ? 'reuse.incompatible' : 'reuse.invalid', {}, 'invalid_request'); }
         }
         if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
             requestObject(payload, operation === 'read_ui_preferences' ? [] : ['ui_language'], 'payload');

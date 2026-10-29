@@ -2,6 +2,9 @@
 
 [English](contracts.md) | **简体中文**
 
+
+[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。
+
 当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
 
 
@@ -29,10 +32,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":27,"operation":"read","payload":{}}
+{"protocol_version":29,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":27,"result":{...}}`；失败为 `{"protocol_version":27,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":29,"result":{...}}`；失败为 `{"protocol_version":29,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |

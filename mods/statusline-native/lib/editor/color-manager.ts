@@ -128,7 +128,7 @@ export function colorsKey(e: Editor, event: TextKey, language: Language): null {
     const selected = rows[m.cursor]!;
     if (event.ctrl && key.toLowerCase() === 's' || key === 'return' && selected.id === 'apply') {
         if (e.canMutateDraft(m.generation)) {
-            e.draft = colorDraft(e);
+            e.commitDraft(colorDraft(e));
             e.colors = null;
         }
         return null;

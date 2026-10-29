@@ -3,6 +3,9 @@
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
 
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
+
+
 For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
 
 [First-use setup](SETUP.md) and [complete schemes](SCHEMES.md).

@@ -37,6 +37,40 @@ if (operation === 'joint-display') {
     }
     fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,cases:LANGUAGES.length*widths.length,installed_modules:true,saved_reopened:true,preview_matches:true}));
 }
+else if (operation === 'draft-reuse') {
+    const { LANGUAGES } = await load('core','i18n/registry');
+    const { defaultItem } = await load('core','config/display');
+    const { Editor, copyDraft } = await load('core','editor/draft');
+    const { reuseDraft } = await load('core','editor/reuse');
+    const { changesKey } = await load('core','editor/change-review');
+    const { parseResponse, requestText, BackendError } = await load('core','editor/backend');
+    const { State } = await load('tui','state'), { Session } = await load('tui','session');
+    const { ConfigurationService } = await load('cli','config/service'), { ConfigurationProtocol } = await load('cli','ui/protocol'), { previewAdapter } = await load('cli','rendering/preview');
+    const { exportText, importText } = await load('core','config/transfer');
+    const { ITEMS } = await load('core','config/catalog');
+    const service=new ConfigurationService({configDir:config,launch:{executable:process.execPath,args:[join(modules!,'statusline-cli/dist/src/entry.js')]},hostVersion:()=>null});
+    const protocol=new ConfigurationProtocol(service,await previewAdapter());let loseReply=false;
+    const backend={request(operation:string,payload:unknown={}){const r=protocol.handle(requestText(operation,payload),(error:unknown)=>{throw error;});const result=parseResponse(operation,{exitCode:r.status,stdout:JSON.stringify(r.response),stderr:''});if(operation==='apply'&&loseReply){loseReply=false;throw new BackendError('io_error','Reply lost after commit');}return result;}};
+    for(const language of LANGUAGES){
+        const first=service.read(),d=first.display;
+        d.instances=['a','b','c','d'].map(id=>({id,type_id:'model',enabled:true,text:null,options:defaultItem()}));d.groups=[{id:'g1',member_ids:['a','b'],primary_id:'a',link_visibility:true,shared_powerline:true},{id:'g2',member_ids:['c','d'],primary_id:'c',link_visibility:false,shared_powerline:true}];
+        d.layout={mode:'explicit',rows:[['a','b'],['c','d']],alignments:[{id:'table',columns:[[{kind:'group',id:'g1'},{kind:'group',id:'g2'}]]}]};d.statusline_language=language;
+        service.apply({display:d,host:first.host},first.revision);
+        const state=new State(backend.request('describe'),backend.request('read'),language),e=state.editor,session=new Session(state,backend),base=copyDraft(e.draft);
+        e.selected.main='b';state.key({key:'x',ctrl:true});assert(e.structureProposal);assert.deepEqual(e.draft,base);state.key({key:'a'});assert.equal(e.history.undo.length,1);state.key({key:'z',ctrl:true});assert.deepEqual(e.draft,base);
+        e.selected.main='a';state.key({key:'d',ctrl:true});const duplicated=copyDraft(e.draft);state.key({key:'z',ctrl:true});assert.deepEqual(e.draft,base);state.key({key:'r',ctrl:true});assert.deepEqual(e.draft,duplicated);
+        const source=copyDraft(e.draft);source.display.instances[0].options.foreground='#abcdef';source.display.instances[0].options.label='中文 👩‍💻';
+        const pasted=reuseDraft(e.draft,source,{kind:'style',scope:'main',from_scope:'main',from_id:'a',to_ids:['a'],fields:['foreground','label']},()=>'',ITEMS);assert.equal(pasted.blocked.length,0);e.commitDraft(pasted.draft);
+        let serial=0;const reused=reuseDraft(e.draft,base,{kind:'groups',scope:'main',group_ids:['g1'],references:'expand',explicit:true},()=> 'import-'+ ++serial,ITEMS);assert.equal(reused.blocked.length,0);e.commitDraft(reused.draft);assert.equal(e.draft.display.groups.length,4);e.undo();assert.equal(e.draft.display.groups.length,2);e.undo(true);assert.equal(e.draft.display.groups.length,4);
+        for(const width of [40,80,120]){const preview=backend.request('preview',{draft:e.draft,width});assert(preview.main.length);assert.deepEqual(importText(exportText(e.draft),e.draft),e.draft);}
+        const outside=service.read();outside.display.palette=outside.display.palette==='ansi'?'default':'ansi';service.apply({display:outside.display,host:outside.host},outside.revision);
+        const retained=copyDraft(e.draft);await assert.rejects(session.save(),(error:any)=>error.code==='configuration_conflict');assert.deepEqual(e.draft,retained);assert(e.changeReview?.current);changesKey(e,{key:'k'},language,70,16);await session.save();assert.deepEqual(backend.request('read').draft,retained);assert.equal(e.history.undo.length,0);
+        const unknown=copyDraft(e.draft);unknown.display.theme=unknown.display.theme==='light'?'classic':'light';e.commitDraft(unknown);loseReply=true;await assert.rejects(session.save());assert.equal(e.saveState,'unknown');assert.equal(e.undo(),false);await session.reconcile();assert.equal(e.saveState,'idle');assert.deepEqual(e.draft,unknown);assert.equal(e.history.undo.length,0);
+        const portable=copyDraft(base);portable.display.instances[0].type_id='external-value';portable.display.instances[0].source={binding:'foreign',hint:'Imported queue'};serial=0;const unbound=reuseDraft(base,portable,{kind:'groups',scope:'main',group_ids:['g1'],references:'exclude',explicit:false},()=> 'unbound-'+ ++serial,ITEMS);assert.equal(unbound.unresolved.length,1);assert.equal(unbound.draft.display.instances.find((n:any)=>n.id===unbound.mappings.instances.a).source.binding,null);
+        assert.equal(typeof Editor,'function');
+    }
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths:[40,80,120],history:true,atomic_repairs:true,style_fields:true,group_closure:true,unbound_sources:true,conflict_retry:true,unknown_reconciliation:true,save_reopen:true,installed_modules:true,model_calls:0}));
+}
 else if (operation === 'modules') {
     const [core, platform, clocks, tui] = await Promise.all([load('core', 'integration/binding'), load('platform', 'launch'), load('platform', 'clocks'), load('tui', 'session')]);
     const sample = clocks.sample();

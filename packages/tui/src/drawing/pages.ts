@@ -1,3 +1,5 @@
+import { changesView } from '@fbincon/statusline-core/editor/change-review';
+import { reuseView } from '@fbincon/statusline-core/editor/reuse-manager';
 import { packageView } from '@fbincon/statusline-core/editor/package-manager';
 import { taskViewerView } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisLines } from '@fbincon/statusline-core/editor/diagnosis-view';
@@ -25,6 +27,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const panel = size.content;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
+    if(e.changeReview||e.reuse){(e.changeReview?changesView(e,state.language,width,panel.innerHeight-1):reuseView(e,state.language,width,panel.innerHeight-1)).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return ''; }
     if(e.packages){packageView(e.packages,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return tr('package.ui.help');}
     if(e.taskViewer){taskViewerView(e.taskViewer,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return t('task.readonly',e.taskViewer.language);}
     if(e.diagnosis){const lines=diagnosisLines(e,state.language,width),count=Math.max(1,panel.innerHeight-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-count));e.diagnosis.scroll=start;lines.slice(start,start+count).forEach((line,i)=>canvas.content(panel,i,[paint(line)]));return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;}

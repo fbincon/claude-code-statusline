@@ -1,3 +1,5 @@
+import { openChanges, changesKey } from '@fbincon/statusline-core/editor/change-review';
+import { openReuse, reuseKey } from '@fbincon/statusline-core/editor/reuse-manager';
 import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
@@ -19,7 +21,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'changes' | 'reuse' | 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -82,7 +84,7 @@ export class State {
         const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
         const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
-            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'),...(!e.adding?[row('diagnose-file','Diagnose input file','','Item format','action')]:[]), ...fields];
+            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'),...(!e.adding?[row('diagnose-file','Diagnose input file','','Item format','action'),row('reuse-style','Copy / paste visual style','','Item format','action')]:[]), ...fields];
         if (e.page === 'layout')
             return d.instances.length ? [fields[0]!, row('row-alignment', 'Align explicit main rows', 'Enter', 'Layout', 'action'), ...fields.slice(1)] : fields;
         const result: Row[] = [
@@ -94,7 +96,7 @@ export class State {
             ...fields,
             row('preview-scenario','Sample scenario',e.previewScenario,'Preview','choice'),row('preview-width','Preview width',e.previewWidth,'Preview','choice'),
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['diagnose-file','component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['change-history','reuse-groups','diagnose-file','component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             ...['task-details','package-management'].map(key=>row(key,key,'','Inspection','action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
@@ -130,7 +132,7 @@ export class State {
         return inputView(input.edit, width);
     }
     adjust(delta: -1 | 1): Effect {
-        const e = this.editor, row = this.selectedRow(), d = e.draft.display;
+        const e = this.editor, row = this.selectedRow(), candidate = copyDraft(e.draft), d = candidate.display;
         if(row.key==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return null;}
         if(row.key==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return null;}
         if (row.key !== 'ui-language' && !e.canMutateDraft()) {this.notice(e.compositionError);return null;}
@@ -163,23 +165,25 @@ export class State {
                 d.scope_labels = cycle(e.description.options['scope-labels'].choices, d.scope_labels) as typeof d.scope_labels;
                 break;
             case 'vim-indicator':
-                e.draft.host.hide_vim_mode_indicator = !e.draft.host.hide_vim_mode_indicator;
+                candidate.host.hide_vim_mode_indicator = !candidate.host.hide_vim_mode_indicator;
                 break;
             case 'custom-subagent-rows':
                 d.subagents.enabled = !d.subagents.enabled;
                 break;
             case 'padding':
-                e.draft.host.padding = Math.max(0, Math.min(32, e.draft.host.padding + delta));
+                candidate.host.padding = Math.max(0, Math.min(32, candidate.host.padding + delta));
                 e.cancelNumeric('padding');
                 break;
             case 'refresh_interval': {
-                const current = e.draft.host.refresh_interval;
+                const current = candidate.host.refresh_interval;
                 const choices: (number | 'event')[] = ['event', ...[...new Set([1, 2, 5, 10, 30, 60, 300, 600, 3600, ...(current === 'event' ? [] : [current])])].sort((a, b) => a - b)];
-                e.draft.host.refresh_interval = cycle(choices, current);
+                candidate.host.refresh_interval = cycle(choices, current);
                 e.cancelNumeric('refresh_interval');
                 break;
             }
         }
+        e.commitDraft(candidate);
+        e.cancelNumeric();
         return null;
     }
     private numeric(field: 'padding' | 'refresh_interval', value: string): void {
@@ -190,7 +194,7 @@ export class State {
         input.buffer = value;
         e.setBuffer(field, value);
         // Preserve the last valid number while showing an invalid partial edit.
-        if (e.acceptNumeric(field)) {
+        if (e.acceptNumeric(field, true)) {
             e.setBuffer(field, value);
             this.notice('');
         }
@@ -207,6 +211,10 @@ export class State {
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if(e.changeReview)return changesKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
+        if(e.reuse)return reuseKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
+        if(ctrl&&!event.text&&!event.paste&&k.toLowerCase()==='t'&&!this.input){openChanges(e);return null;}
+        if(ctrl&&!event.text&&!event.paste&&['z','r'].includes(k.toLowerCase())&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(k.toLowerCase()==='r');return null;}
         if(e.packages)return packageKey(e.packages,event);
         if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?'cancel':null;}
         if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
@@ -368,6 +376,8 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
+            if(row.key==='change-history'){openChanges(e);return null;}
+            if(row.key==='reuse-style'||row.key==='reuse-groups'){openReuse(e,row.key==='reuse-style'?'style':'groups');return null;}
             if(row.key==='package-management'){e.packages=packageManager();return 'packages';}
             if(row.key==='task-details'){e.taskViewer=taskViewer('',null,this.language);return null;}
             if(row.key==='diagnose-file'){openDiagnosis(e);return null;}
@@ -434,7 +444,7 @@ export class State {
         else if (!e.detail && e.page === 'settings' && !ctrl) {
             const row = this.selectedRow();
             if (k === 'e' && row.key === 'refresh_interval') {
-                e.draft.host.refresh_interval = 'event';
+                const candidate=copyDraft(e.draft);candidate.host.refresh_interval='event';e.commitDraft(candidate);
                 e.cancelNumeric('refresh_interval');
             }
             else if (/^\d$/u.test(k) && (row.key === 'padding' || row.key === 'refresh_interval'))

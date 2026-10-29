@@ -25,7 +25,7 @@ export function alignmentsKey(e:Editor,event:TextKey):null {
   if(m.page==='list'&&key==='enter') { const value=values[m.cursor];if(value){m.selected=value.id;m.page='actions';m.cursor=0;}else form(e); }
   else if(m.page==='actions'&&key==='enter') {
     if(m.cursor===0)form(e,values.find(v=>v.id===m.selected));
-    else if(e.canMutateDraft()) { e.draft={...e.draft,display:editAlignment(d,m.selected!)};m.page='list';m.cursor=0; }
+    else if(e.canMutateDraft()) { e.commitDraft({...e.draft,display:editAlignment(d,m.selected!)});m.page='list';m.cursor=0; }
   } else if(m.page==='form'&&['left','right','enter','space',' '].includes(key)) {
     const rows=d.layout.rows.length;
     if(m.cursor===0)m.column=(m.column+(key==='left'?m.columns.length-1:1))%m.columns.length;
@@ -42,7 +42,7 @@ export function alignmentsKey(e:Editor,event:TextKey):null {
       if(!e.canMutateDraft())return null;
       try {
         let id=m.selected??newInstance('text',d.instances).id;while(!m.selected&&values.some(v=>v.id===id))id=newInstance('text',d.instances).id;
-        e.draft={...e.draft,display:editAlignment(d,id,m.columns)};m.page='list';m.cursor=0;m.error=false;
+        e.commitDraft({...e.draft,display:editAlignment(d,id,m.columns)});m.page='list';m.cursor=0;m.error=false;
       }catch {m.error=true;}return null;
     }
     m.error=false;

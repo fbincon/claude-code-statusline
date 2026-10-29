@@ -1,3 +1,5 @@
+import { openChanges, changesKey } from '../editor/change-review.ts';
+import { openReuse, reuseKey } from '../editor/reuse-manager.ts';
 import { packageManager, packageKey, packageView } from '../editor/package-manager.ts';
 import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
 import { openColors, colorsKey } from '../editor/color-manager.ts';
@@ -22,7 +24,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'changes' | 'reuse' | 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -44,6 +46,11 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e) e.setSaveState(view.uncertain ? 'unknown' : view.busy ? 'pending' : 'idle');
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if(e.changeReview)return changesKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
+  if(e.reuse)return reuseKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
+  if(event.ctrl&&!event.text&&key.toLowerCase()==='t'&&!view.input){openChanges(e);return null;}
+  // Current Unix hosts reserve Ctrl+Z for suspend before Client receives it.
+  if(event.ctrl&&!event.text&&['z','_','r'].includes(key.toLowerCase())&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(key.toLowerCase()==='r');return null;}
   if(e.packages){packageView(e.packages,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);return packageKey(e.packages,event);}
   if(e.packageLocked){setMessage(view,'message',localizedText('package.ui.editor_locked'));return key==='escape'||event.ctrl&&key.toLowerCase()==='g'?'close':null;}
   if(e.diagnosis)return diagnosisKey(e,event);
@@ -217,6 +224,8 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",e.compositionError); }
+    else if(e.setting==='change-history'){openChanges(e);return null;}
+    else if(e.setting==='reuse-style'||e.setting==='reuse-groups'){openReuse(e,e.setting==='reuse-style'?'style':'groups');return null;}
     else if(e.setting==='diagnose-file'){openDiagnosis(e);return null;}
     else if(openColors(e,e.setting))return null;
     else if (e.setting === 'row-alignment') { openAlignments(e); return null; }

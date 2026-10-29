@@ -2,6 +2,9 @@
 
 **English** | [简体中文](COMPOSITION.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
+
 A component type describes a value, such as a model or token count. An instance
 places that component in your statusline. Add the same type more than once to
 show different labels, formats, colors, conditions or widths. Each copy keeps its

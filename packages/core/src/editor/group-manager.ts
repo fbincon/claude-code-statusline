@@ -33,9 +33,8 @@ function apply(e: Editor, edit: GroupEdit): void {
   const m = e.groupManager!;
   if (!e.canMutateDraft()) { m.error=true;m.errorMessage=e.compositionError;return; }
   try {
-    const display = editGroup(e.draft.display, m.scope, edit, () => newInstance('text', groupScope(e.draft.display, m.scope).instances).id);
-    if (!isDraft({ ...e.draft, display })) throw new Error('invalid');
-    e.draft = { ...e.draft, display }; e.order[m.scope] = groupScope(display, m.scope).instances.map(n => n.id);
+    const display = editGroup(e.draft.display, m.scope, edit, () => newInstance('text', groupScope(e.draft.display, m.scope).instances).id, false);
+    if (!e.applyStructure({ ...e.draft, display })) throw new Error('invalid');
     m.page = 'list'; m.cursor = 0; m.error = false;
   } catch (error) { m.error = true; m.errorMessage = error instanceof AlignmentReferenceError ? text('alignment.references', { ids: error.ids.join(', ') }) : undefined; }
 }

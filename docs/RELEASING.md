@@ -2,6 +2,11 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+
+## v3.13.0 draft history and reuse
+
+Use the [version decision](releases/approvals/v3.13.0.json). Preserve 8 installations, 32 Node cases, 16 fixed hosts and all 217 earlier capacity cases; require 26 additional actual-host pages (243 total), installed draft/reuse receipts and both-editor PTYs. Promote immutable final-PR artifacts through verified main/tag evidence, then verify four assets, npm OIDC, GitHub/Gitee publication and public downloads. Upgrade the test machine and restore preferences. After completed publication, file issues for new local findings without publishing a patch. [Implementation and evidence](development/draft-history-and-reuse.md).
+
 ## v3.12.0 source, command and package management
 
 Use the [version decision](releases/approvals/v3.12.0.json). Retain 8 installations, 32 Node cases, 16 fixed hosts and the baseline 197 capacity cases; 20 additional pages share the actual-host execution (217 total) with separate counts/digests. Require installed source-operation and real-npm editor execution receipts, both-editor PTYs and local Claude 2.1.312 supplement without model calls. Promote original immutable PR artifacts through verified main/tag. Publish the four verified files, check OIDC/provenance, all public channels and explicit Gitee refs. Restore test-machine preferences after upgrading. After publication only file issues for new local findings, keeping v3.12.0. [Implementation](development/source-command-package-management.md).

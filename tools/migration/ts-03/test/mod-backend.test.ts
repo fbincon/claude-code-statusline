@@ -34,6 +34,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const baseline = call('read');
     assert.equal(baseline.installed, true);
     assert.equal(baseline.installation.statusLine.state, 'owned');
+    assert.deepEqual(call('review_reuse',{draft:baseline.draft,path:null,profile:false,request:{kind:'style',scope:'main',from_scope:'main',from_id:baseline.draft.display.instances[0].id,to_ids:[baseline.draft.display.instances[0].id],fields:['foreground']}}).draft,baseline.draft);
     assert.equal(call('read_ui_preferences').ui_language, 'en');
     assert.equal(call('set_ui_language', { ui_language: 'zh-CN' }).ui_language, 'zh-CN');
     const changed = call('preset', { draft: baseline.draft, preset: 'left-right' }).draft;

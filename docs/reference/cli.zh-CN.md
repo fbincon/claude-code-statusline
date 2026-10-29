@@ -2,6 +2,9 @@
 
 [English](cli.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](../DRAFT_HISTORY.zh-CN.md)。
+
 [首次设置](../SETUP.zh-CN.md)与[完整方案](../SCHEMES.zh-CN.md)。
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。

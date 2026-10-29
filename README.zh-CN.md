@@ -2,6 +2,9 @@
 
 [English](README.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](docs/DRAFT_HISTORY.zh-CN.md)。
+
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)

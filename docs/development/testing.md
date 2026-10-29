@@ -2,6 +2,9 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+
+[Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
+
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.

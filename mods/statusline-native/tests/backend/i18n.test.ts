@@ -32,7 +32,7 @@ test('preference protocol is strict and carries language-neutral error metadata'
   }
   const localization = text('preferences.unsupported_language', { language: 'ja' });
   try {
-    parseResponse('set_ui_language', output(JSON.stringify({protocol_version: 28, error: {code: 'invalid_configuration', message: localization.fallback, localization}}), 2));
+    parseResponse('set_ui_language', output(JSON.stringify({protocol_version: 29, error: {code: 'invalid_configuration', message: localization.fallback, localization}}), 2));
     throw new Error('expected rejection');
   } catch (error) {
     expect(error instanceof BackendError).toBe(true);

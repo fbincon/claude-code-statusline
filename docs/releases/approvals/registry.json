@@ -2,6 +2,11 @@
   "schema_version": 1,
   "approvals": [
     {
+      "version": "3.13.0",
+      "path": "docs/releases/approvals/v3.13.0.json",
+      "approved_on": "2026-10-29"
+    },
+    {
       "version": "3.12.0",
       "path": "docs/releases/approvals/v3.12.0.json",
       "approved_on": "2026-10-28"

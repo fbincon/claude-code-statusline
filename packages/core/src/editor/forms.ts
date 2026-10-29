@@ -1,5 +1,4 @@
 import { GRADIENT_KEYS, GRADIENT_DEFAULTS, GRADIENT_PRESETS, parseGradient, gradientName } from './gradients.js';
-import { alignmentConflicts } from './alignments.js';
 import { COST_RATE_DEFAULTS } from './cost-rate.js';
 import { INDICATOR_DEFAULTS } from './indicators.js';
 import { nodes } from './instances.js';
@@ -153,16 +152,10 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
     }
     else
         write(draft.display, spec.key, value);
-    const ids = alignmentConflicts(draft.display);
-    if (!isDraft(draft)) {
-        if (ids.length) {
-            setMessage(view, 'message', localizedText('alignment.references', { ids: ids.join(', ') }));
-            return false;
-        }
-        setMessage(view, "message", localizedText("native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints"));
+    if (!e.applyStructure(draft)) {
+        setMessage(view, 'message', e.compositionError.key === 'composition.invalid' ? localizedText('native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints') : e.compositionError);
         return false;
     }
-    e.draft = draft;
     return true;
 }
 export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): boolean {

@@ -11,7 +11,7 @@ import type { LaunchSpec } from '@fbincon/statusline-core/integration/binding';
 import { isolatedHostEnvironment } from './mod-types.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 export const NATIVE_CAPACITY_CASES = 197;
-export const NATIVE_CAPACITY_ADDITIONAL_CASES = 20;
+export const NATIVE_CAPACITY_ADDITIONAL_CASES = 46;
 export const NATIVE_CAPACITY_TOTAL_CASES = NATIVE_CAPACITY_CASES + NATIVE_CAPACITY_ADDITIONAL_CASES;
 
 export function nativeCapacity(host: LaunchSpec, destination: string) {

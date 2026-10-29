@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.13.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-29",
+  "authority": "On 2026-10-29 the maintainer explicitly approved and requested implementation of the complete UX-03, COMPOSITION-04 and IMPORT-02 plan for v3.13.0. Commits, pushes, a feature PR and normal merge, annotated accepted-source tags, draft assets, npm OIDC/GitHub/Gitee publication and the test-machine upgrade are authorized after every required final PR/main/tag automated gate passes. Preserve eight installation targets, 32 Node cases, sixteen fixed hosts and all 217 existing native-capacity cases, adding actual-host pages and installed/terminal journeys for draft history, conflict recovery, structural repairs and style/group reuse. Promote the original immutable artifacts through the existing evidence policy, and restore test-machine preferences. Only the same six pre-existing issue #96 gaps remain accepted and unverified; no new automated failure or missing gate is waived. No paid model tests are included. After completed publication, new test-machine findings are filed as issues while retaining the published version without a patch release.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

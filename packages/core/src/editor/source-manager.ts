@@ -1,3 +1,5 @@
+import { clone } from './history.js';
+import { compatibleSource } from './source-compatibility.js';
 import { sourceSummary, sourceReviewLines } from './source-summary.js';
 import type { Operation, ResultFor, SourcesResult, SourceDefinition, SourceContext, SourceJob, SourceReview, SourceInspection, BindingReview, Scope } from '../contracts/ui.js';
 import type { Editor } from './draft.js';
@@ -48,7 +50,7 @@ function actions(editor: Editor): Action[] { return ['edit', 'review', ...(sourc
 function targets(editor: Editor) {
     const s = source(editor);
     return (['main', 'subagent'] as const).flatMap(scope => (scope === 'main' ? editor.draft.display.instances : editor.draft.display.subagents.instances)
-        .filter(node => external.includes(node.type_id) && (s?.kind === 'github' || !node.type_id.startsWith('github-')) && (editor.sources!.page !== 'unbind' || editor.sources!.library?.bindings.some(binding => binding.source_id === s?.id && binding.id === node.source?.binding))).map(node => ({ scope, id: node.id })));
+        .filter(node => external.includes(node.type_id) && (!s || compatibleSource(node, s, editor.sources!.context)) && (editor.sources!.page !== 'unbind' || editor.sources!.library?.bindings.some(binding => binding.source_id === s?.id && binding.id === node.source?.binding))).map(node => ({ scope, id: node.id })));
 }
 function form(editor: Editor, kind: SourceDefinition['kind'], editing = false): void {
     const m = editor.sources!, s = editing ? source(editor) : undefined, settings = s?.settings ?? {};
@@ -154,7 +156,9 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
             const target = targets(editor)[m.cursor];
             const node = target && editor.instance(target.scope, target.id);
             if (node?.source) {
-                node.source = { ...node.source, binding: null };
+                const draft = clone(editor.draft);
+                (target!.scope === 'main' ? draft.display : draft.display.subagents).instances.find(n => n.id === target!.id)!.source = { ...node.source, binding: null };
+                editor.commitDraft(draft);
                 m.message = text('sources.bound');
                 m.page = 'list';
                 m.cursor = 0;
@@ -252,8 +256,11 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         if (effect === 'bind' && m.target && result.binding) {
             if (!editor.canMutateDraft(generation) || editor.sources !== m) { m.message=editor.compositionError;return; }
             const node = editor.instance(m.target.scope, m.target.id);
-            if (node)
-                node.source = result.binding;
+            if (node) {
+                const draft = clone(editor.draft);
+                (m.target.scope === 'main' ? draft.display : draft.display.subagents).instances.find(n => n.id === m.target!.id)!.source = result.binding;
+                editor.commitDraft(draft);
+            }
             m.message = text('sources.bound');
         }
         else
@@ -322,5 +329,5 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     return [...fixed, ...entries.slice(start, start + capacity)];
 }
 
-export function draftBindings(editor:Editor):string[]{return [...new Set([...editor.draft.display.instances,...editor.draft.display.subagents.instances].flatMap(n=>n.source?.binding?[n.source.binding]:[]))];}
+export function draftBindings(editor:Editor):string[]{return [...new Set([editor.draft,editor.baseline.draft,...editor.history.undo.map(e=>e.draft),...editor.history.redo.map(e=>e.draft)].flatMap(d=>[...d.display.instances,...d.display.subagents.instances].flatMap(n=>n.source?.binding?[n.source.binding]:[])))];}
 export async function closeSourceDraft(editor:Editor,backend:SourceBackend):Promise<void>{if(editor.sourceDraftRegistered){await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:[],close:true});editor.sourceDraftRegistered=false;}}

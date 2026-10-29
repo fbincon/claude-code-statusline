@@ -11,20 +11,22 @@ import { newInstance } from '@fbincon/statusline-core/editor/instances';
 import { openSources, sourcesKey, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
 import type { SourceMutationResult } from '@fbincon/statusline-core/contracts/ui';
 
-test('an external save conflict keeps the terminal and draft open until explicit cancellation', {timeout:5000}, async ()=>{
+test('an external save conflict keeps the terminal and draft open until explicit cancellation', {timeout:5000}, async t=>{
   const state=fixture(), before=JSON.stringify(state.editor.draft);
   const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(value:boolean){this.isRaw=value;return this;}});
   const output=Object.assign(new PassThrough(),{isTTY:true,columns:80,rows:24});
+  t.after(()=>{input.end();output.resume();});
   let attempts=0, sent=false, cancelled=false;
   const backend={request(operation:string){
     if(operation==='preview') return state.preview;
+    if(operation==='read') return state.editor.baseline;
     if(operation==='apply') { attempts++;throw new BackendError('configuration_conflict','Concurrent configuration changed'); }
     throw new Error('Unexpected operation');
   }} as Backend;
   output.on('data',(data:Buffer)=>{
     const text=data.toString();
     if(!sent && text.includes('Configure Status Line')) {sent=true;setImmediate(()=>input.write('\x13'));}
-    if(!cancelled && text.includes('Concurrent configuration changed')) {cancelled=true;setImmediate(()=>input.write('\x1b'));}
+    if(!cancelled && text.includes('Changes and history')) {cancelled=true;setImmediate(()=>input.write('q\x1b'));}
   });
   const result=await new Session(state,backend).run({input:input as never,output:output as never,term:'xterm-256color'});
   assert.equal(result.outcome,'cancelled',result.message);assert.equal(attempts,1);assert.equal(cancelled,true);

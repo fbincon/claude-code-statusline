@@ -61,6 +61,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - Choose bounded file readers for the data's ownership and permission contract; ordinary installation files are not private recovery artifacts. Acceptance must assert actual status/reasons and read-only byte/mode preservation, not identity alone. Read atomically replaced private progress through bounded snapshots; keep immutable recovery readers strict.
 - Preserve unknown executor liveness as unknown. Retain its records and block package recovery or replacement until exit or a different process identity is confirmed.
 - Use the platform tree-removal adapter for owned fixture state changes too; assert actual removal before testing dependent behavior.
+- Route accepted draft edits through the shared history transition; previews and cancelled inputs never create history. Keep independent persistent effects outside undo, and bind reviewed structural candidates to the current target and draft generation.
 - Preserve read-only operations, previews and dry-run contracts. Explicit configuration writes retain ownership/revision checks, locks, backups, atomic publication and recovery.
 - Use the production rendering pipeline for previews with injected observations; keep live collection separate from pure rendering.
 - Preserve complete graphemes, terminal-cell budgets and ANSI styling through shared Unicode/rendering helpers.

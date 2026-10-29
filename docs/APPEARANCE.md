@@ -2,6 +2,9 @@
 
 **English** | [简体中文](APPEARANCE.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
+
 Use Settings for the statusline theme and separator; open an item's form with Ctrl+E for colors and applicable visibility rules. Both editors preview the unsaved draft using fixed sample data. Save commits the changes; cancel retains the saved configuration. These settings are independent of the Claude theme, interface language and native preview background.
 
 ## Conditional visibility

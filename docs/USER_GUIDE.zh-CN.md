@@ -3,6 +3,9 @@
 [English](USER_GUIDE.md) | **简体中文**
 
 
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
+
+
 外部数据源的注册、授权、刷新、诊断及分享边界见[扩展指南](EXTENSIONS.zh-CN.md)。
 
 [首次设置](SETUP.zh-CN.md)与[完整方案](SCHEMES.zh-CN.md)。
