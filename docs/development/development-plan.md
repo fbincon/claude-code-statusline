@@ -2,6 +2,8 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
+v3.14.0 is validating APPEARANCE-07, APPEARANCE-06, PROFILE-02 and #178/#180; see [implementation and acceptance](adaptive-row-scenarios.md). Display schema 17/editor protocol 30; publication requires final PR/main/tag gates.
+
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [v3.13.0 delivery and post-publication findings](draft-history-and-reuse.md); retain [v3.12.0 source/command/package management](source-command-package-management.md).
 
 Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**

@@ -12,7 +12,7 @@ const [{ defaultDisplay }, { applyPreset, COMPLETE_SCHEMES }, { LANGUAGES }, pre
 const records: Record<string, unknown>[] = [];
 for (const language of LANGUAGES) {
     const env = environment.baseEnvironment(await environment.presentation(language), { home: '/sample', now: () => preview.SAMPLE_NOW });
-    for (const scheme of COMPLETE_SCHEMES) for (const width of [80,120]) {
+    for (const scheme of COMPLETE_SCHEMES) for (const width of [40,80,120]) {
         const scenarios = ['standard', ...(scheme === 'agent-focus' ? ['none','running','completed','failed'] : scheme === 'quota-watch' ? ['missing','expired','zero'] : [])];
         for (const scenario of scenarios) for (const theme of scenario === 'standard' ? ['dark','light','terminal'] : ['terminal'])
             for (const decorated of scenario === 'standard' && theme === 'dark' ? [false,true] : [false]) {

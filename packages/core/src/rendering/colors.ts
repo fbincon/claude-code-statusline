@@ -38,3 +38,8 @@ export function terminalColor(color: Color | null, colors: number): number | nul
         rgb = [1, 3, 5].map(i => parseInt(color[1].slice(i, i + 2), 16));
     return nearestTerminalColor(rgb[0]!, rgb[1]!, rgb[2]!, colors);
 }
+
+/** Standard terminal RGB values for the same palette used by quantization. */
+export function colorRgb(color: Color): string {
+    return color[0] === 'rgb' ? color[1] : '#' + RGB[color[1]]!.map(value => value.toString(16).padStart(2, '0')).join('');
+}

@@ -2,6 +2,8 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
+v3.14.0 正在验证 APPEARANCE-07、APPEARANCE-06、PROFILE-02 和 #178／#180；[实现与验收](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30；发布必须通过最终 PR／main／tag 门禁。
+
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[v3.13.0 交付与发版后发现](draft-history-and-reuse.zh-CN.md)；沿用 [v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)。
 
 更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.13.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**

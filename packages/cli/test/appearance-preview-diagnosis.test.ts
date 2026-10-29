@@ -1,3 +1,6 @@
+import { displayWidth } from '@fbincon/statusline-core/rendering/layout';
+import { SCENARIO_SCHEMES } from '@fbincon/statusline-core/config/scenario-presets';
+import { applyPreset } from '@fbincon/statusline-core/config/presets';
 import test from 'node:test';
 import { setup, assert, join, writeFileSync, readFileSync } from './final-support.js';
 import { defaultDisplay, defaultItem, validateDisplay } from '@fbincon/statusline-core/config/display';
@@ -133,5 +136,23 @@ test('new theme foregrounds and Powerline blocks come from the registry in both 
         display.use_colors = false;
         const plain = preview(draft, 120);
         assert([...plain.main, ...plain.subagents].flat().every(span => span.foreground === null && span.background === null));
+    }
+});
+
+
+test('new display scenarios preview all six languages and preserve configuration round trips', async t => {
+    const f=setup(t,true), adapter=await previewAdapter('/sample');
+    for(const name of SCENARIO_SCHEMES) for(const language of LANGUAGES) {
+        const base=defaultDisplay();base.statusline_language=language;base.subagents.enabled=false;
+        const display=applyPreset(base,name,()=> 'unused');assert.equal(display.subagents.enabled,false);assert.equal(display.statusline_language,language);
+        assert.deepEqual(validateDisplay(JSON.parse(JSON.stringify(display))),display);
+        const draft={display,host:{...DEFAULT_HOST}};
+        for(const scenario of ['normal','warning','critical','missing','many-agents'] as const) for(const width of [40,80,120]) {
+            const result=adapter(draft,width,undefined,scenario);assert.equal(result.sample,true);assert.equal(result.scenario,scenario);
+            assert(result.main.every(row=>displayWidth(row.map(s=>s.text).join(''))<=width));
+            assert.equal(f.call('preview',{draft,width,scenario}).status,0);
+        }
+        const current=f.read(), saved=f.call('apply',{draft,expected_revision:current.revision});assert.equal(saved.status,0,JSON.stringify(saved));
+        assert.deepEqual(f.read().draft.display,display);
     }
 });

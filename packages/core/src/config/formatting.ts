@@ -89,11 +89,13 @@ export function reorderedLayout(value: LayoutDraft, ids: readonly string[]): Lay
 
 /** Closed, shared appearance controls; no arbitrary glyph templates. */
 export function powerline(value: unknown): PowerlineDraft {
-  exact(value, POWERLINE_FIELDS.map(field => field.key.slice(10)), 'powerline');
+  exact(value, POWERLINE_FIELDS.filter(field => field.key !== 'powerline.row_background_gradient' || object(value) && Object.hasOwn(value, 'row_background_gradient')).map(field => field.key.slice(10)), 'powerline');
+  const result = clone(value);
   for (const field of POWERLINE_FIELDS) {
-    const key = field.key.slice(10), raw = value[key];
+    const key = field.key.slice(10), raw = result[key];
+    if (key === 'row_background_gradient') { if (raw !== undefined) { try { result[key] = parseGradient(raw); } catch { fail('gradients.invalid'); } } continue; }
     if (field.kind === 'boolean' ? typeof raw !== 'boolean' : !(field.choices as readonly unknown[]).includes(raw))
       fail('errors.powerline.value', { field: key });
   }
-  return clone(value) as unknown as PowerlineDraft;
+  return result as unknown as PowerlineDraft;
 }

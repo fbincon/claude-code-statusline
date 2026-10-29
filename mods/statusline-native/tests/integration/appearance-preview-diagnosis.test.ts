@@ -1,3 +1,4 @@
+import { t } from '../../lib/i18n/index.ts';
 import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, selectSetting, previewDraft, clientKey, reply } from '../fixtures.ts';
 import { withinBudget } from '../../ui/frame.ts';
@@ -10,7 +11,7 @@ import type { View } from '../../lib/session.ts';
 import type { ProcessRunResult } from 'claude-code';
 test('new color pages retain complete candidates outside bounded visible projections in six languages', () => {
     for (const language of LANGUAGES)
-        for (const key of ['field:theme', 'item:foreground', 'item:background_gradient']) {
+        for (const key of ['field:powerline.row_background_gradient','field:theme', 'item:foreground', 'item:background_gradient']) {
             const e = new Editor(description(), readResult());
             e.detail = { scope: 'main', id: e.draft.display.instances[0]!.id };
             openColors(e, key);
@@ -88,4 +89,15 @@ test('closing a pending file diagnosis keeps the editor responsive and rejects i
     expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: /late input report/ })).toBeUndefined();
     expect(JSON.stringify(f.store.draft)).toBe(before);
     await ui.unmount();
+});
+
+
+for(const language of LANGUAGES) test('localized actual settings entries / '+language,{timeoutMs:20000},async($,on)=>{
+    const f=setup(on);f.store.uiLanguage=language;
+    await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
+    await keys(ui,{key:'e',ctrl:true});await selectSetting(ui,'reuse-style');
+    expect(await ui.find({in:await clientKey(ui),type:'Text',text:new RegExp(t('settings.reuse-style',language))})).toBeDefined();
+    await keys(ui,'escape','3');
+    for(const key of ['change-history','reuse-groups']){await selectSetting(ui,key);expect(await ui.find({in:await clientKey(ui),type:'Text',text:new RegExp(t('settings.'+key,language))})).toBeDefined();}
+    expect(f.calls.some(c=>c.operation==='apply')).toBe(false);await ui.unmount();
 });

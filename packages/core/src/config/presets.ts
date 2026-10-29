@@ -1,3 +1,4 @@
+import { SCENARIO_ROWS, SCENARIO_SCHEMES, scenarioPreset } from './scenario-presets.js';
 import type { DisplayDraft, InstanceDraft } from '../contracts/ui.js';
 import { defaultItem, defaultSubagents } from './display.js';
 import { updateDisplay } from './instances.js';
@@ -5,6 +6,7 @@ import { fail } from './validation.js';
 import { DEFAULT_POWERLINE } from './defaults.js';
 
 export const ROWS = {
+  ...SCENARIO_ROWS,
   'left-right': [['model-with-effort', 'git', 'spacer', 'context-remaining']],
   'repeated-metrics': [['input-tokens', 'input-tokens']],
   minimal: [['model-with-effort', 'current-dir', 'context-remaining', 'task-timer']],
@@ -15,7 +17,7 @@ export const ROWS = {
   'agent-focus': [['task-timer', 'context-remaining', 'git'], ['run-state', 'task-progress', 'active-agents']],
   'quota-watch': [['context-used', 'five-hour-limit', 'weekly-limit'], ['five-hour-reset', 'weekly-reset'], ['session-cost', 'spend-limit', 'cache-state', 'cache-expires']],
 } as const;
-export const COMPLETE_SCHEMES = ['daily-development', 'agent-focus', 'quota-watch'] as const;
+export const COMPLETE_SCHEMES = ['daily-development', 'agent-focus', 'quota-watch', ...SCENARIO_SCHEMES] as const;
 /** Ordered presentation metadata extends the existing preset registry. */
 export const PRESET_PRESENTATION = ['developer', 'minimal', 'monitoring', 'multi-agent', 'left-right', 'repeated-metrics', ...COMPLETE_SCHEMES].map(id => ({
   id, purpose_key: 'quick.purpose.' + id, requirements_key: 'quick.requirements.' + id,
@@ -23,6 +25,7 @@ export const PRESET_PRESENTATION = ['developer', 'minimal', 'monitoring', 'multi
 }));
 export function applyPreset(config: DisplayDraft, name: string, nextId: () => string): DisplayDraft {
   if (!Object.hasOwn(ROWS, name)) fail('errors.presets.unknown_preset_choose', { value0: Object.keys(ROWS).join(', ') });
+  if (SCENARIO_SCHEMES.includes(name as keyof typeof SCENARIO_ROWS)) return scenarioPreset(config, name as keyof typeof SCENARIO_ROWS);
   const complete = (COMPLETE_SCHEMES as readonly string[]).includes(name);
   const nodes: InstanceDraft[] = [];
   const rows = ROWS[name as keyof typeof ROWS].map(row => row.map(type_id => {

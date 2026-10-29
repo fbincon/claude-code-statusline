@@ -1,3 +1,5 @@
+import { SCENARIO_SCHEMES } from '@fbincon/statusline-core/config/scenario-presets';
+import { openColors } from '@fbincon/statusline-core/editor/color-manager';
 import { openChanges, changePreview } from '@fbincon/statusline-core/editor/change-review';
 import { openReuse } from '@fbincon/statusline-core/editor/reuse-manager';
 import { reuseDraft } from '@fbincon/statusline-core/editor/reuse';
@@ -93,7 +95,7 @@ export function nativeCapacityData() {
         if (kind === 'quick-opening') e.quick = openQuick(e.draft);
         add(kind, e, 72, 24, 0, kind === 'search');
     }
-    for (const preset of PRESETS) { const e = editor(); e.quick = openQuick(e.draft, preset.id); receivePreset(e.quick, { ...copyDraft(base), display: applyPreset(base.display, preset.id, () => 'fixture') }); add('quick-preset-' + preset.id, e); }
+    for (const preset of PRESETS.slice(0,9)) { const e = editor(); e.quick = openQuick(e.draft, preset.id); receivePreset(e.quick, { ...copyDraft(base), display: applyPreset(base.display, preset.id, () => 'fixture') }); add('quick-preset-' + preset.id, e); }
     add('minimal-main', editor(minimal));
     for (const which of ['identical','palette','minimal','four-gradients']) {
         const incoming = which === 'minimal' ? minimal : which === 'four-gradients' ? gradients(4) : copyDraft(base);
@@ -174,6 +176,19 @@ export function nativeCapacityData() {
         add('draft-reuse-'+name+'-w'+width,e,width,width===32?12:200);
     }
     assert.equal(cases.length,243);
+    for (const name of SCENARIO_SCHEMES) for (const width of [32,196]) {
+        const d=copyDraft(base);d.display=applyPreset(d.display,name,()=> 'scenario-fixture');
+        add('appearance-scenario-'+name+'-w'+width,editor(d),width,width===32?12:213);
+    }
+    for (const language of ['en','zh-CN','zh-TW','zh-HK','ja','ko']) {
+        const e=editor();e.detail={scope:'main',id:'context-remaining'};e.draft.display.instances.find(n=>n.id==='context-remaining')!.options.presentation='adaptive';
+        add('appearance-adaptive-'+language,e,72,24);
+        const colors=editor();openColors(colors,'field:powerline.row_background_gradient');colors.colors!.candidate=['#112233','#445566'];
+        add('appearance-row-colors-'+language,colors,32,12);
+        const q=editor();q.quick=openQuick(q.draft,'light-readable');q.quick.selected=13;
+        add('appearance-quick-last-'+language,q,72,213);
+    }
+    assert.equal(cases.length,271);
     return { description, values, cases };
 }
 

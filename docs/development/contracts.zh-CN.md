@@ -256,3 +256,9 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 来源注册表 3 扩展命令自动策略。旧表只读兼容，不补授许可。任务 4 增加可选有界执行结果；任务 1–3 缺失信息显示未知。观测保持 1，增加可选检查／执行字段。外部命令输出协议仍为 v1，runtime 仍为 v3，增加可选且已确认归属的本地代理上下文。调度身份包含来源修订、声明范围及实际输入，维持五秒续租、十五秒过期。
 
 包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。包历史／未完成事务的 `running` 为 `true`、`false` 或 `null`（无法确认）；未知执行器保留记录，并阻止恢复／替换，直到确认退出或身份不同。清理绑定修订并保守保护。来源注册表 3 或较新显示配置可能无法被旧包读取；回退审核必须在替换前拒绝不兼容配置，禁止修改 schema 数字强行回退。
+
+## Schema 17 与编辑器协议 30
+
+显示 `ItemOptionsDraft.presentation` 在 `numeric`／`bar` 之外接受 `adaptive`。`PowerlineDraft.row_background_gradient` 可省略、为 null 或包含 2–5 个规范 RGB 色点，复用现有渐变解析和命名预设。旧文件保留关闭默认值，读取不写入；较早 schema 拒绝新选项。portable／profile 外层格式仍为 1；全局外观导入显式包含新字段。
+
+自适应候选保留百分比／方向及完整自定义标签／图标。最终行着色排除无色对齐补白并尊重显式背景归属。样式原因增加 `adaptive_label_shortened`、`adaptive_bar_shortened`、`adaptive_numeric`、`row_background_gradient`、`row_gradient_overridden`。生成描述与严格草稿校验保持一致，详见[实现](adaptive-row-scenarios.zh-CN.md)。

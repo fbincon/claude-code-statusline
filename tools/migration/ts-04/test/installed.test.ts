@@ -20,7 +20,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, draft_reuse: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, appearance_scenarios:false, draft_reuse: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -58,8 +58,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 29, operation, payload }), environment));
-    assert.equal(result.protocol_version, 29);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 30, operation, payload }), environment));
+    assert.equal(result.protocol_version, 30);
     assert.ok(result.result);
     return result.result;
 }
@@ -203,7 +203,7 @@ test('installed gradients preserve foreground, background, warning, group, Unico
     run(['config','set','theme','ocean'],config);
     run(['config','instance','main','set','context-used','foreground-gradient','glacier'],config);
     const saved=ui(config,'read'),savedBytes=fs.readFileSync(join(config,'claude-statusline.json'));
-    assert.equal(saved.draft.display.schema_version,16);assert.equal(saved.draft.display.theme,'ocean');
+    assert.equal(saved.draft.display.schema_version,17);assert.equal(saved.draft.display.theme,'ocean');
     const scenarios=['warning','critical','missing','source-stale','source-failed','many-agents'];
     for(const scenario of scenarios){const sample=ui(config,'preview',{draft:saved.draft,width:80,scenario});assert.equal(sample.scenario,scenario);assert.equal(sample.sample,true);}
     saved.draft.display.theme='ember';
@@ -545,7 +545,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 29, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 30, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -629,7 +629,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,16);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,17);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }
@@ -779,4 +779,10 @@ test('installed source operations approve commands separately and protect review
     lifecycle('one',2,'end');lifecycle('two',1,'end');
     reportInstalledSourceOperations();
     function reportInstalledSourceOperations(){report.source_operations={separate_approval:true,interval_300:true,ttl_independent:true,non_git:true,manual_consumer_preserved:true,last_success_after_failure:true,execution_summary:true,bindings_reused:true,drafts_protected:true,reviewed_cleanup:true,settings_unchanged:true,model_calls:0};}
+});
+
+test('installed adaptive indicators and scene schemes retain semantic and persistence contracts',()=>{
+    const config=setup('appearance-scenarios'),receipt=join(installed.temporary,'appearance-scenarios.json');
+    execFileSync(installed.node,[driver,installed.modules,'appearance-scenarios',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
+    report.appearance_scenarios=JSON.parse(fs.readFileSync(receipt,'utf8'));checks.appearance_scenarios=true;
 });

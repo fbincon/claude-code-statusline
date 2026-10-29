@@ -38,6 +38,7 @@ export function fieldMessage(row: SettingRow, view: FormView) {
     }
     if (key.startsWith('break:'))
         return localizedText('layout.break_before', { item: view.editor!.instanceLabel('main', key.slice(6), view.language) });
+    if (['reuse-style', 'reuse-groups', 'change-history'].includes(key)) return localizedText('settings.' + key);
     return localizedText('native.settings.' + key);
 }
 export interface FormRow extends SettingRow {
@@ -57,7 +58,7 @@ function format(raw: unknown): string {
     return raw === null ? 'inherit' : typeof raw === 'boolean' ? raw ? 'on' : 'off' : String(raw);
 }
 function row(spec: EditorField, key: string, valueRaw: unknown): FormRow {
-    return { ...spec, spec, key, valueRaw, value: (GRADIENT_KEYS as readonly string[]).includes(spec.key) ? gradientName(valueRaw) : format(valueRaw), editable: true };
+    return { ...spec, spec, key, valueRaw, value: ((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient') ? gradientName(valueRaw) : format(valueRaw), editable: true };
 }
 export function formRows(view: FormView): FormRow[] {
     const e = view.editor!;
@@ -86,7 +87,7 @@ export function formRows(view: FormView): FormRow[] {
         }
         return result;
     }
-    return e.description.editor_fields.global!.map((spec) => row(spec, 'field:' + spec.key, read(d, spec.key)));
+    return e.description.editor_fields.global!.map((spec) => row(spec, 'field:' + spec.key, read(d, spec.key) ?? null));
 }
 function options(draft: Draft, scope: 'main' | 'subagent', id: string) {
     return nodes(draft, scope).find(i => i.id === id)!.options;
@@ -110,7 +111,7 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
         return false;
     if (spec.key === "foreground" || spec.key === "background")
         value = normalizeColor(value);
-    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+    if (((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient')) {
         try { value = parseGradient(value); } catch { setMessage(view, 'message', localizedText('gradients.invalid')); return false; }
     }
     const draft = copyDraft(e.draft);
@@ -160,7 +161,7 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
 }
 export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): boolean {
     const spec = current.spec;
-    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+    if (((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient')) {
         const choices = ['off', ...Object.keys(GRADIENT_PRESETS)], index = choices.indexOf(gradientName(current.valueRaw));
         return setFormValue(view, current, choices[(index + delta + choices.length) % choices.length]!);
     }

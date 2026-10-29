@@ -1,3 +1,4 @@
+import { PRESETS } from '../src/contracts/ui.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openQuick, quickKey, receivePreset, quickView } from '../src/editor/quick-setup.js';
@@ -24,7 +25,7 @@ test('quick setup isolates candidates, retains opt-outs and returns through each
   assert.equal(quickKey(quick,'cancel'),'cancel'); assert.equal(JSON.stringify(draft),original);
 });
 test('all scenarios have localized scrollable requirements at narrow sizes', () => {
-  for(const language of LANGUAGES) for(let selected=0; selected<6; selected++) {
+  for(const language of LANGUAGES) for(let selected=0; selected<PRESETS.length; selected++) {
     const q=openQuick({display:defaultDisplay(),host:{...DEFAULT_HOST}});q.selected=selected;
     const lines=quickView(q,language,30,3);
     assert.equal(lines.length,3); assert.equal(lines.filter(line=>line.selected).length,1);

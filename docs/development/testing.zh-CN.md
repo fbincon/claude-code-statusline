@@ -1,5 +1,8 @@
 # 测试与验收
 
+
+[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
+
 [English](testing.md) | **简体中文**
 
 

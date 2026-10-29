@@ -1,3 +1,4 @@
+import { row as powerlineRow, finishRow, type RowChunk } from './powerline.js';
 import type { DisplayDraft } from '../contracts/ui.js';
 import { alignmentUnits, refKey, type AlignmentUnit } from '../editor/alignments.js';
 import { displayWidth, strip, ensureReset } from './layout.js';
@@ -8,10 +9,10 @@ interface Unit extends AlignmentUnit { width:number; before:number; after:number
 export function alignedRows(config:DisplayDraft,columns:number,separator:string,label:string|null,colors:ColorCursor,
   renderUnit:(ids:string[],colors:ColorCursor)=>string,
   renderRow:(ids:string[],first:boolean,colors:ColorCursor)=>string[],
-  observe?:(ids:string[],collapsed:boolean)=>void):string[] {
+  observe?:(ids:string[],collapsed:boolean)=>void, labelBody?:string|null):string[] {
   const reset=config.use_colors?RESET:'', gap=config.separator_style==='powerline'?' ':separator, gapWidth=displayWidth(gap);
   const units:Unit[]=alignmentUnits(config.layout,config.instances,config.groups).map(unit=>{
-    const text=renderUnit(unit.ids,{...colors,index:0});
+    const text=renderUnit(unit.ids,{...colors,index:0,capture:undefined});
     return {...unit,width:strip(text).trim()?displayWidth(text):0,before:0,after:0};
   });
   const byKey=new Map(units.map(unit=>[refKey(unit.ref),unit])), nodes=new Map(config.instances.map(node=>[node.id,node]));
@@ -60,7 +61,11 @@ export function alignedRows(config:DisplayDraft,columns:number,separator:string,
     return active.map(unit=>{
       const join=previous?(previous.width&&unit.width?gap:' '.repeat(gapWidth)):'';
       previous=unit;
+      if (join) colors.capture?.push({gap:join});
+      if (unit.before) colors.capture?.push({gap:reset+' '.repeat(unit.before)});
       const text=unit.label??(unit.width?renderUnit(unit.ids,colors):'');
+      if (unit.label && colors.capture) powerlineRow([{text:labelBody ?? unit.label,sequence:false}],config,true,true,colors,true);
+      if (unit.after) colors.capture?.push({gap:reset+' '.repeat(unit.after)});
       return join+(unit.before?reset+' '.repeat(unit.before):'')+text+(unit.after?reset+' '.repeat(unit.after):'');
     }).join('');
   };
@@ -70,9 +75,15 @@ export function alignedRows(config:DisplayDraft,columns:number,separator:string,
       result.push(...renderRow(row.ids,result.length===0,colors));continue;
     }
     if(config.powerline.color_mode==='restart')colors.index=0;
-    const left=draw(row.units.filter(u=>u.side==='left')),right=draw(row.units.filter(u=>u.side==='right'));
+    const captured: RowChunk[] | undefined = config.powerline.row_background_gradient && config.use_colors && config.separator_style === 'powerline' ? [] : undefined;
+    colors.capture = captured;
+    const left=draw(row.units.filter(u=>u.side==='left'));
+    const split = captured?.length ?? 0;
+    const right=draw(row.units.filter(u=>u.side==='right'));
     const flexible=row.spacer?.enabled?reset+' '.repeat(Math.max(0,columns-displayWidth(left)-displayWidth(right))):'';
-    const text=ensureReset(left+flexible+right,reset);
+    if (row.spacer?.enabled) captured?.splice(split, 0, {gap:flexible,boundary:true});
+    const text=captured?finishRow(captured,config):ensureReset(left+flexible+right,reset);
+    colors.capture=undefined;
     if(strip(text).trim())result.push(text);
   }
   for(const alignment of config.layout.alignments??[])

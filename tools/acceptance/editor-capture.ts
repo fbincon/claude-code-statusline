@@ -163,7 +163,7 @@ try {
                 await key('\x1b[B\x1b[B\r');
                 capture('sources-command');
                 await key('\x07'); await key('\x07');
-                for (const id of ['daily-development', 'agent-focus', 'quota-watch']) {
+                for (const id of ['daily-development', 'agent-focus', 'quota-watch', 'powerline-daily', 'agent-workbench', 'quota-cost', 'narrow-terminal', 'light-readable']) {
                     await key('\x10', t('quick.title', language));
                     await key('\x1b[H');
                     for (let index = 0; index < PRESETS.findIndex(preset => preset.id === id); index++) await key('\x1b[B');
@@ -254,6 +254,7 @@ try {
                 await key('\t');
                 await key('\t');
                 await selectSetting('fields.global.theme.label');await key('\r',t('colors.title',language));capture('theme-selector');await key('\x07');
+                await selectSetting('fields.global.powerline.row_background_gradient.label');await key('\r',t('colors.title',language));capture('row-background-selector');await key('\x07');
                 await key('\x16');capture('sample-warning');await key('\x17');capture('sample-width');
                 await key('\x0c',t('diagnosis.title',language));capture('file-diagnosis-form');await key('\x07');
                 for (const option of ['padding', 'separator', 'start_cap', 'end_cap', 'color_mode']) {

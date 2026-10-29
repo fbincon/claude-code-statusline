@@ -4,7 +4,35 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const [modules, operation, config, receipt, choice] = process.argv.slice(2);
 const load = (name: string, path: string) => import(pathToFileURL(join(modules!, 'statusline-' + name, 'dist/src', path + '.js')).href);
-if (operation === 'joint-display') {
+if (operation === 'appearance-scenarios') {
+    const { SCENARIO_SCHEMES } = await load('core','config/scenario-presets');
+    const { applyPreset } = await load('core','config/presets');
+    const { LANGUAGES } = await load('core','i18n/registry');
+    const { exportText, importText } = await load('core','config/transfer');
+    const { ConfigurationService } = await load('cli','config/service');
+    const { previewAdapter } = await load('cli','rendering/preview');
+    const { displayWidth } = await load('core','rendering/layout');
+    const { configuredRows } = await load('core','rendering/items');
+    const { baseEnvironment, presentation } = await load('cli','rendering/environment');
+    const { defaultItem } = await load('core','config/display');
+    const service=new ConfigurationService({configDir:config,launch:{executable:process.execPath,args:[join(modules!,'statusline-cli/dist/src/entry.js')]},hostVersion:()=>null});
+    const preview=await previewAdapter('/sample'), widths=[40,80,120];
+    for(const name of SCENARIO_SCHEMES) for(const language of LANGUAGES) {
+        const current=service.read(),display=applyPreset(current.display,name,()=>{throw new Error('Unexpected identity allocation');});
+        display.statusline_language=language;
+        for(const scenario of ['normal','warning','critical','missing','many-agents']) for(const width of widths) {
+            const sample=preview({display,host:current.host},width,undefined,scenario);assert.equal(sample.sample,true);
+            for(const row of [...sample.main,...sample.subagents])assert(displayWidth(row.map((span:any)=>span.text).join(''))<=width);
+        }
+        const draft={display,host:current.host};assert.deepEqual(importText(exportText(draft),draft),draft);
+        service.apply(draft,current.revision);assert.deepEqual(service.read().display,display);
+    }
+    const current=service.read(),display=applyPreset(current.display,'narrow-terminal',()=> 'unused');
+    display.scope_labels='off';display.instances=[{id:'context',type_id:'context-remaining',enabled:true,text:null,options:{...defaultItem(),presentation:'adaptive',label:'CTX中文👩🏽‍💻',icon:'I'}}];display.layout={mode:'explicit',rows:[['context']]};
+    const environment=baseEnvironment(await presentation('en'),{home:'/sample'});
+    for(let width=2;width<=80;width++){const rows=configuredRows({context_window:{remaining_percentage:50}},display,width,environment);for(const row of rows){assert(displayWidth(row)<=width);assert(row.includes('50%'));assert(row.includes('CTX中文👩🏽‍💻'));assert(!row.includes('…'));}}
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,schemes:SCENARIO_SCHEMES,semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0}));
+} else if (operation === 'joint-display') {
     const { defaultItem } = await load('core', 'config/display');
     const { LANGUAGES } = await load('core', 'i18n/registry');
     const { editAlignment } = await load('core', 'editor/alignments');

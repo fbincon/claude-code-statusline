@@ -21,7 +21,7 @@ test('gradient presets expand to normalized portable colors and reject incomplet
   assert.throws(()=>validateDisplay({...d,schema_version:13}));
   const { foreground_gradient: _, ...oldOptions } = d.instances[0]!.options;
   d.instances[0]!.options=oldOptions;
-  assert.equal(validateDisplay({...d,schema_version:13}).schema_version,16);
+  assert.equal(validateDisplay({...d,schema_version:13}).schema_version,17);
   assert.deepEqual(interpolate(['#000000','#ffffff'],.5), ['rgb','#808080']);
 });
 test('visible grapheme endpoints, links, color fallback and no-color text remain intact', () => {

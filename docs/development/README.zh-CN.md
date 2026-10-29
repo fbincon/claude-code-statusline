@@ -1,5 +1,8 @@
 # 开发指南
 
+
+[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
+
 [English](README.md) | **简体中文**
 
 [按影响检查与维护证据](impact-checks.zh-CN.md)定义专项检查规划、包内容比较及分阶段 PR/main/tag 证据迁移。

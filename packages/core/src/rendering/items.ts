@@ -1,7 +1,8 @@
+import { bounded, type Representation } from './fitting.js';
 import { foregroundPaint, segmentPaint, type Paint, type PaintedPart } from './gradients.js';
 import { alignedRows } from './alignment.js';
 import { groupedRows, SCOPE_LABEL_ID } from './groups.js';
-import { indicator } from './indicators.js';
+import { indicator, adaptiveIndicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
 import { fileLink, safeLink } from '../terminal/links.js';
 import type { DisplayDraft, FormattingDraft, InstanceDraft } from '../contracts/ui.js';
@@ -25,6 +26,8 @@ import { literal, fitRow, type Cell } from './components.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
 import { coercedFloat } from './coercion.js';
 export interface RenderedItem {
+    adaptive?: Representation[];
+    onAdapt?: (stage: Representation['stage']) => void;
     paint?: Paint;
     text: string;
     group?: string | null;
@@ -299,22 +302,29 @@ export class RenderState {
             }
         }
         const external = node && ['external-value','github-pr','github-ci'].includes(item) ? externalPresentation(node, this.env.source?.(node, this.data), this.env, fmt) : null;
-        const rendered = external ? { text: external.text } : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage') : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
+        const adaptive = options.presentation === 'adaptive' ? adaptiveIndicator(this.data, item, 'main', options, fmt, this.env.language, this.now()) : null;
+        if (options.presentation === 'adaptive' && !adaptive) return null;
+        const rendered = adaptive ? { text: adaptive.text } : external ? { text: external.text } : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage') : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
         if (!rendered)
             return null;
-        let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage,this.env.trace,id);
-        if (!external && options.presentation !== 'bar') text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
+        const style = (value: string) => {
+        let text = preferences.threshold(value, used, fmt, this.config, this.palette.percentage,this.env.trace,id);
+        if (!external && !['bar', 'adaptive'].includes(options.presentation ?? 'numeric')) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
             text = appearance.apply(text, this.config, item, options, 'main', used,this.env.trace,id);
+        return text;
+        };
+        const result = { text: style(rendered.text), ...(adaptive ? { adaptive: adaptive.adaptive.map(part => ({ ...part, text: style(part.text) })) } : {}) };
         if (options.max_width !== null) {
-            if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'truncated');
-            text = layout.truncateStyled(text, options.max_width);
+            if (adaptive) bounded(result, options.max_width);
+            else { if(layout.displayWidth(result.text)>options.max_width) this.env.trace?.mark('main',id,'truncated'); result.text = layout.truncateStyled(result.text, options.max_width); }
         }
+        let text = result.text;
         const target = external?.target ?? (item === 'current-dir' ? fileLink(this.liveDir) : item === 'project-name' ? fileLink(deepGet(this.data, ['workspace','project_dir'])) : item === 'pr' ? safeLink(deepGet(this.data, ['pr','url'])) : null);
         text = layout.withLink(text, target, options.link, this.env.links);
         if(text) this.env.trace?.mark('main',id,'visible');
         const paint = foregroundPaint(options.foreground_gradient, this.config, appearance.riskColor(used, this.config));
-        return { ...rendered, text, ...(paint ? { paint } : {}) };
+        return { ...rendered, ...result, ...(adaptive ? { onAdapt: (stage: Representation['stage']) => this.env.trace?.style('main', id, ['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric'][stage] as 'adaptive_numeric') } : {}), text, ...(paint ? { paint } : {}) };
     }
 }
 export type StateFactory = (data: unknown, config: DisplayDraft, palette: Palette, inner: string, env: RenderEnvironment) => RenderState;
@@ -342,19 +352,21 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
         const plain={...config,scope_labels:showScope?'always' as const:'off' as const,layout:{...config.layout,alignments:[]}};
         const unitConfig={...plain,scope_labels:'off' as const,powerline:{...plain.powerline,color_mode:plain.powerline.color_mode==='restart'?'continuous' as const:plain.powerline.color_mode}};
         let prefix=showScope?label().text:null;
+        let prefixBody = prefix;
         if(prefix&&config.separator_style==='powerline') {
             if(!config.groups.length&&!config.instances.some(node=>node.enabled&&node.type_id==='spacer'))
                 prefix=appearance.apply(env.language.text('scope.main'),config,'',DEFAULT_ITEM);
+            prefixBody = prefix;
             prefix=powerline.row([{text:prefix,sequence:false}],unitConfig,true,true,{...colors});
         }
         return alignedRows(config,Math.max(2,width),outer,prefix,colors,
             (ids,cursor)=>configuredRows(data,{...unitConfig,layout:{...unitConfig.layout,rows:[ids]}},10000,env,()=>cached,cursor).join(''),
             (ids,first,cursor)=>configuredRows(data,{...plain,scope_labels:first?plain.scope_labels:'off',layout:{...plain.layout,rows:[ids]}},width,env,()=>cached,cursor),
-            (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)));
+            (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)), prefixBody);
     }
-    if (config.groups.length) {
+    if (config.groups.length || config.instances.some(node => node.options.presentation === 'adaptive')) {
         for (const ids of config.layout.mode === 'auto' ? [config.instances.map(n => n.id)] : config.layout.rows) {
-            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null; return { id, text: item?.text ?? '', paint: item?.paint, priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
+            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null; return { id, text: item?.text ?? '', paint: item?.paint, adaptive: item?.adaptive, onAdapt: item?.onAdapt, priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
             if (cells.some(c => c.text) && scope() && !rows.length) cells.unshift({ id: SCOPE_LABEL_ID, text: label().text, priority: -1, sequence: false });
             rows.push(...groupedRows(cells, config.groups, config, 'main', width, outer, config.layout.mode === 'auto', env.trace?.fit('main'), colors));
         }
@@ -375,7 +387,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 else {
                     const item = state.render(id);
                     if (item?.text)
-                        cells.push({ id, text: item.text, priority: node.options.priority, payload: item, paint: item.paint });
+                        cells.push({ id, text: item.text, priority: node.options.priority, payload: item, paint: item.paint, adaptive: item.adaptive });
                 }
             }
             if (!cells.some(c => c.text))

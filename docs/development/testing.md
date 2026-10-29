@@ -1,5 +1,8 @@
 # Testing and acceptance
 
+
+[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
+
 **English** | [简体中文](testing.zh-CN.md)
 
 

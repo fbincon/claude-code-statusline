@@ -2,6 +2,8 @@
 
 [English](roadmap.md) | **简体中文**
 
+v3.14.0 正在验证 APPEARANCE-07、APPEARANCE-06、PROFILE-02 和 #178／#180；[实现与验收](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30；发布必须通过最终 PR／main／tag 门禁。
+
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[交付及发版后发现](draft-history-and-reuse.zh-CN.md)。v3.12.0 的来源／命令／包管理交付及下列早期事实保留为历史。
 
 更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.13.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
@@ -81,12 +83,12 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 3／4／后续 版本 | [UPDATE-02](development-plan.zh-CN.md#update-02) | 状态／审核、执行／恢复及受保护历史清理 | 既有 UPDATE-01；执行依赖审核及安全的草稿／进程交接 | DONE |
 | 4 来源操作 | [SOURCES-01](development-plan.zh-CN.md#sources-01) | 可读状态、已保存 GitHub 检查分页、兼容绑定复用及受保护清理 | 既有来源服务；FIX-03 生命周期规则 | DONE |
 | 4 调度 | [COMMAND-02](development-plan.zh-CN.md#command-02) | 适用活跃会话内单独审核的命令定时执行 | FIX-03；既有命令执行与活跃会话续租 | DONE |
-| 5 连续色彩 | [APPEARANCE-06](development-plan.zh-CN.md#appearance-06) | 同一实际显示行内相邻色块背景连续渐变 | 既有拟合、分组、对齐与 Powerline 边缘颜色 | NOT_STARTED |
-| 后续，可穿插 | [APPEARANCE-07](development-plan.zh-CN.md#appearance-07) | 可选窄栏进度条，保留数字含义 | FIX-02 与既有拟合／优先级 | NOT_STARTED |
+| 5 连续色彩 | [APPEARANCE-06](development-plan.zh-CN.md#appearance-06) | 同一实际显示行内相邻色块背景连续渐变 | 既有拟合、分组、对齐与 Powerline 边缘颜色 | VALIDATING |
+| 后续，可穿插 | [APPEARANCE-07](development-plan.zh-CN.md#appearance-07) | 可选窄栏进度条，保留数字含义 | FIX-02 与既有拟合／优先级 | VALIDATING |
 | 后续，可穿插 | [UX-03](development-plan.zh-CN.md#ux-03) | 共享撤销／重做、变更审阅及外部冲突恢复 | FIX-01 与既有 revision 保存／重载／导出 | DONE |
 | 后续，可穿插 | [IMPORT-02](development-plan.zh-CN.md#import-02) | 样式复制、完整组复用及显式本机来源重绑 | 既有 IMPORT-01 与引用校验 | DONE |
 | 后续，可穿插 | [COMPOSITION-04](development-plan.zh-CN.md#composition-04) | 审阅并原子调整受影响对齐引用 | 既有分组／对齐约束与共享编辑 | DONE |
-| 后续，可穿插 | [PROFILE-02](development-plan.zh-CN.md#profile-02) | 展示已交付新能力的场景方案 | 仅依赖各方案实际使用的外观／组合能力 | NOT_STARTED |
+| 后续，可穿插 | [PROFILE-02](development-plan.zh-CN.md#profile-02) | 展示已交付新能力的场景方案 | 仅依赖各方案实际使用的外观／组合能力 | VALIDATING |
 | 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 上述十八包及全部切片验收，匹配的安装产物 | NOT_STARTED |
 
 批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续工作可按各自依赖穿插，保留已交付的绑定与历史保护规则。
