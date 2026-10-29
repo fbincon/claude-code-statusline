@@ -1,10 +1,10 @@
 import { expect, test } from 'claude-code/testing';
-import { component, description, readResult } from '../fixtures.ts';
+import { component, description, readResult, nodeText } from '../fixtures.ts';
 import { Editor } from '../../lib/editor/draft.ts';
 import { openAlignments, alignmentsKey, alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { isDraft } from '../../lib/backend.ts';
 import { LANGUAGES } from '../../lib/i18n/index.ts';
-import { clientProps, clientView, type View } from '../../lib/session.ts';
+import { clientProps, type View } from '../../lib/session.ts';
 
 test('native alignment manager survives the frozen Client port and keeps pending edits local', () => {
   for (const language of LANGUAGES) {
@@ -19,13 +19,14 @@ test('native alignment manager survives the frozen Client port and keeps pending
     expect(current.draft.display.layout.alignments).toBeUndefined();
     const view: View = { editor: e, language, input: null, preview: null, preferences: [], preferencesError: '', error: '', previewError: '', previewBusy: false, message: '', busy: '', uncertain: false };
     const props = clientProps(view, 1, 1, 1, 80, 24);
-    const restored = clientView(props).editor!;
-    expect(restored.alignmentManager).toEqual(e.alignmentManager);
-    expect(alignmentsView(restored, language, 60, 8)[0]!.text).toContain(e.draft.display.layout.alignments![0]!.id);
-    props.view.editor!.alignmentManager!.cursor = 1;
-    expect(e.alignmentManager!.cursor).toBe(0);
+    const snapshot = JSON.stringify(props);
+    expect(nodeText(props.frame, props.frame.length - 1)).toContain(e.draft.display.layout.alignments![0]!.id);
+    e.alignmentManager!.cursor = 1;
+    expect(JSON.stringify(props)).toBe(snapshot);
     alignmentsKey(e, { key: 'escape' });
-    expect(e.instanceAction('main', 'remove')).toBe(false);
-    expect(e.compositionError.key).toBe('alignment.references');
+    expect(e.instanceAction('main', 'remove')).toBe(true);
+    expect(e.structureProposal!.repairs[0]!.id).toBe(e.draft.display.layout.alignments![0]!.id);
+    expect(e.draft.display.instances.length).toBe(2);
+    expect(e.acceptProposal()).toBe(true);expect(e.draft.display.layout.alignments).toEqual([]);expect(e.undo()).toBe(true);expect(e.draft.display.instances.length).toBe(2);
   }
 });

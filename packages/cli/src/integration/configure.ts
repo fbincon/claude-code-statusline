@@ -1,3 +1,5 @@
+import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
+import { diagnosisAdapter } from '../diagnostics/service.js';
 import { Session, outcome, type Backend } from '@fbincon/statusline-tui/session';
 import { RESULT_ENV, REQUEST_ENV, NONCE_ENV, resultPath, requestGuard, deadline, writeResult, EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
@@ -11,7 +13,7 @@ import { localizedError } from '../errors.js';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import type { ConfigTarget } from '@fbincon/statusline-core/contracts/ui';
-export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env, target?: ConfigTarget): Promise<number> {
+export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env, target?: ConfigTarget, explicitLanguage?: Language): Promise<number> {
     const configDir = service.context.configDir, rawResult = env[RESULT_ENV];
     let path: string | undefined;
     if (rawResult !== undefined) {
@@ -35,13 +37,16 @@ export async function configure(service: ConfigurationService, language: Languag
         // Check revocation after lock acquisition as well as between terminal events.
         const io = service.io;
         const guarded = new ConfigurationService(service.context, { ...io, lock(directory, action) { return io.lock(directory, () => { guard(); return action(); }); } });
-        const protocol = new ConfigurationProtocol(guarded, await previewAdapter());
-        const backend: Backend = { request(operation, payload = {}) {
+        const protocol = new ConfigurationProtocol(guarded, await previewAdapter(),undefined,await diagnosisAdapter(guarded));
+        const backend: Backend = { async control(control,operation,payload={}) {
+            const result=await runSourceProcess({executable:control.executable,args:[...control.args,'ui','--config-dir',control.config_dir],cwd:process.cwd(),environment:process.env,input:requestText(operation,payload),timeoutMs:30000});
+            return parseResponse(operation,{exitCode:result.code??2,stdout:result.stdout,stderr:result.reason});
+        }, request(operation, payload = {}) {
                 if (operation === 'read' && Object.keys(payload as object).length === 0 && target) payload = { target };
                 const response = protocol.handle(requestText(operation, payload), error => { throw error; });
                 return parseResponse(operation, { exitCode: response.status, stdout: pythonJson(response.response), stderr: '' });
             } };
-        const session = await Session.open(backend, language, guard);
+        const session = await Session.open(backend, language, guard, explicitLanguage);
         result = await session.run({ deadline: stopAt, environment: env });
     }
     catch (error) {

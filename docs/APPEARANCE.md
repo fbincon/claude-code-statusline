@@ -2,6 +2,9 @@
 
 **English** | [简体中文](APPEARANCE.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
+
 Use Settings for the statusline theme and separator; open an item's form with Ctrl+E for colors and applicable visibility rules. Both editors preview the unsaved draft using fixed sample data. Save commits the changes; cancel retains the saved configuration. These settings are independent of the Claude theme, interface language and native preview background.
 
 ## Conditional visibility
@@ -30,7 +33,7 @@ claude-statusline config item main git visibility always
 
 ## Themes and item colors
 
-Themes preserve item selection, order, formats, layout and collection preferences. Existing item overrides survive a theme change. The four theme IDs are `classic` (existing appearance), `dark`, `light` and `terminal` (terminal ANSI slots). Each supplies regular and Powerline roles. A theme does not change the terminal background or install fonts.
+Themes preserve item selection, order, formats, layout and collection preferences. Existing item overrides survive a theme change. The eight theme IDs are `classic` (existing appearance), `dark`, `light`, `terminal` (terminal ANSI slots), `ocean`, `ember`, `slate` and `blossom`. Ocean, ember and slate suit dark terminal backgrounds; blossom suits light backgrounds. Each supplies regular and Powerline roles. A theme does not change the terminal background or install fonts.
 
 ```text
 claude-statusline config set theme light
@@ -87,9 +90,9 @@ Padding, separators and both ends count toward width. Fitting first removes padd
 
 ## Configuration compatibility and recovery
 
-Display schema **15** contains `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **24** carries the complete draft. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
+Display schema **16** contains `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **24** carries the complete draft. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
 
-Schemas 1–14 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 15. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
+Schemas 1–15 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 16. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
 
 For downgrade, preserve/export the current configuration and use the current package's `recover --restore-config TRANSACTION_ID` to restore a compatible pre-upgrade display backup. Then follow the [version-management guide](PACKAGE_MANAGEMENT.md) to return to the older package and matching integration. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 
@@ -119,7 +122,7 @@ Copies, profiles and portable exports retain these display options without enabl
 
 ## Static component gradients
 
-In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles `off`, `ocean`, `sunset`, and `aurora`; Enter accepts a preset name or 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
+In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles the eleven presets and `off`; Enter opens visible swatches and candidate editing. The color page supports individual stops and custom 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
 
 ```sh
 claude-statusline config instance main set context-used foreground-gradient ocean
@@ -133,4 +136,14 @@ Color interpolation is linear in sRGB channels with equally spaced stops. Foregr
 
 Warning and critical foregrounds override foreground gradients. A background gradient sample that equals the text color uses a neutral background. RGB warning/critical text also uses a neutral background when its contrast ratio against a gradient sample falls below 3:1; the warning foreground is retained. Shared Powerline groups take the entire block's background from the primary instance, retain each member's foreground and preserve inactive member backgrounds. Separators and caps use adjacent final edge colors. Spacer gaps retain the terminal default background. Existing semantic/continuous/restart modes continue to sequence inherited colors; explicit gradients restart within each component or block.
 
-Gradients were introduced in display schema 14 / editor protocol 23; the combined release uses schema 15 / protocol 24. Prior defaults remain unchanged. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
+Gradients were introduced in display schema 14 / editor protocol 23. Current delivery uses display schema 16 / editor protocol 26; new theme identities require schema 16, while read-only migration from schemas 1–15 retains prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
+
+## Visual color selection and sample scenarios
+
+Enter on a theme, foreground, background or gradient field opens a color page. Actual swatches accompany names and surface suitability. Enter selects a candidate; Ctrl+S applies it to the display draft; Esc cancels that page. Custom colors retain `inherit`, `default`, `ansi:N` and RGB support. Gradients support 2–5 RGB stops, individual edits, reversal, adding/removing stops and disabling without deleting the saved solid color.
+
+Additional themes are `ocean`, `ember`, `slate` (dark surfaces) and `blossom` (light surfaces). Additional gradients are `glacier`, `lagoon`, `flame`, `copper`, `steel`, `sage`, `petal` and `twilight`. The terminal background remains independently controlled.
+
+Settings includes sample scenario and preview width. Ctrl+V cycles fourteen scenarios, Ctrl+W cycles available/40/80/120 columns and Ctrl+N advances rows. The title identifies the scenario and effective width. These choices last only for the current editor session and also apply to candidate previews and sample explanations. Samples never start a collector, command or network query.
+
+See [implementation and validation](development/appearance-preview-diagnosis.md).

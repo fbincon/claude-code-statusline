@@ -13,7 +13,7 @@ import { safeTarget } from '../integration/paths.js';
 import { authRevision } from './context.js';
 
 export const LEASE_MS = 15000;
-export interface Lease { id: string; session: string; epoch: string; seq: number; expires: number; closed: boolean; keys: string[] }
+export interface Lease { id: string; session: string; epoch: string; seq: number; expires: number; closed: boolean; keys: string[]; contexts?: SourceContext[] }
 export interface Schedule { key: string; source_id: string; job_id: string | null; processed: string | null; next: number; failures: number; paused: string | null; last_attempt: string | null; last_success: string | null }
 export interface AutomaticState { version: 1; leases: Lease[]; schedules: Schedule[] }
 const path = (directory: string) => join(directory, 'statusline_runtime', 'sources', 'automatic.json');
@@ -23,7 +23,7 @@ export function readAutomatic(directory: string): AutomaticState {
     if (!bytes) return { version: 1, leases: [], schedules: [] };
     const value: unknown = JSON.parse(decodeUtf8(bytes));
     if (!object(value) || value.version !== 1 || !Array.isArray(value.leases) || !Array.isArray(value.schedules) || value.leases.length > 64 || value.schedules.length > 512 ||
-        !value.leases.every(l => object(l) && hash(l.id) && typeof l.session === 'string' && typeof l.epoch === 'string' && Number.isSafeInteger(l.seq) && typeof l.expires === 'number' && Number.isFinite(l.expires) && typeof l.closed === 'boolean' && Array.isArray(l.keys) && l.keys.length <= 128 && l.keys.every(hash)) ||
+        !value.leases.every(l => object(l) && hash(l.id) && typeof l.session === 'string' && typeof l.epoch === 'string' && Number.isSafeInteger(l.seq) && typeof l.expires === 'number' && Number.isFinite(l.expires) && typeof l.closed === 'boolean' && Array.isArray(l.keys) && l.keys.length <= 32768 && l.keys.every(hash) && (l.contexts === undefined || Array.isArray(l.contexts) && l.contexts.length <= 257 && l.contexts.every(c => object(c) && ['project','session','agent','branch','head'].every(k => c[k] === null || typeof c[k] === 'string')))) ||
         !value.schedules.every(s => object(s) && hash(s.key) && typeof s.source_id === 'string' && (s.job_id === null || typeof s.job_id === 'string') && (s.processed === null || typeof s.processed === 'string') && typeof s.next === 'number' && Number.isFinite(s.next) && Number.isSafeInteger(s.failures) && (s.paused === null || typeof s.paused === 'string') && [s.last_attempt, s.last_success].every(v => v === null || typeof v === 'string' && Number.isFinite(Date.parse(v))))) throw new Error('Invalid automatic refresh state');
     return value as unknown as AutomaticState;
 }
@@ -42,22 +42,24 @@ export function automaticRequested(directory: string): boolean {
     return sourceRegistry(directory).automatic.some(p => p.enabled);
 }
 export function refreshIdentity(source: SourceDefinition, context: SourceContext): string {
-    return revision({ source: source.id, revision: source.revision, settings: source.settings, context: observationContext(source, context), auth: source.kind === 'github' ? authRevision() : null });
+    return revision({ source: source.id, revision: source.revision, scope: source.scope, settings: source.settings, context: observationContext(source, context), auth: source.kind === 'github' ? authRevision() : null });
 }
 export function activeLease(state: AutomaticState, identity: string, now: number): boolean {
     return state.leases.some(l => !l.closed && l.expires > now && l.keys.includes(identity));
 }
 export function automaticJobActive(directory: string, job: SourceJob, now: number): boolean {
-    if (job.trigger !== 'automatic') return true;
     const registry = sourceRegistry(directory), source = registry.sources.find(s => s.id === job.source_id), policy = registry.automatic.find(p => p.source_id === job.source_id);
-    return Boolean(source?.enabled && policy?.enabled && policy.review_revision === source.revision && policy.auth_revision === authRevision() && refreshIdentity(source, job.context) === job.identity && activeLease(readAutomatic(directory), job.identity, now));
+    return Boolean(source?.enabled && policy?.enabled && policy.review_revision === source.revision && (source.kind !== 'github' || policy.auth_revision === authRevision()) && refreshIdentity(source, job.context) === job.identity && activeLease(readAutomatic(directory), job.identity, now));
+}
+export function manualJobActive(job: SourceJob, now: number): boolean {
+    return job.consumers.some(consumer => Date.parse(consumer.expires_at) > now);
 }
 export function automaticStatus(directory: string, source: SourceDefinition, context: SourceContext, now: number, jobs: SourceJob[]): AutomaticStatus {
     const policy = sourceRegistry(directory).automatic.find(p => p.source_id === source.id);
-    const base: AutomaticStatus = { state: 'off', reason: 'off', next_at: null, last_attempt: null, last_success: null, interval_seconds: policy?.interval_seconds ?? Math.max(60, Math.min(86400, source.ttl_seconds)) };
+    const base: AutomaticStatus = { state: 'off', reason: 'off', next_at: null, last_attempt: null, last_success: null, interval_seconds: policy?.interval_seconds ?? (source.kind === 'command' ? 300 : Math.max(60, Math.min(86400, source.ttl_seconds))) };
     if (!policy?.enabled || !source.enabled) return base;
-    if (policy.auth_revision !== authRevision()) return { ...base, state: 'paused', reason: 'identity' };
-    if (!context.head || !context.branch || context.branch !== source.settings.branch) return { ...base, state: 'paused', reason: 'identity' };
+    if (source.kind === 'github' && policy.auth_revision !== authRevision()) return { ...base, state: 'paused', reason: 'identity' };
+    if (source.kind === 'github' && (!context.head || !context.branch || context.branch !== source.settings.branch)) return { ...base, state: 'paused', reason: 'identity' };
     const identity = refreshIdentity(source, context), state = readAutomatic(directory), schedule = state.schedules.find(s => s.key === identity);
     const result = { ...base, last_attempt: schedule?.last_attempt ?? null, last_success: schedule?.last_success ?? null };
     if (schedule?.paused) return { ...result, state: 'paused', reason: schedule.paused };

@@ -1,12 +1,14 @@
 /** Canonical editor protocol and static descriptors. Emit Mod copies with the TS resource generator. */
+import { THEME_IDS } from "../editor/themes.js";
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 24 as const;
+export const PROTOCOL_VERSION = 30 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
 export const POWERLINE_FIELDS = [
+  { key: "powerline.row_background_gradient", label: "Continuous row background", group: "Appearance", kind: "text", choices: [], minimum: 0, maximum: 256, nullable: true },
   {
     "key": "powerline.padding",
     "label": "Block padding",
@@ -79,12 +81,7 @@ export const EDITOR_FIELDS = {
       "label": "Statusline theme",
       "group": "Appearance",
       "kind": "choice",
-      "choices": [
-        "classic",
-        "dark",
-        "light",
-        "terminal"
-      ],
+      "choices": THEME_IDS,
       "minimum": 0,
       "maximum": 10000,
       "nullable": false
@@ -492,7 +489,7 @@ export const FORMAT_DEFAULTS = {"model_name": "original", "number_format": "lega
 export type MainItemId = typeof MAIN_ITEM_IDS[number];
 export type SubagentItemId = typeof SUBAGENT_ITEM_IDS[number];
 export type Palette = "default" | "ansi";
-export type Theme = "classic" | "dark" | "light" | "terminal";
+export type Theme = typeof THEME_VALUES[number];
 export type PowerlineGlyph = "ascii" | "powerline";
 export type VisibilityRule = "always" | "git-dirty" | "nonzero" | "used-at-least";
 export type DirectoryStyle = "full" | "home" | "project-relative" | "basename";
@@ -504,7 +501,7 @@ export type UnavailableReason = "not_observed" | "unsupported_host" | "unknown_h
 export const MAIN_ITEM_IDS = generatedMAIN_ITEM_IDS;
 export const SUBAGENT_ITEM_IDS = generatedSUBAGENT_ITEM_IDS;
 export const PALETTE_VALUES = ["default", "ansi"] as const;
-export const THEME_VALUES = ["classic", "dark", "light", "terminal"] as const;
+export const THEME_VALUES = THEME_IDS;
 export const POWERLINEGLYPH_VALUES = ["ascii", "powerline"] as const;
 export const VISIBILITYRULE_VALUES = ["always", "git-dirty", "nonzero", "used-at-least"] as const;
 export const DIRECTORYSTYLE_VALUES = ["full", "home", "project-relative", "basename"] as const;
@@ -512,7 +509,8 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "sources_read" | "sources_apply" | "source_review" | "source_context" | "source_refresh" | "source_status" | "source_cancel" | "source_diagnose" | "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
+export const OPERATIONS = ['review_reuse', 'package_execute_start', 'package_execute_detach', 'package_execute_status', 'package_cleanup_review', 'package_cleanup_apply', 'source_inspect', 'source_bindings_review', 'source_bindings_cleanup', 'source_draft', 'package_status', 'package_review_start', 'package_review_status', 'package_review_cancel', 'sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_release', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'diagnose_file', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export type Operation = typeof OPERATIONS[number];
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -563,6 +561,7 @@ export interface ConfigurationOptions {
   palette: ChoiceOptions;
   theme: ChoiceOptions;
   "powerline-glyph": ChoiceOptions;
+  "powerline-row-background-gradient": ChoiceOptions;
   "powerline-padding": ChoiceOptions;
   "powerline-separator": ChoiceOptions;
   "powerline-start-cap": ChoiceOptions;
@@ -580,7 +579,7 @@ export interface ConfigurationOptions {
 export const POWERLINE_OPTIONS = Object.fromEntries(POWERLINE_FIELDS.map(field => [
   field.key.replaceAll('.', '-').replaceAll('_', '-'),
   { choices: field.kind === 'boolean' ? [true, false] : [...field.choices] },
-])) as Pick<ConfigurationOptions, 'powerline-padding' | 'powerline-separator' | 'powerline-start-cap' | 'powerline-end-cap' | 'powerline-color-mode'>;
+])) as Pick<ConfigurationOptions, 'powerline-row-background-gradient' | 'powerline-padding' | 'powerline-separator' | 'powerline-start-cap' | 'powerline-end-cap' | 'powerline-color-mode'>;
 export interface Capabilities {
   host_version: string | null;
   subagent_rows: "unknown" | "supported" | "unsupported";
@@ -607,7 +606,7 @@ export type GradientDraft = string[];
 export interface ItemOptionsDraft {
   foreground_gradient?: GradientDraft | null;
   background_gradient?: GradientDraft | null;
-  presentation?: "numeric" | "bar";
+  presentation?: "numeric" | "bar" | "adaptive";
   bar_width?: number;
   cost_rate_basis?: 'session' | 'api';
   bar_style?: "auto" | "unicode" | "ascii";
@@ -653,6 +652,7 @@ export interface MetricsDraft {
   branch_diff_base_ref: string | null;
 }
 export interface PowerlineDraft {
+  row_background_gradient?: GradientDraft | null;
   padding: "none" | "left" | "right" | "both";
   separator: "arrow" | "slash" | "bar" | "none";
   start_cap: boolean;
@@ -661,7 +661,7 @@ export interface PowerlineDraft {
 }
 export interface DisplayDraft {
   groups: GroupDraft[];
-  schema_version: 15;
+  schema_version: 17;
   statusline_language: StatuslineLanguage;
   instances: InstanceDraft[];
   use_colors: boolean;
@@ -727,7 +727,7 @@ export interface SourceDefinition {
 export interface SourceBinding { id: string; source_id: string }
 export interface AutomaticPolicy { source_id: string; enabled: boolean; review_revision: string; interval_seconds: number; auth_revision: string }
 export interface AutomaticStatus { state: 'off' | 'waiting' | 'running' | 'backoff' | 'paused'; reason: string; next_at: string | null; last_attempt: string | null; last_success: string | null; interval_seconds: number }
-export interface SourceRegistry { version: 2; sources: SourceDefinition[]; bindings: SourceBinding[]; automatic: AutomaticPolicy[] }
+export interface SourceRegistry { version: 2 | 3; sources: SourceDefinition[]; bindings: SourceBinding[]; automatic: AutomaticPolicy[] }
 export interface SourcesResult extends SourceRegistry { revision: string }
 export type SourceState = 'valid' | 'missing' | 'partial' | 'error' | 'unsupported';
 export interface SourceObservation {
@@ -735,6 +735,8 @@ export interface SourceObservation {
   observed_at: string | null; state: SourceState; reason: string;
   value: string | number | boolean | null; unit: string | null;
   fields?: Record<string, string | number | boolean | null>;
+  checks?: SourceCheck[];
+  execution?: SourceExecutionResult;
   identity?: { host: string; repository: string; account: string; auth_revision: string };
 }
 export interface SourceView {
@@ -744,22 +746,36 @@ export interface SourceView {
   fields?: Record<string, string | number | boolean | null>;
 }
 export interface SourceJob {
-  version: 2; id: string; source_id: string; source_revision: string; owner: string; trigger: 'manual' | 'automatic'; identity: string;
+  version: 3 | 4; id: string; source_id: string; source_revision: string; owner: string; trigger: 'manual' | 'automatic'; identity: string;
+  consumers: { owner: string; expires_at: string }[];
   context: SourceContext; started_at: string; deadline_at: string;
   state: 'running' | 'completed' | 'failed' | 'cancelled'; reason: string;
+  result?: SourceExecutionResult | null;
+}
+export interface SourceExecutionResult { finished_at: string; duration_ms: number; exit_code: number | null; reason: string; summary: string }
+export interface SourceCheck { name: string; state: string; bucket: string; url: string | null }
+export interface SourceInspection {
+  source: SourceDefinition; view: SourceView; automatic: AutomaticStatus; jobs: SourceJob[];
+  last_success: string | null; checks: SourceCheck[]; checks_observed_at: string | null; checks_context: SourceContext | null;
+  offset: number; total: number;
+}
+export interface BindingReview {
+  revision: string; rows: { id: string; source_id: string; references: string[]; duplicate: boolean; removable: boolean }[];
+  offset: number; total: number; uncertain: boolean;
 }
 export interface SourceReview { source: SourceDefinition; review_revision: string }
 export interface SourceMutationResult extends SourcesResult { binding?: SourceReference; backup_dir: string | null }
 export interface PreviewResult {
   sample: true;
+  scenario?: string;
   main: Span[][];
   subagents: Span[][];
 }
 export const SAMPLE_REASONS = ['sample_group_hidden','sample_visible','sample_empty','sample_condition_hidden','sample_truncated','sample_priority_omitted','sample_width_omitted','sample_row_hidden','sample_spacer'] as const;
 export type SampleReason = typeof SAMPLE_REASONS[number];
-export const EXPLAIN_REASONS = ['alignment_active','alignment_collapsed','cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
+export const EXPLAIN_REASONS = ['collector_session_unobserved','diagnostic_input_missing_session','alignment_active','alignment_collapsed','cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
 export interface ExplainReason { code: string; origin: 'configuration' | 'local_configuration' | 'host_capability' | 'unknown'; }
-export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; }
+export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; style_reasons?:StyleDecision[]; }
 export interface ExplainInstance {
   id: string; type_id: string; enabled: boolean;
   reasons: ExplainReason[];
@@ -775,7 +791,9 @@ export interface ExplainResult {
 }
 export const LAYOUT_REASONS = ['group_hidden','visible','empty','condition_hidden','priority_omitted','width_omitted','row_hidden','spacer'] as const;
 export type LayoutReason = typeof LAYOUT_REASONS[number];
-export interface InstanceLayout { row_id: string; outcome: LayoutReason; truncated: boolean; }
+export const STYLE_REASONS = ['adaptive_label_shortened','adaptive_bar_shortened','adaptive_numeric','row_background_gradient','row_gradient_overridden','colors_disabled','background_gradient_requires_powerline','group_background_owned','threshold_warning','threshold_critical','color_quantized','contrast_protected'] as const;
+export interface StyleDecision {code: typeof STYLE_REASONS[number];owner_id:string|null}
+export interface InstanceLayout { row_id: string; outcome: LayoutReason; truncated: boolean; style_reasons?:StyleDecision[]; }
 export const EVIDENCE_STATUSES = ['observed','not_observed','invalid_field','source_unavailable','association_unavailable','session_mismatch','prompt_mismatch','stale','partial','collector_off','input_only','newer_than_input','unsupported_host','no_misses','unidentified'] as const;
 export type EvidenceStatus = typeof EVIDENCE_STATUSES[number];
 export interface DiagnosticEvidence {
@@ -877,6 +895,87 @@ export interface TaskDetails {
   evidence: TaskEvidence[];
   limitations: string[];
 }
+export interface PackageControl { executable: string; args: string[]; config_dir: string }
+export interface PackageExecution {
+  version: 1; id: string; transaction_id: string | null; action: PackageReviewRequest['action']; prefix: string;
+  state: 'running' | 'complete' | 'failed' | 'interrupted'; stage: string; started_at: string; updated_at: string;
+  finished_at: string | null; error: string | null; running: boolean | null;
+  results: { package: boolean | null; integration: boolean | null; configuration: boolean | null };
+  control: PackageControl;
+}
+export interface PackageCleanupReview {
+  version: 1; revision: string; prefix: string; offset: number; total: number; uncertain: boolean;
+  rows: { id: string; removable: boolean; reasons: string[]; version: string | null }[];
+}
+/** Read-only package inspection. These views do not grant installation authority. */
+export interface PackageStatus {
+  execution?: PackageExecution | null;
+  version: 1;
+  backend_version: string;
+  captured_at: string;
+  revision: string;
+  prefix: string | null;
+  entry: string | null;
+  config_dir: string;
+  current: string | null;
+  previous: string | null;
+  channel: 'latest' | 'beta' | null;
+  node_version: string;
+  host: string | null;
+  compatible: boolean;
+  reasons: string[];
+  pending: PackageHistoryRow | null;
+  history: PackageHistoryRow[];
+  offset: number;
+  total: number;
+}
+export interface PackageHistoryRow {
+  id: string;
+  version: string | null;
+  created: string | null;
+  stage: string;
+  backup: 'verified' | 'missing' | 'invalid';
+  running: boolean | null;
+}
+export interface PackageReviewRequest {
+  action: 'check' | 'update' | 'rollback' | 'recover-package' | 'restore-config';
+  prefix: string;
+  expected_revision: string;
+  target: string | null;
+  channel: 'latest' | 'beta' | null;
+  backup_id: string | null;
+  expected_integrity: string | null;
+}
+export interface PackageReviewView {
+  action: PackageReviewRequest['action'];
+  current: string | null;
+  target: string | null;
+  prefix: string;
+  entry: string | null;
+  config_dir: string;
+  channel: 'latest' | 'beta' | null;
+  registry: string | null;
+  integrity: string | null;
+  node_engine: string | null;
+  host: string | null;
+  artifact_verified: boolean;
+  compatible: boolean;
+  reasons: string[];
+  configuration_conflicts: string[];
+  backup_id: string | null;
+  files: string[];
+}
+export interface PackageReviewJob {
+  version: 1;
+  id: string;
+  owner: string;
+  state: 'running' | 'complete' | 'failed' | 'cancelled';
+  started_at: string;
+  finished_at: string | null;
+  request: PackageReviewRequest;
+  review: PackageReviewView | null;
+  error: string | null;
+}
 export interface EditorField {
   key: string;
   label: string;
@@ -913,6 +1012,12 @@ export interface ImportReviewResult {
   draft: Draft;
   changes: ImportChange[];
 }
+export type ReuseRequest = { kind: 'style'; scope: Scope; from_scope: Scope; from_id: string; to_ids: string[]; fields: string[] }
+  | { kind: 'groups'; scope: Scope; group_ids: string[]; references: 'review' | 'expand' | 'exclude'; explicit: boolean };
+export interface ReuseReviewResult extends ImportReviewResult {
+  mappings: { instances: Record<string, string>; groups: Record<string, string>; alignments: Record<string, string> };
+  dependencies: string[]; unresolved: { scope: Scope; id: string; hint: string }[]; blocked: string[];
+}
 export interface ExportResult {
   path: string;
 }
@@ -938,12 +1043,26 @@ export interface ApplyResult {
   configuration?: ResolvedConfiguration;
 }
 export interface ResultMap {
+  package_execute_detach: PackageExecution;
+  package_execute_start: PackageExecution;
+  package_execute_status: PackageExecution;
+  package_cleanup_review: PackageCleanupReview;
+  package_cleanup_apply: PackageCleanupReview;
+  package_status: PackageStatus;
+  package_review_start: PackageReviewJob;
+  package_review_status: PackageReviewJob;
+  package_review_cancel: PackageReviewJob;
   sources_read: SourcesResult;
   sources_apply: SourceMutationResult;
+  source_inspect: SourceInspection;
+  source_bindings_review: BindingReview;
+  source_bindings_cleanup: BindingReview;
+  source_draft: { revision: string };
   source_review: SourceReview;
   source_context: SourceContext;
   source_refresh: SourceJob;
   source_status: SourceJob;
+  source_release: SourceJob;
   source_cancel: SourceJob;
   source_diagnose: { source: SourceDefinition; view: SourceView; jobs: SourceJob[]; automatic: AutomaticStatus };
   describe: DescribeResult;
@@ -951,9 +1070,11 @@ export interface ResultMap {
   preview: PreviewResult;
   explain: ExplainResult;
   diagnose: DiagnoseResult;
+  diagnose_file: DiagnoseResult;
   apply: ApplyResult;
   import: TransferResult;
   review_import: ImportReviewResult;
+  review_reuse: ReuseReviewResult;
   export: ExportResult;
   preset: TransferResult;
   read_ui_preferences: UiPreferencesResult;
@@ -970,5 +1091,5 @@ export interface Request {
   operation: Operation;
   payload: unknown;
 }
-export type Result = DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult | ProfilesResult | ProfileImportResult | TaskDetails;
+export type Result = ReuseReviewResult | PackageExecution | PackageCleanupReview | PackageStatus | PackageReviewJob | DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult | ProfilesResult | ProfileImportResult | TaskDetails;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

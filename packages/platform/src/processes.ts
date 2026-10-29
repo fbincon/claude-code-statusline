@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { library } from './native.js';
+import { darwinProcess } from './darwin-process.js';
 
 export function processToken(pid: number): string | null {
   if (!Number.isSafeInteger(pid) || pid <= 0) return null;
@@ -9,8 +9,7 @@ export function processToken(pid: number): string | null {
       const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
       return stat.slice(stat.lastIndexOf(')') + 2).split(/\s+/)[19] || null;
     }
-    if (process.platform === 'darwin') return execFileSync('/bin/ps', ['-o', 'lstart=', '-p', String(pid)],
-      { encoding: 'utf8', timeout: 1000, env: { ...process.env, LC_ALL: 'C', TZ: 'UTC' }, stdio: ['ignore', 'pipe', 'ignore'] }).trim() || null;
+    if (process.platform === 'darwin') return darwinProcess(pid)?.token ?? null;
     if (process.platform === 'win32') {
       const k = library('kernel32.dll');
       const handle = k.func('void *OpenProcess(uint32_t access, bool inherit, uint32_t pid)')(0x1000, false, pid);
@@ -33,6 +32,10 @@ export function processToken(pid: number): string | null {
 // A Windows process object can outlive process exit while another handle is
 // open. Creation identity is not a liveness predicate (same in the oracle).
 export function processMatches(pid: number, token: string): boolean {
+  if (process.platform === 'darwin') {
+    const observed = darwinProcess(pid);
+    return observed !== null && observed.token === token && observed.alive;
+  }
   if (processToken(pid) !== token) return false;
   try {
     if (process.platform === 'win32') {
@@ -45,6 +48,21 @@ export function processMatches(pid: number, token: string): boolean {
     if (process.platform === 'linux') {
       const raw = readFileSync(`/proc/${pid}/stat`, 'utf8'); return !['Z', 'X'].includes(raw.slice(raw.lastIndexOf(')') + 2)[0]!);
     }
-    return !execFileSync('/bin/ps', ['-o', 'stat=', '-p', String(pid)], { encoding: 'utf8', timeout: 1000 }).trim().startsWith('Z');
+    return false;
   } catch { return false; }
+}
+
+/** A missing identity alone is not evidence of exit. */
+export function processAlive(pid:number,token:string):boolean|null {
+    const observed=processToken(pid);
+    if(observed!==null&&observed!==token)return false;
+    if(process.platform==='darwin') {const state=darwinProcess(pid);if(state&&state.token===token)return state.alive;}
+    if(processMatches(pid,token))return true;
+    if(process.platform==='win32')try{
+        const k=library('kernel32.dll'),handle=k.func('void *OpenProcess(uint32_t access, bool inherit, uint32_t pid)')(0x100000,false,pid);
+        if(handle)try{const status=k.func('uint32_t WaitForSingleObject(void *handle, uint32_t ms)')(handle,0);if(status===0)return false;}finally{k.func('bool CloseHandle(void *handle)')(handle);}
+    }catch{/* Access failure leaves liveness unknown. */}
+    if(process.platform==='linux')try{const raw=readFileSync(`/proc/${pid}/stat`,'utf8');if(['Z','X'].includes(raw.slice(raw.lastIndexOf(')')+2)[0]!))return false;}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return false;}
+    try{process.kill(pid,0);}catch(error){if((error as NodeJS.ErrnoException).code==='ESRCH')return false;}
+    return null;
 }

@@ -1,3 +1,4 @@
+import { adapt } from './fitting.js';
 /** Group-aware layout is opt-in; ungrouped configurations keep their old path. */
 import type { DisplayDraft, GroupDraft, Scope } from '../contracts/ui.js';
 import type { Cell } from './components.js';
@@ -33,27 +34,29 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
   }
   if (!units.some(unit => unit.id !== SCOPE_LABEL_ID && !unit.spacer)) return [];
   const isPowerline = config.separator_style === 'powerline';
-  const draw = (values: readonly Unit[], padding: boolean, caps: boolean, start: number): { text: string; next: number } => {
+  const draw = (values: readonly Unit[], padding: boolean, caps: boolean, start: number, capture = false): { text: string; next: number } => {
     if (!isPowerline) return { text: values.map(u => u.cells.map(c => c.paint?.(c.text) ?? c.text).join(u.group ? ' ' : separator)).join(separator), next: start };
     const blocks: powerline.Block[] = [];
     let index = start;
     for (const unit of values) {
       if (unit.group?.shared_powerline) {
         const primary = nodes.get(unit.group.primary_id)!;
+        for(const cell of unit.cells)if(cell.id!==primary.id)colors.trace?.style(scope,cell.id,'group_background_owned',primary.id);
         const base = byId.get(primary.id)?.text || appearance.apply(' ', config, primary.type_id, primary.options, scope);
         const primaryStyle = styles.parse(layout.styledUnits(appearance.sequence(base, config, primary.id, scope, index))[0]?.style ?? '');
         const text = unit.cells.map(c => c.paint?.(c.text) ?? c.text).join(' ');
         const shared = config.use_colors ? layout.renderStyledUnits(layout.styledUnits(text).map(c => ({ ...c, style: styles.serialize({ ...styles.parse(c.style), background: primaryStyle.background }) }))) : layout.withoutColors(text);
-        blocks.push({ text: shared, sequence: false, background_gradient: primary.options.background_gradient }); index++;
+        blocks.push({ text: shared, sequence: false, background_override: primary.options.background !== null || Boolean(primary.options.background_gradient), background_gradient: primary.options.background_gradient,onContrast:()=>unit.cells.forEach(cell=>colors.trace?.style(scope,cell.id,'contrast_protected')) }); index++;
       } else for (const cell of unit.cells) {
         blocks.push({ text: cell.sequence === false ? cell.text : appearance.sequence(cell.text, config, cell.id, scope, index++), sequence: false,
-          paint: cell.paint, background_gradient: nodes.get(cell.id)?.options.background_gradient });
+          background_override: nodes.get(cell.id)?.options.background !== null && nodes.has(cell.id) || Boolean(nodes.get(cell.id)?.options.background_gradient), paint: cell.paint, background_gradient: nodes.get(cell.id)?.options.background_gradient,onContrast:()=>colors.trace?.style(scope,cell.id,'contrast_protected') });
       }
     }
-    return { text: powerline.row(blocks, config, padding, caps), next: index };
+    return { text: powerline.row(blocks, config, padding, caps, { ...colors, index: 0, scope }, capture), next: index };
   };
   const measure = (values: readonly Unit[], padding = true, caps = true) => layout.displayWidth(draw(values, padding, caps, config.powerline.color_mode === 'restart' ? 0 : colors.index).text);
   const trim = (unit: Unit, width: number, padding: boolean, caps: boolean) => {
+    adapt(unit.cells, width, () => measure([unit], padding, caps));
     const anchor = unit.cells.find(c => c.id === unit.group?.primary_id) ?? unit.cells.reduce((a, b) => a.priority >= b.priority ? a : b);
     const victims = unit.cells.filter(c => c !== anchor).sort((a, b) => Number(nodes.get(b.id)?.type_id === 'text') - Number(nodes.get(a.id)?.type_id === 'text') || a.priority - b.priority);
     for (const victim of victims) {
@@ -63,7 +66,7 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
     if (measure([unit], padding, caps) > width) {
       // All decorations have gone before truncating the remaining metric.
       const overhead = measure([unit], padding, caps) - layout.displayWidth(anchor.text);
-      const shortened = layout.truncateStyled(anchor.text, Math.max(0, width - overhead));
+      const shortened = anchor.adaptive ? '' : layout.truncateStyled(anchor.text, Math.max(0, width - overhead));
       observe?.(anchor.id, shortened ? 'truncated' : 'width_omitted'); anchor.text = shortened;
       unit.cells = shortened ? [anchor] : [];
     }
@@ -75,6 +78,7 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
     const drawing = () => { const a = draw(left, padding, caps, colors.index), b = draw(right, padding, caps, a.next); return { a, b, width: layout.displayWidth(a.text) + layout.displayWidth(b.text) }; };
     if (isPowerline && drawing().width > columns) padding = false;
     if (isPowerline && drawing().width > columns) caps = false;
+    adapt([...left, ...right].flatMap(unit => unit.cells), columns, () => drawing().width);
     // Make an over-wide group a usable unit before comparing row priorities.
     for (const u of [...left, ...right]) if (measure([u], padding, caps) > columns) trim(u, columns, padding, caps);
     while (left.length + right.length > 1 && drawing().width > columns) {
@@ -83,13 +87,17 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
       victim.cells.forEach(c => drop(c, 'priority_omitted'));
       const side = left.includes(victim) ? left : right; side.splice(side.indexOf(victim), 1);
     }
-    const output = drawing(); colors.index = output.b.next;
+    const a = draw(left, padding, caps, colors.index, true);
+    if (divider >= 0) colors.capture?.push({ boundary: true });
+    const b = draw(right, padding, caps, a.next, true);
+    const output = { a, b, width: layout.displayWidth(a.text) + layout.displayWidth(b.text) }; colors.index = output.b.next;
     const gap = divider < 0 ? '' : ' '.repeat(Math.max(0, columns - output.width));
     return layout.ensureReset(output.a.text + (gap ? (config.use_colors ? styles.RESET : '') + gap : '') + output.b.text, config.use_colors ? styles.RESET : '');
   };
   if (!auto) { const row = emit(units); return layout.strip(row).trim() ? [row] : []; }
   const rows: string[] = []; let line: Unit[] = [];
   for (const unit of units) {
+    if (measure([unit]) > columns) trim(unit, columns, true, true);
     if (line.some(u => u.id !== SCOPE_LABEL_ID && !u.spacer) && measure([...line, unit]) > columns) { rows.push(emit(line)); line = []; }
     line.push(unit);
   }

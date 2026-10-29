@@ -32,7 +32,7 @@ test('tests.ui.test_layout.GroupWindowTests.test_settings_layout_and_detail_grou
     const f = await fixture(t);
     f.e.page = 'settings';
     let rows = f.state.rows();
-    assert.deepEqual([...new Set(rows.map(r => r.group))], ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface']);
+    assert.deepEqual([...new Set(rows.map(r => r.group))], ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Inspection', 'Preview', 'Interface']);
     assert.deepEqual(rows.slice(0, 5).map(r => r.key), ['colors', 'palette', 'directory-style', 'separator-style', 'scope-labels']);
     for (const page of ['layout', 'settings'] as const) {
         f.e.page = page;

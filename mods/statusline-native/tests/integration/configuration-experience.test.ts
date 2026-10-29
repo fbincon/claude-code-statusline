@@ -1,3 +1,4 @@
+import { clientKey } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import { START, RUN, PANE, setup, keys, reply, sample, selectSetting } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
@@ -51,8 +52,8 @@ test('native explanation is instance-bound, scrollable and never applies the dra
   })} : next();
   await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
   await keys(ui,{key:'e',ctrl:true});await selectSetting(ui,'item-explain');await keys(ui,'return');
-  expect(await ui.find({in:'statusline-client',type:'Text',text:/Actual session fields/})).toBeDefined();
-  await keys(ui,'end');expect(await ui.find({in:'statusline-client',type:'Text',text:/Wrapping preserves content/})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Actual session fields/})).toBeDefined();
+  await keys(ui,'end');expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Wrapping preserves content/})).toBeDefined();
   await keys(ui,{key:'g',ctrl:true});
   expect(f.calls.filter(c=>c.operation==='explain')).toHaveLength(1);
   expect(f.calls.some(c=>c.operation==='apply')).toBe(false);await ui.unmount();

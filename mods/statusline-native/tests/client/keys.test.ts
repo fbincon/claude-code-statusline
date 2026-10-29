@@ -13,6 +13,14 @@ function view(): View {
     message: '', busy: '', uncertain: false };
 }
 
+test('native undo alternative and redo retain text-input and pending-save boundaries', () => {
+  const state=view(),e=state.editor!,count=e.draft.display.instances.length;
+  e.instanceAction('main','copy');handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count);
+  handleKey(state,{key:'r',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+  state.input={kind:'search',scope:'main',original:'',selected:e.selected.main};handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+  state.input=null;state.uncertain=true;handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+});
+
 test('search input uses the same 256-codepoint limit as the external editor', () => {
   const state=view(), e=state.editor!;
   e.search.main='😀'.repeat(255);

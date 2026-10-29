@@ -2,6 +2,65 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+
+## v3.14.0 adaptive and continuous appearance
+
+Use the [version decision](releases/approvals/v3.14.0.json). Retain eight installations, 32 Node cases, sixteen fixed hosts and the original 243 capacity cases; add 28 actual-host cases for 271 total. Require installed scenario/semantic-fitting receipts, both-editor PTYs and six-language actual entry captions. Follow final PR/main/tag evidence promotion, verify four assets, publish npm with OIDC, then verify six public-download jobs and the pinned-npm signature job. Synchronize explicit Gitee refs and every asset digest. Upgrade the test machine and restore preferences; after publication file issues for new findings without a patch. [Implementation and acceptance](development/adaptive-row-scenarios.md).
+
+Completed on 2026-10-30: final PR/main/annotated-tag gates, fresh npm OIDC publication, all seven public verification jobs, GitHub/Gitee attachment digests and the actual-machine upgrade/preferences checks passed. Issues [#178](https://github.com/fbincon/claude-code-statusline/issues/178) and [#180](https://github.com/fbincon/claude-code-statusline/issues/180) are closed as completed. Native full-tree npm audit remains unsupported; the dedicated signature flow verifies the real public package and all six public upstreams. [Final source and release evidence](development/adaptive-row-scenarios.md#final-source-and-release-identity).
+
+## v3.13.0 draft history and reuse
+
+Use the [version decision](releases/approvals/v3.13.0.json). Preserve 8 installations, 32 Node cases, 16 fixed hosts and all 217 earlier capacity cases; require 26 additional actual-host pages (243 total), installed draft/reuse receipts and both-editor PTYs. Promote immutable final-PR artifacts through verified main/tag evidence, then verify four assets, npm OIDC, GitHub/Gitee publication and public downloads. Upgrade the test machine and restore preferences. After completed publication, file issues for new local findings without publishing a patch. [Implementation and evidence](development/draft-history-and-reuse.md).
+
+Completed on 2026-10-29: final PR/main/tag gates, OIDC, all six public-download jobs, Gitee attachment digests and the test-machine upgrade/preferences checks passed. Retain v3.13.0 with post-publication findings #178–#180 open. The delivery record explicitly reports two unintended model requests during a failed local diagnostic and the subsequent network-isolated rerun; those failed diagnostics are not zero-call acceptance.
+
+## v3.12.0 source, command and package management
+
+Use the [version decision](releases/approvals/v3.12.0.json). Retain 8 installations, 32 Node cases, 16 fixed hosts and the baseline 197 capacity cases; 20 additional pages share the actual-host execution (217 total) with separate counts/digests. Require installed source-operation and real-npm editor execution receipts, both-editor PTYs and local Claude 2.1.312 supplement without model calls. Promote original immutable PR artifacts through verified main/tag. Publish the four verified files, check OIDC/provenance, all public channels and explicit Gitee refs. Restore test-machine preferences after upgrading. After publication only file issues for new local findings, keeping v3.12.0. [Implementation](development/source-command-package-management.md).
+
+Completed on 2026-10-29: final PR/main/tag gates, OIDC publication, all six public-download jobs and Gitee attachment digests passed; test-machine validation and preference preservation passed. Actual source, transaction and unverified limitations are in the [delivery record](development/source-command-package-management.md).
+
+## v3.11.0 task browsing and version review
+
+Use the [version decision](releases/approvals/v3.11.0.json). Retain all existing installation/runtime/host/capacity gates. Version-management receipts additionally require local-only inspection, metadata/unverified results, verified upgrade/rollback dry runs, separate configuration-restoration review, cancellation and unchanged installation/configuration bytes. Require installed task-viewer and both-editor journeys. Follow the source-bound promotion route below, publish the original four verified files and restore test-machine display/UI preferences. [Implementation and delivery](development/task-version-review.md).
+
+Completed on 2026-10-28: PR/main/tag gates, OIDC publication, all six public-download jobs, Gitee attachment verification and the test-machine upgrade/preference checks passed. The maintainer requested keeping 3.11.0 and deferring the observed package-page permission warning to [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173); no 3.11.1 was published. See the [delivery record](development/task-version-review.md).
+
+## v3.10.0 appearance and understanding
+
+Use the [version decision](releases/approvals/v3.10.0.json). Retain all existing installation/runtime/host/capacity gates and require installed new-theme, scenario and current-draft file-diagnosis evidence. Acceptance-tool edits follow the source-equivalent reuse rules below; they do not alone require a second full matrix. Publish the original four verified files and upgrade the test installation with original display/UI preferences restored. [Implementation and delivery](development/appearance-preview-diagnosis.md).
+
+Completed on 2026-10-28: final PR/main/tag gates, OIDC publication, public downloads and test-machine upgrade/restoration passed. Source and channel receipts are in the [delivery record](development/appearance-preview-diagnosis.md).
+
+## Source-bound CI evidence promotion
+
+Release preparation follows the [impact plan](development/impact-checks.md). Core changes require complete final-PR product acceptance, a normal merge and verified main integration with three-platform smoke. Equivalent complete sources retain the existing annotated-tag promotion and publish their original bytes.
+
+A maintenance PR runs its scoped checks; main independently verifies its source and receipts. A tag at an accepted maintenance source builds a new package/source/manifest/checksum set bound to that source, verifies independent and source-archive rebuilds, compares product payloads using accepted code, and runs three-platform installation smoke. Release binding explicitly links the original complete product coverage and intervening maintenance evidence. Tag SHA, package source SHA and npm provenance agree; no old package or receipt is relabeled.
+
+Register each approved stable version in [the approval registry](releases/approvals/registry.json) with its decision JSON, exact approval date and existing six-gap scope. Approval data alone uses release-specific checks, not the product matrix. Registration and decision hashes are verified from the current immutable source archive. Latest failed runs, missing/expired/corrupt evidence, invalid approval or incompatible schemas block; manual diagnostics and older green runs cannot substitute. See [CI routing](development/ci-maintenance.md#route-table-and-blocking-conditions).
+
+Historical releases below retain their actual gates and identities. A dry-run validates preparation and bytes, not a new tag/OIDC publication. Repository maintenance does not require a new product version.
+
+## v3.9.2 correctness repairs
+
+Use the [v3.9.2-specific approval](releases/approvals/v3.9.2.json) and require all final PR/main/annotated-tag gates. Retain eight installations, 32 Node cases, sixteen fixed hosts and 197 capacity cases, plus applicable installed journeys for both editors. Promote and publish the original four files under the existing evidence policy; verify npm OIDC, GitHub/Gitee and public downloads. Upgrade the test machine and restore its display/UI preferences. Record actual results in [correctness delivery](development/correctness-maintenance.md). Run no paid model tests; only the six existing #96 gaps remain accepted and unverified.
+
+## v3.9.1 native capacity patch
+
+Use the [v3.9.1-specific approval](releases/approvals/v3.9.1.json) and require all final PR, merged-main and annotated-tag gates. Add Linux, Windows and macOS 2.1.310 to the earlier thirteen combinations, for sixteen hosts; each native receipt also requires 197 actual-host capacity cases. Retain eight installations, 32 Node cases, independent/source rebuilds, installed terminals, four verified draft attachments, npm OIDC and public-download verification. Update the test machine and restore its pre-reproduction display configuration. Record actual sources, save outcomes and GitHub/npm/Gitee receipts in [native capacity delivery](development/native-capacity.md). Only the same six existing #96 gaps remain accepted and unverified.
+
+## Release identity and immutable assets
+
+Create release preparation branches from the latest `main` using the [contribution branch naming convention](../CONTRIBUTING.md#branch-names), for example `chore/prepare-release`. The archived Python procedure below retains its historical naming and does not define the current branch naming policy.
+
+GitHub release immutability is enabled for future publications. Create a draft, upload exactly the four delivery files (package, source archive, build manifest and checksums), download and verify their bytes and acceptance evidence, then publish. While still unpublished, a draft's tag or assets may be corrected only after checking the source, commit and digests. After publication, do not replace assets or move the associated tag; ship fixes as a new version.
+
+Release titles and notes remain editable, as do prerelease/Latest selections; these operations cannot change a published package's identity. GitHub's immutability setting does not automatically apply to Gitee: synchronize the same verified files and check every digest there. Historical releases are not rebuilt retroactively, and routine synchronization never force-pushes or mirror-deletes refs. See [GitHub's immutable-release documentation](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).
+
+Documentation and repository maintenance do not require a product version, tag, Release or npm publication. Product releases still require the final PR, main and tag automated gates; the six existing #96 gaps remain accepted but unverified and do not waive new failures. See [repository maintenance](development/repository-governance.md) for protection and community entry points.
+
 ## v3.8.0 Git, terminal and package management
 
 Use the [v3.8.0-specific approval](releases/approvals/v3.8.0.json) and require all final release PR, merged-main and annotated-tag gates. Each installed/runtime receipt must pass all twenty categories, including four Git-policy cases, four durable first-entry cases and seven real package-transition cases against the digest-pinned public v3.7.0 archive. Version receipts retain nineteen operations (twenty with an official host), interruption, observed-state recovery and separate configuration restoration. Windows additionally requires fifteen palette/environment cases and nine actual PowerShell/CMD/Git Bash × setup/configure/slash combinations, including cancellation and restored console modes.
@@ -50,7 +109,7 @@ Use the [v3.1.3-only decision](releases/approvals/v3.1.3.json) and unchanged fun
 
 Use the existing stable procedure with the [v3.1.2-only approval](releases/approvals/v3.1.2.json), exact per-version approval date and unchanged functional gates. Require final-head/merge/tag full CI, eight installed targets, 32 Node cases and thirteen hosts, reproducible builds/source rebuild, extended installed PTY evidence and identical verified attachments before npm/GitHub/Gitee publication. [Release notes](releases/v3.1.2.md) · [Repair and delivery evidence](development/external-tui-regressions.md).
 
-Ordinary documentation-only PR/push changes use a strict Markdown allowlist and necessary docs/whitespace checks. Version, approval JSON, generated resources, workflows, unknown paths, tags and manual runs require full CI. The existing aggregate gate remains required and fails closed; documentation runs produce no releasable acceptance receipts. Approval is version-limited and never waives failed automated evidence.
+At v3.1.2, documentation-only PR/push changes used a strict Markdown allowlist; other paths used full CI. This records that release's policy. Current maintenance follows [impact checks](development/impact-checks.md), with a required aggregate and separate release evidence. Approval remains version-limited and never waives failed automated evidence.
 
 Gitee release-note updates must include the original `tag_name`, `name` and `body`; keep the existing prerelease state (lowercase form booleans) and verify metadata, annotation and attachments after updating. The [official Release update schema](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md) also requires the Tag name; a body-only PATCH is insufficient.
 
@@ -105,7 +164,7 @@ gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
 
 Wait for each run and inspect its summary before proceeding. Live dispatch from a branch is rejected so npm provenance identifies the actual package source SHA. Only the publishing job receives `id-token: write`; dry-runs never start it. There is no GitHub Environment manual approval.
 
-The workflow requires the tag commit on `main` and successful latest main/tag **CI** runs. It downloads the tag run's `ts06-*` artifacts, rechecks eight installation targets and thirteen hosts with `release:prepare`, and verifies the exact package/source/manifest/checksum bundle. Missing/expired artifacts fail; rerun the original tag CI instead of substituting unrelated artifacts. Stable approval stays version-scoped: changing authentication does not approve other versions or waive gates.
+The workflow requires the tag commit reachable from `main`, successful latest tag **CI**, and successful main integration for that exact accepted source. It follows the verified promotion record to the original complete run and downloads its exact artifact IDs; legacy tags retain their original full tag-run inputs. It rechecks eight installation targets, 32 Node cases and sixteen hosts with `release:prepare`, plus the exact package/source/manifest/checksum bundle. Missing, expired or conflicting evidence fails; rerun the applicable complete acceptance instead of substituting unrelated artifacts. Stable approval stays version-scoped: changing authentication does not approve other versions or waive gates.
 
 The isolated publishing job uploads that same `.tgz` with lifecycle scripts disabled, using Node 24.21.0/npm 11.21.0. Build identity remains npm 11.19.0; the newer publishing CLI supports OIDC dist-tag operations. It verifies public SHA-256/SHA-512 bytes, sets `latest` for stable or `beta` for preview, and preserves other existing selectors. An existing identical version is a no-op only while its intended selector still matches; other states fail instead of overwriting bytes or rolling back selectors. Inspect ambiguous registry results before retrying.
 

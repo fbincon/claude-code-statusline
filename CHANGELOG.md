@@ -3,7 +3,76 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
-## Unreleased
+## 3.14.0 — 2026-10-29
+
+- Add adaptive bars that retain percentages, used/remaining meaning and complete custom labels/icons.
+- Paint continuous backgrounds across final Powerline rows, preserving overrides, groups, spacers, alignment and warnings.
+- Add five scene schemes; use display schema 17 and editor protocol 30 without rewriting old files on read.
+- Fix six-language Native style/group/history entry captions (#180).
+- Add pinned-npm signature/provenance verification with explicit native full-tree audit limits (#178).
+- Reconcile the latest package-review result after worker exit, preserving completed reviews instead of falsely reporting interruption.
+- [Implementation and acceptance](docs/development/adaptive-row-scenarios.md) · [Release notes](docs/releases/v3.14.0.md).
+
+## 3.13.0 — 2026-10-29
+
+- Share bounded draft undo/redo, semantic change review and explicit concurrent-edit recovery in both editors.
+- Review structural edits together with precise alignment repairs and accept them as one undoable action.
+- Copy selected compatible visual fields and reuse complete groups with explicit dependencies, ID mapping and local-source rebinding.
+- Use editor protocol 29; retain display schema 16 and portable/profile 1.
+- External undo/redo uses Ctrl+Z/Ctrl+R; Native uses Ctrl+_/Ctrl+R and history-page U/R under the accepted host compatibility adjustment.
+- Retain v3.13.0 with post-publication findings [#178](https://github.com/fbincon/claude-code-statusline/issues/178), [#179](https://github.com/fbincon/claude-code-statusline/issues/179) and [#180](https://github.com/fbincon/claude-code-statusline/issues/180) open; the delivery record includes the unintended model-request incident and restored preferences.
+- [Release notes](docs/releases/v3.13.0.md) · [Implementation](docs/development/draft-history-and-reuse.md).
+
+## 3.12.0 — 2026-10-28
+
+- Add readable source state, saved GitHub check pages and reviewed binding reuse/cleanup.
+- Add separately reviewed automatic commands: 300-second initial interval, active leases, fair context rotation and shared consumers.
+- Execute verified package changes/recovery in both editors with explicit draft handling, retained progress controls and protected history cleanup.
+- Keep unverifiable executor identity protected and block recovery until exit is confirmed.
+- Fix ordinary npm-manifest permissions (#173); retain strict private recovery readers.
+- Use editor protocol 28, source registry 3 and jobs 4; display 16 and command observation 1 remain compatible.
+- [Release notes](docs/releases/v3.12.0.md) · [Implementation](docs/development/source-command-package-management.md).
+
+## 3.11.0 — 2026-10-28
+
+- Known post-publication issue: ordinary npm manifest permissions can cause a false local read/compatibility warning in the version page; [#173](https://github.com/fbincon/claude-code-statusline/issues/173) is deferred to later development at the maintainer’s request.
+
+- Add a standalone `task view` command and external-editor entry; share filtering, search, folding, evidence layers and stable reading position with Native task details.
+- Add local version/installation pages to both editors, with explicit metadata checks and independently cancellable verified dry-run reviews.
+- Preserve saved configuration, unsaved drafts and installation bytes during reviews; keep package rollback and configuration-restoration review separate.
+- Advance editor protocol to 27; retain display schema 16 and existing task/runtime/storage formats.
+- [Release notes](docs/releases/v3.11.0.md) · [Implementation and validation](docs/development/task-version-review.md).
+
+## 3.10.0 — 2026-10-28
+
+- Add four registered themes and eight RGB gradient presets, visible color choices and reversible per-stop editing in both editors.
+- Select deterministic sample scenarios and temporary width/row controls without changing display settings or collecting data.
+- Explain per-row inactive/overridden styles and diagnose an explicit input file using the current draft, with input-only defaults in editors.
+- Advance display schema to 16 and editor protocol to 26; retain read-only old-file migration, source authorization and save recovery.
+- [Release notes](docs/releases/v3.10.0.md) · [Implementation and validation](docs/development/appearance-preview-diagnosis.md).
+
+## 3.9.2 — 2026-10-28
+
+- Share pending/unknown-save draft protection across both editors; add external Ctrl+K read-only reconciliation without repeating writes.
+- Compose main/subagent bar labels, icons, percentages and direction once across six languages.
+- Release GitHub refresh consumers independently so editor close, CLI interruption and automatic leases preserve other applicable work.
+- Exclude later/untimestamped values and auxiliary fields from historical extension output and retain every instance/agent evidence pair.
+- Initialize task language before descriptions/titles, retain it after failure, reload on retry/reopen and bound the plain task Pane with paging.
+- Advance editor protocol to 25 and source jobs to 3; retain display schema 15, registry 2, observation 1, runtime 3 and UI preferences 1.
+- [Release notes](docs/releases/v3.9.2.md) · [Implementation and validation](docs/development/correctness-maintenance.md).
+
+- Reduce Windows controlled-process startup overhead with an isolated native Job Object supervisor, preserving literal arguments, process-tree termination and package recovery (#157).
+- Batch read-only npm registry/cache discovery while preserving configuration precedence and validation; add opt-in phase timing without changing command output (#157).
+- Read macOS process identity and liveness through the native adapter, retaining the existing UTC token format and rejecting unverifiable identities without a timed `ps` subprocess (#157).
+
+## 3.9.1 — 2026-10-26
+
+- Keep native editor drafts and libraries in the host and send only bounded visible presentation frames to the Client, repairing setup, import, schemes, sources, explanation and gradient blank panes (#154).
+- Replace per-row blank framing with constant layout nodes, preserving usable tall panes and paging while reducing presentation dimensions when needed (#155).
+- Keep save results separate from display failures; recover received drafts without repeating writes and check unknown saves by reading.
+- Add production capacity regressions and Claude 2.1.310 on Linux, Windows and macOS, extending the required matrix to sixteen host combinations.
+- Retain display schema 15, editor protocol 24, storage formats and Node 22/24 support.
+- [Release notes](docs/releases/v3.9.1.md) · [Implementation and validation](docs/development/native-capacity.md).
 
 ## 3.9.0 — 2026-10-26
 

@@ -9,6 +9,8 @@
 
 `doctor` 检查安装，`diagnose` 解释你显式提供的状态栏 JSON，使用已保存的显示配置，并默认补充匹配的已有本地观测。命令只输出报告，不保存或采集数据。两个编辑器的 Explain 面板仍解释**示例**，不代表实时会话。
 
+扩展历史诊断同时过滤 current／last-good，按输入时刻计算有效期，排除之后或无时间戳的值及 PR／检查等附属字段。无时间戳保持未知，不参与历史重建；实时渲染行为不变。每个组件实例的全部代理证据分别保留。诊断不执行 Git 来推测旧输入身份，无法确认关联时保持不可用。
+
 ## 运行诊断
 
 使用你已经从 Claude Code 状态栏 stdin 捕获的 JSON：
@@ -67,7 +69,7 @@ claude-statusline config enable cache-miss-reason
 
 来源为[官方状态栏契约](https://code.claude.com/docs/en/statusline)，缓存原因需要 Claude Code 2.1.260+。既有 `prompt-cache` 保持官方主会话命中率：分母含全部输入 token，不含子代理流量；PR/MR 行为不变。
 
-显示 schema 保持 8。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
+当前显示 schema 为 16，编辑器协议为 26。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
 
 另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
 
@@ -78,3 +80,11 @@ claude-statusline config enable cache-miss-reason
 ## 包操作诊断
 
 `update --check --json` 报告元数据兼容性，`update --dry-run` 进一步验证包产物。`recover --package --dry-run --prefix PATH --config-dir PATH` 检查保留的包事务。`recover --restore-config 备份ID` 单独处理配置恢复。精确版本脚本及恢复入口见[版本管理](PACKAGE_MANAGEMENT.zh-CN.md)。
+
+## 在双编辑器中诊断文件
+
+从设置页或组件表单打开“诊断输入文件”，或按 Ctrl+L，填写路径、选择主行／子代理作用域，可选填写含时区的 ISO 采集时间，然后选择“读取并诊断文件”。默认仅使用输入；可明确开启匹配的已有本地观测。始终使用当前未保存的显示草稿及其编辑目标。现有 CLI 命令保留原默认行为。
+
+结果显示实际文件、作用域、输入／诊断时间及证据范围。缺少时间保持未知。样式原因说明颜色关闭、非 Powerline 背景渐变、组主实例背景、阈值覆盖、ANSI 转换及对比度保护，并与每个实例／代理行的布局结果关联。
+
+Esc 返回表单，再返回保留的草稿。失败保留表单供修正，上次成功报告仍可查看。报告分页，完整输入／报告不发送给原生 Client。文件诊断不保存、不采集、不修复、不执行来源。参见[实施说明](development/appearance-preview-diagnosis.zh-CN.md)。

@@ -22,13 +22,13 @@ test('Layout alignment controls select stable references in six languages and ap
     assert(alignmentsView(e, language, 20, 4).length <= 4);
     state.key({ key: 'escape' });
     const field = formRows(state).find(row => row.key === 'layout.mode')!;
-    assert.equal(setFormValue(state, field, 'auto'), false);
-    assert.equal(state.localized.message?.key, 'alignment.references');
-    assert.equal(state.localized.message?.params.ids, alignment.id);
+    assert.equal(setFormValue(state, field, 'auto'), true);
+    assert.deepEqual(e.structureProposal?.repairs.map(r=>r.id),[alignment.id]);
+    assert.equal(e.draft.display.layout.mode,'explicit');state.key({key:'q'});assert.equal(e.changeReview,null);
     e.page = 'main'; e.selected.main = 'a';
     state.key({ key: 'x', ctrl: true });
-    assert.equal(state.localized.message?.key, 'alignment.references');
-    assert.deepEqual(e.draft.display.instances, before.display.instances);
+    assert.deepEqual(e.structureProposal?.repairs.map(r=>r.id),[alignment.id]);
+    assert.deepEqual(e.draft.display.instances, before.display.instances);state.key({key:'q'});
     e.page = 'layout'; e.setting = 'row-alignment'; state.key({ key: 'return' });
     for (const key of ['return', 'down', 'return', 'escape']) state.key({ key });
     assert.deepEqual(e.draft.display.layout.alignments, []);

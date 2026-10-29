@@ -295,7 +295,7 @@ test('tests.ui.test_instance_editor.InstanceEditorTests.test_rejected_spacer_mov
         n.options.foreground = null;
         n.options.background = null;
         n.options.visibility = 'always';
-        n.options.visibility_threshold = 0;
+        n.options.visibility_threshold = 70;
     }
     const next = structuredClone(f.e.draft);
     next.display.instances = nodes;

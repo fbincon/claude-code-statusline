@@ -2,6 +2,9 @@
 
 [English](cli.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](../DRAFT_HISTORY.zh-CN.md)。
+
 [首次设置](../SETUP.zh-CN.md)与[完整方案](../SCHEMES.zh-CN.md)。
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
@@ -107,7 +110,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
-显示 schema v15 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
+显示 schema v16 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -416,7 +419,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v15 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v16 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
@@ -604,12 +607,12 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 
 | OPTION | VALUE | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`、`zh-CN` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
+| `statusline-language` | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
 | `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
 | `separator-style` | `classic`、`compact`、`powerline` | `classic` | 顶层条目的分隔方式 |
-| `theme` | `classic`、`dark`、`light`、`terminal` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
+| `theme` | `classic`、`dark`、`light`、`terminal`、`ocean`、`ember`、`slate`、`blossom` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
 | `powerline-glyph` | `ascii`、`powerline` | `ascii` | Powerline 边界使用 ASCII `>` 或可选的字体相关箭头 |
 | `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
 | `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
@@ -697,11 +700,11 @@ claude-statusline config set refresh-interval event
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 15 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
+以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 16 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 ```json
 {
-  "schema_version": 15,
+  "schema_version": 16,
   "groups": [],
   "use_colors": true,
   "palette": "default",
@@ -794,7 +797,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前显示 schema 为 v15；历史 v1–v14 可读取，首次实际配置保存时备份并写为 v15。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前显示 schema 为 v16；历史 v1–v15 可读取，首次实际配置保存时备份并写为 v16。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -902,7 +905,7 @@ claude-statusline.cmd config show
 
 ## 条件显示与外观
 
-使用 `config set theme classic|dark|light|terminal`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。
+使用 `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。
 
 ## 实例管理
 
@@ -934,9 +937,11 @@ claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--pr
 claude-statusline source unbind ID --binding BINDING_ID [--json]
 claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
 claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
 claude-statusline config instance main set INSTANCE link off|auto|on
 ```
+刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
+
 
 创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
 
@@ -960,3 +965,27 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ## 主行对应列对齐
 
 使用 `config alignment list`、`config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'` 和 `config alignment remove ID` 管理稳定引用。逗号连接同列成员，分号分隔列；使引用失效的结构修改在写入前拒绝。[使用规则](../COMPOSITION.zh-CN.md#显式主行的对应列对齐)。
+
+## 交互任务查看器
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。
+
+## 来源绑定维护
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` 显示共享可读摘要；`--json` 提供高级已保存检查详情。命令自动执行单独审核，默认 300 秒，允许 60–86400 秒，与 TTL 独立。绑定清理重新检查引用和修订；仅释放明确放弃或已恢复的草稿 owner。参见[来源操作](../EXTENSIONS.zh-CN.md)及[包执行](../PACKAGE_MANAGEMENT.zh-CN.md)。
+
+## 自适应指标与连续背景
+
+可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
+
+五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](../development/adaptive-row-scenarios.zh-CN.md)。

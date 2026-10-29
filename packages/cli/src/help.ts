@@ -74,7 +74,7 @@ export function helpText(command: string | undefined, language: Language): strin
     }
     if (command === 'diagnose') lines.push('', '  --input FILE|- [--scope main|subagent] [--width 120]', '  --json [--input-only] [--observed-at ISO_TIME]', '  ' + t('diagnose.help', language));
     if (command === 'source') lines.push('', '  list|add|edit|review|enable|disable|remove|bind|unbind|refresh|status|cancel|diagnose|auto-on|auto-off', '  --json --file FILE --review REVISION --project PATH --session ID --agent ID', '  --instance ID --scope main|subagent --profile NAME --no-wait --interval SECONDS', '  ' + t('sources.help',language));
-    if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  ' + t('task.help',language));
+    if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  view --session-id ID [--prompt-id ID] [--config-dir PATH]', '  ' + t('task.help',language));
     if (command === 'configure') lines.push('', '  [--user | --profile NAME | --project PATH]', '  Ctrl+O  ' + t('profiles.title',language));
     if (command === 'setup') lines.push('', '  ' + t('setup.steps', language));
     if (['update','rollback','recover'].includes(command??'')) lines.push('',

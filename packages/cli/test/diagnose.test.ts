@@ -18,10 +18,75 @@ import { ConfigurationProtocol } from '../src/ui/protocol.js';
 import { diagnosisAdapter } from '../src/diagnostics/service.js';
 import { diagnosticText } from '../src/diagnostics/command.js';
 import { main } from '../src/main.js';
+import { SourceService } from '../src/sources/service.js';
+import { newInstance } from '@fbincon/statusline-core/editor/instances';
+import { setField } from '@fbincon/statusline-core/config/editor-fields';
 
 const draft = (items: string[]): Draft => ({ display: config(items), host: { ...DEFAULT_HOST, padding: 0 } });
 const output = (r: ReturnType<Awaited<ReturnType<typeof diagnosisAdapter>>>) => r.output.map(row => row.spans.map(s => s.text).join('')).join('\n');
 const fail = () => assert.fail('Diagnosis attempted a side effect or host process');
+
+test('adaptive item width limits retain semantic fitting evidence in diagnosis and sample explanations', async t => {
+    const f = setup(t), adapter = await diagnosisAdapter(f.service, { files: { read: fail } });
+    const before = allFiles(f.root);
+    const input = { context_window: { remaining_percentage: 50 }, tasks: [task({ tokenCount: 100000 })] };
+    for (const scope of ['main','subagent'] as const) for (const separator_style of ['compact','powerline'] as const) {
+        let display = scope === 'main' ? config(['context-remaining']) : agentConfig(['context-remaining']);
+        display.separator_style = separator_style;
+        display.subagents.hide_completed = false;
+        display = setField(display,'presentation','adaptive',scope,'context-remaining');
+        for (const maximum of [4,14,40]) {
+            const bounded = setField(display,'max_width',maximum,scope,'context-remaining');
+            const current = { display: bounded, host: { ...DEFAULT_HOST, padding: 0 } };
+            const actual = adapter({ draft: current, scope, width: 80, input, include_local: false });
+            const actualNode = actual.instances.find(node=>node.id==='context-remaining')!;
+            const sample = f.call('explain',{draft:current,scope,width:80}).response.result;
+            const sampleNode = sample.instances.find((node:any)=>node.id==='context-remaining');
+            assert(actualNode.evidence.some(row=>row.status==='observed'));
+            assert(actualNode.reasons.some(reason=>reason.code==='indicator_bar'));
+            assert(sampleNode.reasons.some((reason:any)=>reason.code==='indicator_bar'));
+            for (const rows of [actualNode.rows,sampleNode.samples]) {
+                assert(rows.length>0);
+                const visible = rows.filter((row:any)=>row.outcome.endsWith('visible'));
+                if (maximum===4) { assert(rows.some((row:any)=>row.outcome.endsWith('width_omitted')&&!row.truncated)); assert.equal(visible.length,0); }
+                else {
+                    assert(visible.length>0);
+                    if (maximum===14) assert(visible.every((row:any)=>row.style_reasons.some((reason:any)=>reason.code==='adaptive_numeric')));
+                }
+            }
+            if (maximum===4) assert.equal(output(actual),'');
+            else assert(output(actual).includes('50%'));
+        }
+    }
+    assert.deepEqual(allFiles(f.root),before);
+});
+
+test('extension diagnosis uses input time and preserves evidence for each instance and agent without writes', async t => {
+    const f=setup(t),path=join(f.root,'extension.json'),sources=new SourceService(f.service);
+    const change=(action:string,fields={})=>sources.mutate({action,id:'local',expected_revision:sources.read().revision,...fields});
+    change('add',{source:{name:'Local',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path}}});
+    change('enable',{review_revision:sources.review('local').review_revision});
+    const binding=change('bind').binding!,display=agentConfig([]);
+    const first=newInstance('external-value',[]);first.source=binding;
+    const second={...newInstance('external-value',[first]),source:binding};display.subagents.instances=[first,second];
+    const adapter=await diagnosisAdapter(f.service,{now:()=>Date.parse('2026-10-28T12:00:00Z')});
+    for(const [observed_at,status,freshness] of [['2026-10-28T10:59:00Z','observed','current'],['2026-10-28T11:00:00Z','observed','current'],['2026-10-28T10:54:59Z','stale','stale'],['2026-10-28T12:00:00Z','newer_than_input','newer_than_input'],[null,'association_unavailable','unknown']] as const) {
+        writeFileSync(path,JSON.stringify({value:0,observed_at}));
+        const before=allFiles(f.root);
+        const result=adapter({draft:{display,host:DEFAULT_HOST},scope:'subagent',width:120,input:{session_id:'session',tasks:[task({id:'a'}),task({id:'b'})]},observed_at:'2026-10-28T11:00:00Z'});
+        assert.equal(result.observed_at,'2026-10-28T11:00:00.000Z');assert.equal(result.diagnosed_at,'2026-10-28T12:00:00.000Z');
+        for(const node of result.instances) {
+            assert.deepEqual(node.evidence.map(e=>e.scope),['subagent:a','subagent:b']);
+            assert(node.evidence.every(e=>e.status===status && e.freshness===freshness));
+        }
+        if(status==='newer_than_input'||status==='association_unavailable')assert(!output(result).includes('Local: 0'));
+        else assert(output(result).includes('Local: 0'));
+        assert.deepEqual(allFiles(f.root),before);
+        const isolated=adapter({draft:{display,host:DEFAULT_HOST},scope:'subagent',width:120,input:{tasks:[task({id:'a'}),task({id:'b'})]},include_local:false});
+        assert(isolated.instances.every(node=>node.evidence.every(e=>e.status==='input_only')));
+        assert.deepEqual(allFiles(f.root),before);
+    }
+});
 
 test('official-source synthetic payload fixtures retain their provenance and reproduce both added fields', async t => {
     const f=setup(t), adapter=await diagnosisAdapter(f.service);

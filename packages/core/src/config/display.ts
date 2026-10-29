@@ -1,3 +1,4 @@
+import { THEME_IDS } from '../editor/themes.js';
 import { validAlignments, alignmentConflicts } from '../editor/alignments.js';
 import { validCostRateOptions } from '../editor/cost-rate.js';
 import { validGroups } from '../editor/groups.js';
@@ -12,7 +13,7 @@ export { isSchema } from './validation.js';
 import * as options from './formatting.js';
 import { reference, SOURCE_TYPES } from '../extensions/model.js';
 
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 17;
 export const CONFIG_FILENAME = 'claude-statusline.json';
 const v1 = ['schema_version', 'items', 'use_colors', 'palette', 'directory_style', 'separator_style'];
 const v2 = [...v1, 'scope_labels', 'subagents'];
@@ -126,13 +127,13 @@ function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
 function scalars(data: Record<string, unknown>, version: number) {
   if (typeof data.use_colors !== 'boolean') fail('errors.display.use_colors_must_be_true_or_false');
   return {
-    schema_version: 15 as const, groups: [], use_colors: data.use_colors,
+    schema_version: 17 as const, groups: [], use_colors: data.use_colors,
     palette: choice(data.palette, ['default', 'ansi'] as const, 'palette'),
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
     scope_labels: version === 1 ? 'when-subagents' as const : choice(data.scope_labels, ['off', 'when-subagents', 'always'] as const, 'scope_labels'),
     statusline_language: version >= 6 ? choice(resolveLanguage(data.statusline_language) ?? data.statusline_language, LANGUAGES, 'statusline_language') : 'en' as const,
-    theme: version >= 7 ? choice(data.theme, ['classic', 'dark', 'light', 'terminal'] as const, 'theme') : 'classic' as const,
+    theme: version >= 7 ? choice(data.theme, version >= 16 ? THEME_IDS : THEME_IDS.slice(0, 4), 'theme') : 'classic' as const,
     powerline_glyph: version >= 7 ? choice(data.powerline_glyph, ['ascii', 'powerline'] as const, 'powerline_glyph') : 'ascii' as const,
     powerline: version >= 9 ? options.powerline(data.powerline) : clone(DEFAULT_POWERLINE),
     formatting: version >= 3 ? options.formatting(data.formatting) : clone(DEFAULT_FORMATTING),
@@ -144,8 +145,9 @@ export function validateDisplay(value: unknown): DisplayDraft {
   let version: bigint;
   try { version = jsonInteger(value.schema_version); }
   catch { return fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) }); }
-  if (version > 15n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
+  if (version > 17n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
   if (version < 1n) fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) });
+  if (version < 17n && (object(value.powerline) && Object.hasOwn(value.powerline, 'row_background_gradient') || [value.instances, object(value.subagents) ? value.subagents.instances : null].some(nodes => Array.isArray(nodes) && nodes.some(node => object(node) && object(node.options) && node.options.presentation === 'adaptive')))) fail('appearance.schema');
   if (version < 15n && object(value.layout) && Object.hasOwn(value.layout, 'alignments')) fail('alignment.schema');
   if (version < 14n && [value.instances, object(value.subagents) ? value.subagents.instances : null].some(nodes => Array.isArray(nodes) && nodes.some(node => object(node) && object(node.options) && ['foreground_gradient','background_gradient'].some(key => Object.hasOwn(node.options as object, key))))) fail('gradients.schema');
   if (version >= 8n) {
@@ -195,7 +197,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
 }
 
 function orderedDisplay(value: DisplayDraft): DisplayDraft {
-  return { schema_version: 15, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
+  return { schema_version: 17, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
     directory_style: value.directory_style, separator_style: value.separator_style,
     scope_labels: value.scope_labels, statusline_language: value.statusline_language,
     theme: value.theme, powerline_glyph: value.powerline_glyph, powerline: value.powerline, subagents: value.subagents,

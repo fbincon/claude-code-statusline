@@ -1,7 +1,14 @@
-import { performSourceAction, closeSources } from '@fbincon/statusline-core/editor/source-manager';
+import { performChanges, changePreview, openChanges } from '@fbincon/statusline-core/editor/change-review';
+import { performReuse } from '@fbincon/statusline-core/editor/reuse-manager';
+import { performPackage, closePackage } from '@fbincon/statusline-core/editor/package-manager';
+import { readTask } from '@fbincon/statusline-core/editor/task-viewer';
+import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
+import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
+import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
+import { performSourceAction, closeSources, closeSourceDraft } from '@fbincon/statusline-core/editor/source-manager';
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
-import type { Operation, ResultFor } from '@fbincon/statusline-core/contracts/ui';
+import type { Operation, ResultFor, PackageControl } from '@fbincon/statusline-core/contracts/ui';
 import { createReview } from '@fbincon/statusline-core/editor/import-review';
 import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
@@ -13,6 +20,7 @@ import { frame, ansiFrame } from './drawing.js';
 import { dimensions } from './layout.js';
 import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
 export interface Backend {
+    control?<O extends Operation>(control:PackageControl,operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
     request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
 }
 export interface Outcome {
@@ -29,8 +37,8 @@ export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
 export class Session {
     private previewKey = '';
     private explanationKey = '';
-    constructor(public readonly state: State, public readonly backend: Backend, public readonly guard: () => void = () => { }) { }
-    static async open(backend: Backend, language?: Language, guard?: () => void): Promise<Session> {
+    constructor(public readonly state: State, public readonly backend: Backend, public readonly guard: () => void = () => { }, public languageOverride?: Language) { }
+    static async open(backend: Backend, language?: Language, guard?: () => void, languageOverride?: Language): Promise<Session> {
         const description = await backend.request('describe'), current = await backend.request('read'), preference = await backend.request('read_ui_preferences');
         if (description.backend_version !== current.backend_version)
             throw new BackendError('backend_version_mismatch', text('native.hooks.register.the_backend_changed_while_opening_reopen_the_editor'));
@@ -39,15 +47,16 @@ export class Session {
         const state = new State(description, current, language ?? preference.ui_language);
         if (preference.warning)
             state.notice(preference.warning);
-        return new Session(state, backend, guard);
+        return new Session(state, backend, guard, languageOverride);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-        const key = JSON.stringify([draft, width]);
+        const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.changeReview ? changePreview(e) : e.reuse?.result && !e.reuse.result.blocked.length ? e.reuse.result.draft : e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
+        if(e.diagnosis || e.taskViewer || e.packages)return;
+        const key = JSON.stringify([draft, width,e.previewScenario]);
         if(e.explanation) {
             const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
             if(identity!==this.explanationKey || !view.result) {
-                const result=await this.backend.request('explain',{draft,scope:view.scope,width});
+                const result=await this.backend.request('explain',{draft,scope:view.scope,width,scenario:e.previewScenario});
                 if(result.scope!==view.scope || result.width!==width) throw new Error('Explanation response does not match the request');
                 view.result=result;view.error='';this.state.preview=result.preview;this.explanationKey=identity;
             }
@@ -55,7 +64,7 @@ export class Session {
         }
         if (key === this.previewKey)
             return;
-        this.state.preview = await this.backend.request('preview', { draft, width });
+        this.state.preview = await this.backend.request('preview', { draft, width,scenario:e.previewScenario });
         this.previewKey = key;
     }
     async key(key: Key, columns = 80, rows = 24): Promise<'save' | Outcome | null> {
@@ -64,14 +73,21 @@ export class Session {
         if (effect === 'save')
             return 'save';
         if (effect === 'cancel' || effect === 'interrupt')
-            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0);
+            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
-            this.guard();
+            if(!e.packageLocked)this.guard();
+            if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend,e);if(e.packages.closed)e.packages=null;return null;}
+            if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
+            if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
+            if (effect === 'changes') {await performChanges(e,this.backend);return null;}
+            if (effect === 'reuse') {await performReuse(e,this.backend);return null;}
+            if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
             else if (effect === 'language') {
                 const result = await this.backend.request('set_ui_language', { ui_language: state.pendingLanguage });
                 state.language = result.ui_language;
+                if(this.languageOverride)this.languageOverride=result.ui_language;
                 state.pendingLanguage = null;
                 state.notice('');
             }
@@ -102,14 +118,30 @@ export class Session {
         return null;
     }
     failure(error: unknown): void { this.state.notice(error instanceof BackendError && error.localization ? error.localization : error instanceof Error ? error.message : String(error)); }
+    async reconcile(): Promise<void> {
+        const e=this.state.editor,submitted=e.pendingSave;
+        if(e.saveState!=='unknown'||!submitted)return;
+        this.guard();e.setSaveState('pending');
+        try {
+            const current=await this.backend.request('read',submitted.target?{target:submitted.target}:{});
+            this.state.notice(text('editor.'+e.reconcileSave(current)));
+        }catch(error) {
+            e.setSaveState('unknown');
+            this.state.notice(text('editor.still_unknown',{detail:error instanceof Error?error.message:String(error)}));
+        }
+    }
     async save(): Promise<Outcome> {
         const e = this.state.editor;
         this.guard();
         if (!e.acceptNumeric())
             throw new BackendError('invalid_draft', Object.values(e.fieldErrors).join('; '));
-        const result = await this.backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision,
-            ...(e.baseline.configuration ? { target: e.baseline.configuration.target } : {}) });
-        e.committed(result);
+        const submitted=e.beginSave();
+        let result: ResultFor<'apply'>;
+        try {
+            result = await this.backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
+                ...(submitted.target ? { target: submitted.target } : {}) });
+            e.committed(result);
+        }catch(error) {e.saveFailed(error instanceof BackendError?error.code:'');if(error instanceof BackendError&&error.code==='configuration_conflict'){openChanges(e);e.changeReview!.effect='read';await performChanges(e,this.backend);}throw error;}
         const value = outcome(result.changed ? 'updated' : 'already-current', this.state.language);
         if (result.backup_dir)
             value.message += t('ui.session.backup', this.state.language, { backup_dir: result.backup_dir });
@@ -133,9 +165,9 @@ export class Session {
                         this.failure(error);return null;
                     }
                 },
-                guard: this.guard,
-                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130),
-                timeout: () => outcome('timed-out', this.state.language),
+                guard: () => {if(!this.state.editor.packageLocked)this.guard();},
+                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130, this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
+                timeout: () => outcome('timed-out', this.state.language,0,this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
             }, options);
             if (result !== 'save')
                 return result;
@@ -149,6 +181,6 @@ export class Session {
             this.failure(error);
             if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
             return outcome('error', this.state.language, 2, this.state.message);
-        } finally { await closeSources(this.state.editor,this.backend); }
+        } finally { if(this.state.editor.packages)await closePackage(this.state.editor.packages,this.backend); if(!this.state.editor.packageLocked){await closeSources(this.state.editor,this.backend); await closeSourceDraft(this.state.editor,this.backend);} }
     }
 }

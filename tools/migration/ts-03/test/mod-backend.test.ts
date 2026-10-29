@@ -34,6 +34,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const baseline = call('read');
     assert.equal(baseline.installed, true);
     assert.equal(baseline.installation.statusLine.state, 'owned');
+    assert.deepEqual(call('review_reuse',{draft:baseline.draft,path:null,profile:false,request:{kind:'style',scope:'main',from_scope:'main',from_id:baseline.draft.display.instances[0].id,to_ids:[baseline.draft.display.instances[0].id],fields:['foreground']}}).draft,baseline.draft);
     assert.equal(call('read_ui_preferences').ui_language, 'en');
     assert.equal(call('set_ui_language', { ui_language: 'zh-CN' }).ui_language, 'zh-CN');
     const changed = call('preset', { draft: baseline.draft, preset: 'left-right' }).draft;
@@ -70,6 +71,8 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.equal(response.exitCode, 2);
     assert.throws(() => backend.parseResponse('read', response), (error: any) => error.code === 'unsupported_protocol');
     assert.throws(() => backend.parseResponse('read', { ...f.run('ui', backend.requestText('read')), isStdoutTruncated: true }), (error: any) => error.code === 'backend_output_truncated');
+    const diagnosisFile=join(f.root,'diagnostic input.json');writeFileSync(diagnosisFile,JSON.stringify({model:{id:'explicit-file'}}));
+    const fileReport=call('diagnose_file',{draft:baseline.draft,path:diagnosisFile,scope:'main',width:80});assert.equal(fileReport.include_local,false);assert.equal(fileReport.source,diagnosisFile);
     const diagnosis = call('diagnose', { draft: baseline.draft, scope: 'main', width: 80, input: { model: { id: 'diagnostic-model' } }, include_local: false });
     assert.equal(diagnosis.sample, false);
     const library = call('profiles_read');
@@ -90,8 +93,23 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const deadline=Date.now()+15000;
     while(job.state==='running'&&Date.now()<deadline){await new Promise(resolve=>setTimeout(resolve,100));job=call('source_status',{id:job.id});}
     assert.equal(job.state,'completed');
+    assert.equal(call('source_release',{id:job.id,owner:'mod-test'}).state,'completed');
     assert.equal(call('source_cancel',{id:job.id}).state,'completed');
     assert.equal(call('source_diagnose',{id:'external',context:sourceContext}).view.value,0);
+    assert.equal(call('source_inspect',{id:'external',context:sourceContext,offset:0}).view.value,0);
+    call('source_draft',{owner:'parser-draft',bindings:[],close:false});call('source_draft',{owner:'parser-draft',bindings:[],close:true});
+    const binding=call('sources_apply',{action:'bind',id:'external',expected_revision:call('sources_read').revision}).binding;
+    const bindingReview=call('source_bindings_review',{offset:0});
+    call('source_bindings_cleanup',{revision:bindingReview.revision,ids:[binding.binding]});
+    const packageState=call('package_status',{prefix:join(f.root,'readonly-package-prefix'),offset:0});
+    const packageOwner='viewer-protocol-123456789';
+    const packageJob=call('package_review_start',{owner:packageOwner,request:{action:'check',prefix:packageState.prefix,expected_revision:packageState.revision,target:null,channel:'latest',backup_id:null,expected_integrity:null}});
+    call('package_review_status',{id:packageJob.id,owner:packageOwner});
+    call('package_review_cancel',{id:packageJob.id,owner:packageOwner});
+    assert.equal(call('package_cleanup_review',{prefix:packageState.prefix,offset:0}).total,0);
+    for(const [operation,payload]of [['package_execute_start',{id:packageJob.id,owner:packageOwner}],['package_execute_status',{id:'invalid'}],['package_execute_detach',{id:'invalid',owner:packageOwner}],['package_cleanup_apply',{prefix:packageState.prefix,revision:'old',ids:[]}] ]as const){
+        assert.throws(()=>call(operation,payload),(error:any)=>error instanceof backend.BackendError&&!['unsupported_operation','unsupported_protocol','backend_invalid_response'].includes(error.code));
+    }
     assert.deepEqual([...operations].sort(), description.operations.toSorted());
     const rendered = f.run('render', '{"model":{"id":"Python-free"},"context_window":{"remaining_percentage":50}}');
     assert.equal(rendered.exitCode, 0);

@@ -5,14 +5,25 @@ on:
     branches: [main]
     tags: ['v3.*']
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
   workflow_dispatch:
+    inputs:
+      validation:
+        description: Explicit full validation or isolated diagnostics (never PR or release evidence)
+        type: choice
+        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe]
+        default: full
 
 permissions:
   contents: read
 
+# The compatibility foundation is accepted; maintenance now follows its impact plan.
+env:
+  IMPACT_CHECKS: 'true'
+
 concurrency:
-  group: ts06-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ts06-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
   run:
@@ -20,10 +31,374 @@ defaults:
 
 jobs:
   scope:
-    name: Classify documentation changes
+    name: Classify changes and select evidence
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     outputs:
-      docs_only: ${{ steps.scope.outputs.docs_only }}
+      docs_only: ${{ env.IMPACT_CHECKS == 'true' && 'false' || steps.scope.outputs.docs_only }}
+      docs_checked: ${{ steps.documentation.outputs.docs_checked }}
+      draft: ${{ steps.scope.outputs.draft }}
+      route: ${{ steps.promotion.outputs.route }}
+      promotion_route: ${{ steps.promotion.outputs.promotion_route }}
+      mode: ${{ steps.promotion.outputs.mode }}
+      source_run: ${{ steps.promotion.outputs.source_run }}
+      source_commit: ${{ steps.promotion.outputs.source_commit }}
+      filename: ${{ steps.promotion.outputs.filename }}
+      artifact_ids: ${{ steps.promotion.outputs.artifact_ids }}
+      impact_matrix: ${{ steps.impact.outputs.matrix }}
+      impact_reused: ${{ steps.impact.outputs.reused }}
+      impact_packaging: ${{ steps.impact.outputs.packaging }}
+      impact_source_run: ${{ steps.impact.outputs.source_run }}
+      impact_package_artifact: ${{ steps.impact.outputs.source_package_artifact }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check workflow Action identities
+        run: node tools/checks/actions.ts
+      - id: scope
+        name: Read draft state and legacy compatibility classification
+        env:
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CI_DRAFT: ${{ github.event.pull_request.draft || false }}
+        run: node tools/checks/ci-scope.ts
+      - id: impact
+        name: Resolve source responsibilities and package equivalence
+        if: env.IMPACT_CHECKS == 'true' && github.ref_type == 'branch' && github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_NAME: ${{ github.ref_name }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node tools/checks/impact-workflow.ts select --directory "$RUNNER_TEMP/impact"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.impact.outputs.route == 'maintenance'
+        with:
+          name: ci-impact-plan
+          path: |
+            ${{ runner.temp }}/impact/selection.json
+            ${{ runner.temp }}/impact/plan.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.impact.outputs.packaging == 'true' && steps.impact.outputs.route == 'maintenance'
+        with:
+          name: ci-impact-package
+          path: |
+            ${{ runner.temp }}/impact/package/base.tgz
+            ${{ runner.temp }}/impact/package/head.tgz
+            ${{ runner.temp }}/impact/package/comparison.json
+            ${{ runner.temp }}/impact/package/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - id: promotion
+        name: Select full acceptance or verified source promotion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
+          CI_REF_NAME: ${{ github.ref_name }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_VALIDATION: ${{ inputs.validation }}
+          CI_DOCS_ONLY: ${{ env.IMPACT_CHECKS == 'true' && 'false' || steps.scope.outputs.docs_only }}
+          CI_IMPACT_ROUTE: ${{ steps.impact.outputs.route }}
+        run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.promotion.outputs.promotion_route != ''
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/promotion-selection.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.promotion.outputs.route == 'release'
+        with:
+          name: ci-release-selection
+          path: ${{ runner.temp }}/promotion-selection.json
+          if-no-files-found: error
+          retention-days: 30
+      - id: documentation
+        if: env.IMPACT_CHECKS != 'true' && steps.scope.outputs.docs_only == 'true'
+        env:
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          npm run docs:check
+          git diff --check "$CI_BASE" HEAD
+          echo "docs_checked=true" >> "$GITHUB_OUTPUT"
+
+  scoped:
+    name: Scoped / ${{ matrix.id }}
+    needs: scope
+    if: needs.scope.outputs.route == 'maintenance' && needs.scope.outputs.draft != 'true' && needs.scope.outputs.impact_reused != 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.scope.outputs.impact_matrix) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-impact-plan
+          path: ${{ runner.temp }}/impact
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.impact_packaging == 'true'
+        with:
+          name: ci-impact-package
+          path: ${{ runner.temp }}/package
+      - name: Install only the selected official host
+        if: matrix.host != ''
+        env:
+          HOST_VERSION: ${{ matrix.host }}
+        run: |
+          claude_native=$(node -p "'@anthropic-ai/claude-code-' + process.platform + '-' + process.arch")
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@$HOST_VERSION" "$claude_native@$HOST_VERSION"
+          node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
+          echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Execute the exact planned checks
+        env:
+          IMPACT_TASK: ${{ matrix.id }}
+          IMPACT_PACKAGE: ${{ needs.scope.outputs.impact_packaging }}
+        run: |
+          args=()
+          if [[ "$IMPACT_PACKAGE" == true ]]; then args=(--artifact "$RUNNER_TEMP/package/head.tgz"); fi
+          npm run ci:check -- --plan "$RUNNER_TEMP/impact/plan.json" --task "$IMPACT_TASK" --report "$RUNNER_TEMP/scoped/receipt.json" "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-scoped-${{ matrix.id }}
+          path: ${{ runner.temp }}/scoped/receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+  maintenance:
+    name: Verify scoped maintenance evidence
+    needs: [scope, scoped]
+    if: always() && needs.scope.result == 'success' && needs.scope.outputs.route == 'maintenance' && needs.scope.outputs.draft != 'true' && (needs.scoped.result == 'success' || needs.scope.outputs.impact_reused == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-impact-plan
+          path: ${{ runner.temp }}/impact
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.impact_package_artifact != ''
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.impact_source_run }}
+          artifact-ids: ${{ needs.scope.outputs.impact_package_artifact }}
+          path: ${{ runner.temp }}/package
+          merge-multiple: true
+      - name: Bind original checks and independently verify accepted maintenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          CI_PR: ${{ github.event.pull_request.number }}
+          CI_DRAFT: ${{ github.event.pull_request.draft || false }}
+          IMPACT_PACKAGE: ${{ needs.scope.outputs.impact_package_artifact }}
+        run: |
+          args=()
+          if [[ -n "$IMPACT_PACKAGE" ]]; then args=(--package "$RUNNER_TEMP/package"); fi
+          node tools/checks/impact-workflow.ts record --selection "$RUNNER_TEMP/impact/selection.json" --output "$RUNNER_TEMP/maintenance/maintenance.json" "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-maintenance
+          path: ${{ runner.temp }}/maintenance/maintenance.json
+          if-no-files-found: error
+          retention-days: 30
+
+  release-build:
+    name: Build current maintenance release source
+    needs: scope
+    if: needs.scope.outputs.route == 'release'
+    runs-on: ubuntu-24.04
+    outputs:
+      filename: ${{ steps.build.outputs.filename }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - id: build
+        run: node dist/typescript/tools/build/impact-release-build.js --output "$RUNNER_TEMP/release" --rebuild "$RUNNER_TEMP/rebuilt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+  release-smoke:
+    name: Maintenance release smoke / ${{ matrix.os }}
+    needs: release-build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release
+      - run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/release/${{ needs.release-build.outputs.filename }}" --source "$GITHUB_SHA" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-release-smoke-${{ matrix.os }}
+          path: ${{ runner.temp }}/smoke/
+          if-no-files-found: error
+          retention-days: 30
+
+  release-binding:
+    name: Bind maintenance release and product acceptance
+    needs: [scope, release-build, release-smoke]
+    if: needs.scope.outputs.route == 'release'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-release-package
+          path: ${{ runner.temp }}/release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/original
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: node dist/typescript/tools/checks/impact-release.js --selection "$RUNNER_TEMP/selection/promotion-selection.json" --original "$RUNNER_TEMP/original" --delivery "$RUNNER_TEMP/release" --output "$RUNNER_TEMP/binding/release-binding.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-release-binding
+          path: ${{ runner.temp }}/binding/release-binding.json
+          if-no-files-found: error
+          retention-days: 30
+
+  quick:
+    name: Draft quick checks
+    needs: scope
+    if: needs.scope.outputs.draft == 'true' && needs.scope.outputs.docs_only != 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+
+  development:
+    name: Development checks and portable test outputs
+    needs: scope
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && needs.scope.outputs.route == 'full'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+      - name: Bind portable compiled tests to this source
+        run: node dist/typescript/tools/build/test-bundle.js create "$RUNNER_TEMP/compiled-tests"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-compiled-tests
+          path: ${{ runner.temp }}/compiled-tests/
+          if-no-files-found: error
+          retention-days: 30
+
+  candidate:
+    name: Reproducible public package
+    needs: scope
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && needs.scope.outputs.route == 'full'
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.identity.outputs.commit }}
+      filename: ${{ steps.identity.outputs.filename }}
+      runtime_matrix: ${{ steps.runtimes.outputs.runtime_matrix }}
+      shared_runtimes: ${{ steps.runtimes.outputs.shared_runtimes }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -35,57 +410,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
-      - name: Check workflow Action identities
-        run: node dist/typescript/tools/checks/actions.js
-      - id: scope
-        env:
-          CI_EVENT: ${{ github.event_name }}
-          CI_REF_TYPE: ${{ github.ref_type }}
-          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: node dist/typescript/tools/checks/ci-scope.js
-
-  documentation:
-    name: Documentation links and formatting
-    needs: scope
-    if: needs.scope.outputs.docs_only == 'true'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '24.21.0'
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run docs:check
-      - name: Check changed documentation whitespace
-        env:
-          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: git diff --check "$CI_BASE" HEAD
-
-  candidate:
-    name: Reproducible public package
-    needs: scope
-    if: needs.scope.outputs.docs_only != 'true'
-    runs-on: ubuntu-24.04
-    outputs:
-      commit: ${{ steps.identity.outputs.commit }}
-      filename: ${{ steps.identity.outputs.filename }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '24.21.0'
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Python-free development checks and complete responsibility ledger
-        run: npm run check
       - name: Require version tags to match application identity
         if: github.ref_type == 'tag'
         env:
@@ -95,8 +419,32 @@ jobs:
           import { VERSION } from './packages/core/dist/src/release.js';
           if (process.env.RELEASE_TAG !== 'v' + VERSION) throw new Error('Release tag/version mismatch');
           JS
+      - id: historical-key
+        name: Identify immutable historical cache
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import { HISTORICAL_RELEASES } from './dist/typescript/tools/acceptance/historical-releases.js';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'key=historical-v1-' + Object.values(HISTORICAL_RELEASES).join('-') + '\n');
+          JS
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          key: ${{ steps.historical-key.outputs.key }}
+          path: ${{ runner.temp }}/historical
+      - name: Prepare checksum-pinned historical inputs once
+        run: node dist/typescript/tools/acceptance/historical-inputs.js "$RUNNER_TEMP/historical"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
       - name: Two independent builds from one immutable commit
         run: npm run release:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
+      - id: runtimes
+        name: Freeze runtime selectors once for this candidate
+        run: node tools/checks/runtime-inputs.ts "$RUNNER_TEMP/candidate/runtime-inputs.json"
       - id: identity
         name: Record immutable artifact identity
         run: |
@@ -110,11 +458,12 @@ jobs:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate/
           if-no-files-found: error
+          compression-level: 0
           retention-days: 30
 
   installed:
     name: Installed / ${{ matrix.os }} / ${{ matrix.arch }}
-    needs: candidate
+    needs: [candidate, development]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -146,11 +495,29 @@ jobs:
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-compiled-tests
+          path: ${{ runner.temp }}/compiled-tests
+      - name: Restore verified portable test outputs
+        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/compiled-tests"
       - name: Install the shared artifact offline with empty cache and scripts disabled
-        run: npm run test:installed -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
+        run: node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
       - name: Native platform, process, failure and terminal tests without Python
-        run: npm run check
+        run: node dist/typescript/tools/checks/all.js --platform --report "$RUNNER_TEMP/evidence/source-tests.json"
+      - name: Record runtime obligations sharing this exact execution
+        env:
+          SHARED_RUNTIME_CASES: ${{ needs.candidate.outputs.shared_runtimes }}
+        run: node dist/typescript/tools/acceptance/runtime-shared.js "$RUNNER_TEMP/evidence" "$SHARED_RUNTIME_CASES"
       - name: Bind platform and runtime evidence
         run: npm run migration:receipt -- "$RUNNER_TEMP/evidence/platform.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -159,25 +526,17 @@ jobs:
           name: ts06-installed-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   runtime:
     name: Node ${{ matrix.node }} / ${{ matrix.target.os }} / ${{ matrix.target.arch }}
-    needs: candidate
+    needs: [candidate, development]
     runs-on: ${{ matrix.target.os }}
     strategy:
       fail-fast: false
-      matrix:
-        node: ['22.0.0', '22.x', '24.0.0', '24.x']
-        target:
-          - { os: ubuntu-24.04, arch: x64 }
-          - { os: windows-2025, arch: x64 }
-          - { os: windows-11-arm, arch: x64, host_arch: arm64 }
-          - { os: macos-14, arch: arm64 }
-          - { os: macos-15, arch: arm64 }
-          - { os: macos-15-intel, arch: x64 }
-          - { os: macos-26, arch: arm64 }
-          - { os: macos-26-intel, arch: x64 }
+      matrix: ${{ fromJSON(needs.candidate.outputs.runtime_matrix) }}
     env:
+      TS06_RESOLVED_NODE: ${{ matrix.version }}
       TS05_TARGET: ${{ matrix.target.os }}-${{ matrix.target.arch }}
       TS03_EXPECT_PROCESS_ARCH: ${{ matrix.target.arch }}
       TS03_EXPECT_HOST_ARCH: ${{ matrix.target.host_arch || matrix.target.arch }}
@@ -192,16 +551,28 @@ jobs:
           architecture: ${{ matrix.target.arch }}
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-compiled-tests
+          path: ${{ runner.temp }}/compiled-tests
+      - name: Restore verified portable test outputs
+        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/compiled-tests"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ matrix.version }}
           architecture: ${{ matrix.target.arch }}
-          check-latest: true
       - name: Product tests and isolated offline installation on the selected Node
         run: node dist/typescript/tools/acceptance/runtime.js --case "${{ matrix.node }}" --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/runtime.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -210,10 +581,11 @@ jobs:
           name: ts06-runtime-${{ matrix.target.os }}-${{ matrix.target.arch }}-${{ matrix.node }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   mods:
     name: Mods / ${{ matrix.os }} / Claude ${{ matrix.claude }}
-    needs: candidate
+    needs: [candidate, development]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -224,14 +596,17 @@ jobs:
           - { os: ubuntu-24.04, claude: '2.1.289' }
           - { os: ubuntu-24.04, claude: '2.1.294' }
           - { os: ubuntu-24.04, claude: '2.1.296' }
+          - { os: ubuntu-24.04, claude: '2.1.310' }
           - { os: windows-2025, claude: '2.1.288' }
           - { os: windows-2025, claude: '2.1.289' }
           - { os: windows-2025, claude: '2.1.294' }
           - { os: windows-2025, claude: '2.1.296' }
+          - { os: windows-2025, claude: '2.1.310' }
           - { os: macos-15, claude: '2.1.288' }
           - { os: macos-15, claude: '2.1.289' }
           - { os: macos-15, claude: '2.1.294' }
           - { os: macos-15, claude: '2.1.296' }
+          - { os: macos-15, claude: '2.1.310' }
     env:
       DISABLE_AUTOUPDATER: '1'
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
@@ -248,6 +623,14 @@ jobs:
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - name: Install the fixed host and development dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
@@ -259,20 +642,33 @@ jobs:
           # Candidate installation itself always keeps all lifecycle scripts disabled.
           node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
           echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-compiled-tests
+          path: ${{ runner.temp }}/compiled-tests
+      - name: Restore verified portable test outputs
+        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/compiled-tests"
+      - name: Repeat the unchanged native long scenario ten times
+        if: matrix.os == 'windows-2025' && (matrix.claude == '2.1.289' || matrix.claude == '2.1.294')
+        run: node dist/typescript/tools/acceptance/native-stability.js "$RUNNER_TEMP/evidence/native-stability.json"
       - name: Official Mod tests, available exact-build types and installed binding
-        run: npm run test:mods -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/mods.json"
+        run: node dist/typescript/tools/acceptance/mods.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/mods.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: ts06-mods-${{ matrix.os }}-${{ matrix.claude }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   acceptance:
-    name: Complete candidate evidence
-    needs: [scope, documentation, candidate, installed, runtime, mods]
-    if: always()
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
+    needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion, scoped, maintenance, release-build, release-smoke, release-binding]
+    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -281,25 +677,309 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run build
       - name: Require successful documentation or complete product checks
         env:
           CI_NEEDS: ${{ toJSON(needs) }}
-        run: node dist/typescript/tools/checks/ci-scope.js gate
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
+          CI_REF_NAME: ${{ github.ref_name }}
+          CI_VALIDATION: ${{ inputs.validation }}
+        run: node tools/checks/ci-scope.ts gate
+      - if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - id: evidence
+        name: Select immutable artifacts from successful attempts
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-evidence.ts select --run "$GITHUB_RUN_ID" --output "$RUNNER_TEMP/evidence-selection.json"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.scope.outputs.docs_only != 'true'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          pattern: ts06-*
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          artifact-ids: ${{ steps.evidence.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
-      - name: Require eight targets, thirteen hosts and all 32 runtime cases for the same artifact
-        if: needs.scope.outputs.docs_only != 'true'
+      - name: Restore verified portable test outputs
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
+      - name: Require eight targets, sixteen hosts and all 32 runtime cases for the same artifact
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: |
+          mkdir -p "$RUNNER_TEMP/acceptance"
           release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
-          npm run release:prepare -- --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
+          node dist/typescript/tools/release/prepare.js --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/acceptance/candidate-acceptance.json"
+      - name: Bind complete acceptance to its original source and artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full' && github.event_name != 'workflow_dispatch'
+        run: node dist/typescript/tools/checks/ci-evidence.js record --evidence "$RUNNER_TEMP/evidence" --selection "$RUNNER_TEMP/evidence-selection.json" --acceptance "$RUNNER_TEMP/acceptance/candidate-acceptance.json" --output "$RUNNER_TEMP/acceptance/ci-evidence.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: needs.scope.outputs.docs_only != 'true'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          name: ts06-acceptance
-          path: ${{ runner.temp }}/candidate-acceptance.json
+          name: ${{ github.event_name == 'workflow_dispatch' && 'ci-manual-acceptance' || 'ts06-acceptance' }}
+          path: ${{ runner.temp }}/acceptance/
           if-no-files-found: error
+          retention-days: 30
+
+  windows-probe:
+    name: Windows supervisor and installed diagnostics / ${{ matrix.os }}
+    needs: candidate
+    if: inputs.validation == 'windows-probe'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, windows-11-arm]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ needs.candidate.outputs.commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          architecture: x64
+          cache: npm
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ts06-candidate
+          path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - name: Verify actual native process boundaries
+        run: node --test packages/platform/dist/test/source-process.test.js
+      - name: Diagnose installed console entries before the long version profile
+        run: |
+          mkdir -p "$RUNNER_TEMP/probe"
+          node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/probe/editor-console.json" --diagnostic-pattern 'installed terminal policy|installed external editor' > "$RUNNER_TEMP/probe/editor-console.log" 2>&1 || { cat "$RUNNER_TEMP/probe/editor-console.log"; exit 1; }
+      - name: Compare identical supervisor workloads
+        run: node dist/typescript/tools/benchmarks/windows-supervisor.js "$RUNNER_TEMP/probe/supervisor.json"
+      - name: Profile real installed upgrade and recovery
+        env:
+          TS06_PROFILE_MANAGEMENT: '1'
+          TS06_LEGACY_370_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.7.0.tgz
+          TS06_LEGACY_380_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
+        run: node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/probe/installed.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: windows-probe-${{ matrix.os }}
+          path: ${{ runner.temp }}/probe/
+          if-no-files-found: error
+          retention-days: 30
+
+  macos-probe:
+    name: macOS native process identity / ${{ matrix.os }}
+    needs: scope
+    if: inputs.validation == 'macos-probe'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26-intel, macos-15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.0.0'
+      - name: Compare actual kernel identity with the historical format
+        run: node --test packages/platform/dist/test/processes.test.js
+      - name: Repeat the affected six-language transaction scenario twenty times
+        run: |
+          mkdir -p "$RUNNER_TEMP/macos-probe"
+          for round in {1..20}; do
+            node --test packages/cli/dist/test/sources-editor.test.js > "$RUNNER_TEMP/macos-probe/round-$round.log" 2>&1 || { cat "$RUNNER_TEMP/macos-probe/round-$round.log"; exit 1; }
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: macos-probe-${{ matrix.os }}
+          path: ${{ runner.temp }}/macos-probe/
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-source-probe:
+    name: Windows source stability / ${{ matrix.os }} / Node ${{ matrix.node }}
+    needs: scope
+    if: inputs.validation == 'windows-source-probe'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, node: '24.0.0' }
+          - { os: windows-11-arm, node: '24.0.0' }
+          - { os: windows-11-arm, node: '22.23.4' }
+          - { os: windows-11-arm, node: '24.21.0' }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          architecture: x64
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: x64
+      - name: Prepare system PowerShell for source-only diagnostics
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-probe"
+          node --input-type=module <<'JS'
+          import { writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { prepareWindowsPowerShell } from './dist/typescript/tools/acceptance/windows-shell.js';
+          const result = prepareWindowsPowerShell();
+          writeFileSync(join(process.env.RUNNER_TEMP, 'source-probe', 'shell-setup.json'), JSON.stringify(result, null, 2) + '\n');
+          console.log(JSON.stringify(result));
+          if (result.status !== 'pass') process.exit(1);
+          JS
+      - name: Run unchanged source assertions with resource-sensitive Git tests serialized
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-probe"
+          for round in {1..20}; do
+            node --test --test-name-pattern 'protected cleanup retains' packages/cli/dist/test/package-management.test.js > "$RUNNER_TEMP/source-probe/package-cleanup-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/package-cleanup-$round.log"; exit 1; }
+          done
+          node tools/typescript/test.mjs --runtime > "$RUNNER_TEMP/source-probe/runtime.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/runtime.log"; exit 1; }
+          for round in {1..10}; do
+            node --test packages/cli/dist/test/git.test.js > "$RUNNER_TEMP/source-probe/git-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/git-$round.log"; exit 1; }
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: windows-source-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/source-probe/
+          if-no-files-found: error
+          retention-days: 30
+
+  integration:
+    name: Integration smoke / ${{ matrix.os }}
+    needs: scope
+    if: needs.scope.outputs.promotion_route == 'main'
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - name: Verify source and original bytes before running integration tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
+      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
+      - name: Install original PR package and exercise critical commands
+        run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.scope.outputs.filename }}" --source "${{ needs.scope.outputs.source_commit }}" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-integration-${{ matrix.os }}
+          path: ${{ runner.temp }}/smoke/
+          if-no-files-found: error
+          retention-days: 30
+
+  promotion:
+    name: Verify accepted release bytes
+    needs: [scope, integration]
+    if: always() && needs.scope.result == 'success' && needs.scope.outputs.promotion_route != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - name: Check original bytes before restoring executable test outputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
+      - name: Independently verify with the accepted first-parent code
+        if: needs.scope.outputs.promotion_route == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-trust.ts --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/promotion/trusted-verification.json"
+      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
+      - name: Exercise main, tag, npm provenance and workflow routing contracts
+        run: node --test --test-concurrency=1 dist/typescript/tools/checks/test/ci-{evidence,integration,routing,scope,trust}.test.js
+      - id: smokes
+        if: needs.scope.outputs.promotion_route == 'main'
+        name: Select exact original integration receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-integration.ts --run "$GITHUB_RUN_ID" --output "$RUNNER_TEMP/smoke-selection.json"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.promotion_route == 'main'
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          artifact-ids: ${{ steps.smokes.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/smokes
+      - name: Verify the original package, receipts, main ancestry and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --smokes "$RUNNER_TEMP/smokes" --smoke-selection "$RUNNER_TEMP/smoke-selection.json" --trusted-verification "$RUNNER_TEMP/promotion/trusted-verification.json" --output "$RUNNER_TEMP/promotion/promotion.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-promotion
+          path: ${{ runner.temp }}/promotion/
+          if-no-files-found: error
+          retention-days: 30

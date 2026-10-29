@@ -3,7 +3,76 @@
 [English](CHANGELOG.md) | **简体中文**
 
 
-## Unreleased
+## 3.14.0 — 2026-10-29
+
+- 新增保留百分比、已用／剩余语义及完整自定义内容的自适应进度条。
+- 在最终 Powerline 行内绘制连续背景，保留覆盖、分组、spacer、对齐和告警颜色。
+- 新增五个场景方案；显示 schema 17、编辑器协议 30，旧配置读取不写入。
+- 修复 Native 样式／分组／历史入口六语言本地化（#180）。
+- 增加固定 npm 工具链的签名／provenance 验证入口，明确全树审计限制（#178）。
+- 后台审阅进程退出后重新核对最新结果，避免把已完成的包审阅误报为中断。
+- [实现与验收](docs/development/adaptive-row-scenarios.zh-CN.md) · [发布说明](docs/releases/v3.14.0.zh-CN.md)。
+
+## 3.13.0 — 2026-10-29
+
+- 双编辑器共享有界草稿撤销／重做、语义变更审阅及明确的并发修改恢复。
+- 结构编辑与精确对齐修复共同审阅，接受后作为一次可撤销操作。
+- 复制兼容的所选视觉字段，通过明确依赖处理、ID 映射和本机来源重绑定复用完整分组。
+- 编辑器协议为 29，保留显示 schema 16 及 portable／方案格式 1。
+- 按已接受的宿主兼容调整，外部撤销／重做使用 Ctrl+Z／Ctrl+R，Native 使用 Ctrl+_／Ctrl+R，历史页也提供 U／R。
+- 保留 v3.13.0，发版后发现 [#178](https://github.com/fbincon/claude-code-statusline/issues/178)、[#179](https://github.com/fbincon/claude-code-statusline/issues/179)、[#180](https://github.com/fbincon/claude-code-statusline/issues/180) 保持开放；交付记录包括误发模型请求事件及偏好恢复。
+- [发布说明](docs/releases/v3.13.0.zh-CN.md) · [实现](docs/development/draft-history-and-reuse.zh-CN.md)。
+
+## 3.12.0 — 2026-10-28
+
+- 增加可读来源状态、已保存 GitHub 检查分页和审核后绑定复用／清理。
+- 命令自动执行独立审核：默认 300 秒、活跃租约、上下文公平轮转和共享消费者。
+- 双编辑器执行已验证包变更／恢复，明确处理草稿，保留进度入口并保护历史清理。
+- 无法核验执行器身份时保留保护，确认退出前阻止恢复。
+- 修复普通 npm 清单权限误报（#173），保留严格私有恢复读取器。
+- 编辑器协议 28、来源注册表 3、任务 4；显示 16 和命令观测 1 保持兼容。
+- [发布说明](docs/releases/v3.12.0.zh-CN.md) · [实现](docs/development/source-command-package-management.zh-CN.md)。
+
+## 3.11.0 — 2026-10-28
+
+- 发布后已知问题：普通 npm 清单权限可能使版本页误报本机读取／兼容错误；维护者要求把 [#173](https://github.com/fbincon/claude-code-statusline/issues/173) 留待后续开发处理。
+
+- 增加独立 `task view` 命令和外部编辑器入口，与 Native 任务详情共享过滤、搜索、折叠、证据分层及阅读位置保持。
+- 双编辑器增加本机版本／安装页面，支持显式元数据检查及可独立取消的已验证 dry-run 审核。
+- 审核保留已保存配置、未保存草稿及实际安装字节，包回退与配置还原分别审核。
+- 编辑器协议升至 27，显示 schema 保持 16，既有任务／runtime／存储格式不变。
+- [发布说明](docs/releases/v3.11.0.zh-CN.md) · [实现与验收](docs/development/task-version-review.zh-CN.md)。
+
+## 3.10.0 — 2026-10-28
+
+- 双编辑器新增四个注册主题、八个 RGB 渐变预设、可视选色和可取消的逐色编辑。
+- 选择确定性样例场景及临时宽度／行浏览，不改变显示配置、不采集数据。
+- 逐行解释不生效／被覆盖的样式，使用当前草稿诊断指定文件，编辑器默认仅输入。
+- 显示 schema 升至 16、编辑器协议升至 26；保留旧文件只读迁移、来源授权及保存恢复。
+- [发布说明](docs/releases/v3.10.0.zh-CN.md) · [实施与验证](docs/development/appearance-preview-diagnosis.zh-CN.md)。
+
+## 3.9.2 — 2026-10-28
+
+- 双编辑器在保存进行中／未知时共享草稿修改守卫；外部 TUI 使用 Ctrl+K 只读核对，不重复保存。
+- 主行及子代理进度条只组合一次标签、图标、百分比与方向，覆盖六语言。
+- GitHub 共享刷新按消费者释放需求；编辑器关闭、CLI 中断及自动租约互不取消仍适用的工作。
+- 历史扩展诊断排除之后／无时间戳的值及附属字段，并保留每个实例／代理的证据。
+- 任务详情在描述和首次标题前加载语言，失败后保留，重试／重开更新；普通 Pane 使用有界分页。
+- 编辑器协议升至 25、来源任务升至 3；显示 schema 15、注册表 2、观测 1、runtime 3、UI preferences 1 保持兼容。
+- [发布说明](docs/releases/v3.9.2.md) · [实施与验收](docs/development/correctness-maintenance.zh-CN.md)。
+
+- 使用隔离的原生 Job Object 监督进程降低 Windows 受控子进程启动开销，保留字面参数、进程树终止及包恢复保障（#157）。
+- 合并只读 npm registry／cache 查询，保留配置优先级和校验；增加可选阶段计时，不改变命令输出（#157）。
+- 通过原生适配器读取 macOS 进程身份与存活状态，保留既有 UTC token 格式，拒绝无法验证的身份，不再依赖有时限的 `ps` 子进程（#157）。
+
+## 3.9.1 — 2026-10-26
+
+- Native 编辑器将完整草稿和管理器留在宿主，只向 Client 传递有界可见帧，修复快速配置、导入、方案、来源、说明与渐变造成的空白（#154）。
+- 使用固定数量布局节点填充空白与边框，支持高面板；容量不足时缩小展示范围并保留翻页（#155）。
+- 保存结果独立于显示失败，恢复已接收草稿时不重复写入，未知保存结果通过读取核对。
+- 新增生产数据容量回归及 Linux、Windows、macOS 的 Claude 2.1.310，必需宿主矩阵扩至十六个组合。
+- 保持显示 schema 15、编辑器协议 24、存储格式与 Node 22／24 支持。
+- [发布说明](docs/releases/v3.9.1.md) · [实施与验收](docs/development/native-capacity.zh-CN.md)。
 
 ## 3.9.0 — 2026-10-26
 

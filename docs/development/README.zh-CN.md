@@ -1,10 +1,26 @@
 # 开发指南
 
+
+[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
+
 [English](README.md) | **简体中文**
 
-[后续功能路线](roadmap.zh-CN.md#milestones)与[开发工作包](development-plan.zh-CN.md#future-work)按 M8–M13 排列：首次入口与 npm 全局安装 → 显式升级／回滚 → 选择性导入 → 前景／Powerline 背景渐变 → 主栏显式行对齐 → 全部选定功能验收后的演示。GIT-01、TERMINAL-01 为优先独立维护，Windows 预览结果纳入相关验收。八个未来工作包均保持 NOT_STARTED，不分配版本或日期；M4–M7 已随 v3.7.0 交付，CI-01 已完成，规划更新不实施功能。
+[按影响检查与维护证据](impact-checks.zh-CN.md)定义专项检查规划、包内容比较及分阶段 PR/main/tag 证据迁移。
+[任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
 
-[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
+[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md)记录 v3.13.0 的 UX-03、COMPOSITION-04、IMPORT-02 交付、编辑器协议 29、验收及发版后发现。
+
+
+[来源操作、命令调度与包执行](source-command-package-management.zh-CN.md)记录 SOURCES-01、COMMAND-02 和 UPDATE-02 交付（v3.12.0）。
+
+
+[外观、样例场景与显式文件诊断](appearance-preview-diagnosis.zh-CN.md)记录 APPEARANCE-05、PREVIEW-01、EXPLAIN-02。
+
+[功能路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)定义范围、依赖、切片和验收。开始下一任务时读取这两处规范来源，已实现行为查阅链接的交付记录；规划更新不实施功能。
+
+[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明按影响专项检查、候选与维护证据、晋升路线、Action 身份及每周更新审查。
+
+[贡献指南](../../CONTRIBUTING.zh-CN.md)说明反馈、翻译和 PR 流程；[仓库维护](repository-governance.zh-CN.md)记录主线保护、安全入口、依赖告警和发布身份策略。
 
 [扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
 
@@ -22,15 +38,18 @@
 
 当前 TypeScript workspace 使用 Node 24.21.0/npm 11.19.0。日常开发不需要 Python；冻结的 Python 参考通过独立的手动入口验证。
 
+[首批正确性修复与验收](correctness-maintenance.zh-CN.md)记录 FIX-01～FIX-04、I18N-01、编辑器协议 25 和来源任务 3。
+
 ## 技术文档导航
 
 ### 当前开发
 
-- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：M8–M13 顺序、优先独立维护、范围、依赖、兼容及功能验收；功能／配套／较远候选各有进入条件，既有设计／证据分别保留。
+- [项目级代理指引](../../AGENTS.md)：共享工作区边界、规范来源、验证和 PR 规则，仅维护英文。
+- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：当前优先级／状态、已核对问题、范围、依赖、兼容及针对性的功能验收；既有设计／证据分别保留。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
-- [原生编辑器接入](native.zh-CN.md)。
+- [原生编辑器接入](native.zh-CN.md)。[容量与恢复](native-capacity.zh-CN.md)。
 - [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
 - [发布流程](../RELEASING.zh-CN.md)。
 
@@ -76,7 +95,7 @@ npm run check
 
 `npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
 六种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
-八目标安装和十三个固定主机组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。
+八目标安装、32 个 Node 运行时用例和十六个固定宿主组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。执行共享、草稿快检和诊断见 [CI 维护](ci-maintenance.zh-CN.md)。
 
 ### 清理编译输出
 

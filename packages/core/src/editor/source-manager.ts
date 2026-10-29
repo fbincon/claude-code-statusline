@@ -1,15 +1,23 @@
-import type { Operation, ResultFor, SourcesResult, SourceDefinition, SourceContext, SourceJob, SourceReview, Scope } from '../contracts/ui.js';
+import { clone } from './history.js';
+import { compatibleSource } from './source-compatibility.js';
+import { sourceSummary, sourceReviewLines } from './source-summary.js';
+import type { Operation, ResultFor, SourcesResult, SourceDefinition, SourceContext, SourceJob, SourceReview, SourceInspection, BindingReview, Scope } from '../contracts/ui.js';
 import type { Editor } from './draft.js';
 import { t, text, type Language, type LocalizedText } from '../i18n/messages.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
 import { BackendError } from './backend.js';
-type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'auto-review' | 'auto-off';
+type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'auto-review' | 'auto-off' | 'checks' | 'raw';
 export interface SourceManager {
     library: SourcesResult | null;
     context: SourceContext | null;
     owner: string;
-    page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review';
+    closed: boolean;
+    page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review' | 'checks' | 'bindings' | 'binding-cleanup';
+    inspection: SourceInspection | null;
+    bindingReview: BindingReview | null;
+    bindingSelection: string | null;
+    offset: number;
     automaticInterval: number;
     cursor: number;
     scroll: number;
@@ -24,7 +32,7 @@ export interface SourceManager {
     details: string[];
     jobs: SourceJob[];
     message: LocalizedText | null;
-    effect: 'load' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | 'auto-review' | 'auto-on' | 'auto-off' | null;
+    effect: 'load' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | 'auto-review' | 'auto-on' | 'auto-off' | 'checks' | 'raw' | 'bindings' | 'binding-cleanup' | null;
     target: {
         scope: Scope;
         id: string;
@@ -35,14 +43,14 @@ export interface SourceBackend {
 }
 const external = ['external-value', 'github-pr', 'github-ci'];
 export function openSources(editor: Editor): void {
-    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), closed: false, inspection: null, bindingReview: null, bindingSelection: null, offset: 0, page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
 }
 function source(editor: Editor): SourceDefinition | undefined { return editor.sources!.library?.sources.find(s => s.id === editor.sources!.selected); }
-function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(source(editor)?.kind === 'github' ? ['auto-review' as const, 'auto-off' as const] : [])]; }
+function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(['github','command'].includes(source(editor)?.kind ?? '') ? ['auto-review' as const, 'auto-off' as const] : []), 'checks', 'raw']; }
 function targets(editor: Editor) {
     const s = source(editor);
     return (['main', 'subagent'] as const).flatMap(scope => (scope === 'main' ? editor.draft.display.instances : editor.draft.display.subagents.instances)
-        .filter(node => external.includes(node.type_id) && (s?.kind === 'github' || !node.type_id.startsWith('github-')) && (editor.sources!.page !== 'unbind' || editor.sources!.library?.bindings.some(binding => binding.source_id === s?.id && binding.id === node.source?.binding))).map(node => ({ scope, id: node.id })));
+        .filter(node => external.includes(node.type_id) && (!s || compatibleSource(node, s, editor.sources!.context)) && (editor.sources!.page !== 'unbind' || editor.sources!.library?.bindings.some(binding => binding.source_id === s?.id && binding.id === node.source?.binding))).map(node => ({ scope, id: node.id })));
 }
 function form(editor: Editor, kind: SourceDefinition['kind'], editing = false): void {
     const m = editor.sources!, s = editing ? source(editor) : undefined, settings = s?.settings ?? {};
@@ -60,7 +68,7 @@ function form(editor: Editor, kind: SourceDefinition['kind'], editing = false): 
 }
 function count(editor: Editor): number {
     const m = editor.sources!;
-    return m.page === 'list' ? (m.library?.sources.length ?? 0) + 1 : m.page === 'actions' ? actions(editor).length : m.page === 'kind' ? 3 : m.page === 'form' ? m.fields.length : m.page === 'bind' || m.page === 'unbind' ? targets(editor).length : 1;
+    return m.page === 'list' ? (m.library?.sources.length ?? 0) + 2 : m.page === 'actions' ? actions(editor).length : m.page === 'kind' ? 3 : m.page === 'bindings' ? (m.bindingReview?.rows.length ?? 0) : m.page === 'form' ? m.fields.length : m.page === 'bind' || m.page === 'unbind' ? targets(editor).length : 1;
 }
 export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     const m = editor.sources;
@@ -99,9 +107,13 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     }
     if (!plain)
         return null;
-    if (['review', 'diagnose', 'auto-review'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
+    if (['review', 'diagnose', 'auto-review', 'checks', 'binding-cleanup'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
         m.scroll = key === 'home' ? 0 : Math.max(0, m.scroll + (key === 'up' ? -1 : key === 'pageup' ? -8 : key === 'pagedown' ? 8 : 1));
         return null;
+    }
+    if (['checks','bindings'].includes(m.page) && ['left','right'].includes(key)) {
+        const total=m.page==='checks'?m.inspection?.total:m.bindingReview?.total;
+        m.offset=Math.max(0,Math.min(m.offset+(key==='left'?-16:16),Math.max(0,Math.floor(((total??1)-1)/16)*16)));m.cursor=0;m.effect=m.page==='checks'?'checks':'bindings';return 'sources';
     }
     if (m.page === 'auto-review' && ['left', 'right'].includes(key)) { m.automaticInterval = Math.max(60, Math.min(86400, m.automaticInterval + (key === 'left' ? -60 : 60))); return null; }
     if (key === 'up' || key === 'down')
@@ -115,14 +127,17 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
                 m.selected = selected.id;
                 m.page = 'actions';
             }
+            else if(m.cursor === (m.library?.sources.length??0)+1){m.offset=0;m.effect='bindings';}
             else
                 m.page = 'kind';
             m.cursor = 0;
         }
+        else if(m.page==='bindings'){const row=m.bindingReview?.rows[m.cursor];if(row?.removable){m.bindingSelection=row.id;m.page='binding-cleanup';m.scroll=0;}}
+        else if(m.page==='binding-cleanup')m.effect='binding-cleanup';
         else if (m.page === 'kind')
             form(editor, (['json', 'github', 'command'] as const)[m.cursor]!);
         else if (m.page === 'actions') {
-            const action = actions(editor)[m.cursor]!;
+            const action = actions(editor)[m.cursor]!;m.offset=0;
             if (action === 'edit')
                 form(editor, source(editor)!.kind, true);
             else if (action === 'bind' || action === 'unbind' || action === 'remove') {
@@ -137,10 +152,13 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         else if (m.page === 'remove')
             m.effect = 'remove';
         else if (m.page === 'unbind') {
+            if (!editor.canMutateDraft()) { m.message=editor.compositionError;return null; }
             const target = targets(editor)[m.cursor];
             const node = target && editor.instance(target.scope, target.id);
             if (node?.source) {
-                node.source = { ...node.source, binding: null };
+                const draft = clone(editor.draft);
+                (target!.scope === 'main' ? draft.display : draft.display.subagents).instances.find(n => n.id === target!.id)!.source = { ...node.source, binding: null };
+                editor.commitDraft(draft);
                 m.message = text('sources.bound');
                 m.page = 'list';
                 m.cursor = 0;
@@ -158,9 +176,10 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
     const m = editor.sources;
     if (!m)
         return;
+    m.closed = true;
     let failed: unknown;
-    for (const job of m.jobs.filter(job => job.state === 'running' && job.owner === m.owner && job.trigger === 'manual')) {
-        try { await backend.request('source_cancel', { id: job.id }); }
+    for (const job of m.jobs.filter(job => job.state === 'running')) {
+        try { await backend.request('source_release', { id: job.id, owner:m.owner }); }
         catch (error) { failed = error; }
     }
     if (failed) throw failed;
@@ -174,6 +193,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
     m.effect = null;
     m.message = null;
     try {
+        const generation=editor.mutationGeneration;
+        if (effect === 'bind' && !editor.canMutateDraft()) { m.message=editor.compositionError;return; }
         if (effect === 'close') {
             await closeSources(editor, backend);
             return;
@@ -182,41 +203,36 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             m.library = await backend.request('sources_read', {});
             const target = editor.baseline.configuration;
             m.context = await backend.request('source_context', { project: target?.project_root ?? (target?.target.kind === 'project' ? target.target.path : null), session: null, agent: null });
+            if(!m.closed){editor.sourceDraftRegistered=true;await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:draftBindings(editor),close:false});}
             return;
+        }
+        if(effect==='bindings'||effect==='binding-cleanup'){
+            m.bindingReview=effect==='bindings'?await backend.request('source_bindings_review',{offset:m.offset}):await backend.request('source_bindings_cleanup',{revision:m.bindingReview!.revision,ids:[m.bindingSelection]});
+            m.page='bindings';m.cursor=0;m.scroll=0;return;
         }
         if (effect === 'review' || effect === 'auto-review') {
             m.review = await backend.request('source_review', { id: m.selected });
             m.page = effect;
-            m.automaticInterval = m.library?.automatic.find(p => p.source_id === m.selected)?.interval_seconds ?? Math.max(60, Math.min(86400, m.review.source.ttl_seconds));
+            m.automaticInterval = m.library?.automatic.find(p => p.source_id === m.selected)?.interval_seconds ?? (m.review.source.kind === 'command' ? 300 : Math.max(60, Math.min(86400, m.review.source.ttl_seconds)));
             m.scroll = 0;
             return;
         }
-        if (effect === 'status' || effect === 'cancel') {
-            const selected = source(editor)!;
-            const context = await backend.request('source_context', { project: selected.scope.project ?? m.context?.project ?? null, session: selected.scope.session, agent: selected.scope.agent });
-            const observed = await backend.request('source_diagnose', { id: m.selected, context });
-            const jobs = await Promise.all(observed.jobs.map(job => backend.request(effect === 'cancel' && job.state === 'running' ? 'source_cancel' : 'source_status', { id: job.id })));
-            m.jobs = m.jobs.map(job => jobs.find(updated => updated.id === job.id) ?? job);
-            m.details = [JSON.stringify(observed.automatic, null, 2), ...jobs.map(job => `${job.id}: ${job.state} (${job.reason})`)];
-            m.page = 'diagnose';
-            m.scroll = 0;
-            return;
-        }
-        if (effect === 'refresh' || effect === 'diagnose') {
-            const selected = source(editor)!;
-            const context = await backend.request('source_context', { project: selected.scope.project ?? m.context?.project ?? null, session: selected.scope.session, agent: selected.scope.agent });
-            if (effect === 'refresh') {
-                const job = await backend.request('source_refresh', { id: m.selected, context, owner: m.owner });
-                m.jobs.push(job);
-                m.message = text('sources.refresh_started');
+        if (['status','cancel','refresh','diagnose','checks','raw'].includes(effect)) {
+            const selected=source(editor)!;
+            const context=await backend.request('source_context',{project:selected.scope.project??m.context?.project??null,session:selected.scope.session,agent:selected.scope.agent});
+            if(m.closed||editor.sources!==m)return;
+            if(effect==='refresh'){
+                const job=await backend.request('source_refresh',{id:m.selected,context,owner:m.owner});
+                if(m.closed||editor.sources!==m){await backend.request('source_release',{id:job.id,owner:m.owner});return;}
+                m.jobs=[...m.jobs.filter(previous=>previous.id!==job.id),job];m.message=text('sources.refresh_started');return;
             }
-            else {
-                const result = await backend.request('source_diagnose', { id: m.selected, context });
-                m.details = JSON.stringify(result, null, 2).split('\n');
-                m.page = 'diagnose';
-                m.scroll = 0;
+            if(effect==='cancel'){
+                const report=await backend.request('source_diagnose',{id:m.selected,context});
+                for(const job of report.jobs.filter(j=>j.state==='running'))await backend.request('source_cancel',{id:job.id});
             }
-            return;
+            const report=await backend.request('source_inspect',{id:m.selected,context,offset:m.offset});
+            if(m.closed||editor.sources!==m)return;
+            m.inspection=report;m.jobs=m.jobs.map(j=>report.jobs.find(updated=>updated.id===j.id)??j);m.details=effect==='raw'?JSON.stringify(report,null,2).split('\n'):[];m.page=effect==='checks'?'checks':'diagnose';m.scroll=0;return;
         }
         const payload: Record<string, unknown> = { action: effect, id: m.selected, expected_revision: m.library!.revision };
         if (effect === 'save') {
@@ -232,14 +248,19 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
                 parsed.pr = parsed.pr === '' ? null : Number(parsed.pr);
             Object.assign(payload, { action: m.editing ? 'edit' : 'add', id, source: { name: name || id, kind: m.kind, scope: { project: project || null, session: session || null, agent: agent || null }, ttl_seconds: Number(ttl_seconds), settings: parsed } });
         }
+        if(effect==='bind'){payload.binding=m.target?editor.instance(m.target.scope,m.target.id)?.source?.binding:null;payload.draft_owner=editor.sourceDraftOwner;editor.sourceDraftRegistered=true;await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:draftBindings(editor),close:false});}
         if (effect === 'enable' || effect === 'auto-on') payload.review_revision = m.review?.review_revision;
         if (effect === 'auto-on') payload.interval_seconds = m.automaticInterval;
         const result = await backend.request('sources_apply', payload);
         m.library = result;
         if (effect === 'bind' && m.target && result.binding) {
+            if (!editor.canMutateDraft(generation) || editor.sources !== m) { m.message=editor.compositionError;return; }
             const node = editor.instance(m.target.scope, m.target.id);
-            if (node)
-                node.source = result.binding;
+            if (node) {
+                const draft = clone(editor.draft);
+                (m.target.scope === 'main' ? draft.display : draft.display.subagents).instances.find(n => n.id === m.target!.id)!.source = result.binding;
+                editor.commitDraft(draft);
+            }
             m.message = text('sources.bound');
         }
         else
@@ -266,8 +287,13 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     if (m.message)
         add(t(m.message.key, language, m.message.params));
     if (m.page === 'list') {
-        m.library?.sources.forEach((s, i) => add(`${s.name} · ${s.kind} · ${tr(s.enabled ? 'enabled' : 'disabled')}${s.kind === 'github' ? ' · ' + tr(m.library!.automatic.some(p => p.source_id === s.id && p.enabled) ? 'automatic_on' : 'automatic_off') : ''}`, m.cursor === i));
+        m.library?.sources.forEach((s, i) => add(`${s.name} · ${tr(s.kind)} · ${tr(s.enabled ? 'enabled' : 'disabled')}${['github','command'].includes(s.kind) ? ' · ' + tr(m.library!.automatic.some(p => p.source_id === s.id && p.enabled) ? 'automatic_on' : 'automatic_off') : ''}`, m.cursor === i));
         add('+ ' + tr('add'), m.cursor === (m.library?.sources.length ?? 0));
+        add(tr('bindings'),m.cursor===(m.library?.sources.length??0)+1);
+    }
+    else if(m.page==='bindings'){
+        add(tr(m.bindingReview?.uncertain?'bindings_uncertain':'bindings_help'));
+        m.bindingReview?.rows.forEach((row,i)=>add(`${row.id} · ${row.source_id} · ${tr(row.removable?'binding_unused':'binding_protected')}${row.duplicate?' · '+tr('binding_duplicate'):''} · ${row.references.join(', ')}`,m.cursor===i));
     }
     else if (m.page === 'actions')
         actions(editor).forEach((action, i) => add(tr(action), m.cursor === i));
@@ -290,7 +316,8 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     else if (m.page === 'remove')
         add(tr('remove_confirm') + ' ' + source(editor)?.name, true);
     else {
-        const lines = ['review', 'auto-review'].includes(m.page) ? [tr(m.page === 'auto-review' ? 'automatic_review' : 'enable_review'), ...(m.page === 'auto-review' ? [tr('interval') + ': ' + m.automaticInterval + ' s (←/→)'] : []), ...JSON.stringify(m.review?.source, null, 2).split('\n')] : m.details;
+        const readable=m.page==='checks'?[tr('checks_help'),...(m.inspection?[[m.inspection.source.settings.repository,m.inspection.source.settings.branch,m.inspection.checks_context?.head].filter(Boolean).join(' · ')]:[]),m.inspection?.checks_observed_at??t('task.unknown',language),...(m.inspection?.checks.flatMap(c=>[`${c.name} · ${c.state} · ${tr('check.'+c.bucket)}`,...(c.url?[c.url]:[])])??[])]:m.page==='binding-cleanup'?[tr('binding_cleanup_confirm'),m.bindingSelection??'']:m.inspection?sourceSummary(m.inspection,language):m.details;
+        const lines = ['review', 'auto-review'].includes(m.page) ? [tr(m.page === 'auto-review' ? 'automatic_review' : 'enable_review'), ...(m.page === 'auto-review' ? [tr('interval') + ': ' + m.automaticInterval + ' s (←/→)'] : []), ...(m.review?sourceReviewLines(m.review.source,language):[])] : m.details.length?m.details:readable;
         const wrapped = lines.flatMap(line => wrapText([line], width));
         const capacity = Math.max(1, height - rows.length);
         const start = Math.min(m.scroll, Math.max(0, wrapped.length - capacity));
@@ -301,3 +328,6 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     const selected = Math.max(0, entries.findIndex(row => row.selected)), start = Math.max(0, selected - capacity + 1);
     return [...fixed, ...entries.slice(start, start + capacity)];
 }
+
+export function draftBindings(editor:Editor):string[]{return [...new Set([editor.draft,editor.baseline.draft,...editor.history.undo.map(e=>e.draft),...editor.history.redo.map(e=>e.draft)].flatMap(d=>[...d.display.instances,...d.display.subagents.instances].flatMap(n=>n.source?.binding?[n.source.binding]:[])))];}
+export async function closeSourceDraft(editor:Editor,backend:SourceBackend):Promise<void>{if(editor.sourceDraftRegistered){await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:[],close:true});editor.sourceDraftRegistered=false;}}

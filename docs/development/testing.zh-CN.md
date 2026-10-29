@@ -1,6 +1,14 @@
 # 测试与验收
 
+
+[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
+
 [English](testing.md) | **简体中文**
+
+
+[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。
+
+当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
 
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
 
@@ -16,6 +24,12 @@
 共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
 
 成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
+
+[首批正确性修复验收](correctness-maintenance.zh-CN.md)覆盖双编辑器保存核对、进度条标签、刷新消费者、历史扩展证据和任务语言，保留既有发布矩阵。
+
+## 发布批准与 CI 分流
+
+发布及 CI 回归覆盖只增加数据完成版本登记、全部历史登记迁移、不可变源码中的登记／决定摘要、无效或缺失批准，以及过期／不匹配证据。重跑排序还覆盖较晚上传获得更小 ID、创建时间缺失／相同及阻断无效最新附件。隔离的 Git 合并／tag 夹具与模拟 Actions 归档执行真实 PR → main → tag 选择器，核对原始产物身份及三个冒烟的汇总。批准校验、构建、验收及信任规则修改仍改变源码绑定摘要，但已验收的等价合并复用矩阵。回归覆盖产品／生成输入、新验收／截图工具、CI 观察、发布说明、依赖、工作流／构建／校验器变化、批量祖先关系、改写提交、head／base／tree 不一致及最新运行失败。独立校验夹具把 HEAD 校验器替换为空实现，冻结 base 仍拒绝篡改字节；工作流断言要求交叉核验早于恢复和晋级。原始 job ID、名称、时间和 attempt 向 Actions 回查。手动全量及晋级 shadow 均不属于发布证据。夹具不创建本仓库版本／tag，不发网络或模型请求。`npm run check` 包含这些回归；最终 PR 矩阵和 main 三平台冒烟提供实际平台验收，main/tag/npm 专项回归与矩阵分别记录。见 [CI 分流](ci-maintenance.zh-CN.md#发布数据与验收策略)。
 
 ## Git、终端与包事务
 
@@ -36,7 +50,11 @@ TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分�
 
 ## 当前 TypeScript 检查
 
-日常入口为 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
+[按影响检查](impact-checks.zh-CN.md)新增维护专项回执及当前源码发布关联。核心改动保留完整 8/32/16 矩阵和全部当前容量义务；普通维护执行计划检查。意外跳过、证据缺失和不兼容归属均阻断，本地专项回执与手动诊断不能代替 Actions 验收。
+
+[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)区分草稿反馈、完整候选验收和集成／发布核验。完整核心候选覆盖 8 安装目标、32 个 Node 场景、16 宿主及全部适用 Native 容量检查。main 三平台冒烟是原包的额外集成证据，不能替代缺失的 PR 验收。回归覆盖错误或过期运行／附件、重复回执、源码／tree／base／策略变化、移动 tag、编译输出来源及失败／跳过依赖。手动诊断和本地冒烟不属于可发布验收。
+
+维护使用 `npm run ci:plan` 和 `ci:check`；完整产品入口保留 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
 默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
 
 清理命令的回归测试在隔离临时目录中验证预览、完整删除、重复执行、符号链接边界，以及源码和历史资料的保留。重建检查前可运行 `npm run clean -- --dry-run` 和 `npm run clean`；命令范围见[开发指南](README.zh-CN.md#清理编译输出)。
@@ -436,3 +454,5 @@ TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中�
 验收分开记录。源码及进程中断测试不宣称硬件断电验证。性能后续工作仍归 PERF-01。
 
 </details>
+
+[来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。

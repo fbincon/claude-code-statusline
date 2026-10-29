@@ -1,0 +1,98 @@
+/** Deterministic Actions observation. Read only; never reruns, cancels or merges. */
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { parseArgs } from 'node:util';
+export const CI_REPOSITORY = 'fbincon/claude-code-statusline';
+export async function githubRead(path: string): Promise<any> {
+    assert(path.startsWith(`repos/${CI_REPOSITORY}/`), 'Unexpected repository API path');
+    const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
+    if (!token) {
+        try { return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] })); }
+        catch (error) {
+            const status = Number(String((error as any).stderr ?? '').match(/HTTP (\d{3})/u)?.[1]) || undefined;
+            throw Object.assign(new Error('GitHub read failed' + (status ? ': HTTP ' + status : '')), { status });
+        }
+    }
+    const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'statusline-ci-evidence' }, signal: AbortSignal.timeout(30000) });
+    if (!response.ok) throw Object.assign(new Error('GitHub read failed: HTTP ' + response.status), { status: response.status });
+    return response.json();
+}
+export function summarizeJobs(jobs: any[]) {
+    const seconds = (end: string, start: string) => Math.max(0, (Date.parse(end) - Date.parse(start)) / 1000);
+    const originals = new Map<string, number>();
+    return [...jobs].sort((a, b) => a.run_attempt - b.run_attempt || a.id - b.id).map(job => {
+        const key = JSON.stringify([job.name, job.started_at, job.completed_at]);
+        const reused = job.completed_at ? originals.get(key) : undefined;
+        if (job.completed_at && reused === undefined) originals.set(key, job.id);
+        return { id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
+        fresh_execution: reused === undefined, reused_from_job_id: reused ?? null,
+        queue_seconds: job.started_at && job.created_at ? seconds(job.started_at, job.created_at) : null,
+        execution_seconds: job.completed_at && job.started_at ? seconds(job.completed_at, job.started_at) : null,
+        steps: (job.steps ?? []).map((step: any) => ({ name: step.name, conclusion: step.conclusion,
+            execution_seconds: step.completed_at && step.started_at ? seconds(step.completed_at, step.started_at) : null })) };
+    });
+}
+export async function readJobs(runId: number, filter: 'all' | 'latest', read = githubRead): Promise<any[]> {
+    assert(Number.isSafeInteger(runId) && runId > 0);
+    const jobs: any[] = [];
+    for (let page = 1; page <= 20; page++) {
+        const result = await read(`repos/${CI_REPOSITORY}/actions/runs/${runId}/jobs?filter=${filter}&per_page=100&page=${page}`);
+        assert(Array.isArray(result.jobs) && Number.isSafeInteger(result.total_count) && result.total_count >= 0);
+        jobs.push(...result.jobs); if (jobs.length >= result.total_count) return jobs;
+    }
+    throw new Error('Job pagination limit exceeded');
+}
+export function jobProgress(jobs: any[]) {
+    return { total: jobs.length, completed: jobs.filter(job => job.status === 'completed').length,
+        skipped: jobs.filter(job => job.conclusion === 'skipped').length,
+        failures: jobs.filter(job => ['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure'].includes(job.conclusion))
+            .sort((a, b) => a.id - b.id).map(job => ({ id: job.id, name: job.name, attempt: job.run_attempt, conclusion: job.conclusion,
+                steps: (job.steps ?? []).filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) };
+}
+export async function collectRun(runId: number, head: string) {
+    const prefix = `repos/${CI_REPOSITORY}/actions/runs/${runId}`, run = await githubRead(prefix);
+    assert.equal(run.head_sha, head, 'CI run belongs to another head');
+    assert.equal(run.repository?.full_name, CI_REPOSITORY, 'CI run belongs to another repository');
+    assert.equal(run.path, '.github/workflows/ci.yml', 'Unexpected CI workflow');
+    const jobs = await readJobs(runId, 'all');
+    return { schema_version: 1, run_id: runId, head, event: run.event, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion, created_at: run.created_at, updated_at: run.updated_at, jobs: summarizeJobs(jobs) };
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+    const { values } = parseArgs({ options: { run: { type: 'string' }, head: { type: 'string' }, report: { type: 'string' }, watch: { type: 'boolean' }, 'timeout-minutes': { type: 'string', default: '120' } } });
+    assert(/^\d+$/u.test(values.run ?? '') && /^[a-f0-9]{40}$/u.test(values.head ?? ''), 'Require --run ID --head FULL_SHA');
+    const minutes = Number(values['timeout-minutes']); assert(Number.isFinite(minutes) && minutes > 0 && minutes <= 360);
+    const deadline = Date.now() + minutes * 60000; let previous = '', previousProgress = '', polls = 0, failures = 0;
+    while (true) {
+        try {
+            // Current progress detects failures early; complete attempt history is collected once at completion.
+            const run = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${values.run}`);
+            assert.equal(run.head_sha, values.head, 'CI run belongs to another head');
+            assert.equal(run.repository?.full_name, CI_REPOSITORY);
+            assert.equal(run.path, '.github/workflows/ci.yml');
+            const state = JSON.stringify({ run: run.id, head: run.head_sha, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion });
+            if (state !== previous) { console.log(state); previous = state; }
+            if (run.status === 'completed' || !values.watch) {
+                const report = await collectRun(Number(values.run), values.head!);
+                // A rerun can start while historical details are being read. Never exit successfully for an older observation.
+                if (report.status === 'completed' || !values.watch) {
+                    if (values.report) { const path = resolve(values.report); fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, JSON.stringify(report, null, 2) + '\n'); }
+                    console.log(JSON.stringify({ jobs: report.jobs.length, failed: report.jobs.filter(job => job.conclusion === 'failure').map(job => ({ name: job.name, attempt: job.attempt, steps: job.steps.filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) }));
+                    process.exitCode = report.status !== 'completed' ? 2 : report.conclusion === 'success' ? 0 : 1; break;
+                }
+            } else {
+                const progress = JSON.stringify({ run: run.id, attempt: run.run_attempt, progress: jobProgress(await readJobs(run.id, 'latest')) });
+                if (progress !== previousProgress) { console.log(progress); previousProgress = progress; }
+            }
+            failures = 0;
+        } catch (error) {
+            // An identity/assertion failure is never transient.
+            if (error instanceof assert.AssertionError || [401, 403, 404].includes((error as any)?.status) || ++failures >= 3) throw error;
+            console.error('CI observation temporarily unavailable; retrying (' + failures + '/3)');
+        }
+        if (Date.now() >= deadline) { console.error('Observation deadline reached; CI was not cancelled.'); process.exitCode = 2; break; }
+        await new Promise(resolve => setTimeout(resolve, Math.min(60000, 15000 * 2 ** Math.min(polls++, 2))));
+    }
+}

@@ -1,4 +1,4 @@
-import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, OPERATIONS } from '@fbincon/statusline-core/contracts/ui';
 import { regionalLanguageDifference } from '../compare.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,6 +67,13 @@ test('coverage accounts for every frozen test while unfinished stage cannot pass
 
 test('broad and stale comparison exemptions are rejected', () => {
   assert.throws(() => compare({}, {}, [{ case: 'anything', path: '/', before_sha256: '0'.repeat(64), after_sha256: '0'.repeat(64), reason: 'ignore' }]));
+});
+test('the frozen operation-list adaptation accepts exactly the current canonical capabilities',()=>{
+  const wrap=(operations:readonly string[])=>({'ui-describe':{value:{response:{result:{operations}}}}});
+  const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
+  assert.deepEqual(compare(wrap(old),wrap(OPERATIONS)),[]);
+  assert(compare(wrap(old),wrap([...OPERATIONS,'future-operation'])).length>0);
+  assert(compare(wrap(old),wrap(OPERATIONS.filter(operation=>operation!=='source_release'))).length>0);
 });
 
 test('regional comparison exceptions are restricted to known protocol and language-choice fields', () => {

@@ -7,7 +7,9 @@ import type { SourceManager } from './source-manager.ts';
 import type { ProfileManager } from './profile-manager.ts';
 import type { QuickSetup } from './quick-setup.ts';
 import { t, text, type Language } from '../i18n/index.ts';
-import { alignmentConflicts } from './alignments.ts';
+import { emptyHistory, remember, snapshot, boundHistory, semantic, type DraftHistory } from './history.ts';
+import { repairStructure, type StructureProposal } from './structure.ts';
+import { openChanges, targetIdentity, type ChangeReview } from './change-review.ts';
 import { nodes, newInstance, reconcileRows } from './instances.ts';
 import { isDraft } from '../backend.ts';
 import type {
@@ -16,6 +18,7 @@ import type {
   Draft,
   ReadResult,
   Scope,
+  ConfigTarget,
 } from '../generated-contracts.ts';
 import { NUMERIC_FIELDS, numericValue, numericDiagnostic } from './numeric.ts';
 import { bestMatch, fields, normalize } from './search.ts';
@@ -35,12 +38,24 @@ export function copyDraft(draft: Draft): Draft {
 export function sameDraft(left: Draft, right: Draft): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
+export const definitiveSaveRefusal = (code: string): boolean => ['invalid_request','invalid_configuration','configuration_conflict','not_installed','ownership_mismatch','unsupported_protocol','unsupported_operation'].includes(code);
+export interface PendingSave {
+  draft: Draft; revision: string; target?: ConfigTarget; installation: ReadResult['installation'];
+}
 
 /** Pure tool draft. Persistence and host configuration calls live in the hook. */
 export class Editor {
   draft: Draft;
+  reuse: import('./reuse-manager.js').ReuseManager | null = null;
+  history: DraftHistory = emptyHistory();
+  changeReview: ChangeReview | null = null;
+  structureProposal: StructureProposal | null = null;
+  numericBefore: Draft | null = null;
   baseline: ReadResult;
   page: Page = 'main';
+  previewScenario: import('./preview-settings.js').PreviewScenario = 'normal';
+  previewWidth = 'auto';
+  previewOffset = 0;
   advanced = false;
   adding = false;
   pickerSaved: {search:string;category:string;selected:string} | null = null;
@@ -48,9 +63,15 @@ export class Editor {
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
   quick: QuickSetup | null = null;
+  diagnosis: import('./diagnosis-view.js').DiagnosisView | null = null;
+  colors: import('./color-manager.js').ColorManager | null = null;
   explanation: ExplanationView | null = null;
   profiles: ProfileManager | null = null;
+  sourceDraftRegistered = false;
+  sourceDraftOwner = 'draft-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
   sources: SourceManager | null = null;
+  taskViewer: import('./task-viewer.js').TaskViewer | null = null;
+  packages: import('./package-manager.js').PackageManager | null = null;
   groupManager: GroupManager | null = null;
   alignmentManager: AlignmentManager | null = null;
   compositionError: LocalizedText = text('composition.invalid');
@@ -66,6 +87,41 @@ export class Editor {
   buffers: Record<NumericField, string>;
   fieldErrors: Partial<Record<NumericField, string>> = {};
   fieldErrorMessages: Partial<Record<NumericField, LocalizedText>> = {};
+  packageLocked = false;
+  saveState: 'idle' | 'pending' | 'unknown' = 'idle';
+  pendingSave: PendingSave | null = null;
+  mutationGeneration = 0;
+
+  canMutateDraft(generation = this.mutationGeneration): boolean {
+    if (this.packageLocked) { this.compositionError=text('package.ui.editor_locked');return false; }
+    if (this.saveState === 'idle' && generation === this.mutationGeneration) return true;
+    this.compositionError = text('editor.save_locked');
+    return false;
+  }
+  setSaveState(value: Editor['saveState']): void {
+    if (this.saveState !== value) this.mutationGeneration++;
+    this.saveState = value;
+  }
+  beginSave(): PendingSave {
+    if (!this.canMutateDraft()) throw new Error('A display save is already unresolved');
+    this.pendingSave = {draft:copyDraft(this.draft),revision:this.baseline.revision,installation:JSON.parse(JSON.stringify(this.baseline.installation)) as ReadResult['installation'],
+      ...(this.baseline.configuration ? {target:JSON.parse(JSON.stringify(this.baseline.configuration.target)) as ConfigTarget} : {})};
+    this.setSaveState('pending');
+    return this.pendingSave;
+  }
+  saveFailed(code: string): void {
+    const refused = definitiveSaveRefusal(code);
+    this.setSaveState(refused ? 'idle' : 'unknown');
+    if (refused) this.pendingSave = null;
+  }
+  reconcileSave(current: ReadResult): 'saved' | 'not_committed' | 'conflict' {
+    const submitted = this.pendingSave;
+    if (!submitted) throw new Error('No pending display save');
+    const outcome = sameDraft(current.draft,submitted.draft) && current.installed && JSON.stringify(current.installation) === JSON.stringify(submitted.installation) ? 'saved' : current.revision === submitted.revision ? 'not_committed' : 'conflict';
+    if (outcome === 'saved') this.committed(current);
+    else { this.pendingSave=null;this.setSaveState('idle'); }
+    return outcome;
+  }
 
   constructor(
     public readonly description: DescribeResult,
@@ -86,7 +142,7 @@ export class Editor {
     };
   }
 
-  replaceDraft(draft: Draft): void {
+  private restoreDraft(draft: Draft): void {
     this.draft = copyDraft(draft);
     for (const scope of ['main', 'subagent'] as const) {
       this.order[scope] = nodes(this.draft,scope).map(i=>i.id);
@@ -100,6 +156,50 @@ export class Editor {
     this.guidanceScroll = null;
     this.explanation = null;
     this.review = null; this.alignmentManager = null;
+  }
+
+  /** The only accepted draft transition; tentative input and candidates stay separate. */
+  commitDraft(draft: Draft, label: LocalizedText = text('history.edit')): boolean {
+    if (!this.canMutateDraft() || !isDraft(draft)) return false;
+    if (semantic(this.draft) === semantic(draft)) return true;
+    remember(this.history, this.draft, label);
+    this.draft = copyDraft(draft); this.mutationGeneration++;
+    for (const scope of ['main', 'subagent'] as const) {
+      this.order[scope] = nodes(this.draft, scope).map(n => n.id);
+      if (!this.order[scope].includes(this.selected[scope])) this.selected[scope] = this.order[scope][0] ?? '';
+    }
+    return true;
+  }
+  replaceDraft(draft: Draft, label: LocalizedText = text('history.replace')): void {
+    if (this.commitDraft(draft, label)) this.restoreDraft(draft);
+  }
+  undo(redo = false): boolean {
+    if (!this.canMutateDraft() || this.numericBefore) return false;
+    const source = redo ? this.history.redo : this.history.undo, target = redo ? this.history.undo : this.history.redo;
+    const entry = source.pop(); if (!entry) return false;
+    target.push(snapshot(this.draft, entry.label)); boundHistory(this.history);
+    this.restoreDraft(entry.draft); this.mutationGeneration++;
+    this.groupManager = null; this.colors = null; this.structureProposal = null; this.changeReview = null;
+    return true;
+  }
+  applyStructure(draft: Draft): boolean {
+    if (!this.canMutateDraft()) return false;
+    try {
+      const proposal = repairStructure(this.draft, draft);
+      if (!proposal.repairs.length) return this.commitDraft(proposal.draft, text('history.structure'));
+      this.structureProposal = { ...proposal, generation: this.mutationGeneration, target: targetIdentity(this.baseline) };
+      openChanges(this, true); return true;
+    } catch { this.compositionError = text('composition.invalid'); return false; }
+  }
+  acceptProposal(): boolean {
+    const proposal = this.structureProposal;
+    if (!proposal || !this.canMutateDraft(proposal.generation) || targetIdentity(this.baseline) !== proposal.target || semantic(this.draft) !== semantic(proposal.base)) return false;
+    if (!this.commitDraft(proposal.draft, text('history.structure'))) return false;
+    this.structureProposal = null; this.changeReview = null; this.groupManager = null; this.alignmentManager = null; return true;
+  }
+  adoptRevision(current: ReadResult, generation: number, target: string): boolean {
+    if (!this.canMutateDraft(generation) || targetIdentity(current) !== target || targetIdentity(this.baseline) !== target || !current.installed) return false;
+    this.baseline = { ...current, draft: copyDraft(current.draft) }; this.mutationGeneration++; return true;
   }
 
   get modified(): boolean {
@@ -157,6 +257,7 @@ export class Editor {
     this.adding=false;this.pickerSaved=null;
   }
   instanceAction(scope: Scope, action:'add'|'copy'|'remove', typeId?:string): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     const draft=copyDraft(this.draft), list=nodes(draft,scope);
     const selected=this.adding ? this.pickerSaved?.selected : this.selected[scope];
@@ -173,9 +274,9 @@ export class Editor {
     const target = scope === 'main' ? draft.display : draft.display.subagents;
     target.groups = reconcileGroups(target.groups, list);
     if(scope==='main')reconcileRows(draft);
-    if(!this.acceptStructure(draft))return false;
+    if(!this.applyStructure(draft))return false;
     if(this.adding){this.closePicker(scope);this.search[scope]='';this.category[scope]='all';}
-    this.draft=draft;this.order[scope]=list.map(i=>i.id);this.selected[scope]=next;
+    if (!this.structureProposal) { this.order[scope]=list.map(i=>i.id);this.selected[scope]=next; }
     return true;
   }
 
@@ -202,16 +303,18 @@ export class Editor {
   }
 
   toggle(scope: Scope, id: string): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     if(this.adding)return this.instanceAction(scope,'add',id);
     const draft=copyDraft(this.draft),node=nodes(draft,scope).find(i=>i.id===id);
     if(!node)return false;
     node.enabled=!node.enabled;
     if(!isDraft(draft))return false;
-    this.draft=draft;return true;
+    return this.commitDraft(draft, text('history.edit'));
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     if (this.adding || this.filtered(scope)) return false;
     const visible = this.visible(scope).map((item) => item.id as string);
@@ -225,19 +328,14 @@ export class Editor {
     const [moving] = ordered.splice(sourceIndex, 1);
     ordered.splice(ordered.findIndex(node => node.id === target) + (delta > 0 ? 1 : 0), 0, moving!);
     if (scope === 'main') reconcileRows(draft);
-    if (!this.acceptStructure(draft)) return false;
-    this.draft = draft;
-    this.order[scope] = ordered.map(node => node.id);
+    if (!this.applyStructure(draft)) return false;
+    if (!this.structureProposal) this.order[scope] = ordered.map(node => node.id);
     return true;
   }
 
-  private acceptStructure(draft: Draft): boolean {
-    const ids = alignmentConflicts(draft.display);
-    if (ids.length) this.compositionError = text('alignment.references', { ids: ids.join(', ') });
-    return isDraft(draft);
-  }
-
   setBuffer(field: NumericField, value: string): void {
+    if (!this.canMutateDraft()) return;
+    this.numericBefore ??= copyDraft(this.draft);
     this.activeNumeric = field;
     this.buffers[field] = value;
     delete this.fieldErrors[field];
@@ -245,6 +343,7 @@ export class Editor {
   }
 
   cancelNumeric(field?: NumericField): void {
+    if (this.numericBefore) { this.draft = copyDraft(this.numericBefore); this.numericBefore = null; }
     for (const key of field ? [field] : NUMERIC_FIELDS) {
       this.buffers[key] = String(this.draft.host[key]);
       delete this.fieldErrors[key];
@@ -253,7 +352,8 @@ export class Editor {
     if (!field || this.activeNumeric === field) this.activeNumeric = null;
   }
 
-  acceptNumeric(field?: NumericField): boolean {
+  acceptNumeric(field?: NumericField, preview = false): boolean {
+    if (!this.canMutateDraft()) return false;
     const values: Partial<Record<NumericField, number | 'event'>> = {};
     const fields = field ? [field] : NUMERIC_FIELDS;
     for (const key of fields) {
@@ -264,17 +364,22 @@ export class Editor {
       else values[key] = parsed.value;
     }
     if (fields.some((key) => this.fieldErrors[key])) return false;
-    if (values.padding !== undefined)
-      this.draft.host.padding = values.padding as number;
-    if (values.refresh_interval !== undefined)
-      this.draft.host.refresh_interval = values.refresh_interval;
+    const candidate = copyDraft(this.draft);
+    if (values.padding !== undefined) candidate.host.padding = values.padding as number;
+    if (values.refresh_interval !== undefined) candidate.host.refresh_interval = values.refresh_interval;
+    if (preview) { this.draft = candidate; return true; }
+    if (this.numericBefore) this.draft = copyDraft(this.numericBefore);
+    this.numericBefore = null;
+    if (!this.commitDraft(candidate)) return false;
     this.cancelNumeric(field);
     return true;
   }
 
   committed(current: ReadResult): void {
+    this.pendingSave=null;this.setSaveState('idle');
+    this.numericBefore = null; this.history = emptyHistory(); this.structureProposal = null; this.changeReview = null;
     this.baseline = { ...current, draft: copyDraft(current.draft) };
-    this.draft = copyDraft(current.draft);
+    this.restoreDraft(current.draft); this.mutationGeneration++;
     this.cancelNumeric();
   }
 

@@ -2,6 +2,10 @@
 
 [English](README.md) | **简体中文**
 
+[自适应外观样例](adaptive-row-scenarios/README.zh-CN.md)展示 v3.14.0 五个场景在 40／80／120 列的显示，保留精确候选和字体来源。
+
+[Native 容量修复截图](native-capacity/README.zh-CN.md) 展示安装包的快速配置、渐变、24 项保存成功和高面板缩放，并记录精确候选来源。
+
 [当前 TypeScript 安装包外部页面](typescript/v3.1.1/README.zh-CN.md)覆盖六语言、主栏、子代理、设置、布局和上下文操作，并记录源码／产物来源及图片校验；此前 TypeScript 捕获及下方 Python 原图库保留。
 
 最新组件实例界面见[组件编辑器捕获](composition/README.zh-CN.md)。下方保留原始跨平台图片来源。
@@ -278,3 +282,5 @@ images/
 | --- | --- | --- |
 | [native-dark-en.png](appearance/native-dark-en.png) | `711c322f2dcca7b0949097f98763d90ca56e1afba0fc8815104b583a88c9eb5c` | `84d271985dc45130b0c0055a95a67a5ac7886f41b742adeee37fe35b935586f0` |
 | [external-light-zh-CN.png](appearance/external-light-zh-CN.png) | `43440b8a8d2fd0c5ac67dc6c0fea1ea381a7b520b82684f95b3934f45c45edf0` | `b70552ee390683e17e7ff7df83dc15979b1700cc10289af6bc806702e6d76a2f` |
+
+[来源操作采集](source-command-package/README.zh-CN.md)展示可读状态、绑定清单及独立策略审核，并保留准确候选来源。

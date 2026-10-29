@@ -2,6 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](docs/DRAFT_HISTORY.md).
+
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)
@@ -16,14 +19,15 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
-- **Add explicit data sources:** manage local JSON, GitHub checks and command values in either editor or CLI, with reviewed activation, optional session-owned GitHub refresh and directory/PR links. [Extension guide](docs/EXTENSIONS.md).
+- **Add explicit data sources:** manage local JSON, GitHub checks and command values in either editor or CLI, with separately reviewed activation and automatic GitHub/command refresh during active sessions, plus optional directory/PR links. [Extension guide](docs/EXTENSIONS.md).
 - **Reuse display schemes across projects:** save and preview named schemes, then bind project roots to complete display settings. [Profile guide](docs/PROFILES.md).
-- **Inspect task evidence:** open `/statusline-task` or the CLI for task, agent, timing-source and coverage details on demand. [Task details](docs/TASK_DETAILS.md).
+- **Inspect task evidence:** open `/statusline-task`, `task view` or the external editor to browse task evidence with search, filters and folding. [Task details](docs/TASK_DETAILS.md).
 
 - **Compose your statusline:** add, copy and arrange independent components, linked groups, literal text and left/right alignment in either editor. [Composition guide](docs/COMPOSITION.md).
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors, themes and short percentage bars, and opt into [Powerline](docs/APPEARANCE.md).
 - **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
-- **Diagnose supplied input:** inspect real statusline JSON and matching saved observations without collecting or writing. See [input diagnosis](docs/DIAGNOSTICS.md).
+- **Review colors and samples:** press Enter on a color field for visible choices; Ctrl+V selects a sample scenario, Ctrl+W changes preview width and Ctrl+N browses rows. See [appearance](docs/APPEARANCE.md#visual-color-selection-and-sample-scenarios).
+- **Diagnose supplied input:** press Ctrl+L in either editor to inspect a file with the unsaved draft and input-only evidence by default, or use the CLI. See [input diagnosis](docs/DIAGNOSTICS.md).
 - **Find what to show:** 65 main metrics and 15 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
 - **Estimate session cost rates:** choose session or cumulative API time as the denominator, with a one-minute observation window and explicit units. [Metric definitions](docs/DISPLAY_ITEMS.md#session-cost-rate).
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
@@ -376,9 +380,15 @@ Display settings and backups remain available; see [uninstalling](docs/USER_GUID
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml                    # Candidate build, eight installations and thirteen hosts
-│   └── reference.yml             # Manual historical Python verification
+├── .github/
+│   ├── ISSUE_TEMPLATE/               # Bilingual bug form and feedback links
+│   ├── pull_request_template.md      # Bilingual PR template
+│   ├── dependabot.yml                # Actions version-update policy
+│   └── workflows/
+│       ├── ci.yml                    # Documentation checks or complete product matrix
+│       ├── npm-publish.yml           # npm publication through OIDC
+│       ├── preview-downloads.yml     # Public bytes and installation checks
+│       └── reference.yml             # Manual historical Python verification
 ├── packages/                     # Four business packages
 │   ├── core/src/                 # Configuration, protocols, pure state, rendering and Unicode
 │   │   ├── editor/               # Shared drafts, cursor input, quick setup and explanations
@@ -415,6 +425,8 @@ claude-code-statusline/
 ├── package.json / package-lock.json
 ├── tsconfig*.json / .node-version
 ├── README.md / README.zh-CN.md
+├── CONTRIBUTING.md / CONTRIBUTING.zh-CN.md
+├── SECURITY.md / SECURITY.zh-CN.md
 ├── CHANGELOG.md / CHANGELOG.zh-CN.md
 └── LICENSE
 ```
@@ -429,6 +441,10 @@ claude-code-statusline/
 - [Development guide](docs/development/README.md) · [Release process](docs/RELEASING.md).
 - [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases).
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include versions, reproduction steps, and diagnostic results; remove private paths and session content.
+
+## Contributing and security
+
+See the [contribution guide](CONTRIBUTING.md) for development, translations and feedback. Report potential vulnerabilities privately using the [security policy](SECURITY.md).
 
 ## License
 

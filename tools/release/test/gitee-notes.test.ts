@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { GITHUB } from '../markdown.js';
+import { GITHUB, TAG } from '../markdown.js';
 import { GITEE, renderGitee, writeNotes, type Release } from '../gitee-notes.js';
 import { repoRoot } from '../../migration/ts-03/common.js';
 function release(tag: string, body = ''): [
@@ -18,7 +18,7 @@ function release(tag: string, body = ''): [
     return [source, { tag_name: tag, prerelease: source.prerelease, assets }];
 }
 test('tests.integration.test_release_documentation.GiteeNotesTests.test_all_repository_release_bodies', () => {
-    const pairs = fs.readdirSync(join(repoRoot, 'docs/releases')).filter(n => /^v.*\.md$/u.test(n)).map(n => release(n.slice(0, -3), fs.readFileSync(join(repoRoot, 'docs/releases', n), 'utf8')));
+    const pairs = fs.readdirSync(join(repoRoot, 'docs/releases')).filter(n => n.endsWith('.md')&&TAG.test(n.slice(0,-3))).map(n => release(n.slice(0, -3), fs.readFileSync(join(repoRoot, 'docs/releases', n), 'utf8')));
     for (const [source] of pairs) {
         const out = renderGitee(source.tag_name, source, pairs.map(p => p[1]));
         assert.ok(!out.includes(GITHUB + '/releases/download/'));

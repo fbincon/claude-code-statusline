@@ -1,6 +1,14 @@
 # Testing and acceptance
 
+
+[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
+
 **English** | [简体中文](testing.zh-CN.md)
+
+
+[Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
+
+Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
 
@@ -16,6 +24,12 @@ For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIA
 Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
+
+[First-batch correctness validation](correctness-maintenance.md) covers both editors' save reconciliation, bar labels, refresh consumers, historical extension evidence and task language, retaining the existing release matrix.
+
+## Release approval and CI routing
+
+The release and CI regression suites cover adding a version through data only, migration of all historical registrations, immutable-source registry/decision hashes, invalid or missing approval, and expired/mismatched evidence. Retry ordering also covers smaller IDs on later uploads, missing/tied timestamps and blocking an invalid newest artifact. Isolated Git merge/tag fixtures and mocked Actions archives exercise the production PR → main → tag selectors, original artifact identities and three-smoke aggregation. Approval, build, acceptance and trust-rule edits still change the source-bound policy digest, but equivalent accepted merges reuse the matrix. Tests cover product/generated inputs, new acceptance and screenshot tools, CI observation, release notes, dependencies, workflow/build/validator changes, batch ancestry, rewritten commits, head/base/tree mismatches and latest-run failures. The independent-verifier fixture replaces HEAD validators with no-ops while the frozen base rejects tampered bytes; workflow assertions require this check before restoration/promotion. Original job IDs, names, times and attempts are checked against Actions. Manual full runs and promotion shadow are excluded from release evidence. These fixtures create no repository release/tag and make no network or model calls. `npm run check` includes them; for core changes, the final PR matrix and main three-platform smokes provide real platform acceptance; focused main/tag/npm regressions remain separate from that matrix. See [CI routes](ci-maintenance.md#release-data-and-acceptance-policy).
 
 ## Git, terminal and package transactions
 
@@ -38,7 +52,11 @@ The TUI package owns pure rendering/state regressions without importing the CLI.
 
 ## Current TypeScript checks
 
-Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/thirteen-host evidence and the manual historical entry.
+[Impact checks](impact-checks.md) add scoped maintenance receipts and current-source release bindings. Core changes retain the complete 8/32/16 matrix and all current capacity obligations. Ordinary maintenance uses the planned checks; unexpected skips, missing evidence and incompatible ownership block. Local scoped receipts and manual diagnostics never replace Actions acceptance.
+
+The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) separates draft feedback, complete candidate acceptance and integration/release verification. A complete core candidate covers 8 installations, 32 Node cases, 16 hosts and all applicable native-capacity cases. Main's three-platform smoke is additional evidence for the original package; it cannot stand in for missing PR acceptance. Tests cover wrong or expired runs/artifacts, duplicate receipts, changed source/tree/base/policy, moved tags, compiler-output provenance and failed/skipped dependencies. Manual diagnostics and local smoke records are not releasable acceptance.
+
+Maintenance uses `npm run ci:plan` and `ci:check`. Complete product entries remain `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/sixteen-host evidence and the manual historical entry.
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 
 Cleanup regressions use isolated temporary directories to verify previews, complete removal, repeated execution, symbolic-link boundaries, and preservation of source and historical records. Before a clean rebuild, use `npm run clean -- --dry-run` and `npm run clean`; see the [development guide](README.md#clean-compiled-outputs) for their scope.
@@ -442,3 +460,5 @@ already deferred until before release. Source and process-interruption tests do
 not claim hardware power-loss validation. PERF-01 remains the performance follow-up.
 
 </details>
+
+[Source and package execution boundaries and additional acceptance](source-command-package-management.md) document protocol 28, separate command approval, retained controls and protected cleanup.

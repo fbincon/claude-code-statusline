@@ -4,7 +4,37 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const [modules, operation, config, receipt, choice] = process.argv.slice(2);
 const load = (name: string, path: string) => import(pathToFileURL(join(modules!, 'statusline-' + name, 'dist/src', path + '.js')).href);
-if (operation === 'joint-display') {
+if (operation === 'appearance-scenarios') {
+    const { SCENARIO_SCHEMES } = await load('core','config/scenario-presets');
+    const schemes=choice?[choice]:SCENARIO_SCHEMES;
+    assert(schemes.every((name:string)=>SCENARIO_SCHEMES.includes(name)),'Unknown installed appearance scenario');
+    const { applyPreset } = await load('core','config/presets');
+    const { LANGUAGES } = await load('core','i18n/registry');
+    const { exportText, importText } = await load('core','config/transfer');
+    const { ConfigurationService } = await load('cli','config/service');
+    const { previewAdapter } = await load('cli','rendering/preview');
+    const { displayWidth } = await load('core','rendering/layout');
+    const { configuredRows } = await load('core','rendering/items');
+    const { baseEnvironment, presentation } = await load('cli','rendering/environment');
+    const { defaultItem } = await load('core','config/display');
+    const service=new ConfigurationService({configDir:config,launch:{executable:process.execPath,args:[join(modules!,'statusline-cli/dist/src/entry.js')]},hostVersion:()=>null});
+    const preview=await previewAdapter('/sample'), widths=[40,80,120];
+    for(const name of schemes) for(const language of LANGUAGES) {
+        const current=service.read(),display=applyPreset(current.display,name,()=>{throw new Error('Unexpected identity allocation');});
+        display.statusline_language=language;
+        for(const scenario of ['normal','warning','critical','missing','many-agents']) for(const width of widths) {
+            const sample=preview({display,host:current.host},width,undefined,scenario);assert.equal(sample.sample,true);
+            for(const row of [...sample.main,...sample.subagents])assert(displayWidth(row.map((span:any)=>span.text).join(''))<=width);
+        }
+        const draft={display,host:current.host};assert.deepEqual(importText(exportText(draft),draft),draft);
+        service.apply(draft,current.revision);assert.deepEqual(service.read().display,display);
+    }
+    const current=service.read(),display=applyPreset(current.display,'narrow-terminal',()=> 'unused');
+    display.scope_labels='off';display.instances=[{id:'context',type_id:'context-remaining',enabled:true,text:null,options:{...defaultItem(),presentation:'adaptive',label:'CTX中文👩🏽‍💻',icon:'I'}}];display.layout={mode:'explicit',rows:[['context']]};
+    const environment=baseEnvironment(await presentation('en'),{home:'/sample'});
+    for(let width=2;width<=80;width++){const rows=configuredRows({context_window:{remaining_percentage:50}},display,width,environment);for(const row of rows){assert(displayWidth(row)<=width);assert(row.includes('50%'));assert(row.includes('CTX中文👩🏽‍💻'));assert(!row.includes('…'));}}
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,schemes,semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0}));
+} else if (operation === 'joint-display') {
     const { defaultItem } = await load('core', 'config/display');
     const { LANGUAGES } = await load('core', 'i18n/registry');
     const { editAlignment } = await load('core', 'editor/alignments');
@@ -36,6 +66,40 @@ if (operation === 'joint-display') {
         }
     }
     fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,cases:LANGUAGES.length*widths.length,installed_modules:true,saved_reopened:true,preview_matches:true}));
+}
+else if (operation === 'draft-reuse') {
+    const { LANGUAGES } = await load('core','i18n/registry');
+    const { defaultItem } = await load('core','config/display');
+    const { Editor, copyDraft } = await load('core','editor/draft');
+    const { reuseDraft } = await load('core','editor/reuse');
+    const { changesKey } = await load('core','editor/change-review');
+    const { parseResponse, requestText, BackendError } = await load('core','editor/backend');
+    const { State } = await load('tui','state'), { Session } = await load('tui','session');
+    const { ConfigurationService } = await load('cli','config/service'), { ConfigurationProtocol } = await load('cli','ui/protocol'), { previewAdapter } = await load('cli','rendering/preview');
+    const { exportText, importText } = await load('core','config/transfer');
+    const { ITEMS } = await load('core','config/catalog');
+    const service=new ConfigurationService({configDir:config,launch:{executable:process.execPath,args:[join(modules!,'statusline-cli/dist/src/entry.js')]},hostVersion:()=>null});
+    const protocol=new ConfigurationProtocol(service,await previewAdapter());let loseReply=false;
+    const backend={request(operation:string,payload:unknown={}){const r=protocol.handle(requestText(operation,payload),(error:unknown)=>{throw error;});const result=parseResponse(operation,{exitCode:r.status,stdout:JSON.stringify(r.response),stderr:''});if(operation==='apply'&&loseReply){loseReply=false;throw new BackendError('io_error','Reply lost after commit');}return result;}};
+    for(const language of LANGUAGES){
+        const first=service.read(),d=first.display;
+        d.instances=['a','b','c','d'].map(id=>({id,type_id:'model',enabled:true,text:null,options:defaultItem()}));d.groups=[{id:'g1',member_ids:['a','b'],primary_id:'a',link_visibility:true,shared_powerline:true},{id:'g2',member_ids:['c','d'],primary_id:'c',link_visibility:false,shared_powerline:true}];
+        d.layout={mode:'explicit',rows:[['a','b'],['c','d']],alignments:[{id:'table',columns:[[{kind:'group',id:'g1'},{kind:'group',id:'g2'}]]}]};d.statusline_language=language;
+        service.apply({display:d,host:first.host},first.revision);
+        const state=new State(backend.request('describe'),backend.request('read'),language),e=state.editor,session=new Session(state,backend),base=copyDraft(e.draft);
+        e.selected.main='b';state.key({key:'x',ctrl:true});assert(e.structureProposal);assert.deepEqual(e.draft,base);state.key({key:'a'});assert.equal(e.history.undo.length,1);state.key({key:'z',ctrl:true});assert.deepEqual(e.draft,base);
+        e.selected.main='a';state.key({key:'d',ctrl:true});const duplicated=copyDraft(e.draft);state.key({key:'z',ctrl:true});assert.deepEqual(e.draft,base);state.key({key:'r',ctrl:true});assert.deepEqual(e.draft,duplicated);
+        const source=copyDraft(e.draft);source.display.instances[0].options.foreground='#abcdef';source.display.instances[0].options.label='中文 👩‍💻';
+        const pasted=reuseDraft(e.draft,source,{kind:'style',scope:'main',from_scope:'main',from_id:'a',to_ids:['a'],fields:['foreground','label']},()=>'',ITEMS);assert.equal(pasted.blocked.length,0);e.commitDraft(pasted.draft);
+        let serial=0;const reused=reuseDraft(e.draft,base,{kind:'groups',scope:'main',group_ids:['g1'],references:'expand',explicit:true},()=> 'import-'+ ++serial,ITEMS);assert.equal(reused.blocked.length,0);e.commitDraft(reused.draft);assert.equal(e.draft.display.groups.length,4);e.undo();assert.equal(e.draft.display.groups.length,2);e.undo(true);assert.equal(e.draft.display.groups.length,4);
+        for(const width of [40,80,120]){const preview=backend.request('preview',{draft:e.draft,width});assert(preview.main.length);assert.deepEqual(importText(exportText(e.draft),e.draft),e.draft);}
+        const outside=service.read();outside.display.palette=outside.display.palette==='ansi'?'default':'ansi';service.apply({display:outside.display,host:outside.host},outside.revision);
+        const retained=copyDraft(e.draft);await assert.rejects(session.save(),(error:any)=>error.code==='configuration_conflict');assert.deepEqual(e.draft,retained);assert(e.changeReview?.current);changesKey(e,{key:'k'},language,70,16);await session.save();assert.deepEqual(backend.request('read').draft,retained);assert.equal(e.history.undo.length,0);
+        const unknown=copyDraft(e.draft);unknown.display.theme=unknown.display.theme==='light'?'classic':'light';e.commitDraft(unknown);loseReply=true;await assert.rejects(session.save());assert.equal(e.saveState,'unknown');assert.equal(e.undo(),false);await session.reconcile();assert.equal(e.saveState,'idle');assert.deepEqual(e.draft,unknown);assert.equal(e.history.undo.length,0);
+        const portable=copyDraft(base);portable.display.instances[0].type_id='external-value';portable.display.instances[0].source={binding:'foreign',hint:'Imported queue'};serial=0;const unbound=reuseDraft(base,portable,{kind:'groups',scope:'main',group_ids:['g1'],references:'exclude',explicit:false},()=> 'unbound-'+ ++serial,ITEMS);assert.equal(unbound.unresolved.length,1);assert.equal(unbound.draft.display.instances.find((n:any)=>n.id===unbound.mappings.instances.a).source.binding,null);
+        assert.equal(typeof Editor,'function');
+    }
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths:[40,80,120],history:true,atomic_repairs:true,style_fields:true,group_closure:true,unbound_sources:true,conflict_retry:true,unknown_reconciliation:true,save_reopen:true,installed_modules:true,model_calls:0}));
 }
 else if (operation === 'modules') {
     const [core, platform, clocks, tui] = await Promise.all([load('core', 'integration/binding'), load('platform', 'launch'), load('platform', 'clocks'), load('tui', 'session')]);
@@ -129,6 +193,7 @@ else if (operation === 'setup-console') {
     process.exitCode = await main(['--language', 'en', 'setup', '--config-dir', config!], { hostVersion: () => [2, 1, 258] });
 }
 else if (operation === 'windows-editor' || operation === 'windows-setup') {
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_console_adapter',pid:process.pid}),{mode:0o600});
     const { library, nativeApi } = await load('platform', 'native'), k = library('kernel32.dll');
     const input = k.func('void *CreateFileW(const char16_t *name, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')('CONIN$', 0xc0000000, 3, null, 3, 0, null);
     if (!input || nativeApi().address(input) === 0xffffffffffffffffn)
@@ -158,11 +223,20 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     };
     let previewCancelled = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
-    const write = process.stdout.write.bind(process.stdout);
-    (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
-        const value = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
-        chunks.push(value);
-        if (!scheduled && chunks.join('').includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
+    // The production editor can move to an independent runtime. Preserve its
+    // real console handles and record its writes through a fixture-only preload,
+    // rather than replacing TTY streams with pipes or observing only this parent.
+    const capturedPath=join(config!,'editor-child-output.ansi'),preload=join(config!,'editor-output-preload.mjs');
+    fs.writeFileSync(capturedPath,'',{mode:0o600});
+    // Preserve Node's lazy TTY initialization too: accessing stdout in this
+    // preload would itself change the inherited console flags before capture.
+    fs.writeFileSync(preload,`import fs from 'node:fs';const seen=new WeakSet();for(const name of ['stdout','stderr']){const descriptor=Object.getOwnPropertyDescriptor(process,name);Object.defineProperty(process,name,{...descriptor,get(){const stream=descriptor.get.call(process);if(!seen.has(stream)){seen.add(stream);const write=stream.write.bind(stream);stream.write=(chunk,...args)=>{fs.appendFileSync(${JSON.stringify(capturedPath)},chunk);return write(chunk,...args);};}return stream;}});}\n`,{mode:0o600});
+    const nodeOptions=process.env.NODE_OPTIONS;
+    process.env.NODE_OPTIONS=[nodeOptions,'--import='+pathToFileURL(preload).href].filter(Boolean).join(' ');
+    const capturedOutput=()=>chunks.join('')+fs.readFileSync(capturedPath,'utf8');
+    const observeOutput=()=>{
+        const output=capturedOutput();
+        if (!scheduled && output.includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
             scheduled = true;
             setTimeout(() => {
                 const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
@@ -170,21 +244,31 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
                 sendKeys(keys);
             }, 50);
         }
-        if (choice === 'preview-cancel' && !previewCancelled && chunks.join('').includes('Statusline theme')) {
+        if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
         }
+    };
+    const write = process.stdout.write.bind(process.stdout);
+    (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
+        const value = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+        chunks.push(value);
+        observeOutput();
         return (write as any)(chunk, ...args);
     };
-    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: chunks.join('').slice(-2000) })); process.exit(1); }, 10000);
+    const poll=setInterval(observeOutput,25);
+    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
+    fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_editor',pid:process.pid}),{mode:0o600});
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: chunks.join('') }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }
     finally {
         clearTimeout(timer);
+        clearInterval(poll);
+        if(nodeOptions===undefined)delete process.env.NODE_OPTIONS;else process.env.NODE_OPTIONS=nodeOptions;
         k.func('bool CloseHandle(void *handle)')(input);
     }
 }

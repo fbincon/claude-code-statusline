@@ -30,7 +30,7 @@ export async function setup(context: InstallContext, dryRun: boolean, language: 
     const summarize = (value: unknown): string => typeof value === 'object' && value !== null && 'type_id' in value ? String(value.type_id) : JSON.stringify(value);
     const action = await runSetup(state, {
         preset: (draft, id) => ({ ...draft, display: applyPreset(draft.display, id, () => randomUUID().replaceAll('-', '')) }),
-        preview,
+        preview:(draft,width,scenario)=>preview(draft,width,undefined,scenario),
         language: next => { setLanguage(context.configDir, next, context.io); },
         review: (draft, next) => differences(inspection.draft!, draft).map(change => renderMessage(change.label, next) + ': ' + summarize(change.before) + ' → ' + summarize(change.after)),
     });

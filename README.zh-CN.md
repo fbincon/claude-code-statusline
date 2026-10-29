@@ -2,6 +2,9 @@
 
 [English](README.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](docs/DRAFT_HISTORY.zh-CN.md)。
+
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)
@@ -16,15 +19,16 @@
 
 ## 功能概览
 
-- **按需扩展状态栏：** 在双编辑器或 CLI 管理本地 JSON、GitHub 检查和命令数据源，明确审查启用，支持独立开启会话内 GitHub 自动刷新及可选目录/PR 链接。[扩展指南](docs/EXTENSIONS.zh-CN.md)。
+- **按需扩展状态栏：** 在双编辑器或 CLI 管理本地 JSON、GitHub 检查和命令数据源，分别审核执行与活跃会话内 GitHub／命令自动刷新，并支持可选目录／PR 链接。[扩展指南](docs/EXTENSIONS.zh-CN.md)。
 - **管理显示方案和项目：**保存、预览和复用命名方案，按项目根目录选择整套显示配置。[方案管理](docs/PROFILES.zh-CN.md)。
-- **查看任务证据：**通过 `/statusline-task` 或 CLI 按需查看任务、代理、计时来源及覆盖限制。[任务详情](docs/TASK_DETAILS.zh-CN.md)。
+- **查看任务证据：**通过 `/statusline-task`、`task view` 或外部编辑器浏览任务证据，支持搜索、过滤和折叠。[任务详情](docs/TASK_DETAILS.zh-CN.md)。
 
 - **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件及联动分组，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
 
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色、主题和百分比短条，按需启用 [Powerline](docs/APPEARANCE.zh-CN.md)。
 - **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
-- **诊断指定输入：** 只读检查真实状态栏 JSON 及匹配的已有观测，不补采或写入。见[输入诊断](docs/DIAGNOSTICS.zh-CN.md)。
+- **审阅颜色与样例：** 在颜色字段按 Enter 打开可视选色；Ctrl+V 切换样例场景，Ctrl+W 调整预览宽度，Ctrl+N 浏览各行。见[外观指南](docs/APPEARANCE.zh-CN.md)。
+- **诊断指定输入：** 在任一编辑器按 Ctrl+L，使用未保存草稿只读检查文件，默认仅采用输入证据；也可使用 CLI。见[输入诊断](docs/DIAGNOSTICS.zh-CN.md)。
 - **查找显示项目：** 65 个主栏指标和 15 个子代理指标，以及文本与弹性留白组件，支持六种语言的分级搜索、分类筛选及来源／启用条件说明。
 - **估算会话费用速率：** 可选会话或累计 API 时长作分母，至少观察一分钟并明确显示单位。见[指标定义](docs/DISPLAY_ITEMS.zh-CN.md#会话费用速率)。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
@@ -365,9 +369,15 @@ npm uninstall --global @fbincon/claude-code-statusline
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml                    # 统一候选构建、八目标安装与十三主机组合
-│   └── reference.yml             # 手动 Python 历史验证
+├── .github/
+│   ├── ISSUE_TEMPLATE/               # 双语 Bug 表单与反馈入口
+│   ├── pull_request_template.md      # 双语 PR 模板
+│   ├── dependabot.yml                # Actions 版本更新策略
+│   └── workflows/
+│       ├── ci.yml                    # 文档校验或完整产品矩阵
+│       ├── npm-publish.yml           # npm OIDC 发布
+│       ├── preview-downloads.yml     # 公开分发字节与安装校验
+│       └── reference.yml             # 手动 Python 历史验证
 ├── packages/                     # 四个业务包
 │   ├── core/src/                 # 配置、协议、纯状态、渲染与 Unicode
 │   │   ├── editor/               # 共享草稿、字素输入、快速配置和说明视图
@@ -404,6 +414,8 @@ claude-code-statusline/
 ├── package.json / package-lock.json
 ├── tsconfig*.json / .node-version
 ├── README.md / README.zh-CN.md
+├── CONTRIBUTING.md / CONTRIBUTING.zh-CN.md
+├── SECURITY.md / SECURITY.zh-CN.md
 ├── CHANGELOG.md / CHANGELOG.zh-CN.md
 └── LICENSE
 ```
@@ -418,6 +430,10 @@ claude-code-statusline/
 - [开发指南](docs/development/README.zh-CN.md) · [发布流程](docs/RELEASING.zh-CN.md)。
 - [变更记录](CHANGELOG.zh-CN.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases)。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附版本、复现步骤与诊断结果，移除私有路径和会话内容。
+
+## 贡献与安全
+
+开发、翻译及反馈方式见[贡献指南](CONTRIBUTING.zh-CN.md)。潜在漏洞请按[安全政策](SECURITY.zh-CN.md)私密报告。
 
 ## 许可证
 

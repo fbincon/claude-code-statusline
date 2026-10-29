@@ -1,3 +1,4 @@
+import { taskFixture } from './task-fixture.js';
 /** Capture the installed external editor in a real PTY; reconstruct cells, never an OS screenshot. */
 import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
@@ -15,7 +16,9 @@ import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { dimensions } from '@fbincon/statusline-tui/layout';
-import { PRESETS } from '@fbincon/statusline-core/contracts/ui';
+import { Canvas, ansiFrame } from '@fbincon/statusline-tui/drawing/canvas';
+import type { Span } from '@fbincon/statusline-core/contracts/ui';
+import { PRESETS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true }, extended: { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.output || !values.font?.length)
@@ -30,7 +33,7 @@ const monochrome: Record<string, unknown>[] = [];
 const columns = 120, rows = 32;
 try {
     const config = installed.env.CLAUDE_CONFIG_DIR;
-    const run = (args: string[]) => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, timeout: 30000 });
+    const run = (args: string[], input = '') => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, input, timeout: 30000 });
     run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
     run(['config', 'set', 'directory-style', 'home']);
     const sourceSpec = join(installed.temporary, 'capture-source.json');
@@ -42,12 +45,13 @@ try {
     run(['source', 'enable', 'capture-github', '--review', githubReview]);
     const sources = fs.readFileSync(join(config, 'claude-statusline-sources.json'));
     const settings = fs.readFileSync(join(config, 'settings.json'));
+    const taskEvidence=taskFixture(config,'capture-session');
     for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
         run(['config', 'profile', 'save', 'Capture scheme', '--overwrite']);
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         const profiles = fs.readFileSync(join(config, 'claude-statusline-profiles.json'));
-        const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
+        let pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
             const key = async (value: string, contains?: string) => {
@@ -57,7 +61,7 @@ try {
                     text.slice(text.lastIndexOf('\x1b[H')).includes(`\x1b[${rows};1H`) &&
                     (!contains || text.slice(text.lastIndexOf('\x1b[H')).includes(contains)));
             };
-            const capture = (page: string, width = columns, height = rows) => {
+            const capture = (page: string, width = columns, height = rows, expectedPreview?: Capture['buffer']) => {
                 const raw = pty.captured();
                 const screen = new Capture(width, height);
                 screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
@@ -66,7 +70,7 @@ try {
                 fs.writeFileSync(join(directory, page + '.ansi'), raw);
                 if (width >= 64 && height >= 18) {
                     for (const [foreground, background] of Object.values(TERMINAL_THEMES)) {
-                        verifyColors(screen.buffer, width, height, foreground, background);
+                        verifyColors(screen.buffer, width, height, foreground, background, ['gradient-selector', 'theme-selector', 'row-background-selector'].includes(page), expectedPreview);
                     }
                     const panel = dimensions(width, height).content;
                     for (const line of screen.buffer.slice(panel.innerY, panel.innerY + panel.innerHeight)) {
@@ -89,6 +93,27 @@ try {
                         width: image.width, height: image.height });
                 }
                 return screen.buffer.map(row => row.map(cell => cell.data).join(''));
+            };
+            const schemePreview = async (id: string): Promise<Capture['buffer'] | undefined> => {
+                if (!['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'].includes(id)) return;
+                const request=(operation:string,payload:unknown={})=>JSON.parse(run(['ui'],JSON.stringify({protocol_version:PROTOCOL_VERSION,operation,payload})).toString()).result;
+                const candidate=request('preset',{preset:id,draft:request('read').draft}).draft;
+                assert(candidate,'Preset must return a candidate draft');
+                const panel=dimensions(columns,rows).preview;
+                const sample=request('preview',{draft:candidate,width:panel.innerWidth}).main as Span[][];
+                const canvas=new Canvas(columns,rows),overflow=sample.length>panel.innerHeight;
+                const count=overflow&&panel.innerHeight>1?panel.innerHeight-1:panel.innerHeight;
+                for(let index=0;index<count;index++)canvas.content(panel,index,(sample[index]??[]).map(span=>({...span,reverse:false})));
+                const expected=new Capture(columns,rows);expected.feed(ansiFrame(canvas.frame()));
+                await pty.wait(raw=>{
+                    const actual=new Capture(columns,rows);actual.feed(raw.slice(raw.lastIndexOf('\x1b[H')));
+                    for(let y=panel.innerY;y<panel.innerY+count;y++)for(let x=panel.innerX;x<panel.innerX+panel.innerWidth;x++){
+                        const a=actual.buffer[y]![x]!,e=expected.buffer[y]![x]!;
+                        if(a.data!==e.data||a.bg!==e.bg)return false;
+                    }
+                    return true;
+                });
+                return expected.buffer;
             };
             const selectSetting = async (name: string) => {
                 await key('\x1b[H');
@@ -134,7 +159,9 @@ try {
                     if (type === 'context-used') {
                         await selectSetting('fields.item.foreground_gradient.label'); await key('\x1b[C'); capture('foreground-gradient');
                         await selectSetting('fields.item.background_gradient.label'); await key('\x1b[C'); capture('background-gradient');
-                        await key('\r'); await key('\x15'); await key('#112233,#445566,#778899'); capture('gradient-custom'); await key('\r');
+                        await key('\r'); capture('gradient-selector'); await key('\x1b[H');
+                        for(let index=0;index<12;index++)await key('\x1b[B');
+                        await key('\r'); await key('\x15'); await key('#112233,#445566,#778899'); capture('gradient-custom'); await key('\r'); await key('\x13');
                     }
                     await key('\x07'); await key('\x18'); await key('\x1b[H');
                 }
@@ -147,6 +174,8 @@ try {
                 await key('\x1b[6~');
                 capture('sources-review-details');
                 await key('\x07');
+                await key('\r');await key('\x1b[B'.repeat(6)+'\r');capture('source-summary');await key('\x07');
+                await key('\x1b[B'.repeat(3)+'\r');capture('source-bindings');await key('\x07');
                 await key('\x1b[B\r');
                 await key('\x1b[B'.repeat(10) + '\r', t('sources.interval', language));
                 capture('automatic-review');
@@ -157,15 +186,17 @@ try {
                 await key('\x1b[B\x1b[B\r');
                 capture('sources-command');
                 await key('\x07'); await key('\x07');
-                for (const id of ['daily-development', 'agent-focus', 'quota-watch']) {
+                for (const id of ['daily-development', 'agent-focus', 'quota-watch', 'powerline-daily', 'agent-workbench', 'quota-cost', 'narrow-terminal', 'light-readable']) {
                     await key('\x10', t('quick.title', language));
                     await key('\x1b[H');
                     for (let index = 0; index < PRESETS.findIndex(preset => preset.id === id); index++) await key('\x1b[B');
                     await key('\r', t('quick.appearance', language));
-                    capture('scheme-' + id);
+                    const expected=await schemePreview(id);
+                    capture('scheme-' + id,columns,rows,expected);
                     await key('\x1b[F\r', t('quick.review', language));
                     await key('\x1b[B\x1b[B\r', t('profiles.field.name', language));
-                    capture('scheme-copy-' + id);
+                    await schemePreview(id);
+                    capture('scheme-copy-' + id,columns,rows,expected);
                     await key('\x07'); await key('\x07');
                 }
                 await key('\x10',t('quick.title',language));
@@ -247,6 +278,10 @@ try {
                 await key('\x07');
                 await key('\t');
                 await key('\t');
+                await selectSetting('fields.global.theme.label');await key('\r',t('colors.title',language));capture('theme-selector');await key('\x07');
+                await selectSetting('fields.global.powerline.row_background_gradient.label');await key('\r',t('colors.title',language));capture('row-background-selector');await key('\x07');
+                await key('\x16');capture('sample-warning');await key('\x17');capture('sample-width');
+                await key('\x0c',t('diagnosis.title',language));capture('file-diagnosis-form');await key('\x07');
                 for (const option of ['padding', 'separator', 'start_cap', 'end_cap', 'color_mode']) {
                     await selectSetting('fields.global.powerline.' + option + '.label');
                     await key('\x1b[C');
@@ -263,6 +298,12 @@ try {
                 const portable = JSON.parse(fs.readFileSync(portablePath, 'utf8'));
                 portable.draft.host.padding = 2;
                 fs.writeFileSync(portablePath, JSON.stringify(portable));
+                await selectSetting('task-details');await key('\r',t('task.title',language));capture('task-identity');
+                await key('capture-session');await key('\r','captured-task');capture('task-summary');
+                await key('/agent-alpha\r');await key('e');await key('\x1b[F');capture('task-evidence');
+                await key('r');await key('q');
+                await selectSetting('package-management');await key('\r',t('package.ui.title',language));capture('package-local');
+                await key('\x1b[F');capture('package-local-details');await key('q');
                 await selectSetting('import-file');
                 await key('\r');
                 await key('\r', t('review.selection.help', language));
@@ -295,6 +336,14 @@ try {
             await pty.exited();
             assert.equal(pty.child.exitCode, 0);
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');
+            if(values.extended){
+                await pty.close();
+                pty=openPty(config,columns,rows,installed.env,language,{executable:installed.node,args:[installed.entry,'--language',language,'task','view','--session-id','capture-session'],cwd:installed.temporary});
+                await pty.wait(text=>text.includes('captured-task')&&text.includes(`\x1b[${rows};1H`));capture('task-standalone');
+                pty.send('q');await pty.exited();assert.equal(pty.child.exitCode,0);assert.deepEqual(pty.attributes(),pty.before);
+                assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
+            }
+
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settings, 'Capture changed configuration');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline-sources.json')), sources, 'Cancelled automatic review changed source policy');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
@@ -305,7 +354,7 @@ try {
         const config = installed.env.CLAUDE_CONFIG_DIR;
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         for (const TERM of ['vt100', 'vt220', 'xterm-mono', 'dumb']) {
-            const pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
+            let pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
                 { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure'], cwd: installed.temporary });
             try {
                 const supported = TERM !== 'dumb';

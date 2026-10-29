@@ -1,0 +1,39 @@
+/** One registry for persisted identities, selectors and production paint. */
+export const THEME_IDS = ['classic', 'dark', 'light', 'terminal', 'ocean', 'ember', 'slate', 'blossom'] as const;
+export type ThemeId = typeof THEME_IDS[number];
+export const THEME_ROLES = ['model', 'directory', 'branch', 'percentage', 'tokens', 'timer'] as const;
+export const ANSI_ROLES = [3, 2, 5, 3, 5, 6] as const;
+export const ANSI_BLOCKS = [4, 2, 5, 3, 1, 6] as const;
+export interface ThemeDefinition {
+    surface: 'dark' | 'light' | 'terminal';
+    foreground: readonly string[];
+    backgrounds: readonly string[];
+    blockText: string;
+    separator: string;
+    warning: string;
+    critical: string;
+}
+const dark: ThemeDefinition = {
+    surface: 'dark', foreground: ['#f6e2b7', '#abdfa7', '#c8a9ee', '#f2b590', '#e990a9', '#8ed3d3'],
+    backgrounds: ['#3c3548', '#234337', '#3d3155', '#543720', '#542b3c', '#1f4148'],
+    blockText: '#f4f5f7', separator: '#aab2bd', warning: '#f2b550', critical: '#f28686',
+};
+export const THEMES: Readonly<Record<ThemeId, ThemeDefinition>> = {
+    classic: dark, dark, terminal: { ...dark, surface: 'terminal' },
+    light: { surface: 'light', foreground: ['#664515', '#205727', '#633487', '#864511', '#93284a', '#126168'],
+        backgrounds: ['#eee1c4', '#d6ecd4', '#e7dcf2', '#f5dfce', '#f4d8e1', '#d1ecec'],
+        blockText: '#202630', separator: '#58616b', warning: '#805000', critical: '#a02020' },
+    ocean: { surface: 'dark', foreground: ['#7dd3fc', '#5eead4', '#a5b4fc', '#67e8f9', '#93c5fd', '#99f6e4'],
+        backgrounds: ['#173b56', '#16443f', '#303e68', '#164956', '#243f64', '#214844'],
+        blockText: '#f0f9ff', separator: '#94b9cc', warning: '#fbbf24', critical: '#fca5a5' },
+    ember: { surface: 'dark', foreground: ['#fcd34d', '#fdba74', '#fda4af', '#fed7aa', '#f9a8d4', '#fde68a'],
+        backgrounds: ['#4d3620', '#542f21', '#502b39', '#493b24', '#4e2d46', '#454023'],
+        blockText: '#fff7ed', separator: '#c9aa96', warning: '#fcd34d', critical: '#fca5a5' },
+    slate: { surface: 'dark', foreground: ['#cbd5e1', '#b4c7ba', '#c8bfd5', '#cfbea7', '#d0b8c0', '#adc8cb'],
+        backgrounds: ['#303b49', '#304239', '#3d3749', '#493d30', '#48353e', '#2d4145'],
+        blockText: '#f1f5f9', separator: '#94a3b8', warning: '#e8c584', critical: '#e9a4a7' },
+    blossom: { surface: 'light', foreground: ['#67416d', '#42654f', '#604987', '#8a4c61', '#765049', '#3d6471'],
+        backgrounds: ['#eddaec', '#dcebdd', '#e4dcf2', '#f5dce6', '#efdfd7', '#d8eaf0'],
+        blockText: '#302633', separator: '#786c80', warning: '#825300', critical: '#a52c4c' },
+};
+export function themeDefinition(id: string): ThemeDefinition { return THEMES[id as ThemeId] ?? THEMES.classic; }

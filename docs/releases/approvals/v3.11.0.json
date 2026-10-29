@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.11.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-28",
+  "authority": "On 2026-10-28 the maintainer selected complete TASK-02 and UPDATE-02 slice 1 with stable publication, then explicitly approved the implementation plan targeting v3.11.0. Commits, pushes, PR creation and merge, annotated accepted-source tags, draft assets, npm/GitHub/Gitee publication and updating this test machine are authorized after required final PR/main/tag gates pass. Preserve eight installation targets, 32 Node cases, sixteen fixed hosts and all 197 existing capacity cases, plus applicable new task-viewer, package-review, installed and terminal evidence. Follow the current immutable-source evidence promotion policy. Restore original display and UI preferences after validation. Only the six pre-existing issue #96 gaps remain accepted and unverified; no new failed or missing required automated gate is waived. No paid model tests are included.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

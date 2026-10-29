@@ -2,6 +2,9 @@
 
 [English](APPEARANCE.md) | **简体中文**
 
+
+共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
+
 在“设置”页选择状态栏主题和分隔样式；按 Ctrl+E 打开显示项详情，编辑颜色及适用的条件规则。两个编辑器使用固定样例预览未保存草稿，保存后才生效，取消保留原配置。这些设置独立于 Claude 宿主主题、界面语言和原生预览背景。
 
 ## 条件显示
@@ -30,7 +33,7 @@ claude-statusline config item main git visibility always
 
 ## 主题与逐项颜色
 
-主题保留项目选择、顺序、格式、布局和采集偏好，切换主题也保留逐项覆盖。四种主题 ID 为 `classic`（既有外观）、`dark`（深色）、`light`（浅色）和 `terminal`（终端 ANSI 色槽），分别提供普通显示和 Powerline 颜色角色。主题不会修改终端背景或安装字体。
+主题保留项目选择、顺序、格式、布局和采集偏好，切换主题也保留逐项覆盖。八种主题 ID 为 `classic`（既有外观）、`dark`（深色）、`light`（浅色）、`terminal`（终端 ANSI 色槽）、`ocean`、`ember`、`slate` 和 `blossom`；ocean、ember、slate 适合深色终端背景，blossom 适合浅色背景，分别提供普通显示和 Powerline 颜色角色。主题不会修改终端背景或安装字体。
 
 ```text
 claude-statusline config set theme light
@@ -87,9 +90,9 @@ claude-statusline config set powerline-color-mode continuous
 
 ## 配置兼容与恢复
 
-显示 schema **15** 包含 `powerline` 对象，包含 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 **24** 传输完整草稿；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
+显示 schema **16** 包含 `powerline` 对象，包含 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 **26** 传输完整草稿；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
 
-schema 1–14 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 15。缺失的 Powerline 控制默认为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
+schema 1–15 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 16。缺失的 Powerline 控制默认为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
 
 降级前保存／导出当前配置，使用当前软件包的 `recover --restore-config TRANSACTION_ID` 显式恢复升级前的兼容显示备份，再按[版本管理指南](PACKAGE_MANAGEMENT.zh-CN.md)退回旧包并刷新匹配的接入资源。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md)。
 
@@ -119,7 +122,7 @@ claude-statusline config instance main set context-remaining bar-style ascii
 
 ## 静态组件渐变
 
-在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换 `off`、`ocean`（海洋）、`sunset`（落日）、`aurora`（极光）；Enter 可输入预设名或 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
+在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换十一种预设与 `off`；Enter 打开可视色带及候选编辑页，支持逐色标修改，也可输入 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
 
 ```sh
 claude-statusline config instance main set context-used foreground-gradient ocean
@@ -133,6 +136,16 @@ claude-statusline config instance main set context-used foreground-gradient off
 
 告警与严重阈值前景优先于前景渐变。渐变背景采样色与文字色相同时使用中性背景。共享 Powerline 组由主实例决定整组背景，各成员前景独立，并保留成员未生效的背景设置。分隔符和端帽使用相邻色块最终边缘色，spacer 间隙保持终端默认背景。现有 semantic／continuous／restart 模式继续排列继承色，显式渐变在组件或色块内重新开始。
 
-渐变从显示 schema 14／编辑器协议 23 引入；统一交付使用 schema 15／协议 24，保持既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
+渐变从显示 schema 14／编辑器协议 23 引入。当前交付使用显示 schema 16／编辑器协议 26；新增主题需要 schema 16，schema 1～15 的只读迁移保留既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
 
 渐变背景与 RGB 告警／严重前景的对比度低于 3:1 时，背景改用中性色，保留告警前景；ANSI 颜色由终端主题定义，槽位相同时同样保护。
+
+## 可视选色与样例场景
+
+在主题、前景、背景或渐变字段按 Enter 打开配色页，名称旁显示实际色块和适用背景提示。Enter 选择候选，Ctrl+S 应用到显示草稿，Esc 取消本页修改。自定义颜色保留 `inherit`、`default`、`ansi:N` 和 RGB 支持。渐变支持 2–5 个 RGB 色标、逐色修改、反转、增删色标及关闭，关闭不删除已存纯色。
+
+新增主题为适合深底的 `ocean`、`ember`、`slate` 和适合浅底的 `blossom`；新增渐变为 `glacier`、`lagoon`、`flame`、`copper`、`steel`、`sage`、`petal`、`twilight`。终端背景继续独立设置。
+
+设置页提供样例场景和预览宽度。Ctrl+V 切换十四个场景，Ctrl+W 切换可用／40／80／120 列，Ctrl+N 推进预览行。标题显示场景和实际宽度。这些选择仅保留在当前编辑会话，同样应用于候选预览和样例解释。样例不启动采集、命令或网络查询。
+
+参见[实施与验证](development/appearance-preview-diagnosis.zh-CN.md)。

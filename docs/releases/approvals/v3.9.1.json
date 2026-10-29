@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.9.1",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-26",
+  "authority": "On 2026-10-26 the maintainer explicitly approved implementation of the native capacity repair plan for issues #154 and #155, a stable v3.9.1 release to npm, GitHub and Gitee, and updating this test machine. Commits, pushes, PR creation and merging, annotated tags, draft assets and publication are authorized after all final PR/main/tag automated gates pass. The plan adds Claude 2.1.310 on Linux, Windows and macOS to the existing matrix, requires actual-host capacity acceptance, preserves drafts and save outcomes, and permits configuration changes for reproduction followed by restoration. Only the six pre-existing issue #96 gaps remain accepted and unverified; no new failed, missing or skipped automated gate is waived. No paid model tests are authorized.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

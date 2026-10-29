@@ -2,9 +2,17 @@
 
 **English** | [简体中文](TASK_DETAILS.zh-CN.md)
 
-Use `/statusline-task` in a supported Claude Code terminal with the native editor installed. The separate pane shows the current task, attributable agents, known state, checklist counts and timing evidence. **R / Refresh** rereads published state; **J/K** page down/up; **Q / Close** closes it. There is no background polling.
+Use `/statusline-task` in a supported Claude Code terminal with the native editor installed. The separate pane shows the current task, attributable agents, known state, checklist counts and timing evidence. **R / Refresh** rereads published state; **J/K** or Page Down/Up page; **Q / Close** closes it. The Client input row also accepts the shared reading controls below. There is no background polling.
 
-The CLI works without the native pane:
+The standalone terminal viewer works without the native pane or an installed editor:
+
+```sh
+claude-statusline task view --session-id SESSION_ID
+claude-statusline --language zh-CN task view --session-id SESSION_ID --prompt-id PROMPT_ID --config-dir "/path/to/config"
+```
+
+The external configuration editor's Settings page also offers **Task details**. Enter the session ID and optionally a prompt ID, use Tab to switch fields, then Enter to read. Returning preserves the display draft, editing target and unresolved save state. The independent `task view` command requires a TTY; use the existing noninteractive command for text/JSON:
+
 
 ```sh
 claude-statusline task show --session-id SESSION_ID
@@ -13,6 +21,14 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 ```
 
 Session and prompt IDs come from your supplied statusline input or existing session metadata. The CLI does not search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
+
+Command descriptions and initial titles use the loaded interface language. Task-read failures retain that language; refresh/reopen reload preferences. Unreadable preferences fall back to English with guidance without blocking task reads. Tall panes reduce the visible page to fit host capacity while retaining the complete report for paging.
+
+## Reading controls
+
+Use arrows to select a row, Page Up/Down to page, `/` to search names/IDs, `F` to cycle observed agent statuses, left/right or Enter to collapse/expand a selected agent, and `E` to show/hide evidence. `S` edits session/task identity; an empty prompt selects the published current-task pointer. Search is case-insensitive, and matching children retain their parents as context. Summary and all statuses are the default. Native host-only names remain unavailable to the external viewer.
+
+Session and resolved task identity stay above the scrolling body. Refresh and resizing retain the selected row where it still exists; selecting another task resets task-specific reading state. Failed refreshes retain the previous report and its original capture time, with a visible error. A report containing no observations remains distinct from a failed read. Close or cancel input with Q/Escape (Ctrl+G also cancels input); Native Escape retains the host's focus behavior.
 
 ## Read the evidence
 

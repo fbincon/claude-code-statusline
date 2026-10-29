@@ -1,3 +1,4 @@
+import { colorRgb } from './colors.js';
 import type { DisplayDraft, GradientDraft } from '../contracts/ui.js';
 import { styledUnits, renderStyledUnits, type StyledUnit } from './layout.js';
 import { parse, serialize, sameColor, type Color } from './styles.js';
@@ -10,13 +11,13 @@ function luminance(color: string): number {
     return sum + (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) * [0.2126,0.7152,0.0722][i]!;
   }, 0);
 }
-function warningCollision(foreground: Color | null, background: Color | null, config: DisplayDraft): boolean {
+function warningCollision(foreground: Color | null, background: Color | null, config: DisplayDraft, protectAll = false): boolean {
   if (foreground === null || background === null) return false;
   if (sameColor(foreground, background)) return true;
   const risk = [config.formatting.thresholds.warning, config.formatting.thresholds.critical]
     .some(value => sameColor(foreground, riskColor(value, config)));
-  if (!risk || foreground[0] !== 'rgb' || background[0] !== 'rgb') return false;
-  const a = luminance(foreground[1]), b = luminance(background[1]);
+  if (!protectAll && (!risk || foreground[0] !== 'rgb' || background[0] !== 'rgb')) return false;
+  const a = luminance(colorRgb(foreground)), b = luminance(colorRgb(background));
   return (Math.max(a,b) + 0.05) / (Math.min(a,b) + 0.05) < 3;
 }
 export function interpolate(colors: GradientDraft, position: number): Color {
@@ -25,18 +26,19 @@ export function interpolate(colors: GradientDraft, position: number): Color {
   return ['rgb', '#' + [1,3,5].map(i => Math.round(parseInt(a.slice(i,i+2),16) * (1-fraction) + parseInt(b.slice(i,i+2),16) * fraction).toString(16).padStart(2,'0')).join('')];
 }
 /** One color per grapheme, positioned by terminal cells; first/last visible graphemes reach the endpoints. */
-export function paintGradient(text: string, colors: GradientDraft | null | undefined, channel: 'foreground' | 'background', config: DisplayDraft): string {
+export function paintGradient(text: string, colors: GradientDraft | null | undefined, channel: 'foreground' | 'background', config: DisplayDraft, onContrast?:(index:number)=>void, protectAll = false): string {
   if (!colors || !config.use_colors || channel === 'background' && config.separator_style !== 'powerline') return text;
   const units = styledUnits(text), total = units.reduce((sum, unit) => sum + unit.width, 0);
   const first = (units[0]?.width ?? 0) / 2, last = total - (units.at(-1)?.width ?? 0) / 2;
   let offset = 0;
-  return renderStyledUnits(units.map(unit => {
+  return renderStyledUnits(units.map((unit, index) => {
     const center = offset + unit.width / 2; offset += unit.width;
     const state = parse(unit.style), color = outputColor(interpolate(colors, last > first ? (center-first)/(last-first) : 0), config);
     let background = channel === 'background' ? color : state.background;
-    if (channel === 'background' && warningCollision(state.foreground, background, config)) {
+    if (channel === 'background' && warningCollision(state.foreground, background, config, protectAll)) {
+      onContrast?.(index);
       const foreground = state.foreground!;
-      background = foreground[0] === 'ansi' ? ['ansi', foreground[1] === 0 ? 15 : 0]
+      background = foreground[0] === 'ansi' ? ['ansi', protectAll ? luminance(colorRgb(foreground)) > 0.179 ? 0 : 15 : foreground[1] === 0 ? 15 : 0]
         : ['rgb', luminance(foreground[1]) > 0.179 ? '#000000' : '#ffffff'];
     }
     return { ...unit, style: serialize({ ...state, foreground: channel === 'foreground' ? color : state.foreground, background }) };

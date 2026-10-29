@@ -1,9 +1,12 @@
+import { validSourceExecution } from '@fbincon/statusline-core/editor/source-validation';
+import { SourceBindings } from './bindings.js';
+import { safeLink } from '@fbincon/statusline-core/terminal/links';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join, resolve, isAbsolute } from 'node:path';
 import { readdirSync, statSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
 import type { SourceDefinition, SourceContext, SourceReference, SourceJob, SourceObservation, SourcesResult, SourceMutationResult, SourceView, AutomaticStatus } from '@fbincon/statusline-core/contracts/ui';
-import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, sourceView, emptyObservation, stamp, scalar } from '@fbincon/statusline-core/extensions/model';
+import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, executionSummary, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar } from '@fbincon/statusline-core/extensions/model';
 import { object, ConfigError, integer } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -17,7 +20,7 @@ import { jsonBytes, artifact } from '../config/storage.js';
 import { commit } from '../recovery/files.js';
 import { safeTarget } from '../integration/paths.js';
 import { contextFor, authRevision } from './context.js';
-import { automaticJobActive, automaticStatus, refreshIdentity, readAutomatic, writeAutomatic } from './automatic-state.js';
+import { automaticJobActive, manualJobActive, automaticStatus, refreshIdentity, readAutomatic, writeAutomatic } from './automatic-state.js';
 import { readLocal, refreshCommand, refreshGithub, failure } from './providers.js';
 interface Stored {
     version: 1;
@@ -34,6 +37,7 @@ export class SourceService {
         const value = bytes === null ? emptyRegistry() : registry(readJson(decodeUtf8(bytes), { duplicate: () => sourceError('invalid'), constant: () => sourceError('type') }));
         return { ...value, revision: revision(value) };
     }
+    bindings() { return new SourceBindings(this); }
     review(id: unknown) { const source = this.source(id); return { source, review_revision: source.revision }; }
     source(id: unknown): SourceDefinition {
         const source = this.read().sources.find(source => source.id === sourceId(id));
@@ -73,7 +77,7 @@ export class SourceService {
             if (value.expected_revision !== current.revision)
                 sourceError('conflict');
             const path = join(this.configuration.context.configDir, SOURCE_FILENAME), raw = readSourceFile(path);
-            const state = registry({ version: 2, sources: current.sources, bindings: current.bindings, automatic: current.automatic });
+            const state = registry({ version: current.version, sources: current.sources, bindings: current.bindings, automatic: current.automatic });
             let binding: SourceReference | undefined;
             const id = sourceId(value.id), selected = state.sources.find(s => s.id === id);
             if (value.action === 'add' || value.action === 'edit') {
@@ -92,13 +96,14 @@ export class SourceService {
                 if (!selected)
                     sourceError('not_found');
                 if (value.action === 'auto-on' || value.action === 'auto-off') {
-                    if (selected.kind !== 'github') sourceError('invalid');
+                    if (!['github', 'command'].includes(selected.kind)) sourceError('invalid');
+                    if (selected.kind === 'command') state.version = 3;
                     const prior = state.automatic.find(p => p.source_id === id);
                     if (value.action === 'auto-on') {
                         if (!selected.enabled || value.review_revision !== selected.revision) sourceError('review');
-                        const interval = value.interval_seconds === undefined ? prior?.interval_seconds ?? Math.max(60, Math.min(86400, selected.ttl_seconds)) : integer(value.interval_seconds, 60, 86400, 'interval_seconds');
+                        const interval = value.interval_seconds === undefined ? prior?.interval_seconds ?? (selected.kind === 'command' ? 300 : Math.max(60, Math.min(86400, selected.ttl_seconds))) : integer(value.interval_seconds, 60, 86400, 'interval_seconds');
                         state.automatic = state.automatic.filter(p => p.source_id !== id);
-                        state.automatic.push({ source_id: id, enabled: true, review_revision: selected.revision, interval_seconds: interval, auth_revision: authRevision() });
+                        state.automatic.push({ source_id: id, enabled: true, review_revision: selected.revision, interval_seconds: interval, auth_revision: selected.kind === 'github' ? authRevision() : revision([selected.id, selected.revision]) });
                         const scheduling = readAutomatic(this.configuration.context.configDir);
                         scheduling.schedules = scheduling.schedules.filter(s => s.source_id !== id);
                         const priorJobs = this.jobs().filter(j => j.source_id === id).sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at));
@@ -128,12 +133,17 @@ export class SourceService {
                     state.bindings = state.bindings.filter(b => b.source_id !== id);
                 }
                 else if (value.action === 'bind') {
-                    const bid = randomUUID();
-                    state.bindings.push({ id: bid, source_id: id });
+                    const existing = state.bindings.find(b => b.id === value.binding && b.source_id === id) ?? state.bindings.filter(b => b.source_id === id).sort((a,b) => a.id.localeCompare(b.id))[0];
+                    const bid = existing?.id ?? randomUUID();
+                    if (!existing) state.bindings.push({ id: bid, source_id: id });
                     binding = { binding: bid, hint: selected.name };
+                    if(value.draft_owner!==undefined)this.bindings().reserve(sourceId(value.draft_owner),[bid]);
                 }
-                else if (value.action === 'unbind')
+                else if (value.action === 'unbind') {
+                    const review=this.bindings().review(0,true),record=review.rows.find(row=>row.source_id===id&&row.id===value.binding);
+                    if(review.uncertain||record&&!record.removable)sourceError('referenced');
                     state.bindings = state.bindings.filter(b => !(b.source_id === id && b.id === value.binding));
+                }
                 else
                     sourceError('invalid');
             }
@@ -162,7 +172,7 @@ export class SourceService {
     private jobPath(id: string) { return join(this.root, 'jobs', sourceId(id) + '.json'); }
     job(id: unknown): SourceJob {
         const value = this.readValue(this.jobPath(sourceId(id)));
-        if (!object(value) || ![1, 2].includes(value.version as number) || !['running', 'completed', 'failed', 'cancelled'].includes(value.state as string))
+        if (!object(value) || ![1, 2, 3, 4].includes(value.version as number) || !['running', 'completed', 'failed', 'cancelled'].includes(value.state as string))
             sourceError('not_found');
         sourceId(value.id);
         sourceId(value.source_id);
@@ -171,8 +181,17 @@ export class SourceService {
         sourceContext(value.context);
         if (!stamp(value.started_at) || !stamp(value.deadline_at) || typeof value.reason !== 'string')
             sourceError('invalid');
-        const job = (value.version === 1 ? { ...value, version: 2, trigger: 'manual', identity: revision([value.source_id, value.source_revision, value.context]) } : value) as unknown as SourceJob;
+        const legacy = value.version === 1 ? { ...value, trigger: 'manual', identity: revision([value.source_id, value.source_revision, value.context]) } : value;
+        const job = { ...legacy, version: value.version === 4 ? 4 : 3, consumers: (value.version === 3 || value.version === 4) ? value.consumers : legacy.trigger === 'manual' ? [{owner:value.owner,expires_at:value.deadline_at}] : [] } as unknown as SourceJob;
+        sourceText(job.reason,128,true);
+        if(job.result!==undefined&&job.result!==null&&!validSourceExecution(job.result))sourceError('invalid');
         if (!['manual', 'automatic'].includes(job.trigger) || !/^[a-f0-9]{64}$/.test(job.identity)) sourceError('invalid');
+        if (!Array.isArray(job.consumers) || job.consumers.length > 128 || new Set(job.consumers.map(c=>c.owner)).size !== job.consumers.length) sourceError('invalid');
+        for(const consumer of job.consumers) {
+            if(!object(consumer)||Object.keys(consumer).sort().join(',')!=='expires_at,owner')sourceError('invalid');
+            sourceId(consumer.owner);
+            if(!stamp(consumer.expires_at)||Date.parse(consumer.expires_at)>Date.parse(job.deadline_at))sourceError('invalid');
+        }
         if (job.state === 'running' && Date.parse(job.deadline_at) + 2000 < this.now())
             return { ...job, state: 'failed', reason: 'timeout' };
         return job;
@@ -192,8 +211,21 @@ export class SourceService {
     }
     private cancelSource(id: string, automaticOnly = false): void {
         for (const job of this.jobs())
-            if (job.source_id === id && job.state === 'running' && (!automaticOnly || job.trigger === 'automatic'))
+            if (job.source_id === id && job.state === 'running' && (!automaticOnly || !manualJobActive(job,this.now())))
                 this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: 'cancelled' });
+    }
+    private interested(job: SourceJob): boolean {
+        return manualJobActive(job,this.now()) || automaticJobActive(this.configuration.context.configDir,job,this.now());
+    }
+    release(id: unknown, owner: unknown): SourceJob {
+        const consumer=sourceId(owner);
+        return this.configuration.io.lock(this.configuration.context.configDir,()=>{
+            const job=this.job(id);
+            if(job.state!=='running'||!job.consumers.some(c=>c.owner===consumer))return job;
+            job.consumers=job.consumers.filter(c=>c.owner!==consumer);
+            if(!this.interested(job)){job.state='cancelled';job.reason='no_consumers';}
+            this.write(this.jobPath(job.id),job);return job;
+        });
     }
     cancel(id: unknown): SourceJob {
         return this.configuration.io.lock(this.configuration.context.configDir, () => {
@@ -219,17 +251,21 @@ export class SourceService {
             if (!matchesScope(source.scope, actual))
                 sourceError('scope');
             const context = observationContext(source, actual), identity = refreshIdentity(source, context);
-            const existing = this.jobs().find(job => job.source_id === source.id && job.state === 'running' && (source.kind !== 'github' || job.identity === identity));
+            const existing = this.jobs().find(job => job.source_id === source.id && job.state === 'running' && (source.kind !== 'github' || job.identity === identity || ![3,4].includes((this.readValue(this.jobPath(job.id)) as {version?:number})?.version ?? 0)));
             if (existing) {
-                if (source.kind !== 'github') sourceError('busy');
-                if (trigger === 'manual' && existing.trigger === 'automatic') {
-                    existing.trigger = 'manual'; existing.owner = ownerId;
+                if (existing.identity !== identity || source.kind === 'command' && trigger === 'manual' && !automaticJobActive(this.configuration.context.configDir,existing,this.now())) sourceError('busy');
+                const stored=this.readValue(this.jobPath(existing.id));
+                if(!object(stored)||![3,4].includes(stored.version as number)||Date.parse(existing.deadline_at)<=this.now())sourceError('busy');
+                if (trigger === 'manual' && !existing.consumers.some(c=>c.owner===ownerId)) {
+                    if(existing.consumers.length>=128)sourceError('busy');
+                    existing.consumers.push({owner:ownerId,expires_at:existing.deadline_at});
                     this.write(this.jobPath(existing.id), existing);
                 }
                 return existing;
             }
-            const created: SourceJob = { version: 2, trigger, identity, id: randomUUID(), source_id: source.id, source_revision: source.revision, owner: ownerId, context,
+            const created: SourceJob = { version: 4, result: null, trigger, identity, id: randomUUID(), source_id: source.id, source_revision: source.revision, owner: ownerId, consumers: [], context,
                 started_at: new Date(this.now()).toISOString(), deadline_at: new Date(this.now() + (source.kind === 'github' ? 30000 : source.settings.timeout_ms ?? 5000)).toISOString(), state: 'running', reason: 'running' };
+            if(trigger==='manual')created.consumers.push({owner:ownerId,expires_at:created.deadline_at});
             if (trigger === 'automatic' && !automaticJobActive(this.configuration.context.configDir, created, this.now())) sourceError('disabled');
             this.write(this.jobPath(created.id), created);
             createdNew = true;
@@ -279,7 +315,7 @@ export class SourceService {
         this.write(this.observationPath(source, context), { version: 1, current: observation, good: observation.value !== null && ['valid', 'partial'].includes(observation.state) ? observation : previous?.good ?? null });
         this.prune();
     }
-    view(ref: SourceReference | undefined, context: SourceContext, publishLocal = true): SourceView {
+    view(ref: SourceReference | undefined, context: SourceContext, publishLocal = true, historicalAt?: number): SourceView {
         const registry = this.read(), binding = registry.bindings.find(b => b.id === ref?.binding), source = registry.sources.find(s => s.id === binding?.source_id);
         if (!source || !source.enabled || !matchesScope(source.scope, context))
             return sourceView(source, context, null, null, this.now());
@@ -287,18 +323,18 @@ export class SourceService {
         if (source.kind === 'json') {
             const observed = readLocal(source, context);
             try {
-                if (publishLocal)
+                if (publishLocal && historicalAt === undefined)
                     this.publish(source, context, observed);
             }
             catch { /* Local cache is optional; report the actual read below. */ }
             const prior = this.stored(source, context);
-            return sourceView(source, context, observed, prior?.good ?? null, this.now());
+            return sourceView(source, context, observed, prior?.good ?? null, this.now(), historicalAt);
         }
         const data = this.stored(source, context);
-        const identity = data?.current.identity ?? data?.good?.identity;
+        const identity = historicalAt === undefined ? data?.current.identity ?? data?.good?.identity : (observationAt(data?.current ?? null, historicalAt) ?? observationAt(data?.good ?? null, historicalAt))?.identity;
         if (source.kind === 'github' && identity && (identity.auth_revision !== authRevision() || identity.host !== source.settings.host || identity.repository !== source.settings.repository || identity.account !== source.settings.account))
             return { ...sourceView(source, context, null, null, this.now()), state: 'mismatch', reason: 'identity' };
-        return sourceView(source, context, data?.current ?? null, data?.good ?? null, this.now());
+        return sourceView(source, context, data?.current ?? null, data?.good ?? null, this.now(), historicalAt);
     }
     diagnose(id: unknown, context: SourceContext): {
         source: SourceDefinition;
@@ -317,10 +353,19 @@ export class SourceService {
         const jobs = this.jobs().filter(job => job.source_id === source.id);
         return { source, view, jobs, automatic: automaticStatus(this.configuration.context.configDir, source, context, this.now(), jobs) };
     }
+    inspect(id:unknown,context:SourceContext,offsetValue:unknown=0): import('@fbincon/statusline-core/contracts/ui').SourceInspection {
+        const offset=integer(offsetValue,0,Number.MAX_SAFE_INTEGER,'offset'),diagnosis=this.diagnose(id,context);
+        const source=diagnosis.source,actual=observationContext(source,context),stored=matchesScope(source.scope,context)?this.stored(source,actual):null;
+        const current=stored?.current,good=stored?.good;
+        const eligible=diagnosis.view.state!=='mismatch' && diagnosis.view.state!=='unbound' && source.enabled;
+        const observed=eligible?(current?.checks?current:good?.checks?good:null):null;
+        const checks=(observed?.checks??[]).filter(c=>c&&typeof c.name==='string'&&typeof c.state==='string'&&typeof c.bucket==='string').map(c=>({...c,name:executionSummary(c.name),state:executionSummary(c.state),bucket:executionSummary(c.bucket),url:c.url&&/^https?:/u.test(c.url)?safeLink(c.url):null}));
+        return {...diagnosis,jobs:diagnosis.jobs.filter(j=>j.source_revision===source.revision).sort((a,b)=>Date.parse(b.started_at)-Date.parse(a.started_at)).slice(0,16),last_success:eligible?good?.observed_at??null:null,checks:checks.slice(offset,offset+16),checks_observed_at:observed?.observed_at??null,checks_context:observed?.context??null,offset,total:checks.length};
+    }
     cancelInactiveAutomatic(): void {
         this.configuration.io.lock(this.configuration.context.configDir, () => {
-            for (const job of this.jobs()) if (job.trigger === 'automatic' && job.state === 'running' && !automaticJobActive(this.configuration.context.configDir, job, this.now()))
-                this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: 'lease_expired' });
+            for (const job of this.jobs()) if (job.state === 'running' && !this.interested(job))
+                this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
         });
     }
     async work(id: string): Promise<void> {
@@ -340,7 +385,7 @@ export class SourceService {
         const watcher = setInterval(() => {
             try {
                 const source = this.source(job.source_id), current = this.job(id);
-                if (current.state !== 'running' || source.revision !== job.source_revision || !source.enabled || !automaticJobActive(this.configuration.context.configDir, current, this.now()))
+                if (current.state !== 'running' || source.revision !== job.source_revision || !source.enabled || refreshIdentity(source,job.context)!==job.identity || !this.interested(current))
                     abort.abort();
             }
             catch {
@@ -350,7 +395,7 @@ export class SourceService {
         const deadline = setTimeout(() => abort.abort(), Math.max(1, Date.parse(job.deadline_at) - this.now()));
         try {
             const source = this.source(job.source_id);
-            if (!source.enabled || source.revision !== job.source_revision || !automaticJobActive(this.configuration.context.configDir, this.job(id), this.now())) return;
+            if (!source.enabled || source.revision !== job.source_revision || refreshIdentity(source,job.context)!==job.identity || !this.interested(this.job(id))) return;
             let observation: SourceObservation;
             if (!sameContext(observationContext(source, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
                 observation = emptyObservation(source, job.context, 'identity');
@@ -361,11 +406,11 @@ export class SourceService {
             this.configuration.io.lock(this.configuration.context.configDir, () => {
                 const latest = this.source(job.source_id), state = this.job(id);
                 if (state.state !== 'running' || !latest.enabled || latest.revision !== job.source_revision) return;
-                if (!automaticJobActive(this.configuration.context.configDir, state, this.now())) {
-                    this.write(this.jobPath(id), { ...state, state: 'cancelled', reason: 'lease_expired' });
+                if (!this.interested(state)) {
+                    this.write(this.jobPath(id), { ...state, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
                     return;
                 }
-                if (!sameContext(observationContext(latest, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
+                if (refreshIdentity(latest,job.context)!==job.identity || !sameContext(observationContext(latest, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
                     observation = emptyObservation(source, job.context, 'identity');
                 if (observation.reason !== 'identity' && observation.reason !== 'account')
                     this.publish(source, job.context, observation);
@@ -373,7 +418,13 @@ export class SourceService {
                     this.write(this.observationPath(source, job.context), { version: 1, current: observation, good: null });
                 state.state = observation.state === 'error' ? 'failed' : 'completed';
                 state.reason = observation.reason;
+                state.result = observation.execution ?? { finished_at: new Date(this.now()).toISOString(), duration_ms: Math.max(0,this.now()-Date.parse(job.started_at)), exit_code: null, reason: observation.reason, summary: String(observation.value ?? '') };
+                state.version = 4;
                 this.write(this.jobPath(id), state);
+                if(state.trigger==='manual'&&['valid','partial'].includes(observation.state)&&observation.value!==null){
+                    const scheduling=readAutomatic(this.configuration.context.configDir),schedule=scheduling.schedules.find(s=>s.key===state.identity),policy=this.read().automatic.find(p=>p.source_id===source.id);
+                    if(schedule&&policy?.enabled){schedule.processed=state.id;schedule.last_attempt=state.started_at;schedule.last_success=observation.observed_at;schedule.failures=0;schedule.paused=null;schedule.next=this.now()+policy.interval_seconds*1000;writeAutomatic(this.configuration.context.configDir,scheduling);}
+                }
             });
         }
         catch (error) {

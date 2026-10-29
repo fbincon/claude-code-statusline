@@ -57,7 +57,7 @@ test('indicator configuration has identical CLI/editor validation and portable i
   assert.equal(isDraft({ display: invalid, host: DEFAULT_HOST }), false);
   const { groups, subagents, ...old } = defaultDisplay();
   const { groups: agentGroups, ...oldAgents } = subagents;
-  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 15);
+  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 17);
 });
 
 test('shared editor forms preview, cancel, save and reopen indicator choices in all languages', t => {
@@ -108,7 +108,7 @@ test('bars retain semantics with labels off, ASCII/no color, narrow rows and ind
     const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + lang);
     const language = new Presentation(lang, MESSAGES);
     const value = indicator({ context_window: { used_percentage: 50 } }, 'context-used', 'main', cfg.instances[0]!.options, { ...cfg.formatting, icons: 'ascii' }, language, 0)!;
-    assert.match(value, /^\[####----\]/);
+    assert.match(value, /^C 界👩‍💻 \[####----\]/);
     assert(value.includes('50'));
     for (const width of [40, 80, 120]) {
       const output = rendered({ context_window: { used_percentage: 50 } }, cfg, { language }, width);
@@ -126,4 +126,72 @@ test('bars retain semantics with labels off, ASCII/no color, narrow rows and ind
   const numeric = renderTask(half, remaining, env, 80);
   remaining = setField(remaining, 'presentation', 'bar', 'subagent', 'context-remaining');
   assert(renderTask(half, remaining, env, 80).endsWith(numeric));
+});
+
+test('production bars compose owned labels once in both scopes and all six languages', async () => {
+  for (const lang of LANGUAGES) {
+    const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + lang);
+    const language = new Presentation(lang, MESSAGES);
+    for (const scope of ['main', 'subagent'] as const) {
+      const ids = scope === 'main' ? ['context-remaining', 'context-used', 'five-hour-limit', 'weekly-limit', 'spend-limit'] : ['context-remaining', 'context-used'];
+      for (const id of ids) for (const mode of ['legacy', 'off', 'short', 'custom'] as const) {
+        let cfg = scope === 'main' ? config([id]) : agentConfig([id]);
+        const icons = mode === 'short' ? 'unicode' : mode === 'custom' ? 'ascii' : 'legacy';
+        for (const [key, value] of [['presentation', 'bar'], ['bar_style', 'ascii'], ['labels', mode === 'custom' ? 'off' : mode], ['icons', icons]] as const)
+          cfg = setField(cfg, key, value, scope, id);
+        if (mode === 'custom') cfg = setField(cfg, 'label', 'CTX👩‍💻', scope, id);
+        const input = { context_window: { used_percentage: 50, remaining_percentage: 50 }, rate_limits: { five_hour: { used_percentage: 50 }, seven_day: { used_percentage: 50 }, spend_limit: { used_percentage: 50 } } };
+        const value = language.text(id === 'context-used' ? 'indicator.used' : 'indicator.remaining', { percentage: '50' });
+        const label = mode === 'legacy' ? language.prefix(scope, id) : mode === 'short' ? language.shortLabel(scope, id) : mode === 'custom' ? 'CTX👩‍💻' : '';
+        const icon = icons === 'unicode' ? id.startsWith('context') ? '◉' : '◷' : icons === 'ascii' ? id.startsWith('context') ? 'C' : 'L' : '';
+        const expected = [icon, ...(mode === 'legacy' ? ['[####----]', label] : [label, '[####----]']), value].filter(Boolean).join(' ');
+        for (const width of [40, 80, 120]) {
+          const output = scope === 'main' ? rendered(input, cfg, { language }, width) : renderTask(task({ tokenCount: 100000 }), cfg, { ...env, language }, width);
+          assert.equal(output.replaceAll('\n', ''), scope === 'subagent' && displayWidth(expected) > width ? '' : expected, `${lang}/${scope}/${id}/${mode}/${width}`);
+          assert(output.split('\n').every(row => displayWidth(row) <= width));
+        }
+      }
+    }
+  }
+});
+
+test('adaptive indicators keep complete numbers and custom content at every width in both scopes', async () => {
+  for (const language of LANGUAGES) for (const separator of ['compact', 'powerline'] as const) {
+    let cfg = config(['context-remaining']); cfg.statusline_language = language; cfg.separator_style = separator;
+    cfg = setField(cfg, 'presentation', 'adaptive', 'main', 'context-remaining');
+    cfg = setField(cfg, 'label', '自定义👩🏽‍💻', 'main', 'context-remaining');
+    cfg = setField(cfg, 'icon', 'I', 'main', 'context-remaining');
+    const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + language);
+    const e = { ...env, language: new Presentation(language, MESSAGES) };
+    for (let width = 2; width <= 70; width++) {
+      const value = rendered({ context_window: { remaining_percentage: 50, used_percentage: 50 } }, cfg, e, width);
+      assert(displayWidth(value) <= width);
+      if (value) { assert(value.includes('50%')); assert(value.includes('自定义👩🏽‍💻')); assert(value.includes('I')); assert(!value.includes('…')); }
+    }
+    let agents = agentConfig(['context-remaining']);
+    agents.separator_style = separator;
+    for (const [key, value] of [['presentation','adaptive'],['label','自定义👩🏽‍💻'],['icon','I']] as const) agents = setField(agents, key, value, 'subagent', 'context-remaining');
+    for (let width=2;width<=70;width++) { const value=renderTask(task({tokenCount:100000}),agents,e,width); assert(displayWidth(value)<=width); if(value){assert(value.includes('50%'));assert(value.includes('自定义👩🏽‍💻'));assert(!value.includes('…'));} }
+    cfg = setField(cfg, 'max_width', 4, 'main', 'context-remaining');
+    assert.equal(rendered({ context_window: { remaining_percentage: 50 } }, cfg, e, 80), '');
+  }
+});
+
+test('adaptive fixed rows degrade semantics before priority omission and auto rows retain normal wrapping', () => {
+  let cfg = config(['model', 'context-remaining']); cfg.use_colors = false;
+  cfg = setField(cfg, 'presentation', 'adaptive', 'main', 'context-remaining');
+  cfg = setField(cfg, 'icons', 'off', 'main', 'context-remaining');
+  cfg = setField(cfg, 'bar_style', 'ascii', 'main', 'context-remaining');
+  cfg = updateDisplay(cfg, { layout: { mode: 'explicit', rows: [['model', 'context-remaining']] } });
+  const input = { model: { display_name: 'M' }, context_window: { remaining_percentage: 50 } };
+  const stages = Array.from({ length: 60 }, (_, i) => rendered(input, cfg, {}, i + 2));
+  assert(stages.some(v => v.includes('M') && v.includes('[##--]') && v.includes('50%')));
+  assert(stages.some(v => v.includes('M') && v.includes('50%') && !v.includes('[')));
+  assert(stages.every(v => !v.includes('50') || v.includes('50%')));
+  cfg = updateDisplay(cfg, { layout: { mode: 'auto', rows: [] } });
+  const wide = rendered(input, cfg, {}, 120);
+  assert(wide.includes('[####----]'));
+  const single = updateDisplay(cfg, { instances: cfg.instances.filter(n=>n.type_id==='context-remaining') });
+  const auto = rendered(input, cfg, {}, displayWidth(rendered(input,single)));
+  assert(auto.includes('\n')); assert(auto.includes('50%'));
 });

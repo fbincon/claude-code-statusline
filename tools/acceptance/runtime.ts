@@ -13,6 +13,7 @@ import { RUNTIME_INSTALLATION_MS } from './budgets.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, case: { type: 'string' } } });
 assert(values.artifact && values.commit && values.report && values.case, 'Require --artifact TGZ --commit FULL_SHA --report FILE --case RUNTIME');
 assert(matchesNodeCase(process.versions.node, values.case), 'Wrong product runtime for this matrix case');
+if (process.env.TS06_RESOLVED_NODE) assert.equal(process.versions.node, process.env.TS06_RESOLVED_NODE, 'Runtime differs from the frozen candidate inputs');
 const checked = verifyCandidate(resolve(values.artifact), values.commit);
 assert.deepEqual(sourceHashes(), checked.source.source_hashes, 'Runtime test sources differ from the package');
 const report = resolve(values.report);

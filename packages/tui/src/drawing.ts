@@ -1,3 +1,4 @@
+import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
 /** External-editor frame composition. Existing drawing exports remain stable. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
@@ -54,7 +55,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
-    const summaryHints = state.form && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
+    const summaryHints = state.form && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
     canvas.content(size.content, size.content.innerHeight - 1, [
@@ -66,19 +67,21 @@ export function frame(state: State, columns: number, rows: number): Frame {
         ? tr('review.preview', { scope: tr('review.sections.' + e.review.previewScope) })
         : tr('ui.drawing.preview_sample_data') + (draft.display.use_colors
             ? tr('ui.drawing.palette') + draft.display.palette : tr('ui.drawing.colors_off'));
-    canvas.panel(size.preview, previewTitle);
+    canvas.panel(size.preview,e.diagnosis?.report?tr('diagnosis.output'):previewTitle+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(size.preview.innerWidth,e.previewWidth)+'c');
     const subagents = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
-    const sample = state.preview ? subagents ? state.preview.subagents : state.preview.main : [];
+    const sample = e.diagnosis?.report&&e.diagnosis.result?e.diagnosis.result.output.map(row=>row.spans):state.preview ? subagents ? state.preview.subagents : state.preview.main : [];
     const capacity = size.preview.innerHeight;
-    const overflow = sample.length > capacity;
+    const offset=Math.min(e.previewOffset,Math.max(0,sample.length-1));
+    const visible=sample.slice(offset);
+    const overflow = visible.length > capacity;
     const count = overflow && capacity > 1 ? capacity - 1 : capacity;
     for (let index = 0; index < count; index++) {
-        canvas.content(size.preview, index, sample[index] ?? [paint(
+        canvas.content(size.preview, index, visible[index] ?? [paint(
             index === 0 && !sample.length ? tr('ui.drawing.no_enabled_items') : '',
         )]);
     }
     if (overflow && capacity > 1) {
-        const remaining = sample.length - count;
+        const remaining = visible.length - count;
         canvas.content(size.preview, count, [paint(tr(
             remaining === 1 ? 'ui.drawing.more_line' : 'ui.drawing.more_lines', { remaining },
         ))]);

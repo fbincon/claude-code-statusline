@@ -1,5 +1,4 @@
 import { GRADIENT_KEYS, GRADIENT_DEFAULTS, GRADIENT_PRESETS, parseGradient, gradientName } from './gradients.js';
-import { alignmentConflicts } from './alignments.js';
 import { COST_RATE_DEFAULTS } from './cost-rate.js';
 import { INDICATOR_DEFAULTS } from './indicators.js';
 import { nodes } from './instances.js';
@@ -39,6 +38,7 @@ export function fieldMessage(row: SettingRow, view: FormView) {
     }
     if (key.startsWith('break:'))
         return localizedText('layout.break_before', { item: view.editor!.instanceLabel('main', key.slice(6), view.language) });
+    if (['reuse-style', 'reuse-groups', 'change-history'].includes(key)) return localizedText('settings.' + key);
     return localizedText('native.settings.' + key);
 }
 export interface FormRow extends SettingRow {
@@ -58,7 +58,7 @@ function format(raw: unknown): string {
     return raw === null ? 'inherit' : typeof raw === 'boolean' ? raw ? 'on' : 'off' : String(raw);
 }
 function row(spec: EditorField, key: string, valueRaw: unknown): FormRow {
-    return { ...spec, spec, key, valueRaw, value: (GRADIENT_KEYS as readonly string[]).includes(spec.key) ? gradientName(valueRaw) : format(valueRaw), editable: true };
+    return { ...spec, spec, key, valueRaw, value: ((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient') ? gradientName(valueRaw) : format(valueRaw), editable: true };
 }
 export function formRows(view: FormView): FormRow[] {
     const e = view.editor!;
@@ -87,13 +87,14 @@ export function formRows(view: FormView): FormRow[] {
         }
         return result;
     }
-    return e.description.editor_fields.global!.map((spec) => row(spec, 'field:' + spec.key, read(d, spec.key)));
+    return e.description.editor_fields.global!.map((spec) => row(spec, 'field:' + spec.key, read(d, spec.key) ?? null));
 }
 function options(draft: Draft, scope: 'main' | 'subagent', id: string) {
     return nodes(draft, scope).find(i => i.id === id)!.options;
 }
 export function setFormValue(view: FormView, current: FormRow, raw: string | boolean): boolean {
     const e = view.editor!;
+    if (!e.canMutateDraft()) { setMessage(view, 'message', e.compositionError); return false; }
     const spec = current.spec;
     let value: unknown = raw;
     if (spec.kind === 'integer') {
@@ -110,7 +111,7 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
         return false;
     if (spec.key === "foreground" || spec.key === "background")
         value = normalizeColor(value);
-    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+    if (((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient')) {
         try { value = parseGradient(value); } catch { setMessage(view, 'message', localizedText('gradients.invalid')); return false; }
     }
     const draft = copyDraft(e.draft);
@@ -152,21 +153,15 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
     }
     else
         write(draft.display, spec.key, value);
-    const ids = alignmentConflicts(draft.display);
-    if (!isDraft(draft)) {
-        if (ids.length) {
-            setMessage(view, 'message', localizedText('alignment.references', { ids: ids.join(', ') }));
-            return false;
-        }
-        setMessage(view, "message", localizedText("native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints"));
+    if (!e.applyStructure(draft)) {
+        setMessage(view, 'message', e.compositionError.key === 'composition.invalid' ? localizedText('native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints') : e.compositionError);
         return false;
     }
-    e.draft = draft;
     return true;
 }
 export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): boolean {
     const spec = current.spec;
-    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+    if (((GRADIENT_KEYS as readonly string[]).includes(spec.key) || spec.key === 'powerline.row_background_gradient')) {
         const choices = ['off', ...Object.keys(GRADIENT_PRESETS)], index = choices.indexOf(gradientName(current.valueRaw));
         return setFormValue(view, current, choices[(index + delta + choices.length) % choices.length]!);
     }

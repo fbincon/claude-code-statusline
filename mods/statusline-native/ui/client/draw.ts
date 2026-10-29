@@ -1,3 +1,9 @@
+import { changesView } from '../../lib/editor/change-review.ts';
+import { reuseView } from '../../lib/editor/reuse-manager.ts';
+import { packageView } from '../../lib/editor/package-manager.ts';
+import { diagnosisLines } from '../../lib/editor/diagnosis-view.ts';
+import { previewWidth } from '../../lib/editor/preview-settings.ts';
+import { colorsView } from '../../lib/editor/color-manager.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { groupsView } from '../../lib/editor/group-manager.ts';
 import { sourcesView } from '../../lib/editor/source-manager.ts';
@@ -24,7 +30,7 @@ import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 
-export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
+export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = ''): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
@@ -59,7 +65,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.alignmentManager) {
+  if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,view.language??'en',inner,layout.bodyRows):reuseView(e,view.language??'en',inner,layout.bodyRows)).map(row=>line(row.text,rowStyle(row.selected===true))));
+  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
+  } else if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
+  } else if(e.alignmentManager) {
     title=tr('alignment.title');
     content.push(...alignmentsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
   } else if(e.groupManager) {
@@ -133,7 +143,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         children: [spanLine(ui, spans, inner, rowStyle(e.setting === row.key, row.editable))],
       }));
     }
-    while (content.length < layout.bodyRows - Number(layout.showSummary)) content.push(line(' '));
+    const gap = layout.bodyRows - Number(layout.showSummary) - content.length;
+    if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.fields", {value0: settings.length ? window.start + 1 : 0, end: window.end, length: settings.length, page: window.page, pages: window.pages}), styles.muted));
   } else {
     const scope = e.page === 'main' ? 'main' : 'subagent';
@@ -152,12 +163,15 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         children: [spanLine(ui, itemSpans(item, match, e.search[scope], view.language ?? 'en', inner, e.selected[scope] === item.id, e.items(scope).includes(item.id)), inner, rowStyle(e.selected[scope] === item.id))],
       }));
     if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
-    while (content.length < layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary)) content.push(line(' '));
+    const gap = layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary) - content.length;
+    if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
+  if (capacityNotice) title = capacityNotice + ' · ' + title;
   const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
-  const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
+  const allSamples = e.diagnosis?.report&&e.diagnosis.result ? e.diagnosis.result.output.map(row=>row.spans) : view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
+  const sample=allSamples.slice(Math.min(e.previewOffset,Math.max(0,allSamples.length-1)));
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const background = view.previewBackground ?? 'dark';
@@ -180,9 +194,9 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
+        : line(capacityNotice || tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', e.diagnosis?.report ? tr('diagnosis.output') : e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language)+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(inner,e.previewWidth)+'c', preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

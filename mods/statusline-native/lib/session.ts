@@ -1,10 +1,14 @@
 import type { TextInput } from './editor/text-input.ts';
-import { Editor } from './editor/draft.ts';
+import type { Editor } from './editor/draft.ts';
 import type { Scope, PreviewResult } from './generated-contracts.ts';
 import type { Preference } from './preferences.ts';
 import type { PreviewBackground } from './preview-preferences.ts';
 import type { Language, LocalizedText } from './i18n/index.ts';
 import type { MessageSlot } from './i18n/messages.ts';
+import { t } from './i18n/index.ts';
+import { draw } from '../ui/client/draw.ts';
+import { CapacityError, frameElements, frameTree, withinBudget } from '../ui/frame.ts';
+import type { Frame } from '../ui/frame.ts';
 
 export type InputMode = (
   | { kind: 'search'; scope: Scope; original: string; selected: string }
@@ -31,101 +35,35 @@ export interface View {
   uncertain: boolean;
 }
 
-type EditorData = Pick<
-  Editor,
-  | 'description'
-  | 'baseline'
-  | 'draft'
-  | 'page'
-  | 'advanced'
-  | 'adding'
-  | 'pickerSaved'
-  | 'detail'
-  | 'guidanceScroll'
-  | 'explanation'
-  | 'profiles'
-  | 'sources'
-  | 'quick'
-  | 'groupManager'
-  | 'alignmentManager'
-  | 'review'
-  | 'preset'
-  | 'path'
-  | 'pendingTransfer'
-  | 'setting'
-  | 'activeNumeric'
-  | 'selected'
-  | 'order'
-  | 'search'
-  | 'category'
-  | 'buffers'
-  | 'fieldErrors'
-  | 'fieldErrorMessages'
->;
+/** Private host-to-Client presentation contract; unrelated to the backend protocol. */
 export interface ClientProps {
   epoch: number;
   ack: number;
   generation: number;
   columns: number;
   rows: number;
-  view: Omit<View, 'editor'> & { editor: EditorData | null };
+  displayColumns: number;
+  displayRows: number;
+  language: Language;
+  busy: boolean;
+  frame: Frame;
 }
 
-export function clientProps(
-  view: View,
-  epoch: number,
-  ack: number,
-  generation: number,
-  columns: number,
-  rows: number,
-): ClientProps {
-  const e = view.editor;
-  // The host freezes port data recursively. Never expose live editor arrays or
-  // preference rows: subsequent keys must still mutate our own draft.
-  return JSON.parse(
-    JSON.stringify({
-      epoch,
-      ack,
-      generation,
-      columns,
-      rows,
-      view: {
-        ...view,
-        editor: e
-          ? {
-              description: e.description,
-              baseline: e.baseline,
-              draft: e.draft,
-              page: e.page,
-              advanced: e.advanced,
-              adding: e.adding,
-              pickerSaved: e.pickerSaved,
-              detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
-              guidanceScroll: e.guidanceScroll,
-              groupManager: e.groupManager, alignmentManager: e.alignmentManager, review: e.review, quick: e.quick, explanation:e.explanation, profiles:e.profiles, sources:e.sources,
-              setting: e.setting,
-              activeNumeric: e.activeNumeric,
-              selected: e.selected,
-              order: e.order,
-              search: e.search,
-              category: e.category,
-              buffers: e.buffers,
-              fieldErrors: e.fieldErrors,
-              fieldErrorMessages: e.fieldErrorMessages,
-            }
-          : null,
-      },
-    }),
-  ) as ClientProps;
-}
-
-/** Rendering uses the same editor model, with only plain data crossing ports. */
-export function clientView(props: ClientProps): View {
-  const data = props.view.editor;
-  return {
-    ...props.view,
-    editor: data
-      ? Object.assign(new Editor(data.description, data.baseline), data)
-      : null,
-  };
+export function clientProps(view: View, epoch: number, ack: number, generation: number, columns: number, rows: number): ClientProps {
+  let width = Math.max(2, Math.min(10000, columns));
+  let height = Math.max(0, Math.min(10000, rows));
+  for (;;) {
+    try {
+      const { elements, frame } = frameElements();
+      const reduced = width !== columns || height !== rows;
+      draw(elements, view, width, height, reduced ? t('native.capacity.reduced', view.language ?? 'en', {columns: width, rows: height}) : '');
+      const result: ClientProps = { epoch, ack, generation, columns, rows, displayColumns: width, displayRows: height, language: view.language ?? 'en', busy: !!view.busy, frame };
+      if (withinBudget(result) && withinBudget(frameTree(frame))) return result;
+    } catch (error) {
+      if (!(error instanceof CapacityError)) throw error;
+    }
+    if (height > 12) height = Math.max(12, Math.floor(height * 0.75));
+    else if (width > 32) width = Math.max(32, Math.floor(width * 0.75));
+    else throw new CapacityError();
+  }
 }

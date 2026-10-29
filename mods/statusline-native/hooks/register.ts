@@ -1,5 +1,11 @@
-import { performSourceAction, closeSources } from '../lib/editor/source-manager.ts';
-import { taskDetailLines } from '../lib/editor/task-detail.ts';
+import { openChanges, performChanges, changePreview } from '../lib/editor/change-review.ts';
+import { performReuse } from '../lib/editor/reuse-manager.ts';
+import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
+import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
+import { colorDraft } from '../lib/editor/color-manager.ts';
+import { previewWidth } from '../lib/editor/preview-settings.ts';
+import { performSourceAction, closeSources, closeSourceDraft } from '../lib/editor/source-manager.ts';
+import { taskViewer, taskViewerView, taskViewerKey, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
 import type {
@@ -24,16 +30,17 @@ import type {
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS, contentColumns } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
+import { withinBudget, frameElements } from '../ui/frame.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
 import type { PreviewBackground } from '../lib/preview-preferences.ts';
 import { text as localizedText, t } from '../lib/i18n/index.ts';
-import type { Language } from '../lib/i18n/index.ts';
+import { renderMessage, type Language, type LocalizedText } from '../lib/i18n/index.ts';
 import { setMessage, failureMessage, setResult, viewMessage } from '../lib/i18n/messages.ts';
 import { binding } from '../lib/launch.ts';
 
@@ -46,12 +53,12 @@ async function callBackend<O extends Operation>(
   options: PluginOptions,
   operation: O,
   payload: unknown = {},
+  control?: import('../lib/generated-contracts.ts').PackageControl,
 ): Promise<ResultFor<O>> {
   try {
-    const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
-    const directory =
-      (await $.env.get('CLAUDE_CONFIG_DIR')) ||
-      (typeof options.configDir === 'string' ? options.configDir : undefined);
+    const launch = control ?? binding(options, await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
+    const directory = control?.config_dir ?? ((await $.env.get('CLAUDE_CONFIG_DIR')) ||
+      (typeof options.configDir === 'string' ? options.configDir : undefined));
     const argv = directory
       ? [launch.executable, ...launch.args, 'ui', '--config-dir', directory]
       : [launch.executable, ...launch.args, 'ui'];
@@ -112,38 +119,50 @@ interface Session {
   generation: number;
   columns: number;
   rows: number;
+  displayColumns: number;
+  displayRows: number;
+  saveOutcome: 'none' | 'pending' | 'saved' | 'unknown' | 'refused';
   placed: boolean;
   clientFault: string;
   inputChain: Promise<void>;
   epoch: number;
   previewKey: string;
   previewTimer: Timer | null;
+  diagnosisTimer:Timer|null;
   writing: boolean;
-  pendingSave: { draft: Draft; revision: string } | null;
 }
 
 function discard(state: Session): void {
   state.previewTimer?.cancel();
   state.previewTimer = null;
+  state.diagnosisTimer?.cancel();state.diagnosisTimer=null;
   state.epoch += 1;
   state.view = emptyView();
   state.previewKey = '';
   state.writing = false;
-  state.pendingSave = null;
   state.ack = 0;
   state.placed = false;
   state.clientFault = '';
+  state.saveOutcome = 'none';
 }
 
 function props(state: Session) {
-  return clientProps(
-    state.view,
-    state.epoch,
-    state.ack,
-    ++state.generation,
-    state.columns,
-    state.rows,
-  );
+  try {
+    const projected = clientProps(state.view, state.epoch, state.ack, ++state.generation, state.columns, state.rows);
+    state.displayColumns = projected.displayColumns;
+    state.displayRows = projected.displayRows;
+    return projected;
+  } catch (error) {
+    state.clientFault = failureText(error).slice(0, 200);
+    return null;
+  }
+}
+
+function clientReply($: EngineInterface, state: Session) {
+  const projected = props(state);
+  if (projected && !state.clientFault) return { props: projected };
+  $.ui.invalidate('ui.render');
+  return {};
 }
 
 async function load(
@@ -151,7 +170,8 @@ async function load(
   state: Session,
   options: PluginOptions,
 ) {
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+  if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
   discard(state);
   const opening = state.epoch;
   setMessage(state.view, "busy", localizedText("native.hooks.register.loading_configuration"));
@@ -216,32 +236,29 @@ async function reconcile(
   options: PluginOptions,
 ) {
   const editor = state.view.editor;
-  const submitted = state.pendingSave;
+  const submitted = editor?.pendingSave;
   if (!editor || !submitted || state.writing) return;
   const saving = state.epoch;
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.checking_saved_configuration"));
   $.ui.invalidate('ui.render');
   try {
-    const current = await callBackend($, options, 'read', editor.baseline.configuration ? { target: editor.baseline.configuration.target } : {});
+    const current = await callBackend($, options, 'read', submitted.target ? { target: submitted.target } : {});
     if (state.epoch !== saving) return;
-    if (
-      sameDraft(current.draft, submitted.draft) &&
-      current.installed &&
-      JSON.stringify(current.installation) ===
-        JSON.stringify(editor.baseline.installation)
-    ) {
-      editor.committed(current);
+    const outcome = editor.reconcileSave(current);
+    if (outcome === 'saved') {
+      state.saveOutcome = 'saved';
       setMessage(state.view, "message", localizedText("native.hooks.register.the_submitted_tool_configuration_is_saved"));
       state.view.error = '';
-    } else if (current.revision === submitted.revision) {
+    } else if (outcome === 'not_committed') {
+      state.saveOutcome = 'refused';
       setMessage(state.view, "message", localizedText("native.hooks.register.no_tool_changes_were_committed_review_the_draft"));
       state.view.error = '';
     } else {
+      state.saveOutcome = 'refused';
       setMessage(state.view, "error", localizedText("native.hooks.register.configuration_conflict_saved_configuration_differs_discard_the_draft"));
     }
-    state.pendingSave = null;
-    state.view.uncertain = false;
+      state.view.uncertain = false;
   } catch (failure) {
     if (state.epoch === saving)
       setMessage(state.view, "error", localizedText("native.hooks.register.save_outcome_remains_unknown", {value0: failureMessage(failure)}));
@@ -270,11 +287,8 @@ async function save(
     return;
   }
   const saving = state.epoch;
-  const submitted = {
-    draft: copyDraft(editor.draft),
-    revision: editor.baseline.revision,
-  };
-  state.pendingSave = submitted;
+  const submitted = editor.beginSave();
+  state.saveOutcome = 'pending';
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.saving_tool_configuration"));
   state.view.error = '';
@@ -288,24 +302,17 @@ async function save(
     });
     if (state.epoch !== saving) return;
     editor.committed(result);
-    state.pendingSave = null;
-    saved = true;
+      saved = true;
+    state.saveOutcome = 'saved';
     setMessage(state.view, "message", (result.changed ? localizedText("native.hooks.register.tool_configuration_saved_later_statusline_refreshes_use_these") : localizedText("native.hooks.register.tool_configuration_is_already_current")));
   } catch (failure) {
     if (state.epoch !== saving) return;
     const error = processFailure(failure);
     setMessage(state.view, "error", failureMessage(error));
-    const refused = [
-      'invalid_request',
-      'invalid_configuration',
-      'configuration_conflict',
-      'not_installed',
-      'ownership_mismatch',
-      'unsupported_protocol',
-      'unsupported_operation',
-    ].includes(error.code);
-    state.view.uncertain = !refused;
-    if (refused) state.pendingSave = null;
+    editor.saveFailed(error.code);
+    state.view.uncertain = editor.saveState === 'unknown';
+    state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
+    if(error.code==='configuration_conflict'){openChanges(editor);editor.changeReview!.effect='read';await performChanges(editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -444,7 +451,6 @@ async function applyPreferences(
 }
 
 async function close($: EngineInterface, state: Session, options: PluginOptions) {
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   // A plugin's own API calls skip its hooks; guard programmatic close here too.
   if (state.writing || state.view.uncertain) {
     setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
@@ -452,6 +458,8 @@ async function close($: EngineInterface, state: Session, options: PluginOptions)
     return;
   }
   try {
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     await $.ui.close({ id: PANE });
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -492,74 +500,121 @@ async function openEditor(
 
 /** Task host calls stay in this statically inspected entry; presentation is shared in core. */
 const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
-export interface TaskPaneState {
-  owned: boolean; loading: boolean; generation: number; offset: number;
-  language: Language; report: TaskDetails | null; error: string;
+export interface TaskPaneState extends TaskViewer {
+  owned: boolean; epoch: number; ack: number; frameGeneration: number; chain: Promise<void>;
 }
 export function taskPaneState(): TaskPaneState {
-  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:'' };
+  return {...taskViewer(),input:null,owned:false,epoch:0,ack:0,frameGeneration:0,chain:Promise.resolve()};
 }
-export async function startTaskDetails($: EngineInterface, state: TaskPaneState): Promise<void> {
-  state.generation++; state.loading=false; state.report=null; state.error=''; state.offset=0; state.owned=false;
-  const commands=await $.command.list();
-  if(!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native')) {
-    await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)}); state.owned=true;
+
+async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
+  try {
+    const preference=await callBackend($,options,'read_ui_preferences');
+    if(state.generation!==epoch)return false;
+    state.language=preference.ui_language;state.warning=preference.warning;
+  }catch {
+    if(state.generation!==epoch)return false;
+    state.language='en';state.warning=localizedText('task.language_unavailable');
   }
+  return true;
 }
-async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState): Promise<void> {
-  if (state.loading) return;
-  state.loading=true; state.error=''; const epoch=state.generation;
+async function taskCommand($: EngineInterface, state: TaskPaneState, epoch: number): Promise<boolean> {
+  const commands=await $.command.list();
+  if(state.generation!==epoch)return false;
+  state.owned=!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native');
+  if(state.owned)await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)});
+  return state.owned && state.generation===epoch;
+}
+export async function startTaskDetails($: EngineInterface, state: TaskPaneState, options: PluginOptions): Promise<void> {
+  const generation=state.generation+1,epoch=state.epoch+1;
+  Object.assign(state,taskPaneState(),{generation,epoch});
+  if(await taskLanguage($,options,state,generation))await taskCommand($,state,generation);
+}
+async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState, readLanguage=true): Promise<void> {
+  if(state.busy||state.closed)return;
+  state.busy=true;const generation=state.generation;
   $.ui.invalidate('ui.render');
   try {
-    const launch=binding(options,await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
-    const directory=await $.env.get('CLAUDE_CONFIG_DIR') || (typeof options.configDir==='string' ? options.configDir : '');
-    const argv=[launch.executable,...launch.args,'ui',...(directory ? ['--config-dir',directory] : [])];
+    if(readLanguage) {
+      const previous=state.language;
+      if(!await taskLanguage($,options,state,generation)||!await taskCommand($,state,generation))return;
+      if(previous!==state.language)await $.ui.open({id:TASK_PANE,title:t('task.title',state.language),closeOnEscape:true,rows:24,columns:88});
+    }
     const session=await $.session.id();
+    if(!state.session)state.session=session;
     let host_agents: { observed_at:number; agents:{id:string;name:string|null}[] } | undefined;
-    try {
+    if(state.session===session)try {
       const agents=await $.agent.list();
       host_agents={observed_at:await $.clock.now(),agents:agents.slice(0,256).map(a=>({id:a.id,name:[...(a.name ?? a.description ?? '').replace(/[\p{Cc}\p{Cs}]/gu,'')].slice(0,256).join('') || null}))};
-    } catch { /* Published evidence remains usable without a host snapshot. */ }
-    const preference=parseResponse('read_ui_preferences',await $.process.run(argv,{stdin:requestText('read_ui_preferences',{}),timeoutMs:30000}));
-    const result=parseResponse('task_details',await $.process.run(argv,{stdin:requestText('task_details',{session_id:session,...(host_agents ? {host_agents} : {})}),timeoutMs:30000}));
-    if(result.session_id!==session)throw new Error(t('task.error.input',state.language));
-    if(state.generation!==epoch)return;
-    state.report=result;state.language=preference.ui_language;state.offset=0;
-  } catch(failure) {
-    if(state.generation===epoch)state.error=failure instanceof Error ? failure.message : String(failure);
-  } finally {
-    if(state.generation===epoch){state.loading=false;$.ui.invalidate('ui.render');}
+    }catch { /* Published evidence remains usable without a host snapshot. */ }
+    if(state.generation!==generation)return;
+    const result=await callBackend($,options,'task_details',{session_id:state.session,prompt_id:state.prompt,...(host_agents?{host_agents}:{})});
+    if(state.generation!==generation)return;
+    receiveTask(state,result);
+  }catch(failure) {
+    if(state.generation===generation)state.error=failureMessage(failure);
+  }finally {
+    if(state.generation===generation){state.busy=false;$.ui.invalidate('ui.render');}
   }
 }
+
 export function registerTaskDetails(on: On, options: PluginOptions, state: TaskPaneState): void {
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
     if(!state.owned)return next(e);
+    await startTaskDetails($,state,options);
+    if(!state.owned)return next(e);
     const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
     if(!opened.isPlaced)return {text:tr('task.fallback')};
-    await refreshTaskDetails($,options,state);return {};
+    await refreshTaskDetails($,options,state,false);return {};
   });
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
-    state.generation++;state.loading=false;state.report=null;state.error='';return next(e);
+    state.generation++;state.epoch++;state.closed=true;state.busy=false;state.report=null;return next(e);
+  });
+  on('ui.message',{component:'Pane'},async($,e,next)=>{
+    if(e.requestId!==TASK_PANE||e.element!=='task-client-'+state.epoch||e.module!=='ui/client/surface.ts'||e.surface!=='terminal'||!state.owned||state.closed)return next(e);
+    const batch=parseBatch(e.data);
+    if(!batch){state.error=localizedText('task.fallback');$.ui.invalidate('ui.render');return {};}
+    const run=state.chain.then(async()=>{
+      if(batch.epoch!==state.epoch||state.closed)return {};
+      for(const message of batch.events){
+        if(message.seq<=state.ack)continue;
+        if(message.seq!==state.ack+1){state.error=localizedText('task.fallback');break;}
+        state.ack=message.seq;
+        const action=taskViewerKey(state,message.event);
+        if(action==='close'){await $.ui.close({id:TASK_PANE});break;}
+        if(action==='read')await refreshTaskDetails($,options,state);
+      }
+      $.ui.invalidate('ui.render');return {};
+    });
+    state.chain=run.then(()=>{},()=>{});return run;
   });
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
-    const {Box,Text,Button}=$.ui.resolve(e);
-    if(e.surface!=='terminal')return Text({...styles.text,children:[tr('task.fallback')]});
-    const width=Math.max(2,e.props.bodyColumns),height=Math.max(4,e.props.scroll.bodyRows),capacity=Math.max(1,height-3);
-    const lines=state.report ? taskDetailLines(state.report,state.language,Math.max(2,width-2)) : [tr(state.loading?'profiles.loading':'task.unknown')];
-    state.offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
-    return Box({width,height,flexDirection:'column',children:[
-      Text({...styles.accent,bold:true,wrap:'truncate',children:[tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly'))]}),
-      ...lines.slice(state.offset,state.offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
-      ...(state.error?[Text({...styles.error,wrap:'truncate',children:[state.error.replace(/[\p{Cc}\p{Cs}]/gu,'')]} )]:[]),
-      Box({flexDirection:'row',columnGap:1,children:[
-        Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{state.offset=Math.max(0,state.offset-capacity);$.ui.invalidate('ui.render');}}),
-        Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{state.offset=Math.min(Math.max(0,lines.length-capacity),state.offset+capacity);$.ui.invalidate('ui.render');}}),
-        Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
-        Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
-      ]}),
-    ]});
+    if(e.surface!=='terminal')return $.ui.resolve(e).Text({...styles.text,children:[tr('task.fallback')]});
+    const {Box,Text,Button,Client}=$.ui.resolve(e);
+    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(6,Math.min(10000,e.props.scroll.bodyRows));
+    for(;;) {
+      const lines=taskViewerView(state,Math.max(2,width-2),Math.max(1,height-3));
+      const {elements,frame}=frameElements();
+      elements.Text({...styles.muted,wrap:'truncate',children:[clip(tr('task.viewer.help_read'),width)]});
+      const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
+      const pane=Box({width,height,flexDirection:'column',children:[
+        Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.busy?tr('profiles.loading'):tr('task.readonly')),width)]}),
+        ...lines.map(row=>Text({...styles.text,bold:row.selected,wrap:'truncate',children:[row.text]})),
+        Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:1,props:{epoch:state.epoch,ack:state.ack,generation:++state.frameGeneration,columns:width,rows:1,displayColumns:width,displayRows:1,language:state.language,busy:false,frame}}),
+        Box({flexDirection:'row',columnGap:1,children:[
+          Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{taskViewerKey(state,{key:'pageup'});$.ui.invalidate('ui.render');}}),
+          Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{taskViewerKey(state,{key:'pagedown'});$.ui.invalidate('ui.render');}}),
+          Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
+          Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
+        ]}),
+      ]});
+      if(withinBudget(pane))return pane;
+      if(height>6)height=Math.max(6,Math.floor(height*.75));
+      else if(width>32)width=Math.max(32,Math.floor(width*.75));
+      else return Text({...styles.text,children:[tr('task.fallback')]});
+    }
   });
 }
 
@@ -578,19 +633,23 @@ export const register: Register = (on, options) => {
     generation: 0,
     columns: 72,
     rows: 24,
+    displayColumns: 72,
+    displayRows: 24,
+    saveOutcome: 'none',
     placed: false,
     clientFault: '',
     inputChain: Promise.resolve(),
     previewKey: '',
     previewTimer: null,
+    diagnosisTimer:null,
     writing: false,
-    pendingSave: null,
   };
 
   on('session.start', async ($, e, next) => {
-    await startTaskDetails($, taskDetails);
+    await startTaskDetails($, taskDetails, options);
     state.ownsCommand = false;
-    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -628,17 +687,29 @@ export const register: Register = (on, options) => {
       $.ui.invalidate('ui.render');
       return { deny: state.view.error };
     }
-    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    if (state.view.editor?.packages) await closePackage(state.view.editor.packages,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)});
+  if (state.view.editor?.sources && !state.view.editor.packageLocked) {await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});await closeSourceDraft(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
     const result = await next(e);
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
     return result;
   });
 
+  // Namespace registration remains valid on hosts predating ui.fault.
+  on('ui.*', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
+    if (String(next.event) === 'ui.fault' && state.ownsCommand) {
+      const fault = e as unknown as { component?: string; requestId?: string; element?: string; module?: string; surface?: string; reason?: unknown };
+      if (fault.component === 'Pane' && fault.requestId === PANE && fault.element === 'statusline-client-' + state.epoch && fault.module === 'ui/client/surface.ts' && fault.surface === 'terminal') {
+        state.clientFault = failureText(fault.reason).slice(0, 200);
+      }
+    }
+    return next(e);
+  });
+
   on('ui.message', { component: 'Pane' }, async ($, e, next) => {
     if (
       e.requestId !== PANE ||
-      e.element !== 'statusline-client' ||
+      e.element !== 'statusline-client-' + state.epoch ||
       e.module !== 'ui/client/surface.ts' ||
       e.surface !== 'terminal' ||
       !state.ownsCommand
@@ -661,11 +732,16 @@ export const register: Register = (on, options) => {
     const batch = parseBatch(e.data);
     if (!batch) {
       setMessage(state.view, "error", localizedText("native.hooks.register.invalid_client_input_retry_the_client_region"));
-      return { props: props(state) };
+      return clientReply($, state);
     }
     const run = state.inputChain.then(async () => {
       if (batch.epoch !== state.epoch || !state.placed) return {};
       const currentEpoch = state.epoch;
+      if (state.columns !== batch.columns || state.rows !== batch.rows) {
+        state.columns = batch.columns;
+        state.rows = batch.rows;
+        props(state);
+      }
       for (const message of batch.events) {
         if (message.seq <= state.ack) continue;
         if (message.seq !== state.ack + 1) {
@@ -677,26 +753,54 @@ export const register: Register = (on, options) => {
         const effect = handleKey(
           state.view,
           message.event,
-          batch.columns,
-          batch.rows,
+          state.displayColumns,
+          state.displayRows,
         );
         if (effect === 'save' || effect === 'finish') {
           await save($, state, options, effect === 'finish');
+        } else if ((effect === 'changes' || effect === 'reuse') && state.view.editor) {
+          state.writing=true;try { if(effect==='changes')await performChanges(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});else await performReuse(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); } finally {state.writing=false;state.previewKey='';}
         } else if (effect === 'close') await close($, state, options);
         else if (effect === 'reload') {
-          await load($, state, options);
-          state.placed = true;
+          if(state.view.editor?.modified){openChanges(state.view.editor);state.view.editor.changeReview!.confirm=true;}else {await load($,state,options);state.placed=true;}
         } else if (effect === 'reconcile') await reconcile($, state, options);
         else if (effect === 'transfer') await transferDraft($, state, options);
+        else if(effect==='diagnoseFile'&&state.view.editor) {
+          const editor=state.view.editor,view=editor.diagnosis!,generation=view.generation;
+          const payload=diagnosisRequest(editor,previewWidth(contentColumns(state.displayColumns,state.displayRows),editor.previewWidth));
+          view.busy=true;
+          state.diagnosisTimer?.cancel();
+          const timer:Timer=$.clock.after(0,async()=>{
+            try {
+              const result=await callBackend($,options,'diagnose_file',payload);
+              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch){view.result=result;view.error='';view.report=true;view.scroll=0;}
+            }catch(failure){
+              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch)view.error=renderMessage(failureMessage(failure),state.view.language??'en');
+            }finally{view.busy=false;if(state.diagnosisTimer===timer)state.diagnosisTimer=null;$.ui.invalidate('ui.render');}
+          });
+          state.diagnosisTimer=timer;
+        }
+        else if (effect === 'packages' && state.view.editor?.packages) {
+          const view=state.view.editor.packages;state.writing=true;
+          try{await performPackage(view,{request:(operation,payload)=>callBackend($,options,operation,payload),control:(control,operation,payload)=>callBackend($,options,operation,payload,control)},state.view.editor);}
+          finally{state.writing=false;state.view.uncertain=state.view.editor.saveState==='unknown';if(state.view.uncertain)state.saveOutcome='unknown';}
+          if(view.closed)state.view.editor.packages=null;
+        }
         else if (effect === 'sources' && state.view.editor) {
           state.writing=true;
-          try { await performSourceAction(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); }
+          try { await performSourceAction(state.view.editor,{request:async(operation,payload)=>{
+            if(operation==='source_context'){
+              const context=payload as {project:string|null;session:string|null;agent:string|null};
+              try{payload={...context,project:context.project??await $.session.cwd(),session:context.session??await $.session.id()};}catch{/* Preserve unknown ownership when host context is unavailable. */}
+            }
+            return callBackend($,options,operation,payload);
+          }}); }
           finally {state.writing=false;state.previewKey='';}
         }
         else if (effect === 'profiles' && state.view.editor) {
           state.writing = true;
           try { await performProfileAction(state.view.editor, { request: (operation, payload) => callBackend($, options, operation, payload) }); }
-          finally { state.writing = false; state.previewKey = ''; }
+          finally { state.writing = false; state.previewKey = ''; state.view.uncertain = state.view.editor?.saveState === 'unknown'; if(state.view.uncertain)state.saveOutcome='unknown'; }
         }
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
@@ -744,13 +848,18 @@ export const register: Register = (on, options) => {
       }
       $.ui.invalidate('ui.render');
       if (state.epoch !== currentEpoch) return {};
-      return { props: props(state) };
+      return clientReply($, state);
     });
     state.inputChain = run.then(
       () => {},
       () => {},
     );
     return run;
+  }).catch(($, e, next) => {
+    if (e.requestId !== PANE || !state.ownsCommand) return next(e);
+    state.clientFault = failureText(next.error.message ?? 'Client reply failed').slice(0, 200);
+    $.ui.invalidate('ui.render');
+    return {};
   });
 
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
@@ -767,16 +876,16 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
-    const previewColumns = contentColumns(width, height);
+    const previewDraft = editor?.changeReview ? changePreview(editor) : editor?.reuse?.result && !editor.reuse.result.blocked.length ? editor.reuse.result.draft : editor?.colors ? colorDraft(editor) : editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
+    const previewColumns = previewWidth(contentColumns(width,height),editor?.previewWidth ?? 'auto');
     const explanation=editor?.explanation;
-    const key = `${state.epoch}:${previewColumns}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
+    const key = `${state.epoch}:${previewColumns}:${editor?.previewScenario}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
       height >= MIN_ROWS &&
       !state.writing &&
-      state.previewKey !== key
+      !editor?.diagnosis && !editor?.packages && state.previewKey !== key
     ) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;
@@ -785,9 +894,9 @@ export const register: Register = (on, options) => {
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {
         try {
-          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns}) : null;
+          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns,scenario:editor?.previewScenario}) : null;
           if(explained && (explained.scope!==explanation!.scope || explained.width!==previewColumns)) throw new Error('Explanation response does not match the request');
-          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns});
+          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns,scenario:editor?.previewScenario});
           if (state.epoch === requestedEpoch && state.previewKey === key) {
             if(explanation && explained) { explanation.result=explained;explanation.error=''; }
             state.view.preview = preview;
@@ -826,17 +935,18 @@ export const register: Register = (on, options) => {
       width >= MIN_COLUMNS &&
       height >= MIN_ROWS
     ) {
-      return Box({
+      const projected = props(state);
+      const tree = projected ? Box({
         width,
         height,
         flexDirection: 'column',
         children: [
           Client({
-            key: 'statusline-client',
+            key: 'statusline-client-' + state.epoch,
             module: '../ui/client/surface.ts',
             width,
             height,
-            props: props(state),
+            props: projected,
           }),
           Box({
             position: 'absolute',
@@ -857,7 +967,9 @@ export const register: Register = (on, options) => {
             ],
           }),
         ],
-      });
+      }) : null;
+      if (tree && withinBudget(tree)) return tree;
+      state.clientFault ||= tr('native.capacity.failed');
     }
     return Box({
       backgroundColor: styles.text.backgroundColor,
@@ -882,8 +994,12 @@ export const register: Register = (on, options) => {
         Text({
           ...styles.error,
           wrap: 'truncate',
-          children: [state.clientFault || viewMessage(state.view, 'error') || ' '],
+          children: [clip((state.clientFault || viewMessage(state.view, 'error') || ' ').slice(0, 200), Math.min(width, 200))],
         }),
+        Text({ ...styles.text, wrap: 'truncate', children: [clip(
+          state.saveOutcome === 'saved' ? tr('native.capacity.saved') : state.view.uncertain ? tr('native.capacity.unknown') : state.writing ? viewMessage(state.view, 'busy') : tr('native.capacity.retained'),
+          Math.min(width, 200),
+        )] }),
         ...(state.view.uncertain
           ? [
               Button({
@@ -915,5 +1031,21 @@ export const register: Register = (on, options) => {
         }),
       ],
     });
+  }).catch(($, e, next) => {
+    if (e.requestId !== PANE || !state.ownsCommand || e.surface !== 'terminal') return next(e);
+    state.clientFault = failureText(next.error.message ?? 'Pane rendering failed').slice(0, 200);
+    $.ui.invalidate('ui.render');
+    const { Box, Text, Button } = $.ui.resolve(e);
+    return Box({ flexDirection: 'column', children: [
+      Text({ children: [tr('native.capacity.failed')] }),
+      Text({ children: [state.saveOutcome === 'saved' ? tr('native.capacity.saved') : state.view.uncertain ? tr('native.capacity.unknown') : tr('native.capacity.retained')] }),
+      Button({ ...recoveryButton, key: 'retry-client', label: tr('native.hooks.register.retry_client'), onPress: () => {
+        if (state.writing || state.view.uncertain) return;
+        state.epoch++; state.ack = 0; state.clientFault = '';
+        $.ui.invalidate('ui.render');
+      } }),
+      ...(state.view.uncertain ? [Button({ ...recoveryButton, key: 'reconcile', label: tr('native.hooks.register.check_saved_state'), onPress: () => reconcile($, state, options) })] : []),
+      Button({ ...recoveryButton, key: 'close', label: tr('native.hooks.register.discard_pending_close'), onPress: () => close($, state, options) }),
+    ] });
   });
 };

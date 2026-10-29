@@ -121,3 +121,25 @@ test('one frame shares a local read without a mismatched component poisoning oth
     assert.equal(env.source!(wrong,payload).state,'unsupported');rmSync(path);
     assert.equal(env.source!(right,payload).value,0);
 });
+
+test('binding reuse and reviewed cleanup protect all profiles, pending drafts and unknown references',async t=>{
+    const root=mkdtempSync(join(tmpdir(),'binding inventory '));t.after(()=>rmSync(root,{recursive:true,force:true}));
+    const configDir=join(root,'config'),config=new ConfigurationService({configDir,launch:{executable:process.execPath,args:[]},hostVersion:()=>null},createStorage()),service=new SourceService(config);
+    const change=(action:string,fields={})=>service.mutate({action,id:'local',expected_revision:service.read().revision,...fields});
+    const data=join(root,'data.json');writeFileSync(data,'{"value":42}');change('add',{source:{name:'Local',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path:data}}});
+    const a=change('bind').binding!;assert.equal(change('bind').binding!.binding,a.binding);
+    service.bindings().pin('editor-draft',[a.binding]);let review=service.bindings().review();assert.equal(review.rows[0]!.removable,false);assert.throws(()=>change('unbind',{binding:a.binding}));
+    assert.throws(()=>service.bindings().cleanup(review.revision,[a.binding]));
+    service.bindings().pin('editor-draft',[],true);review=service.bindings().review();assert.equal(review.uncertain,false);assert.equal(review.rows[0]!.removable,true);
+    assert.throws(()=>service.bindings().pin('editor-draft',[a.binding]),'a late response cannot resurrect a closed draft');
+    const {defaultDisplay}=await import('@fbincon/statusline-core/config/display');
+    const {newInstance}=await import('@fbincon/statusline-core/editor/instances');
+    const display=defaultDisplay(),node=newInstance('external-value',[]);node.source=a;display.instances.push(node);
+    writeFileSync(join(configDir,'claude-statusline-profiles.json'),JSON.stringify({version:1,profiles:[{id:'other',name:'Other scheme',display}],bindings:[{root,profile_id:'other'}]}));
+    review=service.bindings().review();assert.equal(review.uncertain,false);assert.equal(review.rows[0]!.removable,false);assert(review.rows[0]!.references.includes('claude-statusline-profiles.json'));assert.throws(()=>change('unbind',{binding:a.binding}));
+    assert.throws(()=>service.bindings().cleanup(review.revision,[a.binding]));
+    writeFileSync(join(configDir,'claude-statusline-profiles.json'),'{"version":999}');
+    assert.equal(service.bindings().review().uncertain,true);assert.throws(()=>service.bindings().cleanup(review.revision,[a.binding]));
+    rmSync(join(configDir,'claude-statusline-profiles.json'));review=service.bindings().review();
+    service.bindings().cleanup(review.revision,[a.binding]);assert.equal(service.read().bindings.length,0);assert.equal(service.read().sources.length,1);assert.equal(service.source('local').enabled,false);
+});

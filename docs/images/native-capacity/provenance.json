@@ -1,0 +1,143 @@
+{
+  "kind": "real installed Linux PTY cells; not OS screenshots or human acceptance",
+  "host": "2.1.310",
+  "source_commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+  "tarball_sha256": "34150c0bf8c0cbae0c4890c68e227cb2ca0cad55626c3b42279cc35ae2c31c9e",
+  "frames": [
+    {
+      "name": "quick-setup",
+      "scenario": "quick-opening",
+      "label": "after",
+      "kind": "terminal-cell reconstruction; not an OS screenshot",
+      "commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+      "capture_sha256": "3350b228e66f4b09bd57485653a6fe659463f4cbcfe178b90c7981023298111a",
+      "png_sha256": "936bfd21e40e2e998a1e03eee753bcc0df16b3ec3dec3c612d40dbcf488beab9",
+      "renderer_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "resvg": "2.6.2",
+      "font_hashes": {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+      },
+      "bounds": [
+        127,
+        0,
+        73,
+        44
+      ],
+      "width": 900,
+      "height": 1080
+    },
+    {
+      "name": "saved-24",
+      "scenario": "save-after-copies",
+      "label": "after",
+      "kind": "terminal-cell reconstruction; not an OS screenshot",
+      "commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+      "capture_sha256": "d91f26c7f3044f6f3e7802debc5486f4e67c48233f0d53edd3268026c7c2995a",
+      "png_sha256": "746cd8cd3ff3b5acc45fac3bd3f946ba4b68da7bdaa6d797c86f2ca9d588d453",
+      "renderer_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "resvg": "2.6.2",
+      "font_hashes": {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+      },
+      "bounds": [
+        127,
+        0,
+        73,
+        44
+      ],
+      "width": 900,
+      "height": 1080
+    },
+    {
+      "name": "gradients",
+      "scenario": "foreground-gradients",
+      "label": "after",
+      "kind": "terminal-cell reconstruction; not an OS screenshot",
+      "commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+      "capture_sha256": "b7b568b136c00a431e2be51fff5ea87146aa1033f3daa06bc7bd48c30aaf45bd",
+      "png_sha256": "7cc2921e3e75379ba8833577824df46365e2255b44b099451f15d1b4af524f39",
+      "renderer_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "resvg": "2.6.2",
+      "font_hashes": {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+      },
+      "bounds": [
+        127,
+        0,
+        73,
+        44
+      ],
+      "width": 900,
+      "height": 1080
+    },
+    {
+      "name": "tall-pane",
+      "scenario": "tall-minimal",
+      "label": "after",
+      "kind": "terminal-cell reconstruction; not an OS screenshot",
+      "commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+      "capture_sha256": "4eee1547cd9cad73230e87270560376bc02bc84731990961f77077d582bafccd",
+      "png_sha256": "8f8fa1fb07960a7e83b8311adc5244af84bb9619fc99fc22f77fe3e8ac128578",
+      "renderer_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "resvg": "2.6.2",
+      "font_hashes": {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+      },
+      "bounds": [
+        127,
+        0,
+        73,
+        214
+      ],
+      "width": 900,
+      "height": 5160
+    },
+    {
+      "name": "resized-draft",
+      "scenario": "tall-minimal",
+      "label": "resized",
+      "kind": "terminal-cell reconstruction; not an OS screenshot",
+      "commit": "d195f7a41d23d0b8d38c53addd7575e9a06e874a",
+      "capture_sha256": "039c20be5ea3c28ec193a60db5f1ca74fce81fb3f91c4d867a0cee47e862b9ff",
+      "png_sha256": "008821d7ffd34bbb5cdca197f42a1b47e52a9cde59b57af49994e724c4228351",
+      "renderer_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "resvg": "2.6.2",
+      "font_hashes": {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+      },
+      "bounds": [
+        127,
+        0,
+        73,
+        44
+      ],
+      "width": 900,
+      "height": 1080
+    }
+  ]
+}

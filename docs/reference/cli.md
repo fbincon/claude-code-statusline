@@ -2,6 +2,9 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+
+Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](../DRAFT_HISTORY.md).
+
 [First-use setup](../SETUP.md) and [complete schemes](../SCHEMES.md).
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
@@ -111,7 +114,7 @@ Help text/groups, argparse errors and administrative output use the selected lan
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
-Display schema v15 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
+Display schema v16 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -422,7 +425,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v15 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v16 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -624,12 +627,12 @@ Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switch
 
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`, `zh-CN` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
+| `statusline-language` | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
 | `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
 | `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
 | `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
 | `separator-style` | `classic`, `compact`, `powerline` | `classic` | How to separate top-level items |
-| `theme` | `classic`, `dark`, `light`, `terminal` | `classic` | Statusline color roles; preserves item overrides and Claude host appearance |
+| `theme` | `classic`, `dark`, `light`, `terminal`, `ocean`, `ember`, `slate`, `blossom` | `classic` | Statusline color roles; preserves item overrides and Claude host appearance |
 | `powerline-glyph` | `ascii`, `powerline` | `ascii` | ASCII `>` or optional font-dependent arrow for Powerline boundaries |
 | `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend the localized main/session scope label to the main line |
 | `subagent-statusline` | `on`, `off` | `on` | Whether custom subagent rows should be installed and rendered |
@@ -731,7 +734,7 @@ This complete schema-15 example keeps one main model instance and one subagent n
 
 ```json
 {
-  "schema_version": 15,
+  "schema_version": 16,
   "groups": [],
   "use_colors": true,
   "palette": "default",
@@ -824,7 +827,7 @@ The catalog is a list of types; `instances` stores configured placements. Disabl
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current display schema is v15. Historical v1–v14 are readable and are backed up and written as v15 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current display schema is v16. Historical v1–v15 are readable and are backed up and written as v16 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -940,7 +943,7 @@ Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook
 
 ## Conditional visibility and appearance
 
-Use `config set theme classic|dark|light|terminal`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
+Use `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
 
 ## Instance management
 
@@ -972,9 +975,11 @@ claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--pr
 claude-statusline source unbind ID --binding BINDING_ID [--json]
 claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
 claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
 claude-statusline config instance main set INSTANCE link off|auto|on
 ```
+Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
+
 
 Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
 
@@ -998,3 +1003,27 @@ The optional `session-cost-rate` component accepts `config instance main set INS
 ## Main-row alignment
 
 `config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Invalid structural changes fail before writing. [Guide](../COMPOSITION.md#align-corresponding-columns-across-main-rows).
+
+## Interactive task viewer
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+
+## Source binding maintenance
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
+
+## Adaptive indicators and continuous backgrounds
+
+Use `config instance main set context-remaining presentation adaptive` to enable adaptive indicators and `config set powerline-row-background-gradient lagoon` to choose a continuous background; `off` disables it. Backgrounds apply only to colored Powerline output. Custom labels/icons remain whole; a numeric representation that cannot fit is omitted. Auto layout retains ordinary wrapping.
+
+New schemes are `powerline-daily`, `agent-workbench`, `quota-cost`, `narrow-terminal` and `light-readable`, compatible with v3.14.0 onward (display schema 17/protocol 30). Use existing preset/profile selection and import/export. Schemes cannot authorize sources. See [implementation and scenarios](../development/adaptive-row-scenarios.md).

@@ -2,6 +2,65 @@
 
 [English](RELEASING.md) | **简体中文**
 
+
+## v3.14.0 自适应与连续背景
+
+使用[版本决策](releases/approvals/v3.14.0.json)。保留八个安装目标、32 项 Node、十六个固定宿主和原 243 项容量案例；新增 28 项实际宿主案例，合计 271 项。要求安装产物场景／语义拟合回执、双编辑器 PTY 和六语言实际入口标题。按现有证据规则通过最终 PR／main／tag，核验四项附件后以 OIDC 发布 npm，并验证原六项公开下载及固定 npm 签名任务。Gitee 使用显式引用同步并逐项核验附件摘要。本机升级后恢复偏好；发布后新发现只提 issue，不补发修补版。[实现与验收](development/adaptive-row-scenarios.zh-CN.md)。
+
+于 2026-10-30 完成：最终 PR／main／带注释 tag 门禁、新版本 npm OIDC 发布、全部七项公开验证任务、GitHub／Gitee 附件摘要及本机升级／偏好恢复均已通过。[#178](https://github.com/fbincon/claude-code-statusline/issues/178) 与 [#180](https://github.com/fbincon/claude-code-statusline/issues/180) 以 completed 关闭。原生全树 npm 审计仍不支持随包私有工作区；专用签名入口已验证真实公开包及六个公开上游。[最终来源与发布证据](development/adaptive-row-scenarios.zh-CN.md#最终来源与发布身份)。
+
+## v3.13.0 草稿历史与复用
+
+使用[版本授权](releases/approvals/v3.13.0.json)。保留八安装目标、32 Node 情况、十六固定宿主及全部 217 项既有容量用例，要求 26 项新增实际宿主页面（共 243 项）、安装草稿／复用回执及双编辑器 PTY。通过已验证的 main／tag 证据提升最终 PR 不可变产物，核验四附件、npm OIDC、GitHub／Gitee 发布及公开下载，升级测试机并恢复偏好。发布完成后的本机新问题只提 issue，不补发修补版。[实现与证据](development/draft-history-and-reuse.zh-CN.md)。
+
+2026-10-29 完成最终 PR／main／tag 门禁、OIDC、六项公开下载、Gitee 附件摘要和本机升级／偏好检查。保留 v3.13.0，发版后发现 #178–#180 继续开放。交付记录明确报告失败本机诊断误发的两次模型请求，以及随后禁网隔离的重试；失败诊断不记作零调用验收。
+
+## v3.12.0 来源、命令与包管理
+
+使用[版本决定](releases/approvals/v3.12.0.json)，保留八个安装目标、32 个 Node 组合、十六个固定宿主和基线 197 项容量用例；新增二十项共享实际宿主执行（总计 217），分别记录数量和摘要。要求已安装来源操作、真实 npm 编辑器执行回执、双编辑器 PTY 和本机 Claude 2.1.312 补充，不调用模型。原始不可变 PR 产物通过 main/tag 核验晋级。核对四附件、OIDC／provenance、公开渠道和 Gitee 显式 ref，升级后恢复本机偏好。发布后新发现仅提 issue，保留 v3.12.0。[实现](development/source-command-package-management.zh-CN.md)。
+
+已于 2026-10-29 完成交付：最终 PR／main／tag 门禁、OIDC 发布、六个公开下载作业及 Gitee 四份附件摘要核验均通过；本机验证及偏好保留均通过。实际来源、事务与未验证限制见[交付记录](development/source-command-package-management.zh-CN.md)。
+
+## v3.11.0 任务浏览与版本审核
+
+使用[版本决定](releases/approvals/v3.11.0.json)，保留全部既有安装／runtime／宿主／容量门禁。版本管理回执额外要求仅本机检查、元数据／未验证结果、已验证升级／回退 dry-run、独立配置还原审核、取消及安装／配置字节保持不变，并要求安装态任务查看器及双编辑器旅程。按下文源码绑定证据提升流程发布四项原始已验证文件，恢复测试机显示／界面偏好。[实现与交付](development/task-version-review.zh-CN.md)。
+
+2026-10-28 已完成 PR／main／tag 门禁、OIDC 发布、六项公开下载作业、Gitee 附件验证及测试机升级／偏好核对。维护者要求保持 3.11.0，将实际发现的版本页权限误报留待 [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) 后续处理，未发布 3.11.1。参见[交付记录](development/task-version-review.zh-CN.md)。
+
+## v3.10.0 外观与理解
+
+使用[版本决定](releases/approvals/v3.10.0.json)，保留全部安装／runtime／宿主／容量门禁，并要求安装包的新主题、场景和当前草稿文件诊断证据。验收工具变更采用下述源码等价复用规则，不单独要求第二轮完整矩阵。发布原始四个已核验文件，升级本机安装并恢复原显示／界面偏好。[实施与交付](development/appearance-preview-diagnosis.zh-CN.md)。
+
+2026-10-28 已完成最终 PR／main／tag 门禁、OIDC 发布、公开下载及测试机升级／恢复，实际源码与渠道凭证见[交付记录](development/appearance-preview-diagnosis.zh-CN.md)。
+
+## 绑定源码的 CI 证据晋级
+
+发布准备遵循[影响计划](development/impact-checks.zh-CN.md)。核心改动要求最终 PR 完整产品验收、正常合并以及带三平台冒烟的 main 集成核验。等价完整源码保留现有注解标签晋升流程，发布其原始字节。
+
+维护 PR 执行专项检查，main 独立核验源码和回执。已验收维护源码上的标签构建绑定该源码的新安装包／源码／manifest／校验和，核验独立构建和源码归档重建，由已接受代码比较产品内容，再执行三平台安装冒烟。发布关联明确连接原完整产品覆盖及中间维护证据。tag SHA、包源码 SHA 与 npm provenance 一致，不给旧包或旧回执改标。
+
+每个获批准稳定版本均在[批准登记表](releases/approvals/registry.json)登记决定 JSON、精确批准日期和既有六项缺口范围。单独的批准数据执行发布专项检查，不运行产品矩阵；登记和决定摘要从当前不可变源码归档核验。最新失败运行、证据缺失／过期／损坏、批准无效或协议不兼容均阻断，不能以手动诊断或旧绿灯替代。详见 [CI 路由](development/ci-maintenance.zh-CN.md#路由表与阻断条件)。
+
+下方历史版本保留实际门禁和身份。dry-run 验证准备过程及字节，不代表新的 tag／OIDC 发布。仓库维护不要求产品新版本。
+
+## v3.9.2 正确性修复
+
+使用 [v3.9.2 专项批准](releases/approvals/v3.9.2.json)，完成最终 PR／main／注解 tag 的全部必需门禁。沿用八安装目标、32 Node 用例、十六固定宿主及 197 项容量检查，并验证双编辑器安装后终端场景。按既有证据晋级规则发布原始四文件，完成 npm OIDC、GitHub／Gitee 及公开下载核验；测试机升级后恢复原显示和界面偏好。实际结果写入[正确性修复记录](development/correctness-maintenance.zh-CN.md)。不运行付费模型测试，仅接受仍未验证的 #96 六项既有缺口。
+
+## v3.9.1 Native 容量补丁
+
+使用 [v3.9.1 专属批准](releases/approvals/v3.9.1.json)，要求最终 PR、合并 main 和注解 tag 全部自动化门禁通过。原十三个宿主组合增加 Linux、Windows、macOS 的 2.1.310，合计十六个；每个 Native 回执还必须通过 197 项真实宿主容量检查。保留八安装目标、32 项 Node 用例、独立／源码重建、安装包终端、四个草稿附件、OIDC npm 和公开下载校验。更新本机测试安装并恢复复现前显示配置。实际来源、保存结果及 GitHub／npm／Gitee 回执写入[容量修复记录](development/native-capacity.zh-CN.md)，仅沿用 #96 六项既有未验证缺口。
+
+## 发布身份与不可变附件
+
+从最新 `main` 创建发布准备分支，遵循[贡献指南中的分支命名约定](../CONTRIBUTING.zh-CN.md#分支命名)，例如 `chore/prepare-release`。下文已归档的 Python 流程保留其历史命名，不作为当前分支命名规范。
+
+GitHub 已为未来正式发布启用 Release immutability。每次发布先创建草稿，上传恰好四项交付文件（安装包、源码归档、构建清单和校验和），下载并核对字节及验收证据，再正式发布。草稿阶段可以在明确核对来源、提交和摘要后修正尚未发布的标签或附件；正式发布后不替换附件、不移动关联标签，修复使用新版本。
+
+发布标题和说明仍可编辑，预发布／Latest 标记也可调整；这些操作不能改变已发布包的身份。GitHub 的不可变设置不自动扩展到 Gitee，Gitee 仍须同步完全相同的已验证文件并逐项核验摘要。既有历史发布不追溯重建，常规同步不使用强推或镜像删除。参见 [GitHub 不可变发布说明](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。
+
+文档与仓库治理维护不需要创建产品版本、标签、Release 或 npm 发布。产品发布继续要求最终 PR、main 和 tag 的自动化门禁；#96 六项既有缺口保持已接受但未验证，不能豁免新失败。仓库保护和社区入口见[仓库维护](development/repository-governance.zh-CN.md)。
+
 ## v3.8.0 Git、终端与版本管理
 
 采用 [v3.8.0 专属批准](releases/approvals/v3.8.0.json)，要求最终发布 PR、合并 main 及附注 tag 门禁全部通过。每份安装／runtime 回执必须通过二十类检查，包含四项 Git 策略、四项持久首次入口，以及对摘要固定的公开 v3.7.0 归档执行的七项真实包转换场景。版本回执保留十九项操作（官方宿主二十项）、中断、实际状态恢复及独立配置恢复。Windows 另须包含十五项调色板／环境场景和九种实际 PowerShell／CMD／Git Bash × setup／configure／slash 组合，验证取消及控制台模式恢复。
@@ -48,7 +107,7 @@
 
 沿用既有正式流程，使用 [v3.1.2 专属批准](releases/approvals/v3.1.2.json)和逐版本精确批准日期，功能门槛保持原样。发布 npm／GitHub／Gitee 前要求最终 head／合并／标签完整 CI、八安装目标、32 项 Node、十三宿主、可复现构建／源码重建、安装包扩展 PTY 及相同字节的已核验附件。[发布说明](releases/v3.1.2.md#简体中文) · [修复与交付证据](development/external-tui-regressions.zh-CN.md)。
 
-普通纯文档 PR／push 使用严格 Markdown 允许清单，仅运行必要文档／空白校验。版本、批准 JSON、生成资源、工作流、未知路径、标签和手动运行仍要求完整 CI；既有汇总门槛继续必需并按失败关闭，纯文档不产生可用于发布的验收回执。批准逐版本限定，不豁免自动化失败。
+v3.1.2 当时的纯文档 PR／push 使用严格 Markdown 允许清单，其他路径执行完整 CI；此处保留该版本的历史策略。当前维护遵循[影响检查](development/impact-checks.zh-CN.md)，保留必需汇总门禁和独立发布证据。批准仍逐版本限定，不豁免自动化失败。
 
 Gitee 说明更新需包含原 `tag_name`、`name` 和 `body`，保留既有正式／预览状态，表单布尔值使用小写；更新后核对元数据、注释标签和附件。[官方 Release 更新参数](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md)也要求 Tag 名称，仅发送正文的 PATCH 不足。
 
@@ -103,7 +162,7 @@ gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
 
 每次等待工作流完成并检查摘要，再继续下一步。正式发布拒绝从分支触发，使 npm 来源证明指向实际产物源码 SHA。只有发布任务拥有 `id-token: write`，试运行不会启动它，没有 GitHub Environment 人工审批。
 
-工作流要求标签提交已进入 `main`，且同一提交最新的主分支和标签 **CI** 均成功。下载标签 CI 的 `ts06-*` 附件，用 `release:prepare` 重新核验八安装目标、十三宿主及完整的安装包/源码/清单/摘要。附件缺失或过期会失败，须重跑原标签 CI，不能换用其他提交的附件。正式版批准仍限定版本；本次认证改动不批准其他版本，也不豁免门槛。
+工作流要求标签提交在 `main` 历史中可达、最新标签 **CI** 成功，且该精确候选源码的 main 集成成功。沿经过校验的晋级记录找到原始完整验收，按精确 artifact ID 下载；旧标签仍读取原有完整 tag 验收输入。使用 `release:prepare` 重新核验八安装目标、32 项 Node 用例、十六宿主及完整的安装包／源码／清单／摘要。证据缺失、过期或冲突均失败；应重跑对应完整验收，不能换用无关附件。正式版批准仍限定版本；本次认证改动不批准其他版本，也不豁免门槛。
 
 独立发布任务使用 Node 24.21.0/npm 11.21.0，禁用生命周期脚本，上传同一 `.tgz`。构建身份仍为 npm 11.19.0，较新的发布 CLI 用于支持 OIDC 标签操作。核对公开包 SHA-256/SHA-512，正式版使用 `latest`、预览版使用 `beta`，保留其他既有选择器。已发布且字节相同的版本仅在目标选择器仍匹配时视为无需操作；其他状态失败，不覆盖字节或回退标签。结果不明时先检查 registry 状态再重试。
 

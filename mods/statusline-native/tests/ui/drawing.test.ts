@@ -25,7 +25,7 @@ function view(): View {
 function text(node: Node | string): string { return typeof node === 'string' ? node : node.children.map(text).join(''); }
 function render(node: Node): string[] {
   let lines: string[];
-  if (node.type === 'Text') lines = [text(node)];
+  if (node.type === 'Text') lines = text(node).split('\n');
   else if (node.props.flexDirection === 'row' || !node.props.flexDirection) {
     const children = node.children.map((child) => typeof child === 'string' ? [child] : render(child));
     lines = Array.from({ length: Math.max(1, ...children.map((c) => c.length)) }, (_, i) => children.map((c) => c[i] ?? '').join(''));
@@ -57,6 +57,20 @@ test('all editor pages fit the viewport and frame titles stay on its top edge', 
       if (geometry.framed) expect(lines[4]!.includes(page === 'main' || page === 'subagents' ? 'Filter:' : 'OPTION')).toBe(true);
     }
   }
+});
+
+test('capacity notice survives a long page title and another notice at minimum size', () => {
+  const state = view(), before = JSON.stringify(state.editor!.draft);
+  state.editor!.detail = {scope: 'main', id: 'model-with-effort'};
+  state.editor!.guidanceScroll = 0;
+  state.error = 'Retained save result';
+  state.preview = {sample: true, main: [[{text: 'Visible sample', foreground: null, background: null, bold: false}]], subagents: []};
+  const lines = render(draw(elements, state, 32, 12, t('native.capacity.reduced', 'en', {columns: 32, rows: 12})) as unknown as Node);
+  expect(lines[3]).toContain('View limited to 32×12');
+  expect(lines[2]).toContain('Retained save result');
+  expect(lines.join('\n')).toContain('Visible sample');
+  expect(lines[lines.length - 1]!.trim().length > 0).toBe(true);
+  expect(JSON.stringify(state.editor!.draft)).toBe(before);
 });
 
 test('layout and item forms have contiguous groups and stable field identities', () => {

@@ -56,7 +56,7 @@ test('tests.config.test_display_config.DisplayConfigTests.test_schema_one_loads_
     const f = setup(t), data = { ...legacy(1), items: ['git', 'model-with-effort'], use_colors: false, palette: 'ansi', directory_style: 'home', separator_style: 'compact' }, raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 15);
+    assert.equal(cfg.schema_version, 17);
     assert.deepEqual(selected(cfg), ['git', 'model-with-effort']);
     assert.equal(cfg.use_colors, false);
     assert.equal(cfg.scope_labels, 'when-subagents');
@@ -111,7 +111,7 @@ test('tests.config.test_formatting.FormattingTests.test_v2_normalizes_without_to
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 15);
+    assert.equal(cfg.schema_version, 17);
     assert.deepEqual(cfg.formatting, DEFAULT_FORMATTING);
     assert.equal(cfg.subagents.enabled, false);
     assert.deepEqual(readFileSync(f.displayPath), raw);
@@ -173,7 +173,7 @@ test('tests.config.test_metrics.MetricsConfigTests.test_v3_read_preserves_source
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 15);
+    assert.equal(cfg.schema_version, 17);
     assert.equal(cfg.metrics.branch_diff_base_ref, null);
     assert.equal(cfg.formatting.number_format, 'grouped');
     assert.deepEqual(readFileSync(f.displayPath), raw);
@@ -193,7 +193,7 @@ test('tests.config.test_appearance.AppearanceConfigTests.test_v6_read_migrate_ba
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 15);
+    assert.equal(cfg.schema_version, 17);
     assert.equal(cfg.instances.find(n => n.id === 'model')!.options.visibility, 'always');
     assert.deepEqual(readFileSync(f.displayPath), raw);
     assert.deepEqual(readdirSync(f.root), ['claude-statusline.json']);

@@ -63,7 +63,7 @@ export function quickView(quick: QuickSetup, language: Language, width: number, 
     ] : [tr('quick.fine_tune'),tr('quick.save'),tr('quick.copy'),tr('quick.back')];
   const paragraphs=[...(quick.step === 'review' && quick.selected === 1 && sharedProjects.length ? [tr('profiles.shared',{count:sharedProjects.length}), ...sharedProjects] : []),
     tr(preset.requirements_key),tr('quick.sample'),
-    ...(!d.subagents.enabled && ['multi-agent','agent-focus'].includes(preset.id) ? [tr('quick.subagents_off')] : []),
+    ...(!d.subagents.enabled && ['multi-agent','agent-focus','agent-workbench'].includes(preset.id) ? [tr('quick.subagents_off')] : []),
     ...(quick.step==='review' ? [tr('quick.replace')] : [])];
   const detail=wrapText(paragraphs,width), menuHeight=Math.max(1, Math.min(rows.length,Math.floor(height/2)));
   const start=Math.max(0, Math.min(quick.selected,rows.length-menuHeight,quick.selected-menuHeight+1));
@@ -76,6 +76,7 @@ export function quickView(quick: QuickSetup, language: Language, width: number, 
 export function controlQuick(editor: Editor, key: string): 'transfer' | 'save' | 'profiles' | null {
   const quick = editor.quick;
   if (!quick) return null;
+  if (!editor.canMutateDraft() && !['cancel','escape','tab','up','down','home','end','pageup','pagedown'].includes(key)) return null;
   const effect = quickKey(quick,key);
   if (effect === 'cancel') editor.quick = null;
   if (effect === 'preset') { editor.preset=quick.preset; editor.pendingTransfer='preset'; return 'transfer'; }

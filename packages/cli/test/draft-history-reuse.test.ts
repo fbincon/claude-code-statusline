@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { writeFileSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { setup } from './final-support.js';
+import { allFiles } from './runtime-support.js';
+import { defaultItem } from '@fbincon/statusline-core/config/display';
+import { exportText } from '@fbincon/statusline-core/config/transfer';
+import { parseResponse } from '@fbincon/statusline-core/editor/backend';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { configCommand } from '../src/config/commands.js';
+import { ProfileService } from '../src/config/profiles.js';
+
+test('CLI structural review preserves files, requires exact repair approval and checks revisions inside the transaction',t=>{
+  const f=setup(t,true),d=f.read().draft;
+  d.display.instances=['a','b','c','d'].map(id=>({id,type_id:'text',text:id,enabled:true,options:defaultItem()}));
+  d.display.layout={mode:'explicit',rows:[['a','b'],['c','d']],alignments:[{id:'table',columns:[[{kind:'instance',id:'a'},{kind:'instance',id:'c'}],[{kind:'instance',id:'b'},{kind:'instance',id:'d'}]]}]};
+  f.service.apply(d,f.read().revision);const before=allFiles(f.root);
+  assert.throws(()=>configCommand(['instance','main','remove','b'],f.service));assert.deepEqual(allFiles(f.root),before);
+  const review=JSON.parse(configCommand(['instance','main','remove','b','--dry-run'],f.service));assert.equal(review.repairs.length,1);assert.equal(review.repairs[0].id,'table');assert.deepEqual(allFiles(f.root),before);
+  assert.throws(()=>configCommand(['instance','main','remove','b','--accept-alignments','table'],f.service));assert.deepEqual(allFiles(f.root),before);
+  assert.throws(()=>configCommand(['instance','main','remove','b','--expected-revision',review.expected_revision,'--accept-alignments','other'],f.service));assert.deepEqual(allFiles(f.root),before);
+  const settings=readFileSync(f.settingsPath);
+  configCommand(['instance','main','remove','b','--expected-revision',review.expected_revision,'--accept-alignments','table'],f.service);
+  const current=f.read();assert.equal(current.draft.display.instances.length,3);assert.equal(current.draft.display.layout.alignments![0]!.columns.length,1);assert.deepEqual(readFileSync(f.settingsPath),settings);
+  const after=allFiles(f.root);assert.throws(()=>configCommand(['layout','auto','--expected-revision',review.expected_revision,'--accept-alignments','table'],f.service));assert.deepEqual(allFiles(f.root),after);
+});
+test('CLI style reuse reviews immutable source identity, retains target bindings and edits named/project targets',t=>{
+  const f=setup(t,true),base=f.read().draft,incoming=structuredClone(base);incoming.display.instances[0]!.options.foreground='#123456';incoming.display.instances[0]!.options.label='中文 👩‍💻';
+  const path=join(f.root,'style source.json');writeFileSync(path,exportText(incoming));
+  const args=['import',path,'--style-from','main:'+incoming.display.instances[0]!.id,'--style-to','main:'+base.display.instances[0]!.id,'--style-fields','foreground,label'];
+  const profiles=new ProfileService(f.service),library=profiles.mutate({action:'save',name:'Target',display:base.display,expected_revision:profiles.read().revision,bind_path:f.root});
+  const before=allFiles(f.root),review=JSON.parse(configCommand([...args,'--project',f.root,'--dry-run'],f.service));assert.deepEqual(allFiles(f.root),before);assert.equal(review.draft.display.instances[0].options.foreground,'#123456');
+  assert.throws(()=>configCommand([...args,'--project',f.root],f.service));assert.deepEqual(allFiles(f.root),before);
+  writeFileSync(path,exportText({...incoming,display:{...incoming.display,theme:'light'}}));
+  const changed=allFiles(f.root);assert.throws(()=>configCommand([...args,'--project',f.root,'--expected-revision',review.expected_revision,'--source-revision',review.source_revision],f.service));assert.deepEqual(allFiles(f.root),changed);
+  writeFileSync(path,exportText(incoming));configCommand([...args,'--project',f.root,'--expected-revision',review.expected_revision,'--source-revision',review.source_revision],f.service);
+  const result=profiles.read();assert.equal(result.profiles[0]!.id,library.profiles[0]!.id);assert.deepEqual(result.bindings,library.bindings);assert.equal(result.profiles[0]!.display.instances[0]!.options.foreground,'#123456');assert.deepEqual(f.read().draft,base);
+});
+test('reuse protocol validates requests/results and keeps imported authorization unresolved without writes',t=>{
+  const f=setup(t,true),incoming=f.read().draft;
+  incoming.display.instances=['one','two'].map((id,index)=>({id,type_id:index?'text':'external-value',text:index?'Queue':null,enabled:true,options:defaultItem(),...(index?{}:{source:{binding:'foreign',hint:'Queue source'}})}));
+  incoming.display.groups=[{id:'group',member_ids:['one','two'],primary_id:'one',link_visibility:true,shared_powerline:true}];incoming.display.layout={mode:'auto',rows:[]};
+  const path=join(f.root,'group.json');writeFileSync(path,exportText(incoming));const current=f.read(),before=allFiles(f.root);
+  const reply=f.call('review_reuse',{draft:current.draft,path,profile:false,request:{kind:'groups',scope:'main',group_ids:['group'],references:'review',explicit:false}});assert.equal(reply.status,0);
+  const parsed=parseResponse('review_reuse',{exitCode:0,stdout:JSON.stringify(reply.response),stderr:''});assert.equal(parsed.unresolved.length,1);assert(parsed.unresolved[0]!.id!==incoming.display.instances[0]!.id);assert.deepEqual(allFiles(f.root),before);
+  const invalid=structuredClone(reply.response.result);invalid.unresolved[0].scope='invalid';assert.throws(()=>parseResponse('review_reuse',{exitCode:0,stdout:JSON.stringify({protocol_version:PROTOCOL_VERSION,result:invalid}),stderr:''}));
+  for(const request of [{kind:'groups',scope:'main',group_ids:['missing'],references:'review',explicit:false},{kind:'groups',scope:'main',group_ids:['group'],references:'silent',explicit:false}])assert.equal(f.call('review_reuse',{draft:current.draft,path,profile:false,request}).status,2);
+  assert.deepEqual(allFiles(f.root),before);
+});
