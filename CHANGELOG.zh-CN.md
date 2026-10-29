@@ -10,6 +10,7 @@
 - 新增五个场景方案；显示 schema 17、编辑器协议 30，旧配置读取不写入。
 - 修复 Native 样式／分组／历史入口六语言本地化（#180）。
 - 增加固定 npm 工具链的签名／provenance 验证入口，明确全树审计限制（#178）。
+- 后台审阅进程退出后重新核对最新结果，避免把已完成的包审阅误报为中断。
 - [实现与验收](docs/development/adaptive-row-scenarios.zh-CN.md) · [发布说明](docs/releases/v3.14.0.zh-CN.md)。
 
 ## 3.13.0 — 2026-10-29

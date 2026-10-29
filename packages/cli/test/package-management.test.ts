@@ -372,6 +372,55 @@ test('review startup grace excludes runner preparation while the overall deadlin
     record.pid=process.pid;record.token=null;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).state,'running','Unknown identity must retain the worker and its files until the overall deadline');
     record.launched_at=new Date().toISOString();record.job.started_at=new Date(Date.now()-REVIEW_DEADLINE_MS-1).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
 });
+test('review exit reconciles a final atomic publication instead of failing an older running snapshot',async t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-review-exit-123456789';
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const review=await reviewPackage(request,context,f.options),{spawnSync}=await import('node:child_process'),worker=spawnSync(process.execPath,['-e','']);
+    assert.equal(worker.status,0);assert(worker.pid>0);
+    const record:ReviewRecord={configDir:f.configDir,origin:f.options.origin,pid:worker.pid,token:'exited-worker',launched_at:new Date(Date.now()-16000).toISOString(),job:{version:1,id,owner,state:'running',started_at:new Date(Date.now()-20000).toISOString(),finished_at:null,request,review:null,error:null}};
+    const folder=reviewFolder(id),path=join(folder,'job.json'),before=configurationBytes(f.configDir);
+    t.after(()=>removeTree(folder));
+    for(const state of ['complete','failed','cancelled','running'] as const){
+        writeReviewRecord(record);
+        const final=structuredClone(record);final.job.state=state;
+        if(state==='running'){final.pid=process.pid;final.token=null;}
+        else{final.job.finished_at=new Date().toISOString();final.job.review=state==='complete'?review:null;final.job.error=state==='failed'?'integrity':null;}
+        const open=mutableFs.openSync;let published=false;
+        t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
+            const fd=open(...args);
+            // Keep the opened running inode while the worker publishes its final result.
+            if(String(args[0])===path&&!published){published=true;writeReviewRecord(final);}
+            return fd;
+        });syncBuiltinESMExports();
+        try{
+            assert.deepEqual(packageReviewJob(context,id,owner),final.job,state);assert(published);
+            assert(fs.existsSync(folder));assert.deepEqual(JSON.parse(fs.readFileSync(path,'utf8')),final);
+            assert.deepEqual(configurationBytes(f.configDir),before);
+        }finally{t.mock.restoreAll();syncBuiltinESMExports();}
+    }
+});
+test('review reconciliation rechecks ownership and the current configuration revision',t=>{
+    const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-review-identity-123456789';
+    const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
+    const record:ReviewRecord={configDir:f.configDir,origin:f.options.origin,pid:null,token:null,launched_at:new Date(Date.now()-16000).toISOString(),job:{version:1,id,owner,state:'running',started_at:new Date(Date.now()-20000).toISOString(),finished_at:null,request,review:null,error:null}};
+    const folder=reviewFolder(id),path=join(folder,'job.json');t.after(()=>removeTree(folder));
+    for(const change of ['owner','configuration','revision'] as const){
+        writeReviewRecord(record);const final=structuredClone(record);final.job.state='complete';final.job.finished_at=new Date().toISOString();
+        if(change==='owner')final.job.owner='viewer-other-owner-123456789';
+        if(change==='configuration')final.configDir=join(f.temporary,'other-config');
+        const open=mutableFs.openSync;let published=false;
+        t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
+            const fd=open(...args);
+            if(String(args[0])===path&&!published){published=true;writeReviewRecord(final);if(change==='revision')f.write('claude-statusline.json',defaultDisplay());}
+            return fd;
+        });syncBuiltinESMExports();
+        try{
+            if(change==='revision'){const job=packageReviewJob(context,id,owner);assert.equal(job.state,'failed');assert.equal(job.error,'conflict');}
+            else assert.throws(()=>packageReviewJob(context,id,owner),/identity/);
+            assert(published);assert(fs.existsSync(folder));assert.deepEqual(JSON.parse(fs.readFileSync(path,'utf8')),final);
+        }finally{t.mock.restoreAll();syncBuiltinESMExports();}
+    }
+});
 
 import { executionFolder, writeExecution, readExecution, executeReviewed, detachExecution, type ExecutionRecord } from '../src/management/execution.js';
 import { reviewHistory, cleanupHistory } from '../src/management/history.js';

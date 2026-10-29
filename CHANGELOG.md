@@ -10,6 +10,7 @@
 - Add five scene schemes; use display schema 17 and editor protocol 30 without rewriting old files on read.
 - Fix six-language Native style/group/history entry captions (#180).
 - Add pinned-npm signature/provenance verification with explicit native full-tree audit limits (#178).
+- Reconcile the latest package-review result after worker exit, preserving completed reviews instead of falsely reporting interruption.
 - [Implementation and acceptance](docs/development/adaptive-row-scenarios.md) · [Release notes](docs/releases/v3.14.0.md).
 
 ## 3.13.0 — 2026-10-29
