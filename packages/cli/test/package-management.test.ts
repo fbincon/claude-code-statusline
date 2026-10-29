@@ -372,6 +372,20 @@ test('review startup grace excludes runner preparation while the overall deadlin
     record.pid=process.pid;record.token=null;writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).state,'running','Unknown identity must retain the worker and its files until the overall deadline');
     record.launched_at=new Date().toISOString();record.job.started_at=new Date(Date.now()-REVIEW_DEADLINE_MS-1).toISOString();writeReviewRecord(record);assert.equal(packageReviewJob(context,id,owner).error,'interrupted');
 });
+function publishAfterReviewSnapshot(t:TestContext,path:string,publish:()=>void):()=>boolean{
+    const open=mutableFs.openSync,close=mutableFs.closeSync;let descriptor:number|undefined,published=false;
+    t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
+        const fd=open(...args);if(String(args[0])===path&&!published)descriptor=fd;return fd;
+    });
+    t.mock.method(mutableFs,'closeSync',(fd:number)=>{
+        const result=close(fd);
+        // Publish after reading the old snapshot, without retaining a Windows
+        // read handle that disallows replacement on supported older Node builds.
+        if(fd===descriptor&&!published){published=true;publish();}
+        return result;
+    });syncBuiltinESMExports();
+    return ()=>published;
+}
 test('review exit reconciles a final atomic publication instead of failing an older running snapshot',async t=>{
     const f=fixture(t),context={configDir:f.configDir,origin:f.options.origin,hostVersion:()=>null},id='review-'+randomUUID(),owner='viewer-review-exit-123456789';
     const request:PackageReviewRequest={action:'check',prefix:f.prefix,expected_revision:inspectPackage(context,f.prefix).revision,target:null,channel:'latest',backup_id:null,expected_integrity:null};
@@ -385,15 +399,9 @@ test('review exit reconciles a final atomic publication instead of failing an ol
         const final=structuredClone(record);final.job.state=state;
         if(state==='running'){final.pid=process.pid;final.token=null;}
         else{final.job.finished_at=new Date().toISOString();final.job.review=state==='complete'?review:null;final.job.error=state==='failed'?'integrity':null;}
-        const open=mutableFs.openSync;let published=false;
-        t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
-            const fd=open(...args);
-            // Keep the opened running inode while the worker publishes its final result.
-            if(String(args[0])===path&&!published){published=true;writeReviewRecord(final);}
-            return fd;
-        });syncBuiltinESMExports();
+        const published=publishAfterReviewSnapshot(t,path,()=>writeReviewRecord(final));
         try{
-            assert.deepEqual(packageReviewJob(context,id,owner),final.job,state);assert(published);
+            assert.deepEqual(packageReviewJob(context,id,owner),final.job,state);assert(published());
             assert(fs.existsSync(folder));assert.deepEqual(JSON.parse(fs.readFileSync(path,'utf8')),final);
             assert.deepEqual(configurationBytes(f.configDir),before);
         }finally{t.mock.restoreAll();syncBuiltinESMExports();}
@@ -408,16 +416,11 @@ test('review reconciliation rechecks ownership and the current configuration rev
         writeReviewRecord(record);const final=structuredClone(record);final.job.state='complete';final.job.finished_at=new Date().toISOString();
         if(change==='owner')final.job.owner='viewer-other-owner-123456789';
         if(change==='configuration')final.configDir=join(f.temporary,'other-config');
-        const open=mutableFs.openSync;let published=false;
-        t.mock.method(mutableFs,'openSync',(...args:Parameters<typeof mutableFs.openSync>)=>{
-            const fd=open(...args);
-            if(String(args[0])===path&&!published){published=true;writeReviewRecord(final);if(change==='revision')f.write('claude-statusline.json',defaultDisplay());}
-            return fd;
-        });syncBuiltinESMExports();
+        const published=publishAfterReviewSnapshot(t,path,()=>{writeReviewRecord(final);if(change==='revision')f.write('claude-statusline.json',defaultDisplay());});
         try{
             if(change==='revision'){const job=packageReviewJob(context,id,owner);assert.equal(job.state,'failed');assert.equal(job.error,'conflict');}
             else assert.throws(()=>packageReviewJob(context,id,owner),/identity/);
-            assert(published);assert(fs.existsSync(folder));assert.deepEqual(JSON.parse(fs.readFileSync(path,'utf8')),final);
+            assert(published());assert(fs.existsSync(folder));assert.deepEqual(JSON.parse(fs.readFileSync(path,'utf8')),final);
         }finally{t.mock.restoreAll();syncBuiltinESMExports();}
     }
 });
