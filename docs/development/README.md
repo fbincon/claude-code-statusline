@@ -47,7 +47,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 - [Repository agent guidance](../../AGENTS.md): shared workspace boundaries, canonical sources, validation and PR rules; maintained in English only.
 - [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): current priorities/status, confirmed findings, scope, dependencies, compatibility and focused functional acceptance; delivered designs and evidence remain separate.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
-- [Translation contribution guide](i18n.md).
+- [Translation contribution guide](i18n.md): current complete-pack rules and impact-based validation. [Multilingual workflow design](i18n-workflow.md) defines the next [I18N-02 package](development-plan.md#i18n-02); development fallback and release-readiness tracking are proposed, not implemented.
 - [Testing and acceptance](testing.md).
 - [Native editor integration](native.md). [Capacity and recovery](native-capacity.md).
 - [Task timing](timer.md) and [live metrics](live.md).

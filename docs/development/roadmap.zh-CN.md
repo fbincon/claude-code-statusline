@@ -6,11 +6,13 @@ v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／
 
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[交付及发版后发现](draft-history-and-reuse.zh-CN.md)。v3.12.0 的来源／命令／包管理交付及下列早期事实保留为历史。
 
-更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.14.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.14.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作按下列状态继续扩展呈现、复用与交互。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片已随 v3.11.0 发布。其余未开始工作包及 SHOWCASE-01 保持下表所列状态。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
+
+[I18N-02](development-plan.zh-CN.md#i18n-02) 是下一项正式工作，优先于下一轮大量新增文案的功能。[多语言工作流设计](i18n-workflow.zh-CN.md)在开发时优先维护英中，发布时保持六语完整官方支持。不指定新语言、版本或日期；实施前完整语言包要求继续有效，I18N-01 保持已交付。
 
 **导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
 
@@ -27,7 +29,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 显示组合 | 六种既有预设、八套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、六项 Powerline 控制、可选／自适应百分比短条、联动分组、选择性导入、静态前景／Powerline 背景渐变、最终显示行连续背景及主栏显式行对齐 | 扩充主题、渐变及复用能力，保留既有显示选择 |
 | 外观审阅 | 八主题、十一渐变预设、可视选色、十四样例场景、会话宽度及使用未保存草稿的显式文件诊断 | 扩展复用时保留来源授权边界 |
 | 任务与项目 | 任务计时、子代理独立行、双编辑器只读任务浏览、命名方案及项目根目录绑定 | 扩展配置复用时保持证据归属 |
-| 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | 新交互和说明保持六语言覆盖 |
+| 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | I18N-02 优先建立增量维护及严格六语发布就绪；实施前完整语言包规则继续有效 |
 | 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
 | 扩展数据 | 本机 JSON、GitHub PR／CI 与命令源；可读状态、检查分页、引用保护的绑定及独立审核的活跃会话自动刷新；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
@@ -71,6 +73,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 
 | 批次 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
+| 下一工作流 | [I18N-02](development-plan.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 既有生成器／消息、已登记元数据归属及兼容 PR／main／tag 核验；[设计与切片](i18n-workflow.zh-CN.md#delivery-slices) | NOT_STARTED |
 | 1 正确性 | [FIX-01](development-plan.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | DONE |
 | 1 正确性 | [FIX-02](development-plan.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | DONE |
 | 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |
@@ -89,11 +92,11 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 后续，可穿插 | [IMPORT-02](development-plan.zh-CN.md#import-02) | 样式复制、完整组复用及显式本机来源重绑 | 既有 IMPORT-01 与引用校验 | DONE |
 | 后续，可穿插 | [COMPOSITION-04](development-plan.zh-CN.md#composition-04) | 审阅并原子调整受影响对齐引用 | 既有分组／对齐约束与共享编辑 | DONE |
 | 后续，可穿插 | [PROFILE-02](development-plan.zh-CN.md#profile-02) | 展示已交付新能力的场景方案 | 仅依赖各方案实际使用的外观／组合能力 | DONE |
-| 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 上述十八包及全部切片验收，匹配的安装产物 | NOT_STARTED |
+| 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 原十八个后续工作包及全部切片验收，匹配的安装产物 | NOT_STARTED |
 
 批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续工作可按各自依赖穿插，保留已交付的绑定与历史保护规则。
 
-SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待十八个正式工作包及全部切片，包括后续完善。剩余候选不会继续增加其前置条件。M1–M12 保留历史编号与交付证据。
+SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待原十八个正式工作包及全部切片，包括后续完善。I18N-02 是独立的下一工作优先项，不新增为 SHOWCASE-01 前置条件；剩余候选也不增加其前置条件。M1–M12 保留历史编号与交付证据。
 
 GIT-01、TERMINAL-01 保持已交付；相关 Windows 预览及共享 Git 策略沿用 [M8–M9 交付](m8-m9-delivery.zh-CN.md)，Native 保留 [v3.9.1](native-capacity.zh-CN.md) 确立的边界。现行验证路径仍由 [CI 维护](ci-maintenance.zh-CN.md)定义。
 
