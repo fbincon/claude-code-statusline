@@ -302,6 +302,8 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
         return { value: reply(readResult(store.draft, store.revision)) };
       if (request.operation === 'read_ui_preferences')
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'source_draft')
+        return { value: reply({revision: 'pins'}) };
       if (request.operation === 'review_import') return {value:reply({draft:copyDraft(request.payload.draft),changes:[]})};
       if (request.operation === 'set_ui_language') {
         store.uiLanguage = request.payload.ui_language;
