@@ -178,7 +178,11 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             // The session heading can render while the first read is still in
             // flight. Publish only after that read completes, then require an
             // actual second read instead of pressing a still-busy Refresh.
-            await until(()=>completed('task_details'),'initial native task read completed');const evidence=taskFixture(config,session);
+            await until(()=>completed('task_details'),'initial native task read completed');
+            // Backend stdout can complete before the host applies its result.
+            // Refresh is intentionally ignored while that UI is still busy.
+            await until(text=>text.includes(t('task.title','en')+' · '+t('task.readonly','en'))&&/Read at: \d{4}-\d{2}-\d{2}T/u.test(text),'initial native task presentation ready');
+            const evidence=taskFixture(config,session);
             await key('r','read published task');await until(()=>records().filter(row=>row.operation==='task_details'&&row.phase==='complete').length===2,'published task refresh completed');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
             assert.deepEqual(fs.readFileSync(evidence.path),evidence.bytes);
         } else if(action==='colors') {
