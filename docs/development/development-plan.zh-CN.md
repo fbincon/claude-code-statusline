@@ -2,13 +2,13 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-v3.14.0 正在验证 APPEARANCE-07、APPEARANCE-06、PROFILE-02 和 #178／#180；[实现与验收](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30；发布必须通过最终 PR／main／tag 门禁。
+v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
 
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[v3.13.0 交付与发版后发现](draft-history-and-reuse.zh-CN.md)；沿用 [v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)。
 
-更新：**2026-10-29**（Asia/Shanghai）· 产品基线：**v3.13.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.14.0** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)为当前产品基线，沿用 [v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。本轮正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.14.0 交付](adaptive-row-scenarios.zh-CN.md)为当前产品基线，保留 [v3.13.0 草稿历史与复用](draft-history-and-reuse.zh-CN.md)、[v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)、[v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。本轮正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
 
 已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.2 专项决定](../releases/approvals/v3.9.2.json)记录该版本对缺口的接受，不代表缺失观察已通过。
 
@@ -273,6 +273,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## APPEARANCE-06 行内跨色块连续背景
 
+**状态：DONE（v3.14.0）。** [交付与验证](adaptive-row-scenarios.zh-CN.md)。
+
 **目标与范围。** 新增显式选择的背景渐变，跨越一条最终显示行内的相邻 Powerline 色块。现有 `color_mode=continuous` 继续表示色板序号连续，已完成 APPEARANCE-04 的逐组件渐变保持原义。
 
 **规则与职责。** Core 先完成可见性、分组、分行和宽度拟合，再按最终可见终端单元位置上色。隐藏／省略后重算，每行重新开始。Spacer 中断彩色区间且不染色，对齐留白不染色也不计入长度。共享背景组视为一个块；显式指定组件／组背景，包括独立背景渐变，覆盖行渐变并形成区间边界。保留警告／临界优先级及文字可读性，分隔符与首尾装饰使用相邻色块真实边缘颜色。
@@ -284,6 +286,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 <a id="appearance-07"></a>
 
 ## APPEARANCE-07 保留数字含义的自适应进度条
+
+**状态：DONE（v3.14.0）。** [交付与验证](adaptive-row-scenarios.zh-CN.md)。
 
 **目标与范围。** FIX-02 后增加显式自适应表示：缩短允许缩短的标签 → 缩短进度条 → 数字表示 → 既有组件优先级省略。所有保留表示均保留百分比和已用／剩余含义。
 
@@ -338,6 +342,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 <a id="profile-02"></a>
 
 ## PROFILE-02 使用已交付能力的场景方案
+
+**状态：DONE（v3.14.0）。** [交付与验证](adaptive-row-scenarios.zh-CN.md)。
 
 **目标与范围。** 增加经审阅的 Powerline 日常开发、多代理任务、额度／费用监控、窄终端及浅色／高对比方案。按场景使用已交付进度条、渐变、分组和对齐，保留既有三套完整方案及身份。
 

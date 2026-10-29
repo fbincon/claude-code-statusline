@@ -2,13 +2,13 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-v3.14.0 is validating APPEARANCE-07, APPEARANCE-06, PROFILE-02 and #178/#180; see [implementation and acceptance](adaptive-row-scenarios.md). Display schema 17/editor protocol 30; publication requires final PR/main/tag gates.
+v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
 
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [v3.13.0 delivery and post-publication findings](draft-history-and-reuse.md); retain [v3.12.0 source/command/package management](source-command-package-management.md).
 
-Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.14.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.13.0 delivery](draft-history-and-reuse.md) is the current product baseline, retaining [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
+This plan defines work-package scope, dependencies, slices and functional acceptance. The [roadmap](roadmap.md#milestones) owns current priority and status. M1–M12 remain delivered; [v3.14.0 delivery](adaptive-row-scenarios.md) is the current product baseline, retaining [v3.13.0 draft history and reuse](draft-history-and-reuse.md), [v3.12.0 source/command/package management](source-command-package-management.md), [v3.11.0 task/version review](task-version-review.md), [v3.10.0 appearance, previews and diagnosis](appearance-preview-diagnosis.md) and earlier correctness/capacity deliveries. The formal follow-up contains eighteen packages and SHOWCASE-01. Completed work retains its delivery evidence; remaining unstarted entries have no assigned versions or dates.
 
 Completed sections retain historical designs and acceptance intent. Their proposed fields and evidence requirements describe the original plan; current behavior, identities and verification limits remain in the linked user guides and delivery records. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` is historical. The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.2 decision](../releases/approvals/v3.9.2.json) records acceptance for that release without passing those missing observations.
 
@@ -273,6 +273,8 @@ Entries without an implementation record remain proposed work; current package s
 
 ## APPEARANCE-06 Continuous backgrounds within a row
 
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
+
 **Goal and scope.** Add an opt-in background gradient spanning adjacent Powerline blocks of one final displayed row. Existing `color_mode=continuous` is palette-sequence continuity and keeps its meaning. Preserve APPEARANCE-04's completed per-component gradients.
 
 **Rules and ownership.** Core finishes visibility, grouping, wrapping and width fitting before coloring by final visible terminal-cell position. Recalculate after hidden/omitted components; restart each row. A spacer breaks the colored run and stays uncolored; alignment padding is uncolored and excluded. A shared-background group is one block. An explicitly assigned component/group background, including an individual background gradient, overrides the row gradient and creates a run boundary. Keep warning/critical priority and readable foregrounds; separators and caps use adjacent blocks' actual edge colors.
@@ -284,6 +286,8 @@ Entries without an implementation record remain proposed work; current package s
 <a id="appearance-07"></a>
 
 ## APPEARANCE-07 Adaptive bars that preserve numeric meaning
+
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
 
 **Goal and scope.** Add an explicit adaptive representation for narrow rows after FIX-02. Fit in this order: shorten an eligible label, shorten the bar, use numeric presentation, then apply existing component-priority omission. Preserve the percentage and used/remaining meaning in every retained representation.
 
@@ -338,6 +342,8 @@ Entries without an implementation record remain proposed work; current package s
 <a id="profile-02"></a>
 
 ## PROFILE-02 Scenario schemes using delivered capabilities
+
+**Status: DONE (v3.14.0).** [Delivery and verification](adaptive-row-scenarios.md).
 
 **Goal and scope.** Add reviewed schemes for Powerline daily work, multi-agent tasks, quota/cost monitoring, narrow terminals and light/high-contrast reading. Use the delivered progress, gradient, group and alignment choices appropriate to each scene; preserve the existing three complete schemes and their identities.
 

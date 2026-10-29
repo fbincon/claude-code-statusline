@@ -2,11 +2,11 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-v3.14.0 is validating APPEARANCE-07, APPEARANCE-06, PROFILE-02 and #178/#180; see [implementation and acceptance](adaptive-row-scenarios.md). Display schema 17/editor protocol 30; publication requires final PR/main/tag gates.
+v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
 
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [Delivery and post-publication findings](draft-history-and-reuse.md). v3.12.0 source/command/package management and earlier delivery facts remain historical.
 
-Updated: **2026-10-29** (Asia/Shanghai) · Product baseline: **v3.13.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.14.0** · Planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. Remaining packages extend presentation, reuse and interaction under the statuses below. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are published in v3.11.0. Remaining unstarted packages and SHOWCASE-01 retain their statuses below. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
 
@@ -24,7 +24,7 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
 | Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Reviewed durable entry and explicit upgrade/rollback/recovery are delivered |
-| Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars, linked groups, selective import, static foreground/Powerline-background gradients and explicit main-row alignment | Extend themes, gradients and reuse while preserving existing display choices |
+| Display composition | Six existing presets, eight complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, six Powerline controls, optional/adaptive percentage bars, linked groups, selective import, static foreground/Powerline-background gradients, continuous final-row backgrounds and explicit main-row alignment | Extend themes, gradients and reuse while preserving existing display choices |
 | Appearance review | Eight themes, eleven gradient presets, visible color editing, fourteen sample scenarios, session-only widths and explicit file diagnosis using the unsaved draft | Extend reuse without changing source authorization |
 | Tasks and projects | Task timing, separate subagent rows, both-editor read-only task browsing, named profiles and project-root bindings | Preserve evidence attribution while extending configuration reuse |
 | Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | Maintain six-language coverage for new interactions and guidance |
@@ -32,10 +32,10 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI and commands; readable state, check pagination, reference-protected bindings and separately reviewed active-session refresh; optional OSC 8 links | Keep authorization separate from display schemes; clear local bindings only in imported sections |
 | Native presentation | Host-retained editing state, bounded visible frames, independent capacity checks and recoverable save outcomes | Apply these boundaries to every new page; see [capacity and recovery](native-capacity.md) |
-| Interfaces | Display schema 16, editor protocol 29, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
+| Interfaces | Display schema 17, editor protocol 30, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
+Sources: [v3.14.0 delivery](adaptive-row-scenarios.md), [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
@@ -83,12 +83,12 @@ Keep the original project and authors credited when discussing these references.
 | 3/4/later Versions | [UPDATE-02](development-plan.md#update-02) | Status/review, execution/recovery and protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | DONE |
 | 4 Source operations | [SOURCES-01](development-plan.md#sources-01) | Readable state, saved GitHub check pages, compatible binding reuse and protected cleanup | Existing source services; FIX-03 lifecycle rules | DONE |
 | 4 Scheduling | [COMMAND-02](development-plan.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | DONE |
-| 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | VALIDATING |
-| Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | VALIDATING |
+| 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | DONE |
+| Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | DONE |
 | Later, interleavable | [UX-03](development-plan.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | DONE |
 | Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | DONE |
 | Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | DONE |
-| Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | VALIDATING |
+| Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | DONE |
 | Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | All eighteen packages above and every slice accepted; matching installed artifacts | NOT_STARTED |
 
 Batches express delivery preference, not extra technical dependencies. Themes, task browsing and version review can progress independently after their own prerequisites. UPDATE-02 and SOURCES-01 retain one package identity across their separately deliverable slices; a package completes only when all its slices are accepted. Later improvements can be interleaved under their own dependencies, preserving the delivered binding and history protections.
@@ -206,6 +206,7 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 | v3.11.0 | TASK-02, UPDATE-02 slice 1 | DONE | [Task browsing and version review](task-version-review.md) |
 | v3.12.0 | SOURCES-01, COMMAND-02, UPDATE-02 slices 2/3; #173 | DONE | [v3.12.0 delivery](source-command-package-management.md) |
 | v3.13.0 | All UX-03, COMPOSITION-04 and IMPORT-02 slices | DONE | [Draft history, repairs and reuse delivery](draft-history-and-reuse.md) |
+| v3.14.0 | APPEARANCE-07, APPEARANCE-06, PROFILE-02; #178/#180 | DONE | [Adaptive appearance and scenario delivery](adaptive-row-scenarios.md) |
 
 The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
 
