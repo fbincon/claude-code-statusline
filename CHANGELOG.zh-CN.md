@@ -9,6 +9,8 @@
 - 结构编辑与精确对齐修复共同审阅，接受后作为一次可撤销操作。
 - 复制兼容的所选视觉字段，通过明确依赖处理、ID 映射和本机来源重绑定复用完整分组。
 - 编辑器协议为 29，保留显示 schema 16 及 portable／方案格式 1。
+- 按已接受的宿主兼容调整，外部撤销／重做使用 Ctrl+Z／Ctrl+R，Native 使用 Ctrl+_／Ctrl+R，历史页也提供 U／R。
+- 保留 v3.13.0，发版后发现 [#178](https://github.com/fbincon/claude-code-statusline/issues/178)、[#179](https://github.com/fbincon/claude-code-statusline/issues/179)、[#180](https://github.com/fbincon/claude-code-statusline/issues/180) 保持开放；交付记录包括误发模型请求事件及偏好恢复。
 - [发布说明](docs/releases/v3.13.0.zh-CN.md) · [实现](docs/development/draft-history-and-reuse.zh-CN.md)。
 
 ## 3.12.0 — 2026-10-28
