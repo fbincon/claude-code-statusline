@@ -122,6 +122,10 @@ export async function collectJourneys(options: { fixture: string; output: string
     assert(version.startsWith('2.1.314 '), 'Capture the named host version');
     fs.mkdirSync(output, { recursive: true, mode: 0o700 });
     write(join(output, 'fixture.json'), fixture);
+    const profilePath = resolve(options.examples, 'daily.json'), profileBytes = fs.readFileSync(profilePath);
+    const profileSha = sha256(profileBytes);
+    fs.mkdirSync(join(output, 'inputs'), { mode: 0o700 });
+    fs.writeFileSync(join(output, 'inputs', 'daily.json'), profileBytes, { flag: 'wx', mode: 0o600 });
     const project = fixture.project, env = isolatedRecordingEnvironment({ ...process.env, HOME: join(fixture.temporary, 'home'), USERPROFILE: join(fixture.temporary, 'home'),
         CLAUDE_CONFIG_DIR: config, CLAUDE_STATUSLINE_RUNTIME_DIR: join(config, 'statusline_runtime'), TERM: 'xterm-256color', COLORTERM: 'truecolor',
         ANTHROPIC_API_KEY: 'showcase-synthetic-offline', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9', ANTHROPIC_AUTH_TOKEN: '',
@@ -152,7 +156,7 @@ export async function collectJourneys(options: { fixture: string; output: string
     const receipt: any = { product: SHOWCASE_BASELINE, host: version, status: 'in_progress', platform: process.platform, architecture: process.arch,
         kind: 'actual installed editor PTY keyframes; fixed sample previews; not OS screenshots or human acceptance',
         model_calls: 0, native_network: 'verified network namespace without outbound routes', terminal: 'xterm-256color', terminal_environment: terminalEnvironment,
-        encoding: KEYFRAME_ENCODING,
+        encoding: KEYFRAME_ENCODING, input_profile: { file: 'daily.json', sha256: profileSha }, display_baselines: [],
         fonts: Object.fromEntries(options.fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])),
         recorded_observations_sha256: sha256(JSON.stringify(observedInputs)), copied_observations_unchanged: true, captures: [], journeys: [] };
     const persist = () => write(join(output, 'receipt.json'), receipt);
@@ -181,11 +185,15 @@ export async function collectJourneys(options: { fixture: string; output: string
     run(['source', 'diagnose', 'showcase-queue', '--json']);
     for (const language of ['en', 'zh-CN']) {
         const publicDirectory = join(output, language); fs.mkdirSync(publicDirectory);
-        run(['config', 'profile', 'import', join(options.examples, 'daily.json'), '--overwrite']);
+        assert.equal(sha256(fs.readFileSync(profilePath)), profileSha, 'Input profile changed during collection');
+        run(['config', 'profile', 'import', join(output, 'inputs', 'daily.json'), '--overwrite']);
         run(['config', 'profile', 'activate', 'Showcase daily']);
         run(['config', 'set', 'statusline-language', language]); run(['config', 'language', 'set', language]);
         requireShowcaseVisuals(read(displayPath));
-        const baseline = read(displayPath), style = read(join(options.examples, 'daily.json'));
+        const baselineBytes = fs.readFileSync(displayPath), baseline = JSON.parse(baselineBytes.toString('utf8'));
+        const baselineSha = sha256(baselineBytes), style = JSON.parse(profileBytes.toString('utf8'));
+        fs.writeFileSync(join(output, 'inputs', 'baseline-' + language + '.json'), baselineBytes, { flag: 'wx', mode: 0o600 });
+        receipt.display_baselines.push({ language, sha256: baselineSha, input_profile_sha256: profileSha, transformation: 'public import/activate followed by explicit output-language selection' });
         requireShowcaseVisuals(style.display);
         const destination = style.display.instances[0]; assert.equal(destination.type_id, 'model-with-effort');
         const tutorialStops = [...SHOWCASE_GRADIENTS['session-cost']!.dark];
@@ -239,13 +247,15 @@ export async function collectJourneys(options: { fixture: string; output: string
                 if (!external) assert(visible.includes(label === 'opened' ? 'Ctrl+T' : 'PgUp/PgDn'), 'Native crop must retain the visible keyboard-navigation footer');
                 const file = 'frame-' + String(frameSequence++).padStart(3, '0') + '.png', cells = JSON.stringify(data, null, 2) + '\n', image = renderCapture(data, bounds, options.fonts);
                 fs.writeFileSync(join(directory, file), image.png); write(join(directory, file + '.cells.json'), data);
-                const record = { file, label, elapsed_ms: performance.now() - start, source_recording: recording, ansi_bytes: ansi.length, ansi_prefix_sha256: sha256(ansi),
+                const record = { file, label, saved_baseline_sha256: baselineSha, input_profile_sha256: profileSha,
+                    elapsed_ms: performance.now() - start, source_recording: recording, ansi_bytes: ansi.length, ansi_prefix_sha256: sha256(ansi),
                     bounds, preview_bounds: proof.bounds, preview_cells_sha256: proof.sha256, color_evidence: proof.color, terminal_environment: terminalEnvironment,
                     cells_sha256: sha256(cells), png_sha256: sha256(image.png), width: image.width, height: image.height };
                 frames.push(file); frameRecords.push(record);
                 if (publicName) { fs.writeFileSync(join(publicDirectory, publicName), image.png); receipt.captures.push({ file: language + '/' + publicName, editor, language, kind: receipt.kind, input_kind: 'isolated-live-source-and-installation',
                     width: image.width, height: image.height, png_sha256: sha256(image.png), source_sha256: sha256(cells), bounds,
                     preview_bounds: proof.bounds, color_evidence: proof.color, terminal_environment: terminalEnvironment,
+                    saved_baseline_sha256: baselineSha, input_profile_sha256: profileSha,
                     source_frame: { directory: language + '-' + editor, file, ansi_bytes: ansi.length, ansi_prefix_sha256: sha256(ansi) } }); }
                 return record;
             };
@@ -363,10 +373,13 @@ export async function collectJourneys(options: { fixture: string; output: string
                 sha256: sha256(fs.readFileSync(path)), source_sha256: sha256(fs.readFileSync(join(directory, 'terminal.ansi'))), frames: frameRecords.length,
                 timing: 'observed keyframes edited to 1.4 second holds; not a real-time screen recording', encoding: KEYFRAME_ENCODING,
                 terminal_environment: terminalEnvironment, frames_sha256: sha256(fs.readFileSync(join(directory, 'frames.json'))), color_evidence: colorEvidence,
+                saved_baseline_sha256: baselineSha, input_profile_sha256: profileSha,
                 preview_bounds: frameRecords[0].preview_bounds,
                 ...(reopenedEvidence ? { reopened_source_sha256: sha256(fs.readFileSync(join(directory, 'reopened.ansi'))) } : {}) }); persist();
         }
     }
+    assert.equal(sha256(fs.readFileSync(profilePath)), profileSha, 'Input profile changed during collection');
+    assert.equal(sha256(fs.readFileSync(join(output, 'inputs', 'daily.json'))), profileSha, 'Retained profile input changed');
     installed.cleanup(); assert(!fs.existsSync(installed.temporary), 'Recording fixture was not removed');
     receipt.status = 'pass'; receipt.isolated_installation_removed = true;
     const helpers = ['tools/acceptance/showcase-journeys.ts', 'tools/acceptance/showcase-driver.ts', 'tools/acceptance/render-capture.ts',
