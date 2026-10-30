@@ -6,7 +6,9 @@
 
 [Native 容量修复截图](native-capacity/README.zh-CN.md) 展示安装包的快速配置、渐变、24 项保存成功和高面板缩放，并记录精确候选来源。
 
-[当前 TypeScript 安装包外部页面](typescript/v3.1.1/README.zh-CN.md)覆盖六语言、主栏、子代理、设置、布局和上下文操作，并记录源码／产物来源及图片校验；此前 TypeScript 捕获及下方 Python 原图库保留。
+[v3.16.0 安装包语言图库](typescript/v3.16.0/README.zh-CN.md)展示六种新增语言的外部设置页及三个 Native 示例，记录准确的候选包来源、图片校验与独立的十二语言行为检查。
+
+[v3.1.1 TypeScript 外部图库](typescript/v3.1.1/README.zh-CN.md)保留该版本的六语言主栏、子代理、设置、布局和上下文操作，以及原始源码／产物来源和图片校验；此前 TypeScript 捕获及下方 Python 原图库保留。
 
 最新组件实例界面见[组件编辑器捕获](composition/README.zh-CN.md)。下方保留原始跨平台图片来源。
 

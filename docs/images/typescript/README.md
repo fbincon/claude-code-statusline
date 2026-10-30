@@ -1,8 +1,10 @@
-# Installed TypeScript external editor captures
+# Installed TypeScript editor captures
 
 **English** | [简体中文](README.zh-CN.md)
 
-The current external editor is in the [v3.1.1 six-language gallery](v3.1.1/README.md): four pages, contextual controls, light/dark profiles and minimum-window views from the final installed package. Image hashes and source/package provenance are recorded alongside separate behavior assertions.
+The [v3.16.0 language gallery](v3.16.0/README.md) shows six additional interface languages in the external editor and three Native examples from a verified installed candidate. It records exact source/package identities, image hashes, privacy crops and separate twelve-language behavior checks.
+
+The [v3.1.1 six-language gallery](v3.1.1/README.md) preserves four pages, contextual controls, light/dark profiles and minimum-window views from that final installed package. Its image hashes, source/package provenance and separate behavior assertions retain their original identities.
 
 The [v3.1.0 regional gallery](regional/README.md) preserves Taiwan/Hong Kong captures from both editors. The preparation captures below retain their original provenance.
 

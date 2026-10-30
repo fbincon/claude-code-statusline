@@ -26,7 +26,7 @@
 - **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件及联动分组，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
 
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色、主题和百分比短条，按需启用 [Powerline](docs/APPEARANCE.zh-CN.md)。
-- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
+- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/typescript/v3.16.0/README.zh-CN.md)。
 - **审阅颜色与样例：** 在颜色字段按 Enter 打开可视选色；Ctrl+V 切换样例场景，Ctrl+W 调整预览宽度，Ctrl+N 浏览各行。见[外观指南](docs/APPEARANCE.zh-CN.md)。
 - **诊断指定输入：** 在任一编辑器按 Ctrl+L，使用未保存草稿只读检查文件，默认仅采用输入证据；也可使用 CLI。见[输入诊断](docs/DIAGNOSTICS.zh-CN.md)。
 - **查找显示项目：** 65 个主栏指标和 15 个子代理指标，以及文本与弹性留白组件，支持十二种语言的分级搜索、分类筛选及来源／启用条件说明。

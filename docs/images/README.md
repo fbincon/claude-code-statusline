@@ -6,7 +6,9 @@ The [adaptive appearance samples](adaptive-row-scenarios/README.md) show the fiv
 
 The [native capacity repair captures](native-capacity/README.md) show installed quick setup, gradients, a successful 24-instance save and tall-pane resizing, with exact candidate provenance.
 
-[Current installed TypeScript external pages](typescript/v3.1.1/README.md) cover six languages, Main, Subagents, Settings, Layout and contextual controls, with source/artifact provenance and image checksums. Earlier TypeScript captures and the original Python gallery below are preserved.
+The [v3.16.0 installed language gallery](typescript/v3.16.0/README.md) shows the six additional languages in external Settings and three Native examples, with exact candidate provenance, image checksums and separate twelve-language behavior checks.
+
+The [v3.1.1 TypeScript external gallery](typescript/v3.1.1/README.md) preserves its six-language Main, Subagents, Settings, Layout and contextual controls, with original source/artifact provenance and image checksums. Earlier TypeScript captures and the original Python gallery below are preserved.
 
 See the [component editor captures](composition/README.md) for the current instance interface. Original cross-platform galleries remain documented below.
 
