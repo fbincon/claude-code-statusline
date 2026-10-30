@@ -127,7 +127,12 @@ export async function collectJourneys(options: { fixture: string; output: string
         ANTHROPIC_API_KEY: 'showcase-synthetic-offline', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9', ANTHROPIC_AUTH_TOKEN: '',
         DISABLE_AUTOUPDATER: '1', CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', CLAUDE_CODE_NO_FLICKER: '1' });
     delete env.CLAUDECODE;
+    // The product's fixed preview derives its example directory from homedir().
+    // Give only the recording processes a public sample home; persistent host
+    // state still uses the explicit, isolated CLAUDE_CONFIG_DIR.
+    const recordingEnv = { ...env, HOME: '/demo', USERPROFILE: '/demo' };
     const terminalEnvironment = { TERM: env.TERM, COLORTERM: env.COLORTERM, no_color_present: Object.hasOwn(env, 'NO_COLOR'),
+        fixed_preview_home: '/demo', fixed_preview_home_created: false,
         inherited_no_color_removed: process.env.NO_COLOR !== undefined,
         product_capability: colorCapability({ environment: env, platform: process.platform, tty: true, windowsVT: false }) };
     assert.equal(terminalEnvironment.product_capability.colors, 256); assert.equal(terminalEnvironment.no_color_present, false);
@@ -193,12 +198,12 @@ export async function collectJourneys(options: { fixture: string; output: string
             source_sha256: sha256(fs.readFileSync(join(project, 'style-source.json'))) };
         for (const editor of ['external', 'native', 'browse'] as const) {
             const directory = join(output, language + '-' + editor); fs.mkdirSync(directory);
-            const external = editor !== 'native', columns = external ? 120 : 200, rows = external ? 32 : 50;
+            const external = editor !== 'native', columns = external ? 120 : 200, rows = external ? 32 : 38;
             const before = fs.readFileSync(displayPath), settings = read(join(config, 'settings.json'));
             const hostLog = join(directory, 'host.log'), frames: string[] = [], frameRecords: any[] = [];
             const overrides = { apiKeyHelper: '', env: { ANTHROPIC_API_KEY: 'showcase-synthetic-offline', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9', ANTHROPIC_AUTH_TOKEN: '' },
                 enabledPlugins: Object.fromEntries(Object.keys(settings.enabledPlugins ?? {}).map(id => [id, id === 'statusline-native@claude-statusline-local'])) };
-            const p = openPty(config, columns, rows, env, language, external
+            const p = openPty(config, columns, rows, recordingEnv, language, external
                 ? { executable: fixture.node, args: [fixture.entry, '--language', language, 'configure'], cwd: project }
                 : { executable: '/usr/bin/unshare', args: [...isolation, options.claude, '--permission-mode', 'manual', '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--settings', JSON.stringify(overrides)], cwd: project });
             const screen = new Capture(columns, rows); let offset = 0, apiAccepted = false, page = 'main', frameSequence = 0; const start = performance.now();
@@ -226,11 +231,12 @@ export async function collectJourneys(options: { fixture: string; output: string
             };
             const captureObserved = (label: string, observed: Capture, ansi: Buffer, recording: string, publicName?: string, crop?: number[]) => {
                 const data = { columns, rows, cells: observed.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' };
-                const bounds = crop ?? (external ? [0, 0, columns, rows] : [128, 4, 72, 40]);
+                const bounds = crop ?? (external ? [0, 0, columns, rows] : [128, 4, 72, 26]);
                 const proof = previewState(observed, ansi), [px, py, pw, ph] = proof.bounds;
                 assert(bounds[0]! <= px! && bounds[1]! <= py! && bounds[0]! + bounds[2]! >= px! + pw! && bounds[1]! + bounds[3]! >= py! + ph!, 'Public crop omits part of the actual colored preview');
                 const visible = observed.buffer.slice(bounds[1], bounds[1]! + bounds[3]!).map(row => row.slice(bounds[0], bounds[0]! + bounds[2]!).map(c => c.data).join('')).join('\n');
                 assertPublicFrame(visible);
+                if (!external) assert(visible.includes(label === 'opened' ? 'Ctrl+T' : 'PgUp/PgDn'), 'Native crop must retain the visible keyboard-navigation footer');
                 const file = 'frame-' + String(frameSequence++).padStart(3, '0') + '.png', cells = JSON.stringify(data, null, 2) + '\n', image = renderCapture(data, bounds, options.fonts);
                 fs.writeFileSync(join(directory, file), image.png); write(join(directory, file + '.cells.json'), data);
                 const record = { file, label, elapsed_ms: performance.now() - start, source_recording: recording, ansi_bytes: ansi.length, ansi_prefix_sha256: sha256(ansi),
@@ -293,7 +299,7 @@ export async function collectJourneys(options: { fixture: string; output: string
                     assert.notDeepEqual(fs.readFileSync(displayPath), before, 'Explicit Save did not publish the draft');
                     requireShowcaseVisuals(read(displayPath));
                     assert.equal(read(displayPath).instances.length, baseline.instances.length + 1, 'Explicit Save must persist exactly one duplicate');
-                    const saved = fs.readFileSync(displayPath), reopen = openPty(config, columns, rows, env, language,
+                    const saved = fs.readFileSync(displayPath), reopen = openPty(config, columns, rows, recordingEnv, language,
                         { executable: fixture.node, args: [fixture.entry, '--language', language, 'configure'], cwd: project });
                     try {
                         await reopen.wait(raw => {

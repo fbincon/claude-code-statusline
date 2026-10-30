@@ -184,7 +184,10 @@ export async function collectSamples(modules: string, output: string): Promise<v
                     Object.assign(node.options, { presentation: 'adaptive', bar_width: 8 });
             }
         }
-        if (scene.id === 'narrow') original.layout = { mode: 'explicit', rows: [['model-with-effort', 'current-dir'], ['context-remaining', 'task-timer']] };
+        if (scene.id === 'narrow') {
+            original.layout = { mode: 'explicit', rows: [['model-with-effort'], ['current-dir'], ['context-remaining', 'task-timer']] };
+            original.instances.find((node: any) => node.type_id === 'current-dir').options.max_width = null;
+        }
         if (scene.id === 'agents') original.subagents.hide_completed = false;
         applyShowcaseVisuals(original, scene.id === 'light' ? 'light' : 'dark');
         // The quota tutorial intentionally demonstrates production threshold colors over decorative gradients.
