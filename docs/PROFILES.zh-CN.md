@@ -2,7 +2,6 @@
 
 [English](PROFILES.md) | **简体中文**
 
-
 外部数据源的注册、授权、刷新、诊断及分享边界见[扩展指南](EXTENSIONS.zh-CN.md)。
 
 保存完整的命名显示方案，并在多个项目间复用。打开任一配置编辑器，选择 **设置 → 显示方案与项目**，或按 **Ctrl+O**。示例预览不会修改已保存设置。
@@ -62,7 +61,7 @@ claude-statusline config project unbind "/work/project"
 
 ## 文件、冲突与恢复
 
-Claude 用户配置目录中的版本 1 `claude-statusline-profiles.json` 保存方案集合和绑定，仅在保存或绑定时创建。现有 `claude-statusline.json` 继续保存显示 schema 15 的用户默认。集合限制为 128 个方案、512 个绑定和 32 MiB。
+Claude 用户配置目录中的版本 1 `claude-statusline-profiles.json` 保存方案集合和绑定，仅在保存或绑定时创建。现有 `claude-statusline.json` 继续保存显示 schema 17 的用户默认。集合限制为 128 个方案、512 个绑定和 32 MiB。
 
 单方案导出格式为 `claude-code-statusline-profile`、版本 1，包含名称和显示设置，不包含项目路径或内部方案 ID；传输大小上限为 1 MiB。它与现有还包含工具宿主设置的 `claude-code-statusline` portable 配置包不同，请使用对应导入命令。
 

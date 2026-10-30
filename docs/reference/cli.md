@@ -2,39 +2,22 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+Use this page for command syntax, options, display fields and configuration formats. Step-by-step workflows are in the [user guide](../USER_GUIDE.md) and [usage demonstrations](../SHOWCASE.md). Values below describe the current package; historical delivery records retain their original versions.
 
-Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](../DRAFT_HISTORY.md).
-
-[First-use setup](../SETUP.md) and [complete schemes](../SCHEMES.md).
-
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
-
-For `diagnose --input FILE|-`, read-only observation rules, and text/JSON output, see [input diagnosis](../DIAGNOSTICS.md).
-
-Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](../development/configuration-experience.md).
-
-The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
-
-
-Complete command syntax, supported options, display fields and configuration files. For installation and step-by-step workflows, read the [user guide](../USER_GUIDE.md). Values and examples below describe the current package, not historical release announcements.
-
-No subcommand opens the reviewed durable installation flow. See [first entry](../SETUP.md#first-entry-and-persistent-npm-installation). It accepts `--prefix`, `--config-dir` and `--dry-run`; ordinary non-TTY entry exits without mutation.
-
-[Package version management](../PACKAGE_MANAGEMENT.md): explicit checks, upgrades, rollback and separate configuration restoration.
+With no subcommand, an interactive invocation opens the reviewed [persistent-installation flow](../SETUP.md#first-entry-and-persistent-npm-installation). It accepts `--prefix`, `--config-dir` and `--dry-run`; ordinary non-TTY entry exits without mutation.
 
 ## Contents
 
-- [CLI overview](#cli-overview)
-- [Installation and diagnostics](#installation-and-diagnostics)
-- [Slash-command support](#slash-command-support)
-- [Configuration command reference](#configuration-command-reference)
-- [Configurable display items](#configurable-display-items)
-- [Main status line fields](#main-status-line-fields)
-- [Subagent rows and the three scopes](#subagent-rows-and-the-three-scopes)
-- [Display and host options](#display-and-host-options)
-- [Configuration files](#configuration-files)
-- [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
-- [Exit codes](#exit-codes)
+| Area | Reference |
+| --- | --- |
+| Commands and language | [Overview](#cli-overview) · [Interface language](#interface-language) · [Output language](#statusline-language) · [Slash support](#slash-command-support) |
+| Installation and versions | [Installation/diagnostics](#installation-and-diagnostics) · [Setup](#first-use-setup-and-complete-schemes) · [Package management and recovery](../PACKAGE_MANAGEMENT.md) |
+| Display configuration | [Configuration commands](#configuration-command-reference) · [Instances](#instance-management) · [Groups](#group-operations) · [Alignment](#main-row-alignment) |
+| Appearance and reuse | [Display/host options](#display-and-host-options) · [Visibility/colors](#conditional-visibility-and-appearance) · [Indicators](#graphical-indicators) · [Adaptive backgrounds](#adaptive-indicators-and-continuous-backgrounds) · [Selective reuse](#selective-display-reuse) |
+| Profiles and drafts | [Profiles/projects](../PROFILES.md) · [Schemes](../SCHEMES.md) · [History and structural review](../DRAFT_HISTORY.md) |
+| Sources and tasks | [Source management](#source-management) · [Binding maintenance](#source-binding-maintenance) · [Task viewer](#interactive-task-viewer) · [Supplied-input diagnosis](../DIAGNOSTICS.md) |
+| Field meanings | [Catalog](#configurable-display-items) · [Main fields](#main-status-line-fields) · [Subagent scopes](#subagent-rows-and-the-three-scopes) · [Metric definitions](../DISPLAY_ITEMS.md) |
+| Files and automation | [Configuration files](#configuration-files) · [Paths/environment](#custom-configuration-directory-and-environment-variables) · [Exit codes](#exit-codes) |
 
 <a id="cli-总览"></a>
 
@@ -47,7 +30,7 @@ claude-statusline rollback [--version EXACT]
 claude-statusline recover --package [--version EXACT]
 claude-statusline recover --restore-config BACKUP_ID
 claude-statusline setup [--config-dir PATH] [--dry-run]
-claude-statusline configure [--config-dir PATH]
+claude-statusline configure [--config-dir PATH] [--user | --profile NAME | --project PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
 claude-statusline config [--config-dir PATH] set-items [ITEM...]
@@ -70,9 +53,18 @@ claude-statusline config [--config-dir PATH] language show [--json]
 claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
+claude-statusline config [--config-dir PATH] instance main|subagent ACTION ...
+claude-statusline config [--config-dir PATH] group main|subagent ACTION ...
+claude-statusline config [--config-dir PATH] alignment ACTION ...
+claude-statusline config [--config-dir PATH] profile ACTION ...
+claude-statusline config [--config-dir PATH] project ACTION ...
+claude-statusline source [--config-dir PATH] ACTION ...
+claude-statusline task show|view --session-id ID [--prompt-id ID] [--config-dir PATH]
+claude-statusline diagnose --input FILE|- [--scope main|subagent] [--config-dir PATH]
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
   [--native-editor | --no-native-editor]
+  [--native-timing | --no-native-timing]
   [--live-metrics | --no-live-metrics]
   [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
@@ -106,9 +98,11 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## Interface language
 
+The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
+
 `config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}`, with `ui_language` set to a supported code. `set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
 
-Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
+Help text/groups, argument errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
 
 ## Statusline language
 
@@ -125,7 +119,7 @@ Display schema v17 includes required `statusline_language`. Historical v1–v5 r
 | `install --force` | Permit replacement of conflicting main/subagent settings or same-name skills; native plugin identity conflicts still require resolving ownership |
 | `uninstall [--dry-run]` | Remove or preview removal of owned integration; retain display settings, preferences, state, and backups |
 | `doctor` | Diagnose installation without rewriting settings or opening an editor |
-| `configure` | Open curses in the current terminal; requires valid settings, installation ownership, TTY input/output, and at least 64×18 |
+| `configure` | Open the Node terminal editor in the current terminal; requires valid settings, installation ownership, TTY input/output, and at least 64×18 |
 
 All commands accept `--config-dir PATH` after the command name. The four independent `install` preference pairs are:
 
@@ -195,7 +189,7 @@ Use JSON output for scripts or automation:
 claude-statusline config show --json
 ```
 
-The top-level JSON `installed` still indicates only whether `settings.json/statusLine.command` points exactly to the current `claude-statusline render` on PATH, not whether the npm package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
+The top-level JSON `installed` indicates whether `settings.json/statusLine.command` is an owned render binding for the invoked backend entry, not merely whether the npm package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
 
 ### `config list-items`
 
@@ -217,11 +211,11 @@ Each JSON item contains:
 
 - `id`: the stable identifier passed to other commands.
 - `description`: a description of the display item.
-- `default_enabled`: ten main items are `true`; the other 50 main items are `false` (opt-in).
-- `enabled`: whether it is currently enabled.
-- `position`: its current zero-based position, or `null` when disabled.
+- `default_enabled`: ten main metrics are `true`; other catalog types are `false` (opt-in).
+- `enabled`: whether at least one instance of this type is enabled.
+- `position`: the zero-based position when exactly one instance of this type is enabled, otherwise `null`.
 
-The shared catalog also returns `scope`, `label`, `group`, `sources`, `examples`, `default_position`, `minimum_version`, `minimum_version_status`, `format_options`, `excludes`, and `unavailable_reasons`. Version metadata identifies a capability, not evidence of received data. The subagent catalog has 14 items, five enabled by default.
+The shared catalog also returns `scope`, `label`, `group`, `sources`, `examples`, `default_position`, `minimum_version`, `minimum_version_status`, `format_options`, `excludes`, and `unavailable_reasons`. Version metadata identifies a capability, not evidence of received data. The subagent catalog has 15 metrics plus text and spacer types, with five metrics enabled by default.
 
 ### `config set-items [ITEM...]`
 
@@ -406,12 +400,14 @@ claude-statusline config item subagent task max-width none
 
 ### `config preset NAME [--dry-run]`
 
-Names are `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right`, and `repeated-metrics`. A preset replaces the selected items, layout, subagent item defaults and item overrides, sets short model/compact number formats, and assigns descending item priorities. It preserves colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
+The six original presets are `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right`, and `repeated-metrics`. These presets replace the selected items, layout, subagent item defaults and item overrides, set short model/compact number formats, and assign descending item priorities. They preserve colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
 
 ```text
 claude-statusline config preset developer --dry-run
 claude-statusline config preset developer
 ```
+
+The same command accepts the eight [complete schemes](../SCHEMES.md), which also set global appearance. All choices retain output language and independent collector/source permissions.
 
 `--dry-run` validates and prints a draft without saving. Actual preset application includes host settings, so requires the current CLI to own installation.
 
@@ -429,7 +425,7 @@ Portable version 1 contains exactly `format: "claude-code-statusline"`, `version
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
-Current CLI limitation: exporting to a protected configuration path raises an uncaught validation error, exits 1, and prints a traceback. The protected file is unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
+Exporting to a protected configuration path is rejected with a configuration error and exit code 2, leaving the protected file unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
 
 ### `config reset`
 
@@ -451,7 +447,7 @@ This command:
 
 ## Configurable display items
 
-The main catalog has 61 metrics plus `text` and `spacer`. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
+The main catalog has 65 metrics plus `text` and `spacer`; the subagent catalog has 15 metrics plus those two layout types. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
 
 All the following items are enabled by default; table order is also the initial display order:
 
@@ -495,7 +491,7 @@ The following three optional items show context usage, project directory name, a
 | --- | --- | --- | --- |
 | `context-used` | `Context N% used`, rounded with `round()` | `context_window.used_percentage` in Claude's official status-line payload | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
 | `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
-| `hostname` | `Host NAME` | Local Node `os.hostname()`; not a Claude Code 2.1.258+ payload field | Omitted on `OSError` or an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
+| `hostname` | `Host NAME` | Local Node `os.hostname()`; not a Claude Code 2.1.258+ payload field | Omitted if the local hostname lookup fails or returns an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
 
 Enable all three together:
 
@@ -825,9 +821,9 @@ This is strict JSON: comments, trailing commas, unknown or missing fields, unkno
 
 The catalog is a list of types; `instances` stores configured placements. Disabled instances and their options remain configured until removed. Each scope has its own identity namespace.
 
-Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
+Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [current architecture](../development/architecture.md#current-typescript-workspace).
 
-The current display schema is v16. Historical v1–v15 are readable and are backed up and written as v16 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current display schema is v17. Historical v1–v16 are readable and are backed up and written as v17 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -934,7 +930,7 @@ These last two variables are usually unnecessary. Changing them may temporarily 
 Management commands follow these conventions:
 
 - `0`: success; `doctor` found no ERROR.
-- `1`: `doctor` found at least one ERROR; an uncaught CLI error can also exit 1, including the protected-export limitation above.
+- `1`: `doctor` found at least one ERROR, or setup preflight checks blocked the requested integration.
 - `2`: argument parsing or handled configuration, ownership, or installation validation failed.
 - `130`: interactive TUI received Ctrl+C/SIGINT; the terminal is restored and configuration is not saved.
 - `128 + signal`: interactive TUI received a termination signal available on the current platform; the terminal is restored and configuration is not saved.
@@ -955,7 +951,7 @@ When a unique metric is toggled in an explicit layout or a composition, its posi
 
 ## First-use setup and complete schemes
 
-`setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). The three additional complete presets are `daily-development`, `agent-focus`, and `quota-watch`; their global appearance is intentional, while the original six presets preserve their existing expansion behavior. See [scheme files and sharing](../SCHEMES.md).
+`setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). Eight complete schemes define global appearance as well as layout; the six original presets preserve their existing global appearance behavior. See [scheme files and sharing](../SCHEMES.md).
 
 `config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart` use shared validation. These affect Powerline blocks, independently of host padding. [Appearance controls](../APPEARANCE.md).
 
@@ -980,7 +976,6 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
 
-
 Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
 
 ## Graphical indicators
@@ -998,7 +993,6 @@ The optional `session-cost-rate` component accepts `config instance main set INS
 `config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
 
 `config instance main|subagent set ID foreground-gradient|background-gradient VALUE` accepts `off`, `ocean`, `sunset`, `aurora`, or 2–5 comma-separated RGB colors. See [static gradients](../APPEARANCE.md#static-component-gradients).
-
 
 ## Main-row alignment
 

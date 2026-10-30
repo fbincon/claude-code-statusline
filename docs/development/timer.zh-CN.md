@@ -8,9 +8,9 @@
 
 ## 职责结构
 
-`runtime/timing` 提供纯逻辑、可持久恢复的计时核心。累计时间、暂停与恢复的设计参考 [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs)，本项目以 Python 实现，并增加启动域时钟样本及重叠等待身份。
+`packages/core/src/timing` 提供纯逻辑、可持久恢复的 TypeScript 计时核心。累计时间、暂停与恢复的设计参考 [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs)，并增加启动域时钟样本及重叠等待身份。
 
-`runtime/tasks` 集中管理任务身份、生命周期转换、提交证据索引、原子存储、原生适配与只读指标视图。`runtime/turns` 和原 Python 入口引用相同的正式模块。采集与归并先于格式化；预览使用固定快照，不访问运行数据。
+`packages/core/src/runtime/tasks` 负责纯任务身份、转换、原生适配及指标视图；`packages/cli/src/runtime/tasks` 通过平台适配器协调提交索引和原子存储。采集与归并先于格式化；预览使用固定快照，不访问运行数据。Python 模块别名属于[冻结归档](../../archive/python/README.zh-CN.md)。
 
 ## 完成判定
 

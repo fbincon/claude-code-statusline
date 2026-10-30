@@ -8,9 +8,9 @@ Current timing provenance, exact replay deduplication and cache compatibility ar
 
 ## Structure
 
-`runtime/timing` contains a pure, persistent elapsed clock. Its accumulated-time, pause and resume design follows [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs); this project implements the design in Python and adds boot-domain samples and overlapping wait identities.
+`packages/core/src/timing` contains the pure, persistent TypeScript elapsed clock. Its accumulated-time, pause and resume design follows [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs), adding boot-domain samples and overlapping wait identities.
 
-`runtime/tasks` owns task identity, lifecycle transitions, indexed submission evidence, atomic storage, native adaptation and read-only metric views. `runtime/turns` and the original Python entry points alias the same canonical modules. Collection/reconciliation precedes formatting; preview uses fixed snapshots without runtime I/O.
+`packages/core/src/runtime/tasks` owns pure task identity, transitions, native adaptation and metric views. `packages/cli/src/runtime/tasks` coordinates submission indexing and atomic storage through platform adapters. Collection/reconciliation precedes formatting; preview uses fixed snapshots without runtime I/O. Python module aliases belong to the [frozen archive](../../archive/python/README.md).
 
 ## Completion
 

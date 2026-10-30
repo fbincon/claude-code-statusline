@@ -40,7 +40,7 @@ Replace `TARGET_REV` and `table` with the revision and exact affected relationsh
 
 Open a destination component's details and choose **Copy / paste visual style**. Select the current draft, a portable file, a profile export or a saved profile as the source, then select a source component and the visual fields to copy. Incompatible fields are visible and cannot be selected.
 
-The v3.13.0 Native action caption remains English in the Simplified Chinese interface ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)).
+The Simplified Chinese Native caption was untranslated in v3.13.0 ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)); [v3.14.0 corrected it and verified the actual style/group/history entries](development/adaptive-row-scenarios.md). The historical capture retains its original package identity.
 
 The whitelist includes foreground/background colors, both gradients, label, icon and supported formatting overrides. Inherited values restore inheritance. Metric type, source binding, literal text, order, priority, width and visibility stay with the destination. Review the selected differences and accept with **A**, then save separately.
 

@@ -1,37 +1,35 @@
 # Testing and acceptance
 
-
-[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
-
 **English** | [简体中文](testing.zh-CN.md)
 
-The v3.16.0 [twelve-language expansion](language-expansion.md#final-release) adds six UI/output languages and editor protocol 31, covering 144 combinations and 313 capacity cases. Publication and actual-machine status: complete; original identities and actual evidence remain in the delivery record.
+Select validation from the actual change and preserve each result's source/artifact identity. [Impact checks](impact-checks.md) define responsibility classification and local tasks; [CI maintenance](ci-maintenance.md) defines the protected aggregate, evidence expiry and PR/main/tag promotion. Development setup is in the [development guide](README.md).
 
+| Work | Required evidence |
+| --- | --- |
+| Documentation/templates | Accurate current behavior, bilingual agreement, working links/anchors/navigation, `docs:check` and whitespace checks |
+| Images, recordings and demonstrations | Planned media checks plus readable output, matching installed package, input/configuration provenance and reproducible operations; [SHOWCASE-01](showcase.md) records this separately from documentation acceptance |
+| Tools, tests, presentation or CI policy | The applicable `ci:plan`/`ci:check` tasks; package-sensitive classification must resolve its comparison |
+| Core behavior/runtime dependencies | Complete product checks and the applicable installed/runtime/host matrix |
+| Terminal, physical or paid work | Explicitly scoped collection, source-bound reports and actual limitations; paid calls need an approved budget and shared ledger |
 
-[Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
+Ordinary tests use isolated configuration/install directories and do not make paid model calls. [Candidate acceptance](typescript-migration/ts-05/candidate.md) describes installed, terminal, power and paid entry points. PTY reconstruction and agent visual inspection are not physical or human acceptance. The six existing [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new failures.
 
-Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+Current native-capacity rules and applicable host checks are in [capacity and recovery](native-capacity.md). The [delivery index](README.md#migration-and-delivery-records) links feature-specific evidence; counts in those records describe their named versions, not a fresh run against current main.
 
-[CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
+## Current TypeScript checks
 
+[Impact checks](impact-checks.md) add scoped maintenance receipts and current-source release bindings. Core changes retain the complete 8/32/16 matrix and all current capacity obligations. Ordinary maintenance uses the planned checks; unexpected skips, missing evidence and incompatible ownership block. Local scoped receipts and manual diagnostics never replace Actions acceptance.
 
-[Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
+The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) separates draft feedback, complete candidate acceptance and integration/release verification. A complete core candidate covers 8 installations, 32 Node cases, 16 hosts and all applicable native-capacity cases. Main's three-platform smoke is additional evidence for the original package; it cannot stand in for missing PR acceptance. Tests cover wrong or expired runs/artifacts, duplicate receipts, changed source/tree/base/policy, moved tags, compiler-output provenance and failed/skipped dependencies. Manual diagnostics and local smoke records are not releasable acceptance.
 
-[Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
+Maintenance uses `npm run ci:plan` and `ci:check`. Complete product entries remain `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/sixteen-host evidence and the manual historical entry.
+Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
-
-For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIAGNOSTICS.md) and [implementation and acceptance](real-input-diagnostics.md).
-
-Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
-
-Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
-
-[First-batch correctness validation](correctness-maintenance.md) covers both editors' save reconciliation, bar labels, refresh consumers, historical extension evidence and task language, retaining the existing release matrix.
+Cleanup regressions use isolated temporary directories to verify previews, complete removal, repeated execution, symbolic-link boundaries, and preservation of source and historical records. Before a clean rebuild, use `npm run clean -- --dry-run` and `npm run clean`; see the [development guide](README.md#clean-compiled-outputs) for their scope.
 
 ## I18N-02 acceptance
 
-Lifecycle tests cover source/context/terminology and translation invalidation, historical placeholder/deletion isolation, unsafe and duplicate inputs, identical-English terms, immutable freeze/validation and explicit acceptance. Node/Native generated fixtures verify effective messages and search origins. Installed acceptance adds 36 independent UI/output combinations, read-only previews, saved readback and exact effective JSON. Actual-host capacity retains 271 cases and adds twelve long Unicode language cases for 283 total. Release tests retain accepted-base independence and prove that a safe B-fallback PR/main cannot authorize publication. No new paid or physical acceptance is implied. [Evidence](i18n-02-delivery.md).
+The v3.15.0 I18N-02 acceptance covered source/context/terminology and translation invalidation, historical placeholder/deletion isolation, unsafe and duplicate inputs, identical-English terms, immutable freeze/validation and explicit acceptance. Node/Native generated fixtures verify effective messages and search origins. Installed acceptance adds 36 independent UI/output combinations, read-only previews, saved readback and exact effective JSON. Actual-host capacity retains 271 cases and adds twelve long Unicode language cases for 283 total. Release tests retain accepted-base independence and prove that a safe B-fallback PR/main cannot authorize publication. No new paid or physical acceptance is implied. [Original evidence](i18n-02-delivery.md). The subsequent [v3.16.0 expansion](language-expansion.md) records 144 language combinations and 313 capacity cases separately.
 
 ## Release approval and CI routing
 
@@ -50,22 +48,11 @@ method. Use artifact-mode `benchmark`/`benchmark:compare`; the legacy workspace
 worker remains descriptive and is not installed-command timing. Counters run
 separately from timed samples; cold/append preparation restores the whole usage
 index. Linux GNU time records fresh-child peak RSS. Product correctness is the
-hard gate; no minimum speedup or Python budget pass is required by this task.
+hard gate; its recorded result does not require a minimum speedup or a Python-budget pass.
 
 ## External TUI product regressions
 
 The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across all registered languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Installed captures and delivery evidence are recorded separately in [the external TUI follow-up](external-tui-parity.md); reconstructed cells do not establish human desktop or power acceptance.
-
-## Current TypeScript checks
-
-[Impact checks](impact-checks.md) add scoped maintenance receipts and current-source release bindings. Core changes retain the complete 8/32/16 matrix and all current capacity obligations. Ordinary maintenance uses the planned checks; unexpected skips, missing evidence and incompatible ownership block. Local scoped receipts and manual diagnostics never replace Actions acceptance.
-
-The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) separates draft feedback, complete candidate acceptance and integration/release verification. A complete core candidate covers 8 installations, 32 Node cases, 16 hosts and all applicable native-capacity cases. Main's three-platform smoke is additional evidence for the original package; it cannot stand in for missing PR acceptance. Tests cover wrong or expired runs/artifacts, duplicate receipts, changed source/tree/base/policy, moved tags, compiler-output provenance and failed/skipped dependencies. Manual diagnostics and local smoke records are not releasable acceptance.
-
-Maintenance uses `npm run ci:plan` and `ci:check`. Complete product entries remain `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/sixteen-host evidence and the manual historical entry.
-Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
-
-Cleanup regressions use isolated temporary directories to verify previews, complete removal, repeated execution, symbolic-link boundaries, and preservation of source and historical records. Before a clean rebuild, use `npm run clean -- --dry-run` and `npm run clean`; see the [development guide](README.md#clean-compiled-outputs) for their scope.
 
 ## Historical Python and migration-stage records
 
@@ -309,7 +296,6 @@ Repeat for dark, light-daltonized, dark-daltonized, light-ansi, dark-ansi, auto 
 
 `tools/terminal_colors.py` resolves foreground and background defaults separately before reverse video; both acceptance and capture rendering use it. RGB cells are exact; named ANSI colors use the documented capture palette and do not establish a physical terminal’s custom ANSI definitions. Reconstructed images are terminal evidence, separate from OS screenshots or human acceptance.
 
-
 The native capture runner sets `--terminal-theme light|dark` independently of `--theme`. Run all four light/dark combinations in fresh report directories. Each captures default/ANSI palettes and Colors off, selects the matching UI-only preview background through the keyboard, verifies every preview cell uses that preset, and records terminal foreground/background, the shared xterm ANSI palette and the explicit analysis-fixture source. These fixtures do not change a physical terminal profile. UI tests cover loading/errors, overflow, CJK/combining text and host-container isolation; the live host also checks separate theme Apply and unchanged tool configuration.
 
 ## External terminal color acceptance
@@ -348,7 +334,6 @@ python tools/benchmark_render.py --samples 50 --display-case formatted --languag
 ```
 
 The same 50-sample warm harness measured baseline v1.8.0 P50/P95 54.261/66.363 ms, English 55.051/64.294 ms and Chinese 54.313/68.506 ms. Small fixtures and scheduling noise limit conclusions; normal rendering neither reads UI preferences nor parses UI JSON. All 444 default-English production/preview comparisons match the baseline. These checks use local commands and fixed samples, not paid model calls or new human acceptance.
-
 
 ## Discovery and import review acceptance
 
@@ -445,7 +430,6 @@ Rendering coverage includes every metric in five languages, 40/80/120 columns an
 TS-03 integrated tests connect each original Mod protocol library to real Node backend processes with Python absent from PATH. The isolated real-host probe uses temporary bindings, a synthetic key and unreachable loopback API. `npm run migration:inventory -- --complete` requires all 516 IDs to have a replacement or named TS-04 responsibility. The fixed D06 backend harness is `npm run migration:benchmark -- NEW_DIRECTORY`; it requires a clean committed source tree. `--validate` is only a functional fixture check. See the [TS-04 handoff](typescript-migration/ts-03/TS04-HANDOFF.md).
 
 The original formal [TS-03 D06 report](typescript-migration/ts-03/PERFORMANCE.md) failed: 91 pass, 69 fail and 32 inconclusive metrics, despite matching outputs and collection counts for every sample. Under the gates in effect then, TS-03 remained IN_PROGRESS. CLI help validation is additionally compared against the frozen Python parser for command paths, missing values, choices, mutual exclusion, exit codes and output channels.
-
 
 ## TS-04 installed acceptance
 

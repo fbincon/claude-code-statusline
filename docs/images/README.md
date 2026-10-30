@@ -2,85 +2,49 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-The [adaptive appearance samples](adaptive-row-scenarios/README.md) show the five v3.14.0 scenarios at 40/80/120 columns, with exact candidate and font provenance.
+Start with the [SHOWCASE-01 gallery](showcase/README.md) and [usage demonstrations](../SHOWCASE.md) for reproducible current workflows and non-Powerline scene variants. Each gallery records its own package/source/input identity and capture method. A physical screenshot, terminal recording, PTY reconstruction, agent inspection and human acceptance establish different kinds of evidence.
 
-The [native capacity repair captures](native-capacity/README.md) show installed quick setup, gradients, a successful 24-instance save and tall-pane resizing, with exact candidate provenance.
+## Gallery navigation
 
-The [v3.16.0 installed language gallery](typescript/v3.16.0/README.md) shows the six additional languages in external Settings and three Native examples, with exact candidate provenance, image checksums and separate twelve-language behavior checks.
+| Gallery | Content and evidence |
+| --- | --- |
+| [SHOWCASE-01](showcase/README.md) | Featured scenes, configuration workflow and reproducibility/provenance |
+| [v3.16.0 languages](typescript/v3.16.0/README.md) | Six additional interface languages, Native examples and separate twelve-language behavior checks |
+| [Adaptive appearance](adaptive-row-scenarios/README.md) | Five v3.14.0 schemes at 40/80/120 columns |
+| [Draft history and reuse](draft-history-reuse/README.md) | Draft history, structural review and reuse captures |
+| [Source, command and package management](source-command-package/README.md) | Installed source and version-operation views |
+| [Native capacity and recovery](native-capacity/README.md) | Quick setup, gradients, 24-instance save and tall-pane resizing |
+| [Setup and complete appearance](setup-appearance/README.md) | Original setup/scheme capture provenance |
+| [Component composition](composition/README.md) | Instances, copies and left/right layouts |
+| [Language gallery](languages/README.md) | Earlier Traditional Chinese, Japanese and Korean captures |
+| [TypeScript galleries](typescript/README.md) | Preparation, regional and [v3.1.1](typescript/v3.1.1/README.md) captures with original identities |
+| [Historical archive](archive/README.md) | Replaced screenshots and earlier capture records |
 
-The [v3.1.1 TypeScript external gallery](typescript/v3.1.1/README.md) preserves its six-language Main, Subagents, Settings, Layout and contextual controls, with original source/artifact provenance and image checksums. Earlier TypeScript captures and the original Python gallery below are preserved.
-
-See the [component editor captures](composition/README.md) for the current instance interface. Original cross-platform galleries remain documented below.
-
-See the [multilingual installed-terminal captures](languages/README.md) for Traditional Chinese, Japanese and Korean.
-
-The original cross-platform gallery contains 21 original screenshots supplied on 2026-10-07: nine in-session TUI pages and twelve external TUI pages. The former 18-image README gallery and older records remain in the [archive](archive/README.md).
-
-PNG bytes, dimensions, colors and metadata are preserved. Main status lines at the bottom of session screenshots show session data; configuration Preview regions use fixed samples and do not establish actual token usage or parallel-agent acceptance.
+Fixed Preview regions and staged inputs are samples, not measurements of live token use or parallel-agent behavior. Fonts, colors and widths depend on the recorded environment. Historical captures retain their original claims and do not establish acceptance of later packages or close the six existing #96 gaps.
 
 ## Directory layout
 
 ```text
 images/
-├── tui/
-│   ├── native/
-│   │   ├── linux/
-│   │   │   ├── main.png
-│   │   │   ├── subagents.png
-│   │   │   ├── settings.png
-│   │   │   ├── layout.png
-│   │   │   └── themes/
-│   │   │       ├── main-light.png
-│   │   │       └── main-dark.png
-│   │   ├── windows/
-│   │   │   ├── main.png
-│   │   │   ├── subagents.png
-│   │   │   ├── settings.png
-│   │   │   ├── layout.png
-│   │   │   └── themes/
-│   │   │       ├── main-light.png
-│   │   │       └── main-dark.png
-│   │   └── macos/
-│   │       └── main.png
-│   └── external/
-│       ├── linux/
-│       │   ├── main.png
-│       │   ├── subagents.png
-│       │   ├── settings.png
-│       │   ├── layout.png
-│       │   └── themes/
-│       │       ├── main-light.png
-│       │       ├── main-light-ansi.png
-│       │       ├── main-dark.png
-│       │       └── main-dark-ansi.png
-│       ├── windows/
-│       │   ├── main.png
-│       │   ├── subagents.png
-│       │   ├── settings.png
-│       │   ├── layout.png
-│       │   └── themes/
-│       │       ├── main-light.png
-│       │       ├── main-light-ansi.png
-│       │       ├── main-dark.png
-│       │       └── main-dark-ansi.png
-│       └── macos/
-│           ├── main.png
-│           ├── subagents.png
-│           ├── settings.png
-│           └── layout.png
-├── languages/
-│   ├── native/
-│   └── external/
-├── discovery/
-│   ├── native/
-│   └── external/
-└── archive/
-    ├── screenshots/
-    │   └── replaced-2026-10-07/
-    └── reconstructions/
+├── showcase/                 # Current reproducible demonstrations
+├── typescript/               # Installed TypeScript captures by package
+├── adaptive-row-scenarios/   # Appearance and scenario evidence
+├── draft-history-reuse/      # History and reuse evidence
+├── source-command-package/   # Source and package-operation evidence
+├── native-capacity/          # Capacity and recovery evidence
+├── setup-appearance/         # Setup and scheme evidence
+├── composition/              # Component layout evidence
+├── languages/                # Earlier language captures
+├── tui/                      # Original cross-platform screenshots
+├── discovery/                # Historical search and import captures
+└── archive/                  # Replaced images and original records
 ```
 
-## Current images
+<a id="current-images"></a>
+
+## Original cross-platform gallery
+
+The following 21 original screenshots were supplied on 2026-10-07: nine in-session TUI pages and twelve external TUI pages. The former 18-image README gallery is retained in the [archive](archive/README.md). Original PNG bytes, dimensions, colors, paths and metadata remain unchanged.
 
 | Entry | Platform | Main | Subagents | Settings | Layout |
 | --- | --- | --- | --- | --- | --- |
@@ -135,7 +99,7 @@ The supplied directory groups files by entry and platform; original filenames re
 - Use lowercase English filenames grouped by entry, platform and page.
 - Update both READMEs, related guides, indexes and hashes together; preserve sources and archive replaced images.
 - Preserve historical capture versions, filenames, commits and metadata; replacement batch dates are not capture dates.
-- `MANIFEST.in` includes Markdown and PNG files; distribution inspection verifies source-package completeness.
+- Use the current TypeScript capture/packaging tools and the media checks selected by [impact planning](../development/impact-checks.md). Record package/source/input hashes, terminal geometry, fonts and any crop or encoding step; keep private raw logs out of public assets.
 
 <a id="display-notes"></a>
 <a id="external-tui-v161"></a>
@@ -153,7 +117,6 @@ The supplied directory groups files by entry and platform; original filenames re
 <a id="文件索引"></a>
 <a id="更新约定"></a>
 <a id="界面截图"></a>
-<a id="current-images"></a>
 
 ## Historical provenance
 

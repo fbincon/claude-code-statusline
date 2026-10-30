@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+[v3.16.0 十二语言扩展](language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
 
 
 [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。
@@ -116,7 +116,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 两个编辑器显示可展开分区和候选样例预览。Enter 展开详情，方向键选择分区，Page Up/Down 滚动，Tab 切换预览范围。
 A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取文件，也不改变打开时的 revision；保存仍是独立的冲突检查事务。
-界面偏好、独立宿主偏好及采集开关不属于便携文件。选择性导入仅支持明确的全局白名单及完整主区／子代理区，不支持任意组件拼接；未选状态及本地来源绑定保留。参见[选择性导入](#选择性导入契约)。
+界面偏好、独立宿主偏好及采集开关不属于便携文件。分区选择保留明确的全局白名单及完整主区／子代理区；协议 29 还通过 `review_reuse` 提供经审阅的视觉样式与整组复用，见[草稿复用](../DRAFT_HISTORY.zh-CN.md)。未选状态及本地来源绑定保留，参见[选择性导入](#选择性导入契约)。
 原有 `import` 操作继续供匹配协议的客户端使用。协议 v31 与显示 schema v17 独立演进；前后端资源需匹配重装。
 
 `preset` 接收 `{draft,preset}`，返回共享 core 展开的 `{draft}`；`import` 接收 `{draft,path,selection?}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 core 唯一预设定义生成。
@@ -131,7 +131,7 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 ## Phase 5 指标迁移
 
-显示 schema v17 保留可空 `metrics.branch_diff_base_ref`；配置协议 v31 在两个编辑器、冲突、预览和便携文件中保留它。v1–v7 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v17 保留可空 `metrics.branch_diff_base_ref`；配置协议 v31 在两个编辑器、冲突、预览和便携文件中保留它。兼容显示 v1–v16 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面偏好与消息操作
 
@@ -185,11 +185,11 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 
 `reasons.origin` 区分草稿配置、本地配置、已知宿主能力和未知证据。安装归属和运行偏好读取失败时返回未知；正常读取缺失的偏好使用既有默认关闭语义。`explain` 不获取安装锁、不创建目录或修复文件，不读取转录、任务/用量缓存或 Git。既有 `read` 仍使用安装锁保护快照，可能创建锁目录；`preview` 继续完全不读取配置或检测宿主。
 
-`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 31 要求匹配的前后端资源；显示 schema 17、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
+`describe.presets` 包含 `purpose_key`、`requirements_key` 和 `example`；共享展示顺序保留原四种用途及两个示例，再列八套完整方案，预设 ID 和展开语义保持兼容。协议 31 要求匹配的前后端资源；显示 schema 17、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
 
 ## 设置与完整外观契约
 
-新的 `display.powerline` 对象使用封闭选项与兼容默认值，schema 17 和编辑器协议 31 要求匹配资源。`describe.options` 与 `editor_fields` 从同一描述生成五种 Powerline 控制。既有预设注册表新增三套完整方案，不另建注册表。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
+`display.powerline` 对象使用封闭选项与兼容默认值，schema 17 和编辑器协议 31 要求匹配资源。`describe.options` 与 `editor_fields` 从共享描述生成色块控制及连续行背景。相同预设注册表包含六种原有预设和八套完整方案，最初设置交付引入其中前三套。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
 
 ## 数据源协议
 

@@ -96,11 +96,13 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 后续，可穿插 | [IMPORT-02](development-plan.zh-CN.md#import-02) | 样式复制、完整组复用及显式本机来源重绑 | 既有 IMPORT-01 与引用校验 | DONE |
 | 后续，可穿插 | [COMPOSITION-04](development-plan.zh-CN.md#composition-04) | 审阅并原子调整受影响对齐引用 | 既有分组／对齐约束与共享编辑 | DONE |
 | 后续，可穿插 | [PROFILE-02](development-plan.zh-CN.md#profile-02) | 展示已交付新能力的场景方案 | 仅依赖各方案实际使用的外观／组合能力 | DONE |
-| 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 原十八个后续工作包及全部切片验收，匹配的安装产物 | NOT_STARTED |
+| 最终演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 双语演示、配置和可复现流程 | 原十八个后续工作包及全部切片验收，匹配的安装产物 | VALIDATING |
 
 批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续工作可按各自依赖穿插，保留已交付的绑定与历史保护规则。
 
 SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待原十八个正式工作包及全部切片，包括后续完善。I18N-02 单独排期，不增加 SHOWCASE-01 的前置条件；剩余候选也不增加其前置条件。M1–M12 保留历史编号与交付证据。
+
+SHOWCASE-01 实施使用已发布 v3.16.0 包及非 Powerline 演示。[前置条件、采集和分开验收记录](showcase.zh-CN.md)保留原产品／证据身份；[用户走查](../SHOWCASE.zh-CN.md)负责可复现用法。本次维护不新增产品发布。
 
 GIT-01、TERMINAL-01 保持已交付；相关 Windows 预览及共享 Git 策略沿用 [M8–M9 交付](m8-m9-delivery.zh-CN.md)，Native 保留 [v3.9.1](native-capacity.zh-CN.md) 确立的边界。现行验证路径仍由 [CI 维护](ci-maintenance.zh-CN.md)定义。
 

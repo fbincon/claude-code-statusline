@@ -2,7 +2,7 @@
 
 **English** | [简体中文](SETUP.zh-CN.md)
 
-After installing the npm package, run:
+For a complete installation-to-display walkthrough, see [usage demonstrations](SHOWCASE.md). After installing the npm package, run:
 
 ```sh
 claude-statusline setup --dry-run
@@ -11,7 +11,7 @@ claude-statusline setup
 
 The wizard checks the environment, lets you keep the current display or select a [complete scheme](SCHEMES.md), previews the candidate, and reviews changes before saving. Existing installations initially select **Keep**. New installations recommend **Daily development**. Arrow keys select, Enter continues, Backspace returns, Page Up/Down scroll details, Tab switches Quick setup's main/subagent preview, and Esc cancels. The external terminal must be at least 64 columns by 18 rows; resizing retains the draft.
 
-Use `claude-statusline --language zh-CN setup` for an invocation language override. Pressing L inside the wizard explicitly changes and immediately saves the UI language. Display language remains part of the display draft. All six supported languages are available.
+Use `claude-statusline --language zh-CN setup` for an invocation language override. Pressing L inside the wizard explicitly changes and immediately saves the UI language. Display language remains part of the display draft. All twelve supported languages are available; see [language choices](USER_GUIDE.md#interface-language).
 
 ## First entry and persistent npm installation
 

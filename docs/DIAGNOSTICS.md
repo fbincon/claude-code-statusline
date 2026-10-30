@@ -2,7 +2,6 @@
 
 **English** | [简体中文](DIAGNOSTICS.zh-CN.md)
 
-
 For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).
@@ -69,7 +68,7 @@ claude-statusline config enable cache-miss-reason
 
 The source is the [official statusline contract](https://code.claude.com/docs/en/statusline): cache causes require Claude Code 2.1.260+. Existing `prompt-cache` still uses the official main-conversation ratio, with all input tokens in its denominator, excluding subagent traffic. PR/MR behavior is unchanged.
 
-The current display schema is 16 and editor protocol is 26. Older packages cannot recognize `cache-miss-reason`; remove that component or restore an earlier configuration backup before downgrading. No automatic migration or configuration rewrite occurs during diagnosis.
+The current display schema is 17 and editor protocol is 31. Use matching backend and editor resources. Before downgrading, restore a configuration backup compatible with the selected older package; removing one component does not make a newer schema compatible. No automatic migration or configuration rewrite occurs during diagnosis.
 
 See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_ITEMS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
 

@@ -2,7 +2,6 @@
 
 [English](APPEARANCE.md) | **简体中文**
 
-
 共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
 
 在“设置”页选择状态栏主题和分隔样式；按 Ctrl+E 打开显示项详情，编辑颜色及适用的条件规则。两个编辑器使用固定样例预览未保存草稿，保存后才生效，取消保留原配置。这些设置独立于 Claude 宿主主题、界面语言和原生预览背景。
@@ -90,15 +89,15 @@ claude-statusline config set powerline-color-mode continuous
 
 ## 配置兼容与恢复
 
-显示 schema **16** 包含 `powerline` 对象，包含 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 **26** 传输完整草稿；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
+显示 schema **17** 包含 Powerline 色块控制及可选的连续行背景。编辑器协议 **31** 传输完整草稿，须使用同一软件包的资源；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
 
-schema 1–15 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 16。缺失的 Powerline 控制默认为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
+schema 1–16 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 17。缺失的 Powerline 控制默认为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
 
 降级前保存／导出当前配置，使用当前软件包的 `recover --restore-config TRANSACTION_ID` 显式恢复升级前的兼容显示备份，再按[版本管理指南](PACKAGE_MANAGEMENT.zh-CN.md)退回旧包并刷新匹配的接入资源。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md)。
 
 ## 实际终端捕获示例
 
-下图由安装包的实际终端输出和固定样例数据重建；[图片索引](images/README.zh-CN.md#conditional-appearance-captures)记录来源。图片检查不代表真人平台验收。
+[使用演示](SHOWCASE.zh-CN.md)提供当前不使用 Powerline 的场景变体。下方旧示例保留原安装包身份和固定样例数据，见[图片索引](images/README.zh-CN.md#conditional-appearance-captures)。它们是终端输出重建，不代表人工平台验收。
 
 ![Powerline](images/appearance/native-dark-en.png)
 
@@ -136,7 +135,7 @@ claude-statusline config instance main set context-used foreground-gradient off
 
 告警与严重阈值前景优先于前景渐变。渐变背景采样色与文字色相同时使用中性背景。共享 Powerline 组由主实例决定整组背景，各成员前景独立，并保留成员未生效的背景设置。分隔符和端帽使用相邻色块最终边缘色，spacer 间隙保持终端默认背景。现有 semantic／continuous／restart 模式继续排列继承色，显式渐变在组件或色块内重新开始。
 
-渐变从显示 schema 14／编辑器协议 23 引入。当前交付使用显示 schema 16／编辑器协议 26；新增主题需要 schema 16，schema 1～15 的只读迁移保留既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
+渐变从显示 schema 14／编辑器协议 23 引入，新增主题从 schema 16 引入。当前显示 schema 为 17，编辑器协议为 31；schema 1～16 的只读迁移保留既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
 
 渐变背景与 RGB 告警／严重前景的对比度低于 3:1 时，背景改用中性色，保留告警前景；ANSI 颜色由终端主题定义，槽位相同时同样保护。
 

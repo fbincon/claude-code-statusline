@@ -131,7 +131,7 @@ Claude Code 2.1.289 headless paths may omit prompt identity events. Only one com
 ## Composition components
 
 Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
-These two composition types bring the catalog to 66 main and 17 subagent types;
+These two composition types bring the catalog to 67 main and 17 subagent types;
 the 65 main and 15 subagent observation types and existing defaults are retained.
 Add them with the instance controls or `config instance main add text --text "Project"`.
 Main spacers require explicit rows; each main row and subagent template accepts one spacer.

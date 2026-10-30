@@ -2,7 +2,7 @@
 
 [English](SETUP.md) | **简体中文**
 
-安装 npm 包后运行：
+从安装到实际显示的完整流程见[使用演示](SHOWCASE.zh-CN.md)。安装 npm 包后运行：
 
 ```sh
 claude-statusline setup --dry-run
@@ -11,7 +11,7 @@ claude-statusline setup
 
 向导检查环境，允许保留当前显示或选择[完整方案](SCHEMES.zh-CN.md)，预览候选配置，并在保存前审阅变更。已有配置默认选中**保留**；首次安装推荐**日常开发**。方向键选择、Enter 继续、退格返回、Page Up/Down 滚动详情、Tab 切换快速配置中的主栏／子代理预览、Esc 取消。终端至少需要 64 列 × 18 行，调整窗口尺寸保留草稿。
 
-可用 `claude-statusline --language zh-CN setup` 临时指定界面语言；向导中的 L 键会明确切换并立即保存界面语言。显示语言仍随显示草稿保存。全部六种语言均可使用。
+可用 `claude-statusline --language zh-CN setup` 临时指定界面语言；向导中的 L 键会明确切换并立即保存界面语言。显示语言仍随显示草稿保存。全部十二种语言均可使用，见[语言选项](USER_GUIDE.zh-CN.md#界面语言)。
 
 ## 首次入口与 npm 持久安装
 

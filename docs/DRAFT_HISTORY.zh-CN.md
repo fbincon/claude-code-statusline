@@ -40,7 +40,7 @@ claude-statusline config instance main remove b \
 
 打开目标组件详情中的**复制／粘贴视觉样式**，选择当前草稿、便携文件、方案导出文件或已保存方案作为来源，再选择来源组件及要复制的视觉字段。不兼容字段可见但不可勾选。
 
-v3.13.0 Native 简中界面的此入口仍显示英文 **Copy / paste visual style**（[#180](https://github.com/fbincon/claude-code-statusline/issues/180)）。
+v3.13.0 Native 简中界面的此入口曾未翻译（[#180](https://github.com/fbincon/claude-code-statusline/issues/180)）；[v3.14.0 已修复并验证实际样式／分组／历史入口](development/adaptive-row-scenarios.zh-CN.md)。历史截图保留原软件包身份。
 
 白名单包含前景／背景色、两类渐变、标签、图标及支持的格式覆盖；来源继承值会恢复目标继承。目标指标类型、数据源绑定、文字内容、顺序、优先级、宽度及可见性保留。审阅差异后按 **A** 接受，再单独保存。
 

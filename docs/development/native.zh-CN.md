@@ -4,17 +4,17 @@
 
 当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
 
-从 v1.3.0 起提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 保留既有外部 curses TUI 和平台启动器。正式版默认启用两者，按偏好及宿主版本分别降级。
+从 v1.3.0 起提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 通过平台启动器打开外部 TypeScript TUI。正式版默认启用两者，按偏好及宿主版本分别降级。
 
 ## 源码结构与检查
 
-`mods/statusline-native` 是唯一 Mod 源码，安装身份仍为 `statusline-native@claude-statusline-local`。`hooks/register.ts` 负责宿主 API、命令、后端请求、保存生命周期与输入批次串行处理；`lib/editor/` 负责草稿、排序及数值规则；`lib/client/` 负责消息校验、按键和设置；`lib/session.ts` 生成独立的有界可见帧。`ui/client/` 负责 Client 输入和绘制，`ui/components/` 提供共享板块，`ui/layout.ts` 计算单元格预算。测试对应 backend、client、editor、integration、UI。Python curses 界面与启动器独立维护，共用配置服务。
+`mods/statusline-native` 是唯一 Mod 源码，安装身份仍为 `statusline-native@claude-statusline-local`。`hooks/register.ts` 负责宿主 API、命令、后端请求、保存生命周期与输入批次串行处理；`lib/editor/` 负责草稿、排序及数值规则；`lib/client/` 负责消息校验、按键和设置；`lib/session.ts` 生成独立的有界可见帧。`ui/client/` 负责 Client 输入和绘制，`ui/components/` 提供共享板块，`ui/layout.ts` 计算单元格预算。测试对应 backend、client、editor、integration、UI。外部 TypeScript 界面位于 `packages/tui`，平台启动器独立维护，双编辑器共用 CLI 配置服务。
 
 `ui/client/help.ts` 根据状态选择底部快捷键并计算换行预算，绘制与键盘分页共同使用 `editorLayout`；完整提示组换行放在 `ui/components/shortcuts.ts`。大标题 **Configure Status Line** 使用宿主主题强调色。所有非编辑页面提示以 Tab 开头；Main/Subagents 顺序为 Tab、Space、选择方向键、排序方向键、Ctrl+E、搜索。Settings 用 H 展开／收起偏好，展开后才显示 A；逐项格式显示 Ctrl+G 返回。Filter 保留搜索入口。编辑时显示接受／取消／清空／删除；普通字母快捷键仅在非编辑且无 Ctrl/Meta 时兼容 ASCII 大小写。Esc 仍由宿主管理。
 
 32×12 下先缩短说明，再省略 V/R/Esc 等次要提示；详情／计数行让出空间，保留当前操作、选中项及一行实际样例预览。缩放保留状态，绘制与导航使用同一预算重新计算。本次展示改动不改变协议或配置 schema。
 
-开发使用 Node.js 24.21.0／npm 11.19.0、匹配的后端和固定宿主。每个宿主重新生成官方声明，不能复用其他版本类型。CI 检查 Linux 2.1.287/2.1.288/2.1.289/2.1.294，以及 Windows/macOS 2.1.288/2.1.289/2.1.294。
+开发使用 Node.js 24.21.0／npm 11.19.0、匹配的后端和固定宿主。每个宿主重新生成官方声明，不能复用其他版本类型。固定宿主清单和适用容量检查由 [CI 维护](ci-maintenance.zh-CN.md)及[容量／恢复](native-capacity.zh-CN.md)定义，2.1.296 类型声明缺口单独报告。
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -26,7 +26,7 @@ npm run --prefix mods/statusline-native typecheck
 
 源码后端先运行 `npm run build`，将插件的 `backendExecutable` 设为 Node 绝对路径，`backendArgs` 设为包含已编译 `packages/cli/dist/src/entry.js` 绝对路径的 JSON 数组；持久安装的 `install` 自动写入绑定。
 
-源码直接加载只提供 `/statusline-configure-native`。依赖、宿主生成声明和原始验证记录不进入运行资源；普通检查不调用模型。
+Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部编辑器启动器属于独立接入。依赖、宿主生成声明和原始验证记录不进入运行资源；普通检查不调用模型。
 
 ## 主题绘制
 
@@ -57,7 +57,7 @@ npm run --prefix mods/statusline-native typecheck
 | H / A | 折叠或展开 Claude 偏好 / 单独应用 |
 | R / K / V | 丢弃重载 / 核对结果不明的保存 / 重试样例预览 |
 
-搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；搜索或分类筛选生效时禁止排序，清除筛选后恢复，仅保存启用项顺序。子 Agent 互斥规则来自共享 catalog。
+搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；搜索或分类筛选生效时禁止排序，清除筛选后恢复。启用和禁用实例均保留已保存位置，仅启用实例参与渲染。子 Agent 互斥规则来自共享 catalog。
 
 请求面板正文 72 列×24 行，实际空间和位置由宿主决定；最小正文为 32×12。≥64×20 时内容及预览使用分组边框；紧凑空间用带标题分隔线。导航、选择、说明、样例预览和操作提示区域分明。Settings 分为 Appearance、Refresh / behavior、Git metrics、Formatting、Risk colors、Subagent visibility、Presets / portable files 和默认折叠的 Claude preferences。空间不足保留草稿并提示调整尺寸或关闭；内嵌布局可能需要增加终端高度或使用宿主调整面板的快捷键。
 
@@ -76,7 +76,7 @@ claude-statusline doctor
 
 在受信任终端中重启 Claude Code，再选择任一命令。`--experimental-slash-tui` / `--no-experimental-slash-tui` 只控制外部入口；`--native-editor` / `--no-native-editor` 只控制 Client。正式版新安装默认都启用；明确关闭优先，历史 Python 预览版默认都关闭，TS 预览依据 [TS-06 修订](typescript-migration/ts-06/README.zh-CN.md)保留稳定默认值。外部需 2.1.258+，Client 需 2.1.287+，低版本或未知版本分别暂挂，显式启用也不因版本不兼容使基础安装失败。升级后重装恢复。外部关闭保存 schema v1 的 false，不再删除文件；旧版无记录按正式默认处理。若旧原生迁移曾移除已启用的外部 skill/hook，重装会恢复本工具所属资源。Mod 不再注册外部命令名，也不再声明 `primaryCommand`。
 
-原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端与 Mod 应来自同一版本和协议的安装包，正式版均为 1.5.0。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
+原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端与 Mod 应来自同一版本和协议的安装包。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
 
 禁用原生只移除核实所属的原生插件、marketplace 和资源，外部入口保留自身偏好及资源。卸载保留显示配置、偏好、备份和运行数据。失败报告实际状态；doctor 分别检查资源、绑定及启用情况，当前 session 加载仍须核实。外部禁用的插件保持禁用，仅自动恢复工具记录的暂挂。safe/bare、管理策略及 disableAllHooks 可阻止加载。降级 Python 包前先用新版禁用原生，再安装旧包。
 
