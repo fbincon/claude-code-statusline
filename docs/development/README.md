@@ -1,6 +1,6 @@
 # Development guide
 
-[I18N-02 implementation](i18n-02-delivery.md) records the accepted compatibility preparation and the v3.15.0 incremental language workflow.
+[I18N-02 delivery](i18n-02-delivery.md#final-release) records all three completed slices, v3.15.0 publication, public verification and actual-machine validation with restored preferences.
 
 
 

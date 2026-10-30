@@ -5,6 +5,8 @@
 
 ## v3.15.0 incremental language workflow
 
+Completed on 2026-10-30: final PR/main/tag gates, fresh npm OIDC publication, all seven public verification jobs, matching GitHub/Gitee attachments and actual-machine upgrade/editor/render checks passed. Nine preference paths were restored, with only the owned backend version advanced. No paid model tests or new post-publication product findings. [Final source and delivery evidence](development/i18n-02-delivery.md#final-release).
+
 Use the [version decision](releases/approvals/v3.15.0.json). Require all final PR/main/tag gates and A/B language readiness for both stable and preview publication. Retain eight installations, 32 Node cases, sixteen fixed hosts and all 271 previous capacity cases; add twelve language cases (283 total) and installed 36-combination UI/output receipts. Candidate acceptance may allow safe B fallback; public tag promotion, maintenance-source binding, `release:verify --release`, `release:prepare --stable/--preview` and npm preparation must reject it. Verify original four delivery files, independent/source rebuilds, OIDC, six public-download jobs and the signature job, then synchronize Gitee refs/assets and verify the upgraded test machine with preferences restored. No paid model calls; new post-publication findings receive issues without a patch. [Implementation and evidence](development/i18n-02-delivery.md).
 
 ## v3.14.0 adaptive and continuous appearance

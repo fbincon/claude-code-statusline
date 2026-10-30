@@ -2,6 +2,8 @@
 
 **English** | [简体中文](i18n-02-delivery.zh-CN.md) · [Design](i18n-workflow.md) · [Work package](development-plan.md#i18n-02)
 
+All three I18N-02 slices are delivered in v3.15.0 on 2026-10-30. GitHub/npm/Gitee publication, public verification and actual-machine validation are complete. The final source and evidence below retain their original identities.
+
 ## Starting point and compatibility preparation
 
 Implementation starts at `745336e969937c56d12e6866cd05fa56debf429a`, product v3.14.0, on 2026-10-30 (Asia/Shanghai). Each of the six canonical packs contains 2,311 keys. The 92 generated resources pass the existing drift check; language inputs are unchanged from accepted v3.14.0 source `4146e2738ac390743c5d2d284ac91d7ac4dfc8f0`.
@@ -32,4 +34,43 @@ Pre-publication source `96b4971c6b0c8ab33d4d57b6c02dd5647f27c41d` passes the ful
 
 The first build attempt failed with local `/tmp` write quota exhaustion. The unchanged-source retry uses a private task directory on the disk filesystem and preserves the failed log; no product rule or deadline was relaxed. A subsequent focused guard rejects partial activation metadata and unverifiable legacy version syntax; its three evidence tests pass. Final-source acceptance and publication identities are recorded separately rather than relabeling these earlier executions.
 
-I18N-02 remains in progress until the full workflow and its release acceptance complete. Scope includes v3.15.0 publication, Gitee synchronization and test-machine verification, with no paid model calls. Only the six previously accepted issue #96 gaps remain unverified; no new automated failure is waived. New post-publication findings receive issues without a patch release.
+I18N-02 is complete, including v3.15.0 publication, Gitee synchronization and test-machine verification. Only the six previously accepted issue #96 gaps remain unverified; no new automated failure is waived. No paid model tests were run. New post-publication findings receive issues without a patch release.
+
+<a id="final-release"></a>
+
+## Final source and publication
+
+Feature [PR #188](https://github.com/fbincon/claude-code-statusline/pull/188) accepts source `73096d7851feb855ba36ed5640034b77951cdb79`. Its normal merge is `3ffea73e2d13252f226e68922524a09e618aa843`, with preparation merge `f4f5b944` as the first parent and the accepted source as the second. Annotated tag object `5ef6a815c14602fd0b15364cec38cd88fd31bfcb` points to that accepted source, which is reachable from main.
+
+| Gate | Original run and result |
+| --- | --- |
+| Final PR | [40971513208](https://github.com/fbincon/claude-code-statusline/actions/runs/40971513208), attempt 1 passed: eight installation targets, 32 Node cases, sixteen fixed hosts and `Complete candidate evidence` |
+| Main integration | [40980771635](https://github.com/fbincon/claude-code-statusline/actions/runs/40980771635), attempt 1 passed: accepted-base verification and three-platform integration smoke |
+| Annotated tag | [40981220044](https://github.com/fbincon/claude-code-statusline/actions/runs/40981220044), attempt 1 passed: original evidence promotion and strict language publication gate |
+| npm OIDC | [Dry-run 40981921941](https://github.com/fbincon/claude-code-statusline/actions/runs/40981921941) and [fresh publication 40982136714](https://github.com/fbincon/claude-code-statusline/actions/runs/40982136714), both attempt 1 passed |
+| Public verification | [40982689125](https://github.com/fbincon/claude-code-statusline/actions/runs/40982689125), attempt 1 passed: all six Linux/Windows/macOS × Node 22/24 download/install jobs and the signature job |
+
+The original candidate artifact is `12939848889`, ZIP SHA-256 `e0643c997ab3c0cb05fa38a31fe79540bd06b91a5a8b9a43f0c0e0d3bc8deb0f`; complete acceptance is artifact `12943673752`, ZIP SHA-256 `5a8fba6c3687518a763c1a88a98d8e450d74d98a50535300e33f3510796d4e7b`. Source/attempt/job attribution, all 59 referenced artifacts and the PR/main/tag relationship were independently rechecked. The analyzer exported from accepted base `f4f5b944` reproduces final language report SHA-256 `d6eae34382272132d5378d1ed7bf78509e62438659ba656370b701ac7371617e`. Each language has 2,311 accepted current entries and zero missing/stale/pending/invalid entries or fallback.
+
+Final-source local acceptance also passes 28 installed tests across 27 categories, including all 36 UI/output combinations, 42 Native/external PTY journeys and 24 six-language external captures. The 283 capacity cases retain all 271 earlier cases and add twelve language cases. Earlier `96b4971` checks remain attributed to that source. Automated terminals and agent-inspected reconstructions do not establish physical or human acceptance.
+
+Two independent final-source builds and a rebuild from the delivered source archive match all four original CI files. Exactly these four files are published:
+
+| File | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.15.0.tgz` | `9064fa583037b57c3b3d0c876fabe6dd15e63c4a9b8e52446e1a2ef9dcabe683` |
+| `claude-code-statusline-3.15.0-source.tar.gz` | `000059c92b98ffc5be3372504e1e884f0f40997e5ba58d05a3aae0a449e53e4e` |
+| `build-manifest.json` | `bdd9fc33b5e85858f30388230d9b99c2c22894d8af0a5b0550c6a1e9b9ced714` |
+| `SHA256SUMS` | `bb9737158ff48b410fc1a604fb98bbccb33a90be220a0224dad81b05eb480960` |
+
+[GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.15.0) `428538015` is stable, Latest and immutable, published at `2026-10-30T00:55:17Z`. Its draft and public attachments were downloaded and compared with the original CI bytes. [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline) reports `latest=3.15.0`, retaining `beta=3.0.0-beta.1`; the publication receipt records a fresh `published` action. The signature report verifies the real public package, all six bundled public upstreams and provenance for the exact tag/source/workflow invocation. Native full-tree audit of bundled private workspaces remains unsupported; the dedicated verification scope is unchanged.
+
+[Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.15.0) `1255035` retains the same source and four attachment bytes. Main and the annotated tag were synchronized with explicit refspecs and verified. All four attachments were anonymously redownloaded and compared; Gitee's two automatically generated source links are separate from the four delivery files. A slow source download exceeded its initial transfer window and ranged resumption was unsupported; a fresh complete transfer passed the original digest check. Failed transfer diagnostics remain separate from acceptance. Bilingual Gitee notes use actual attachment URLs.
+
+## Actual machine and remaining limits
+
+The supported package command upgrades the test machine from 3.14.0 to 3.15.0 after a verified, conflict-free dry-run; transaction `pkg-af68f02c-903d-4156-8005-e22c2cf64e9e` retains recovery. All 1,062 installed files equal the public package before and after actual-session checks. The installed Native plugin and cache manifest report 3.15.0; the external editor is registered. The user's existing runtime-collection opt-out remains disabled. Doctor passes its on-disk checks and keeps its expected live-session warning; actual loading is verified separately below.
+
+On Claude Code 2.1.312, six actual external/Native journeys at 200 × 50 pass: all six interface languages, English search evidence, immediate UI persistence, output-language cancel/save/reopen and restoration. Native runs in a Linux user/network namespace without outbound routes, explicitly selects fullscreen rendering for the child process, exits gracefully and records zero model request attempts. The harness first passed against an isolated candidate; input sequencing, save acknowledgement and host focus/renderer diagnostics are not product failures or promoted CI receipts.
+
+All nine original display/UI/profile/source/host preference paths retain their bytes, modes and absence after restoration, with only the owned backend version advanced to 3.15.0. The actual configured statusline command then renders a controlled sample with the expected model, directory and remaining-context meaning; the preferences are checked again. No new product finding was observed after publication. The six [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) retain their unverified status under the [v3.15.0 decision](../releases/approvals/v3.15.0.json). SHOWCASE-01 and its original prerequisites remain unchanged.

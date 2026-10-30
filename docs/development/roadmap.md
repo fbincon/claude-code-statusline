@@ -2,17 +2,19 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
+v3.15.0 delivers all three I18N-02 slices, publication and actual-machine verification. [Final delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 remain unchanged.
+
 v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
 
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [Delivery and post-publication findings](draft-history-and-reuse.md). v3.12.0 source/command/package management and earlier delivery facts remain historical.
 
-Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.14.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.15.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. Remaining packages extend presentation, reuse and interaction under the statuses below. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are published in v3.11.0. Remaining unstarted packages and SHOWCASE-01 retain their statuses below. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
-[I18N-02](development-plan.md#i18n-02) is in progress for v3.15.0. The [implementation record](i18n-02-delivery.md) tracks accepted compatibility preparation, incremental maintenance and strict six-language release readiness. No new language is selected; I18N-01 remains delivered.
+[I18N-02](development-plan.md#i18n-02) is DONE in v3.15.0. The [implementation record](i18n-02-delivery.md) records compatibility preparation, incremental maintenance, strict six-language release readiness, all public channels and actual-machine verification. No language was added; I18N-01 remains delivered.
 
 **Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
 
@@ -73,7 +75,7 @@ Keep the original project and authors credited when discussing these references.
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Next workflow | [I18N-02](development-plan.md#i18n-02) | Current-source language fallback during development and complete six-language releases | Existing generator/messages, registered metadata ownership and compatible PR/main/tag verification; [design and slices](i18n-workflow.md#delivery-slices) | IN_PROGRESS |
+| Language workflow | [I18N-02](development-plan.md#i18n-02) | Current-source language fallback during development and complete six-language releases | All three slices, compatible PR/main/tag verification and public delivery; [v3.15.0 evidence](i18n-02-delivery.md#final-release) | DONE |
 | 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
 | 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
 | 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
@@ -96,7 +98,7 @@ Keep the original project and authors credited when discussing these references.
 
 Batches express delivery preference, not extra technical dependencies. Themes, task browsing and version review can progress independently after their own prerequisites. UPDATE-02 and SOURCES-01 retain one package identity across their separately deliverable slices; a package completes only when all its slices are accepted. Later improvements can be interleaved under their own dependencies, preserving the delivered binding and history protections.
 
-SHOWCASE-01 retains its historical ID. Its earlier M13 placement is superseded by the maintainer's decision to wait for the original eighteen formal packages and their slices, including later improvements. I18N-02 is a separate next-work priority, not an additional prerequisite for SHOWCASE-01; remaining candidates do not add prerequisites either. M1–M12 retain their historical numbering and delivery evidence.
+SHOWCASE-01 retains its historical ID. Its earlier M13 placement is superseded by the maintainer's decision to wait for the original eighteen formal packages and their slices, including later improvements. I18N-02 was scheduled separately and does not add a prerequisite for SHOWCASE-01; remaining candidates do not add prerequisites either. M1–M12 retain their historical numbering and delivery evidence.
 
 GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcomes and the shared Git policy from [M8–M9 delivery](m8-m9-delivery.md), and preserve the native boundaries established by [v3.9.1](native-capacity.md). Current validation routes remain defined in [CI maintenance](ci-maintenance.md).
 
