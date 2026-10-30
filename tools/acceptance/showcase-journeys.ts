@@ -362,7 +362,7 @@ export async function collectJourneys(options: { fixture: string; output: string
             receipt.captures.push({ file: language + '/' + movie, language, editor, kind: receipt.kind, input_kind: editor === 'browse' ? 'actual-recorded-task-stores-in-offline-viewer' : 'fixed-preview-in-actual-editor',
                 sha256: sha256(fs.readFileSync(path)), source_sha256: sha256(fs.readFileSync(join(directory, 'terminal.ansi'))), frames: frameRecords.length,
                 timing: 'observed keyframes edited to 1.4 second holds; not a real-time screen recording', encoding: KEYFRAME_ENCODING,
-                terminal_environment: terminalEnvironment, frames_sha256: sha256(JSON.stringify(frameRecords)), color_evidence: colorEvidence,
+                terminal_environment: terminalEnvironment, frames_sha256: sha256(fs.readFileSync(join(directory, 'frames.json'))), color_evidence: colorEvidence,
                 preview_bounds: frameRecords[0].preview_bounds,
                 ...(reopenedEvidence ? { reopened_source_sha256: sha256(fs.readFileSync(join(directory, 'reopened.ansi'))) } : {}) }); persist();
         }

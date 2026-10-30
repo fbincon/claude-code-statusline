@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -199,13 +199,17 @@ export async function replayShowcase(options: { artifact: string; commit: string
             assert.equal(sha256(observedFile(input.original)), input.sha256, 'Original observed data changed');
             assert.equal(sha256(observedFile(input.evidence)), input.sha256, 'Preserved input evidence changed');
         }
-        const collectorFiles = ['tools/acceptance/showcase-replay.ts', 'tools/acceptance/showcase-paid.ts', 'tools/acceptance/showcase-driver.ts', 'tools/acceptance/showcase-journeys.ts', 'tools/acceptance/render-capture.ts'];
+        const localHelpers = ['showcase-replay', 'showcase-paid', 'showcase-driver', 'showcase-journeys', 'showcase', 'render-capture', 'install', 'paid-evidence'];
+        const collectorFiles = [...localHelpers.map(name => 'tools/acceptance/' + name + '.ts'),
+            'tools/migration/ts-04/capture.ts', 'tools/migration/ts-04/test/pty.ts'];
+        const compiledFiles = [...localHelpers.map(name => name + '.js'), '../migration/ts-04/capture.js', '../migration/ts-04/test/pty.js'];
         write(join(output, 'private-inputs.json'), inputFiles);
         write(join(output, 'provenance.json'), { product: SHOWCASE_BASELINE, collector: {
             commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
             working_tree_changes: Boolean(execFileSync('git', ['status', '--porcelain=v1', '--', ...collectorFiles], { cwd: repoRoot, encoding: 'utf8' }).trim()),
             files: Object.fromEntries(collectorFiles.map(path => [path, sha256(observedFile(join(repoRoot, path)))])),
-        }, host: fixture.host, platform: process.platform, node: process.version, model_calls: 0,
+            compiled_files: Object.fromEntries(compiledFiles.map(path => [path, sha256(observedFile(fileURLToPath(new URL(path, import.meta.url))))])),
+        }, host: fixture.host, platform: process.platform, node: process.version, node_sha256: sha256(observedFile(process.execPath)), resvg: '2.6.2', model_calls: 0,
         source_stream_sha256: sha256(streamBytes), source_receipt_sha256: sha256(receiptBytes),
         inputs: inputFiles.map(({ role, sha256, bytes }) => ({ role, sha256, bytes })), field_sources: replay.fieldSources,
         reconstructed_values: { model_id: (replay.main.model as any)?.id ?? null, cli_session_cost_usd: (replay.main.cost as any)?.total_cost_usd ?? null },
