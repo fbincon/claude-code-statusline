@@ -153,7 +153,8 @@
     "Six editor journeys at 200x50 are separate from the 144-pair UI/output matrix, official-host capacity suite and platform installation evidence.",
     "Settings images retain English sample output to demonstrate independent interface and output languages. Direct CLI checks separately cover 12 languages at 40/80/120 columns for main and subagent output.",
     "Native crops exclude the surrounding host transcript, composer, live statusline and private paths. Raw captures and configuration snapshots remain private.",
-    "No operating-system screenshot, human physical acceptance, native-speaker review or paid model call is claimed. The six accepted issue #96 gaps remain unverified."
+    "No operating-system screenshot, human physical acceptance, native-speaker review or paid model call is claimed. The six accepted issue #96 gaps remain unverified.",
+    "The preparation source archive has three independently confirmed corrupt non-product entries. Product source and captured runtime bytes are unchanged; retain these captures as scoped preparation evidence, never release-source acceptance."
   ],
   "captures": [
     {
@@ -408,5 +409,16 @@
       "agent_visual_inspection": "pass",
       "privacy_review": "pass"
     }
-  ]
+  ],
+  "preparation_source_archive_audit": {
+    "status": "rejected",
+    "reason": "Tar input-buffer reuse corrupted three non-product source entries; this preparation archive is not eligible for publication.",
+    "method": "Independent Python tar reader and actual Git blob IDs",
+    "product_source_bytes_match_git": true,
+    "mismatched_paths": [
+      "docs/images/draft-history-reuse/external-group-reuse.png",
+      "docs/images/typescript/v3.1.1/zh-TW/detail.png",
+      "tests/fixtures/migration/ts-01/cases.json"
+    ]
+  }
 }

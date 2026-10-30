@@ -25,7 +25,9 @@ export function readTar(path: string, prefix = 'package/'): Map<string, Buffer> 
         size += entry.size;
         if (entry.size > 64 * 1024 * 1024 || size > 256 * 1024 * 1024) throw new Error('Candidate exceeds extraction limit');
         const chunks: Buffer[] = [];
-        entry.on('data', chunk => chunks.push(chunk));
+        // The synchronous tar reader reuses its input buffer between reads.
+        // Retain owned bytes when an entry spans more than one read.
+        entry.on('data', chunk => chunks.push(Buffer.from(chunk)));
         entry.on('end', () => result.set(name, Buffer.concat(chunks)));
     } });
     if (!result.size) throw new Error('Empty archive');

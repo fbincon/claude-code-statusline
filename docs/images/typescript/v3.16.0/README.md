@@ -31,6 +31,8 @@ Nine isolated preference paths were restored with their original bytes, modes an
 
 These installed PTY observations and the nine agent-inspected images are separate from the full UI/output combination matrix, official-host capacity tests, platform installation checks and human physical acceptance. No native-speaker review is claimed. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; release identities and required CI gates are recorded in the delivery record above.
 
+A later independent Git-blob audit found three corrupted non-product entries in this preparation source archive: two historical PNGs and the frozen migration `cases.json`. All product-source bytes matched Git. The candidate runtime and captured images retain the identities above, but the preparation archive is rejected for publication. Final release source export now copies tar chunks immediately and verifies every file against the immutable Git tree before creating its manifest. This correction does not relabel these captures as final release evidence.
+
 ## Examples
 
 ![Brazilian Portuguese external Settings](external/pt-BR/settings.png)

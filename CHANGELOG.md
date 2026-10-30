@@ -9,6 +9,7 @@
 - Extend language combinations to 144 and actual-host capacity scenarios to 313, injecting the selected language into production previews.
 - Keep required Native shortcuts, selection and a real preview visible when translated footer labels are long at 32×12.
 - Localize the Native display-scheme and package-management entry captions using the shared translated descriptors.
+- Preserve source-archive bytes across tar buffer boundaries and verify every exported Git blob before creating its manifest.
 - Bound generated Node declaration types while retaining strict message keys and split Native modules.
 - [Implementation and validation](docs/development/language-expansion.md) · [Release notes](docs/releases/v3.16.0.md).
 

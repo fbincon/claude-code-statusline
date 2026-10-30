@@ -51,6 +51,8 @@ A maintenance PR runs its scoped checks; main independently verifies its source 
 
 Register each approved stable version in [the approval registry](releases/approvals/registry.json) with its decision JSON, exact approval date and existing six-gap scope. Approval data alone uses release-specific checks, not the product matrix. Registration and decision hashes are verified from the current immutable source archive. Latest failed runs, missing/expired/corrupt evidence, invalid approval or incompatible schemas block; manual diagnostics and older green runs cannot substitute. See [CI routing](development/ci-maintenance.md#route-table-and-blocking-conditions).
 
+Git source exports must match the immutable tree before a candidate manifest is created: compare the exact regular-file inventory and every Git blob identity without normalizing binary, Unicode or newline bytes. The bounded tar reader owns each received chunk, including entries spanning its input-buffer boundaries. Delivered-source rebuilds still validate the recorded manifest and checksums without requiring Git history.
+
 Historical releases below retain their actual gates and identities. A dry-run validates preparation and bytes, not a new tag/OIDC publication. Repository maintenance does not require a new product version.
 
 ## v3.9.2 correctness repairs
