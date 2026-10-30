@@ -94,7 +94,7 @@ v3.16.0 在原有六种选择项之后新增西班牙语（`es`）、法语（`f
 
 首次本机 Native 尝试在 Claude 启动阶段、Mod 加载之前失败：私有验收脚本显式将 `CLAUDE_CONFIG_DIR` 设为默认目录，导致读取另一份未初始化的引导文件。该次尝试后已恢复偏好。仅修正忽略目录中的本地脚本，使其沿用通常的默认用户配置解析方式，网络隔离及所有期限保持不变；后续三段 Native 路径通过。原启动失败继续单独保留为失败诊断，没有修改已发布产品代码或附件。
 
-汇总私有报告为 `dist/validation/expand-languages/machine/final-machine-summary.json`，SHA256 `f549949d3849d1dfcf5f92c614ca8ed054b9eba3347c1cf354aecfe747c3a9df`。原始设置、宿主日志和终端采集保持私有。文档收尾使用自身已提交的影响计划及专项验证，原始产品源码、运行和产物身份保持不变。
+汇总私有报告为 `dist/validation/expand-languages/machine/final-machine-summary.json`，SHA256 `f549949d3849d1dfcf5f92c614ca8ed054b9eba3347c1cf354aecfe747c3a9df`。原始设置、宿主日志和终端采集保持私有。[文档收尾 PR #191](https://github.com/fbincon/claude-code-statusline/pull/191) 使用绑定至其已提交源码的影响计划及专项验证，原始产品源码、运行和产物身份保持不变。
 
 ## 授权与验证边界
 

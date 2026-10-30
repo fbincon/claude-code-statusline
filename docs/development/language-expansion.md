@@ -94,7 +94,7 @@ The supported update completed **3.15.0 → 3.16.0** on Node 24.21.0 / Claude 2.
 
 The first actual Native attempt failed during Claude startup, before the Mod loaded: the private harness forced `CLAUDE_CONFIG_DIR` to the default directory and selected a different, uninitialized onboarding file. Preferences were restored after that attempt. Only the ignored local harness was corrected to retain ordinary default user-configuration resolution, keeping network isolation and every deadline. The subsequent three Native journeys passed. The failed startup record remains a separate failed diagnostic; no published product code or assets changed.
 
-The consolidated private report is `dist/validation/expand-languages/machine/final-machine-summary.json`, SHA256 `f549949d3849d1dfcf5f92c614ca8ed054b9eba3347c1cf354aecfe747c3a9df`. Raw settings, host logs and terminal captures remain private. The documentation follow-up uses its own committed impact plan and scoped validation; original product source, run and artifact identities stay fixed.
+The consolidated private report is `dist/validation/expand-languages/machine/final-machine-summary.json`, SHA256 `f549949d3849d1dfcf5f92c614ca8ed054b9eba3347c1cf354aecfe747c3a9df`. Raw settings, host logs and terminal captures remain private. [Documentation follow-up PR #191](https://github.com/fbincon/claude-code-statusline/pull/191) uses an impact plan bound to its committed source and scoped validation; original product source, run and artifact identities stay fixed.
 
 ## Authority and verification limits
 
