@@ -7,6 +7,7 @@
 - Add complete Spanish, French, German, Brazilian Portuguese, Russian and Indonesian interface/statusline packs.
 - Preserve independent language persistence and offline resources; use editor protocol 31 with unchanged display schema 17.
 - Extend language combinations to 144 and actual-host capacity scenarios to 313, injecting the selected language into production previews.
+- Keep required Native shortcuts, selection and a real preview visible when translated footer labels are long at 32×12.
 - Bound generated Node declaration types while retaining strict message keys and split Native modules.
 - [Implementation and validation](docs/development/language-expansion.md) · [Release notes](docs/releases/v3.16.0.md).
 

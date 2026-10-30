@@ -306,6 +306,27 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
+test('long translated action labels retain selection and a real preview at the minimum viewport', () => {
+  for (const language of LANGUAGES) for (const page of ['main', 'subagents'] as const) {
+    const state = view(), editor = state.editor!;
+    state.language = language; editor.page = page;
+    state.preview = { sample: true, main: [[{text: 'main sample'}]], subagents: [[{text: 'agent sample'}]] } as View['preview'];
+    const before = JSON.stringify(editor.draft), selected = editor.selected[page === 'main' ? 'main' : 'subagent'];
+    const geometry = editorLayout(state, 32, 12);
+    expect(geometry.footerRows <= 4).toBe(true);
+    expect(geometry.bodyRows >= 2).toBe(true);
+    expect(3 + geometry.bodyHeight + geometry.previewHeight + geometry.footerRows).toBe(12);
+    const tree = draw(elements, state, 32, 12) as unknown as Node;
+    expect(render(tree)).toHaveLength(12);
+    expect(text(tree.children[3]!)).toContain('›');
+    expect(text(tree.children[4]!)).toContain(page === 'main' ? 'main sample' : 'agent sample');
+    expect(geometry.footer.flat().filter(hint => ['S', 'F', 'Q'].includes(hint.key)).map(hint => hint.key)).toEqual(['S', 'F', 'Q']);
+    expect(geometry.footer.flat().some(hint => hint.key === 'Tab')).toBe(true);
+    expect(editor.selected[page === 'main' ? 'main' : 'subagent']).toBe(selected);
+    expect(JSON.stringify(editor.draft)).toBe(before);
+  }
+});
+
 // This full language/viewport matrix exceeds the default 5 s on Windows runners.
 test('all registered languages keep every page, form, numeric error and footer inside the cell viewport', {timeoutMs: 20000}, () => {
   for (const language of LANGUAGES) {

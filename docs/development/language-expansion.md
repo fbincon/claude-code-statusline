@@ -28,6 +28,8 @@ The expanded official tests run one source test file per disposable exact-source
 
 The implementation working tree passed `npm run check`: 1,502 tests passed, six existing non-Linux platform cases were skipped, and no tests failed. Generated resources, 4,061 documentation links, frozen Python/archive checks and all three migration responsibility inventories passed. All twelve languages have 2,311 accepted entries, including 261 statusline messages, with no missing, stale, pending, invalid or fallback entries. These local results are separate from the required immutable candidate and PR/main/tag evidence.
 
+The actual 2.1.312 host exposed a Spanish 32×12 footer overflow during local validation. Retained shortcut labels now use grapheme-safe shortening only after the existing compaction/priority steps, preserving keys, selection, draft and a real preview. The unchanged full-language drawing matrix and added minimum-size regression passed together (16 tests) in an isolated actual-host rerun. Earlier failed/partial runs remain diagnostic records.
+
 ## Release and machine verification
 
 The [version decision](../releases/approvals/v3.16.0.json) records the maintainer's authority. Publication requires complete twelve-language readiness, all required final PR/main/tag gates, independent and source-archive rebuilds, four verified delivery files, npm OIDC and public-download/signature checks. Synchronize validated main and the annotated tag to Gitee with explicit refspecs, verify matching assets, then upgrade and exercise the test machine with its preferences restored.
