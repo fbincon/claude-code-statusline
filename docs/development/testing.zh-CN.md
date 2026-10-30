@@ -5,7 +5,7 @@
 
 [English](testing.md) | **简体中文**
 
-进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
 
 
 [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。

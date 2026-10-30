@@ -2,15 +2,15 @@
 
 [English](roadmap.md) | **简体中文**
 
-进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
 
-v3.15.0 已完成 I18N-02 三个切片、发布及本机验证。[最终交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 保持不变。
+v3.15.0 已完成 I18N-02 三个切片、发布及本机验证。[最终交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 在该版本保持不变。
 
 v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
 
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[交付及发版后发现](draft-history-and-reuse.zh-CN.md)。v3.12.0 的来源／命令／包管理交付及下列早期事实保留为历史。
 
-更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.15.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.16.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作按下列状态继续扩展呈现、复用与交互。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片已随 v3.11.0 发布。其余未开始工作包及 SHOWCASE-01 保持下表所列状态。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
@@ -41,7 +41,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 接口 | 显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.14.0 交付](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)、[v3.12.0 交付](source-command-package-management.zh-CN.md)、[v3.11.0 交付](task-version-review.zh-CN.md)、[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
+依据：[v3.16.0 交付](language-expansion.zh-CN.md#final-release)、[v3.15.0 交付](i18n-02-delivery.zh-CN.md#final-release)、[v3.14.0 交付](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)、[v3.12.0 交付](source-command-package-management.zh-CN.md)、[v3.11.0 交付](task-version-review.zh-CN.md)、[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
@@ -214,6 +214,8 @@ Native 改动分别保留 props、Pane 与 Client 树检查、有界可见页、
 | v3.12.0 | SOURCES-01、COMMAND-02、UPDATE-02 第二／三片；#173 | DONE | [v3.12.0 交付](source-command-package-management.zh-CN.md) |
 | v3.13.0 | UX-03、COMPOSITION-04、IMPORT-02 全部切片 | DONE | [草稿历史、修复与复用交付](draft-history-and-reuse.zh-CN.md) |
 | v3.14.0 | APPEARANCE-07、APPEARANCE-06、PROFILE-02；#178／#180 | DONE | [自适应、连续背景与场景交付](adaptive-row-scenarios.zh-CN.md) |
+| v3.15.0 | I18N-02 三个切片；六语言增量维护 | DONE | [增量语言工作流交付](i18n-02-delivery.zh-CN.md#final-release) |
+| v3.16.0 | 新增六种界面／状态栏语言；编辑器协议 31 | DONE | [十二语言交付](language-expansion.zh-CN.md#final-release) |
 
 链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
 

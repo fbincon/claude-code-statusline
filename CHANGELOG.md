@@ -2,7 +2,7 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
-## 3.16.0
+## 3.16.0 — 2026-10-30
 
 - Add complete Spanish, French, German, Brazilian Portuguese, Russian and Indonesian interface/statusline packs.
 - Preserve independent language persistence and offline resources; use editor protocol 31 with unchanged display schema 17.
