@@ -209,7 +209,7 @@ export async function replayShowcase(options: { artifact: string; commit: string
             working_tree_changes: Boolean(execFileSync('git', ['status', '--porcelain=v1', '--', ...collectorFiles], { cwd: repoRoot, encoding: 'utf8' }).trim()),
             files: Object.fromEntries(collectorFiles.map(path => [path, sha256(observedFile(join(repoRoot, path)))])),
             compiled_files: Object.fromEntries(compiledFiles.map(path => [path, sha256(observedFile(fileURLToPath(new URL(path, import.meta.url))))])),
-        }, host: fixture.host, platform: process.platform, node: process.version, node_sha256: sha256(observedFile(process.execPath)), resvg: '2.6.2', model_calls: 0,
+        }, host: fixture.host, platform: process.platform, node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), resvg: '2.6.2', model_calls: 0,
         source_stream_sha256: sha256(streamBytes), source_receipt_sha256: sha256(receiptBytes),
         inputs: inputFiles.map(({ role, sha256, bytes }) => ({ role, sha256, bytes })), field_sources: replay.fieldSources,
         reconstructed_values: { model_id: (replay.main.model as any)?.id ?? null, cli_session_cost_usd: (replay.main.cost as any)?.total_cost_usd ?? null },
