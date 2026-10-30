@@ -12,7 +12,7 @@ v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three pack
 
 Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.16.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. Remaining packages extend presentation, reuse and interaction under the statuses below. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are published in v3.11.0. Remaining unstarted packages and SHOWCASE-01 retain their statuses below. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
+Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12, the eighteen selected follow-up packages and all their slices are delivered. SHOWCASE-01 now completes their bilingual usage demonstrations and documentation maintenance against the existing v3.16.0 package; see its [separate acceptance and delivery records](showcase.md#delivery). The table below retains package identities and dependencies; unselected ideas remain in the candidate pool.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -96,13 +96,13 @@ Keep the original project and authors credited when discussing these references.
 | Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | DONE |
 | Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | DONE |
 | Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | DONE |
-| Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | The original eighteen follow-up packages and every slice accepted; matching installed artifacts | VALIDATING |
+| Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | The original eighteen follow-up packages and every slice accepted; matching installed artifacts | DONE |
 
 Batches express delivery preference, not extra technical dependencies. Themes, task browsing and version review can progress independently after their own prerequisites. UPDATE-02 and SOURCES-01 retain one package identity across their separately deliverable slices; a package completes only when all its slices are accepted. Later improvements can be interleaved under their own dependencies, preserving the delivered binding and history protections.
 
 SHOWCASE-01 retains its historical ID. Its earlier M13 placement is superseded by the maintainer's decision to wait for the original eighteen formal packages and their slices, including later improvements. I18N-02 was scheduled separately and does not add a prerequisite for SHOWCASE-01; remaining candidates do not add prerequisites either. M1–M12 retain their historical numbering and delivery evidence.
 
-SHOWCASE-01 implementation uses the published v3.16.0 package with non-Powerline demonstrations. [Prerequisites, collection and separate acceptance records](showcase.md) retain the original product/evidence identities; [the user walkthrough](../SHOWCASE.md) owns reproducible usage. This maintenance creates no new product release.
+SHOWCASE-01 is delivered using the published v3.16.0 package with non-Powerline demonstrations. [Prerequisites, collection and separate acceptance records](showcase.md) retain the original product/evidence identities; [the user walkthrough](../SHOWCASE.md) owns reproducible usage. This maintenance creates no new product release.
 
 GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcomes and the shared Git policy from [M8–M9 delivery](m8-m9-delivery.md), and preserve the native boundaries established by [v3.9.1](native-capacity.md). Current validation routes remain defined in [CI maintenance](ci-maintenance.md).
 

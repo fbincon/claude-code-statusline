@@ -674,7 +674,7 @@ Completed work below retains historical scope and evidence. SHOWCASE-01 keeps it
 
 ## SHOWCASE-01 Homepage and usage demonstrations
 
-**Implementation record.** [Prerequisite coverage, collection and acceptance](showcase.md) accompanies the [user walkthrough](../SHOWCASE.md). Current status remains in the roadmap. The approved implementation fixes v3.16.0 and uses non-Powerline visuals without adding product behavior or a release.
+**Delivery record.** [Prerequisite coverage, collection and acceptance](showcase.md#delivery) accompanies the [user walkthrough](../SHOWCASE.md). Current status remains in the roadmap. The delivered implementation fixes v3.16.0 and uses non-Powerline visuals without adding product behavior or a release. The following paragraphs preserve the original scope and acceptance intent.
 
 **Scheduling.** Keep the existing ID and use the [roadmap](roadmap.md#milestones) for status. Begin only after all eighteen formal follow-up packages and every UPDATE-02/SOURCES-01/TASK-02 and other package slice are accepted. This supersedes the earlier M13 placement after M8–M12. Unselected candidates add no prerequisites.
 

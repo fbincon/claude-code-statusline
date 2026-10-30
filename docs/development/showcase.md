@@ -109,9 +109,11 @@ Claude's `--max-budget-usd` applies to its noninteractive entry. Paid prompts th
 | Parallel task | 2 | 0.00199048 | Exactly two agents completed concurrently, with the two permitted sleep calls |
 | Total | Shared authorization: 10 | **0.00224378** | Both costs known; no outstanding reservation |
 
-Costs come from Claude CLI `total_cost_usd`; the provider invoice was not independently inspected. Offline verification made no new model call. The original collector ran before its first commit and retains exact source/compiled snapshots in `paid-01/collector.json` (SHA256 `ea098519db1f6b8d811da543f6ad7872869dff4390b548e49873044a1683523a`). These two calls used their recorded CLI caps and **did not run under the subsequently added supervisor**. Later supervisor regressions are separate evidence, not retroactive protection for the original execution. Credential-copy cleanup is separately recorded; it removed the task-owned installation before-image without changing the original machine settings or relabeling the paid attempt.
+Costs come from Claude CLI `total_cost_usd`; the provider invoice was not independently inspected. These are two top-level tasks, not a count of model/API requests; the parallel task includes its subagents. Offline verification made no new model call. The original collector ran before its first commit and retains exact source/compiled snapshots in `paid-01/collector.json` (SHA256 `ea098519db1f6b8d811da543f6ad7872869dff4390b548e49873044a1683523a`). Both tasks used their recorded CLI caps and **did not run under the subsequently added supervisor**. Later supervisor regressions are separate evidence, not retroactive protection for the original execution. Credential-copy cleanup is separately recorded; it removed copied authentication fields from the task-owned installation before-image without changing the original machine settings or relabeling the paid attempt.
 
 Machine restoration passed for all nine tracked paths: original bytes, modes and absent states match exactly, including `settings.json`; the independently checked runtime preference file remains absent. The product stayed at 3.16.0. `preferences-exact-comparison.json` has SHA256 `b391c5a8ce0eaf01540a89fbb8b68a20944cd2e2a7458230f245bf0f640ebf3c`. The actual configured command and installed renderer then passed 72 **fixture** cases (twelve languages × three widths × main/subagent), without preference writes. These are installed-renderer observations, not 72 new paid or physical sessions.
+
+The closure comparison again matched all nine paths. Both paid-session fixture installations were removed after retaining 24 original evidence files byte for byte; no active process referencing either fixture remained. Private transcripts, snapshots and logs stay in ignored storage. The final ledger still records USD 0.00224378 and zero outstanding reservation; closure and CI made no additional paid calls.
 
 <a id="validation"></a>
 
@@ -119,11 +121,11 @@ Machine restoration passed for all nine tracked paths: original bytes, modes and
 
 | Track | Required observations | Current record |
 | --- | --- | --- |
-| SHOWCASE package/operations | Exact public bytes and installed inventory; installation/configuration/task/source/version walkthroughs; Save/reopen, cancellation, failure and partial outcomes | Local operations, real task observations, six final editor/viewer journeys, restoration and installed reuse passed; final CI pending |
+| SHOWCASE package/operations | Exact public bytes and installed inventory; installation/configuration/task/source/version walkthroughs; Save/reopen, cancellation, failure and partial outcomes | Passed: local operations, real task observations, six final editor/viewer journeys, restoration, installed reuse, final PR and main evidence |
 | SHOWCASE configurations | Five importable profiles; non-Powerline assertions; isolated source permissions; width/theme/no-color and round-trip checks | Passed: 540 cases, five profile journeys and ten sample PNGs |
 | SHOWCASE media | Ten scene PNGs, six bilingual GIFs, four source/version PNGs; complete decode, keyframe inspection, provenance and privacy checks | Passed: 14 PNGs and six GIFs; complete GIF decode, source hashes, keyframes and privacy reviewed |
 | Tool regressions | Wrong package identity, false source labels, Powerline rejection, restoration failure and existing budget unknown-cost behavior | 22 focused tests passed in `test-showcase-tools-04.log`; no failed/skipped tests |
-| Documentation | Current-fact audit, bilingual semantics, navigation, preserved anchors, docs/whitespace checks and committed-only checkout | 22 pairs updated, seven pairs retained; all prior anchors preserved across 48 changed Markdown files; 4,366 links and whitespace passed; committed-only check pending |
+| Documentation | Current-fact audit, bilingual semantics, navigation, preserved anchors, docs/whitespace checks and committed-only checkout | Passed: 22 pairs updated, seven pairs retained; all prior anchors preserved across 48 changed Markdown files; final implementation checkout passed 4,368 links and whitespace checks |
 
 The document audit covers the homepage, user guide, topical guides, command reference, image index and development navigation. It corrects current counts, languages, schemes, format guidance and project bindings while retaining original historical evidence. Existing directories and image paths stay in place; reordered sections preserve public anchors. Public navigation must not depend on ignored local evidence files.
 
@@ -155,8 +157,20 @@ Run `npm run docs:check` and `git diff --check`. For the actual committed differ
 
 ## Delivery and completion
 
-**Pending:** implementation PR/head, final-head gate, validated main, Gitee synchronization, and the documentation closure PR/main.
+**Accepted on 2026-10-30 (Asia/Shanghai).** SHOWCASE-01 and documentation maintenance passed their separate acceptance tracks. [PR #192](https://github.com/fbincon/claude-code-statusline/pull/192) delivers the tools, five profiles, 20 assets, bilingual walkthrough and current-document corrections. The evidence follow-up records these results and marks the roadmap DONE without changing the product or original capture identities.
 
-The first PR delivers tooling, examples, media and current-document maintenance. After its complete applicable acceptance and validated main, the evidence follow-up records actual results and advances the roadmap to DONE. Both use normal protected merges. Gitee receives only validated main via an explicit non-force refspec after divergence inspection; published version refs/assets remain unchanged. The final closure merge and synchronization identity are reported at handoff rather than recursively creating another evidence PR.
+| Delivery identity | Verified result |
+| --- | --- |
+| Final implementation head | `b61627e9983fea63ba79883e23446063382ff031` |
+| Final PR CI | [Run 41049771362, attempt 1](https://github.com/fbincon/claude-code-statusline/actions/runs/41049771362): Linux, Windows and macOS scoped checks, evidence verification and **Complete candidate evidence** passed |
+| Implementation main | `258559d981eac20a7e5a6169d2d712e9ce196338`, normal two-parent merge of PR #192 |
+| Main CI | [Run 41050797157, attempt 1](https://github.com/fbincon/claude-code-statusline/actions/runs/41050797157): accepted-base verification of reused PR maintenance evidence and **Complete candidate evidence** passed |
+| Gitee implementation main | `258559d981eac20a7e5a6169d2d712e9ce196338`, verified after explicit non-force push from prior main `91133d20e8d961934465a440a11c0ca073b60ba2` |
+
+The immutable implementation plan selected `acceptance`, `actions`, `assets`, `core` and `docs` on Linux, plus `acceptance` on Windows/macOS. Its Linux local receipt passed at the final head; CI supplied the remaining platform executions. No package comparison or complete product matrix was selected for this maintenance difference. Main reused those original executions through the accepted first-parent verifier; its intentional skips are not new execution samples or omitted obligations. No classifier or protection was changed.
+
+An independent checkout containing only committed files at `b61627e9983fea63ba79883e23446063382ff031`, with locked dependencies installed using disabled lifecycle scripts, passed `docs:check`: **4,368 links, zero errors**. Whitespace and the bilingual semantic/anchor review also passed. This clean-checkout result is separate from the earlier working-tree audit and its historical missing-media diagnostics.
+
+The documentation-only closure uses the same protected PR/main process and its own actual impact plan. Its final merge and verified Gitee synchronization identity are reported at handoff rather than recursively creating another evidence PR. Gitee receives validated main only after divergence inspection; published version refs/assets remain unchanged.
 
 The six [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**: macOS physical sleep/resume; macOS 14 Intel desktop/power; Windows 10 desktop/editors/focus/interruption/recovery; WSL desktop launch/focus/popup; remaining target-specific power/human visual coverage; and the unavailable exact Claude 2.1.296 declarations. They neither pass through this demonstration nor waive new failures. Product defects found during collection are reported with their impact and blocking status; product repair requires a separately agreed scope.
