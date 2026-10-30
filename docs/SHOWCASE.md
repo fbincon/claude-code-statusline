@@ -21,7 +21,7 @@ claude-statusline doctor
 
 The first entry reviews the persistent npm prefix and exact package before asking for `yes`. npm may separately ask to download the npx entry. A matching persistent installation is reused. For an already installed package, run `claude-statusline setup --dry-run`, then `claude-statusline setup`.
 
-In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. Arrow keys select; Enter continues; Backspace returns; Escape cancels. The external editor needs at least 64 columns × 18 rows. These demonstrations use compact separators; keep Powerline off when adjusting appearance.
+In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. Arrow keys select; Enter continues; Backspace returns; Escape cancels. The external editor needs at least 64 columns × 18 rows. These demonstrations use classic separators; keep Powerline off when adjusting appearance.
 
 Restart Claude after successful integration and inspect its actual statusline. Package installation, display Save and host integration are separate stages: cancelling setup can leave an already completed npm install, and an integration failure can leave a successfully saved display. Read the reported stage and backup paths, run `doctor`, and inspect `recover --dry-run` before retrying. A UI-language choice saved with L is independent of display cancellation. See [setup and recovery](SETUP.md).
 
@@ -29,15 +29,23 @@ Restart Claude after successful integration and inspect its actual statusline. P
 
 ## Choose a scene without Powerline
 
-Download the following single-profile JSON files. They are demonstration copies of existing schemes, not new built-in presets. All use compact separators, clear inactive row-background gradients and turn off shared Powerline blocks; linked visibility and applicable alignment remain intact.
+Download the following single-profile JSON files. They are demonstration copies of existing schemes, not new built-in presets. Their common visual baseline uses classic separators and the default palette: Classic theme on dark backgrounds, Light theme on light backgrounds. They have no row-background gradients or shared Powerline blocks. Linked visibility and applicable alignment remain intact.
 
 | File / profile name | Derived from | What to inspect |
 | --- | --- | --- |
-| [daily.json](../examples/showcase/daily.json) / `Showcase daily` | `daily-development` | Ocean theme, ordinary foreground gradient, model, directory, Git, context, task time and enabled session cost |
-| [agents.json](../examples/showcase/agents.json) / `Showcase agents` | `agent-workbench` | Slate task/activity groups and separate agent rows |
-| [quota.json](../examples/showcase/quota.json) / `Showcase quota` | `quota-cost` | Ember quota/reset alignment, grouped context/spend and cost rate |
-| [narrow.json](../examples/showcase/narrow.json) / `Showcase narrow` | `narrow-terminal` | Compact ASCII output and adaptive indicators at 40 columns |
-| [light.json](../examples/showcase/light.json) / `Showcase light` | `light-readable` | Light theme and readable risk colors without colored blocks |
+| [daily.json](../examples/showcase/daily.json) / `Showcase daily` | `daily-development` | Ten metrics in four rows: model/directory/Git, remaining context/window size, five-hour/weekly/spend limits, and tokens/task time |
+| [agents.json](../examples/showcase/agents.json) / `Showcase agents` | `agent-workbench` | Task/activity groups and separate agent rows using the same colors for the same component types |
+| [quota.json](../examples/showcase/quota.json) / `Showcase quota` | `quota-cost` | Quota/reset alignment, grouped context/spend and cost rate, with explicit threshold examples |
+| [narrow.json](../examples/showcase/narrow.json) / `Showcase narrow` | `narrow-terminal` | Three explicit main rows, classic separators and adaptive indicators at 40 columns |
+| [light.json](../examples/showcase/light.json) / `Showcase light` | `light-readable` | Light theme and the same gradient hues darkened for a light background, without colored blocks |
+
+<a id="visual-baseline"></a>
+
+### Shared colors and formatting
+
+The approved visual baseline retains original model names and legacy labels, icons and number formatting. It removes extra `M`, `D` and `G` decorations from model, directory and Git while retaining meaningful status symbols such as `✓` and `⏱`. Every displayed metric type has a distinct soft, bright foreground gradient, shared across scenes and main/subagent rows. Model uses Petal, current directory uses Sunset and remaining context uses Ocean; the light variant darkens the same hue families. The [visual refinement record](development/showcase.md#visual-refinement) records the exact mapping and the separate collection/acceptance status.
+
+Ordinary scenes retain these type colors. Threshold-color overrides are reserved for the quota scene or explicitly identified threshold examples; a sample color is not a live quota or billing observation. Editor controls stay neutral so the rendered statusline is the colored focus. Source and version demonstrations include a production-rendered colored preview with the relevant controls.
 
 From the directory containing the downloaded files:
 
@@ -80,7 +88,7 @@ claude-statusline config profile import light.json --select theme,palette --user
 claude-statusline config profile export "Showcase daily" saved-daily.json
 ```
 
-Omitting `--dry-run` explicitly saves the selected fields to the chosen target. Export writes a new file; it does not mark an editor draft saved. Source enablement, UI language and independent host Apply are outside display Undo. If Save has an unknown result, reconcile saved state before another edit. For conflicts, comparison/export retains the draft; discard/reload requires explicit confirmation. See [draft history and reuse](DRAFT_HISTORY.md), [profiles](PROFILES.md) and [composition](COMPOSITION.md).
+This selection reviews only the global theme and palette; it does not copy the light profile's darker component gradients. Use the visual-style workflow above for those styles, or import and preview the complete profile. Omitting `--dry-run` explicitly saves the selected fields to the chosen target. Export writes a new file; it does not mark an editor draft saved. Source enablement, UI language and independent host Apply are outside display Undo. If Save has an unknown result, reconcile saved state before another edit. For conflicts, comparison/export retains the draft; discard/reload requires explicit confirmation. See [draft history and reuse](DRAFT_HISTORY.md), [profiles](PROFILES.md) and [composition](COMPOSITION.md).
 
 <a id="tasks"></a>
 
@@ -109,11 +117,13 @@ claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id SESSION_ID
 ```
 
-Replace `SESSION_ID`; do not use the gallery's sanitized IDs to query local data. Add `--prompt-id PROMPT_ID` to select a known historical task. Use `/` to search names/IDs, F to filter observed statuses, Enter to expand a selected agent, E to inspect evidence and R to refresh manually. Q closes the viewer. Settings → **Task details** returns to the existing configuration draft.
+Replace `SESSION_ID` with your own session ID. The gallery's recorded demonstration identifiers belong to the earlier controlled demonstration; do not paste them as your own IDs. Add `--prompt-id PROMPT_ID` to select a known historical task. Use `/` to search names/IDs, F to filter observed statuses, Enter to expand a selected agent, E to inspect evidence and R to refresh manually. Q closes the viewer. Settings → **Task details** returns to the existing configuration draft.
 
 Check that task total time and per-agent elapsed time retain their different scopes, completed durations freeze, and unavailable active time stays unavailable. The external viewer may show IDs where Native can obtain host names. A failed refresh retains the previous report and its capture time. Neither viewer scans transcripts, starts collection, queries GitHub or calls a model. See [task details](TASK_DETAILS.md).
 
 The gallery's task clip starts with recorded completed observations replayed through the installed renderer, then shows the offline task viewer reading those stores. It is not an original statusline callback recording. The main/agent ending times remain 14 seconds and 5/7 seconds in both languages. Active-time coverage is still unknown or incomplete where the pane says so. The session's recorded USD 0.00199048 rounds to `$0.00` in the production display; that does not mean the call was free. Selected keyframes are held for 1.4 seconds, so the clip is not real-time footage or a responsiveness benchmark.
+
+The visual refinement reuses those retained observations; no new paid task is planned. The original two top-level tasks together cost USD 0.00224378 according to the CLI. Recoloring or reopening the viewer does not create a new task observation or change that original evidence.
 
 <a id="sources"></a>
 
@@ -196,7 +206,7 @@ Replace `/actual/prefix` with the prefix that owns the installed package, as sho
 
 Check package/configuration compatibility and result stages. A metadata check reports `artifact_verified: false`; it is not an archive check. A dry-run that stages a replacement also verifies its archive, using temporary staging and npm cache without replacing the target package or configuration. An already-current installation can instead return `unchanged: true` and `artifact_verified: false`, as on the demonstration machine; that result is not a downloaded-package verification.
 
-The gallery's version image is a crop of the actions and diagnostics, not the full prefix/version header. It retains the multiple-prefix warning: select the intended installation explicitly before checking or changing versions.
+The refreshed version demonstration pairs the relevant actions and diagnostics with a colored sample preview. Preview colors do not establish package verification. Follow any multiple-prefix warning and select the intended installation explicitly before checking or changing versions; exact image bounds and transformations belong to the capture inventory.
 
 Practice an actual transition only with a separate prefix and empty configuration directory. For example, on POSIX create an isolated directory, install 3.15.0 there, then use the fixed newer manager:
 
@@ -222,6 +232,7 @@ For a genuinely interrupted operation, preserve its printed transaction/control 
 | Observation | Next step |
 | --- | --- |
 | Preview looks populated but the real statusline does not | The preview uses fixed observations. Check the actual host fields, collector opt-outs and [input diagnosis](DIAGNOSTICS.md); do not enable collection merely to imitate a picture. |
+| Configured gradients appear gray | Check whether the command inherited `NO_COLOR`; its presence disables colors. Use an environment without that variable for a deliberately colored preview. Keep it for intentional no-color output; the product's behavior is unchanged. |
 | Background gradient has no effect | These scenes disable Powerline. Use an ordinary foreground gradient, or read the separate Powerline requirement. |
 | Source has no value, is stale or failed | Inspect its exact scope, revision, time and saved error. Zero and absence are different; refresh only after reviewing the relevant source. |
 | Import changes the draft but not the statusline | Acceptance and Save are separate in the editor; named-profile import and activation are separate in the CLI. Check the selected target/project binding. |

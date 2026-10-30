@@ -21,7 +21,7 @@ claude-statusline doctor
 
 首次入口先审查持久 npm 前缀和精确版本，再要求输入 `yes`。npm 下载 npx 入口可能另有确认。已有匹配的持久安装会被复用。已经安装时，可运行 `claude-statusline setup --dry-run`，再运行 `claude-statusline setup`。
 
-在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。方向键选择，Enter 继续，Backspace 返回，Escape 取消。外部编辑器至少需要 64 列 × 18 行。本组演示使用紧凑分隔符；调整外观时保持 Powerline 关闭。
+在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。方向键选择，Enter 继续，Backspace 返回，Escape 取消。外部编辑器至少需要 64 列 × 18 行。本组演示使用经典分隔符；调整外观时保持 Powerline 关闭。
 
 集成成功后重启 Claude，并查看真实状态栏。安装包、显示保存和宿主集成是独立阶段：取消 setup 可能保留已完成的 npm 安装，集成失败也可能保留已保存的显示。阅读阶段结果及备份路径，运行 `doctor`，并先用 `recover --dry-run` 检查再重试。按 L 明确保存的界面语言不随显示取消撤销。详见[首次配置与恢复](SETUP.zh-CN.md)。
 
@@ -29,15 +29,23 @@ claude-statusline doctor
 
 ## 选择不用 Powerline 的场景
 
-下载以下单方案 JSON 文件。它们是现有方案的演示副本，不是新增内置预设。所有副本使用紧凑分隔符、清除不生效的行背景渐变并关闭共享 Powerline 色块；联动可见性及适用对齐关系仍保留。
+下载以下单方案 JSON 文件。它们是现有方案的演示副本，不是新增内置预设。共同视觉基线使用经典分隔符和默认调色板：深色背景采用 Classic 主题，浅色背景采用 Light 主题。不含行背景渐变或共享 Powerline 色块，联动可见性及适用对齐关系仍保留。
 
 | 文件／方案名称 | 派生自 | 观察重点 |
 | --- | --- | --- |
-| [daily.json](../examples/showcase/daily.json)／`Showcase daily` | `daily-development` | Ocean 主题、普通前景渐变、模型、目录、Git、上下文、任务时间及已启用的会话费用 |
-| [agents.json](../examples/showcase/agents.json)／`Showcase agents` | `agent-workbench` | Slate 任务／活动组及独立代理行 |
-| [quota.json](../examples/showcase/quota.json)／`Showcase quota` | `quota-cost` | Ember 额度／重置时间对齐、上下文／花费分组和费用速率 |
-| [narrow.json](../examples/showcase/narrow.json)／`Showcase narrow` | `narrow-terminal` | 40 列下紧凑 ASCII 显示和自适应指示条 |
-| [light.json](../examples/showcase/light.json)／`Showcase light` | `light-readable` | 浅色主题、可读的风险颜色，不使用彩色色块 |
+| [daily.json](../examples/showcase/daily.json)／`Showcase daily` | `daily-development` | 十项指标分四行：模型／目录／Git、剩余上下文／窗口大小、五小时／每周／花费限额、token／任务时间 |
+| [agents.json](../examples/showcase/agents.json)／`Showcase agents` | `agent-workbench` | 任务／活动组及独立代理行，同类型组件保持相同配色 |
+| [quota.json](../examples/showcase/quota.json)／`Showcase quota` | `quota-cost` | 额度／重置时间对齐、上下文／花费分组和费用速率，以及明确标识的阈值示例 |
+| [narrow.json](../examples/showcase/narrow.json)／`Showcase narrow` | `narrow-terminal` | 40 列下的三条显式行、经典分隔符和自适应指示条 |
+| [light.json](../examples/showcase/light.json)／`Showcase light` | `light-readable` | Light 主题及为浅色背景加深的同色相渐变，不使用彩色色块 |
+
+<a id="visual-baseline"></a>
+
+### 统一配色与格式
+
+已批准的视觉基线保留原始模型名，以及 legacy 标签、图标和数字格式；去掉模型、目录和 Git 额外的 `M`、`D`、`G` 装饰，保留 `✓`、`⏱` 等有实际含义的状态符号。每种已显示指标类型采用不同的柔和明亮前景渐变，同类型组件跨场景、主栏和子代理行保持一致。模型使用 Petal，当前目录使用 Sunset，剩余上下文使用 Ocean；浅色变体加深相同色相。[视觉修订记录](development/showcase.zh-CN.md#visual-refinement)保存精确映射及独立的采集／验收状态。
+
+普通场景保留这些类型配色。阈值色覆盖仅用于额度场景或明确标识的阈值示例；样本颜色不代表实时额度或账单观测。编辑器控件保持中性，让实际渲染的状态栏成为色彩重点。来源与版本演示在相关控件旁保留生产渲染器生成的彩色预览。
 
 在下载文件所在目录运行：
 
@@ -80,7 +88,7 @@ claude-statusline config profile import light.json --select theme,palette --user
 claude-statusline config profile export "Showcase daily" saved-daily.json
 ```
 
-去掉 `--dry-run` 才明确把选定字段保存到选定目标。导出写新文件，不会把编辑器草稿标为已保存。来源授权、界面语言和独立的宿主 Apply 不属于显示撤销。保存结果未知时，先核对已保存状态再编辑。发生冲突时，可比较或导出并保留草稿；丢弃／重载需要明确确认。详见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)、[方案](PROFILES.zh-CN.md)和[组合](COMPOSITION.zh-CN.md)。
+这里仅审查全局主题和调色板，不复制浅色方案中加深的组件渐变。那些样式可通过上面的视觉样式流程复用，或导入完整方案后预览。去掉 `--dry-run` 才明确把选定字段保存到选定目标。导出写新文件，不会把编辑器草稿标为已保存。来源授权、界面语言和独立的宿主 Apply 不属于显示撤销。保存结果未知时，先核对已保存状态再编辑。发生冲突时，可比较或导出并保留草稿；丢弃／重载需要明确确认。详见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)、[方案](PROFILES.zh-CN.md)和[组合](COMPOSITION.zh-CN.md)。
 
 <a id="tasks"></a>
 
@@ -109,11 +117,13 @@ claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id SESSION_ID
 ```
 
-替换 `SESSION_ID`，不要用图库脱敏 ID 查询本地数据。加上 `--prompt-id PROMPT_ID` 可选择已知历史任务。`/` 搜索名称／ID，F 筛选已观察到的状态，Enter 展开选中代理，E 查看证据，R 手动刷新，Q 关闭。设置中的**任务详情**会返回原配置草稿。
+将 `SESSION_ID` 替换为自己的会话 ID。图库中记录的演示标识属于此前受控演示，不要将它们粘贴为自己的 ID。加上 `--prompt-id PROMPT_ID` 可选择已知历史任务。`/` 搜索名称／ID，F 筛选已观察到的状态，Enter 展开选中代理，E 查看证据，R 手动刷新，Q 关闭。设置中的**任务详情**会返回原配置草稿。
 
 检查任务总时间与代理经过时间的作用域差异，完成时长是否冻结，以及不可用的活跃时间是否仍标为不可用。外部查看器可能显示 ID，而 Native 能从宿主取得名称。刷新失败会保留上一次报告及其采集时间。两个查看器都不扫描转录、不启动采集、不查询 GitHub，也不调用模型。详见[任务详情](TASK_DETAILS.zh-CN.md)。
 
 图库任务动图先通过已安装渲染器回放已记录的完成观察值，再展示离线任务查看器读取这些状态，并非原 statusline 回调录屏。英中主任务／代理结束时长都保持 14 秒和 5／7 秒；面板标明未知或不完整的活跃计时覆盖仍然如此。会话记录费用 0.00199048 美元，在生产显示中四舍五入为 `$0.00`，不代表免费。选取的关键帧各停留 1.4 秒，因此动图不是实时录像或响应速度基准。
+
+本次视觉修订复用这些保留的观察值，不计划新增付费任务。原始两项顶层任务按 CLI 报告合计 0.00224378 美元。重新配色或打开查看器不会形成新任务观察，也不会改变原始证据。
 
 <a id="sources"></a>
 
@@ -196,7 +206,7 @@ claude-statusline update --version 3.16.0 --prefix /actual/prefix --dry-run
 
 核对安装包／配置兼容性和阶段结果。元数据检查报告 `artifact_verified: false`，不等于安装包校验。需要准备替换包的 dry-run 也会验证归档，可使用临时目录和 npm 缓存，但不替换目标包或配置。已是当前版本时，可以像本次演示机器一样返回 `unchanged: true` 及 `artifact_verified: false`，该结果不代表下载包验证。
 
-图库版本图只裁切操作和诊断区，不是完整的前缀／版本页首。它保留多个前缀的警告：检查或改变版本前应明确选择目标安装。
+修订后的版本演示将相关操作、诊断与彩色样本预览放在一起。预览颜色不代表安装包验证。遇到多个前缀的警告时，检查或改变版本前应明确选择目标安装；图片的精确范围及转换记录在采集清单中。
 
 实际版本切换应在独立前缀和空配置目录中演练。例如在 POSIX 上创建隔离目录，在那里安装 3.15.0，再使用固定的新版管理入口：
 
@@ -222,6 +232,7 @@ npx @fbincon/claude-code-statusline@3.16.0 rollback --version 3.15.0 --prefix "$
 | 现象 | 下一步 |
 | --- | --- |
 | 预览有数据，真实状态栏没有 | 预览使用固定观察值。核对实际宿主字段、采集关闭偏好及[输入诊断](DIAGNOSTICS.zh-CN.md)，不要只为模仿图片而启用采集。 |
+| 已配置渐变却显示灰色 | 检查命令是否继承了 `NO_COLOR`；该变量只要存在就会关闭颜色。需要彩色预览时使用不含该变量的环境；有意查看无色输出时保留它。产品行为未改变。 |
 | 背景渐变没有效果 | 本组方案关闭 Powerline。使用普通前景渐变，或查看独立的 Powerline 条件。 |
 | 来源无值、过期或失败 | 检查精确作用域、修订、时间和已存错误。零与缺失不同；审查来源后再决定刷新。 |
 | 导入改变草稿，但状态栏未变 | 编辑器接受与保存分开；CLI 命名方案导入与激活分开。检查当前目标／项目绑定。 |
