@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.15.0 — 2026-10-30
+
+- Track source signatures, translation-bound acceptance, safe historical isolation and current English development fallback.
+- Keep English/Simplified Chinese complete during development and enforce complete six-language public releases through verified PR/main/tag evidence.
+- Add coverage, freeze, batch validation and explicit acceptance tools; preserve truthful multilingual search origins and offline effective resources.
+- Keep display schema 17, editor protocol 30 and independent language persistence; retain 271 Native capacity cases and add twelve language cases plus installed 36-combination checks.
+- [Implementation and validation](docs/development/i18n-02-delivery.md) · [Release notes](docs/releases/v3.15.0.md).
+
 ## 3.14.0 — 2026-10-29
 
 - Add adaptive bars that retain percentages, used/remaining meaning and complete custom labels/icons.

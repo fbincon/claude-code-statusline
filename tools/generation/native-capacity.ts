@@ -189,6 +189,14 @@ export function nativeCapacityData() {
         add('appearance-quick-last-'+language,q,72,213);
     }
     assert.equal(cases.length,271);
+    for (const language of ['en','zh-CN','zh-TW','zh-HK','ja','ko'] as const) for (const tall of [false,true]) {
+        const e=editor();e.draft.display.statusline_language=language;
+        e.draft.display.instances[0]!.options.label='Context 界👩🏽‍💻é 한글 '.repeat(5);
+        e.draft.display.instances[0]!.options.icon='👩🏽‍💻';
+        if(tall){e.page='settings';e.advanced=true;}
+        add('i18n-long-'+(tall?'tall':'narrow')+'-'+language,e,tall?72:32,tall?213:12);
+    }
+    assert.equal(cases.length,283);
     return { description, values, cases };
 }
 

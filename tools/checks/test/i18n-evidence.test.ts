@@ -8,6 +8,8 @@ test('only pre-activation sources may omit language evidence; report downgrade a
     const legacy = new Map([['packages/core/src/release.ts', Buffer.from("export const VERSION = '3.14.0';")]]);
     assert.equal(languageEvidence(legacy, commit), undefined); verifyLanguageEvidence(undefined, legacy, commit, true);
     legacy.set('packages/core/src/release.ts', Buffer.from("export const VERSION = '3.15.0';")); assert.throws(() => languageEvidence(legacy, commit), /Missing activated/);
+    legacy.set('packages/core/src/release.ts', Buffer.from('export const VERSION = computeVersion();')); assert.throws(() => languageEvidence(legacy, commit), /legacy language source identity/);
+    const partial = fixture(); partial.delete(DATA_ROOT + 'policy.json'); assert.throws(() => languageEvidence(partial, commit), /Missing activated/);
     const inputs = fixture(), evidence = languageEvidence(inputs, commit)!;
     verifyLanguageEvidence(evidence, inputs, commit, true);
     for (const value of [undefined, { ...evidence, schema_version: 0 }, { ...evidence, source_commit: 'b'.repeat(40) }, { ...evidence, report_sha256: '0'.repeat(64) }])

@@ -1,9 +1,17 @@
 /** Explicit-language messages; canonical backend metadata remains English. */
-import { LOCALES, resolveLanguage } from './generated-locales.js';
+import { FALLBACK_KEYS, LOCALES, resolveLanguage } from './generated-locales.js';
 import type { Language } from './generated-locales.js';
 export type { MessageKey, Language } from './generated-locales.js';
 export { LANGUAGES, LANGUAGE_NAMES, resolveLanguage } from './generated-locales.js';
 export interface LocalizedText { key: string; params: Record<string, unknown>; fallback: string }
+const originCache: Partial<Record<Language, ReadonlySet<string>>> = {};
+
+/** Effective English remains English evidence, even when selected through another language. */
+export function messageOrigin(key: string, language: Language = 'en'): Language {
+  const code = resolveLanguage(language) ?? 'en';
+  const fallback = originCache[code] ??= new Set<string>(FALLBACK_KEYS[code]);
+  return Object.hasOwn(LOCALES[code], key) && !fallback.has(key) ? code : 'en';
+}
 
 export class LocalizedError extends Error {
   constructor(public readonly localization: LocalizedText) { super(localization.fallback); }

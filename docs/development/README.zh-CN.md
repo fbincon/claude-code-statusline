@@ -1,6 +1,6 @@
 # 开发指南
 
-[I18N-02 实现记录](i18n-02-delivery.zh-CN.md)记录兼容性准备；增量语言生成尚未启用。
+[I18N-02 实现记录](i18n-02-delivery.zh-CN.md)记录已接受的兼容准备及 v3.15.0 增量语言工作流。
 
 
 
@@ -50,7 +50,7 @@
 - [项目级代理指引](../../AGENTS.md)：共享工作区边界、规范来源、验证和 PR 规则，仅维护英文。
 - [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：当前优先级／状态、已核对问题、范围、依赖、兼容及针对性的功能验收；既有设计／证据分别保留。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
-- [翻译贡献指南](i18n.zh-CN.md)：当前完整语言包规则与按影响验证。[多语言工作流设计](i18n-workflow.zh-CN.md)定义下一项 [I18N-02 工作包](development-plan.zh-CN.md#i18n-02)；开发回退及发布就绪跟踪属于规划，尚未实施。
+- [翻译贡献指南](i18n.zh-CN.md)：增量维护、开发回退及严格公开发布就绪。[多语言工作流](i18n-workflow.zh-CN.md)及 [I18N-02 实现](i18n-02-delivery.zh-CN.md)记录状态、来源绑定与验证。
 - [测试与验收](testing.zh-CN.md)。
 - [原生编辑器接入](native.zh-CN.md)。[容量与恢复](native-capacity.zh-CN.md)。
 - [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。

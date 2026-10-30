@@ -21,7 +21,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, appearance_scenarios:false, draft_reuse: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, appearance_scenarios:false, draft_reuse: false, i18n_workflow: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -64,6 +64,35 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
     assert.ok(result.result);
     return result.result;
 }
+test('installed effective languages retain independent UI/output saves and read-only previews in all 36 combinations', async () => {
+    const config = setup('i18n-workflow');
+    run(['config', 'set-items', 'context-remaining'], config); run(['config', 'set', 'colors', 'off'], config);
+    const messages = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/messages.js')).href);
+    const dictionaries = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/generated-locales.js')).href);
+    const rendered = new Map<string, string>(); let combinations = 0;
+    for (const language of LANGUAGES) {
+        const effective = JSON.parse(fs.readFileSync(join(installed.modules, 'statusline-core/resources/i18n/locales', language + '.json'), 'utf8'));
+        assert.deepEqual(effective, dictionaries.LOCALES[language]);
+        for (const key of Object.keys(effective)) assert.equal(messages.messageOrigin(key, language), dictionaries.FALLBACK_KEYS[language].includes(key) ? 'en' : language);
+        ui(config, 'set_ui_language', { ui_language: language });
+        for (const output of LANGUAGES) {
+            const current = ui(config, 'read'), path = join(config, 'claude-statusline.json'), before = fs.readFileSync(path);
+            const draft = structuredClone(current.draft); draft.display.statusline_language = output;
+            assert.equal(ui(config, 'preview', { draft, width: 80 }).sample, true);
+            assert.deepEqual(fs.readFileSync(path), before);
+            ui(config, 'apply', { draft, expected_revision: current.revision });
+            assert.equal(ui(config, 'read').draft.display.statusline_language, output);
+            assert.equal(ui(config, 'read_ui_preferences').ui_language, language);
+            const actual = run(['render'], config, '{"context_window":{"remaining_percentage":50}}', { COLUMNS: '120' });
+            assert(actual.includes('50%'));
+            if (rendered.has(output)) assert.equal(actual, rendered.get(output), 'UI preference changed output language');
+            else rendered.set(output, actual);
+            combinations++;
+        }
+    }
+    report.i18n_workflow = { languages: LANGUAGES, combinations, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 };
+    checks.i18n_workflow = true;
+});
 test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
     report.git_policy_cases = await installedGitPolicy(installed); checks.git_policy = true;
 });

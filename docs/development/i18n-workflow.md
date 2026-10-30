@@ -2,11 +2,11 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](development-plan.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-**Compatibility preparation in progress; incremental generation is not activated.** The roadmap owns I18N-02 status. The approved implementation targets v3.15.0 without adding languages; see the [implementation record](i18n-02-delivery.md). Current complete-pack checks remain effective until the full workflow is enabled.
+**I18N-02 implementation targets v3.15.0.** The accepted compatibility foundation precedes activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md) and [authoring commands](i18n.md#incremental-authoring). No language is added.
 
-Reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs has 2,311 keys. The [generator](../../tools/generation/resources.ts) requires complete packs, rejects unknown keys and mismatched placeholders, and emits Node and Native resources. Its coverage report measures key completeness; neither the report nor runtime English fallback tracks changed source meaning or translation acceptance. These are the capabilities proposed below.
+Reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs has 2,311 keys. The [generator](../../tools/generation/resources.ts) requires complete packs, rejects unknown keys and mismatched placeholders, and emits Node and Native resources. Its coverage report measures key completeness; neither the report nor runtime English fallback tracks changed source meaning or translation acceptance. These were the gaps addressed by the implementation below.
 
-Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current contribution instructions remain in the translation guide until the corresponding implementation is accepted.
+Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current authoring commands and validation instructions are maintained in the translation guide.
 
 <a id="support-policy"></a>
 
@@ -92,7 +92,7 @@ Development and release share one generation rule. Do not emit different bytes f
 | Freeze/incremental task list | Read fixed inputs and emit an identity/task list; do not mutate translations or acceptance, access the network or start a full build/test run |
 | Release gate | Integrate A/B readiness and C disclosure with existing candidate/release verification and verified report reuse |
 
-These are proposed capabilities, not available commands. During implementation, document the mapping to `generate`, `generate:check`, `languages:coverage` and `check`. `docs:check` remains documentation validation. Reports are read-only with respect to source and acceptance; record updates are an explicit operation within the workflow. Share analysis and existing artifacts rather than adding four duplicate CI executions. Freeze, review and record completion are work steps, not additional permission requests.
+These capabilities are implemented through `generate`, `generate:check`, `languages:coverage`, `check` and the developer-only `languages` subcommands documented in the [translation guide](i18n.md#incremental-authoring). `docs:check` remains documentation validation. Reports are read-only with respect to source and acceptance; record updates are an explicit operation within the workflow. Share analysis and existing artifacts rather than adding four duplicate CI executions. Freeze, review and record completion are work steps, not additional permission requests.
 
 <a id="frontend-contracts"></a>
 
@@ -153,7 +153,7 @@ Future languages use complete structural/template/safety/generation checks plus 
 
 ## Functional acceptance and evidence limits
 
-The following are future implementation requirements, not results of this documentation update. Extend existing suites and use isolated configuration/installation fixtures.
+The following are implementation requirements; actual passing evidence is recorded separately in the [delivery record](i18n-02-delivery.md). Extend existing suites and use isolated configuration/installation fixtures.
 
 | Area | Required scenarios |
 | --- | --- |

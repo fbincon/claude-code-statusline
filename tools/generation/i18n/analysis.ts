@@ -89,8 +89,10 @@ export function languageInputPath(path: string): boolean {
 }
 export function requiresLanguageEvidence(inputs: Inputs): boolean {
     if (inputs.has(POLICY_PATH)) return true;
+    assert(![...inputs.keys()].some(path => path.startsWith(DATA_ROOT)), 'Missing activated language policy');
     const release = inputs.get('packages/core/src/release.ts');
     const version = release && new TextDecoder().decode(release).match(/export const VERSION = ['"](\d+)\.(\d+)\./u);
+    assert(!release || version, 'Cannot verify legacy language source identity');
     assert(!version || Number(version[1]) < 3 || Number(version[1]) === 3 && Number(version[2]) < 15, 'Missing activated language policy');
     return false;
 }
@@ -146,7 +148,7 @@ export function analyze(inputs: Inputs): Analysis {
         signatures[key] = signature(contracts[key]!);
     }
     const effective: Analysis['effective'] = {}, origins: Analysis['origins'] = {}, states: Analysis['states'] = {}, rows: LanguageReport['languages'] = {};
-    const baselinePacks = new Map<string, Record<string, string>>();
+    const baselinePacks = new Map<string, Record<string, string>>(), baselineDigests = new Map<string, string>();
     const baselinePack = (code: string) => {
         if (!baselinePacks.has(code)) baselinePacks.set(code, readJson(inputs, DATA_ROOT + 'baseline/locales/' + code + '.json'));
         return baselinePacks.get(code)!;
@@ -159,7 +161,8 @@ export function analyze(inputs: Inputs): Analysis {
             const baseline = baselinePack(code), source = baselinePack('en');
             for (const language of ['en', code]) {
                 const path = DATA_ROOT + 'baseline/locales/' + language + '.json';
-                assert(proof.files[path] === hash(inputs.get(path)!), 'Unbound baseline language snapshot');
+                if (!baselineDigests.has(path)) baselineDigests.set(path, hash(inputs.get(path)!));
+                assert(proof.files[path] === baselineDigests.get(path), 'Unbound baseline language snapshot');
             }
             assert(Object.hasOwn(baseline, key) && hash(baseline[key]!) === record.translation && source[key] === contract.english && proof.signatures[key] === record.source, 'Baseline does not cover this entry');
         } else {

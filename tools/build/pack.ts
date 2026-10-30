@@ -15,6 +15,8 @@ import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { rewriteLinks, localDestination, packageReadme } from '../release/markdown.js';
 import { verifyContents } from './verify.js';
+import { analyze, assertReady, requiresLanguageEvidence } from '../generation/i18n/analysis.js';
+import { readLanguageInputs } from '../checks/i18n-evidence.js';
 
 export function runtimeFile(name: string, path: string): boolean {
     if (name.startsWith('@koromix/')) return true;
@@ -55,6 +57,11 @@ export async function packCandidate(destination: string, commit: string, kind: C
             fs.cpSync(join(source, 'dist/src'), join(target, 'dist/src'), { recursive: true });
             fs.copyFileSync(join(source, 'package.json'), join(target, 'package.json'));
             if (fs.existsSync(join(source, 'resources'))) fs.cpSync(join(source, 'resources'), join(target, 'resources'), { recursive: true });
+        }
+        const languageInputs = readLanguageInputs(repoRoot);
+        if (requiresLanguageEvidence(languageInputs)) {
+            const language = analyze(languageInputs); assertReady(language.report);
+            for (const { code } of language.registry) fs.writeFileSync(join(stage, 'node_modules/@fbincon/statusline-core/resources/i18n/locales', code + '.json'), JSON.stringify(language.effective[code], null, 2) + '\n');
         }
         const dependencies: Candidate['dependencies'] = {};
         for (const name of ['koffi', 'lossless-json', ...NATIVE]) dependencies[name] = await dependency(name, lock, join(stage, 'node_modules', name), temporary);

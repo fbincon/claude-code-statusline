@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import * as tar from 'tar';
-import { canonical, emitted, hash, git, messageShape, runtimeManifest } from '../checks/impact-content.ts';
+import { canonical, emitted, hash, git, languagePresentation, messageShape, runtimeManifest } from '../checks/impact-content.ts';
 import { extractFiles, readTar, npmEntry } from './files.ts';
 
 export interface PackageComparison { schema_version: 1; kind: 'package-comparison'; base: string; head: string; base_sha256: string; head_sha256: string; equivalent: boolean; changed_members: string[] }
@@ -28,6 +28,7 @@ function projection(entries: ReadonlyMap<string, Buffer>): Record<string, string
             // generated output. Bind their non-message code as well as key shape.
             let text = raw.toString('utf8');
             if (/\/(?:i18n\/(?:generated-locales|locales\/[^/]+|statusline\/[^/]+))\.(?:js|ts)$/u.test(name)) {
+                text = languagePresentation(text);
                 text = text.replace(/((?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*:\s*)("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/gu, (_all, prefix: string, literal: string) => {
                     const placeholders = [...literal.matchAll(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/gu)].map(item => item[1]).sort();
                     return prefix + JSON.stringify('<message:' + placeholders.join(',') + '>');

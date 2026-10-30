@@ -43,6 +43,14 @@ test('presentation normalization preserves message keys, placeholders and non-me
     assert(!comparePackages(base, head, before, pack(head, { [path]: '{"hello":"Welcome {other}"}' })).equivalent);
     assert(!comparePackages(base, head, before, pack(head, { [path]: '{"new":"Welcome {name}"}' })).equivalent);
 });
+test('generated fallback membership is presentation but origin behavior and registry shape remain executable contracts', t => {
+    const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40), path = 'node_modules/@fbincon/statusline-core/dist/src/i18n/generated-locales.js';
+    const source = 'export const FALLBACK_KEYS = {"en":[],"ja":["hello"]}; export const LOCALES={"en":{"hello":"Hello"},"ja":{"hello":"Hello"}};';
+    const before = pack(base, { [path]: source });
+    assert(comparePackages(base, head, before, pack(head, { [path]: source.replace('["hello"]', '[]') })).equivalent);
+    for (const changed of [source.replace('["hello"]', 'getFallbacks()'), source.replace('"ja":[', '"ko":['), source + 'export const origin = () => "en";'])
+        assert(!comparePackages(base, head, before, pack(head, { [path]: changed })).equivalent);
+});
 test('help values and descriptive workspace metadata are separate from executable package contracts', t => {
     const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40), help = 'node_modules/@fbincon/statusline-cli/dist/src/help.js', manifest = 'node_modules/@fbincon/statusline-core/package.json';
     const before = pack(base, { [help]: 'export function help(command) { const lines = ["old"]; if (command === "config") lines.push("before"); return lines; }', [manifest]: '{"name":"core","description":"Before","exports":"./index.js"}' });
