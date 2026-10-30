@@ -2,85 +2,49 @@
 
 [English](README.md) | **简体中文**
 
-[自适应外观样例](adaptive-row-scenarios/README.zh-CN.md)展示 v3.14.0 五个场景在 40／80／120 列的显示，保留精确候选和字体来源。
+当前可复现操作流程与非 Powerline 场景变体，从 [SHOWCASE-01 图库](showcase/README.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)开始。各图库分别记录软件包／源码／输入身份及捕获方法。实机截图、终端录制、PTY 重建、代理检查和人工验收是不同类型的证据。
 
-[Native 容量修复截图](native-capacity/README.zh-CN.md) 展示安装包的快速配置、渐变、24 项保存成功和高面板缩放，并记录精确候选来源。
+## 图库导航
 
-[v3.16.0 安装包语言图库](typescript/v3.16.0/README.zh-CN.md)展示六种新增语言的外部设置页及三个 Native 示例，记录准确的候选包来源、图片校验与独立的十二语言行为检查。
+| 图库 | 内容与证据 |
+| --- | --- |
+| [SHOWCASE-01](showcase/README.zh-CN.md) | 首页场景、配置流程及复现／来源说明 |
+| [v3.16.0 语言](typescript/v3.16.0/README.zh-CN.md) | 六种新增界面语言、Native 示例及独立十二语言行为检查 |
+| [自适应外观](adaptive-row-scenarios/README.zh-CN.md) | v3.14.0 五套方案在 40／80／120 列的显示 |
+| [草稿历史与复用](draft-history-reuse/README.zh-CN.md) | 草稿历史、结构审阅及复用捕获 |
+| [来源、命令与包管理](source-command-package/README.zh-CN.md) | 已安装的来源和版本操作界面 |
+| [Native 容量与恢复](native-capacity/README.zh-CN.md) | 快速配置、渐变、24 实例保存和高面板缩放 |
+| [首次设置与完整外观](setup-appearance/README.zh-CN.md) | 最初设置／方案的捕获来源 |
+| [组件组合](composition/README.zh-CN.md) | 实例、副本及左右布局 |
+| [语言图库](languages/README.zh-CN.md) | 较早的繁体中文、日语和韩语捕获 |
+| [TypeScript 图库](typescript/README.zh-CN.md) | 准备阶段、地区语言和 [v3.1.1](typescript/v3.1.1/README.zh-CN.md) 捕获及原始身份 |
+| [历史归档](archive/README.zh-CN.md) | 被替换截图及更早的捕获记录 |
 
-[v3.1.1 TypeScript 外部图库](typescript/v3.1.1/README.zh-CN.md)保留该版本的六语言主栏、子代理、设置、布局和上下文操作，以及原始源码／产物来源和图片校验；此前 TypeScript 捕获及下方 Python 原图库保留。
-
-最新组件实例界面见[组件编辑器捕获](composition/README.zh-CN.md)。下方保留原始跨平台图片来源。
-
-繁体中文、日语和韩语展示见[多语言安装包终端图像](languages/README.zh-CN.md)。
-
-原始跨平台图库包含 21 张 2026-10-07 提供的原始截图：会话内 TUI 9 张、外部 TUI 12 张。原 README 的 18 张图片与更早记录保留在[归档](archive/README.zh-CN.md)。
-
-PNG 字节、尺寸、颜色及元数据保持不变。会话底部主状态栏显示会话数据；配置 Preview 使用固定样例，不能作为真实 token 用量或并行代理验收证据。
+固定 Preview 区域与编排输入均为样例，不证明真实 token 用量或并行代理行为。字体、颜色及宽度取决于记录环境。历史捕获保留原有结论，不代表后续软件包通过验收，也不关闭 #96 原有六项缺口。
 
 ## 目录结构
 
 ```text
 images/
-├── tui/
-│   ├── native/
-│   │   ├── linux/
-│   │   │   ├── main.png
-│   │   │   ├── subagents.png
-│   │   │   ├── settings.png
-│   │   │   ├── layout.png
-│   │   │   └── themes/
-│   │   │       ├── main-light.png
-│   │   │       └── main-dark.png
-│   │   ├── windows/
-│   │   │   ├── main.png
-│   │   │   ├── subagents.png
-│   │   │   ├── settings.png
-│   │   │   ├── layout.png
-│   │   │   └── themes/
-│   │   │       ├── main-light.png
-│   │   │       └── main-dark.png
-│   │   └── macos/
-│   │       └── main.png
-│   └── external/
-│       ├── linux/
-│       │   ├── main.png
-│       │   ├── subagents.png
-│       │   ├── settings.png
-│       │   ├── layout.png
-│       │   └── themes/
-│       │       ├── main-light.png
-│       │       ├── main-light-ansi.png
-│       │       ├── main-dark.png
-│       │       └── main-dark-ansi.png
-│       ├── windows/
-│       │   ├── main.png
-│       │   ├── subagents.png
-│       │   ├── settings.png
-│       │   ├── layout.png
-│       │   └── themes/
-│       │       ├── main-light.png
-│       │       ├── main-light-ansi.png
-│       │       ├── main-dark.png
-│       │       └── main-dark-ansi.png
-│       └── macos/
-│           ├── main.png
-│           ├── subagents.png
-│           ├── settings.png
-│           └── layout.png
-├── languages/
-│   ├── native/
-│   └── external/
-├── discovery/
-│   ├── native/
-│   └── external/
-└── archive/
-    ├── screenshots/
-    │   └── replaced-2026-10-07/
-    └── reconstructions/
+├── showcase/                 # 当前可复现演示
+├── typescript/               # 按软件包区分的已安装 TypeScript 捕获
+├── adaptive-row-scenarios/   # 外观与场景证据
+├── draft-history-reuse/      # 历史与复用证据
+├── source-command-package/   # 来源与包操作证据
+├── native-capacity/          # 容量与恢复证据
+├── setup-appearance/         # 设置与方案证据
+├── composition/              # 组件布局证据
+├── languages/                # 较早的语言捕获
+├── tui/                      # 原始跨平台截图
+├── discovery/                # 历史搜索与导入捕获
+└── archive/                  # 被替换图片及原始记录
 ```
 
-## 当前图片
+<a id="当前图片"></a>
+
+## 原始跨平台图库
+
+下方 21 张原始截图由用户于 2026-10-07 提供，包括九张会话内 TUI 和十二张外部 TUI 页面；此前 README 的 18 张图片保留在[归档](archive/README.zh-CN.md)。原 PNG 字节、尺寸、颜色、路径和元数据保持不变。
 
 | 入口 | 平台 | Main | Subagents | Settings | Layout |
 | --- | --- | --- | --- | --- | --- |
@@ -135,7 +99,7 @@ images/
 - 使用小写英文文件名，按入口、平台和页面分类。
 - 同步双语 README、相关指南、索引和哈希；保留源文件，归档被替换的截图。
 - 保留历史捕获版本、文件名、提交及元数据；替换批次日期不代表捕获日期。
-- `MANIFEST.in` 包含 Markdown 和 PNG，分发检查验证源码包完整性。
+- 使用当前 TypeScript 采集／打包工具及[影响规划](../development/impact-checks.zh-CN.md)选择的媒体检查，记录软件包／源码／输入摘要、终端尺寸、字体及裁剪或编码步骤；私有原始日志不进入公开素材。
 
 <a id="display-notes"></a>
 <a id="external-tui-v161"></a>

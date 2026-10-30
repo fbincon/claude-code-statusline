@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+The [v3.16.0 twelve-language expansion](language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
 
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
@@ -143,7 +143,7 @@ Native file operations are effects handled by the hooks module through the Node 
 
 ## Phase 5 metric migration
 
-Display schema v17 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v31 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime protocol v3 retains v1/v2 observe/read; v1 does not claim execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v17 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v31 preserves it across both editors, conflicts, previews and portable files. Supported display v1–v16 reads have no write effects; a real save backs up and migrates. Runtime protocol v3 retains v1/v2 observe/read; v1 does not claim execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## UI preference and message operations
 
@@ -200,11 +200,11 @@ schemas. See the [candidate recovery contract](typescript-migration/ts-04/recove
 
 `reasons.origin` distinguishes draft configuration, local configuration, known host capability and unknown evidence. Unreadable ownership/runtime preferences remain unknown; normally absent runtime preferences retain their existing disabled default. `explain` takes no installation lock, creates no directories and repairs no files. It never reads transcripts, task/usage caches or Git. Existing `read` still locks its coherent snapshot and may create the lock directory; `preview` remains independent of settings and host detection.
 
-`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 31 requires matching frontend/backend resources; display schema 17, runtime protocol 3, portable 1 and UI preferences 1 remain independent.
+`describe.presets` includes `purpose_key`, `requirements_key` and `example`. Its shared presentation order retains the four original use cases and two examples, followed by the eight complete schemes. Preset IDs and expansion semantics remain compatible. Protocol 31 requires matching frontend/backend resources; display schema 17, runtime protocol 3, portable 1 and UI preferences 1 remain independent.
 
 ## Setup and complete appearance contracts
 
-The new `display.powerline` object has closed choices and legacy defaults; schema 17 and editor protocol 31 require matching resources. `describe.options` and `editor_fields` expose the five Powerline controls from the same descriptors. The existing preset registry adds three complete schemes without adding a second registry. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
+The `display.powerline` object has closed choices and legacy defaults; schema 17 and editor protocol 31 require matching resources. `describe.options` and `editor_fields` expose block controls and the continuous row background from shared descriptors. The same preset registry contains six original presets and eight complete schemes; the original setup delivery introduced the first three schemes. Setup uses a separate read-only inspection and display-only save service; it does not add an editor-protocol installation operation. [Implementation and acceptance](setup-appearance.md).
 
 ## Source operations
 

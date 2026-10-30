@@ -4,17 +4,17 @@
 
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
-Since v1.3.0, the project provides Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the external curses TUI and platform launcher. Stable defaults both on, with independent preferences and version suspension.
+Since v1.3.0, the project provides Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` opens the external TypeScript TUI through its platform launcher. Stable defaults both on, with independent preferences and version suspension.
 
 ## Source layout and checks
 
-`mods/statusline-native` is the only native-editor Mod source; the installed plugin identity remains `statusline-native@claude-statusline-local`. `hooks/register.ts` owns host API calls, commands, backend requests, save lifetimes and serialized input batches. `lib/editor/` owns draft/order/numeric rules; `lib/client/` owns validated batches, keys and settings; `lib/session.ts` serializes independent snapshots. `ui/client/` owns surface input and drawing, `ui/components/` reusable sections, and `ui/layout.ts` the cell budget. Tests mirror backend, client, editor, integration and UI responsibilities. The Python curses UI and launcher remain separate and use the same configuration service.
+`mods/statusline-native` is the only native-editor Mod source; the installed plugin identity remains `statusline-native@claude-statusline-local`. `hooks/register.ts` owns host API calls, commands, backend requests, save lifetimes and serialized input batches. `lib/editor/` owns draft/order/numeric rules; `lib/client/` owns validated batches, keys and settings; `lib/session.ts` serializes independent snapshots. `ui/client/` owns surface input and drawing, `ui/components/` reusable sections, and `ui/layout.ts` the cell budget. Tests mirror backend, client, editor, integration and UI responsibilities. The external TypeScript UI lives in `packages/tui`; platform launchers remain separate and both editors use the shared CLI configuration services.
 
 `ui/client/help.ts` selects state-dependent footer controls and computes their wrapped row budget. Drawing and keyboard pagination both use `editorLayout`; complete hint wrapping lives in `ui/components/shortcuts.ts`. The heading uses the host theme accent for **Configure Status Line**. All idle page controls begin with Tab; Main/Subagents order is Tab, Space, selection arrows, ordering arrows, Ctrl+E and search. Settings offers H to show/hide preferences and A only when expanded; item forms offer Ctrl+G back. Filter retains its search entry. Editing offers accept/cancel/clear/delete, while ordinary letter shortcuts accept either ASCII case only outside editing and Ctrl/Meta combinations. Esc remains host-owned.
 
 At 32×12, shorten hints and omit secondary V/R/Esc help before sacrificing current controls. Auxiliary detail/count rows yield space to the footer; the selected row and one actual sample row remain visible. Resizing retains state and recomputes both rendering and navigation from the same budget. These presentation changes do not modify protocol or configuration schemas.
 
-Use Node.js 24.21.0/npm 11.19.0, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288/2.1.289/2.1.294 and Windows/macOS 2.1.288/2.1.289/2.1.294.
+Use Node.js 24.21.0/npm 11.19.0, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The fixed host inventory and applicable capacity checks are defined in [CI maintenance](ci-maintenance.md) and [capacity/recovery](native-capacity.md), including the separately reported 2.1.296 declaration gap.
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -24,7 +24,7 @@ claude plugin test mods/statusline-native
 npm run --prefix mods/statusline-native typecheck
 ```
 
-Source loading exposes only `/statusline-configure-native`. Dependencies, generated host declarations and raw validation reports are excluded from runtime packages. No model call is required by ordinary checks.
+The native Mod registers `/statusline-configure-native` and `/statusline-task`; the external editor launcher remains a separate integration. Dependencies, generated host declarations and raw validation reports are excluded from runtime packages. No model call is required by ordinary checks.
 
 For a source backend, first run `npm run build`. Set plugin `backendExecutable` to the absolute Node path and `backendArgs` to a JSON array containing the absolute compiled `packages/cli/dist/src/entry.js` path. Persistent `install` writes these bindings automatically.
 
@@ -57,7 +57,7 @@ Click the Client region once after opening, then use the keyboard. Opening with 
 | H / A | Fold/unfold Claude preferences / apply them separately |
 | R / K / V | Discard and reload / check an unknown save / retry sample preview |
 
-During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; search/category filters disable reordering until cleared. Only enabled item order is persisted. Subagent exclusions come from the shared catalog.
+During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; search/category filters disable reordering until cleared. Enabled and disabled instances retain their saved placement; only enabled instances render. Subagent exclusions come from the shared catalog.
 
 The pane requests 72 columns and 24 body rows; actual placement/space belongs to the host. Minimum usable body is 32×12. At 64×20 or larger, the content and preview have group borders. Compact panes use titled separators. Navigation, selected row, details, sample preview and action hints have distinct visual regions. Settings groups Appearance, Refresh / behavior, Git metrics, Formatting, Risk colors, Subagent visibility, Presets / portable files, and folded Claude preferences. Small panes retain the draft and offer resize/close. Increasing terminal height or the host's pane-resize chord may be necessary for inline placement.
 

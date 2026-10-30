@@ -2,58 +2,51 @@
 
 [English](rendering.md) | **简体中文**
 
-生产主／子代理行、Python 预览和原生编辑器采用固定 Unicode 18.0 列宽与扩展字符簇边界。歧义字符占一列。终端或字体可能选择不同的字形表现；这里规定应用的布局，不代表所有物理终端的表现。
+生产主／子代理行、共享 TypeScript 预览和双编辑器使用固定 Unicode 18.0 列宽及扩展字符簇边界。歧义字符占一列。终端或字体可能采用不同字形表现；本契约定义应用布局，不代表所有物理终端。
 
 ## 可复现 Unicode 数据
 
-`tools/unicode/data.json` 保留 wcwidth 0.9.1 所需数据表及原模块校验值。`provenance.json` 记录 Unicode 版本、数据和官方一致性样例的校验值。源码包与 wheel 包含 MIT／Unicode 声明，生成的原生数据表也保留声明，供独立安装的 Mod 使用。
+`tools/unicode/data.json` 保留所需 wcwidth 0.9.1 数据表及原模块摘要；`provenance.json` 记录 Unicode 版本、数据与官方一致性文件摘要。npm 包及源码归档包含 MIT／Unicode 声明，生成的 Native 表也保留声明。产品元数据声明 `MIT AND Unicode-3.0`，项目自身代码仍为 MIT。
 
-分发元数据以 `MIT AND Unicode-3.0` 表示项目代码与随包 Unicode 数据的许可，依据[包许可证表达式规范](https://packaging.python.org/en/latest/specifications/pyproject-toml/#license)和 [Unicode-3.0 标识](https://spdx.org/licenses/Unicode-3.0.html)。项目自身代码继续使用 MIT 许可。
+当前生成器是 `tools/generation/resources.ts`。修改其规范输入后运行：
 
 ```bash
-python tools/generate_unicode.py --check
+npm run generate
+npm run generate:check
 ```
 
-检查和普通构建离线完成，无需安装 wcwidth。主动刷新固定快照时，在开发环境安装 `wcwidth==0.9.1` 后运行 `python tools/generate_unicode.py --refresh`，审阅数据、生成文件和来源记录。更新 Unicode 或参考库版本必须明确修改生成器，并重新完整验收。
+普通生成离线完成，无需安装 Python 或 wcwidth。修改固定 Unicode／参考版本须明确调整生成器并完成适用产品验收。[Python 归档](../../archive/python/README.zh-CN.md)保留原 Python 生成流程和数据表编码，不从当前 main 重新生成。
 
-可打印 ASCII 快速路径不加载 Unicode 数据表。两端执行官方 Unicode 18.0 GraphemeBreakTest 及共享宽度样例。宽度规则逐个完整字符簇应用参考规则：例如 `a` 后的 ZWJ 不得吞掉属于下一个簇的 `b`。宽度与分簇不导入 wcwidth，也不依赖 Python／宿主自带 Unicode 数据库的版本。
-
-生成的 Python 数据表用标准库 `struct` 解码固定小端序的 32 位整数，避免冷字节码时编译大量元组字面量；测试逐项核对解码结果与固定 JSON 参考区间。表值、Unicode 规则和原生生成数组不变。未选用的 transcript／计时模块按需导入，保留原模块别名。
+可打印 ASCII 快速路径不初始化 Unicode 表。Core 与 Native 测试使用官方 Unicode 18.0 GraphemeBreakTest 和共享列宽样例。宽度规则逐个完整字符簇应用：`a` 后的 ZWJ 不能吞掉无关的 `b`。运行时分簇和宽度不导入 wcwidth，也不依赖宿主 Unicode 数据库；生成数组仅在非 ASCII 处理需要时初始化。
 
 ## 样式与边界
 
-支持的样式状态包括前景色、背景色和粗体。SGR 指令累积生效；`0` 重置全部受支持属性，`22` 取消粗体，`39`／`49` 分别恢复默认前景／背景。保留 ANSI 0–255 色槽与 RGB，支持分号和冒号扩展颜色形式；非法颜色组不能变成其他样式指令。其他终端特效不在此契约中。
+支持前景、背景和粗体样式。SGR 累积生效，`0` 重置受支持属性，`22` 取消粗体，`39`／`49` 分别恢复默认前景／背景。保留 ANSI 0–255 色槽和 RGB，支持分号／冒号扩展颜色格式；非法颜色组不能变成其他命令。
 
-先对整行可见文本分簇，再关联样式。同一簇内部出现 SGR 时，以首个可见字符的样式整体绘制；后续样式变更仍影响下一簇。裁切和换行不拆簇。每个有样式的输出行恢复所需状态，并在末尾复位。单个不可拆簇若宽于整个视口，以省略号替代；普通 CJK／emoji 簇可放入既有的两列生产最小宽度。
+可见行先分簇再关联样式。同一簇内出现 SGR 时，以首个可见字符的样式绘制，后续转换仍影响下一簇。裁剪和换行不拆簇，有样式的行恢复状态并在末尾复位。不可拆簇宽于整个视口时用省略号表示；普通 CJK／emoji 簇可放入两列生产最小宽度。
 
-不可信载荷中的控制字符继续清理。保留作为 Unicode 文本组成部分的 ZWJ、变体选择符与 emoji 标签字符，这不会开放 ANSI 注入。固定样例预览继续避免实时收集、Git 执行和持久化写入。
-
-代表性性能基准见[测试文档](testing.zh-CN.md)，编辑器协议见[共享契约](contracts.zh-CN.md)。
+不可信输入的控制字符继续清理。ZWJ、变体选择符和 emoji 标签作为 Unicode 文本保留，不开放 ANSI 注入。已验证的 OSC 8 链接经过适用样式和列宽处理后保留。固定预览不运行实时采集、不执行 Git、不写持久状态。[共享契约](contracts.zh-CN.md)。
 
 ## 编辑器绘制与捕获
 
-原生预览在既有浅／深底色内应用 span 显式背景。默认背景恢复预览底色，补齐空格不继承最后一段颜色。curses 按 0／8／16／256 色能力映射两个通道，并限制颜色对分配；无法使用默认色或颜色对耗尽时退回终端默认文本。
+Native 预览在独立的浅／深底色内应用 span 背景；默认背景恢复该底色，填充空格不继承最后一段颜色。外部编辑器通过 `packages/tui/src/drawing/canvas.ts` 生成有界帧与 ANSI 输出，将前景／背景映射到检测出的 0／8／16／256 色能力。平台终端适配器管理 raw 输入、缩放和退出恢复。完整文本及编辑操作保留字符簇，缩短重绘清理先前行。
 
-curses 继续负责输入、几何尺寸与退出恢复。支持 VT 的输出先刷新空白底层画面，再按准确位置绘制完整文本；每批输出恢复光标与 SGR 状态，以避免 curses 逐字符存储造成 emoji 错位。不支持 VT 时，将不支持的多码点字符簇整体替换为等宽占位符，保存的文本保持原值。调整尺寸和缩短内容会清理旧画面。文本编辑与高亮行同样保留字符簇边界。
+当前采集工具位于 `tools/acceptance`：`capture:editor` 在真实 PTY 中运行匹配的已安装外部编辑器，`capture:render` 用明确字体重建已记录终端单元格。输出标明软件包／源码、单元格输入、裁剪、渲染器和字体摘要。`capture:native-capacity` 提供实际宿主 Native 捕获覆盖，其独立要求见[候选验收](typescript-migration/ts-05/candidate.zh-CN.md)及[容量／恢复](native-capacity.zh-CN.md)。
 
-PTY 工具使用 pyte 处理控制指令，使用固定 wcwidth 独立解码字符簇，不使用生产宽度内核；保留原始字节流和解码单元格。捕获验证终端输出，不代表已安装字体或人工验收。在 Linux／macOS 上运行，执行环境需有 `pyte` 和 `wcwidth==0.9.1`：
-
-```bash
-python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering-pty
-```
-
-覆盖 32／64／120 列彩色与单色 PTY、跨 SGR 边界字符簇、索引／RGB 背景、独立重置、缩短重绘及调整尺寸。`--source` 仅用于开发探测，报告与安装包验收分开记录。
+重建验证记录的终端输出，不证明物理终端字体或人工验收。方法标识与脱敏复现输入见[图片来源](../images/README.zh-CN.md)和 [SHOWCASE-01 采集](showcase.zh-CN.md)。历史 Python／pyte 命令保留在冻结归档及原始捕获记录，不属于当前开发流程。
 
 ## 条件显示与逐项外观
 
-条件复用渲染的惰性 Git／实时快照与未四舍五入的用量值，仅完整的零值／干净证据触发隐藏，不从格式化文本反推观测。主题提供语义前景，逐项颜色随后覆盖完整样式单元，包括标签／图标和内部复位；已启用的告警前景优先。Powerline 在过滤和适配后组合可见色块，计入内边距和边界并逐行复位。经典路径保留旧输出字节及惰性导入，共享量化放在 `rendering.colors`，curses 保留兼容导出。见[用户行为](../APPEARANCE.zh-CN.md)和 tests 中的共享外观／旧版样例。
+可见性使用渲染的同一惰性 Git／实时快照和未舍入用量；仅完整零值／干净证据触发隐藏，不从格式化文本反推观测。主题提供语义前景，逐项颜色覆盖包含标签／图标的完整样式值；已启用风险前景优先。共享颜色规则位于 `packages/core/src/rendering/colors.ts`。
+
+Powerline 在适配后组合可见色块，计算内边距／边界并逐行复位。组件前景渐变适用于普通分隔；Powerline 背景及连续行渐变需要彩色 Powerline 输出。自适应指标在缩短或移除装饰时保留数字含义。[用户行为](../APPEARANCE.zh-CN.md)。
 
 ## 组件实例与布局
 
-`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+`packages/core/src/config/instances.ts` 负责身份、旧版映射及纯实例编辑，CLI 配置服务通过既有归属／修订事务应用规则。`packages/core/src/rendering/components.ts` 共享主／子行适配，包括文本及每个适用行的单个弹性留白。同一帧复用观测，各副本独立格式化；Native 生成模块复用相同纯规则。[组件组合](../COMPOSITION.zh-CN.md) · [共享契约](contracts.zh-CN.md)。
 
 ## TypeScript 开发渲染器
 
-TS-03 入口支持 `render`（UTF-8 JSON 标准输入，主行写入 stdout）和 `render-subagents`（每个有效 ID 输出一条紧凑 NDJSON）。两者接受 UTF-8 BOM、静默忽略无效输入，并在显示配置无效时使用默认值。`CLAUDE_CONFIG_DIR` 可指定隔离配置目录；渲染命令不接受 `--config-dir`。主行宽度预算为 `COLUMNS - 2`，缺省为 118 格。UI v11 预览返回主／子行的语义 span，宿主 padding 仅应用于主行预览。
+生产 TypeScript 入口支持 `render`（UTF-8 JSON stdin、主行 stdout）和 `render-subagents`（每个有效 ID 一条紧凑 NDJSON）。两者接受 UTF-8 BOM，静默忽略无效输入，并在显示配置无效时使用默认值。`CLAUDE_CONFIG_DIR` 选择配置目录，渲染命令不接受 `--config-dir`。主栏内容预算为 `COLUMNS - 2`，缺省 118 列，最小两列；当前编辑器协议返回两作用域的语义 span，宿主 padding 仅应用于主栏预览。
 
-`RenderEnvironment` 连接时钟、路径和按需观测。重复组件共享 Git、用量、实时、分支差异及任务快照，格式化结果不参与反向计数。已结束子代理只有获得结束证据才显示时长，并在刷新间保持冻结值。五种状态栏小语言包与 UI 词库分离；生成的 Unicode 数组仅在非 ASCII 处理需要时初始化，ASCII 帧不分配这些数组。Unicode 18 排版数据和许可证保持固定，载荷大小写转换及旧十进制解析保留 Python 3.14 的 UCD 16 语义。
+`RenderEnvironment` 连接时钟、路径及所选观测。重复组件共享 Git、用量、实时、分支差异及任务快照，格式化结果不参与计数。已结束代理需要记录的终态证据并保持冻结时长。十二种小型状态栏语言包与 UI 词库分离。Unicode 18 排版数据固定，载荷大小写转换及旧十进制解析保留冻结 Python 3.14／UCD 16 的兼容语义。

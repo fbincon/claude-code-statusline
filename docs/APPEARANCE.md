@@ -2,7 +2,6 @@
 
 **English** | [简体中文](APPEARANCE.zh-CN.md)
 
-
 Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
 
 Use Settings for the statusline theme and separator; open an item's form with Ctrl+E for colors and applicable visibility rules. Both editors preview the unsaved draft using fixed sample data. Save commits the changes; cancel retains the saved configuration. These settings are independent of the Claude theme, interface language and native preview background.
@@ -90,15 +89,15 @@ Padding, separators and both ends count toward width. Fitting first removes padd
 
 ## Configuration compatibility and recovery
 
-Display schema **16** contains `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **24** carries the complete draft. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
+Display schema **17** contains the Powerline block controls and optional continuous row background. Editor protocol **31** carries the complete draft; use resources from the same package. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
 
-Schemas 1–15 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 16. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
+Schemas 1–16 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 17. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
 
 For downgrade, preserve/export the current configuration and use the current package's `recover --restore-config TRANSACTION_ID` to restore a compatible pre-upgrade display backup. Then follow the [version-management guide](PACKAGE_MANAGEMENT.md) to return to the older package and matching integration. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 
 ## Captured examples
 
-These are reconstructions of installed terminal output with fixed sample data; see the [image provenance](images/README.md#conditional-appearance-captures). They are not human platform acceptance.
+The [usage demonstrations](SHOWCASE.md) show current non-Powerline scene variants. The older examples below preserve their original installed-package identities and fixed sample data; see the [image provenance](images/README.md#conditional-appearance-captures). They are terminal-output reconstructions, not human platform acceptance.
 
 ![Powerline](images/appearance/native-dark-en.png)
 
@@ -136,7 +135,7 @@ Color interpolation is linear in sRGB channels with equally spaced stops. Foregr
 
 Warning and critical foregrounds override foreground gradients. A background gradient sample that equals the text color uses a neutral background. RGB warning/critical text also uses a neutral background when its contrast ratio against a gradient sample falls below 3:1; the warning foreground is retained. Shared Powerline groups take the entire block's background from the primary instance, retain each member's foreground and preserve inactive member backgrounds. Separators and caps use adjacent final edge colors. Spacer gaps retain the terminal default background. Existing semantic/continuous/restart modes continue to sequence inherited colors; explicit gradients restart within each component or block.
 
-Gradients were introduced in display schema 14 / editor protocol 23. Current delivery uses display schema 16 / editor protocol 26; new theme identities require schema 16, while read-only migration from schemas 1–15 retains prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
+Gradients were introduced in display schema 14 / editor protocol 23, and the additional themes in schema 16. The current display schema is 17 and editor protocol is 31; read-only migration from schemas 1–16 retains prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
 
 ## Visual color selection and sample scenarios
 

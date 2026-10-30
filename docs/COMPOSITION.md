@@ -2,7 +2,6 @@
 
 **English** | [简体中文](COMPOSITION.zh-CN.md)
 
-
 Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
 
 A component type describes a value, such as a model or token count. An instance
@@ -134,8 +133,8 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 15 stores ordered instances, groups and optional explicit-row
-alignment; editor protocol 24 requires matching TypeScript and bundled native
+Display schema 17 stores ordered instances, groups and optional explicit-row
+alignment; editor protocol 31 requires matching TypeScript and bundled native
 resources. Portable/profile envelopes and UI preferences remain version 1; the
 runtime observation protocol remains version 3.
 
@@ -219,8 +218,9 @@ column; semicolons separate columns. Ordinary instance/group copies do not join
 existing relationships. Complete scheme copies and main-section transfers retain
 all referenced units together. Deletion, movement, ungrouping or row/mode changes
 that invalidate relationships are rejected before saving, with the affected
-relationship IDs. Remove or edit those relationships first. Defaults and presets
-do not enable alignment automatically.
+relationship IDs. Remove or edit those relationships first. The default layout does not enable alignment. Some complete schemes, such as
+`quota-cost`, include explicit alignment relationships; review the candidate
+before applying it.
 
 ## Adaptive indicators and continuous backgrounds
 

@@ -2,11 +2,11 @@
 
 [English](PREVIEW.md) | **简体中文**
 
-本页保留 beta.1 试用及恢复流程。正式 npm 产品现为 **v3.0.0**，请使用[用户指南](USER_GUIDE.zh-CN.md#安装与接入)及[正式交付证据](development/typescript-migration/ts-06/stable-release.zh-CN.md)。[v3.0.0 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅对本版本接受已记录缺项发布，未验证项仍不标为通过。
+本页保留**历史 v3.0.0-beta.1 试用与恢复流程**。当前产品请使用[安装指南](USER_GUIDE.zh-CN.md#安装与接入)或[使用演示](SHOWCASE.zh-CN.md)。正式版 v3.0.0 已接替该预览；其[交付记录](development/typescript-migration/ts-06/stable-release.zh-CN.md)与[版本专属决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)保留已接受缺口，不将未验证项标为通过。
 
-保留的预览版本为 **v3.0.0-beta.1**，通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发，当时用于正式版之前的验证。[发布说明](releases/v3.0.0-beta.1.md) · [验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
+预览当时通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发。[原发布说明](releases/v3.0.0-beta.1.md) · [平台验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
-重现预览时需明确使用 `@beta` 或 `@3.0.0-beta.1`。不带版本的 npm 安装或 `@latest` 现安装正式版 v3.0.0，`beta` 仍保留 beta.1；Python v2.0.0 继续可用于回退。
+复现该包时按下方命令固定 `@3.0.0-beta.1`。`beta`、`latest` 等可变 npm 渠道不能确定历史版本。下方环境要求、CI 数量、schema 版本及结果描述保留的预览时期证据，不是当前产品验收；Python v2.0.0 保留为历史回退目标。
 
 ## 环境要求与验证限制
 
@@ -24,7 +24,7 @@ Bash/Zsh：
 
 ```bash
 SL_PREVIEW_PREFIX="$HOME/.local/share/claude-statusline-preview"
-npm install --prefix "$SL_PREVIEW_PREFIX" --ignore-scripts --no-audit --no-fund @fbincon/claude-code-statusline@beta
+npm install --prefix "$SL_PREVIEW_PREFIX" --ignore-scripts --no-audit --no-fund @fbincon/claude-code-statusline@3.0.0-beta.1
 SL_PREVIEW_ENTRY="$SL_PREVIEW_PREFIX/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js"
 SL_PREVIEW_CONFIG="$SL_PREVIEW_PREFIX/test-config"
 node "$SL_PREVIEW_ENTRY" --version
@@ -38,7 +38,7 @@ PowerShell：
 
 ```powershell
 $previewPrefix = Join-Path $env:LOCALAPPDATA 'claude-statusline-preview'
-npm.cmd install --prefix "$previewPrefix" --ignore-scripts --no-audit --no-fund '@fbincon/claude-code-statusline@beta'
+npm.cmd install --prefix "$previewPrefix" --ignore-scripts --no-audit --no-fund '@fbincon/claude-code-statusline@3.0.0-beta.1'
 $previewEntry = Join-Path $previewPrefix 'node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js'
 $previewConfig = Join-Path $previewPrefix 'test-config'
 node "$previewEntry" --version
@@ -81,7 +81,7 @@ Linux/WSL 执行 `sha256sum -c SHA256SUMS`，macOS 执行 `shasum -a 256 -c SHA2
 
 ## 完整验收与反馈
 
-[提交反馈](https://github.com/fbincon/claude-code-statusline/issues/new?template=preview-feedback.yml)，附脱敏复现日志，区分自动化、PTY、真人桌面和实体电源证据，不包含凭据或私密对话。平台覆盖统一跟踪于 [Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
+[提交反馈](https://github.com/fbincon/claude-code-statusline/issues/new?template=bug_report.yml)，附脱敏复现日志，区分自动化、PTY、真人桌面和实体电源证据，不包含凭据或私密对话。平台覆盖统一跟踪于 [Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 采集完整证据时，解压对应源码附件，使用固定 Node/npm，执行 `npm ci --ignore-scripts` 和 `npm run build`。`FULL_SHA` 取自 `build-manifest.json`；保留全部下载附件，安装包根目录指包含 `candidate.json` 的目录。采集器关联观察结果前会校验源码和实际安装文件：
 

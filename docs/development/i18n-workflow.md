@@ -2,9 +2,9 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](development-plan.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+The [v3.16.0 twelve-language expansion](language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
 
-**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). No language was added.
+**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
 
 The original design was reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs had 2,311 keys. The [generator](../../tools/generation/resources.ts) required complete packs, rejected unknown keys and mismatched placeholders, and emitted Node and Native resources. Its coverage report measured key completeness; neither the report nor runtime English fallback tracked changed source meaning or translation acceptance. These gaps are addressed by the implementation below.
 
@@ -19,10 +19,10 @@ English remains the source and fallback language. All included languages ship in
 | Level | Languages | During development | Before a public release |
 | --- | --- | --- | --- |
 | A: core | `en`, `zh-CN` | Complete current messages and applicable validation accompany the change | Complete, safe and accepted for the current source |
-| B: official complete | `zh-TW`, `zh-HK`, `ja`, `ko` | Missing, stale or pending entries may use current English | Every required entry is accepted; no missing/stale/pending entries or missing-translation fallback |
+| B: official complete | `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, `id` | Missing, stale or pending entries may use current English | Every required entry is accepted; no missing/stale/pending entries or missing-translation fallback |
 | C: community/preview | Future explicitly identified languages only | Safe English fallback is allowed | Disclose acceptance coverage, pending/stale entries and fallback; all effective messages remain safe |
 
-The existing four B languages cannot silently become C languages to unblock a release. Support level is separate from the number of populated keys. No new language or writing system is selected by this plan; future additions need a defined maintenance scope and relevant functional acceptance.
+Registered B languages cannot silently become C languages to unblock a release. Support level is separate from the number of populated keys. The original I18N-02 scope selected no new language or writing system; subsequent additions require a defined maintenance scope and relevant functional acceptance.
 
 The workflow completes translation, contextual review, applicable checks and record updates within the authorized task. Validation produces a read-only receipt; explicit `accept` updates the matching acceptance record. This introduces no new reviewer role, signature or separate approval step. Report actual validation scope, including terminology and semantic review where applicable. Structural checks alone do not establish linguistic quality. Give destructive-action, recovery, authorization and numerical-meaning messages particular contextual attention; ordinary copy can be reviewed in batches.
 
@@ -141,6 +141,8 @@ Retain latest-applicable-run and newest-artifact selection, expiry and corruptio
 
 ## Delivery boundaries
 
+The following preserves the original I18N-02 slices and six-language baseline. The later twelve-language expansion does not relabel those original results.
+
 | Slice | Deliverable and completion condition |
 | --- | --- |
 | 1. Baseline and compatibility | Record the implementation's starting source, existing six-language evidence and its limits. Define build-only inputs, ownership, archive/package boundaries, report binding and compatible verification. Reuse valid prior results; establish current records only where needed. No active input remains unclassified. |
@@ -155,7 +157,7 @@ Future languages use complete structural/template/safety/generation checks plus 
 
 ## Functional acceptance and evidence limits
 
-The following are implementation requirements; actual passing evidence is recorded separately in the [delivery record](i18n-02-delivery.md). Extend existing suites and use isolated configuration/installation fixtures.
+The following preserves I18N-02 implementation requirements and its original six-language acceptance scope; actual results remain in the [delivery record](i18n-02-delivery.md). Current changes follow the registered-language policy above and the [translation guide](i18n.md), using existing suites and isolated fixtures.
 
 | Area | Required scenarios |
 | --- | --- |

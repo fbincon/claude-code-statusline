@@ -2,7 +2,6 @@
 
 [English](DIAGNOSTICS.md) | **简体中文**
 
-
 外部数据源的注册、授权、刷新、诊断及分享边界见[扩展指南](EXTENSIONS.zh-CN.md)。
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](PROFILES.zh-CN.md)和[任务详情](TASK_DETAILS.zh-CN.md)。
@@ -69,7 +68,7 @@ claude-statusline config enable cache-miss-reason
 
 来源为[官方状态栏契约](https://code.claude.com/docs/en/statusline)，缓存原因需要 Claude Code 2.1.260+。既有 `prompt-cache` 保持官方主会话命中率：分母含全部输入 token，不含子代理流量；PR/MR 行为不变。
 
-当前显示 schema 为 16，编辑器协议为 26。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
+当前显示 schema 为 17，编辑器协议为 31，后端与编辑器资源须匹配。降级前恢复与目标旧包兼容的配置备份；仅移除一个组件不能让较新 schema 兼容旧包。诊断不自动迁移或改写配置。
 
 另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
 

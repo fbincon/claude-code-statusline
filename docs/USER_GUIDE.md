@@ -2,25 +2,22 @@
 
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
+This guide covers installation, editor use, everyday configuration, optional live metrics and recovery. Start with the [usage demonstrations](SHOWCASE.md) for a complete workflow; use the [CLI reference](reference/cli.md) for exact syntax and file formats.
 
-Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
+| Task | Detailed guide |
+| --- | --- |
+| First installation or a readable starting point | [Setup](SETUP.md) · [Complete schemes](SCHEMES.md) |
+| Layout, colors and reusable drafts | [Composition](COMPOSITION.md) · [Appearance](APPEARANCE.md) · [Draft history and reuse](DRAFT_HISTORY.md) |
+| Share settings across projects | [Profiles and project bindings](PROFILES.md) |
+| Understand tasks and measurements | [Task details](TASK_DETAILS.md) · [Metric definitions](DISPLAY_ITEMS.md) |
+| Add or diagnose sources | [Extensions](EXTENSIONS.md) · [Input diagnosis](DIAGNOSTICS.md) |
+| Upgrade, roll back or recover | [Package management](PACKAGE_MANAGEMENT.md) |
 
+Configuration is stored for the current user; project bindings can select named display schemes. Rendering reads Claude input, local Git, transcripts and state without network requests or model tokens. Explicit source refresh is separate. The question-and-answer wizard uses model turns.
 
-For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
+Single-line CLI examples work in Bash, Zsh and PowerShell. Windows uses `claude-statusline.cmd`, or Node with the absolute installed JavaScript entry. `<CLAUDE_CONFIG_DIR>` means the value of `CLAUDE_CONFIG_DIR`, or `~/.claude` if unset; it is a placeholder, not a literal argument.
 
-[First-use setup](SETUP.md) and [complete schemes](SCHEMES.md).
-
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).
-
-For explicit real-input diagnosis and cache causes, see [input diagnosis](DIAGNOSTICS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
-
-This guide walks through installation, editor use, common configuration, optional live metrics, and recovery. Complete command and file details are in the [CLI reference](reference/cli.md); development and build instructions are in the [development guide](development/README.md).
-
-Settings apply to the current user's Claude Code projects. Rendering reads Claude input, local Git, transcripts, and state without network requests or model tokens. The question-and-answer wizard uses model turns.
-
-Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude-statusline.cmd`, or Node with the absolute installed JavaScript entry. `<CLAUDE_CONFIG_DIR>` means the value of `CLAUDE_CONFIG_DIR`, or `~/.claude` if unset; it is a placeholder, not a literal argument.
-
-The current distribution is the TypeScript npm package. Python installations can be retained for explicit rollback; see [upgrading](#upgrading).
+The current distribution is the TypeScript npm package. Python installations can be retained for explicit rollback; see [upgrading](#upgrading). Development and build instructions are in the [development guide](development/README.md).
 
 ## Contents
 
@@ -29,13 +26,17 @@ The current distribution is the TypeScript npm package. Python installations can
 - [Installation and integration](#installation-and-integration)
 - [Choose a configuration entry point](#choose-a-configuration-entry-point)
 - [Interface language](#interface-language)
+- [Find items and review imports](#find-items-and-review-imports)
+- [Component composition](#component-composition)
 - [Statusline language](#statusline-language)
 - [Native configuration editor](#native-configuration-editor)
 - [Standalone interactive TUI](#standalone-interactive-tui)
 - [External terminal `/statusline-configure`](#external-terminal-statusline-configure)
 - [`/statusline-config` wizard](#statusline-config-wizard)
+- [Quick setup, text editing and explanation](#quick-setup-text-editing-and-explanation)
 - [Configuration recipes](#configuration-recipes)
 - [Formatting, layouts and presets](#formatting-layouts-and-presets)
+- [Unicode text and terminal widths](#unicode-text-and-terminal-widths)
 - [Opt-in live state](#opt-in-live-state)
 - [Configurable display items](#configurable-display-items)
 - [Main status line fields](#main-status-line-fields)
@@ -56,7 +57,7 @@ The current distribution is the TypeScript npm package. Python installations can
 
 [Conditional visibility, item colors, themes and Powerline](APPEARANCE.md) explains the shared controls, raw-observation rules and migration recovery.
 
-Choose from 61 main metrics and 14 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, six editable presets, and portable JSON files.
+Choose from 65 main metrics and 15 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, six original presets, eight complete schemes, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 
@@ -70,7 +71,7 @@ The main line reports main/session data; each subagent row reports its own task.
 
 Install Claude Code CLI and npm; the pinned validation toolchain uses npm 11.19.0. Git is needed for Git fields and source builds. Windows ARM devices use x64 Node emulation; native Windows ARM64 and 32-bit runtimes are outside the support contract. The package bundles native dependencies and needs no Python or compiler.
 
-The maintainer accepted the six disclosed physical/desktop and exact-host declaration gaps specifically for v3.1.0. They remain unverified; see the [version-specific decision](releases/approvals/v3.1.0.json) and [delivery evidence](development/node-regional-languages.md).
+The six existing physical/desktop and exact-host declaration gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified. Historical release decisions, including [v3.1.0](releases/approvals/v3.1.0.json), retain their original scope; they are not passes for newer packages or exemptions from new failures.
 
 | Feature | Claude Code requirement |
 | --- | --- |
@@ -90,16 +91,16 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-Use `@3.1.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
+For the reproducible examples in this guide, use `@3.16.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
 
 ### Offline installation
 
-Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.1.0). Verify all listed hashes before installing:
+Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.0). Verify all listed hashes before installing:
 
 ```bash
 # Linux / WSL; on macOS use shasum -a 256 -c SHA256SUMS
 sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.1.0.tgz
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.16.0.tgz
 ```
 
 In PowerShell use `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` and compare each result with `SHA256SUMS`, then install the local tgz using the same npm options. Automatic GitHub/Gitee source ZIPs are not the rebuildable source asset. See the [development guide](development/README.md#build-and-install-from-source) for source builds.
@@ -137,7 +138,7 @@ To preserve a third-party subagent renderer, run `claude-statusline config set s
 
 macOS uses the same npm package and installation flow, with Intel and Apple Silicon native dependencies bundled. Terminal.app is the supported desktop external launcher; tmux popup is preferred when available. SSH and sessions without a graphical desktop should use the standalone editor or CLI.
 
-Current layouts are in the [README gallery](../README.md#screenshots), [six-language external editor captures](images/typescript/v3.1.1/README.md) and [image index](images/README.md). The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
+Current examples are in the [showcase](SHOWCASE.md); the [image index](images/README.md) identifies each current or historical capture by package and platform. The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
 
 ## Choose a configuration entry point
 
@@ -352,7 +353,6 @@ The external editor uses the terminal's default foreground and background. Page,
 
 Sample previews use the current terminal background and the selected `Palette`, shown in the preview title. Uncolored text, resets, empty rows and trailing spaces use terminal defaults. The renderer quantizes RGB samples to the available terminal palette; ANSI samples use the terminal’s configured ANSI colors. If `Palette: default` looks faint on a light terminal, compare `Palette: ansi` in Settings; changes preview immediately and affect the actual status line after saving. Preview colors are preserved so the comparison reflects the terminal’s real appearance. Unsupported default colors, monochrome terminals and unsupported sample colors fall back to default text.
 
-
 ## External terminal `/statusline-configure`
 
 Run `/statusline-configure` without arguments inside Claude Code. This entry requires 2.1.258+ and opens the same terminal TUI in tmux popup, GNOME Terminal, Terminal.app, or a Windows new console according to platform.
@@ -384,6 +384,22 @@ On 2.1.258+ the local hook handles these operations without a model turn, when h
 Use this tool's configuration commands; Claude's built-in `/statusline` may replace `statusLine.command` with a different implementation.
 
 <a id="常用配置配方"></a>
+
+<a id="quick-setup-and-explanation"></a>
+
+## Quick setup, text editing and explanation
+
+In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample from the [complete schemes and original presets](SCHEMES.md). Select with arrows and Enter; adjust appearance with Left/Right. Tab switches main/agent samples; PgUp/PgDn scrolls requirement details.
+
+**Continue editing** accepts the candidate as the current draft. **Save** uses the existing revision check, backup and transaction. Backspace returns one step; Ctrl+G cancels the flow, as does Esc in the external editor. Cancellation preserves the previously pending draft. Presets do not install integrations or enable collectors, and preserve existing agent-row disablement. Interface language saves immediately; output language saves with display settings; Claude preferences retain separate Apply.
+
+Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. `▏` marks the caret. Grapheme deletion preserves combining sequences and complete emoji. Ctrl+U clears, Enter accepts, Ctrl+G cancels; native Esc returns focus to the host. Text/search allow 256 codepoints, paths 4096 and numeric edit buffers 32. Oversized or control-containing insertions are rejected with a message rather than truncating the original value.
+
+External bracketed paste and recognizable native multi-character text cannot execute shortcuts. The native Client single-key API has no paste-origin flag: host-split single-character paste cannot reliably be distinguished from typing. Enter a field before pasting; this interface cannot remove that host limitation.
+
+Select a configured component, press Ctrl+E, then choose **Configuration and sample explanation**. The view separates draft enablement, known local installation/collector requirements and sample condition hiding, clipping or width omission. Repeated types resolve by instance ID; agent sample rows have separate outcomes. Actual session input is not read, so live PR, cache, task and field availability remain unknown. Preview-panel overflow is distinct from renderer omission. Scroll with arrows or PgUp/PgDn and return with Ctrl+G.
+
+Explanation does not write files, create locks, scan transcripts or start collection. Save conflicts and write failures keep the editor and draft open for inspection or cancellation; they never automatically overwrite another editor's changes.
 
 ## Configuration recipes
 
@@ -499,7 +515,6 @@ subagent-visibility accepts all/running. Row/task limits accept none to restore 
 
 Presets change display drafts, not collector enablement. They preserve output/interface language and host settings, rebuild item overrides, and remain editable before saving.
 
-
 Presets minimal/developer/monitoring/multi-agent expand to editable drafts. They use short models and compact numbers, preserve colors/palette/directory style and refresh options, and rebuild item overrides with descending priorities in preset order. `--dry-run` prints a validated draft without saving. Imports accept portable envelopes or compatible display-only files; display-only files retain current refresh options.
 
 ```bash
@@ -522,7 +537,7 @@ Settings contains global format choices, risk thresholds, subagent visibility an
 
 While a save is pending or unknown, both editors block display-draft mutations, including already-open source/profile managers. Ctrl+K in the external TUI and K in Native check the submitted snapshot without saving again. Definitive results unlock editing; conflict retains the draft. Read-only source inspection remains available. See [save recovery](development/correctness-maintenance.md#shared-draft-protection--fix-01).
 
-Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In curses, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
+Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In the external editor, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the external editor. During field/path editing ordinary characters, including s/f/q, remain input.
 
 | Preset | Main layout | Subagent defaults |
 | --- | --- | --- |
@@ -541,6 +556,12 @@ Edit the offered row type/choices and press `A` to Apply. Each row reports its r
 
 <a id="phase-5-preview-installation"></a>
 <a id="phase-5-stable-installation"></a>
+
+## Unicode text and terminal widths
+
+Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across supported runtimes and editors. Actual glyph appearance still depends on your terminal and fonts.
+
+On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.
 
 ## Opt-in live state
 
@@ -567,7 +588,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-The main catalog contains 60 items, ten enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `task-timer`.
+The main catalog contains 65 metrics plus text and spacer types, ten metrics enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `task-timer`.
 
 Common optional items are grouped below; enable them by ID or select them in an editor.
 
@@ -578,13 +599,16 @@ Common optional items are grouped below; enable them by ID or select them in an 
 | Repository | `pr`, `repo`, `worktree` |
 | Context and usage | `context-used`, `cost`, `prompt-cache` |
 
-The subagent catalog contains 14 items, five enabled by default: `status-elapsed`, `name`, `model-with-effort`, `context-remaining`, and `task`. Composite `status-elapsed` excludes separate `status`/`elapsed`. See [field reference](reference/cli.md#configurable-display-items) and [metric definitions](DISPLAY_ITEMS.md) for the full catalog and unavailable-data behavior.
+The subagent catalog contains 15 metrics plus text and spacer types, five metrics enabled by default: `status-elapsed`, `name`, `model-with-effort`, `context-remaining`, and `task`. Composite `status-elapsed` excludes separate `status`/`elapsed`. See [field reference](reference/cli.md#configurable-display-items) and [metric definitions](DISPLAY_ITEMS.md) for the full catalog and unavailable-data behavior.
 
 ## Main status line fields
 
 Git uses `↑N`/`↓N` for upstream divergence, `● N` (Linux/macOS) or `●N` (Windows/WSL) for staged files, `~N` for unstaged, `!N` for conflicts, and `?N` for untracked. `Git!` reports a failed Git query; non-Git directories omit the field.
 
 Tokens show session totals: `hit` is cache-read input, `miss` is ordinary input plus cache creation, and `out` is output. This includes discoverable subagent transcripts and is separate from context occupancy or rate limits.
+
+<a id="task-timing-preview"></a>
+<a id="task-timing"></a>
 
 ### Task total and execution time
 
@@ -652,7 +676,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 Stop active Claude sessions and back up the configuration directory before switching writers. Record the Python executable's absolute path and version; keep that environment for rollback. Install npm into a separate prefix if a Python command already owns the same PATH name:
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.1.0
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.16.0
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
@@ -908,11 +932,11 @@ Automatic layout wraps to fit the terminal; explicit layout truncates to maximum
 
 ## Exit codes
 
-Management commands use 0 for success, 1 for doctor errors, and 2 for handled argument/configuration/ownership errors. Some uncaught CLI errors also exit 1; see the [exit-code reference](reference/cli.md#exit-codes). TUI interruption uses 130 or `128 + signal`, with the terminal restored and the draft unsaved.
+Management commands generally use 0 for success and 2 for argument/configuration/ownership errors; `doctor` errors and blocked setup checks use 1. See the [command-specific exit-code reference](reference/cli.md#exit-codes). TUI interruption uses 130 or `128 + signal`, with the terminal restored and the draft unsaved.
 
 ## Current limitations
 
-- Settings are per user; project-specific overrides, drag-and-drop, and custom key bindings are not provided.
+- Settings and project bindings are stored per user. [Project bindings](PROFILES.md) select named display schemes; repository files do not supply executable configuration. Drag-and-drop and custom key bindings are not provided.
 - The macOS in-session Client interaction issue remains recorded. Standalone TUI and CLI are available alternatives.
 - Desktop external launchers support the listed platform terminals. Other terminals can use standalone `configure` or tmux; IDE, print mode, web sessions, and globally disabled hooks do not guarantee an external editor.
 - Optional live fields require independent collection and valid observations; they do not infer missing measurements or focused-agent identity.
@@ -1074,44 +1098,3 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 [Current configuration and compatibility](#version-compatibility).
 
 </details>
-
-<a id="task-timing-preview"></a>
-
-## Task timing
-
-Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade the stable package:
-
-```bash
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-claude-statusline install
-claude-statusline config enable task-active-timer
-```
-
-`task-timer` is the default total task clock; `prompt-timer` remains accepted by existing commands and old configuration files. `task-active-timer` is optional and only appears with complete native execution/wait evidence. A raw Stop shows a lower bound (`? ...+`) until an ending is confirmed; a verified continuation resumes the same task. Native turn duration never shortens total elapsed. Session and API durations remain separate.
-
-Fresh installations do not collect native timing or advanced metrics. Enable native timing with `install --native-timing`, or complete collection with `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
-
-Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 17 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
-
-## Unicode text and terminal widths
-
-Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across supported runtimes and editors. Actual glyph appearance still depends on your terminal and fonts.
-
-On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.
-
-
-<a id="quick-setup-and-explanation"></a>
-
-## Quick setup, text editing and explanation
-
-In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample: daily development, compact display, usage observation, multi-agent work, plus left/right and repeated-metric examples. Select with arrows and Enter; adjust appearance with Left/Right. Tab switches main/agent samples; PgUp/PgDn scrolls requirement details.
-
-**Continue editing** accepts the candidate as the current draft. **Save** uses the existing revision check, backup and transaction. Backspace returns one step; Ctrl+G cancels the flow, as does Esc in the external editor. Cancellation preserves the previously pending draft. Presets do not install integrations or enable collectors, and preserve existing agent-row disablement. Interface language saves immediately; output language saves with display settings; Claude preferences retain separate Apply.
-
-Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. `▏` marks the caret. Grapheme deletion preserves combining sequences and complete emoji. Ctrl+U clears, Enter accepts, Ctrl+G cancels; native Esc returns focus to the host. Text/search allow 256 codepoints, paths 4096 and numeric edit buffers 32. Oversized or control-containing insertions are rejected with a message rather than truncating the original value.
-
-External bracketed paste and recognizable native multi-character text cannot execute shortcuts. The native Client single-key API has no paste-origin flag: host-split single-character paste cannot reliably be distinguished from typing. Enter a field before pasting; this release does not claim to remove that host limitation.
-
-Select a configured component, press Ctrl+E, then choose **Configuration and sample explanation**. The view separates draft enablement, known local installation/collector requirements and sample condition hiding, clipping or width omission. Repeated types resolve by instance ID; agent sample rows have separate outcomes. Actual session input is not read, so live PR, cache, task and field availability remain unknown. Preview-panel overflow is distinct from renderer omission. Scroll with arrows or PgUp/PgDn and return with Ctrl+G.
-
-Explanation does not write files, create locks, scan transcripts or start collection. Save conflicts and write failures keep the editor and draft open for inspection or cancellation; they never automatically overwrite another editor's changes.

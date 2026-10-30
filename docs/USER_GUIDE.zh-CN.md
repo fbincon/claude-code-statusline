@@ -2,25 +2,22 @@
 
 [English](USER_GUIDE.md) | **简体中文**
 
+本指南说明安装、编辑器操作、日常配置、可选实时指标及恢复。完整操作流程从[使用演示](SHOWCASE.zh-CN.md)开始；准确命令语法与文件格式查阅 [CLI 参考](reference/cli.zh-CN.md)。
 
-共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
+| 任务 | 专题指南 |
+| --- | --- |
+| 首次安装或选择易读的起点 | [首次设置](SETUP.zh-CN.md) · [完整方案](SCHEMES.zh-CN.md) |
+| 布局、颜色与草稿复用 | [组件与布局](COMPOSITION.zh-CN.md) · [外观](APPEARANCE.zh-CN.md) · [草稿历史与复用](DRAFT_HISTORY.zh-CN.md) |
+| 跨项目分享设置 | [方案与项目绑定](PROFILES.zh-CN.md) |
+| 理解任务和测量值 | [任务详情](TASK_DETAILS.zh-CN.md) · [指标定义](DISPLAY_ITEMS.zh-CN.md) |
+| 添加或诊断来源 | [扩展](EXTENSIONS.zh-CN.md) · [输入诊断](DIAGNOSTICS.zh-CN.md) |
+| 升级、回退或恢复 | [版本管理](PACKAGE_MANAGEMENT.zh-CN.md) |
 
+配置保存在当前用户目录，项目绑定可选择命名显示方案。渲染读取 Claude 输入、本地 Git、transcript 和状态，不发网络请求或使用模型 token；明确的来源刷新单独执行。问答向导使用模型回合。
 
-外部数据源的注册、授权、刷新、诊断及分享边界见[扩展指南](EXTENSIONS.zh-CN.md)。
+通用单行 CLI 示例适用于 Bash、Zsh 和 PowerShell。Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。`<CLAUDE_CONFIG_DIR>` 表示环境变量 `CLAUDE_CONFIG_DIR` 的值，未设置时为 `~/.claude`；这是路径占位符，不要原样输入。
 
-[首次设置](SETUP.zh-CN.md)与[完整方案](SCHEMES.zh-CN.md)。
-
-命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](PROFILES.zh-CN.md)和[任务详情](TASK_DETAILS.zh-CN.md)。
-
-显式真实输入诊断及缓存原因显示见[诊断指南](DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](development/real-input-diagnostics.zh-CN.md)。
-
-本指南说明安装、编辑器操作、常用配置、可选实时指标和恢复流程。完整命令及配置文件说明见 [CLI 参考](reference/cli.zh-CN.md)，开发与构建步骤见[开发指南](development/README.zh-CN.md)。
-
-配置对当前用户的 Claude Code 项目生效。状态栏渲染读取 Claude 输入、本地 Git、transcript 和状态文件，不自行发起网络请求或使用模型 token；问答向导使用模型回合。
-
-通用单行 CLI 示例适用于 Bash、Zsh 和 PowerShell，Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。`<CLAUDE_CONFIG_DIR>` 表示环境变量 `CLAUDE_CONFIG_DIR` 的值，未设置时为 `~/.claude`；这是路径占位符，不要原样输入。
-
-当前使用 TypeScript npm 分发；已有 Python 环境可保留用于显式回退，见[升级](#升级)。
+当前使用 TypeScript npm 分发；已有 Python 环境可保留用于显式回退，见[升级](#升级)。开发与构建步骤见[开发指南](development/README.zh-CN.md)。
 
 ## 文档导航
 
@@ -29,13 +26,17 @@
 - [安装与接入](#安装与接入)
 - [选择配置入口](#选择配置入口)
 - [界面语言](#界面语言)
+- [查找显示项与审阅导入](#查找显示项与审阅导入)
+- [组件组合](#组件组合)
 - [状态栏语言](#状态栏语言)
 - [原生配置编辑器](#原生配置编辑器)
 - [独立交互式 TUI](#独立交互式-tui)
 - [外部终端入口 `/statusline-configure`](#外部终端入口-statusline-configure)
 - [`/statusline-config` 问答向导](#statusline-config-问答向导)
+- [快速配置、文本编辑与说明](#快速配置文本编辑与说明)
 - [常用配置配方](#常用配置配方)
 - [格式、布局与预设](#格式布局与预设)
+- [Unicode 文本与终端列宽](#unicode-文本与终端列宽)
 - [可选实时状态](#可选实时状态)
 - [可配置显示项](#可配置显示项)
 - [主状态栏显示含义](#主状态栏显示含义)
@@ -56,7 +57,7 @@
 
 [条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
 
-主栏支持 61 个指标，子 Agent 行支持 14 个指标，两个作用域均支持文本和弹性留白，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、六种可编辑预设及可移植 JSON 文件。
+主栏支持 65 个指标，子 Agent 行支持 15 个指标，两个作用域均支持文本和弹性留白，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、六种原有预设、八套完整方案及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -70,7 +71,7 @@
 
 准备 Claude Code CLI 和 npm，验证工具链固定为 npm 11.19.0。Git 字段和源码构建需要 Git。Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时暂不在支持范围。安装包已包含原生依赖，无需 Python 或编译器。
 
-维护者仅对 v3.1.0 接受六项已披露的实机／桌面及精确宿主声明缺口；这些项目仍为未验证，见[本版本决定](releases/approvals/v3.1.0.json)与[交付证据](development/node-regional-languages.zh-CN.md)。
+[issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)跟踪的六项既有实机／桌面及精确宿主声明缺口仍未验证。包括 [v3.1.0](releases/approvals/v3.1.0.json) 在内的历史发布决定保留原有范围，不代表新包验收通过，也不豁免新增失败。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -90,16 +91,16 @@
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-固定版本使用 `@3.1.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
+复现本指南示例时，固定版本使用 `@3.16.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
 
 ### 离线安装
 
-从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
+从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
 
 ```bash
 # Linux / WSL；macOS 使用 shasum -a 256 -c SHA256SUMS
 sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.1.0.tgz
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.16.0.tgz
 ```
 
 PowerShell 用 `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` 将每个摘要与 `SHA256SUMS` 比较，再用相同 npm 参数安装本地 tgz。GitHub/Gitee 自动源码 ZIP 不是可重建源码附件。源码构建见[开发指南](development/README.zh-CN.md#从源码构建与安装)。
@@ -137,7 +138,7 @@ Windows 使用 `claude-statusline.cmd`，或明确的 Node/JavaScript 入口。�
 
 macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon 原生依赖。外部桌面启动器支持 Terminal.app，有可用 tmux 时优先使用 popup。SSH 或无图形桌面的会话使用独立编辑器或 CLI。
 
-当前布局见 [README 图库](../README.zh-CN.md#界面预览)、[六语言外部编辑器捕获](images/typescript/v3.1.1/README.zh-CN.md)和[图片索引](images/README.zh-CN.md)。已有会话内 Client 输入限制与主栏、外部编辑器分别记录，见[焦点检查](#macos-鼠标报告与-client-焦点)。
+当前示例见[使用演示](SHOWCASE.zh-CN.md)，[图片索引](images/README.zh-CN.md)按软件包与平台区分当前及历史捕获。已有会话内 Client 输入限制与主栏、外部编辑器分别记录，见[焦点检查](#macos-鼠标报告与-client-焦点)。
 
 ## 选择配置入口
 
@@ -184,7 +185,9 @@ claude-statusline --language en config --help
 
 <a id="item-discovery-import-review"></a>
 
-## 查找项目与审阅导入
+<a id="查找项目与审阅导入"></a>
+
+## 查找显示项与审阅导入
 
 在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。外部编辑器也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部十二种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
 
@@ -354,7 +357,6 @@ setup、独立 configure 和 slash 打开的 TUI 使用同一能力策略，在�
 
 样例预览使用当前终端背景和所选 `Palette`，标题显示当前选择。无色文字、颜色重置、空行和行尾空格使用终端默认色。渲染器按终端能力量化 RGB 样例，ANSI 样例使用终端配置的 ANSI 颜色。浅色终端中若 `Palette: default` 显得过淡，可在 Settings 比较 `Palette: ansi`；修改立即更新预览，保存后应用到实际状态栏。预览保留原有配色，使比较反映终端实际显示效果。默认色不支持、无色终端以及样例颜色不受支持时回退到默认文字。
 
-
 ## 外部终端入口 `/statusline-configure`
 
 在 Claude Code 中无参数运行 `/statusline-configure`。该入口需 2.1.258+，按平台在 tmux popup、GNOME Terminal、Terminal.app 或 Windows 新控制台中打开相同的终端 TUI。
@@ -384,6 +386,22 @@ claude-statusline install --no-experimental-slash-tui
 在 2.1.258+ 且 hooks 启用时，由本地 hook 执行以上操作，不进入模型回合；旧版或未知版本通过 skill 使用模型回合。高级 `preset`、`import`、`export`、`item`、`layout` 操作使用终端 CLI 或编辑器，详见 [slash 执行范围](reference/cli.zh-CN.md#slash-命令支持范围)。
 
 配置本工具请使用本工具的命令；Claude 内建 `/statusline` 可能将 `statusLine.command` 替换为其他实现。
+
+<a id="quick-setup-and-explanation"></a>
+
+## 快速配置、文本编辑与说明
+
+在 `/statusline-configure-native` 或 `claude-statusline configure` 中，按 **Ctrl+P**，也可以在设置页选择“快速配置”。从[完整方案与原有预设](SCHEMES.zh-CN.md)中依次选择用途、外观和示例。用上下键选择，Enter 确认；外观选项用左右键调整。Tab 切换主行和子代理示例，PgUp/PgDn 滚动要求说明。
+
+“继续微调”接受候选为当前草稿；“保存”使用原有版本检查、备份和事务。Backspace 返回上一步，Ctrl+G 取消整个流程，外部编辑器也可用 Esc。取消保留进入前未保存的草稿。选择预设不会安装集成或开启采集，已有子代理关闭选择也保留。界面语言立即保存，输出语言随显示配置保存；Claude 偏好仍单独 Apply。
+
+文本、搜索、数值和文件路径支持 ←/→、Home/End、光标处插入、Backspace 和 Delete，长内容随光标水平滚动。`▏` 标识光标，字素删除保留组合字符及完整 emoji。Ctrl+U 清空、Enter 确认、Ctrl+G 取消；原生编辑器的 Esc 由宿主用于交还焦点。文本/搜索最多 256 个码点，路径最多 4096，数值编辑缓冲最多 32；超限或含控制字符的插入整体拒绝并提示，不截断原文。
+
+外部括号粘贴与原生可识别的多字符文本不会执行快捷命令。原生 Client 的单键 API 没有粘贴来源标记：宿主已拆成单键的粘贴无法与键入可靠区分。请先进入输入框再粘贴；本界面无法消除这个宿主限制。
+
+选中已配置组件，Ctrl+E 打开详情，然后选择“配置与示例说明”。说明区分草稿开关、已知本地安装/采集条件，以及示例中的条件隐藏、裁剪和宽度省略；重复类型按实例 ID 对应，子代理按示例行分别说明。实际会话输入未被读取，因此真实 PR、缓存、任务或字段可用性仍为未知。预览面板容纳不下的行与渲染省略是不同情况。上下键或 PgUp/PgDn 滚动，Ctrl+G 返回。
+
+配置解释不写文件、不创建锁、不扫描转录或启动采集。保存冲突或写入失败会保留编辑界面和草稿，供用户检查或取消；不会自动覆盖其他编辑器的修改。
 
 ## 常用配置配方
 
@@ -485,7 +503,6 @@ subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复
 
 预设改变显示草稿，不开启采集；保留输出／界面语言和宿主设置，重建逐项覆盖，保存前可继续编辑。
 
-
 minimal/developer/monitoring/multi-agent 预设展开为可编辑草稿，使用模型简称与紧凑数字，保留颜色／调色板／目录样式和刷新选项，重建逐项覆盖，并按预设顺序分配递减的保留优先级。`--dry-run` 输出已验证草稿，不保存。导入接受可移植文件或兼容的仅显示配置文件；仅显示文件保留当前刷新选项。
 
 ```bash
@@ -508,7 +525,7 @@ Layout 选择 auto/explicit，通过“New row before”设置全部已配置主
 
 Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后打开差异审阅；Enter 展开分区，A 接受完整候选到草稿，再单独保存。原生审阅用 Ctrl+G 或 Q 取消，外部审阅用 Esc 或 Ctrl+G 取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 
-Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。curses 用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃 curses 编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
+Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。外部编辑器用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃外部编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
 
 | 预设 | 主状态栏布局 | 子 Agent 默认 |
 | --- | --- | --- |
@@ -527,6 +544,12 @@ Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。curses
 
 <a id="phase-5-预览安装"></a>
 <a id="phase-5-正式版安装"></a>
+
+## Unicode 文本与终端列宽
+
+换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；受支持的 Node 版本和两个编辑器使用相同布局规则。实际字形仍取决于终端与字体。
+
+外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。
 
 ## 可选实时状态
 
@@ -553,7 +576,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录含 61 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
+主栏目录含 65 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
 
 常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
 
@@ -564,13 +587,16 @@ claude-statusline config subagents list-items
 | 仓库 | `pr`、`repo`、`worktree` |
 | 上下文与用量 | `context-used`、`cost`、`prompt-cache` |
 
-子 Agent 目录含 14 个指标及两个布局组件，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
+子 Agent 目录含 15 个指标及两个布局组件，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
 
 ## 主状态栏显示含义
 
 Git 使用 `↑N`、`↓N` 表示与上游的提交差距，`● N`（Linux/macOS）或 `●N`（Windows/WSL）表示暂存文件，`~N` 表示未暂存，`!N` 表示冲突，`?N` 表示未跟踪。`Git!` 表示查询失败，非 Git 目录省略该项。
 
 Token 为会话累计：`hit` 是缓存读取输入，`miss` 是普通输入与缓存创建之和，`out` 是输出。统计包含可发现的子 Agent transcript，与上下文占用或限额口径不同。
+
+<a id="任务计时预览"></a>
+<a id="任务计时"></a>
 
 ### 任务总耗时与执行耗时
 
@@ -638,7 +664,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 切换写入实现前停止活动 Claude 会话并备份配置目录。记录原 Python 命令的绝对路径和版本，保留其环境用于回退。已有 Python 命令占用相同 PATH 名称时，先将 npm 包安装到独立目录：
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.1.0
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.16.0
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
@@ -870,17 +896,17 @@ claude-statusline config set refresh-interval 1
 
 ## 退出码
 
-管理命令成功返回 0，doctor 错误返回 1，已捕获的参数、配置或归属错误返回 2。未捕获 CLI 异常也可返回 1，详见[退出码参考](reference/cli.zh-CN.md#退出码)。TUI 中断使用 130 或 `128 + signal`，恢复终端且不保存草稿。
+管理命令通常成功返回 0，参数、配置或归属错误返回 2；`doctor` 错误及受阻的设置检查返回 1。详见[各命令的退出码参考](reference/cli.zh-CN.md#退出码)。TUI 中断使用 130 或 `128 + signal`，恢复终端且不保存草稿。
 
 ## 当前边界
 
-- 配置按用户生效，暂不提供项目覆盖、拖放或自定义快捷键。
+- 配置和项目绑定保存在用户目录。[项目绑定](PROFILES.zh-CN.md)可选择命名显示方案，仓库文件不提供可执行配置；不提供拖放或自定义快捷键。
 - macOS 会话内 Client 交互问题仍有记录，可使用独立 TUI 或 CLI。
 - 外部桌面启动器支持列明的平台终端；其他终端可使用独立 `configure` 或 tmux。IDE、print 模式、Web 会话和全局禁用 hooks 不保证能打开外部编辑器。
 - 可选实时字段需独立采集和有效观测，不推定缺失测量或当前焦点代理。
 - 子 Agent 行提供当前任务字段，不提供历史账本、逐代理 Git、缓存或会话聚合。
 - 完成判定需要已确认的结束证据、普通 Agent 任务及报告已处理、主 Agent 收尾完成。传统 Stop 只是候选，超时或心跳过期不会推定完成；后台 shell/server/monitor/workflow 与 agent-team 账本不阻塞完成。
-- 配色不跟随 Claude `/theme`，默认 palette 使用固定项目颜色。
+- 状态栏输出使用所选显示配色；会话内编辑器的文字和控件跟随 Claude 已应用主题。
 
 ## 相关文档
 
@@ -969,44 +995,3 @@ claude-statusline config set refresh-interval 1
 [当前配置与兼容说明](#版本兼容)。
 
 </details>
-
-<a id="任务计时预览"></a>
-
-## 任务计时
-
-[v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。升级稳定软件包：
-
-```bash
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-claude-statusline install
-claude-statusline config enable task-active-timer
-```
-
-`task-timer` 默认显示任务总耗时，旧命令和旧配置仍可使用 `prompt-timer`。可选 `task-active-timer` 只在原生执行／等待证据完整时出现。原始 Stop 未确认时显示下界 `? ...+`，可信续跑继续同一任务；原生单轮耗时不缩短总耗时，会话和 API 耗时分别定义。
-
-新安装默认不采集原生计时或高级指标。用 `install --native-timing` 启用计时，或用 `install --live-metrics` 启用完整采集。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
-
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 17 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
-
-## Unicode 文本与终端列宽
-
-换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；受支持的 Node 版本和两个编辑器使用相同布局规则。实际字形仍取决于终端与字体。
-
-外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。
-
-
-<a id="quick-setup-and-explanation"></a>
-
-## 快速配置、文本编辑与说明
-
-在 `/statusline-configure-native` 或 `claude-statusline configure` 中，按 **Ctrl+P**，也可以在设置页选择“快速配置”。依次选择用途、外观和示例：日常开发、紧凑显示、用量观察、多代理协作，以及左右分组和重复指标两个示例。用上下键选择，Enter 确认；外观选项用左右键调整。Tab 切换主行和子代理示例，PgUp/PgDn 滚动要求说明。
-
-“继续微调”接受候选为当前草稿；“保存”使用原有版本检查、备份和事务。Backspace 返回上一步，Ctrl+G 取消整个流程，外部编辑器也可用 Esc。取消保留进入前未保存的草稿。选择预设不会安装集成或开启采集，已有子代理关闭选择也保留。界面语言立即保存，输出语言随显示配置保存；Claude 偏好仍单独 Apply。
-
-文本、搜索、数值和文件路径支持 ←/→、Home/End、光标处插入、Backspace 和 Delete，长内容随光标水平滚动。`▏` 标识光标，字素删除保留组合字符及完整 emoji。Ctrl+U 清空、Enter 确认、Ctrl+G 取消；原生编辑器的 Esc 由宿主用于交还焦点。文本/搜索最多 256 个码点，路径最多 4096，数值编辑缓冲最多 32；超限或含控制字符的插入整体拒绝并提示，不截断原文。
-
-外部括号粘贴与原生可识别的多字符文本不会执行快捷命令。原生 Client 的单键 API 没有粘贴来源标记：宿主已拆成单键的粘贴无法与键入可靠区分。请先进入输入框再粘贴；本版本不宣称消除了这个宿主限制。
-
-选中已配置组件，Ctrl+E 打开详情，然后选择“配置与示例说明”。说明区分草稿开关、已知本地安装/采集条件，以及示例中的条件隐藏、裁剪和宽度省略；重复类型按实例 ID 对应，子代理按示例行分别说明。实际会话输入未被读取，因此真实 PR、缓存、任务或字段可用性仍为未知。预览面板容纳不下的行与渲染省略是不同情况。上下键或 PgUp/PgDn 滚动，Ctrl+G 返回。
-
-配置解释不写文件、不创建锁、不扫描转录或启动采集。保存冲突或写入失败会保留编辑界面和草稿，供用户检查或取消；不会自动覆盖其他编辑器的修改。

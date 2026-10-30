@@ -1,79 +1,43 @@
 # 开发指南
 
-[I18N-02 交付](i18n-02-delivery.zh-CN.md#final-release)记录三个已完成切片、v3.15.0 发布、公开验证及恢复偏好后的本机验收。
-
-
-
-[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
-
 [English](README.md) | **简体中文**
 
-v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
+本页说明 TypeScript 工作区准备、检查选择与安装候选构建。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)、[CLI 参考](../reference/cli.zh-CN.md)和[操作演示](../SHOWCASE.zh-CN.md)。
 
-[按影响检查与维护证据](impact-checks.zh-CN.md)定义专项检查规划、包内容比较及分阶段 PR/main/tag 证据迁移。
-[任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
-
-[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md)记录 v3.13.0 的 UX-03、COMPOSITION-04、IMPORT-02 交付、编辑器协议 29、验收及发版后发现。
-
-
-[来源操作、命令调度与包执行](source-command-package-management.zh-CN.md)记录 SOURCES-01、COMMAND-02 和 UPDATE-02 交付（v3.12.0）。
-
-
-[外观、样例场景与显式文件诊断](appearance-preview-diagnosis.zh-CN.md)记录 APPEARANCE-05、PREVIEW-01、EXPLAIN-02。
-
-[功能路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)定义范围、依赖、切片和验收。开始下一任务时读取这两处规范来源，已实现行为查阅链接的交付记录；规划更新不实施功能。
-
-[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明按影响专项检查、候选与维护证据、晋升路线、Action 身份及每周更新审查。
-
-[贡献指南](../../CONTRIBUTING.zh-CN.md)说明反馈、翻译和 PR 流程；[仓库维护](repository-governance.zh-CN.md)记录主线保护、安全入口、依赖告警和发布身份策略。
-
-[扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
-
-[首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。
-
-命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
-
-显式真实输入诊断及缓存原因显示见[诊断指南](../DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](real-input-diagnostics.zh-CN.md)。
-
-共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
-
-成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
-
-本页说明开发环境、检查、构建和内部实现。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)，公开命令见[CLI 参考](../reference/cli.zh-CN.md)。
-
-当前 TypeScript workspace 使用 Node 24.21.0/npm 11.19.0。日常开发不需要 Python；冻结的 Python 参考通过独立的手动入口验证。
-
-[首批正确性修复与验收](correctness-maintenance.zh-CN.md)记录 FIX-01～FIX-04、I18N-01、编辑器协议 25 和来源任务 3。
+开发／构建使用 Node 24.21.0、npm 11.19.0，固定值来自 [`.node-version`](../../.node-version) 和 [`package.json`](../../package.json)；成品运行支持 Node 22／24。普通开发不需要 Python，[冻结的 Python 参考](../../archive/python/README.zh-CN.md)有独立手动验证流程。
 
 ## 技术文档导航
 
 ### 当前开发
 
-- [项目级代理指引](../../AGENTS.md)：共享工作区边界、规范来源、验证和 PR 规则，仅维护英文。
-- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：当前优先级／状态、已核对问题、范围、依赖、兼容及针对性的功能验收；既有设计／证据分别保留。
-- [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
-- [翻译贡献指南](i18n.zh-CN.md)：增量维护、开发回退及严格公开发布就绪。[多语言工作流](i18n-workflow.zh-CN.md)及 [I18N-02 实现](i18n-02-delivery.zh-CN.md)记录状态、来源绑定与验证。
-- [测试与验收](testing.zh-CN.md)。
-- [原生编辑器接入](native.zh-CN.md)。[容量与恢复](native-capacity.zh-CN.md)。
-- [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
-- [发布流程](../RELEASING.zh-CN.md)。
+| 任务 | 入口 |
+| --- | --- |
+| 遵循工作区与贡献约定 | 仅维护英文的 [AGENTS.md](../../AGENTS.md) · [贡献指南](../../CONTRIBUTING.zh-CN.md) · [仓库治理](repository-governance.zh-CN.md) |
+| 理解实现 | [架构](architecture.zh-CN.md) · [共享契约](contracts.zh-CN.md) · [渲染与 Unicode](rendering.zh-CN.md) |
+| 选择验证与 CI 证据 | [测试与验收](testing.zh-CN.md) · [影响检查](impact-checks.zh-CN.md) · [CI 维护／晋级](ci-maintenance.zh-CN.md) |
+| 维护宿主接入 | [原生编辑器](native.zh-CN.md) · [容量／恢复](native-capacity.zh-CN.md) · [任务计时](timer.zh-CN.md) · [实时指标](live.zh-CN.md) |
+| 维护语言 | [翻译指南](i18n.zh-CN.md) · [多语言工作流](i18n-workflow.zh-CN.md) |
+| 制作与核验媒体 | [图片索引](../images/README.zh-CN.md) · [SHOWCASE-01 证据](showcase.zh-CN.md) |
+| 准备发布 | [发布流程](../RELEASING.zh-CN.md) |
+
+[路线图](roadmap.zh-CN.md#milestones)负责当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)负责范围、依赖、切片及验收；[候选池](roadmap.zh-CN.md#candidates)记录尚未选定的想法。规划修改与历史交付记录不宣布新行为可用。
 
 ### 迁移与交付记录
 
-- [迁移后修复与交付](post-migration-fixes.zh-CN.md)：全部十一项问题、精确用量身份及 v3.1.3 证据。
-- [迁移后审查问题与文档更新清单](post-migration-review.zh-CN.md)：四个 session 的六项迁移问题、五项基线问题或共同风险，以及五类文档冲突。
-- [外部 TUI 回归修复](external-tui-regressions.zh-CN.md)：v3.1.2 目录说明、文字、导航、颜色和通知修复。
-- [外部 TUI 呈现修复](external-tui-parity.zh-CN.md)：v3.1.1 绘制、上下文操作与源码绑定验收。
-- [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
-- [PERF-01 迁移后性能专项](performance/perf-01.zh-CN.md)：2026-10-19 已完成；保留独立 TS 对照与原 D06 失败证据。
-- [TS-01 固定参考与清单](typescript-migration/ts-01/README.zh-CN.md)：可复现样例、核验工具及验证证据。
-- [TS-02 平台探针与决策](typescript-migration/ts-02/README.zh-CN.md)：原生适配、安装实验、性能策略及剩余门槛。
-- [TS-03 共享核心与后端](typescript-migration/ts-03/README.zh-CN.md)：workspace、六批实施、兼容差异与验收。
-- [TS-04 双编辑器、安装与恢复](typescript-migration/ts-04/README.zh-CN.md)：[安装候选验收](typescript-migration/ts-04/candidate.zh-CN.md)与[显式恢复](typescript-migration/ts-04/recovery.zh-CN.md)。
-- [Linux 整合、实体机验收及已批准的发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md).
-- [v1.13.0 多语言性能](performance-v1.13.0.zh-CN.md)：按需语言加载、预建搜索与 2/5/10 语言资源对照。
-- [v1.12.0 性能对照](performance-v1.12.0.zh-CN.md)：默认路径复测、保留的小幅开销与开启外观功能的成本。
-- [v1.11.0 性能对照](performance-v1.11.0.zh-CN.md)：完整场景、原始数据来源与补充复查。
+这些记录保留功能引入版本、源码身份、原始检查及限制。当前行为以用户指南和共享契约为准；后续文档修改不改变既有验收结果。
+
+| 领域 | 交付记录 |
+| --- | --- |
+| 语言 | [十二语言扩展](language-expansion.zh-CN.md) · [I18N-02 生命周期](i18n-02-delivery.zh-CN.md) · [Node 与地区语言](node-regional-languages.zh-CN.md) |
+| 外观、草稿与复用 | [自适应行与场景](adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](appearance-preview-diagnosis.zh-CN.md) |
+| 任务、来源与软件包 | [任务／版本审阅](task-version-review.zh-CN.md) · [来源／命令／包执行](source-command-package-management.zh-CN.md) · [扩展](extensions.zh-CN.md) |
+| 设置与配置 | [首次设置／完整方案](setup-appearance.zh-CN.md) · [配置体验](configuration-experience.zh-CN.md) · [方案／项目／任务](profiles-projects-tasks.zh-CN.md) · [真实输入诊断](real-input-diagnostics.zh-CN.md) |
+| 早期里程碑及修复 | [M4–M7](m4-m7-delivery.zh-CN.md) · [M8–M9](m8-m9-delivery.zh-CN.md) · [M10–M12](m10-m12-delivery.zh-CN.md) · [正确性维护](correctness-maintenance.zh-CN.md) |
+| 迁移后审查 | [问题盘点](post-migration-review.zh-CN.md) · [修复](post-migration-fixes.zh-CN.md) · [外部 TUI 一致性](external-tui-parity.zh-CN.md) · [外部 TUI 回归](external-tui-regressions.zh-CN.md) |
+| 性能 | [已完成 PERF-01](performance/perf-01.zh-CN.md) · [v1.13.0](performance-v1.13.0.zh-CN.md) · [v1.12.0](performance-v1.12.0.zh-CN.md) · [v1.11.0](performance-v1.11.0.zh-CN.md) |
+| 展示交付 | [SHOWCASE-01](showcase.zh-CN.md) |
+
+[TypeScript 迁移计划](typescript-migration.zh-CN.md)链接已完成阶段：[TS-01 参考](typescript-migration/ts-01/README.zh-CN.md)、[TS-02 探针](typescript-migration/ts-02/README.zh-CN.md)、[TS-03 核心／后端](typescript-migration/ts-03/README.zh-CN.md)、[TS-04 编辑器／恢复](typescript-migration/ts-04/README.zh-CN.md)、[TS-05 候选](typescript-migration/ts-05/README.zh-CN.md)、[TS-06 发布](typescript-migration/ts-06/README.zh-CN.md)。原 [TS-04 候选](typescript-migration/ts-04/candidate.zh-CN.md)、[恢复](typescript-migration/ts-04/recovery.zh-CN.md)和 [Linux 实机／延期验收](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)保留为历史证据。
 
 ## 文档导航
 
@@ -91,16 +55,26 @@ v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
-npm run check
 ```
 
-开发环境独立于已有 pipx 产品。默认流程不需要 Python、pip、Ruff、wheel 或原生编译器。
+开发环境独立于已安装产品。默认流程不需要 Python、pip、Ruff、wheel 或原生编译器。
 
 ### 运行检查
 
-`npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
-十二种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
-八目标安装、32 个 Node 运行时用例和十六个固定宿主组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。执行共享、草稿快检和诊断见 [CI 维护](ci-maintenance.zh-CN.md)。
+按实际变更职责选择检查：
+
+| 变更 | 本地入口 |
+| --- | --- |
+| 现行文档／模板 | `npm run docs:check` 和 `git diff --check` |
+| 已提交维护，含媒体／工具 | `npm run ci:plan` 与所选 `npm run ci:check` 任务；涉及包内容的计划需 `--compare` |
+| 核心产品行为 | `npm run check` 和 `git diff --check` |
+| 规范生成源 | `npm run generate` 后执行 `npm run generate:check`，并执行上方适用检查 |
+
+按[影响检查](impact-checks.zh-CN.md)使用不可变提交和新报告路径。混合变更合并检查要求；归属未知或比较未解决时阻断。本地检查不能替代最终 head 的 `Complete candidate evidence` 门禁及 main 晋级核验。[CI 分流](ci-maintenance.zh-CN.md)。
+
+`npm run check` 覆盖真实 Node 并发、故障、终端、固定案例、生成资源、文档及职责台账。`tools/generation/` 维护当前语言／Mod／技能输出，不重新生成 Python 归档。构建后可在受支持 Node 下用 `npm run test:runtime` 测试编译产品，无需重新构建。
+
+完整产品验收包含八个安装目标、32 个 Node 用例、十六个固定宿主组合及适用的 Native 容量案例，使用匹配产物。2.1.296 类型声明缺口单独保留；执行共享、草稿检查和诊断的含义不同，见[测试与验收](testing.zh-CN.md)。
 
 ### 清理编译输出
 
@@ -132,7 +106,7 @@ npm run candidate:build -- --commit "$SOURCE_COMMIT" --output /absolute/new-cand
 `test:installed` 接收制品、固定提交和报告路径，在源码之外使用空缓存、离线模式、禁用生命周期脚本，
 且 PATH 不包含 Python/编译器。`test:mods` 验证固定官方主机与实际安装绑定。
 `reference:verify` 是独立的手动 Python 历史入口。详见[测试指南](testing.zh-CN.md)。
-终端、电源和付费验收均显式调用；普通 CI 不产生付费会话。保留旧 Python 产品及真实配置。
+终端、电源和付费验收均显式调用；普通 CI 不产生付费会话。保留日常安装产品及真实配置。
 
 <a id="附录内部命令"></a>
 

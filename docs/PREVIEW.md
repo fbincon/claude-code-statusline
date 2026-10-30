@@ -2,11 +2,11 @@
 
 **English** | [简体中文](PREVIEW.zh-CN.md)
 
-This guide preserves the beta.1 trial and recovery procedure. The stable npm product is now **v3.0.0**; use the [user guide](USER_GUIDE.md#installation-and-integration) and [stable delivery evidence](development/typescript-migration/ts-06/stable-release.md). The [v3.0.0 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) accepts the recorded known gaps for this version without passing unverified checks.
+This is the **historical v3.0.0-beta.1 trial and recovery procedure**. For the current product, use the [installation guide](USER_GUIDE.md#installation-and-integration) or [usage demonstrations](SHOWCASE.md). Stable v3.0.0 superseded this preview; its [delivery record](development/typescript-migration/ts-06/stable-release.md) and [release-specific decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) preserve the accepted gaps without marking them passed.
 
-The retained preview is **v3.0.0-beta.1**, distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. It was issued for testing before stable delivery. [Release notes](releases/v3.0.0-beta.1.md) · [Validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
+The preview was distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. [Original release notes](releases/v3.0.0-beta.1.md) · [Platform validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
-To reproduce the preview, specify `@beta` or `@3.0.0-beta.1`. An unqualified npm installation or `@latest` now installs stable v3.0.0; `beta` remains on beta.1. Python v2.0.0 remains available for rollback.
+To reproduce that package, pin `@3.0.0-beta.1`, as below. Mutable npm channels such as `beta` and `latest` do not establish a historical version. The requirements, CI counts, schema versions and results below describe the retained preview-era evidence, not current-product validation. Python v2.0.0 remains the historical rollback target.
 
 ## Requirements and validation limits
 
@@ -24,7 +24,7 @@ Bash/Zsh:
 
 ```bash
 SL_PREVIEW_PREFIX="$HOME/.local/share/claude-statusline-preview"
-npm install --prefix "$SL_PREVIEW_PREFIX" --ignore-scripts --no-audit --no-fund @fbincon/claude-code-statusline@beta
+npm install --prefix "$SL_PREVIEW_PREFIX" --ignore-scripts --no-audit --no-fund @fbincon/claude-code-statusline@3.0.0-beta.1
 SL_PREVIEW_ENTRY="$SL_PREVIEW_PREFIX/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js"
 SL_PREVIEW_CONFIG="$SL_PREVIEW_PREFIX/test-config"
 node "$SL_PREVIEW_ENTRY" --version
@@ -38,7 +38,7 @@ PowerShell:
 
 ```powershell
 $previewPrefix = Join-Path $env:LOCALAPPDATA 'claude-statusline-preview'
-npm.cmd install --prefix "$previewPrefix" --ignore-scripts --no-audit --no-fund '@fbincon/claude-code-statusline@beta'
+npm.cmd install --prefix "$previewPrefix" --ignore-scripts --no-audit --no-fund '@fbincon/claude-code-statusline@3.0.0-beta.1'
 $previewEntry = Join-Path $previewPrefix 'node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js'
 $previewConfig = Join-Path $previewPrefix 'test-config'
 node "$previewEntry" --version
@@ -48,7 +48,7 @@ node "$previewEntry" doctor --config-dir "$previewConfig"
 node "$previewEntry" configure --config-dir "$previewConfig"
 ```
 
-For reproducible installation replace `@beta` with `@3.0.0-beta.1`. These commands use temporary Claude configuration. To test an actual session, start Claude with `CLAUDE_CONFIG_DIR` pointing to that same configuration directory. Use your normal official login flow if needed; the checklist requires no new paid model calls. To switch your existing configuration deliberately, stop active Claude sessions, back up that directory, and repeat dry-run/install/doctor with its explicit path. Review reported changes and resolve foreign ownership rather than blindly using `--force`.
+The commands pin the original preview package. These commands use temporary Claude configuration. To test an actual session, start Claude with `CLAUDE_CONFIG_DIR` pointing to that same configuration directory. Use your normal official login flow if needed; the checklist requires no new paid model calls. To switch your existing configuration deliberately, stop active Claude sessions, back up that directory, and repeat dry-run/install/doctor with its explicit path. Review reported changes and resolve foreign ownership rather than blindly using `--force`.
 
 Windows npm wrappers are `.cmd`/`.ps1`, not the old Python `.exe`. Direct `node` plus an absolute JS path avoids wrapper and execution-policy ambiguity; installed host bindings use absolute argv. Keep the selected Node executable and prefix in place while the preview is integrated.
 
@@ -81,7 +81,7 @@ Only after binding has been restored, remove the preview package with `npm unins
 
 ## Detailed acceptance and feedback
 
-[Submit feedback](https://github.com/fbincon/claude-code-statusline/issues/new?template=preview-feedback.yml). Include sanitized reproduction logs and distinguish automation, PTY, human desktop and physical power evidence. Do not include credentials or private transcripts. Track platform coverage in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96).
+[Submit feedback](https://github.com/fbincon/claude-code-statusline/issues/new?template=bug_report.yml). Include sanitized reproduction logs and distinguish automation, PTY, human desktop and physical power evidence. Do not include credentials or private transcripts. Track platform coverage in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 For collector-backed evidence, extract the exact source asset, use the pinned Node/npm, run `npm ci --ignore-scripts` and `npm run build`. Set `FULL_SHA` from `build-manifest.json`; use the complete downloaded asset directory and the installed package root (the directory containing `candidate.json`). The collectors verify source and installed bytes before associating observations:
 

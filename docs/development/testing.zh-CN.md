@@ -1,37 +1,35 @@
 # 测试与验收
 
-
-[自适应指标、连续背景与场景方案](adaptive-row-scenarios.zh-CN.md)记录 APPEARANCE-07、APPEARANCE-06、PROFILE-02、schema 17／协议 30、271 项容量案例及签名验证入口。
-
 [English](testing.md) | **简体中文**
 
-v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
+按实际变更选择验证，并保留各结果的源码／产物身份。[影响检查](impact-checks.zh-CN.md)定义职责分类及本地任务，[CI 维护](ci-maintenance.zh-CN.md)定义必需汇总门禁、证据期限及 PR/main/tag 晋级。开发环境见[开发指南](README.zh-CN.md)。
 
+| 工作 | 所需证据 |
+| --- | --- |
+| 文档／模板 | 当前行为准确、中英文一致、链接／锚点／导航有效，执行 `docs:check` 及空白检查 |
+| 图片、录制与使用演示 | 计划选定的媒体检查、可读输出、匹配的已安装包、输入／配置来源及可复现操作；[SHOWCASE-01](showcase.zh-CN.md)与文档验收分开记录 |
+| 工具、测试、呈现数据或 CI 策略 | 适用的 `ci:plan`／`ci:check` 任务；涉及包内容的分类须完成比较 |
+| 核心行为／运行依赖 | 完整产品检查及适用安装／运行时／宿主矩阵 |
+| 终端、实机或付费工作 | 范围明确的采集、源码绑定报告及实际限制；付费调用需要获批预算和共用账本 |
 
-[草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。
+普通测试使用隔离配置／安装目录，不调用付费模型。[候选验收](typescript-migration/ts-05/candidate.zh-CN.md)说明安装、终端、电源及付费入口。PTY 重建和代理画面检查不等于实机或人工验收。[issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)原有六项缺口仍未验证，不豁免新增失败。
 
-当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
+当前 Native 容量规则与适用宿主检查见[容量与恢复](native-capacity.zh-CN.md)。[交付索引](README.zh-CN.md#迁移与交付记录)链接各功能证据；历史记录中的数量描述其指定版本，不代表对当前 main 新执行了一轮检查。
 
-[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
+## 当前 TypeScript 检查
 
+[按影响检查](impact-checks.zh-CN.md)新增维护专项回执及当前源码发布关联。核心改动保留完整 8/32/16 矩阵和全部当前容量义务；普通维护执行计划检查。意外跳过、证据缺失和不兼容归属均阻断，本地专项回执与手动诊断不能代替 Actions 验收。
 
-[扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
+[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)区分草稿反馈、完整候选验收和集成／发布核验。完整核心候选覆盖 8 安装目标、32 个 Node 场景、16 宿主及全部适用 Native 容量检查。main 三平台冒烟是原包的额外集成证据，不能替代缺失的 PR 验收。回归覆盖错误或过期运行／附件、重复回执、源码／tree／base／策略变化、移动 tag、编译输出来源及失败／跳过依赖。手动诊断和本地冒烟不属于可发布验收。
 
-[首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。
+维护使用 `npm run ci:plan` 和 `ci:check`；完整产品入口保留 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标／十六宿主证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
+默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
 
-命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
-
-显式真实输入诊断及缓存原因显示见[诊断指南](../DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](real-input-diagnostics.zh-CN.md)。
-
-共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
-
-成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
-
-[首批正确性修复验收](correctness-maintenance.zh-CN.md)覆盖双编辑器保存核对、进度条标签、刷新消费者、历史扩展证据和任务语言，保留既有发布矩阵。
+清理命令的回归测试在隔离临时目录中验证预览、完整删除、重复执行、符号链接边界，以及源码和历史资料的保留。重建检查前可运行 `npm run clean -- --dry-run` 和 `npm run clean`；命令范围见[开发指南](README.zh-CN.md#清理编译输出)。
 
 ## I18N-02 验收
 
-生命周期测试覆盖源／上下文／术语及译文失效、历史占位符／删除隔离、不安全及重复输入、合法英文术语、不可变冻结／验证与显式验收。Node／Native 生成夹具验证有效消息及搜索来源。安装验收新增 36 种独立界面／输出组合、只读预览、保存回读及准确有效 JSON。实际宿主容量保留 271 项并新增十二项长 Unicode 语言案例，共 283 项。发布测试保留已接受基线独立性，并证明安全 B 回退的 PR／main 不能授权公开发布。不代表新增付费或实体验收。[证据](i18n-02-delivery.zh-CN.md)。
+v3.15.0 I18N-02 验收覆盖源／上下文／术语及译文失效、历史占位符／删除隔离、不安全及重复输入、合法英文术语、不可变冻结／验证与显式验收。Node／Native 生成夹具验证有效消息及搜索来源。安装验收新增 36 种独立界面／输出组合、只读预览、保存回读及准确有效 JSON。实际宿主容量保留 271 项并新增十二项长 Unicode 语言案例，共 283 项。发布测试保留已接受基线独立性，并证明安全 B 回退的 PR／main 不能授权公开发布。不代表新增付费或实体验收。[原始证据](i18n-02-delivery.zh-CN.md)。后续 [v3.16.0 扩展](language-expansion.zh-CN.md)另行记录 144 组语言组合与 313 项容量案例。
 
 ## 发布批准与 CI 分流
 
@@ -48,22 +46,11 @@ v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增
 [PERF-01](performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。
 使用安装包模式的 `benchmark`／`benchmark:compare`；旧工作区 worker 仅为描述性诊断，
 不能作为安装命令耗时。采集次数与计时分离；冷读／追加准备恢复完整用量索引。
-Linux GNU time 记录新子进程峰值 RSS。功能正确是硬门槛，本轮不要求最低提速或通过 Python 预算。
+Linux GNU time 记录新子进程峰值 RSS。功能正确是硬门槛，该记录不以最低提速或通过 Python 预算为结论条件。
 
 ## 外部 TUI 产品回归
 
 TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分组线样式、字段名称与用户原始值、上下文按键提示、Unicode 截断和待确认修改标记，覆盖全部注册语言、七种尺寸及四种色阶。既有迁移命名的后端／PTY 测试保留职责台账；安装包捕获及交付证据另记于[外部 TUI 后续工作](external-tui-parity.zh-CN.md)，终端单元重建不等同于人工桌面或电源验收。
-
-## 当前 TypeScript 检查
-
-[按影响检查](impact-checks.zh-CN.md)新增维护专项回执及当前源码发布关联。核心改动保留完整 8/32/16 矩阵和全部当前容量义务；普通维护执行计划检查。意外跳过、证据缺失和不兼容归属均阻断，本地专项回执与手动诊断不能代替 Actions 验收。
-
-[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)区分草稿反馈、完整候选验收和集成／发布核验。完整核心候选覆盖 8 安装目标、32 个 Node 场景、16 宿主及全部适用 Native 容量检查。main 三平台冒烟是原包的额外集成证据，不能替代缺失的 PR 验收。回归覆盖错误或过期运行／附件、重复回执、源码／tree／base／策略变化、移动 tag、编译输出来源及失败／跳过依赖。手动诊断和本地冒烟不属于可发布验收。
-
-维护使用 `npm run ci:plan` 和 `ci:check`；完整产品入口保留 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
-默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
-
-清理命令的回归测试在隔离临时目录中验证预览、完整删除、重复执行、符号链接边界，以及源码和历史资料的保留。重建检查前可运行 `npm run clean -- --dry-run` 和 `npm run clean`；命令范围见[开发指南](README.zh-CN.md#清理编译输出)。
 
 ## 历史 Python 与迁移阶段记录
 
@@ -348,7 +335,6 @@ python tools/benchmark_render.py --samples 50 --display-case formatted --languag
 
 同一 50 样本热字节码基准测得 v1.8.0 P50／P95 为 54.261／66.363 ms，英文 55.051／64.294 ms，中文 54.313／68.506 ms。小型数据与调度噪声限制结论；正常渲染不读取 UI 偏好或解析 UI JSON。444 个英文默认生产／预览对照均与基线一致。本轮采用本地命令和固定样例，不调用付费模型，也不代表新的人类验收。
 
-
 ## 项目查找与导入审阅验收
 
 本地通过 730 项 Python 测试（722 通过、8 项平台跳过）、87 项原生及 10 项运行 Mod 官方测试。共享搜索样例覆盖分级、Unicode 码点映射、同分稳定性和生成目录元数据；弹层测试覆盖分类隔离、全部项目说明、结构化差异、窄窗口、候选预览、取消、接受和并发保存冲突。新进程中的普通模型渲染不加载编辑器搜索／说明／审阅模块。
@@ -444,7 +430,6 @@ TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 
 TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中不提供 Python。真实主机探测使用临时绑定、合成密钥和不可达的 loopback API。`npm run migration:inventory -- --complete` 要求 516 项均有替代测试或具名 TS-04 责任。固定 D06 后端工具为 `npm run migration:benchmark -- NEW_DIRECTORY`，要求干净且已提交的源码；`--validate` 仅校验功能夹具。参见 [TS-04 交接](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)。
 
 原正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。按当时门槛，TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。
-
 
 ## TS-04 安装验收
 

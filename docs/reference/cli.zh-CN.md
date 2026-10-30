@@ -2,37 +2,22 @@
 
 [English](cli.md) | **简体中文**
 
+本页说明命令语法、选项、显示字段及配置格式。操作流程见[使用指南](../USER_GUIDE.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)。下列值域描述当前软件包，历史交付记录保留原始版本。
 
-共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](../DRAFT_HISTORY.zh-CN.md)。
-
-[首次设置](../SETUP.zh-CN.md)与[完整方案](../SCHEMES.zh-CN.md)。
-
-命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
-
-显式 `diagnose --input FILE|-`、只读观测边界、文本与 JSON 输出见[输入诊断](../DIAGNOSTICS.zh-CN.md)。
-
-共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](../development/configuration-experience.zh-CN.md)。
-
-兼容别名 `zh-Hant` 在所有语言参数与旧配置中映射为 `zh-TW`；读取不改写文件，显式保存／导出使用规范代码。地区选项为 `zh-TW`（台湾）和 `zh-HK`（香港）。
-
-
-本页提供完整命令语法、选项、显示字段和配置文件参考。安装步骤与日常操作见[使用指南](../USER_GUIDE.zh-CN.md)。以下值域与示例按当前软件包整理，不作为历史版本说明。
-
-无子命令打开经过审核的持久安装流程，详见[首次入口](../SETUP.zh-CN.md#首次入口与-npm-持久安装)。支持 `--prefix`、`--config-dir`、`--dry-run`；普通非 TTY 入口不进行变更。
+无子命令的交互调用打开经审阅的[持久安装流程](../SETUP.zh-CN.md#首次入口与-npm-持久安装)，支持 `--prefix`、`--config-dir`、`--dry-run`；普通非 TTY 入口不进行变更。
 
 ## 文档导航
 
-- [CLI 总览](#cli-总览)
-- [安装与诊断](#安装与诊断)
-- [slash 命令支持范围](#slash-命令支持范围)
-- [配置命令详解](#配置命令详解)
-- [可配置显示项](#可配置显示项)
-- [主状态栏显示含义](#主状态栏显示含义)
-- [子 Agent 行与三种作用域](#子-agent-行与三种作用域)
-- [显示与宿主选项](#显示与宿主选项)
-- [配置文件](#配置文件)
-- [自定义配置目录与环境变量](#自定义配置目录与环境变量)
-- [退出码](#退出码)
+| 类别 | 参考 |
+| --- | --- |
+| 命令与语言 | [总览](#cli-总览) · [界面语言](#界面语言) · [输出语言](#状态栏语言) · [slash 支持](#slash-命令支持范围) |
+| 安装与版本 | [安装／诊断](#安装与诊断) · [首次设置](#首次设置与完整方案) · [版本管理与恢复](../PACKAGE_MANAGEMENT.zh-CN.md) |
+| 显示配置 | [配置命令](#配置命令详解) · [实例](#实例管理) · [分组](#分组操作) · [对齐](#主行对应列对齐) |
+| 外观与复用 | [显示／宿主选项](#显示与宿主选项) · [条件／颜色](#条件显示与外观) · [图形指标](#图形指标) · [自适应背景](#自适应指标与连续背景) · [选择性复用](#选择性复用显示设置) |
+| 方案与草稿 | [方案／项目](../PROFILES.zh-CN.md) · [完整方案](../SCHEMES.zh-CN.md) · [历史与结构审阅](../DRAFT_HISTORY.zh-CN.md) |
+| 来源与任务 | [来源管理](#数据源管理) · [绑定维护](#来源绑定维护) · [任务查看器](#交互任务查看器) · [输入诊断](../DIAGNOSTICS.zh-CN.md) |
+| 字段含义 | [目录](#可配置显示项) · [主栏](#主状态栏显示含义) · [子代理范围](#子-agent-行与三种作用域) · [指标定义](../DISPLAY_ITEMS.zh-CN.md) |
+| 文件与自动化 | [配置文件](#配置文件) · [路径／环境](#自定义配置目录与环境变量) · [退出码](#退出码) |
 
 ## CLI 总览
 
@@ -43,7 +28,7 @@ claude-statusline rollback [--version EXACT]
 claude-statusline recover --package [--version EXACT]
 claude-statusline recover --restore-config BACKUP_ID
 claude-statusline setup [--config-dir PATH] [--dry-run]
-claude-statusline configure [--config-dir PATH]
+claude-statusline configure [--config-dir PATH] [--user | --profile NAME | --project PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
 claude-statusline config [--config-dir PATH] set-items [ITEM...]
@@ -66,9 +51,18 @@ claude-statusline config [--config-dir PATH] language show [--json]
 claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
+claude-statusline config [--config-dir PATH] instance main|subagent ACTION ...
+claude-statusline config [--config-dir PATH] group main|subagent ACTION ...
+claude-statusline config [--config-dir PATH] alignment ACTION ...
+claude-statusline config [--config-dir PATH] profile ACTION ...
+claude-statusline config [--config-dir PATH] project ACTION ...
+claude-statusline source [--config-dir PATH] ACTION ...
+claude-statusline task show|view --session-id ID [--prompt-id ID] [--config-dir PATH]
+claude-statusline diagnose --input FILE|- [--scope main|subagent] [--config-dir PATH]
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
   [--native-editor | --no-native-editor]
+  [--native-timing | --no-native-timing]
   [--live-metrics | --no-live-metrics]
   [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
@@ -102,9 +96,11 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## 界面语言
 
+兼容别名 `zh-Hant` 在所有语言参数与旧配置中映射为 `zh-TW`；读取不改写文件，显式保存／导出使用规范代码。地区选项为 `zh-TW`（台湾）和 `zh-HK`（香港）。
+
 `config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}`，其中 `ui_language` 为所选受支持代码。`set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
 
-帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 保持稳定；实际状态栏采用独立显示语言。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
+帮助正文／分组、参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 保持稳定；实际状态栏采用独立显示语言。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
 
 ## 状态栏语言
 
@@ -121,7 +117,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 | `install --force` | 允许替换冲突的主栏、子 Agent 设置或同名 skill；原生插件身份冲突仍需解决归属 |
 | `uninstall [--dry-run]` | 移除或预览移除本工具接入，保留显示文件、偏好、状态和备份 |
 | `doctor` | 诊断安装，不重写配置、不打开编辑器 |
-| `configure` | 在当前终端打开 curses，要求配置有效、接入归属正确、输入输出为 TTY、尺寸至少 64×18 |
+| `configure` | 在当前终端打开 Node 终端编辑器，要求配置有效、接入归属正确、输入输出为 TTY、尺寸至少 64×18 |
 
 各命令均可在命令名后使用 `--config-dir PATH`。`install` 的四组独立偏好参数为：
 
@@ -189,7 +185,7 @@ Hide Vim mode indicator: no
 claude-statusline config show --json
 ```
 
-JSON 顶层的 `installed` 仍只说明当前 `settings.json/statusLine.command` 是否精确指向当前 PATH 中的 `claude-statusline render`，不表示 Python 包是否存在。`subagent_statusline` 另含 `enabled`、`installed` 和 `state`；`state` 只会是 `owned`、`absent`、`foreign`、`unsupported`。
+JSON 顶层的 `installed` 表示 `settings.json/statusLine.command` 是否为当前调用后端入口所拥有的渲染绑定，而非仅表示 npm 包存在。`subagent_statusline` 另含 `enabled`、`installed` 和 `state`；`state` 只会是 `owned`、`absent`、`foreign`、`unsupported`。
 
 ### `config list-items`
 
@@ -211,11 +207,11 @@ claude-statusline config list-items --json
 
 - `id`：传给其他命令的稳定标识符。
 - `description`：显示项说明。
-- `default_enabled`：主栏十个默认项为 `true`，其余 49 项为 `false`，需主动选择。
-- `enabled`：当前是否启用。
-- `position`：当前从 0 开始的顺序；禁用时为 `null`。
+- `default_enabled`：主栏十个默认指标为 `true`，其他目录类型为 `false`，需主动选择。
+- `enabled`：该类型是否至少有一个已启用实例。
+- `position`：该类型恰有一个启用实例时，返回从 0 开始的位置；否则为 `null`。
 
-共享目录还返回 `scope`、`label`、`group`、`sources`、`examples`、`default_position`、`minimum_version`、`minimum_version_status`、`format_options`、`excludes`、`unavailable_reasons`。版本元数据表示能力门槛，不代表数据已到达。子 Agent 目录共 14 项，默认启用 5 项。
+共享目录还返回 `scope`、`label`、`group`、`sources`、`examples`、`default_position`、`minimum_version`、`minimum_version_status`、`format_options`、`excludes`、`unavailable_reasons`。版本元数据表示能力门槛，不代表数据已到达。子代理目录有 15 个指标及文本、留白两种类型，默认启用五个指标。
 
 ### `config set-items [ITEM...]`
 
@@ -400,12 +396,14 @@ claude-statusline config item subagent task max-width none
 
 ### `config preset NAME [--dry-run]`
 
-预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、主题、Powerline 字形、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
+六种原有预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、主题、Powerline 字形、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
 
 ```text
 claude-statusline config preset developer --dry-run
 claude-statusline config preset developer
 ```
+
+同一命令也接受八套[完整方案](../SCHEMES.zh-CN.md)，它们还会设置全局外观。所有选择均保留输出语言及独立的采集／来源授权。
 
 `--dry-run` 校验并输出草稿，不保存。实际应用包含宿主设置，需要当前 CLI 拥有安装接入。
 
@@ -423,7 +421,7 @@ claude-statusline config import ./statusline.json
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
-当前 CLI 边界：向受保护的配置路径导出会产生未捕获的校验异常，以 1 退出并输出 traceback，但保护目标不被修改。使用独立导出路径，脚本将任何非零结果作为失败处理。
+向受保护的配置路径导出会被拒绝，返回配置错误和退出码 2，保护目标不被修改。使用独立导出路径，脚本将任何非零结果作为失败处理。
 
 ### `config reset`
 
@@ -443,7 +441,7 @@ claude-statusline config reset
 
 ## 可配置显示项
 
-主栏目录共有 61 个指标（含文本和留白共 63 种类型），下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+主栏目录有 65 个指标，子代理目录有 15 个指标；两者各有文本和留白两种布局类型（合计分别为 67／17 种类型），下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 默认启用以下全部条目，表格顺序也是首次使用时的默认显示顺序：
 
@@ -487,7 +485,7 @@ claude-statusline config reset
 | --- | --- | --- | --- |
 | `context-used` | `Context N% used`，使用 `round()` 取整 | Claude 官方 statusline payload 的 `context_window.used_percentage` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
 | `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 按当前平台路径语义取得的末级目录名；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
-| `hostname` | `Host NAME` | 本机 Python 标准库的 `socket.gethostname()`；不是 Claude Code 2.1.258+ payload 字段 | 调用抛出 `OSError`，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
+| `hostname` | `Host NAME` | 本机 Node 的 `os.hostname()`；不是 Claude Code 2.1.258+ payload 字段 | 本机名称查询失败，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
 
 可一次启用这三项：
 
@@ -795,9 +793,9 @@ claude-statusline config set refresh-interval event
 
 目录提供类型定义；`instances` 保存已配置位置。禁用实例及其选项继续保留，直到明确移除。两个作用域分别管理实例身份。
 
-配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
+配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[当前架构](../development/architecture.zh-CN.md#当前-typescript-workspace)。
 
-当前显示 schema 为 v16；历史 v1–v15 可读取，首次实际配置保存时备份并写为 v16。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前显示 schema 为 v17；历史 v1–v16 可读取，首次实际配置保存时备份并写为 v17。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -817,7 +815,7 @@ claude-statusline config set refresh-interval event
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-接受 `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja` 和 `ko`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
+接受 `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru` 和 `id`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
 
 ### 编辑器启用偏好
 
@@ -896,7 +894,7 @@ claude-statusline.cmd config show
 管理命令遵循以下约定：
 
 - `0`：命令成功；`doctor` 没有 ERROR。
-- `1`：`doctor` 至少发现一个 ERROR；未捕获 CLI 异常也可返回 1，包括上方受保护路径导出问题。
+- `1`：`doctor` 至少发现一个 ERROR，或设置预检阻止了所请求的接入。
 - `2`：参数解析失败，或已捕获的配置、所有权、安装操作校验失败。
 - `130`：交互式 TUI 收到 Ctrl+C/SIGINT，终端已恢复且配置未保存。
 - `128 + signal`：交互式 TUI 收到当前平台实际提供的终止信号，终端已恢复且配置未保存。
@@ -917,7 +915,7 @@ claude-statusline.cmd config show
 
 ## 首次设置与完整方案
 
-`setup` 串联检查、候选预览与明确的显示／接入提交。`--dry-run` 为只读且无需 TTY，普通非 TTY 调用退出码为 2，详见[设置向导](../SETUP.zh-CN.md)。新增三套完整预设 `daily-development`、`agent-focus`、`quota-watch`，有意定义完整全局外观；原六种预设保留原有展开行为。参见[方案文件与分享](../SCHEMES.zh-CN.md)。
+`setup` 串联检查、候选预览与明确的显示／接入提交。`--dry-run` 为只读且无需 TTY，普通非 TTY 调用退出码为 2，详见[设置向导](../SETUP.zh-CN.md)。八套完整方案定义布局及全局外观；原六种预设保留原有全局外观行为。参见[方案文件与分享](../SCHEMES.zh-CN.md)。
 
 `config set powerline-padding none|left|right|both`、`powerline-separator arrow|slash|bar|none`、`powerline-start-cap on|off`、`powerline-end-cap on|off`、`powerline-color-mode semantic|continuous|restart` 共用校验规则，控制 Powerline 色块，与宿主 padding 独立。[外观控制](../APPEARANCE.zh-CN.md)。
 
@@ -942,7 +940,6 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
 
-
 创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
 
 ## 图形指标
@@ -960,7 +957,6 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 `config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。
 
 `config instance main|subagent set ID foreground-gradient|background-gradient VALUE` 接受 `off`、`ocean`、`sunset`、`aurora` 或 2～5 个逗号分隔的 RGB 颜色。参见[静态组件渐变](../APPEARANCE.zh-CN.md#静态组件渐变)。
-
 
 ## 主行对应列对齐
 

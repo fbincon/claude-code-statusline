@@ -1,80 +1,43 @@
 # Development guide
 
-[I18N-02 delivery](i18n-02-delivery.md#final-release) records all three completed slices, v3.15.0 publication, public verification and actual-machine validation with restored preferences.
-
-
-
-[Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
-
 **English** | [简体中文](README.zh-CN.md)
 
-The v3.16.0 [twelve-language expansion](language-expansion.md#final-release) adds six UI/output languages and editor protocol 31, covering 144 combinations and 313 capacity cases. Publication and actual-machine status: complete; original identities and actual evidence remain in the delivery record.
+Start here to set up the TypeScript workspace, select checks and build an installed candidate. Daily use is covered by the [user guide](../USER_GUIDE.md), [CLI reference](../reference/cli.md) and [usage demonstrations](../SHOWCASE.md).
 
-[Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
-
-[Draft history, structural review and reuse](draft-history-and-reuse.md) documents the v3.13.0 UX-03, COMPOSITION-04 and IMPORT-02 delivery, editor protocol 29, acceptance and post-publication findings.
-
-
-[Source operations, command scheduling and package execution](source-command-package-management.md) covers SOURCES-01, COMMAND-02 and UPDATE-02 completion, delivered in v3.12.0.
-
-
-[Appearance, sample scenarios and explicit file diagnosis](appearance-preview-diagnosis.md) documents APPEARANCE-05, PREVIEW-01 and EXPLAIN-02.
-
-[The functional roadmap](roadmap.md#milestones) owns current priorities and work-package status; [the development plan](development-plan.md#future-work) defines scope, dependencies, slices and acceptance. Use those sources for the next task and the linked delivery records for implemented behavior. Planning edits do not implement features.
-
-[CI maintenance and Action identities](ci-maintenance.md) documents impact-scoped checks, candidate and maintenance evidence, promotion routes, Action identities and weekly update review.
-
-[Impact checks and maintenance evidence](impact-checks.md) defines scoped check planning, package comparison and the staged PR/main/tag evidence migration.
-
-[Contributing](../../CONTRIBUTING.md) covers feedback, translation and PR workflow; [repository maintenance](repository-governance.md) records main protection, security entry points, dependency alerts and release identity policy.
-
-[Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
-
-[Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
-
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
-
-For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIAGNOSTICS.md) and [implementation and acceptance](real-input-diagnostics.md).
-
-Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
-
-Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
-
-Start here to set up a development environment, run checks and build the package. User-facing workflows are in the [user guide](../USER_GUIDE.md); public commands are in the [CLI reference](../reference/cli.md).
-
-The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
-
-[First-batch correctness repairs and validation](correctness-maintenance.md) covers FIX-01–FIX-04, I18N-01, editor protocol 25 and source jobs 3.
+Development/builds use Node 24.21.0 and npm 11.19.0, pinned by [`.node-version`](../../.node-version) and [`package.json`](../../package.json). Product runtimes support Node 22/24. Normal development needs no Python; the [frozen Python reference](../../archive/python/README.md) has a separate manual procedure.
 
 ## Technical documentation
 
 ### Current development
 
-- [Repository agent guidance](../../AGENTS.md): shared workspace boundaries, canonical sources, validation and PR rules; maintained in English only.
-- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): current priorities/status, confirmed findings, scope, dependencies, compatibility and focused functional acceptance; delivered designs and evidence remain separate.
-- [Architecture](architecture.md) and [shared contracts](contracts.md).
-- [Translation contribution guide](i18n.md): incremental authoring, development fallback and strict public-release readiness. [Multilingual workflow](i18n-workflow.md) and [I18N-02 implementation](i18n-02-delivery.md) document state, source binding and validation.
-- [Testing and acceptance](testing.md).
-- [Native editor integration](native.md). [Capacity and recovery](native-capacity.md).
-- [Task timing](timer.md) and [live metrics](live.md).
-- [Release process](../RELEASING.md).
+| Task | Entry points |
+| --- | --- |
+| Follow workspace and contribution rules | [AGENTS.md](../../AGENTS.md), maintained in English · [Contributing](../../CONTRIBUTING.md) · [Repository governance](repository-governance.md) |
+| Understand the implementation | [Architecture](architecture.md) · [Shared contracts](contracts.md) · [Rendering and Unicode](rendering.md) |
+| Select validation and CI evidence | [Testing and acceptance](testing.md) · [Impact checks](impact-checks.md) · [CI maintenance/promotion](ci-maintenance.md) |
+| Work on host integrations | [Native editor](native.md) · [Capacity/recovery](native-capacity.md) · [Task timing](timer.md) · [Live metrics](live.md) |
+| Maintain languages | [Translation guide](i18n.md) · [Multilingual workflow](i18n-workflow.md) |
+| Produce and verify media | [Image index](../images/README.md) · [SHOWCASE-01 evidence](showcase.md) |
+| Prepare a publication | [Release process](../RELEASING.md) |
+
+The [roadmap](roadmap.md#milestones) owns current priorities and work-package status; the [development plan](development-plan.md#future-work) owns scope, dependencies, slices and acceptance. The [candidate pool](roadmap.md#candidates) contains unselected ideas. Planning edits and historical delivery records do not announce new behavior.
 
 ### Migration and delivery records
 
-- [Post-migration repairs and delivery](post-migration-fixes.md): all eleven findings, exact usage identities and v3.1.3 evidence.
-- [Post-migration findings and documentation updates](post-migration-review.md): four-session consolidation of six migration findings, five baseline defects or shared risks, and five documentation conflict categories.
-- [External TUI regression repairs](external-tui-regressions.md): v3.1.2 catalog guidance, text, navigation, color and notice fixes.
-- [External TUI parity follow-up](external-tui-parity.md): v3.1.1 rendering, contextual controls and source-bound validation.
-- [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
-- [PERF-01 post-migration performance plan](performance/perf-01.md): completed on 2026-10-19; independent TS controls and the original D06 failure evidence are preserved.
-- [TS-01 frozen reference and inventory](typescript-migration/ts-01/README.md): reproducible cases, tooling and validation evidence.
-- [TS-02 platform probes and decisions](typescript-migration/ts-02/README.md): native adapters, installation experiments, performance policy and remaining gates.
-- [TS-03 shared core and backend](typescript-migration/ts-03/README.md): workspace, six implementation batches, compatibility differences and acceptance.
-- [TS-04 editors, installation and recovery](typescript-migration/ts-04/README.md): [installed candidate acceptance](typescript-migration/ts-04/candidate.md) and [explicit recovery](typescript-migration/ts-04/recovery.md).
-- [Linux integration, physical acceptance and approved release deferrals](typescript-migration/ts-02/LINUX-20261014.md).
-- [v1.13.0 language performance](performance-v1.13.0.md): isolated language loading, prepared search and 2/5/10-language resource controls.
-- [v1.12.0 performance comparison](performance-v1.12.0.md): default-path controls, retained small costs and opt-in appearance measurements.
-- [v1.11.0 performance comparison](performance-v1.11.0.md): complete scenarios, raw-data provenance and follow-up controls.
+These records preserve feature-introduction versions, source identities, original checks and limitations. Use the current user guides and shared contracts for present behavior; a later documentation edit does not change an earlier acceptance result.
+
+| Area | Delivery records |
+| --- | --- |
+| Languages | [Twelve-language expansion](language-expansion.md) · [I18N-02 lifecycle](i18n-02-delivery.md) · [Node and regional languages](node-regional-languages.md) |
+| Appearance, drafts and reuse | [Adaptive rows and scenes](adaptive-row-scenarios.md) · [Draft history and reuse](draft-history-and-reuse.md) · [Appearance/previews/diagnosis](appearance-preview-diagnosis.md) |
+| Tasks, sources and packages | [Task/version review](task-version-review.md) · [Source/command/package execution](source-command-package-management.md) · [Extensions](extensions.md) |
+| Setup and configuration | [Setup/complete schemes](setup-appearance.md) · [Configuration experience](configuration-experience.md) · [Profiles/projects/tasks](profiles-projects-tasks.md) · [Real-input diagnosis](real-input-diagnostics.md) |
+| Earlier milestones and repairs | [M4–M7](m4-m7-delivery.md) · [M8–M9](m8-m9-delivery.md) · [M10–M12](m10-m12-delivery.md) · [Correctness maintenance](correctness-maintenance.md) |
+| Post-migration review | [Findings](post-migration-review.md) · [Repairs](post-migration-fixes.md) · [External TUI parity](external-tui-parity.md) · [External TUI regressions](external-tui-regressions.md) |
+| Performance | [Completed PERF-01](performance/perf-01.md) · [v1.13.0](performance-v1.13.0.md) · [v1.12.0](performance-v1.12.0.md) · [v1.11.0](performance-v1.11.0.md) |
+| Demonstration delivery | [SHOWCASE-01](showcase.md) |
+
+The [TypeScript migration plan](typescript-migration.md) links the completed stages: [TS-01 reference](typescript-migration/ts-01/README.md), [TS-02 probes](typescript-migration/ts-02/README.md), [TS-03 core/backend](typescript-migration/ts-03/README.md), [TS-04 editors/recovery](typescript-migration/ts-04/README.md), [TS-05 candidates](typescript-migration/ts-05/README.md) and [TS-06 publication](typescript-migration/ts-06/README.md). Original [TS-04 candidate](typescript-migration/ts-04/candidate.md), [recovery](typescript-migration/ts-04/recovery.md) and [Linux physical/deferred acceptance](typescript-migration/ts-02/LINUX-20261014.md) remain historical evidence.
 
 ## Contents
 
@@ -95,18 +58,28 @@ Install pinned Node 24.21.0/npm 11.19.0, Git and Git LFS, then run from the chec
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
-npm run check
 ```
 
-Development is independent of the installed pipx product. Normal workflows need no Python, pip, Ruff, wheel or native compiler.
+Development is independent of the installed product. Normal workflows need no Python, pip, Ruff, wheel or native compiler.
 
 <a id="运行检查"></a>
 
 ### Run checks
 
-`npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
-`tools/generation/` maintains twelve languages, two Mods and skill templates; it never regenerates the Python archive.
-Eight installations, 32 Node runtime cases and sixteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately. See [CI maintenance](ci-maintenance.md) for execution sharing, draft checks and diagnostics.
+Select checks from the actual responsibilities changed:
+
+| Change | Local entry |
+| --- | --- |
+| Maintained documentation/templates | `npm run docs:check` and `git diff --check` |
+| Committed maintenance, including media/tools | `npm run ci:plan` and the selected `npm run ci:check` tasks; package-sensitive plans require `--compare` |
+| Core product behavior | `npm run check` and `git diff --check` |
+| Canonical generated resources | `npm run generate` followed by `npm run generate:check`, plus the applicable checks above |
+
+Use immutable commits and new report paths as described in [impact checks](impact-checks.md). Mixed changes combine their obligations; unknown ownership or unresolved comparisons block. Local checks do not replace the final-head `Complete candidate evidence` gate or verified main promotion. [CI routing](ci-maintenance.md).
+
+`npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and responsibility ledgers. `tools/generation/` owns current language/Mod/skill outputs and never regenerates the Python archive. After building, `npm run test:runtime` tests compiled products under a supported Node without rebuilding.
+
+Complete product acceptance includes eight installed targets, 32 Node cases, sixteen fixed host combinations and applicable native-capacity cases consuming matching artifacts. Missing 2.1.296 declarations remain explicit. Execution sharing, draft checks and diagnostics retain separate meanings; see [testing and acceptance](testing.md).
 
 ### Clean compiled outputs
 
@@ -141,7 +114,7 @@ Do not use pipx to install current main; published Python tags and wheels remain
 
 `test:installed` accepts an artifact, fixed commit and report path, and uses an outside-checkout installation with an empty cache, offline mode, disabled lifecycle scripts and no Python/compiler on PATH.
 `test:mods` validates fixed official hosts and actual installed bindings. `reference:verify` is the separate manual Python historical entry; see [testing](testing.md).
-Terminal, power and paid acceptance require explicit invocation. Ordinary CI makes no paid calls. Preserve the installed Python product and real configuration.
+Terminal, power and paid acceptance require explicit invocation. Ordinary CI makes no paid calls. Preserve the ordinary installed product and real configuration.
 
 <a id="appendix-internal-commands"></a>
 <a id="附录内部命令"></a>
@@ -282,5 +255,3 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 ## Public package delivery
 
 See [TS-06](typescript-migration/ts-06/README.md), the [installation guide](../USER_GUIDE.md#installation-and-integration) and [release process](../RELEASING.md). Engineering candidate and public package identities remain distinct.
-
-[M4–M7 implementation and delivery](m4-m7-delivery.md).
