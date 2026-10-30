@@ -7,11 +7,11 @@
     "groups": [],
     "use_colors": true,
     "palette": "default",
-    "directory_style": "project-relative",
-    "separator_style": "compact",
+    "directory_style": "full",
+    "separator_style": "classic",
     "scope_labels": "when-subagents",
     "statusline_language": "en",
-    "theme": "terminal",
+    "theme": "classic",
     "powerline_glyph": "ascii",
     "powerline": {
       "padding": "both",
@@ -32,6 +32,11 @@
           "type_id": "status",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#d9f99d",
+              "#86efac",
+              "#5eead4"
+            ],
             "label": null,
             "icon": null,
             "priority": 100,
@@ -49,6 +54,11 @@
           "type_id": "name",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#fef08a",
+              "#fcd34d",
+              "#fde68a"
+            ],
             "label": null,
             "icon": null,
             "priority": 95,
@@ -68,6 +78,10 @@
           "options": {
             "presentation": "adaptive",
             "bar_width": 4,
+            "foreground_gradient": [
+              "#22d3ee",
+              "#3b82f6"
+            ],
             "label": null,
             "icon": null,
             "priority": 90,
@@ -85,6 +99,11 @@
           "type_id": "elapsed",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#fed7aa",
+              "#fde68a",
+              "#d9f99d"
+            ],
             "label": null,
             "icon": null,
             "priority": 85,
@@ -101,22 +120,33 @@
       "groups": []
     },
     "formatting": {
-      "model_name": "short",
-      "number_format": "compact",
-      "labels": "off",
-      "icons": "ascii",
+      "model_name": "original",
+      "number_format": "legacy",
+      "labels": "legacy",
+      "icons": "legacy",
       "allowance": "remaining",
       "reset_format": "countdown",
       "reset_timezone": "local",
       "thresholds": {
-        "enabled": true,
+        "enabled": false,
         "warning": 70,
         "critical": 90
       }
     },
     "layout": {
-      "mode": "auto",
-      "rows": []
+      "mode": "explicit",
+      "rows": [
+        [
+          "model-with-effort"
+        ],
+        [
+          "current-dir"
+        ],
+        [
+          "context-remaining",
+          "task-timer"
+        ]
+      ]
     },
     "metrics": {
       "branch_diff_base_ref": null
@@ -127,6 +157,11 @@
         "type_id": "model-with-effort",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#fbcfe8",
+            "#e9d5ff",
+            "#dbeafe"
+          ],
           "label": null,
           "icon": null,
           "priority": 90,
@@ -144,10 +179,15 @@
         "type_id": "current-dir",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#fb923c",
+            "#f472b6",
+            "#a78bfa"
+          ],
           "label": null,
           "icon": null,
           "priority": 89,
-          "max_width": 12,
+          "max_width": null,
           "formatting": {},
           "foreground": null,
           "background": null,
@@ -163,6 +203,10 @@
         "options": {
           "presentation": "adaptive",
           "bar_width": 4,
+          "foreground_gradient": [
+            "#22d3ee",
+            "#3b82f6"
+          ],
           "label": null,
           "icon": null,
           "priority": 99,
@@ -180,6 +224,11 @@
         "type_id": "task-timer",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#99f6e4",
+            "#67e8f9",
+            "#93c5fd"
+          ],
           "label": null,
           "icon": null,
           "priority": 100,
