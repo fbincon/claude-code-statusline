@@ -122,7 +122,8 @@ export async function collectJourneys(options: { fixture: string; output: string
     const timedStream = join(resolve(options.fixture, '..'), 'parallel/timed-stream.json'), events = read(timedStream);
     const taskVerification = verifyPaidEvents('parallel', events);
     const actualTask = JSON.parse(run(['task', 'show', '--session-id', taskSession, '--json']));
-    requireActualTask(actualTask, taskSession, events.filter((row: any) => row.message.type === 'system' && row.message.subtype === 'task_started').map((row: any) => row.message.task_id));
+    requireActualTask(actualTask, taskSession, events.filter((row: any) => row.message.type === 'system' && row.message.subtype === 'task_started'
+        && row.message.subagent_type === 'showcase-probe').map((row: any) => row.message.task_id));
     write(join(output, 'actual-task.json'), actualTask);
     receipt.actual_task = { ...taskVerification, report_sha256: sha256(fs.readFileSync(join(output, 'actual-task.json'))),
         original_paid_receipt_sha256: sha256(fs.readFileSync(join(resolve(options.fixture, '..'), 'receipt.json'))),
