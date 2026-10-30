@@ -674,7 +674,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 ## SHOWCASE-01 首页与使用演示
 
-**实施记录。** [前置覆盖、采集与验收](showcase.zh-CN.md)与[用户走查](../SHOWCASE.zh-CN.md)配套，当前状态仍由路线图维护。已批准实施固定 v3.16.0，使用非 Powerline 素材，不增加产品行为或发布。
+**交付记录。** [前置覆盖、采集与验收](showcase.zh-CN.md#delivery)与[用户走查](../SHOWCASE.zh-CN.md)配套，当前状态仍由路线图维护。已交付实现固定 v3.16.0，使用非 Powerline 素材，不增加产品行为或发布。以下段落保留原始范围及验收意图。
 
 **排期。** 保留既有 ID，状态查阅[路线图](roadmap.zh-CN.md#milestones)。十八个正式后续工作包及 UPDATE-02／SOURCES-01／TASK-02 等全部切片验收后再启动，替代原 M8–M12 后进入 M13 的排期。未选定候选不增加前置条件。
 
