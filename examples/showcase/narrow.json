@@ -1,0 +1,197 @@
+{
+  "format": "claude-code-statusline-profile",
+  "version": 1,
+  "name": "Showcase narrow",
+  "display": {
+    "schema_version": 17,
+    "groups": [],
+    "use_colors": true,
+    "palette": "default",
+    "directory_style": "project-relative",
+    "separator_style": "compact",
+    "scope_labels": "when-subagents",
+    "statusline_language": "en",
+    "theme": "terminal",
+    "powerline_glyph": "ascii",
+    "powerline": {
+      "padding": "both",
+      "separator": "arrow",
+      "start_cap": false,
+      "end_cap": true,
+      "color_mode": "semantic"
+    },
+    "subagents": {
+      "enabled": true,
+      "visibility": "all",
+      "hide_completed": false,
+      "row_limit": null,
+      "task_max_width": null,
+      "instances": [
+        {
+          "id": "status",
+          "type_id": "status",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 100,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "name",
+          "type_id": "name",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 95,
+            "max_width": 24,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "context-remaining",
+          "type_id": "context-remaining",
+          "enabled": true,
+          "options": {
+            "presentation": "adaptive",
+            "bar_width": 4,
+            "label": null,
+            "icon": null,
+            "priority": 90,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "elapsed",
+          "type_id": "elapsed",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 85,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        }
+      ],
+      "groups": []
+    },
+    "formatting": {
+      "model_name": "short",
+      "number_format": "compact",
+      "labels": "off",
+      "icons": "ascii",
+      "allowance": "remaining",
+      "reset_format": "countdown",
+      "reset_timezone": "local",
+      "thresholds": {
+        "enabled": true,
+        "warning": 70,
+        "critical": 90
+      }
+    },
+    "layout": {
+      "mode": "auto",
+      "rows": []
+    },
+    "metrics": {
+      "branch_diff_base_ref": null
+    },
+    "instances": [
+      {
+        "id": "model-with-effort",
+        "type_id": "model-with-effort",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 90,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "current-dir",
+        "type_id": "current-dir",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 89,
+          "max_width": 12,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "context-remaining",
+        "type_id": "context-remaining",
+        "enabled": true,
+        "options": {
+          "presentation": "adaptive",
+          "bar_width": 4,
+          "label": null,
+          "icon": null,
+          "priority": 99,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "task-timer",
+        "type_id": "task-timer",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 100,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      }
+    ]
+  }
+}
