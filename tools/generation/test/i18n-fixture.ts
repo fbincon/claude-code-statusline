@@ -2,15 +2,15 @@
 import { DATA_ROOT, RESOURCE_ROOT, canonical, contextFor, hash, placeholders, readJson, signature, type Acceptance, type Contract, type History } from '../i18n/analysis.js';
 
 export const put = (inputs: Map<string, Uint8Array>, path: string, value: unknown) => inputs.set(path, Buffer.from(JSON.stringify(value)));
-export function fixture(community = false): Map<string, Uint8Array> {
+export function fixture(community = false, communityCode = 'pl'): Map<string, Uint8Array> {
     const inputs = new Map<string, Uint8Array>();
     inputs.set('tools/generation/resources.ts', Buffer.from('// Synthetic generator identity\n'));
     inputs.set('tools/generation/i18n/analysis.ts', Buffer.from('// Synthetic analysis identity\n'));
-    const codes = ['en', 'zh-CN', 'ja', ...(community ? ['fr'] : [])];
+    const codes = ['en', 'zh-CN', 'ja', ...(community ? [communityCode] : [])];
     put(inputs, RESOURCE_ROOT + 'languages.json', codes.map(code => ({ code, name: code })));
     const english = { hello: 'Hello {name}', 'statusline.example': 'Count {count}', term: 'Git' };
     for (const code of codes) put(inputs, RESOURCE_ROOT + 'locales/' + code + '.json', { ...english, ...(code === 'en' ? {} : { hello: code + ' {name}' }) });
-    put(inputs, DATA_ROOT + 'policy.json', { schema_version: 1, signature_version: 1, validation_version: 1, languages: Object.fromEntries(codes.map(code => [code, code === 'ja' ? 'B' : code === 'fr' ? 'C' : 'A'])) });
+    put(inputs, DATA_ROOT + 'policy.json', { schema_version: 1, signature_version: 1, validation_version: 1, languages: Object.fromEntries(codes.map(code => [code, code === 'ja' ? 'B' : code === communityCode ? 'C' : 'A'])) });
     put(inputs, DATA_ROOT + 'context.json', { schema_version: 1, entries: {} });
     put(inputs, DATA_ROOT + 'terminology.json', { schema_version: 1, entries: {} });
     put(inputs, DATA_ROOT + 'history.json', { schema_version: 1, contracts: {}, entries: {} });

@@ -95,8 +95,11 @@ export function languageOutputs(root = ROOT, source = languages(join(root, 'pack
     + 'export function resolveLanguage(value: unknown): Language | null {\n'
     + '  const code = typeof value === "string" && Object.hasOwn(LANGUAGE_ALIASES, value) ? LANGUAGE_ALIASES[value] : value;\n'
     + '  return typeof code === "string" && (LANGUAGES as readonly string[]).includes(code) ? code as Language : null;\n}\n';
-  const all = registryText + 'export const LOCALES = ' + json(data, 2, false) + ' as const;\nexport type MessageKey = keyof typeof LOCALES.en;\n'
-    + 'export const FALLBACK_KEYS = ' + json(fallbacks, undefined, false) + ' as const;\n';
+  // Bound declaration output as languages grow without widening message keys.
+  const messageKeys = Object.keys(data.en!).map(key => JSON.stringify(key)).join(' | ');
+  const all = registryText + 'export type MessageKey = ' + messageKeys + ';\n'
+    + 'export const LOCALES: Readonly<Record<Language, Readonly<Record<MessageKey, string>>>> = ' + json(data, 2, false) + ';\n'
+    + 'export const FALLBACK_KEYS: Readonly<Record<Language, readonly string[]>> = ' + json(fallbacks, undefined, false) + ';\n';
   outputs.set('packages/core/src/i18n/registry.ts', registryText);
   outputs.set('packages/core/src/i18n/generated-locales.ts', all);
   // Official hosts bound each imported module to 1 MiB. Keep the aggregate
@@ -108,6 +111,7 @@ export function languageOutputs(root = ROOT, source = languages(join(root, 'pack
   for (const { code } of registry) {
     const messages = Object.fromEntries(Object.entries(data[code]!).filter(([key]) => key.startsWith('statusline.')));
     outputs.set('packages/core/src/i18n/statusline/' + code + '.ts', header + 'export const MESSAGES = ' + json(messages, 2, false) + ' as const;\n');
+    outputs.set('mods/statusline-native/tests/integration/generated-language-' + code + '.test.ts', header + "import { registerLanguagePairs } from './language-pairs.ts';\nregisterLanguagePairs(" + json(code) + ');\n');
   }
   return outputs;
 }
@@ -153,7 +157,7 @@ export function unicodeOutputs(root = ROOT): Map<string, string> {
 
 export function outputs(root = ROOT): Map<string, string> {
   const languageSource = languages(join(root, 'packages/core/resources/i18n'));
-  const result = new Map([...languageOutputs(root, languageSource), ...unicodeOutputs(root), ...nativeCapacityFixtures()]);
+  const result = new Map([...languageOutputs(root, languageSource), ...unicodeOutputs(root), ...nativeCapacityFixtures(languageSource)]);
   for (const [source, destination] of editorSources(root)) {
     let body = utf8(join(root, source));
     const backend = source.endsWith('/backend.ts'), text = source.endsWith('/text.ts');
@@ -215,13 +219,21 @@ export function editorSources(root = ROOT): [string, string][] {
   ]);
 }
 
-export function obsoleteOutputs(values: ReadonlyMap<string, string>, root = ROOT): string[] {
+export function obsoleteOutputs(values: ReadonlyMap<string, string>, root = ROOT, scope: 'all' | 'languages' = 'all'): string[] {
   const obsolete: string[] = [];
   const fixtures = 'mods/statusline-native/tests';
-  for (const name of fs.existsSync(join(root, fixtures)) ? fs.readdirSync(join(root, fixtures)) : []) {
+  for (const name of scope === 'all' && fs.existsSync(join(root, fixtures)) ? fs.readdirSync(join(root, fixtures)) : []) {
     const path = fixtures + '/' + name;
     if (/^generated-capacity-values-\d+\.ts$/.test(name) && !values.has(path)) {
       if (!utf8(join(root, path)).startsWith(header)) throw new Error('Unowned capacity fixture');
+      obsolete.push(path);
+    }
+  }
+  const languageTests = 'mods/statusline-native/tests/integration';
+  for (const name of fs.existsSync(join(root, languageTests)) ? fs.readdirSync(join(root, languageTests)) : []) {
+    const path = languageTests + '/' + name;
+    if (/^generated-language-[A-Za-z0-9-]+\.test\.ts$/u.test(name) && !values.has(path)) {
+      if (!utf8(join(root, path)).startsWith(header)) throw new Error('Unowned language test entry');
       obsolete.push(path);
     }
   }
@@ -238,6 +250,21 @@ export function obsoleteOutputs(values: ReadonlyMap<string, string>, root = ROOT
   return obsolete;
 }
 
+/** Explicit language bootstrap never rewrites contracts, capacity data or other resources. */
+export function generateResources(root = ROOT, options: { check?: boolean; languagesOnly?: boolean } = {}) {
+  const check = options.check ?? false, languagesOnly = options.languagesOnly ?? false;
+  const values = languagesOnly ? languageOutputs(root) : outputs(root);
+  const obsolete = obsoleteOutputs(values, root, languagesOnly ? 'languages' : 'all');
+  if (check && obsolete.length) throw new Error('Obsolete generated resources: ' + obsolete.join(', '));
+  for (const [name, value] of values) {
+    const path = join(root, name);
+    if (check) { if (!fs.existsSync(path) || utf8(path) !== value) throw new Error('Stale generated resource: ' + name); }
+    else { fs.mkdirSync(resolve(path, '..'), { recursive: true }); fs.writeFileSync(path, value, 'utf8'); }
+  }
+  if (!check) for (const name of obsolete) fs.unlinkSync(join(root, name));
+  return { generated_resources: values.size, check, languages_only: languagesOnly };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const check = process.argv.includes('--check');
   if (process.argv.includes('--coverage') && process.argv.length === 3) {
@@ -250,15 +277,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     console.log(JSON.stringify(coverage, null, 2));
     process.exit(Object.values(coverage).some(row => row.missing.length) ? 1 : 0);
   }
-  if (process.argv.slice(2).some(arg => arg !== '--check')) throw new Error('Usage: resources [--check | --coverage]');
-  const values = outputs();
-  const obsolete = obsoleteOutputs(values);
-  if (check && obsolete.length) throw new Error('Obsolete generated resources: ' + obsolete.join(', '));
-  for (const [name, value] of values) {
-    const path = join(ROOT, name);
-    if (check) { if (!fs.existsSync(path) || utf8(path) !== value) throw new Error('Stale generated resource: ' + name); }
-    else { fs.mkdirSync(resolve(path, '..'), { recursive: true }); fs.writeFileSync(path, value, 'utf8'); }
-  }
-  if (!check) for (const name of obsolete) fs.unlinkSync(join(ROOT, name));
-  console.log(JSON.stringify({ generated_resources: values.size, check }));
+  if (process.argv.slice(2).some(arg => !['--check', '--languages-only'].includes(arg))) throw new Error('Usage: resources [--check] [--languages-only] | --coverage');
+  console.log(JSON.stringify(generateResources(ROOT, { check, languagesOnly: process.argv.includes('--languages-only') })));
 }

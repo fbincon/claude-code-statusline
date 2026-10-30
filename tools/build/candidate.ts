@@ -2,6 +2,8 @@ import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import * as tar from 'tar';
@@ -9,6 +11,25 @@ import { repoRoot } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
 import { identity, sourceFilename, channel, type Channel } from './model.js';
 import { verifyCandidate } from './verify.js';
+
+/** Check exported bytes against Git's independent blob identities before making a manifest. */
+export function verifyGitSource(entries: ReadonlyMap<string, Buffer>, tree: string): void {
+    assert(tree.endsWith('\0'), 'Incomplete Git source inventory');
+    assert(!entries.has('.candidate-source.json'), 'Reserved source manifest is tracked');
+    const expected = new Map<string, string>();
+    for (const row of tree.slice(0, -1).split('\0')) {
+        const separator = row.indexOf('\t'), header = row.slice(0, separator), name = row.slice(separator + 1);
+        const match = /^(100644|100755) blob ([a-f0-9]{40})$/u.exec(header);
+        assert(separator > 0 && match && name && !expected.has(name), 'Unsupported or duplicate Git source entry');
+        expected.set(name, match[2]!);
+    }
+    assert.deepEqual([...entries.keys()].sort(), [...expected.keys()].sort(), 'Git source inventory differs');
+    for (const [name, object] of expected) {
+        const bytes = entries.get(name)!;
+        const actual = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
+        assert.equal(actual, object, 'Git source bytes differ: ' + name);
+    }
+}
 
 export async function buildCandidate(commit: string, output: string, sourceArchive?: string, kind: Channel = 'candidate') {
     const product = identity(commit, kind);
@@ -24,6 +45,8 @@ export async function buildCandidate(commit: string, output: string, sourceArchi
             const archive = join(temporary, 'source.tar');
             execFileSync('git', ['archive', '--format=tar', '--prefix=statusline-source/', '--output=' + archive, commit], { cwd: repoRoot, timeout: 60000 });
             original = readTar(archive, 'statusline-source/');
+            const tree = execFileSync('git', ['ls-tree', '-rz', '--full-tree', commit], { cwd: repoRoot, encoding: 'utf8', timeout: 60000, maxBuffer: 16 * 1024 * 1024 });
+            verifyGitSource(original, tree);
             original.set('.candidate-source.json', Buffer.from(JSON.stringify({ schema_version: 1, commit, files: Object.fromEntries([...original].map(([name, bytes]) => [name, sha256(bytes)]).sort(([a], [b]) => a! < b! ? -1 : 1)) }, null, 2) + '\n'));
         }
         const source = JSON.parse(original.get('.candidate-source.json')?.toString() ?? '{}');

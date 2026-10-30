@@ -7,6 +7,9 @@
 [Adaptive indicators, row backgrounds and scenarios](adaptive-row-scenarios.md) covers APPEARANCE-07, APPEARANCE-06, PROFILE-02, schema 17/protocol 30, 271 capacity cases and signature verification.
 
 **English** | [简体中文](README.zh-CN.md)
+
+The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+
 [Task browsing and version review](task-version-review.md) covers TASK-02 and UPDATE-02 slice 1.
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents the v3.13.0 UX-03, COMPOSITION-04 and IMPORT-02 delivery, editor protocol 29, acceptance and post-publication findings.
@@ -102,7 +105,7 @@ Development is independent of the installed pipx product. Normal workflows need 
 ### Run checks
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
-`tools/generation/` maintains six languages, two Mods and skill templates; it never regenerates the Python archive.
+`tools/generation/` maintains twelve languages, two Mods and skill templates; it never regenerates the Python archive.
 Eight installations, 32 Node runtime cases and sixteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately. See [CI maintenance](ci-maintenance.md) for execution sharing, draft checks and diagnostics.
 
 ### Clean compiled outputs

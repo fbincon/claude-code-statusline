@@ -23,7 +23,7 @@ test('legacy Traditional preferences and display schemas normalize without rewri
   assert.equal(JSON.parse(readFileSync(preferences, 'utf8')).ui_language, 'zh-TW');
   assert.equal(resolveLanguage('zh-Hant'), 'zh-TW');
   for (const unknown of ['zh', 'zh-tw', 'zh-Hant-HK', 'constructor', '__proto__']) assert.equal(resolveLanguage(unknown), null);
-  assert.deepEqual([...LANGUAGES], ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']);
+  assert.deepEqual([...LANGUAGES], ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko', 'es', 'fr', 'de', 'pt-BR', 'ru', 'id']);
 });
 
 test('legacy CLI arguments and portable imports save canonical Taiwan without changing other language settings', async t => {
@@ -49,4 +49,26 @@ test('Taiwan and Hong Kong use distinct regional terminology and preserve techni
   assert.match(message(key, 'zh-TW'), /軟體/u);
   assert.match(message(key, 'zh-HK'), /軟件/u);
   assert.match(message('cli.language', 'zh-TW', { language: 'English' }), /介面語言/u);
+});
+
+test('expanded language preferences and displays read without rewriting and old frontends require reinstall', t => {
+  const f = setup(t), path = join(f.root, 'statusline-ui.json');
+  for (const language of ['es', 'fr', 'de', 'pt-BR', 'ru', 'id'] as const) {
+    const preferences = jsonBytes({ schema_version: 1, ui_language: language });
+    const display = jsonBytes({ ...defaultDisplay(), statusline_language: language });
+    writeFileSync(path, preferences); writeFileSync(f.displayPath, display);
+    assert.equal(readPreferences(f.root).ui_language, language);
+    assert.equal(f.service.read().display.statusline_language, language);
+    assert.deepEqual(readFileSync(path), preferences);
+    assert.deepEqual(readFileSync(f.displayPath), display);
+  }
+  const before = readFileSync(f.displayPath);
+  const stale = f.protocol.handle('{"protocol_version":30,"operation":"read","payload":{}}');
+  assert.equal(stale.status, 2);
+  assert.equal((stale.response as any).protocol_version, 31);
+  assert.equal((stale.response as any).error.code, 'unsupported_protocol');
+  assert.deepEqual(readFileSync(f.displayPath), before);
+  for (const unknown of ['es-ES', 'fr-FR', 'de-DE', 'pt', 'pt-br', 'ru-RU', 'id-ID']) {
+    assert.equal(resolveLanguage(unknown), null);
+  }
 });

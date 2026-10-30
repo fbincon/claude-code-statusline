@@ -8,6 +8,8 @@
 
 [English](README.md) | **简体中文**
 
+进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+
 [按影响检查与维护证据](impact-checks.zh-CN.md)定义专项检查规划、包内容比较及分阶段 PR/main/tag 证据迁移。
 [任务浏览与版本审核](task-version-review.zh-CN.md)说明 TASK-02 和 UPDATE-02 第一片。
 
@@ -97,7 +99,7 @@ npm run check
 ### 运行检查
 
 `npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
-六种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
+十二种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
 八目标安装、32 个 Node 运行时用例和十六个固定宿主组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。执行共享、草稿快检和诊断见 [CI 维护](ci-maintenance.zh-CN.md)。
 
 ### 清理编译输出

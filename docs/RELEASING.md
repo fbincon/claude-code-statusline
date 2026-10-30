@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.16.0 language expansion
+
+Use the [version decision](releases/approvals/v3.16.0.json). Require all twelve A/B languages to be accepted, 144 independent UI/output combinations and 313 actual-host capacity cases, preserving all 283 previous scenarios. Retain eight installations, 32 Node cases and sixteen fixed hosts. Final PR/main/tag gates, independent/source rebuilds, four matching assets, npm OIDC and public-download/signature verification must pass before completing publication. Synchronize Gitee with explicit refs and verified assets, then upgrade and exercise the test machine with preferences restored. No paid model tests are planned; post-publication findings receive issues without a patch. [Implementation and evidence](development/language-expansion.md).
+
 
 ## v3.15.0 incremental language workflow
 
@@ -46,6 +50,8 @@ Release preparation follows the [impact plan](development/impact-checks.md). Cor
 A maintenance PR runs its scoped checks; main independently verifies its source and receipts. A tag at an accepted maintenance source builds a new package/source/manifest/checksum set bound to that source, verifies independent and source-archive rebuilds, compares product payloads using accepted code, and runs three-platform installation smoke. Release binding explicitly links the original complete product coverage and intervening maintenance evidence. Tag SHA, package source SHA and npm provenance agree; no old package or receipt is relabeled.
 
 Register each approved stable version in [the approval registry](releases/approvals/registry.json) with its decision JSON, exact approval date and existing six-gap scope. Approval data alone uses release-specific checks, not the product matrix. Registration and decision hashes are verified from the current immutable source archive. Latest failed runs, missing/expired/corrupt evidence, invalid approval or incompatible schemas block; manual diagnostics and older green runs cannot substitute. See [CI routing](development/ci-maintenance.md#route-table-and-blocking-conditions).
+
+Git source exports must match the immutable tree before a candidate manifest is created: compare the exact regular-file inventory and every Git blob identity without normalizing binary, Unicode or newline bytes. The bounded tar reader owns each received chunk, including entries spanning its input-buffer boundaries. Delivered-source rebuilds still validate the recorded manifest and checksums without requiring Git history.
 
 Historical releases below retain their actual gates and identities. A dry-run validates preparation and bytes, not a new tag/OIDC publication. Repository maintenance does not require a new product version.
 

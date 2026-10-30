@@ -21,6 +21,6 @@ tools/acceptance/** text eol=lf
 tools/build/** text eol=lf
 tools/benchmarks/** text eol=lf
 tests/fixtures/migration/ts-05/** text eol=lf
-# Shared Mod code is part of TS-03 source receipts.
+# Mod code and control JSON must match immutable source bytes on every platform.
 mods/**/*.ts text eol=lf
-mods/**/.claude-plugin/plugin.json text eol=lf
+mods/**/*.json text eol=lf

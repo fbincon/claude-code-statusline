@@ -157,11 +157,11 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 ## Interface language
 
-Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-TW` (Traditional Chinese, Taiwan), `zh-HK` (Traditional Chinese, Hong Kong), `ja` (Japanese), and `ko` (Korean). Selection is explicit; system locale settings do not change it. Use Left/Right to cycle through this order. Existing `zh-Hant` arguments and saved preferences remain accepted as Taiwan. Reads leave files untouched; explicit saves and exports write `zh-TW`.
+Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-TW` (Traditional Chinese, Taiwan), `zh-HK` (Traditional Chinese, Hong Kong), `ja` (Japanese), `ko` (Korean), `es` (Spanish), `fr` (French), `de` (German), `pt-BR` (Brazilian Portuguese), `ru` (Russian), and `id` (Indonesian). Selection is explicit; system locale settings do not change it. Codes are case-sensitive; `pt-BR` is supported, while `pt` and `pt-br` are not aliases. Use Left/Right to cycle through this order. Existing `zh-Hant` arguments and saved preferences remain accepted as Taiwan. Reads leave files untouched; explicit saves and exports write `zh-TW`.
 
-The product runtime range is `^22.0.0 || ^24.0.0`; source development and reproducible release builds still use Node 24.21.0/npm 11.19.0. After upgrading, rerun `claude-statusline install` and restart Claude Code to update matching editor resources. Before downgrading, restore a compatible pre-upgrade display backup through the current package’s recovery flow. If the older version lacks a selected language, reset both interface and output languages to English before restoring that backup.
+The product runtime range is `^22.0.0 || ^24.0.0`; source development and reproducible release builds still use Node 24.21.0/npm 11.19.0. After upgrading, rerun `claude-statusline install` and restart Claude Code to update editor protocol 31 and matching resources. Before downgrading, restore a compatible pre-upgrade display backup through the current package’s recovery flow. If the older version lacks a selected language, reset both interface and output languages to English before restoring that backup.
 
-The CLI, external/standalone terminal editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
+The CLI, external/standalone terminal editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
 
 ```text
 claude-statusline config language show [--json]
@@ -174,7 +174,7 @@ claude-statusline --language en config --help
 
 Omit the square brackets when using `--json`. `reset` saves English. Put the optional `--language` before the command; it overrides the saved preference for that invocation without writing it. An editor opened with that override can still save a new language through Settings. For an isolated directory use `claude-statusline config --config-dir /path/to/config language set zh-CN`.
 
-A switch saves immediately and preserves the current page, selected field, search, input and display draft. It recomputes terminal layout and redraws translated text. Save/cancel continues to govern display changes only; a failed language write keeps the previous language and reports the error. Other open windows read the new preference when reopened or through their existing reload action. Search matches IDs, names and descriptions in all six languages, and custom labels in any interface language.
+A switch saves immediately and preserves the current page, selected field, search, input and display draft. It recomputes terminal layout and redraws translated text. Save/cancel continues to govern display changes only; a failed language write keeps the previous language and reports the error. Other open windows read the new preference when reopened or through their existing reload action. Search matches IDs, names and descriptions in all twelve languages, and custom labels in any interface language.
 
 The preference is `<CLAUDE_CONFIG_DIR>/statusline-ui.json`, schema v1. Missing or invalid preferences fall back to English; reading never repairs the file. Explicit set/reset backs up and repairs corrupt preferences, but refuses a newer schema. Reinstall, upgrades, ordinary uninstall, display reset, presets and portable import/export preserve this independent preference.
 
@@ -184,7 +184,7 @@ Interface language does not change actual statusline samples/output. Model names
 
 ## Find items and review imports
 
-Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. The external editor also accepts direct typing and Esc cancels explicit search input. Search matches IDs, names and descriptions in all six languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
+Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. The external editor also accepts direct typing and Esc cancels explicit search input. Search matches IDs, names and descriptions in all twelve languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
 
 Ctrl+F opens the category picker. Select with arrows and accept with Enter; choose All categories to remove the category filter. Query and category combine and stay local to the editor session. While filtered, items can be toggled or formatted; ordering is disabled. Clearing filters restores the full order and neither filter is exported or saved.
 
@@ -200,19 +200,21 @@ Main and Subagents show configured instances. Native A (external Ctrl+A) opens t
 
 ## Statusline language
 
-The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
+The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
+
+For example, keep the interface in Spanish and use Brazilian Portuguese for output. These explicit CLI writes save each setting independently:
 
 ```text
-claude-statusline config set statusline-language zh-CN
-claude-statusline config set statusline-language en
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
 claude-statusline config show --json
 ```
 
 This applies to the main line and all custom subagent rows. Translate built-in phrases and known lifecycle/permission/effort/cache/review values; preserve unknown values, user labels/icons, model names, paths, branches and task/tool names. Keep numbers, currency, `K/M`, `d/h/m/s`, `tok/s`, Git, PR and other technical units. A null label inherits a localized default; an empty label suppresses it; custom labels take precedence.
 
-`statusline_language` lives in display schema v16 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
+`statusline_language` lives in display schema v17 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
 
-Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 16 and interface preferences schema 1 evolve independently; editor protocol 26 rejects older frontend/backend pairs.
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 17 and interface preferences schema 1 evolve independently; editor protocol 31 rejects older frontend/backend pairs.
 
 Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v8 draft to an older backend. See [backups](#backups-and-rollback).
 
@@ -628,7 +630,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 | `claude-statusline-runtime.json` | Independent native timing and advanced collection preferences |
 | `settings.json` | Owned Claude commands, hooks, and host status-line settings |
 
-Use the CLI or editors to update these files. Display schema v16 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
+Use the CLI or editors to update these files. Display schema v17 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
 
 ## Custom configuration directory and environment variables
 
@@ -685,9 +687,9 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Display schema 16 stores instance IDs in ordering and rows. Reading v1–v15 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
+Display schema 17 stores instance IDs in ordering and rows. Reading v1–v16 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
 
-Current display schema v16, configuration protocol v26, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v15 files are read without rewriting; an actual save backs up the old bytes and migrates to v16. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Current display schema v17, configuration protocol v31, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v16 files are read without rewriting; an actual save backs up the old bytes and migrates to v17. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -725,13 +727,13 @@ Doctor checks platform/Node, PATH, configuration validity, command ownership, ho
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
 
-For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v16`. A valid older file instead reports, for example:
+For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v17`. A valid older file instead reports, for example:
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v16 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v17 on the next configuration save
 ```
 
-This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v26 and runtime protocol v3.
+This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v31 and runtime protocol v3.
 
 <a id="故障排查"></a>
 
@@ -1089,7 +1091,7 @@ claude-statusline config enable task-active-timer
 
 Fresh installations do not collect native timing or advanced metrics. Enable native timing with `install --native-timing`, or complete collection with `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
-Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 16 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 17 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
 
 ## Unicode text and terminal widths
 

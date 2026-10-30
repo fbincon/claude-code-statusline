@@ -89,7 +89,7 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
     const checked = verifyDelivery(join(directory, selection.filename), selection.source_commit);
     verifyLanguageEvidence(record.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
-    const accepted = assessEvidence(evidenceFiles(evidence), selection.source_commit, checked.sha256);
+    const accepted = assessEvidence(evidenceFiles(evidence), selection.source_commit, checked.sha256, checked.sourceEntries);
     const previous = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance/candidate-acceptance.json'), 'utf8'));
     verifyLanguageEvidence(previous.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
     assert.equal(previous.status, accepted.status); assert.equal(previous.commit, selection.source_commit); assert.equal(previous.tarball_sha256, checked.sha256);

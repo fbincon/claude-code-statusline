@@ -25,7 +25,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 - **Compose your statusline:** add, copy and arrange independent components, linked groups, literal text and left/right alignment in either editor. [Composition guide](docs/COMPOSITION.md).
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors, themes and short percentage bars, and opt into [Powerline](docs/APPEARANCE.md).
-- **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
+- **Choose your languages:** English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/typescript/v3.16.0/README.md).
 - **Review colors and samples:** press Enter on a color field for visible choices; Ctrl+V selects a sample scenario, Ctrl+W changes preview width and Ctrl+N browses rows. See [appearance](docs/APPEARANCE.md#visual-color-selection-and-sample-scenarios).
 - **Diagnose supplied input:** press Ctrl+L in either editor to inspect a file with the unsaved draft and input-only evidence by default, or use the CLI. See [input diagnosis](docs/DIAGNOSTICS.md).
 - **Find what to show:** 65 main metrics and 15 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
@@ -304,7 +304,7 @@ In either editor, use **Ctrl+P** or **Settings → Quick setup** to choose a use
 
 ### Interface language
 
-Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
+Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
 
 ```text
 claude-statusline config language set ja
@@ -313,15 +313,17 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN|zh-TW|zh-HK|ja|ko` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
+`--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
 
 ### Statusline language
 
-Choose **Statusline language (save with display settings)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
+Choose **Statusline language (save with display settings)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
+
+For example, save Spanish for the interface and Brazilian Portuguese for statusline output independently:
 
 ```text
-claude-statusline config set statusline-language zh-TW
-claude-statusline config set statusline-language en
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
 ```
 
 ![English statusline output](docs/images/statusline/linux/en.png)

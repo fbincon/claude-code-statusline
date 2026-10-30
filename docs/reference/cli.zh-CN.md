@@ -37,7 +37,7 @@
 ## CLI 总览
 
 ```text
-claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id] COMMAND ...
 claude-statusline update [--check] [--version EXACT | --channel latest|beta] [--json]
 claude-statusline rollback [--version EXACT]
 claude-statusline recover --package [--version EXACT]
@@ -63,7 +63,7 @@ claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
 claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko
+claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
@@ -102,15 +102,15 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## 界面语言
 
-`config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}`，其中 `ui_language` 为所选受支持代码。`set en|zh-CN|zh-TW|zh-HK|ja|ko` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN|zh-TW|zh-HK|ja|ko` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
+`config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}`，其中 `ui_language` 为所选受支持代码。`set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
 
 帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 保持稳定；实际状态栏采用独立显示语言。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
 
 ## 状态栏语言
 
-`config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
+`config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
-显示 schema v16 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
+显示 schema v17 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -419,7 +419,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v16 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v17 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
@@ -607,7 +607,7 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 
 | OPTION | VALUE | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
+| `statusline-language` | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`、`id` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
 | `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
@@ -700,11 +700,11 @@ claude-statusline config set refresh-interval event
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 16 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
+以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 17 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 ```json
 {
-  "schema_version": 16,
+  "schema_version": 17,
   "groups": [],
   "use_colors": true,
   "palette": "default",

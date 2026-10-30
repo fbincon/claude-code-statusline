@@ -1,6 +1,6 @@
 import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
-import { dimensions } from '../layout.ts';
+import { clip, dimensions } from '../layout.ts';
 import { shortcutRows } from '../components/shortcuts.ts';
 import type { Shortcut } from '../components/shortcuts.ts';
 import { translatedShortcuts } from '../../lib/i18n/presentation.ts';
@@ -89,6 +89,15 @@ export function editorLayout(view: View, columns: number, rows: number) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);
+  }
+  // Translated action labels can remain longer than the available footer even
+  // after optional hints are removed. Keep the keys and their group order while
+  // shortening only labels, so content and a real preview row retain their space.
+  for (let cells = 8; footer.length > limit && cells >= 1; cells--) {
+    const bounded = groups.map(group => group.map(hint => ({
+      key: hint.key, label: clip(hint.short ?? hint.label, cells),
+    })));
+    footer = shortcutRows(bounded, columns);
   }
   return { ...dimensions(columns, rows, footer.length), footer };
 }

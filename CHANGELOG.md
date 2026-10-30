@@ -2,6 +2,17 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.0
+
+- Add complete Spanish, French, German, Brazilian Portuguese, Russian and Indonesian interface/statusline packs.
+- Preserve independent language persistence and offline resources; use editor protocol 31 with unchanged display schema 17.
+- Extend language combinations to 144 and actual-host capacity scenarios to 313, injecting the selected language into production previews.
+- Keep required Native shortcuts, selection and a real preview visible when translated footer labels are long at 32×12.
+- Localize the Native display-scheme and package-management entry captions using the shared translated descriptors.
+- Preserve source-archive bytes across tar buffer boundaries and verify every exported Git blob before creating its manifest.
+- Bound generated Node declaration types while retaining strict message keys and split Native modules.
+- [Implementation and validation](docs/development/language-expansion.md) · [Release notes](docs/releases/v3.16.0.md).
+
 
 ## 3.15.0 — 2026-10-30
 

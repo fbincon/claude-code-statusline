@@ -14,7 +14,7 @@ test('package ordering is exact SemVer, including prerelease numeric identifiers
 test('compatibility is explicit, bounded and independent of display/editor schema changes', () => {
     const historical = compatibility(undefined, '3.7.0');
     assert.equal(historical.editor_protocol, 21);
-    assert.equal(PACKAGE_COMPATIBILITY.editor_protocol, 30);
+    assert.equal(PACKAGE_COMPATIBILITY.editor_protocol, 31);
     assert.deepEqual(historical.read.display, [1, 13]);
     assert.throws(() => compatibility(undefined, '3.6.0'));
     assert.throws(() => compatibility(undefined, '3.8.0'));

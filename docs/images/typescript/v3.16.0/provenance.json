@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "application_version": "3.16.0",
+  "commit": "6e86031ff1bfeb900c9c38dee58ca10194ab936d",
+  "tarball_sha256": "6d6d955e3850e25c36705927e97ba8522d0bde83d60f1de32b8d229458501b68",
+  "artifact_role": "pre-publication candidate; capture identity is not relabeled by later documentation or release commits",
+  "kind": "installed PTY terminal-cell reconstruction; not an OS screenshot",
+  "captured_on": "2026-10-30",
+  "platform": "linux",
+  "arch": "x64",
+  "os_release": "7.0.0-38-generic",
+  "node": "v24.21.0",
+  "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+  "host": "2.1.312 (Claude Code)",
+  "terminal": "xterm-256color",
+  "editor_protocol": 31,
+  "terminal_foreground": "#dedee7",
+  "terminal_background": "#17191e",
+  "palette_policy": "Declared dark terminal defaults and the renderer rich ANSI palette; recorded text and cell styles unchanged. These are analysis fixtures, not a measured physical terminal profile.",
+  "fonts": {
+    "DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+    "DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+    "NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+    "NotoSansCJK-Bold.ttc": "faa5f3656a78b2e2d450d27fe8382c778bc2b6bb5ea29c986664a6a435056ceb",
+    "NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+  },
+  "renderer": {
+    "canonical_source": "tools/acceptance/render-capture.ts",
+    "source_sha256": "9debd05e423ad71ccd07a8ce49dacecd342e7436fbffca29f4d7eaa2051ebddd",
+    "compiled_sha256": "4fa926fb7df56abfa54d4e0523459109c39102fcedad6475fc95a3f86ae762c5",
+    "resvg": "2.6.2"
+  },
+  "collector_sha256": "2593efc2abf3ce0a2c587e4767bb01fa34d647eff0ddf28f53c2e5ed666da111",
+  "reconstruction_helper_sha256": "cd897a2030a6d7fafe59056dc09f7684efbf6a3ab14b2b9c7ed67a1dff77a491",
+  "public_metadata_helper_sha256": "9597de44a1c69fcb35de9b2ff51d3c13c5efb52a79be7302de2ed6e2d61e6f8f",
+  "receipts": {
+    "probe-report.json": "0a926e5695dee33473ea68f168da9a8b8c5712a4f1bfdd869dcb7b331719b388",
+    "inventory.json": "9599a31574df8b1b989f34244efb0ae04ad581677dd9fafe87b2afcb51eeb3b7",
+    "editors/report.json": "c75f0fe2de26a5791aadf60f2881330a076f99703165f0a2bd6acae6f4642ec4",
+    "preferences-restored.json": "27aea893ab4ec2a3d5c42e03902891ec507d554d9843273ee4c35e085604d6c4",
+    "render/report.json": "7933081a2e89a8c4d78c6f61a155e7426bdafa1803143956689caf69fa209b0e",
+    "gallery-review.json": "5052dc415b6fe8a8e9b9bca231cf511454ba23e3809875ec1bd88da99ee9cc5f"
+  },
+  "verification": {
+    "rehearsal_status": "pass",
+    "installed_files": 1092,
+    "exact_file_inventory": true,
+    "all_file_bytes_equal": true,
+    "selected_images": 9,
+    "languages": [
+      "en",
+      "zh-CN",
+      "zh-TW",
+      "zh-HK",
+      "ja",
+      "ko",
+      "es",
+      "fr",
+      "de",
+      "pt-BR",
+      "ru",
+      "id"
+    ],
+    "editor_journeys": [
+      {
+        "editor": "external",
+        "mode": "cancel",
+        "status": "pass",
+        "cycled_languages": [
+          "zh-TW",
+          "zh-HK",
+          "ja",
+          "ko",
+          "es",
+          "fr",
+          "de",
+          "pt-BR",
+          "ru",
+          "id",
+          "en",
+          "zh-CN"
+        ],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      },
+      {
+        "editor": "external",
+        "mode": "save",
+        "status": "pass",
+        "cycled_languages": [],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      },
+      {
+        "editor": "external",
+        "mode": "restore",
+        "status": "pass",
+        "cycled_languages": [],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      },
+      {
+        "editor": "native",
+        "mode": "cancel",
+        "status": "pass",
+        "cycled_languages": [
+          "zh-TW",
+          "zh-HK",
+          "ja",
+          "ko",
+          "es",
+          "fr",
+          "de",
+          "pt-BR",
+          "ru",
+          "id",
+          "en",
+          "zh-CN"
+        ],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      },
+      {
+        "editor": "native",
+        "mode": "save",
+        "status": "pass",
+        "cycled_languages": [],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      },
+      {
+        "editor": "native",
+        "mode": "restore",
+        "status": "pass",
+        "cycled_languages": [],
+        "terminal_restored": true,
+        "model_request_attempts": 0
+      }
+    ],
+    "native_network": "verified user/network namespace without outbound routes",
+    "model_calls": 0,
+    "model_request_attempts": 0,
+    "preference_restoration": "pass",
+    "fixture_removed": true,
+    "restored_preference_paths": 9,
+    "render_preferences_preserved": 9,
+    "direct_render_cases": 72,
+    "configured_command_verified": true,
+    "agent_visual_inspection": "All nine selected PNGs inspected for text, selected language, layout, complete crop and private content.",
+    "physical_visual_acceptance": false
+  },
+  "limitations": [
+    "Six editor journeys at 200x50 are separate from the 144-pair UI/output matrix, official-host capacity suite and platform installation evidence.",
+    "Settings images retain English sample output to demonstrate independent interface and output languages. Direct CLI checks separately cover 12 languages at 40/80/120 columns for main and subagent output.",
+    "Native crops exclude the surrounding host transcript, composer, live statusline and private paths. Raw captures and configuration snapshots remain private.",
+    "No operating-system screenshot, human physical acceptance, native-speaker review or paid model call is claimed. The six accepted issue #96 gaps remain unverified.",
+    "The preparation source archive has three independently confirmed corrupt non-product entries. Product source and captured runtime bytes are unchanged; retain these captures as scoped preparation evidence, never release-source acceptance."
+  ],
+  "captures": [
+    {
+      "file": "external/es/settings.png",
+      "editor": "external",
+      "language": "es",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 206589,
+      "png_sha256": "31bd4139c66aaa7b1c8a1a3ebd3cd750987522d542877c5b0d91ab72840d658c",
+      "source_sha256": "2b850f8b8859aa9b8d606905378235ba0bffb516882be8a76f012c7857c69df2",
+      "cells_sha256": "3bddb100aa07c33c0e5e69c377d6946ba759f51b42313c51d35645e12fee4ed5",
+      "cropped_cells_sha256": "3bddb100aa07c33c0e5e69c377d6946ba759f51b42313c51d35645e12fee4ed5",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "external/fr/settings.png",
+      "editor": "external",
+      "language": "fr",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 215146,
+      "png_sha256": "cf6b29e911ca127eece67e8423cdec4c1896002c4deecf6a33a0c4b6efb497ac",
+      "source_sha256": "1040ffc00b4f53820d702e7f1b3f88e71d199fb66df1028c9e6f419e43cc1e3c",
+      "cells_sha256": "4406af60f92f332521888d49264628004c388c070482e9f674f1411c4233395c",
+      "cropped_cells_sha256": "4406af60f92f332521888d49264628004c388c070482e9f674f1411c4233395c",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "external/de/settings.png",
+      "editor": "external",
+      "language": "de",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 206994,
+      "png_sha256": "97fd19cefb5959ee53aebcd746868ce893e72c9d02bee756913dc3608c7e553d",
+      "source_sha256": "4ae8de2f55024f26f153ced6d21c36be4ee2fcae5ce9d7e56d28be9fa20d9a40",
+      "cells_sha256": "f8314f8303af267790d86e14e94780e8724f4ff0a95e7f86296e14c9169f169a",
+      "cropped_cells_sha256": "f8314f8303af267790d86e14e94780e8724f4ff0a95e7f86296e14c9169f169a",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "external/pt-BR/settings.png",
+      "editor": "external",
+      "language": "pt-BR",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 206425,
+      "png_sha256": "9bd6f863707cf67705eea19e070057ce744ff9dc1651e684a34835584aac670a",
+      "source_sha256": "6dc3bea2a0cc82d193a519a45d96ea3b8161288333b6168cdc5aa955e06c0250",
+      "cells_sha256": "1f6cb3a880527c55ff475374c398ef1c43e98109faff1320b1f986b2d71f3f25",
+      "cropped_cells_sha256": "1f6cb3a880527c55ff475374c398ef1c43e98109faff1320b1f986b2d71f3f25",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "external/ru/settings.png",
+      "editor": "external",
+      "language": "ru",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 203565,
+      "png_sha256": "2a7724204f374342b805ac5f5cefb6f5759b9f68d3ff1a01cc6d8cff019eca32",
+      "source_sha256": "21809db23173e2e312664a34c63ba225c4da10f09182c7b10d6ab45e00d70b0d",
+      "cells_sha256": "ca38b38da512791a0533cba6a18a8d0bf0caa8d926e7ea56ef7472a08a938934",
+      "cropped_cells_sha256": "ca38b38da512791a0533cba6a18a8d0bf0caa8d926e7ea56ef7472a08a938934",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "external/id/settings.png",
+      "editor": "external",
+      "language": "id",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        0,
+        0,
+        200,
+        50
+      ],
+      "width": 2424,
+      "height": 1224,
+      "bytes": 189034,
+      "png_sha256": "8ebfcd80371b1d5b21ed631354fdf304a93f8e17bd9dccda09812ffbf1df5987",
+      "source_sha256": "0505407e043ad394a209eb44d66b800edb4eed1737d466557167597476f6a413",
+      "cells_sha256": "eb23335bc6d62eedcddcfa5b885c3b75407ab7f33f13c9fb0f019fb73953d47f",
+      "cropped_cells_sha256": "eb23335bc6d62eedcddcfa5b885c3b75407ab7f33f13c9fb0f019fb73953d47f",
+      "ansi_sha256": "94b18261d851e85e47c75019091d0256ceaf3edd5b150af61ae211f4952c68fa",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "native/fr/settings.png",
+      "editor": "native",
+      "language": "fr",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        128,
+        4,
+        72,
+        40
+      ],
+      "width": 888,
+      "height": 984,
+      "bytes": 124215,
+      "png_sha256": "e05a63b5d75f20bea414a572bd4be0f766b5b552f414a7a0f56768ec338d823e",
+      "source_sha256": "f2d467173bba310fe5fbf9c770b28a52b1e34f5ceaa54c43af427041b2e5f922",
+      "cells_sha256": "bd60bd7ce60727d84a771e0e9adf280cab1ac78417e93621c2d9ef3de1f8efbf",
+      "cropped_cells_sha256": "be5a5d77e5d84b36a3105603b795dc158353ece5ee5cd3d05533afcae69b7582",
+      "ansi_sha256": "6a97248ee677f0135576841e89b75fa3294a0a108a34bf210adfdc16c067aa3f",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "native/ru/settings.png",
+      "editor": "native",
+      "language": "ru",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        128,
+        4,
+        72,
+        40
+      ],
+      "width": 888,
+      "height": 984,
+      "bytes": 120309,
+      "png_sha256": "13b3a050b1bbaa26e0ddd0291a9817bc866dc074d6378e135d0731a861892619",
+      "source_sha256": "f19de1662e9fa970998de7d91781236d96c6c45b7d86c05fd23bcedf5a9c6d49",
+      "cells_sha256": "d8ab2bdae6d8dc69f5855120008d9db2e443b8ae58ffff0587fe362310beab55",
+      "cropped_cells_sha256": "6cc63568d9b4302db8d3a9348aa60305adc13c243a85f18a9c67ce47de9875e0",
+      "ansi_sha256": "6a97248ee677f0135576841e89b75fa3294a0a108a34bf210adfdc16c067aa3f",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    },
+    {
+      "file": "native/id/settings.png",
+      "editor": "native",
+      "language": "id",
+      "page": "settings",
+      "output_language": "en",
+      "viewport": [
+        200,
+        50
+      ],
+      "bounds": [
+        128,
+        4,
+        72,
+        40
+      ],
+      "width": 888,
+      "height": 984,
+      "bytes": 111049,
+      "png_sha256": "a9b465f57b8d91350db5704e4a8a52adb15299d8e6d9adb64a0facbcd016df2a",
+      "source_sha256": "34f39aad4c88d6d69b0ffe9e7b87ab8ec199f0f0a4625067df25ba8f172754e1",
+      "cells_sha256": "1c6682fe707a8451ebcaf713f266dfa678b4f312084d745797665fbc0ddb6296",
+      "cropped_cells_sha256": "b459ed3e2d8c03a2f0b1e6c198bfd97cf0ae2f2f52eae679743a4d2b1cdaebd6",
+      "ansi_sha256": "6a97248ee677f0135576841e89b75fa3294a0a108a34bf210adfdc16c067aa3f",
+      "sample": true,
+      "agent_visual_inspection": "pass",
+      "privacy_review": "pass"
+    }
+  ],
+  "preparation_source_archive_audit": {
+    "status": "rejected",
+    "reason": "Tar input-buffer reuse corrupted three non-product source entries; this preparation archive is not eligible for publication.",
+    "method": "Independent Python tar reader and actual Git blob IDs",
+    "product_source_bytes_match_git": true,
+    "mismatched_paths": [
+      "docs/images/draft-history-reuse/external-group-reuse.png",
+      "docs/images/typescript/v3.1.1/zh-TW/detail.png",
+      "tests/fixtures/migration/ts-01/cases.json"
+    ]
+  }
+}

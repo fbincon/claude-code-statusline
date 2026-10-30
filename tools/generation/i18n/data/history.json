@@ -26643,6 +26643,46 @@
           "evidence": "v3.14.0-verified-pr"
         }
       ]
+    },
+    "es": {
+      "statusline.api.requests": [
+        {
+          "source": "2b374ae9b53b385be35683493a280de1118dc07a68d05a766ff56e98c168d695",
+          "translation": "4bb6a99e3e200c60e9954abf35f3e6ee233ca3c6a36b327749236e1a298ef141",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "statusline.prefix.main.session-cost-rate": [
+        {
+          "source": "1a623b68ed1bad5469fe535d628e76a7156065f395485f8fd1bde434a98aa27c",
+          "translation": "a60b5f318d9ffa205c54862b716a43073c53adb065c6d27f169d1d3fe17aa1a6",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
+    },
+    "pt-BR": {
+      "statusline.api.requests": [
+        {
+          "source": "2b374ae9b53b385be35683493a280de1118dc07a68d05a766ff56e98c168d695",
+          "translation": "aa38c76251eebacd4bdd72ee8610675b57868a4ce326319767b2ffeba9d4465b",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "statusline.prefix.main.session-cost-rate": [
+        {
+          "source": "1a623b68ed1bad5469fe535d628e76a7156065f395485f8fd1bde434a98aa27c",
+          "translation": "7780d60ca0343dcfaadb48a5fb6cf4528ad732d7238cc9e9a1df508c84f98509",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
     }
   }
 }

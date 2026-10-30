@@ -2,6 +2,8 @@
 
 [English](roadmap.md) | **简体中文**
 
+进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+
 v3.15.0 已完成 I18N-02 三个切片、发布及本机验证。[最终交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 保持不变。
 
 v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
@@ -31,12 +33,12 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 显示组合 | 六种既有预设、八套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、六项 Powerline 控制、可选／自适应百分比短条、联动分组、选择性导入、静态前景／Powerline 背景渐变、最终显示行连续背景及主栏显式行对齐 | 扩充主题、渐变及复用能力，保留既有显示选择 |
 | 外观审阅 | 八主题、十一渐变预设、可视选色、十四样例场景、会话宽度及使用未保存草稿的显式文件诊断 | 扩展复用时保留来源授权边界 |
 | 任务与项目 | 任务计时、子代理独立行、双编辑器只读任务浏览、命名方案及项目根目录绑定 | 扩展配置复用时保持证据归属 |
-| 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | I18N-02 提供增量维护、A 开发完整及严格六语公开发布就绪 |
+| 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`、`id`；界面语言与输出语言独立 | I18N-02 提供增量维护、A 开发完整及全部官方语言的严格公开发布就绪 |
 | 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
 | 扩展数据 | 本机 JSON、GitHub PR／CI 与命令源；可读状态、检查分页、引用保护的绑定及独立审核的活跃会话自动刷新；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
 | Native 展示 | 宿主保留编辑状态、有界可见帧、独立容量检查及可恢复保存结果 | 所有新页面遵守这些边界；见[容量与恢复](native-capacity.zh-CN.md) |
-| 接口 | 显示 schema 17、编辑器协议 30、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
+| 接口 | 显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
 依据：[v3.14.0 交付](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)、[v3.12.0 交付](source-command-package-management.zh-CN.md)、[v3.11.0 交付](task-version-review.zh-CN.md)、[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
@@ -182,7 +184,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序，保留已完成 ID 及�
 ## 阶段完成要求
 
 - **相关流程：**验证本次改动的用户流程及取消／错误结果，按受影响规则选择相邻组合，复用现有套件；不要求每个切片新增完整流程或笛卡尔积矩阵。
-- **行为一致：**双编辑器及 CLI 共享核心规则，覆盖六语言、Unicode 字素、字体／颜色回退和相关平台。
+- **行为一致：**双编辑器及 CLI 共享核心规则，覆盖全部注册语言、Unicode 字素、字体／颜色回退和相关平台。
 - **数据可信：**区分样例与真实输入，以及零、缺失、过期、部分和不支持等观测状态，说明来源与作用域。
 - **兼容可恢复：**保留实例／方案身份、项目绑定和偏好，验证导入、迁移、并发修改及恢复。
 - **交付有据：**分别记录功能合并、工作包完成和版本发布，保留适用的成品与宿主检查；接受的缺口继续按实际验证状态披露。

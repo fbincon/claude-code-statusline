@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-The current TypeScript package offers separate Taiwan/Hong Kong languages. See the [v3.1.0 regional gallery](../typescript/regional/README.md) for final-package captures in both editors. The historical Python images below keep their original language names and source identity.
+The current TypeScript package supports twelve interface and output languages. See the [v3.16.0 language gallery](../typescript/v3.16.0/README.md) for the six additional languages, Native examples and exact installed-candidate provenance. The [v3.1.0 regional gallery](../typescript/regional/README.md) preserves final-package Taiwan/Hong Kong captures in both editors. The historical Python images below keep their original language names and source identity.
 
 These images reconstruct actual decoded Linux terminal cells captured from the installed v1.13.0 wheel at source `1134aee5425ed50fa0ca936321abb246e011b6b0`, on 2026-10-11. They are agent-inspected terminal reconstructions, not desktop screenshots or new human platform acceptance. The original cross-platform gallery remains [separate](../README.md).
 

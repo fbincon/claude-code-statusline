@@ -117,7 +117,7 @@ export function analyze(inputs: Inputs): Analysis {
     for (const code of codes) {
         assert(['A', 'B', 'C'].includes(policy.languages[code]), 'Invalid support level');
         if (['en', 'zh-CN'].includes(code)) assert.equal(policy.languages[code], 'A', 'Core language cannot be demoted');
-        if (['zh-TW', 'zh-HK', 'ja', 'ko'].includes(code)) assert.equal(policy.languages[code], 'B', 'Official language cannot be demoted');
+        if (['zh-TW', 'zh-HK', 'ja', 'ko', 'es', 'fr', 'de', 'pt-BR', 'ru', 'id'].includes(code)) assert.equal(policy.languages[code], 'B', 'Official language cannot be demoted');
     }
     object(contexts.entries, 'contexts'); object(terminology.entries, 'terminology'); object(history.contracts, 'historical contracts'); object(history.entries, 'historical entries'); object(provenance.records, 'acceptance provenance');
     for (const [id, contract] of Object.entries(history.contracts)) {

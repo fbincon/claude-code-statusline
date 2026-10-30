@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-当前 TypeScript 包分别提供台湾／香港语言，最终发布包的两个编辑器图片见 [v3.1.0 地区图库](../typescript/regional/README.zh-CN.md)。下方历史 Python 图片保留原语言名称与源码身份。
+当前 TypeScript 包支持十二种界面及输出语言，六种新增语言、Native 示例及准确的候选安装包来源见 [v3.16.0 语言图库](../typescript/v3.16.0/README.zh-CN.md)。[v3.1.0 地区图库](../typescript/regional/README.zh-CN.md)保留该版本最终发布包中两个编辑器的台湾／香港图片。下方历史 Python 图片保留原语言名称与源码身份。
 
 这些图像由 2026-10-11 在 Linux 上使用已安装 v1.13.0 wheel 捕获的真实终端单元格重建，源码为 `1134aee5425ed50fa0ca936321abb246e011b6b0`。图像已经 agent 检查，属于终端重建图，不是桌面截图，也不代表新增真人平台验收。[原有跨平台图库](../README.zh-CN.md)独立保留。
 

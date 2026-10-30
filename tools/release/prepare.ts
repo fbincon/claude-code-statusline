@@ -11,9 +11,11 @@ import { verifyDelivery } from '../build/verify.js';
 import { UNVERIFIED_GATES, sourceStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
-import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES } from '../acceptance/native-capacity.js';
+import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES, NATIVE_CAPACITY_TIMEOUT_MS, nativeCapacitySourceInventory } from '../acceptance/native-capacity.js';
 import { VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from '../acceptance/budgets.js';
 import { verifyLanguageEvidence } from '../checks/i18n-evidence.ts';
+import { parseOfficialTestSummary, verifyOfficialTestBatches, type OfficialTestReceipt } from '../acceptance/official-tests.js';
+import { sha256 as digestBytes } from '../build/files.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
@@ -55,7 +57,12 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
         assert.equal(value.previous_release.host, value.host);
     }
 }
-export function assessEvidence(reports: any[], commit: string, sha256: string) {
+export function assessEvidence(reports: any[], commit: string, sha256: string, sourceEntries: ReadonlyMap<string, Uint8Array>) {
+    assert(sourceEntries instanceof Map, 'Immutable source entries are required for official test coverage');
+    const officialSources = Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => {
+        const prefix = 'mods/' + name + '/';
+        return [name, Object.fromEntries([...sourceEntries].filter(([path]) => path.startsWith(prefix)).map(([path, bytes]) => [path.slice(prefix.length), digestBytes(Buffer.from(bytes))]))];
+    }));
     const typesUnavailable: string[] = [], seen = new Set<string>();
     for (const report of reports) {
         assert.equal(report.status, 'pass', 'Failed/skipped evidence cannot pass');
@@ -92,9 +99,9 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});
-            assert.equal(report.checks.task_viewer,true);assert.deepEqual(report.task_viewer,{languages:6,views:18,standalone_non_tty:true,readonly:true,installed_modules:true});
+            assert.equal(report.checks.task_viewer,true);assert.deepEqual(report.task_viewer,{languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true});
             assert.equal(report.checks.alignments, true); assert.equal(report.alignment_cases, 4);
-            assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:18,installed_modules:true,saved_reopened:true,preview_matches:true});
+            assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:LANGUAGES.length*3,installed_modules:true,saved_reopened:true,preview_matches:true});
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
@@ -110,7 +117,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.checks.cost_rates, true); assert.equal(report.cost_rate_cases, 4);
             if (compareVersions(VERSION, '3.15.0') >= 0) {
                 assert.equal(report.checks.i18n_workflow, true);
-                assert.deepEqual(report.i18n_workflow, { languages: LANGUAGES, combinations: 36, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 });
+                assert.deepEqual(report.i18n_workflow, { languages: LANGUAGES, combinations: LANGUAGES.length ** 2, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 });
             }
             assert.equal(report.checks.automatic_refresh, true); assert.equal(report.automatic_refresh_cases, 4);
             assert.equal(report.checks.groups, true); assert.equal(report.group_cases, 4);
@@ -124,7 +131,23 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             const required = Number(report.host.split('.')[2]) >= 289 ? ['statusline-native', 'statusline-runtime'] : ['statusline-native'];
             for (const name of required) {
                 const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
-                if (name === 'statusline-native') { assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES); assert.equal(mod.capacity.actual_host, true); if(compareVersions(VERSION,'3.12.0')>=0){assert.equal(mod.capacity.total_cases,NATIVE_CAPACITY_TOTAL_CASES);assert.equal(mod.capacity.additional_cases,NATIVE_CAPACITY_ADDITIONAL_CASES);assert.equal(mod.capacity.shared_execution,true);assert.match(mod.capacity.baseline_names_sha256,/^[a-f0-9]{64}$/u);assert.match(mod.capacity.additional_names_sha256,/^[a-f0-9]{64}$/u);} }
+                verifyOfficialTestBatches(mod.official_test_batches, officialSources[name]!);
+                if (name === 'statusline-native') {
+                    assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES);
+                    assert.equal(mod.capacity.actual_host, true); assert.equal(mod.capacity.model_calls, 0);
+                    assert.equal(mod.capacity.original_cases, 197);
+                    assert.equal(mod.capacity.total_cases, NATIVE_CAPACITY_TOTAL_CASES);
+                    assert.equal(mod.capacity.additional_cases, NATIVE_CAPACITY_ADDITIONAL_CASES);
+                    assert.equal(mod.capacity.shared_execution, true);
+                    assert.match(mod.capacity.baseline_names_sha256, /^[a-f0-9]{64}$/u);
+                    assert.match(mod.capacity.additional_names_sha256, /^[a-f0-9]{64}$/u);
+                    assert.equal(mod.capacity.validation?.status, 'pass');
+                    assert.equal(mod.capacity.validation.timeout_ms, NATIVE_CAPACITY_TIMEOUT_MS);
+                    assert(Number.isFinite(mod.capacity.validation.elapsed_ms) && mod.capacity.validation.elapsed_ms >= 0 && mod.capacity.validation.elapsed_ms <= NATIVE_CAPACITY_TIMEOUT_MS, 'Invalid capacity validation duration');
+                    verifyOfficialTestBatches(mod.capacity.execution, nativeCapacitySourceInventory(officialSources[name]!), NATIVE_CAPACITY_TIMEOUT_MS);
+                    assert.equal(mod.capacity.execution.totals.tests, NATIVE_CAPACITY_TOTAL_CASES, 'Incomplete actual-host capacity execution');
+                    assert.equal(mod.capacity.test_files, mod.capacity.execution.totals.files, 'Capacity file count differs');
+                }
                 if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
                 else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
             }
@@ -141,7 +164,31 @@ export function evidenceFiles(root: string): any[] {
     return fs.readdirSync(root, { withFileTypes: true }).flatMap(entry => {
         const path = join(root, entry.name);
         if (entry.isSymbolicLink()) throw new Error('Linked evidence is not accepted');
-        return entry.isDirectory() ? evidenceFiles(path) : ['installed.json', 'mods.json', 'runtime.json'].includes(entry.name) ? [JSON.parse(fs.readFileSync(path, 'utf8'))] : [];
+        if (entry.isDirectory()) return evidenceFiles(path);
+        if (!['installed.json', 'mods.json', 'runtime.json'].includes(entry.name)) return [];
+        const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+        if (entry.name === 'mods.json') {
+            const readLog = (log: string, sha256: string): Buffer => {
+                assert(/^[a-z0-9.-]+\.log$/u.test(log), 'Invalid official log name');
+                const logs = join(root, 'logs'), file = join(logs, log);
+                assert(!fs.lstatSync(logs).isSymbolicLink() && fs.lstatSync(logs).isDirectory(), 'Linked official log directory');
+                const stat = fs.lstatSync(file);
+                assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4 * 1024 * 1024, 'Invalid official result log');
+                const bytes = fs.readFileSync(file);
+                assert.equal(digestBytes(bytes), sha256, 'Official result log changed');
+                return bytes;
+            };
+            for (const mod of Object.values(report.mods ?? {}) as { official_test_batches?: OfficialTestReceipt; capacity?: { execution?: OfficialTestReceipt; validation?: { log: string; log_sha256: string } } }[]) {
+                for (const batch of [...mod.official_test_batches?.batches ?? [], ...mod.capacity?.execution?.batches ?? []]) {
+                    const bytes = readLog(batch.log, batch.log_sha256);
+                    assert.deepEqual(parseOfficialTestSummary(bytes.toString('utf8'), batch.test_files), {
+                        tests: batch.tests, files: batch.files, pass: batch.pass, fail: batch.fail, skip: batch.skip,
+                    }, 'Official result log does not match its receipt');
+                }
+                if (mod.capacity?.validation) readLog(mod.capacity.validation.log, mod.capacity.validation.log_sha256);
+            }
+        }
+        return [report];
     });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
@@ -151,7 +198,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     assert(!(values.candidate && (values.preview || values.stable)), 'Candidate acceptance and publication are separate modes');
     const candidate = verifyDelivery(resolve(values.artifact), values.commit);
     verifyLanguageEvidence(candidate.language, candidate.sourceEntries, values.commit, values.preview === true || values.stable === true);
-    const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256);
+    const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256, candidate.sourceEntries);
     if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
     let approval = null;
     if (values.stable || values.candidate && candidate.source.channel === 'stable') {

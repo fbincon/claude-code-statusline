@@ -41,7 +41,7 @@ No subcommand opens the reviewed durable installation flow. See [first entry](..
 ## CLI overview
 
 ```text
-claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id] COMMAND ...
 claude-statusline update [--check] [--version EXACT | --channel latest|beta] [--json]
 claude-statusline rollback [--version EXACT]
 claude-statusline recover --package [--version EXACT]
@@ -67,7 +67,7 @@ claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
 claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko
+claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
@@ -106,15 +106,15 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## Interface language
 
-`config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}`, with `ui_language` set to a supported code. `set en|zh-CN|zh-TW|zh-HK|ja|ko` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN|zh-TW|zh-HK|ja|ko` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
+`config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}`, with `ui_language` set to a supported code. `set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
 
 Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
 
 ## Statusline language
 
-`config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
+`config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
-Display schema v16 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
+Display schema v17 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -425,7 +425,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v16 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -627,7 +627,7 @@ Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switch
 
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
-| `statusline-language` | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
+| `statusline-language` | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, `id` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
 | `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
 | `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
 | `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
@@ -730,11 +730,11 @@ Display items and styles are saved in:
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-This complete schema-15 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
+This complete schema-17 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
 
 ```json
 {
-  "schema_version": 16,
+  "schema_version": 17,
   "groups": [],
   "use_colors": true,
   "palette": "default",
@@ -849,7 +849,7 @@ If display configuration is corrupted:
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja` and `ko`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
+Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru` and `id`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
 
 ### Editor enablement preferences
 

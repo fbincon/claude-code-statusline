@@ -2,6 +2,8 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
+The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+
 v3.15.0 delivers all three I18N-02 slices, publication and actual-machine verification. [Final delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 remain unchanged.
 
 v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
@@ -31,12 +33,12 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Display composition | Six existing presets, eight complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, six Powerline controls, optional/adaptive percentage bars, linked groups, selective import, static foreground/Powerline-background gradients, continuous final-row backgrounds and explicit main-row alignment | Extend themes, gradients and reuse while preserving existing display choices |
 | Appearance review | Eight themes, eleven gradient presets, visible color editing, fourteen sample scenarios, session-only widths and explicit file diagnosis using the unsaved draft | Extend reuse without changing source authorization |
 | Tasks and projects | Task timing, separate subagent rows, both-editor read-only task browsing, named profiles and project-root bindings | Preserve evidence attribution while extending configuration reuse |
-| Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | I18N-02 provides incremental maintenance, A-development completeness and strict six-language public-release readiness |
+| Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, `id`; independent UI and output languages | I18N-02 provides incremental maintenance, A-development completeness and strict readiness for every official language |
 | Display catalog | 65 main metrics and 15 subagent metrics; 67/17 types including text and spacers | Preserve IDs and metric definitions when adding items |
 | Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI and commands; readable state, check pagination, reference-protected bindings and separately reviewed active-session refresh; optional OSC 8 links | Keep authorization separate from display schemes; clear local bindings only in imported sections |
 | Native presentation | Host-retained editing state, bounded visible frames, independent capacity checks and recoverable save outcomes | Apply these boundaries to every new page; see [capacity and recovery](native-capacity.md) |
-| Interfaces | Display schema 17, editor protocol 30, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
+| Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
 Sources: [v3.14.0 delivery](adaptive-row-scenarios.md), [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
@@ -182,7 +184,7 @@ Unstarted entries describe design intent. Completed entries preserve historical 
 ## Stage completion requirements
 
 - **Relevant journeys:** verify the changed user flow and its cancel/error outcomes. Select adjacent combinations from the changed rules; reuse existing suites and avoid a new complete journey or Cartesian matrix for every slice.
-- **Consistent behavior:** share core rules across both editors and CLI; cover six languages, Unicode graphemes, font/color fallback and relevant platforms.
+- **Consistent behavior:** share core rules across both editors and CLI; cover all registered languages, Unicode graphemes, font/color fallback and relevant platforms.
 - **Trustworthy data:** distinguish samples from actual input, and zero from missing, stale, partial or unsupported observations; explain source and scope.
 - **Compatibility and recovery:** preserve instance/profile identity, project bindings and preferences; verify import, migration, concurrent edits and recovery.
 - **Delivery evidence:** record feature merge, package completion and version publication separately, with applicable installed-artifact and host checks. Accepted gaps remain disclosed with their actual verification status.

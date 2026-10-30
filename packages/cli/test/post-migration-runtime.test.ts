@@ -1,3 +1,4 @@
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import test from 'node:test';
 import { setup, observation as o, writeLines, fs, join, plain, assert } from './runtime-support.js';
 import { UsageCollector } from '../src/runtime/usage.js';
@@ -13,7 +14,7 @@ import { subprocess } from './final-cli-support.js';
 const assistant = (id: string, input_tokens: number, output_tokens = 0) => ({ type: 'assistant', message: { id, usage: { input_tokens, output_tokens } } });
 test('R05 language options preserve real CLI version status and both streams', t => {
     const f = setup(t);
-    for (const language of ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']) for (const flags of [['--language', language], ['--language=' + language]])
+    for (const language of LANGUAGES) for (const flags of [['--language', language], ['--language=' + language]])
         assert.deepEqual(subprocess(f.root, [...flags, '--version']), { status: 0, stdout: `claude-statusline ${VERSION}\n`, stderr: '' });
     assert.equal(subprocess(f.root, ['--language=invalid', '--version']).status, 2);
 });
