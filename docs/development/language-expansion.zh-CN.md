@@ -2,7 +2,7 @@
 
 [English](language-expansion.md) | **简体中文**
 
-v3.16.0 在原有六种选择项之后新增西班牙语（`es`）、法语（`fr`）、德语（`de`）、巴西葡萄牙语（`pt-BR`）、俄语（`ru`）和印度尼西亚语（`id`）。实现与发布准备进行中，本记录暂不声明发布完成。
+v3.16.0 在原有六种选择项之后新增西班牙语（`es`）、法语（`fr`）、德语（`de`）、巴西葡萄牙语（`pt-BR`）、俄语（`ru`）和印度尼西亚语（`id`）。发布及本机验证于 **2026-10-30** 完成，原始源码、发布身份及实际结果见下文。
 
 ## 资源与兼容
 
@@ -26,9 +26,11 @@ v3.16.0 在原有六种选择项之后新增西班牙语（`es`）、法语（`f
 
 容量套件的七个生成入口也使用相同的串行机制。每个案例保留 20 秒上限，每次容量调用保留 300 秒期限。发布验证从不可变 Native 归档重建准确的容量源码清单，包括测试注册 hooks 和入口范围，并要求全部 313 项成功及每个批次的保留日志。
 
-## 本地实现检查
+## 最终本地检查与实现诊断
 
-实现工作树通过 `npm run check`：1,508 项测试通过，六项既有非 Linux 平台案例跳过，零失败。生成资源、4,061 个文档链接、冻结 Python／归档检查及三套迁移责任清单全部通过。十二种语言各有 2,311 条已验收消息，其中 261 条状态栏消息，缺失、陈旧、待验证、非法和回退项均为零。随后 29 项专项检查通过最终的源码绑定回执和日志保留保护。本地结果与必需的不可变候选及 PR／main／tag 证据分别记录。
+冻结源码 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0` 对应的最终本地检查共 1,520 项：**1,514 项通过、六项既有平台跳过、零失败**。检查了 118 份生成资源、4,105 个文档链接、冻结 Python／归档边界及三套责任清单，待完成项为零。这些本地结果与最终完整矩阵 CI 和发布结果分别记录。来源：`dist/validation/expand-languages/check-tar-final.log`。
+
+较早实现工作树通过 `npm run check`：1,508 项测试通过，六项既有非 Linux 平台案例跳过，零失败。生成资源、4,061 个文档链接、冻结 Python／归档检查及三套迁移责任清单全部通过。十二种语言各有 2,311 条已验收消息，其中 261 条状态栏消息，缺失、陈旧、待验证、非法和回退项均为零。随后 29 项专项检查通过最终的源码绑定回执和日志保留保护。本地结果与必需的不可变候选及 PR／main／tag 证据分别记录。
 
 本地实际 2.1.312 宿主验证发现西班牙语 32×12 页脚溢出。保留的快捷键提示仅在既有紧凑化／优先级步骤之后按完整字素缩短，保留按键、选择、草稿及真实预览。未削弱的全语言绘制矩阵与新增最小尺寸回归在隔离实际宿主复验中一起通过（16 项）；此前失败／部分执行保留为诊断记录。
 
@@ -42,10 +44,62 @@ v3.16.0 在原有六种选择项之后新增西班牙语（`es`）、法语（`f
 
 最终源码重建及 CI 暴露了 tar 读取器的生命周期缺陷：同步依赖会复用 16 MiB 输入缓冲区，保留的数据块视图可能覆盖跨越边界的归档项。本次影响三个归档项，并使一个源文件编译失败。读取器现已立即复制各数据块，回归覆盖二进制、Unicode、空文件、原始跨边界归档及 gzip，并核验完整字节。Git 导出在生成清单前独立比较所有路径及不可变树中的 blob 哈希；源码包重建仍无需 Git 历史。失败候选／CI 及较早准备归档的审计均保留，不会晋升为已验收发布源码。
 
-## 发布与本机验证
+<a id="final-release"></a>
 
-[版本决策](../releases/approvals/v3.16.0.json)记录维护者授权。发布要求十二语言全部就绪、最终 PR／main／tag 必需门禁、独立及源码归档重建、四个交付文件校验、npm OIDC、公开下载及签名检查。使用明确 refspec 将验证后的 main 与附注标签同步至 Gitee，核验相同附件，再升级并验证本机，最后恢复原偏好。
+## 最终来源与发布身份
 
-不计划付费模型测试。自动化、实际宿主挂载、PTY、代理检查的重建图像与实体机／人工验收分别记录。[Issue #96 六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)仍为未验证，不豁免新失败。发布完成后保留 v3.16.0，本机新发现只提 issue，不补发修补版。
+发布及本机验证于 **2026-10-30**（Asia/Shanghai）完成。已发布源码为 [PR #190](https://github.com/fbincon/claude-code-statusline/pull/190) 的 [`c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`](https://github.com/fbincon/claude-code-statusline/commit/c89a2ca088099ccd3ceb76baf59ecf11d84b08f0)。合并提交 [`2974c968426c020af13bf47933ba33dc65104653`](https://github.com/fbincon/claude-code-statusline/commit/2974c968426c020af13bf47933ba33dc65104653) 的父提交为 `9002ae1a57a6687b0cc2261957fee54395eff19e` 与 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`，文件树与审阅源码一致。附注标签 `v3.16.0` 的对象为 `43a876bbd001d77932779cff4b2378232207968f`，peeled 提交为 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`。
+
+| 证据阶段 | 实际身份与结果 |
+| --- | --- |
+| 最终 PR | [41007969032](https://github.com/fbincon/claude-code-statusline/actions/runs/41007969032)，第 2 次尝试：完整 8 安装目标／32 项 Node／16 宿主矩阵及 `Complete candidate evidence` 通过 |
+| main 集成 | [41028226478](https://github.com/fbincon/claude-code-statusline/actions/runs/41028226478)，第 1 次尝试：三平台冒烟、已验收基线代码验证及汇总通过 |
+| tag 晋升 | [41028802052](https://github.com/fbincon/claude-code-statusline/actions/runs/41028802052)，第 1 次尝试：原始源码、main 祖先关系、标签及证据核验通过 |
+| npm 准备 | [41029244762](https://github.com/fbincon/claude-code-statusline/actions/runs/41029244762)，第 1 次尝试：预演通过，四个文件与原始 CI 包一致 |
+| npm OIDC 新版本发布 | [41030212502](https://github.com/fbincon/claude-code-statusline/actions/runs/41030212502)，第 1 次尝试：`action=published`；`latest=3.16.0`，保留 `beta=3.0.0-beta.1` |
+| 公开下载与签名 | [41031023958](https://github.com/fbincon/claude-code-statusline/actions/runs/41031023958)，第 1 次尝试：Linux／Windows／macOS × Node 22／24 共六项下载／安装作业及签名作业全部通过 |
+
+原始候选由运行 `41007969032` 的第 1 次尝试生成，产物为 `12956665742`（ZIP SHA256 `3c69ffe3f80568cac453cf300e05504509698b839609b731bdac508a1b993a30`）。完整验收产物为 `12963314175`（ZIP SHA256 `5cb5ed374753e12e0e0e12bf4d046dfe951bfa0a3cd13c50b7a7f2298601ebc4`）。执行记录保留 **55 项原始第 1 次执行，以及一项第 2 次尝试的 Windows ARM 安装执行**。
+
+首次 Windows ARM 安装在 26 项测试通过、没有断言失败后达到原有 55 分钟套件期限。同一源码仅进行一次定向重试，安装套件在 52 分 5 秒内通过，随后完整平台套件通过。原超时仍保留为失败诊断，预算和断言均未改变。完整证据封装保留历史 197 项容量基线计数；源码绑定的扩展回执要求累计增加 116 项后的 313 项总数。抽查的最终 Linux 2.1.310 回执记录七个文件、313 项通过、零失败／跳过。十六个宿主回执均通过相同的源码绑定验收检查。
+
+十二种语言各有 2,311 条已验收消息，其中 261 条状态栏消息；缺失、陈旧、待验证、非法和回退项均为零。原始四个 CI 文件与两次独立 Git 源码构建、两次交付源码重建逐字节一致。独立 Python tar 读取核验了全部 1,870 项 Git blob 内容，不计生成的候选清单。
+
+| 交付文件 | 字节数 | SHA256 | GitHub 附件 | Gitee 附件 |
+| --- | ---: | --- | ---: | ---: |
+| `fbincon-claude-code-statusline-3.16.0.tgz` | 5,151,103 | `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a` | 691518634 | 3540784 |
+| `claude-code-statusline-3.16.0-source.tar.gz` | 34,604,495 | `3a02ecafbc377e94c278a0d635978ff8e6c59af8c9743f02a62621f72aa7457c` | 691518626 | 3540758 |
+| `build-manifest.json` | 955 | `ae03e30ac441e6c8adcf25da4f9b99c2a82fb607ddae531bb15f85fd2d6081a2` | 691518633 | 3540761 |
+| `SHA256SUMS` | 304 | `a7858b5f3f62025c330b7f3333343d6562c9d08b51b1dcb879f35045ab8f57df` | 691518630 | 3540766 |
+
+[GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) `428817159` 于 `2026-10-30T09:06:38Z`（Asia/Shanghai 17:06:38）发布并锁定。四个草稿下载及公开 GitHub／Gitee 文件均与上表一致，npm 提供相同的包 tarball，其 integrity 为 `sha512-3O75WAbL0bBXeYJUEAC9pbPsT/FcWjRhvsBLBIVgXXHhiTQBk/a1/5ZGsMxxTNzIU+oQZaN+bkDCRvksyoCz7A==`。签名验证记录两份包签名、两份证明及全部六个内置公开上游依赖；provenance 指向 `refs/tags/v3.16.0`、`.github/workflows/npm-publish.yml`、源码 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0` 和原始正式 OIDC 调用。
+
+[Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) `1256599` 公开可见。通过明确 refspec 同步 main `2974c968426c020af13bf47933ba33dc65104653` 和原始附注标签对象，peeled 目标保持 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`。四个匿名附件下载均一致。一次包上传失败后先确认远端缺失，再进行一次重试；大文件下载超时后使用重新解析地址的本机原生接口，并保持正常 TLS 验证。没有替换已有附件。
+
+最终 CI 包还在 Claude 2.1.312，以及宿主自动更新后的 2.1.314 上通过隔离预演。每次均通过六段编辑器路径、两套十二语言界面循环及 72 个渲染案例，恢复九项偏好路径和六个终端模式，并删除夹具。较早图库继续保留独立的 `6e86031`／`6d6d955e…` 采集身份。
+
+## 已发布安装的本机验证
+
+在 Node 24.21.0／Claude 2.1.314 上，通过受支持的更新命令完成 **3.15.0 → 3.16.0**。预演核验公开产物、确认没有兼容性／配置冲突，并保留九项偏好路径。安装清单及全部 **1,092 个文件内容**与已发布包一致，安装产品和适用集成均已验证，只读 doctor 检查成功退出。
+
+| 已发布安装的检查 | 实际结果 |
+| --- | --- |
+| 外部编辑器 | `actual-01` 的 Cancel／Save／恢复三段路径成功，包括完整十二语言界面循环及本地化搜索 |
+| Native 编辑器 | `actual-02` 的 Cancel／Save／恢复三段路径成功，包括完整十二语言界面循环及本地化搜索 |
+| 输出与重开 | 两套编辑器均验证输出语言草稿、取消、显式 Save 及保存后读回／重开 |
+| 实际已配置状态栏 | 核验已配置命令及其字面参数调用；安装版渲染器的 72 个独立夹具案例通过（十二语言 × 40／80／120 列 × 主／子代理范围） |
+| 偏好与终端 | 九项原路径按字节／权限／缺失状态恢复；六段成功路径均恢复终端模式；保留产品升级 |
+| 允许的元数据变化 | 仅自有 Native 插件的 `backendVersion` 从 3.15.0 升至 3.16.0；保留运行观测的关闭选择及无关设置 |
+| 模型请求及新发现 | 模型调用／请求尝试均为零；已完成的检查中未发现新的产品问题 |
+
+首次本机 Native 尝试在 Claude 启动阶段、Mod 加载之前失败：私有验收脚本显式将 `CLAUDE_CONFIG_DIR` 设为默认目录，导致读取另一份未初始化的引导文件。该次尝试后已恢复偏好。仅修正忽略目录中的本地脚本，使其沿用通常的默认用户配置解析方式，网络隔离及所有期限保持不变；后续三段 Native 路径通过。原启动失败继续单独保留为失败诊断，没有修改已发布产品代码或附件。
+
+汇总私有报告为 `dist/validation/expand-languages/machine/final-machine-summary.json`，SHA256 `f549949d3849d1dfcf5f92c614ca8ed054b9eba3347c1cf354aecfe747c3a9df`。原始设置、宿主日志和终端采集保持私有。[文档收尾 PR #191](https://github.com/fbincon/claude-code-statusline/pull/191) 使用绑定至其已提交源码的影响计划及专项验证，原始产品源码、运行和产物身份保持不变。
+
+## 授权与验证边界
+
+[版本决策](../releases/approvals/v3.16.0.json)记录维护者授权，必需发布门禁及渠道均已完成。未运行付费模型测试。自动化测试、实际宿主挂载、PTY 和检查过的终端重建图像与人工实体验收分别记录；代理译文复核与母语审阅分别记录。
+
+[Issue #96 六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)，包括 Claude 2.1.296 精确声明不可用，继续**未验证**。任何发布后新发现的产品问题只提 issue，保留 v3.16.0、原标签及附件；本次交付不补发修补版。
 
 [发布说明](../releases/v3.16.0.zh-CN.md) · [发布流程](../RELEASING.zh-CN.md) · [容量与恢复](native-capacity.zh-CN.md)。

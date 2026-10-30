@@ -2,15 +2,15 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+The v3.16.0 [twelve-language expansion](language-expansion.md#final-release) adds six UI/output languages and editor protocol 31, covering 144 combinations and 313 capacity cases. Publication and actual-machine status: complete; original identities and actual evidence remain in the delivery record.
 
-v3.15.0 delivers all three I18N-02 slices, publication and actual-machine verification. [Final delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 remain unchanged.
+v3.15.0 delivers all three I18N-02 slices, publication and actual-machine verification. [Final delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 were unchanged in that release.
 
 v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
 
 v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [Delivery and post-publication findings](draft-history-and-reuse.md). v3.12.0 source/command/package management and earlier delivery facts remain historical.
 
-Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.15.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.16.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12 are delivered; v3.9.1 also fixes native transport capacity, render-tree capacity and save-result recovery. Remaining packages extend presentation, reuse and interaction under the statuses below. FIX-01–FIX-04 and I18N-01 are published in v3.9.2; APPEARANCE-05, PREVIEW-01 and EXPLAIN-02 are published in v3.10.0. TASK-02 and UPDATE-02 slice 1 are published in v3.11.0. Remaining unstarted packages and SHOWCASE-01 retain their statuses below. See the [correctness repair record](correctness-maintenance.md) and [appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md).
 
@@ -41,7 +41,7 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.14.0 delivery](adaptive-row-scenarios.md), [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
+Sources: [v3.16.0 delivery](language-expansion.md#final-release), [v3.15.0 delivery](i18n-02-delivery.md#final-release), [v3.14.0 delivery](adaptive-row-scenarios.md), [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
@@ -214,6 +214,8 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 | v3.12.0 | SOURCES-01, COMMAND-02, UPDATE-02 slices 2/3; #173 | DONE | [v3.12.0 delivery](source-command-package-management.md) |
 | v3.13.0 | All UX-03, COMPOSITION-04 and IMPORT-02 slices | DONE | [Draft history, repairs and reuse delivery](draft-history-and-reuse.md) |
 | v3.14.0 | APPEARANCE-07, APPEARANCE-06, PROFILE-02; #178/#180 | DONE | [Adaptive appearance and scenario delivery](adaptive-row-scenarios.md) |
+| v3.15.0 | All I18N-02 slices; incremental six-language maintenance | DONE | [Incremental language workflow delivery](i18n-02-delivery.md#final-release) |
+| v3.16.0 | Six additional UI/statusline languages; editor protocol 31 | DONE | [Twelve-language delivery](language-expansion.md#final-release) |
 
 The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
 

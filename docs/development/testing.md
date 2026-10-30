@@ -5,7 +5,7 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
-The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+The v3.16.0 [twelve-language expansion](language-expansion.md#final-release) adds six UI/output languages and editor protocol 31, covering 144 combinations and 313 capacity cases. Publication and actual-machine status: complete; original identities and actual evidence remain in the delivery record.
 
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.

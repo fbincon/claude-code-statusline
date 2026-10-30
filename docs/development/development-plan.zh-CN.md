@@ -2,21 +2,21 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-进行中的[十二语言扩展](language-expansion.zh-CN.md)新增六种界面／输出语言并采用编辑器协议 31，要求验收 144 种组合和 313 项容量案例。发布证据单独记录。
+v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
 
-v3.15.0 已完成 I18N-02 三个切片、发布和本机验证。[最终来源与交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 保持不变。
+v3.15.0 已完成 I18N-02 三个切片、发布和本机验证。[最终来源与交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 在该版本保持不变。
 
 v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
 
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[v3.13.0 交付与发版后发现](draft-history-and-reuse.zh-CN.md)；沿用 [v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)。
 
-更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.15.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.16.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.15.0 交付](i18n-02-delivery.zh-CN.md)为当前产品基线，保留 [v3.14.0 自适应外观](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 草稿历史与复用](draft-history-and-reuse.zh-CN.md)、[v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)、[v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。原正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付；[v3.16.0 交付](language-expansion.zh-CN.md#final-release)为当前产品基线，保留 [v3.15.0 增量语言工作流](i18n-02-delivery.zh-CN.md)、[v3.14.0 自适应外观](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 草稿历史与复用](draft-history-and-reuse.zh-CN.md)、[v3.12.0 来源／命令／包管理](source-command-package-management.zh-CN.md)、[v3.11.0 任务与版本审核](task-version-review.zh-CN.md)、[v3.10.0 外观、预览与诊断](appearance-preview-diagnosis.zh-CN.md)及更早的正确性／容量交付。原正式后续包含十八个新增工作包与 SHOWCASE-01。已完成工作保留其交付证据；其余未启动条目不分配版本或日期。
 
 [I18N-02 实现](i18n-02-delivery.zh-CN.md)从 `745336e` 开始，三个切片均随 v3.15.0 交付。兼容 PR #187 先于功能 PR #188 合并；受保护的 PR／main／tag 门禁、公开渠道及本机验证均通过。[翻译指南](i18n.zh-CN.md)定义 A 开发完整／B 回退与严格 A/B 公开发布规则；I18N-01 和 SHOWCASE-01 依赖不变。
 
-已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.15.0 专项决定](../releases/approvals/v3.15.0.json)记录本次版本对缺口的接受，不代表缺失观察已通过。
+已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.16.0 专项决定](../releases/approvals/v3.16.0.json)记录本次版本对缺口的接受，不代表缺失观察已通过。
 
 **导航：** [索引](#work-index) · [共同设计](#design-rules) · [审查基线](#review-baseline) · [未来工作](#future-work) · [Git 核查](#git-01) · [Windows 预览](#terminal-01) · [首次入口](#setup-02) · [版本管理](#update-01) · [选择性导入](#import-01) · [渐变](#appearance-04) · [对齐](#composition-03) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [M4–M7 设计](#appearance-03) · [早期设计](#delivered-designs) · [验收](#acceptance-matrix) · [交接](#handoff)
 
