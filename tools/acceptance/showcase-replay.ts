@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -12,7 +12,8 @@ import { sha256 } from '../build/files.js';
 import { Capture } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
 import { SHOWCASE_BASELINE, requireRemoved } from './showcase.js';
-import { requireCompact } from './showcase-driver.js';
+import { applyShowcaseVisuals, requireShowcaseVisuals } from './showcase-driver.js';
+import { isolatedRecordingEnvironment, requireColoredCapture } from './showcase-journeys.js';
 import { verifyPaidEvents, type TimedMessage } from './showcase-paid.js';
 import { parse } from './paid-evidence.js';
 import { repoRoot } from '../migration/ts-03/common.js';
@@ -81,7 +82,7 @@ export function requirePublicReplayText(text: string, privateValues: string[] = 
 
 export function requireCompletedRendering(output: string): void {
     const plain = output.replace(/\x1b\[[0-9;:]*m/gu, '');
-    assert(/\bok\b[^\n]*\d+m\s+\d+s/u.test(plain), 'Production main output does not show the completed task');
+    assert(/✓\s+\d+m\s+\d+s/u.test(plain), 'Production main output does not show the legacy completed-task symbol and duration');
 }
 
 function observedFile(path: string): Buffer {
@@ -112,7 +113,7 @@ export async function replayShowcase(options: { artifact: string; commit: string
     const transcriptSource = transcripts[0]!;
     fs.mkdirSync(output); fs.mkdirSync(join(output, 'input-evidence'), { mode: 0o700 });
     const installed = installCandidate(artifactPath, options.commit), runtime = join(installed.env.CLAUDE_CONFIG_DIR, 'statusline_runtime');
-    const env = { ...installed.env, CLAUDE_STATUSLINE_RUNTIME_DIR: runtime };
+    const env = isolatedRecordingEnvironment({ ...installed.env, CLAUDE_STATUSLINE_RUNTIME_DIR: runtime });
     const inputFiles: { role: string; sha256: string; bytes: number; original: string; evidence: string; working: string }[] = [];
     const copyObservation = (original: string, role: string, destination: string) => {
         const bytes = observedFile(original), evidence = join(output, 'input-evidence', role);
@@ -129,10 +130,18 @@ export async function replayShowcase(options: { artifact: string; commit: string
     let replay: ReturnType<typeof deriveReplayInput> | undefined, frozen = false;
     try {
         run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
-        run(['config', 'set-items', 'model', 'task-timer', 'task-active-timer', 'session-cost']);
-        run(['config', 'subagents', 'set-items', 'status', 'name', 'elapsed']);
-        for (const [key, value] of [['separator-style', 'compact'], ['theme', 'ocean'], ['icons', 'ascii'], ['labels', 'short'],
-            ['subagent-hide-completed', 'off'], ['subagent-visibility', 'all']]) run(['config', 'set', key!, value!]);
+        run(['config', 'set-items', 'model-with-effort', 'task-timer', 'task-active-timer', 'session-cost']);
+        run(['config', 'subagents', 'set-items', 'status-elapsed', 'name']);
+        for (const [key, value] of [['subagent-hide-completed', 'off'], ['subagent-visibility', 'all']])
+            run(['config', 'set', key!, value!]);
+        const currentDisplay = JSON.parse(observedFile(join(installed.env.CLAUDE_CONFIG_DIR, 'claude-statusline.json')).toString('utf8'));
+        applyShowcaseVisuals(currentDisplay);
+        requireShowcaseVisuals(currentDisplay);
+        const profiles = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/config/profiles.js')).href);
+        const replayProfile = join(output, 'replay-profile.json');
+        write(replayProfile, { format: profiles.PROFILE_FORMAT, version: profiles.PROFILE_VERSION, name: 'Showcase actual tasks', display: currentDisplay });
+        run(['config', 'profile', 'import', replayProfile]);
+        run(['config', 'profile', 'activate', 'Showcase actual tasks']);
         copyObservation(turnPath, 'turns.json', join(runtime, 'turns', sessionHash + '.json'));
         const liveBytes = copyObservation(join(configSource, 'statusline_runtime/live', sessionHash + '.json'), 'live.json', join(runtime, 'live', sessionHash + '.json'));
         const durationBytes = copyObservation(join(configSource, 'statusline_runtime/agent-durations', sessionHash + '.json'), 'agent-durations.json', join(runtime, 'agent-durations', sessionHash + '.json'));
@@ -150,7 +159,7 @@ export async function replayShowcase(options: { artifact: string; commit: string
         write(join(output, 'field-sources.json'), replay.fieldSources);
         for (const language of ['en', 'zh-CN']) {
             run(['config', 'set', 'statusline-language', language]);
-            const display = JSON.parse(observedFile(join(installed.env.CLAUDE_CONFIG_DIR, 'claude-statusline.json')).toString('utf8')); requireCompact(display);
+            const display = JSON.parse(observedFile(join(installed.env.CLAUDE_CONFIG_DIR, 'claude-statusline.json')).toString('utf8')); requireShowcaseVisuals(display);
             const render = () => {
                 const main = run(['render'], JSON.stringify(replay!.main));
                 const agentRaw = replay!.subagents.tasks.length ? run(['render-subagents'], JSON.stringify(replay!.subagents)) : '';
@@ -169,6 +178,7 @@ export async function replayShowcase(options: { artifact: string; commit: string
             const after = parse(observedFile(join(runtime, 'turns', sessionHash + '.json')).toString('utf8')).lifecycle.turns.find((row: any) => row.prompt_id === turn.prompt_id);
             requireCompletedTurn(after); assert.equal(String(after.duration_ns), originalFrozen); assert.equal(String(after.ended_wall_ns), originalEnding);
             const terminal = new Capture(120, 32); terminal.feed(raw);
+            const colorEvidence = requireColoredCapture(raw, terminal.buffer);
             const cells = { columns: 120, rows: 32, cells: terminal.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' };
             const image = renderCapture(cells, [0, 0, 120, 32], fonts), directory = join(output, language); fs.mkdirSync(directory);
             const json = JSON.stringify(cells, null, 2) + '\n';
@@ -183,19 +193,23 @@ export async function replayShowcase(options: { artifact: string; commit: string
                 main_input_sha256: sha256(observedFile(join(output, 'actual-main-input.json'))), subagent_input_sha256: sha256(observedFile(join(output, 'actual-subagent-input.json'))),
                 display_sha256: sha256(observedFile(join(directory, 'display.json'))), kind: 'actual completed-task observations replayed through installed production renderers',
                 sample: false, interactive_statusline_capture: false, terminal_cell_reconstruction: true, model_calls: 0,
-                physical_visual_acceptance: false, human_acceptance: false, repeated_frozen_output: true });
+                physical_visual_acceptance: false, human_acceptance: false, repeated_frozen_output: true, color_evidence: colorEvidence });
         }
         for (const input of inputFiles) {
             assert.equal(sha256(observedFile(input.original)), input.sha256, 'Original observed data changed');
             assert.equal(sha256(observedFile(input.evidence)), input.sha256, 'Preserved input evidence changed');
         }
-        const collectorFiles = ['tools/acceptance/showcase-replay.ts', 'tools/acceptance/showcase-paid.ts', 'tools/acceptance/render-capture.ts'];
+        const localHelpers = ['showcase-replay', 'showcase-paid', 'showcase-driver', 'showcase-journeys', 'showcase', 'render-capture', 'install', 'paid-evidence'];
+        const collectorFiles = [...localHelpers.map(name => 'tools/acceptance/' + name + '.ts'),
+            'tools/migration/ts-04/capture.ts', 'tools/migration/ts-04/test/pty.ts'];
+        const compiledFiles = [...localHelpers.map(name => name + '.js'), '../migration/ts-04/capture.js', '../migration/ts-04/test/pty.js'];
         write(join(output, 'private-inputs.json'), inputFiles);
         write(join(output, 'provenance.json'), { product: SHOWCASE_BASELINE, collector: {
             commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
             working_tree_changes: Boolean(execFileSync('git', ['status', '--porcelain=v1', '--', ...collectorFiles], { cwd: repoRoot, encoding: 'utf8' }).trim()),
             files: Object.fromEntries(collectorFiles.map(path => [path, sha256(observedFile(join(repoRoot, path)))])),
-        }, host: fixture.host, platform: process.platform, node: process.version, model_calls: 0,
+            compiled_files: Object.fromEntries(compiledFiles.map(path => [path, sha256(observedFile(fileURLToPath(new URL(path, import.meta.url))))])),
+        }, host: fixture.host, platform: process.platform, node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), resvg: '2.6.2', model_calls: 0,
         source_stream_sha256: sha256(streamBytes), source_receipt_sha256: sha256(receiptBytes),
         inputs: inputFiles.map(({ role, sha256, bytes }) => ({ role, sha256, bytes })), field_sources: replay.fieldSources,
         reconstructed_values: { model_id: (replay.main.model as any)?.id ?? null, cli_session_cost_usd: (replay.main.cost as any)?.total_cost_usd ?? null },

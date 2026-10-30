@@ -30,11 +30,13 @@ Rendering reads Claude Code input and local state without network requests or mo
 
 ## Screenshots
 
-The [complete demonstrations](docs/SHOWCASE.md) pair scene configurations with reproducible steps for setup, editing, tasks, sources and version review. The featured scenes use compact separators without Powerline. Each asset's package, input and capture type is recorded in the [showcase image index](docs/images/showcase/README.md); fixed samples are identified separately from live session observations.
+The [complete demonstrations](docs/SHOWCASE.md) pair scene configurations with reproducible steps for setup, editing, tasks, sources and version review. The visual baseline uses classic separators and soft, bright foreground gradients without Powerline. A component keeps its colors across main and subagent rows; the light scene uses darker shades of the same hues. Each asset's package, input and capture type is recorded in the [showcase image index](docs/images/showcase/README.md); fixed samples are identified separately from recorded task observations.
 
-![Daily development statusline with compact separators](docs/images/showcase/en/daily.png)
+![Daily development statusline with classic separators and distinct foreground gradients](docs/images/showcase/en/daily.png)
 
-![Configuration workflow with preview and reviewed changes](docs/images/showcase/en/configure.gif)
+![Configuration workflow with a colored statusline preview and reviewed changes](docs/images/showcase/en/configure.gif)
+
+The clip copies one metric, then demonstrates Undo, Redo, Save and reopening. The duplicate belongs only to this exercise; the original daily scene is restored afterward.
 
 ### In-session TUI
 
@@ -139,12 +141,12 @@ Click the Client region once. Tab changes pages, Space toggles, Ctrl+E opens ite
 
 Tab changes pages, Space toggles, and Ctrl+S saves after field input is finished. Esc cancels a field first, then the editor; Ctrl+C interrupts without saving. The minimum size is 64×18. [Controls and terminal launchers](docs/USER_GUIDE.md#standalone-interactive-tui).
 
-For a compact user-default display:
+To start from a built-in scheme with classic separators:
 
 ```text
 claude-statusline config preset daily-development --dry-run
 claude-statusline config preset daily-development
-claude-statusline config set separator-style compact
+claude-statusline config set separator-style classic
 ```
 
 Review before applying: a preset replaces display selections and layout. [Recipes](docs/USER_GUIDE.md#configuration-recipes) · [CLI reference](docs/reference/cli.md).

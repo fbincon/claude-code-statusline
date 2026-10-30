@@ -10,9 +10,10 @@ test('actual-task replay refuses running, unfinished and unfrozen observations',
 });
 
 test('completed-render observation reads text through ANSI styles without accepting a running timer', () => {
-    requireCompletedRendering('\x1b[38;2;142;211;211mok Task total time 0m 14s\x1b[0m');
-    requireCompletedRendering('\x1b[1;36mok 任务耗时 0m 14s\x1b[0m');
-    assert.throws(() => requireCompletedRendering('\x1b[1;36mrun Task total time 0m 14s\x1b[0m'));
+    requireCompletedRendering('\x1b[38;2;142;211;211m✓ 0m 14s\x1b[0m');
+    requireCompletedRendering('主栏 | \x1b[1;36m✓ 0m 14s\x1b[0m');
+    assert.throws(() => requireCompletedRendering('\x1b[1;36m⏱ 0m 14s\x1b[0m'));
+    assert.throws(() => requireCompletedRendering('\x1b[1;36mok Task total time 0m 14s\x1b[0m'));
 });
 
 test('public replay output rejects private paths, credentials, identities and Powerline', () => {

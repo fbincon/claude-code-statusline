@@ -7,11 +7,11 @@
     "groups": [],
     "use_colors": true,
     "palette": "default",
-    "directory_style": "project-relative",
-    "separator_style": "compact",
+    "directory_style": "full",
+    "separator_style": "classic",
     "scope_labels": "when-subagents",
     "statusline_language": "en",
-    "theme": "ocean",
+    "theme": "classic",
     "powerline_glyph": "ascii",
     "powerline": {
       "padding": "both",
@@ -32,6 +32,11 @@
           "type_id": "status-elapsed",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#bbf7d0",
+              "#bfdbfe",
+              "#ddd6fe"
+            ],
             "label": null,
             "icon": null,
             "priority": 50,
@@ -49,6 +54,11 @@
           "type_id": "name",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#fef08a",
+              "#fcd34d",
+              "#fde68a"
+            ],
             "label": null,
             "icon": null,
             "priority": 50,
@@ -66,6 +76,11 @@
           "type_id": "model-with-effort",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#fbcfe8",
+              "#e9d5ff",
+              "#dbeafe"
+            ],
             "label": null,
             "icon": null,
             "priority": 50,
@@ -83,6 +98,10 @@
           "type_id": "context-remaining",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#22d3ee",
+              "#3b82f6"
+            ],
             "label": null,
             "icon": null,
             "priority": 50,
@@ -100,6 +119,11 @@
           "type_id": "task",
           "enabled": true,
           "options": {
+            "foreground_gradient": [
+              "#bfdbfe",
+              "#c7d2fe",
+              "#fbcfe8"
+            ],
             "label": null,
             "icon": null,
             "priority": 50,
@@ -116,15 +140,15 @@
       "groups": []
     },
     "formatting": {
-      "model_name": "short",
-      "number_format": "compact",
-      "labels": "off",
-      "icons": "ascii",
+      "model_name": "original",
+      "number_format": "legacy",
+      "labels": "legacy",
+      "icons": "legacy",
       "allowance": "remaining",
       "reset_format": "countdown",
       "reset_timezone": "local",
       "thresholds": {
-        "enabled": true,
+        "enabled": false,
         "warning": 70,
         "critical": 90
       }
@@ -135,11 +159,20 @@
         [
           "model-with-effort",
           "current-dir",
-          "git",
-          "context-remaining",
-          "task-timer"
+          "git"
         ],
         [
+          "context-remaining",
+          "context-window-size"
+        ],
+        [
+          "five-hour-limit",
+          "weekly-limit",
+          "spend-limit"
+        ],
+        [
+          "tokens",
+          "task-timer",
           "session-cost"
         ]
       ]
@@ -154,8 +187,9 @@
         "enabled": true,
         "options": {
           "foreground_gradient": [
-            "#22d3ee",
-            "#3b82f6"
+            "#fbcfe8",
+            "#e9d5ff",
+            "#dbeafe"
           ],
           "label": null,
           "icon": null,
@@ -174,10 +208,15 @@
         "type_id": "current-dir",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#fb923c",
+            "#f472b6",
+            "#a78bfa"
+          ],
           "label": null,
           "icon": null,
           "priority": 99,
-          "max_width": 16,
+          "max_width": 42,
           "formatting": {},
           "foreground": null,
           "background": null,
@@ -191,10 +230,15 @@
         "type_id": "git",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#86efac",
+            "#5eead4",
+            "#7dd3fc"
+          ],
           "label": null,
-          "icon": "G",
+          "icon": null,
           "priority": 98,
-          "max_width": 20,
+          "max_width": 36,
           "formatting": {},
           "foreground": null,
           "background": null,
@@ -208,9 +252,131 @@
         "type_id": "context-remaining",
         "enabled": true,
         "options": {
+          "presentation": "adaptive",
+          "bar_width": 8,
+          "foreground_gradient": [
+            "#22d3ee",
+            "#3b82f6"
+          ],
           "label": null,
           "icon": null,
           "priority": 99,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "context-window-size",
+        "type_id": "context-window-size",
+        "enabled": true,
+        "options": {
+          "foreground_gradient": [
+            "#93c5fd",
+            "#a5b4fc",
+            "#c4b5fd"
+          ],
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "five-hour-limit",
+        "type_id": "five-hour-limit",
+        "enabled": true,
+        "options": {
+          "presentation": "adaptive",
+          "bar_width": 8,
+          "foreground_gradient": [
+            "#fde68a",
+            "#fdba74",
+            "#fda4af"
+          ],
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "weekly-limit",
+        "type_id": "weekly-limit",
+        "enabled": true,
+        "options": {
+          "presentation": "adaptive",
+          "bar_width": 8,
+          "foreground_gradient": [
+            "#ddd6fe",
+            "#c4b5fd",
+            "#a5b4fc"
+          ],
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "spend-limit",
+        "type_id": "spend-limit",
+        "enabled": true,
+        "options": {
+          "presentation": "adaptive",
+          "bar_width": 8,
+          "foreground_gradient": [
+            "#fecdd3",
+            "#f9a8d4",
+            "#e9a8f4"
+          ],
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "tokens",
+        "type_id": "tokens",
+        "enabled": true,
+        "options": {
+          "foreground_gradient": [
+            "#f0abfc",
+            "#d8b4fe",
+            "#c4b5fd"
+          ],
+          "label": null,
+          "icon": null,
+          "priority": 50,
           "max_width": null,
           "formatting": {},
           "foreground": null,
@@ -225,6 +391,11 @@
         "type_id": "task-timer",
         "enabled": true,
         "options": {
+          "foreground_gradient": [
+            "#99f6e4",
+            "#67e8f9",
+            "#93c5fd"
+          ],
           "label": null,
           "icon": null,
           "priority": 100,
@@ -240,15 +411,18 @@
       {
         "id": "session-cost",
         "type_id": "session-cost",
-        "enabled": true,
+        "enabled": false,
         "options": {
+          "foreground_gradient": [
+            "#c7d2fe",
+            "#d8b4fe",
+            "#fbcfe8"
+          ],
           "label": null,
           "icon": null,
           "priority": 95,
           "max_width": null,
-          "formatting": {
-            "labels": "legacy"
-          },
+          "formatting": {},
           "foreground": null,
           "background": null,
           "visibility": "always",

@@ -28,11 +28,13 @@
 
 ## 界面预览
 
-[完整使用演示](docs/SHOWCASE.zh-CN.md)将场景配置与设置、编辑、任务、来源及版本审阅步骤配对。首页展示使用紧凑分隔，不使用 Powerline。每份素材的软件包、输入和捕获类型见[演示图片索引](docs/images/showcase/README.zh-CN.md)，固定样例与真实会话观测分别标明。
+[完整使用演示](docs/SHOWCASE.zh-CN.md)将场景配置与设置、编辑、任务、来源及版本审阅步骤配对。视觉基线使用经典分隔符和柔和明亮的前景渐变，不使用 Powerline。同一组件在主栏和子代理行保持相同配色；浅色场景采用同色相的深色版本。每份素材的软件包、输入和捕获类型见[演示图片索引](docs/images/showcase/README.zh-CN.md)，固定样例与已记录任务观测分别标明。
 
-![使用紧凑分隔的日常开发状态栏](docs/images/showcase/zh-CN/daily.png)
+![使用经典分隔符和不同前景渐变的日常开发状态栏](docs/images/showcase/zh-CN/daily.png)
 
-![包含预览与变更审阅的配置流程](docs/images/showcase/zh-CN/configure.gif)
+![包含彩色状态栏预览与变更审阅的配置流程](docs/images/showcase/zh-CN/configure.gif)
+
+动图先复制一个指标，再演示撤销、重做、保存和重新打开。重复项仅用于这段练习，完成后恢复原始日常场景。
 
 ### 会话内 TUI
 
@@ -128,12 +130,12 @@ claude-statusline config set statusline-language zh-CN
 
 Tab 切页，Space 启停，完成字段输入后用 Ctrl+S 保存。Esc 先取消字段输入，再取消编辑器；Ctrl+C 中断且不保存。最小尺寸为 64×18。[操作与终端启动器](docs/USER_GUIDE.zh-CN.md#独立交互式-tui)。
 
-设置紧凑的用户默认显示：
+从内置方案开始，使用经典分隔符：
 
 ```text
 claude-statusline config preset daily-development --dry-run
 claude-statusline config preset daily-development
-claude-statusline config set separator-style compact
+claude-statusline config set separator-style classic
 ```
 
 应用前先审阅：预设会替换显示选择与布局。[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方) · [CLI 参考](docs/reference/cli.zh-CN.md)。

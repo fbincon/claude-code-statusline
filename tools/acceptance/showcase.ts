@@ -11,7 +11,7 @@ import { verifyDelivery } from '../build/verify.js';
 import { sha256 } from '../build/files.js';
 import { Capture } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
-import { SCENES, SAMPLE_SCENARIOS, requireCompact, requireSampleMetadata } from './showcase-driver.js';
+import { SCENES, SAMPLE_SCENARIOS, requireShowcaseVisuals, requireSampleMetadata, requireColorObservation } from './showcase-driver.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 
 export const SHOWCASE_BASELINE = { version: '3.16.0', commit: 'c89a2ca088099ccd3ceb76baf59ecf11d84b08f0',
@@ -65,7 +65,7 @@ export function collectShowcase(options: ShowcaseOptions) {
         run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
         for (const scene of SCENES) {
             const file = join(output, 'examples', scene.id + '.json'), profile = JSON.parse(fs.readFileSync(file, 'utf8'));
-            requireCompact(profile.display);
+            requireShowcaseVisuals(profile.display);
             let before = snapshotDirectory(installed.env.CLAUDE_CONFIG_DIR);
             const candidate = JSON.parse(run(['config', 'profile', 'import', file, '--dry-run', '--json']));
             assert.equal(candidate.name, scene.name); assert.deepEqual(candidate.display, profile.display);
@@ -88,6 +88,7 @@ export function collectShowcase(options: ShowcaseOptions) {
         for (const record of samples.gallery) {
             const lines = [...record.main, ...record.subagents], raw = Buffer.from(lines.join('\r\n'));
             const terminal = new Capture(record.columns, Math.max(1, lines.length)); terminal.feed(raw);
+            const colorEvidence = requireColorObservation(raw.toString('utf8'), terminal.buffer);
             const light = record.scene === 'light', cells = { columns: terminal.columns, rows: terminal.rows, cells: terminal.buffer,
                 terminal_foreground: light ? '#17191e' : '#dedee7', terminal_background: light ? '#ffffff' : '#17191e' };
             const image = renderCapture(cells, [0, 0, cells.columns, cells.rows], fonts), directory = join(output, record.language);
@@ -97,7 +98,7 @@ export function collectShowcase(options: ShowcaseOptions) {
             fs.writeFileSync(join(directory, record.scene + '.cells.json'), json, { flag: 'wx' });
             fs.writeFileSync(join(directory, record.scene + '.ansi'), raw, { flag: 'wx' });
             const { main: _main, subagents: _subagents, ...metadata } = record;
-            captures.push({ file: record.language + '/' + file, ...metadata, rows: cells.rows,
+            captures.push({ file: record.language + '/' + file, ...metadata, color_evidence: colorEvidence, rows: cells.rows,
                 width: image.width, height: image.height, png_sha256: sha256(image.png), cells_sha256: sha256(json), ansi_sha256: sha256(raw) });
         }
         const collectorFiles = ['showcase.ts', 'showcase-driver.ts', 'render-capture.ts', 'install.ts'].map(name => 'tools/acceptance/' + name);
@@ -111,12 +112,15 @@ export function collectShowcase(options: ShowcaseOptions) {
             node_sha256: sha256(fs.readFileSync(process.execPath)), resvg: '2.6.2',
             terminal: 'xterm-256color cell reconstruction', host: null, model_calls: 0,
             physical_visual_acceptance: false, human_acceptance: false,
+            visual_baseline_sha256: sha256(fs.readFileSync(join(output, 'visual-baseline.json'))),
             fonts: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures };
         fs.writeFileSync(join(output, 'provenance.json'), JSON.stringify(provenance, null, 2) + '\n', { flag: 'wx' });
         fs.writeFileSync(join(output, 'sample-validation.json'), JSON.stringify({ status: 'pass', product: SHOWCASE_BASELINE,
             matrix_cases: samples.records.length, languages: ['en', 'zh-CN'], widths: [40, 80, 120],
             appearances: ['dark', 'light', 'no-color'], scenarios: SAMPLE_SCENARIOS,
-            checks: ['compact separators', 'whole-row width bounds', 'valid Unicode output', 'no SGR with colors off', 'truthful synthetic provenance'], journeys }, null, 2) + '\n', { flag: 'wx' });
+            checks: ['classic separators and legacy formatting', 'type-consistent foreground gradients', 'no Powerline or item backgrounds',
+                'actual RGB foreground SGR and colored text cells in every public scene', 'whole-row width bounds', 'valid Unicode output',
+                'no SGR with colors off', 'truthful synthetic provenance'], journeys }, null, 2) + '\n', { flag: 'wx' });
         success = true;
     } finally {
         installed.cleanup(); requireRemoved(installed.temporary);
