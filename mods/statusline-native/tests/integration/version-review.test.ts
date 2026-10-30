@@ -1,5 +1,5 @@
 import { test, expect } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, selectSetting, reply, visibleText } from '../fixtures.ts';
+import { setup, START, RUN, PANE, keys, selectSetting, reply, visibleText, previewDraft } from '../fixtures.ts';
 import { LANGUAGES, t } from '../../lib/i18n/index.ts';
 import type { PackageStatus, PackageReviewJob } from '../../lib/generated-contracts.ts';
 const status: PackageStatus = { version: 1, backend_version: 'test', captured_at: '2026-10-28T00:00:00Z', revision: 'a'.repeat(64), prefix: '/prefix', entry: '/prefix/entry', config_dir: '/config', current: '3.10.0', previous: '3.9.2', channel: 'latest', node_version: '24.21.0', host: '2.1.310', compatible: true, reasons: [], pending: null, history: [], offset: 0, total: 0 };
@@ -25,9 +25,11 @@ for (const language of LANGUAGES)
         await $.command.run(RUN);
         const ui = await $.ui.mount(PANE);
         await keys(ui, 'd');
+        const saved = JSON.stringify(f.store.draft), draft = JSON.stringify(previewDraft(f));
         const writes = f.calls.filter(call => call.operation === 'apply').length;
         await keys(ui, '3');
         await selectSetting(ui, 'package-management');
+        expect(await visibleText(ui)).toContain(t('settings.package-management', language));
         await keys(ui, 'return');
         expect(f.calls.filter(call => call.operation === 'package_status').length).toBe(1);
         expect(f.calls.some(call => call.operation === 'package_review_start')).toBe(false);
@@ -41,5 +43,9 @@ for (const language of LANGUAGES)
         await keys(ui, 'q');
         expect(f.calls.filter(call => call.operation === 'apply').length).toBe(writes);
         expect(f.calls.some(call => call.operation === 'package_review_cancel')).toBe(true);
+        expect(JSON.stringify(previewDraft(f))).toBe(draft);
+        expect(JSON.stringify(f.store.draft)).toBe(saved);
+        expect(f.store.uiLanguage).toBe(language);
+        expect(f.configCalls.length).toBe(0);
         await ui.unmount();
     });

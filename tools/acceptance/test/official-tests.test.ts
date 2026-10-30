@@ -111,6 +111,28 @@ test('official summaries require real pass lines, exact executed files and zero 
     for (const output of invalid) assert.throws(() => parseOfficialTestSummary(output, ['tests/a.test.ts']));
 });
 
+test('capacity batches require their explicit original budget and keep distinct logs for literal source paths', t => {
+    const f = fixture(t), source = join(f.root, 'capacity source 中文');
+    fs.renameSync(f.source, source);
+    const inventory = officialTestInventory(source), phases: number[] = [];
+    const receipt = runOfficialTestBatches({ ...f.options, source, timeoutMs: 300_000, logPrefix: 'native-capacity',
+        onCommand: phase => phases.push(phase.timeout_ms) }, (_executable, args, options) => {
+        assert.equal(options.timeout, 300_000);
+        return { status: 0, stdout: summary(officialTestInventory(args.at(-1)!).test_files[0]!) };
+    });
+    assert.deepEqual(phases, [300_000, 300_000]);
+    assert.equal(receipt.timeout_ms, 300_000);
+    assert(receipt.batches.every(batch => batch.timeout_ms === 300_000 && batch.log.startsWith('native-capacity-batch-')));
+    verifyOfficialTestBatches(receipt, inventory.source_files, 300_000);
+    assert.throws(() => verifyOfficialTestBatches(receipt, inventory.source_files), /300000.*180000|180000.*300000/su);
+    const changed = structuredClone(receipt); changed.batches[0]!.timeout_ms = 180_000;
+    assert.throws(() => verifyOfficialTestBatches(changed, inventory.source_files, 300_000));
+    assert.throws(() => verifyOfficialTestBatches(receipt, inventory.source_files, 300_001 as 300_000), /Unsupported/u);
+    assert.throws(() => runOfficialTestBatches({ ...f.options, source, timeoutMs: 300_001 as 300_000 }), /Unsupported/u);
+    assert.throws(() => runOfficialTestBatches({ ...f.options, source, logPrefix: '../outside' }), /log prefix/u);
+    assert(!fs.existsSync(f.temporary));
+});
+
 test('official command failures and timeouts retain logs after removing their disposable copies', t => {
     for (const timeout of [false, true]) {
         const f = fixture(t);

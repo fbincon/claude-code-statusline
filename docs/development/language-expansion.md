@@ -24,11 +24,17 @@ Language registration, generated types and protocol changes require the product 
 
 The expanded official tests run one source test file per disposable exact-source copy, with twelve generated language files covering all 144 pairs. Individual tests retain their 30-second limits and each official invocation retains its 180-second deadline. Copies preserve hooks and supporting modules; receipts bind the complete ordered file inventory, source hashes, pass counts, elapsed times and retained logs. Release verification compares those inventories with the immutable source archive and verifies the actual logs, rejecting omitted, duplicated, altered or skipped executions.
 
+The capacity suite uses the same serial mechanism for its seven generated entry points. Each case keeps its 20-second limit and each capacity invocation keeps the 300-second deadline. Release verification reconstructs the exact capacity source inventory from the immutable Native archive, including its test registration hooks and entry ranges, and requires all 313 successful cases and every retained batch log.
+
 ## Local implementation checks
 
-The implementation working tree passed `npm run check`: 1,502 tests passed, six existing non-Linux platform cases were skipped, and no tests failed. Generated resources, 4,061 documentation links, frozen Python/archive checks and all three migration responsibility inventories passed. All twelve languages have 2,311 accepted entries, including 261 statusline messages, with no missing, stale, pending, invalid or fallback entries. These local results are separate from the required immutable candidate and PR/main/tag evidence.
+The implementation working tree passed `npm run check`: 1,508 tests passed, six existing non-Linux platform cases were skipped, and no tests failed. Generated resources, 4,061 documentation links, frozen Python/archive checks and all three migration responsibility inventories passed. All twelve languages have 2,311 accepted entries, including 261 statusline messages, with no missing, stale, pending, invalid or fallback entries. A subsequent 29-test focused run passed the final source-bound receipt and log-retention guards. These local results are separate from the required immutable candidate and PR/main/tag evidence.
 
 The actual 2.1.312 host exposed a Spanish 32×12 footer overflow during local validation. Retained shortcut labels now use grapheme-safe shortening only after the existing compaction/priority steps, preserving keys, selection, draft and a real preview. The unchanged full-language drawing matrix and added minimum-size regression passed together (16 tests) in an isolated actual-host rerun. Earlier failed/partial runs remain diagnostic records.
+
+An isolated editor rehearsal also found two manager captions falling back to English; display-scheme and package-management rows now use their existing shared translated descriptors. The shared message tests cover all twelve languages, and Native regressions retain draft, cancel, explicit Save and separate Claude Apply behavior.
+
+The unchanged capacity source at `19baf416` passed all 313 cases when its seven files ran serially. The concurrent run had caused memory pressure and incomplete results on this machine; the serial diagnostic completed in 395 seconds with 2.38 GiB peak owned RSS and no added memory-pressure stalls. Its original failures remain failed diagnostics. The diagnostic is not promoted to PR evidence; final-source automation must produce its own bound receipts.
 
 ## Release and machine verification
 

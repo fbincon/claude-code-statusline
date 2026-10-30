@@ -38,7 +38,7 @@ export function fieldMessage(row: SettingRow, view: FormView) {
     }
     if (key.startsWith('break:'))
         return localizedText('layout.break_before', { item: view.editor!.instanceLabel('main', key.slice(6), view.language) });
-    if (['reuse-style', 'reuse-groups', 'change-history'].includes(key)) return localizedText('settings.' + key);
+    if (['reuse-style', 'reuse-groups', 'change-history', 'profiles', 'package-management'].includes(key)) return localizedText('settings.' + key);
     return localizedText('native.settings.' + key);
 }
 export interface FormRow extends SettingRow {

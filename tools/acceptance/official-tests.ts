@@ -9,6 +9,7 @@ import { sha256 } from '../build/files.js';
 import { retainLog, sanitizeLog } from './diagnostics.js';
 
 export const OFFICIAL_TEST_TIMEOUT_MS = 180_000;
+export type OfficialTestTimeoutMs = 180_000 | 300_000;
 const TEST_FILE = /\.test\.[cm]?[jt]sx?$/u;
 const HOST_TYPES = '.claude-plugin/types/';
 const HASH = /^[a-f0-9]{64}$/u;
@@ -52,9 +53,12 @@ interface CommandOptions { cwd: string; env: NodeJS.ProcessEnv; timeout: number;
 export interface OfficialTestOptions {
     source: string; temporary: string; logs: string; host: LaunchSpec;
     cwd: string; env: NodeJS.ProcessEnv;
+    /** Capacity preserves its existing 300s command budget; ordinary Mod tests use 180s. */
+    timeoutMs?: OfficialTestTimeoutMs;
+    logPrefix?: string;
     onCommand?: (phase: OfficialTestPhase) => void;
 }
-type Execute = (executable: string, args: string[], options: CommandOptions) => CommandResult;
+export type OfficialTestExecute = (executable: string, args: string[], options: CommandOptions) => CommandResult;
 const ordered = (entries: Iterable<readonly [string, string]>): Hashes => Object.fromEntries([...entries].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 const digest = (files: Hashes) => sha256(JSON.stringify(ordered(Object.entries(files))));
 
@@ -119,9 +123,10 @@ function checkHashes(value: Hashes): void {
 }
 
 /** Bind receipt coverage to an independently supplied immutable source inventory. */
-export function verifyOfficialTestBatches(receipt: OfficialTestReceipt, expectedSource: Readonly<Hashes>): void {
+export function verifyOfficialTestBatches(receipt: OfficialTestReceipt, expectedSource: Readonly<Hashes>, timeoutMs: OfficialTestTimeoutMs = OFFICIAL_TEST_TIMEOUT_MS): void {
+    assert(timeoutMs === 180_000 || timeoutMs === 300_000, 'Unsupported official test command budget');
     assert.equal(receipt.schema_version, 1); assert.equal(receipt.kind, 'official-mod-test-batches'); assert.equal(receipt.status, 'pass');
-    assert.equal(receipt.timeout_ms, OFFICIAL_TEST_TIMEOUT_MS);
+    assert.equal(receipt.timeout_ms, timeoutMs);
     checkHashes(receipt.source_files); checkHashes(receipt.host_files); checkHashes(expectedSource);
     assert(Object.keys(receipt.host_files).every(path => path.startsWith(HOST_TYPES)), 'Unexpected host declaration path');
     assert(Object.keys(receipt.source_files).every(path => !path.startsWith(HOST_TYPES)), 'Host declarations cannot stand in for source');
@@ -136,7 +141,7 @@ export function verifyOfficialTestBatches(receipt: OfficialTestReceipt, expected
         assert.equal(batch.index, index); assert.deepEqual(batch.test_files, [path], 'Official batch inventory differs');
         assert.deepEqual(batch.test_hashes, { [path]: expectedSource[path] });
         assert.equal(batch.copied_source_sha256, digest(selectedSource(receipt.source_files, [path])));
-        assert.equal(batch.host_sha256, receipt.host_sha256); assert.equal(batch.timeout_ms, OFFICIAL_TEST_TIMEOUT_MS);
+        assert.equal(batch.host_sha256, receipt.host_sha256); assert.equal(batch.timeout_ms, timeoutMs);
         assert(Number.isFinite(batch.elapsed_ms) && batch.elapsed_ms >= 0 && batch.elapsed_ms <= batch.timeout_ms, 'Invalid official execution duration');
         assert.equal(batch.files, 1); assert(Number.isSafeInteger(batch.tests) && batch.tests > 0);
         assert.equal(batch.pass, batch.tests); assert.equal(batch.fail, 0); assert.equal(batch.skip, 0);
@@ -147,15 +152,17 @@ export function verifyOfficialTestBatches(receipt: OfficialTestReceipt, expected
     assert.deepEqual(receipt.totals, totals, 'Official summary totals differ');
 }
 
-export function runOfficialTestBatches(options: OfficialTestOptions, execute: Execute = (file, args, opts) => spawnSync(file, args, opts)): OfficialTestReceipt {
+export function runOfficialTestBatches(options: OfficialTestOptions, execute: OfficialTestExecute = (file, args, opts) => spawnSync(file, args, opts)): OfficialTestReceipt {
     const source = resolve(options.source), temporary = resolve(options.temporary);
+    const timeoutMs = options.timeoutMs ?? OFFICIAL_TEST_TIMEOUT_MS;
+    assert(timeoutMs === 180_000 || timeoutMs === 300_000, 'Unsupported official test command budget');
     assert(!fs.existsSync(temporary), 'Official test copies require a new directory');
     const separation = relative(source, temporary);
     assert(isAbsolute(separation) || separation === '..' || separation.startsWith('..' + sep), 'Official copies must be outside the source');
     const logSeparation = relative(temporary, resolve(options.logs));
     assert(isAbsolute(logSeparation) || logSeparation === '..' || logSeparation.startsWith('..' + sep), 'Official logs must survive workspace cleanup');
     const inventory = officialTestInventory(source), batches: OfficialTestBatch[] = [];
-    const prefix = basename(source).toLowerCase(); assert(/^[a-z0-9-]+$/u.test(prefix), 'Invalid official Mod name');
+    const prefix = options.logPrefix ?? basename(source).toLowerCase(); assert(/^[a-z0-9-]+$/u.test(prefix), 'Invalid official log prefix');
     fs.mkdirSync(temporary, { recursive: false, mode: 0o700 });
     try {
         for (const [index, file] of inventory.test_files.entries()) {
@@ -173,22 +180,22 @@ export function runOfficialTestBatches(options: OfficialTestOptions, execute: Ex
                 assert.deepEqual(copied.host_files, inventory.host_files); assert.deepEqual(copied.test_files, [file]);
                 const args = [...options.host.args, 'plugin', 'test', directory], started = performance.now();
                 let result: CommandResult;
-                try { result = execute(options.host.executable, args, { cwd: options.cwd, env: options.env, encoding: 'utf8', timeout: OFFICIAL_TEST_TIMEOUT_MS, maxBuffer: 8 * 1024 * 1024 }); }
+                try { result = execute(options.host.executable, args, { cwd: options.cwd, env: options.env, encoding: 'utf8', timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024 }); }
                 catch (error) { result = { status: null, error: error instanceof Error ? error : new Error(String(error)) }; }
                 const elapsed_ms = performance.now() - started, output = (result.stdout ?? '') + (result.stderr ?? '');
                 const log = retainLog(options.logs, logName, output + (result.error ? '\n' + String(result.error) : ''));
-                options.onCommand?.({ argv: args.map(arg => sanitizeLog(arg)), elapsed_ms, timeout_ms: OFFICIAL_TEST_TIMEOUT_MS, status: result.status, signal: result.signal ?? null, error: result.error?.name ?? null, log });
+                options.onCommand?.({ argv: args.map(arg => sanitizeLog(arg)), elapsed_ms, timeout_ms: timeoutMs, status: result.status, signal: result.signal ?? null, error: result.error?.name ?? null, log });
                 assert(result.status === 0 && !result.error && !result.signal, 'Official test batch failed: ' + file + '; see ' + log);
                 const summary = parseOfficialTestSummary(output, [file]);
                 assert.deepEqual(officialTestInventory(directory), copied, 'Official tests changed their source copy');
                 batches.push({ index, test_files: [file], test_hashes: { [file]: inventory.source_files[file]! }, copied_source_sha256: copied.source_sha256,
-                    host_sha256: copied.host_sha256, ...summary, timeout_ms: OFFICIAL_TEST_TIMEOUT_MS, elapsed_ms, log, log_sha256: sha256(fs.readFileSync(join(options.logs, log))) });
+                    host_sha256: copied.host_sha256, ...summary, timeout_ms: timeoutMs, elapsed_ms, log, log_sha256: sha256(fs.readFileSync(join(options.logs, log))) });
             } finally { removeTree(directory); assert(!fs.existsSync(directory), 'Official batch copy was not removed'); }
         }
         assert.deepEqual(officialTestInventory(source), inventory, 'Official source changed during acceptance');
         const totals = batches.reduce<OfficialTestSummary>((sum, batch) => ({ files: sum.files + batch.files, tests: sum.tests + batch.tests, pass: sum.pass + batch.pass, fail: sum.fail + batch.fail, skip: sum.skip + batch.skip }), { files: 0, tests: 0, pass: 0, fail: 0, skip: 0 });
-        const receipt: OfficialTestReceipt = { schema_version: 1, kind: 'official-mod-test-batches', status: 'pass', ...inventory, timeout_ms: OFFICIAL_TEST_TIMEOUT_MS, batches, totals };
-        verifyOfficialTestBatches(receipt, inventory.source_files);
+        const receipt: OfficialTestReceipt = { schema_version: 1, kind: 'official-mod-test-batches', status: 'pass', ...inventory, timeout_ms: timeoutMs, batches, totals };
+        verifyOfficialTestBatches(receipt, inventory.source_files, timeoutMs);
         return receipt;
     } finally { removeTree(temporary); assert(!fs.existsSync(temporary), 'Official test workspace was not removed'); }
 }

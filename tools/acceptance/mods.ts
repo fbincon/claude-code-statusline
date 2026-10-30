@@ -54,7 +54,7 @@ try {
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity')) } : {}) };
+        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs')) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {

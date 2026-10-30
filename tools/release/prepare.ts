@@ -11,7 +11,7 @@ import { verifyDelivery } from '../build/verify.js';
 import { UNVERIFIED_GATES, sourceStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
-import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES } from '../acceptance/native-capacity.js';
+import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES, NATIVE_CAPACITY_TIMEOUT_MS, nativeCapacitySourceInventory } from '../acceptance/native-capacity.js';
 import { VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from '../acceptance/budgets.js';
 import { verifyLanguageEvidence } from '../checks/i18n-evidence.ts';
 import { parseOfficialTestSummary, verifyOfficialTestBatches, type OfficialTestReceipt } from '../acceptance/official-tests.js';
@@ -132,7 +132,22 @@ export function assessEvidence(reports: any[], commit: string, sha256: string, s
             for (const name of required) {
                 const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
                 verifyOfficialTestBatches(mod.official_test_batches, officialSources[name]!);
-                if (name === 'statusline-native') { assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES); assert.equal(mod.capacity.actual_host, true); if(compareVersions(VERSION,'3.12.0')>=0){assert.equal(mod.capacity.total_cases,NATIVE_CAPACITY_TOTAL_CASES);assert.equal(mod.capacity.additional_cases,NATIVE_CAPACITY_ADDITIONAL_CASES);assert.equal(mod.capacity.shared_execution,true);assert.match(mod.capacity.baseline_names_sha256,/^[a-f0-9]{64}$/u);assert.match(mod.capacity.additional_names_sha256,/^[a-f0-9]{64}$/u);} }
+                if (name === 'statusline-native') {
+                    assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES);
+                    assert.equal(mod.capacity.actual_host, true); assert.equal(mod.capacity.model_calls, 0);
+                    assert.equal(mod.capacity.original_cases, 197);
+                    assert.equal(mod.capacity.total_cases, NATIVE_CAPACITY_TOTAL_CASES);
+                    assert.equal(mod.capacity.additional_cases, NATIVE_CAPACITY_ADDITIONAL_CASES);
+                    assert.equal(mod.capacity.shared_execution, true);
+                    assert.match(mod.capacity.baseline_names_sha256, /^[a-f0-9]{64}$/u);
+                    assert.match(mod.capacity.additional_names_sha256, /^[a-f0-9]{64}$/u);
+                    assert.equal(mod.capacity.validation?.status, 'pass');
+                    assert.equal(mod.capacity.validation.timeout_ms, NATIVE_CAPACITY_TIMEOUT_MS);
+                    assert(Number.isFinite(mod.capacity.validation.elapsed_ms) && mod.capacity.validation.elapsed_ms >= 0 && mod.capacity.validation.elapsed_ms <= NATIVE_CAPACITY_TIMEOUT_MS, 'Invalid capacity validation duration');
+                    verifyOfficialTestBatches(mod.capacity.execution, nativeCapacitySourceInventory(officialSources[name]!), NATIVE_CAPACITY_TIMEOUT_MS);
+                    assert.equal(mod.capacity.execution.totals.tests, NATIVE_CAPACITY_TOTAL_CASES, 'Incomplete actual-host capacity execution');
+                    assert.equal(mod.capacity.test_files, mod.capacity.execution.totals.files, 'Capacity file count differs');
+                }
                 if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
                 else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
             }
@@ -153,19 +168,24 @@ export function evidenceFiles(root: string): any[] {
         if (!['installed.json', 'mods.json', 'runtime.json'].includes(entry.name)) return [];
         const report = JSON.parse(fs.readFileSync(path, 'utf8'));
         if (entry.name === 'mods.json') {
-            for (const mod of Object.values(report.mods ?? {}) as { official_test_batches?: OfficialTestReceipt }[]) {
-                for (const batch of mod.official_test_batches?.batches ?? []) {
-                    assert(/^[a-z0-9.-]+\.log$/u.test(batch.log), 'Invalid official log name');
-                    const logs = join(root, 'logs'), file = join(logs, batch.log);
-                    assert(!fs.lstatSync(logs).isSymbolicLink() && fs.lstatSync(logs).isDirectory(), 'Linked official log directory');
-                    const stat = fs.lstatSync(file);
-                    assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4 * 1024 * 1024, 'Invalid official result log');
-                    const bytes = fs.readFileSync(file);
-                    assert.equal(digestBytes(bytes), batch.log_sha256, 'Official result log changed');
+            const readLog = (log: string, sha256: string): Buffer => {
+                assert(/^[a-z0-9.-]+\.log$/u.test(log), 'Invalid official log name');
+                const logs = join(root, 'logs'), file = join(logs, log);
+                assert(!fs.lstatSync(logs).isSymbolicLink() && fs.lstatSync(logs).isDirectory(), 'Linked official log directory');
+                const stat = fs.lstatSync(file);
+                assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4 * 1024 * 1024, 'Invalid official result log');
+                const bytes = fs.readFileSync(file);
+                assert.equal(digestBytes(bytes), sha256, 'Official result log changed');
+                return bytes;
+            };
+            for (const mod of Object.values(report.mods ?? {}) as { official_test_batches?: OfficialTestReceipt; capacity?: { execution?: OfficialTestReceipt; validation?: { log: string; log_sha256: string } } }[]) {
+                for (const batch of [...mod.official_test_batches?.batches ?? [], ...mod.capacity?.execution?.batches ?? []]) {
+                    const bytes = readLog(batch.log, batch.log_sha256);
                     assert.deepEqual(parseOfficialTestSummary(bytes.toString('utf8'), batch.test_files), {
                         tests: batch.tests, files: batch.files, pass: batch.pass, fail: batch.fail, skip: batch.skip,
                     }, 'Official result log does not match its receipt');
                 }
+                if (mod.capacity?.validation) readLog(mod.capacity.validation.log, mod.capacity.validation.log_sha256);
             }
         }
         return [report];
