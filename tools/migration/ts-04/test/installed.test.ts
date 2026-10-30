@@ -59,12 +59,12 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 30, operation, payload }), environment));
-    assert.equal(result.protocol_version, 30);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 31, operation, payload }), environment));
+    assert.equal(result.protocol_version, 31);
     assert.ok(result.result);
     return result.result;
 }
-test('installed effective languages retain independent UI/output saves and read-only previews in all 36 combinations', async () => {
+test('installed effective languages retain independent UI/output saves and read-only previews in all registered combinations', async () => {
     const config = setup('i18n-workflow');
     run(['config', 'set-items', 'context-remaining'], config); run(['config', 'set', 'colors', 'off'], config);
     const messages = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/messages.js')).href);
@@ -442,7 +442,7 @@ test('tests.integration.test_compatibility.CompatibilityTests.test_legacy_render
     fs.writeFileSync(inputPath, JSON.stringify(payload));
     const snapshot = () => Object.fromEntries(fs.readdirSync(diagnosticConfig, { recursive: true }).map(String)
         .filter(name => fs.statSync(join(diagnosticConfig, name)).isFile()).sort().map(name => [name, fs.readFileSync(join(diagnosticConfig, name)).toString('hex')]));
-    for (const language of ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']) {
+    for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language], diagnosticConfig);
         const before = snapshot();
         for (const width of [40, 80, 120]) {
@@ -575,7 +575,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 30, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 31, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -604,17 +604,17 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     report.profile_project_task_cases = 8;
     checks.native_protocol = true;
 });
-test('installed task viewer is available without installation and shares six-language bounded reading', () => {
+test('installed task viewer is available without installation and shares registered-language bounded reading', () => {
     const config=join(installed.temporary,'task-viewer-readonly');
     assert(run(['task','--help'],config).includes('view --session-id'));
     const nonTty=invoke(['task','view','--session-id','session'],config);
     assert.equal(nonTty.status,2);assert(nonTty.stderr.includes('task show'));assert(!fs.existsSync(config));
     const viewerURL=pathToFileURL(join(installed.modules,'statusline-core/dist/src/editor/task-viewer.js')).href;
     const frameURL=pathToFileURL(join(installed.modules,'statusline-tui/dist/src/task-viewer.js')).href;
-    const program=`import {taskViewer,receiveTask,taskViewerKey,taskViewerView} from ${JSON.stringify(viewerURL)};import {taskFrame} from ${JSON.stringify(frameURL)};const languages=['en','zh-CN','zh-TW','zh-HK','ja','ko'];for(const language of languages){const view=taskViewer('session',null,language);receiveTask(view,{version:1,session_id:'session',prompt_id:'prompt',captured_at:'2026-10-28T00:00:00Z',status:'running',phase:'main',elapsed_seconds:0,active_seconds:null,progress:{completed:0,total:1},agents:[{id:'agent',parent_id:null,name:'Agent',status:'running',evidence:[]}],evidence:[],limitations:['independent_snapshots']});taskViewerView(view,80,12);view.selected='agent:agent:0';taskViewerKey(view,{key:'e'});for(const width of [32,80,120]){const frame=taskFrame(view,width,16);if(frame.rows.length!==16||view.selected!=='agent:agent:0')throw Error('Viewer lost reading state');}}console.log(JSON.stringify({languages,views:18}));`;
+    const program=`import {taskViewer,receiveTask,taskViewerKey,taskViewerView} from ${JSON.stringify(viewerURL)};import {taskFrame} from ${JSON.stringify(frameURL)};const languages=${JSON.stringify(LANGUAGES)};for(const language of languages){const view=taskViewer('session',null,language);receiveTask(view,{version:1,session_id:'session',prompt_id:'prompt',captured_at:'2026-10-28T00:00:00Z',status:'running',phase:'main',elapsed_seconds:0,active_seconds:null,progress:{completed:0,total:1},agents:[{id:'agent',parent_id:null,name:'Agent',status:'running',evidence:[]}],evidence:[],limitations:['independent_snapshots']});taskViewerView(view,80,12);view.selected='agent:agent:0';taskViewerKey(view,{key:'e'});for(const width of [32,80,120]){const frame=taskFrame(view,width,16);if(frame.rows.length!==16||view.selected!=='agent:agent:0')throw Error('Viewer lost reading state');}}console.log(JSON.stringify({languages,views:languages.length*3}));`;
     const result=spawnSync(installed.node,['--input-type=module','-e',program],{cwd:installed.directory,env:installed.env,encoding:'utf8',timeout:30000});
-    assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,18);assert(!fs.existsSync(config));
-    report.task_viewer={languages:6,views:18,standalone_non_tty:true,readonly:true,installed_modules:true};checks.task_viewer=true;
+    assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,LANGUAGES.length*3);assert(!fs.existsSync(config));
+    report.task_viewer={languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true};checks.task_viewer=true;
 });
 test('installed setup checks, previews, cancels, saves and integrates in a real terminal', { timeout: 90000 }, async () => {
     const readonly = join(installed.temporary, 'setup readonly');
@@ -816,7 +816,7 @@ test('installed adaptive indicators and scene schemes retain semantic and persis
     const common={languages:LANGUAGES,widths:[40,80,120],semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0};
     const parts: {schemes:string[]}[]=[],executions: {scheme:string;timeout_ms:number;elapsed_ms:number;status:string}[]=[];
     report.appearance_scenario_executions=executions;
-    // Each scene retains all six languages, five samples and three widths.
+    // Each scene retains all registered languages, five samples and three widths.
     // The 120-second subprocess deadline bounds one scene, not all 450 previews.
     for(const scheme of schemes){
         const receipt=join(installed.temporary,'appearance-'+scheme+'.json'),started=performance.now();

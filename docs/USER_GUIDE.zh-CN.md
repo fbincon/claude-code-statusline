@@ -159,11 +159,11 @@ macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon
 
 ## 界面语言
 
-语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-TW`（繁体中文，台湾）、`zh-HK`（繁体中文，香港）、`ja`（日语）、`ko`（韩语）。语言由用户明确选择，不跟随系统区域设置；左右方向键按此顺序循环切换。旧 `zh-Hant` 参数及配置继续接受并映射到台湾；读取不改写文件，显式保存与导出使用 `zh-TW`。
+语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-TW`（繁体中文，台湾）、`zh-HK`（繁体中文，香港）、`ja`（日语）、`ko`（韩语）、`es`（西班牙语）、`fr`（法语）、`de`（德语）、`pt-BR`（巴西葡萄牙语）、`ru`（俄语）、`id`（印度尼西亚语）。语言由用户明确选择，不跟随系统区域设置；代码区分大小写，支持 `pt-BR`，`pt` 和 `pt-br` 不是别名；左右方向键按此顺序循环切换。旧 `zh-Hant` 参数及配置继续接受并映射到台湾；读取不改写文件，显式保存与导出使用 `zh-TW`。
 
-成品运行范围为 `^22.0.0 || ^24.0.0`；源码开发与可复现发布构建仍固定 Node 24.21.0/npm 11.19.0。升级后重新运行 `claude-statusline install` 并重启 Claude Code，以更新编辑器协议 26 及配套资源。降级前通过当前软件包的恢复流程还原升级前的兼容显示备份；若旧版不支持所选语言，先将界面语言和状态栏语言设为英文，再恢复该备份。
+成品运行范围为 `^22.0.0 || ^24.0.0`；源码开发与可复现发布构建仍固定 Node 24.21.0/npm 11.19.0。升级后重新运行 `claude-statusline install` 并重启 Claude Code，以更新编辑器协议 31 及配套资源。降级前通过当前软件包的恢复流程还原升级前的兼容显示备份；若旧版不支持所选语言，先将界面语言和状态栏语言设为英文，再恢复该备份。
 
-CLI、外部／独立终端编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
+CLI、外部／独立终端编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
 
 ```text
 claude-statusline config language show [--json]
@@ -176,7 +176,7 @@ claude-statusline --language en config --help
 
 使用 `--json` 时不要输入方括号。`reset` 保存英文。可选的 `--language` 放在子命令前，仅在当前调用中覆盖已保存偏好，不写入文件；使用该参数打开的编辑器仍可在设置页保存新的语言。独立配置目录示例：`claude-statusline config --config-dir /path/to/config language set zh-CN`。
 
-切换立即保存，保留当前页面、选中字段、搜索、输入内容和显示草稿，重新计算终端布局并绘制翻译文字。保存／取消继续只控制显示修改；语言写入失败时保留上一次语言并显示错误。其他窗口在重开或执行现有重新加载操作时读取新偏好。任一语言下均可搜索稳定 ID、全部六种语言的名称与说明，以及自定义标签。
+切换立即保存，保留当前页面、选中字段、搜索、输入内容和显示草稿，重新计算终端布局并绘制翻译文字。保存／取消继续只控制显示修改；语言写入失败时保留上一次语言并显示错误。其他窗口在重开或执行现有重新加载操作时读取新偏好。任一语言下均可搜索稳定 ID、全部十二种语言的名称与说明，以及自定义标签。
 
 偏好文件为 `<CLAUDE_CONFIG_DIR>/statusline-ui.json`，schema v1。缺失或无效偏好回退英文，读取不修复文件。显式 set/reset 会备份并修复损坏文件，但拒绝覆盖未来 schema。重装、升级、普通卸载、显示 reset、预设及可移植导入／导出均保留此独立偏好。
 
@@ -186,7 +186,7 @@ claude-statusline --language en config --help
 
 ## 查找项目与审阅导入
 
-在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。外部编辑器也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部六种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
+在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。外部编辑器也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部十二种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
 
 Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部分类”去掉分类筛选。查询与分类组合生效，仅保存在当前编辑会话中。筛选时可勾选和设置格式，暂时禁止排序；清除筛选后恢复完整顺序。筛选不写入配置或导出文件。
 
@@ -202,21 +202,23 @@ Main 和 Subagents 显示已配置实例；原生 A／外部 Ctrl+A 打开组件
 
 ## 状态栏语言
 
-独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
+独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
+
+例如，界面使用西班牙语、输出使用巴西葡萄牙语。以下显式 CLI 写入分别保存两个设置：
 
 ```text
-claude-statusline config set statusline-language zh-CN
-claude-statusline config set statusline-language en
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
 claude-statusline config show --json
 ```
 
 同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
 
-`statusline_language` 属于显示 schema v16，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，完整导入采用文件语言；选择性导入仅在勾选显示语言时修改它，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+`statusline_language` 属于显示 schema v17，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，完整导入采用文件语言；选择性导入仅在勾选显示语言时修改它，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
 降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v8 草稿。见[备份与回滚](#备份与回滚)。
 
-降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 16 与界面偏好 schema 1 独立演进；编辑器协议 26 会拒绝新旧前后端混用。
+降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 17 与界面偏好 schema 1 独立演进；编辑器协议 31 会拒绝新旧前后端混用。
 
 ## 原生配置编辑器
 
@@ -614,7 +616,7 @@ claude-statusline doctor
 | `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v16 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v17 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -671,9 +673,9 @@ claude-statusline config show
 
 ### 版本兼容
 
-显示 schema 16 以实例 ID 保存顺序与行边界。旧配置 v1–v15 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
+显示 schema 17 以实例 ID 保存顺序与行边界。旧配置 v1–v16 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
 
-当前显示 schema v16、配置协议 v26、独立运行协议 v3 要求前后端资源匹配。兼容的显示 v1–v15 文件读取时不重写，实际保存才备份原字节并迁移为 v16；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v17、配置协议 v31、独立运行协议 v3 要求前后端资源匹配。兼容的显示 v1–v16 文件读取时不重写，实际保存才备份原字节并迁移为 v17；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -711,13 +713,13 @@ Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、�
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
 
-已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v16`。有效旧文件改为提示，例如：
+已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v17`。有效旧文件改为提示，例如：
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v16 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v17 on the next configuration save
 ```
 
-此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v26、运行协议 v3 分别管理版本。
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v31、运行协议 v3 分别管理版本。
 
 ## 故障排查
 
@@ -984,7 +986,7 @@ claude-statusline config enable task-active-timer
 
 新安装默认不采集原生计时或高级指标。用 `install --native-timing` 启用计时，或用 `install --live-metrics` 启用完整采集。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 16 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 17 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
 
 ## Unicode 文本与终端列宽
 

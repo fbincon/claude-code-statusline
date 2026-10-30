@@ -12,6 +12,9 @@ import { OFFICIAL_TRANSITION_MS } from './budgets.js';
 import { nativeCapacity } from './native-capacity.js';
 import { retainLog, sanitizeLog } from './diagnostics.js';
 import { sha256 } from '../build/files.js';
+import assert from 'node:assert/strict';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
+import { runOfficialTestBatches } from './official-tests.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const artifact = resolve(values.artifact), reportPath = resolve(values.report), candidate = verifyCandidate(artifact, values.commit);
@@ -42,7 +45,8 @@ try {
         if (name === 'statusline-runtime' && Number(version.split('.')[2]) < 289) { report.mods[name] = { status: 'unsupported', reason: 'Runtime Mod requires host 2.1.289+' }; continue; }
         recordModHost(directory, version);
         run(host.executable, [...host.args, 'plugin', 'validate', '--strict', directory]);
-        run(host.executable, [...host.args, 'plugin', 'test', directory]);
+        const official_test_batches = runOfficialTestBatches({ source: directory, temporary: join(temporary, name + '-tests'), logs: join(dirname(reportPath), 'logs'),
+            host, cwd: repoRoot, env: environment, onCommand: phase => report.phases.push(phase) });
         let types: Record<string, string>;
         if (version === '2.1.296') types = { status: 'unavailable', reason: 'This exact host does not emit /plugin-types declarations; no typecheck pass is claimed' };
         else {
@@ -50,7 +54,7 @@ try {
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', official_tests: 'pass', types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity')) } : {}) };
+        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity')) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {
@@ -65,6 +69,6 @@ try {
 } catch (error) { report.error = sanitizeLog(String(error)); process.exitCode = 1; }
 finally {
     fs.mkdirSync(dirname(reportPath), { recursive: true }); fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
-    fs.rmSync(temporary, { recursive: true, force: true });
+    removeTree(temporary); assert(!fs.existsSync(temporary), 'Mod validation workspace was not removed');
 }
 console.log(JSON.stringify({ status: report.status, host: report.host, mods: report.mods, error: report.error }));

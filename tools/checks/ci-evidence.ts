@@ -203,10 +203,10 @@ export async function recordComplete(evidence: string, selectionFile: string, ac
     const selection = JSON.parse(fs.readFileSync(selectionFile, 'utf8')), accepted = JSON.parse(fs.readFileSync(acceptanceFile, 'utf8'));
     assert.equal(accepted.status, 'pass');
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
-    const assessed = assessEvidence(evidenceFiles(evidence), accepted.commit, accepted.tarball_sha256);
     const source = join(evidence, 'ts06-candidate'), build = JSON.parse(fs.readFileSync(join(source, 'build-manifest.json'), 'utf8'));
     const { verifyDelivery } = await import('../build/verify.js');
     const verified = verifyDelivery(join(source, build.candidate.file), build.commit);
+    const assessed = assessEvidence(evidenceFiles(evidence), accepted.commit, accepted.tarball_sha256, verified.sourceEntries);
     assert.equal(build.commit, accepted.commit); assert.equal(build.commit, git('rev-parse', 'HEAD'));
     const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH!, 'utf8'));
     const pr = process.env.GITHUB_EVENT_NAME === 'pull_request' ? { number: event.number, head: event.pull_request.head.sha, base: event.pull_request.base.sha, base_ref: event.pull_request.base.ref, draft: event.pull_request.draft } : null;

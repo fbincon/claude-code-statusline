@@ -26,10 +26,10 @@
 - **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件及联动分组，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
 
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色、主题和百分比短条，按需启用 [Powerline](docs/APPEARANCE.zh-CN.md)。
-- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
+- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
 - **审阅颜色与样例：** 在颜色字段按 Enter 打开可视选色；Ctrl+V 切换样例场景，Ctrl+W 调整预览宽度，Ctrl+N 浏览各行。见[外观指南](docs/APPEARANCE.zh-CN.md)。
 - **诊断指定输入：** 在任一编辑器按 Ctrl+L，使用未保存草稿只读检查文件，默认仅采用输入证据；也可使用 CLI。见[输入诊断](docs/DIAGNOSTICS.zh-CN.md)。
-- **查找显示项目：** 65 个主栏指标和 15 个子代理指标，以及文本与弹性留白组件，支持六种语言的分级搜索、分类筛选及来源／启用条件说明。
+- **查找显示项目：** 65 个主栏指标和 15 个子代理指标，以及文本与弹性留白组件，支持十二种语言的分级搜索、分类筛选及来源／启用条件说明。
 - **估算会话费用速率：** 可选会话或累计 API 时长作分母，至少观察一分钟并明确显示单位。见[指标定义](docs/DISPLAY_ITEMS.zh-CN.md#会话费用速率)。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
@@ -293,7 +293,7 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScri
 
 ### 界面语言
 
-两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
+两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
 
 ```text
 claude-statusline config language set ja
@@ -302,15 +302,17 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN|zh-TW|zh-HK|ja|ko` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+`--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
 
 ### 状态栏语言
 
-在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
+在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
+
+例如，分别保存西班牙语界面和巴西葡萄牙语状态栏输出：
 
 ```text
-claude-statusline config set statusline-language zh-TW
-claude-statusline config set statusline-language en
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
 ```
 
 ![英文状态栏输出](docs/images/statusline/linux/en.png)
@@ -383,7 +385,7 @@ claude-code-statusline/
 │   │   ├── editor/               # 共享草稿、字素输入、快速配置和说明视图
 │   │   ├── rendering/            # 渲染、布局及按需解释记录
 │   │   ├── contracts/            # 独立版本的编辑器/运行协议
-│   │   └── i18n/                 # 六种语言的生成模块；资源在 core/resources
+│   │   └── i18n/                 # 十二种语言的生成模块；资源在 core/resources
 │   ├── platform/src/             # 文件、锁、进程、时钟及终端适配
 │   ├── cli/                      # 命令、集成、运行时与恢复
 │   │   ├── src/                  # 安装与编辑器协议实现

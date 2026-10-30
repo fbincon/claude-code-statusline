@@ -1,10 +1,10 @@
 import test from 'node:test';
 import { setup, assert, join, existsSync, readFileSync, writeFileSync, jsonBytes } from './final-support.js';
 import { invoke, traced } from './final-cli-support.js';
-import { LANGUAGES, t as message } from '@fbincon/statusline-core/i18n/messages';
+import { LANGUAGES, t as message, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { LOCALES } from '@fbincon/statusline-core/i18n/generated-locales';
 import { config } from './render-support.js';
-const remaining = { en: 'Context 50% left', 'zh-CN': '上下文 剩余 50%', 'zh-TW': '上下文 剩餘 50%', 'zh-HK': '上下文 剩餘 50%', ja: 'コンテキスト 残り 50%', ko: '컨텍스트 50% 남음' };
+const remaining: Record<Language, string> = { en: 'Context 50% left', 'zh-CN': '上下文 剩余 50%', 'zh-TW': '上下文 剩餘 50%', 'zh-HK': '上下文 剩餘 50%', ja: 'コンテキスト 残り 50%', ko: '컨텍스트 50% 남음', es: 'Contexto 50% restante', fr: 'Contexte 50% restant', de: 'Kontext 50% übrig', 'pt-BR': 'Contexto 50% restante', ru: 'Контекст: осталось 50%', id: 'Konteks tersisa 50%' };
 const payload = '{"context_window":{"remaining_percentage":50}}';
 test('literal option-looking labels cannot redirect storage or turn into CLI help', async t => {
     const f = setup(t), foreign = join(f.root, 'must-not-exist');
@@ -66,11 +66,11 @@ test('tests.integration.test_language_cli.LanguageCliTests.test_all_interface_an
         }
     }
     await run('config', 'language', 'reset');
-    assert.equal((await run('render')).stdout.trim(), remaining.ko);
+    assert.equal((await run('render')).stdout.trim(), remaining[LANGUAGES[LANGUAGES.length - 1]!]);
 });
 test('tests.integration.test_language_cli.LanguageCliTests.test_new_language_help_errors_and_machine_catalogue', async (t) => {
     const f = setup(t), run = (...args: string[]) => invoke(args, f.context), catalogue = (await run('config', 'list-items', '--json')).stdout;
-    for (const [language, heading, required] of [['zh-TW', '選項', '缺少必填參數'], ['ja', 'オプション', '次の引数が必要です'], ['ko', '옵션', '다음 인수가 필요합니다']]) {
+    for (const [language, heading, required] of [['zh-TW', '選項', '缺少必填參數'], ['ja', 'オプション', '次の引数が必要です'], ['ko', '옵션', '다음 인수가 필요합니다'], ['es', 'opciones', 'se requieren los siguientes argumentos'], ['pt-BR', 'opções', 'os seguintes argumentos são obrigatórios'], ['fr', 'options', 'les arguments suivants sont requis'], ['de', 'Optionen', 'Folgende Argumente sind erforderlich'], ['ru', 'параметры', 'необходимы следующие аргументы'], ['id', 'opsi', 'argumen berikut wajib diisi']]) {
         assert.ok((await run('--language', language!, '--help')).stdout.includes(heading!));
         assert.ok((await run('--language', language!, 'config', 'language', 'set')).stderr.includes(required!));
         assert.equal((await run('--language', language!, 'config', 'list-items', '--json')).stdout, catalogue);

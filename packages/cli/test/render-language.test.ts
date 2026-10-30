@@ -60,10 +60,14 @@ test('tests.rendering.test_statusline_language.StatuslineLanguageTests.test_unkn
         assert.ok(value.includes(expected));
 });
 test('tests.rendering.test_statusline_language.StatuslineLanguageTests.test_decoration_uses_owned_label_boundaries_in_both_languages', () => {
-    for (const [language, value] of [['en', '73% left'], ['zh-CN', '剩余 73%']] as const)
+    for (const [language, value] of [['en', '73% left'], ['zh-CN', '剩余 73%'], ['es', '73% restante'], ['fr', '73% restant'], ['de', '73% übrig'], ['pt-BR', '73% restante'], ['ru', 'осталось 73%'], ['id', 'tersisa 73%']] as const)
         for (const labels of ['legacy', 'short', 'off'] as const) {
             const cfg = updateDisplay(config(['context-remaining'], { statusline_language: language, formatting: { ...DEFAULT_FORMATTING, labels } }), { item_options: { 'context-remaining': { ...defaultItem(), label: '我的 标签' } } });
             assert.equal(previewRows(cfg, 2000, localized(language), '/test/home').join('\n'), '我的 标签 ' + value);
+            const agents = agentConfig(['context-remaining'], {}, { statusline_language: language, formatting: { ...DEFAULT_FORMATTING, labels } });
+            agents.subagents.instances[0]!.options.label = '我的 标签';
+            const task = { id: 'agent', name: 'User 👩🏽‍💻', tokenCount: 54000, contextWindowSize: 200000, status: 'running' };
+            assert.equal(renderTask(task, agents, localized(language), 2000, 43000), '我的 标签 ' + value);
         }
     for (const id of ['Context actual model', '✓ original model']) {
         const cfg = updateDisplay(config(['model'], { formatting: { ...DEFAULT_FORMATTING, icons: 'ascii' } }), { item_options: { model: { ...defaultItem(), label: 'Engine', icon: '' } } });
@@ -76,6 +80,14 @@ test('tests.rendering.test_statusline_language.StatuslineLanguageTests.test_inhe
     assert.equal(previewRows(cfg, 2000, localized('zh-CN'), '/test/home').join('\n'), '剩余 73%');
     assert.equal(sample(['context-remaining'], 'zh-CN', { formatting: { ...DEFAULT_FORMATTING, labels: 'short' } }), '剩余上下文 剩余 73%');
     assert.equal(sample(['context-remaining'], 'zh-CN', { formatting: { ...DEFAULT_FORMATTING, labels: 'off' } }), '剩余 73%');
+});
+test('translated cost-rate and API request labels disappear cleanly under custom and hidden labels', () => {
+    for (const language of LANGUAGES) for (const [id, expected] of [['session-cost-rate', /^~\$0\.58\//u], ['api-requests', /^14$/u]] as const) {
+        const off = sample([id], language, { formatting: { ...DEFAULT_FORMATTING, labels: 'off' } });
+        assert.match(off, expected, language + '/' + id);
+        const cfg = updateDisplay(config([id], { statusline_language: language }), { item_options: { [id]: { ...defaultItem(), label: 'CUSTOM' } } });
+        assert.equal(previewRows(cfg, 2000, localized(language), '/test/home').join('\n'), 'CUSTOM ' + off);
+    }
 });
 test('tests.rendering.test_statusline_language.StatuslineLanguageTests.test_units_and_raw_arithmetic_do_not_change_with_language', () => {
     for (const language of LANGUAGES)

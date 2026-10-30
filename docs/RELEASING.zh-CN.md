@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.16.0 语言扩展
+
+使用[版本决策](releases/approvals/v3.16.0.json)。要求十二种 A/B 语言全部验收、144 组独立界面／输出组合和 313 项实际宿主容量案例，保留原有全部 283 个场景。保留八安装目标、32 项 Node 和十六个固定宿主。最终 PR／main／tag 门禁、独立／源码重建、四附件字节一致、npm OIDC、公开下载及签名核验通过后完成发布。使用明确 refs 同步 Gitee 并核验附件，再升级验证本机并恢复偏好。不计划付费模型测试；发布后新发现只提 issue，不补发修补版。[实现与证据](development/language-expansion.zh-CN.md)。
+
 
 ## v3.15.0 增量语言工作流
 

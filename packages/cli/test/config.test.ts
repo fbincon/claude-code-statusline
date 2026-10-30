@@ -48,7 +48,7 @@ function setup(t: TestContext, installed = true) {
     if (installed)
         fs.writeFileSync(settingsPath, jsonBytes({ statusLine: { type: 'command', command: commandFor(launch, 'render'), refreshInterval: 1 }, subagentStatusLine: { type: 'command', command: commandFor(launch, 'render-subagents') }, permissions: { allow: ['Read'] } }));
     const service = new ConfigurationService(context, io), protocol = new ConfigurationProtocol(service);
-    function call(operation: string, payload: unknown = {}, custom = protocol) { const reply = custom.handle(JSON.stringify({ protocol_version: 30, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as Reply }; }
+    function call(operation: string, payload: unknown = {}, custom = protocol) { const reply = custom.handle(JSON.stringify({ protocol_version: 31, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as Reply }; }
     const read = () => { const reply = call('read'); assert.equal(reply.status, 0, JSON.stringify(reply.response)); return reply.response.result; };
     const save = (current: ReturnType<typeof read>) => call('apply', { draft: current.draft, expected_revision: current.revision });
     return { root, context, io, service, protocol, call, read, save, settingsPath, displayPath, launch };
@@ -206,7 +206,7 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_actual_cli_read_apply
     settings.subagentStatusLine.command = commandFor(launch, 'render-subagents');
     fs.writeFileSync(f.settingsPath, JSON.stringify(settings));
     function invoke(operation: string, payload: unknown) {
-        const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', f.root], { input: JSON.stringify({ protocol_version: 30, operation, payload }), encoding: 'utf8', timeout: 30000, env: { ...process.env, PATH: '' } });
+        const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', f.root], { input: JSON.stringify({ protocol_version: 31, operation, payload }), encoding: 'utf8', timeout: 30000, env: { ...process.env, PATH: '' } });
         assert.equal(result.stderr, '');
         return { status: result.status, response: JSON.parse(result.stdout) as Reply };
     }
@@ -611,7 +611,7 @@ test('tests.ui.test_protocol.ProtocolTests.test_invalid_envelopes_and_json_do_no
 });
 test('tests.ui.test_protocol.ProtocolTests.test_describe_and_missing_observations_are_not_host_support', t => {
     const f = setup(t, false), absent = join(f.root, 'absent'), p = new ConfigurationProtocol(new ConfigurationService({ ...f.context, configDir: absent, hostVersion: () => null }, f.io));
-    const result = p.dispatch({ protocol_version: 30, operation: 'describe', payload: {} }) as {
+    const result = p.dispatch({ protocol_version: 31, operation: 'describe', payload: {} }) as {
         catalog: unknown[];
         capabilities: Record<string, unknown>;
     };

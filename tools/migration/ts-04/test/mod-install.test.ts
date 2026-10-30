@@ -7,6 +7,7 @@ import { parseNative, enabledByDefault } from '@fbincon/statusline-core/config/b
 import { PluginHost, UnconfirmedOperation } from '@fbincon/statusline-platform/plugin-host';
 import { binding } from '@fbincon/statusline-core/integration/binding';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
+import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 const markerPath = NATIVE.name + '/.claude-statusline-owner.json', external = 'skills/statusline-configure/SKILL.md';
 function oldResources(f: ReturnType<typeof fresh>, extra = false) {
     const marker = f.json(markerPath), name = extra ? 'lib/obsolete/deep/old.ts' : 'hooks/register.ts';
@@ -18,6 +19,24 @@ function oldResources(f: ReturnType<typeof fresh>, extra = false) {
     marker.files['plugins/' + NATIVE.name + '/' + name] = digest(raw);
     f.put(markerPath, marker);
 }
+test('protocol 30 owned resources upgrade to protocol 31 while preserving both language preferences', t => {
+    const f = fresh(t); f.install(); oldResources(f);
+    const marker = f.json(markerPath);
+    marker.protocol_version = 30;
+    f.put(markerPath, marker);
+    f.put('statusline-ui.json', { schema_version: 1, ui_language: 'zh-HK' });
+    f.put('claude-statusline.json', { ...defaultDisplay(), statusline_language: 'ja' });
+    const preferences = f.read('statusline-ui.json'), display = f.read('claude-statusline.json');
+    assert.equal(f.install().failed, false);
+    assert.equal(f.json(markerPath).protocol_version, 31);
+    assert.deepEqual(f.read('statusline-ui.json'), preferences);
+    assert.deepEqual(f.read('claude-statusline.json'), display);
+    for (const language of ['es', 'fr', 'de', 'pt-BR', 'ru', 'id']) {
+        const path = 'lib/i18n/locales/' + language + '.ts';
+        assert.deepEqual(f.read(NATIVE.name + '/plugins/' + NATIVE.name + '/' + path), bundledFiles(NATIVE).files.get(path));
+    }
+    assert.equal(f.install().changed, false);
+});
 test('tests.integration.test_native_installer.NativeInstallerTests.test_both_entries_coexist_and_repeat_is_idempotent', t => { const f = fresh(t); f.install({ native: true, external: true }); assert.ok(f.read(external)); assert.equal(f.host.inputs.backendExecutable, f.launch.executable); assert.deepEqual(binding(f.host.inputs).args, f.launch.args); assert.equal(f.install().changed, false); assert.equal(f.host.calls.filter(call => call.args[0] === 'install').length, 1); assert.deepEqual(doctor(f.context).filter(row => row.level === 'ERROR'), []); });
 test('tests.integration.test_native_installer.NativeInstallerTests.test_four_install_combinations_and_independent_disablement', t => { for (const externalFlag of [true, false])
     for (const native of [true, false]) {

@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.16.0 language expansion
+
+Use the [version decision](releases/approvals/v3.16.0.json). Require all twelve A/B languages to be accepted, 144 independent UI/output combinations and 313 actual-host capacity cases, preserving all 283 previous scenarios. Retain eight installations, 32 Node cases and sixteen fixed hosts. Final PR/main/tag gates, independent/source rebuilds, four matching assets, npm OIDC and public-download/signature verification must pass before completing publication. Synchronize Gitee with explicit refs and verified assets, then upgrade and exercise the test machine with preferences restored. No paid model tests are planned; post-publication findings receive issues without a patch. [Implementation and evidence](development/language-expansion.md).
+
 
 ## v3.15.0 incremental language workflow
 

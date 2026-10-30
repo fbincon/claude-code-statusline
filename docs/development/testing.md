@@ -5,6 +5,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
 
@@ -52,7 +54,7 @@ hard gate; no minimum speedup or Python budget pass is required by this task.
 
 ## External TUI product regressions
 
-The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across six languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Installed captures and delivery evidence are recorded separately in [the external TUI follow-up](external-tui-parity.md); reconstructed cells do not establish human desktop or power acceptance.
+The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across all registered languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Installed captures and delivery evidence are recorded separately in [the external TUI follow-up](external-tui-parity.md); reconstructed cells do not establish human desktop or power acceptance.
 
 ## Current TypeScript checks
 

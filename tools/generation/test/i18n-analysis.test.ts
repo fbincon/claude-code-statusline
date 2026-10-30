@@ -79,10 +79,13 @@ test('baseline acceptance is restricted to the exact recorded source and transla
     assert(Object.keys(history.contracts).length);
 });
 test('community disclosure is truthful and official languages cannot be demoted', () => {
-    const inputs = fixture(true); editPack(inputs, 'fr', pack => { delete pack.hello; });
-    const result = analyze(inputs); assertReady(result.report, true); assert.deepEqual(result.report.disclosure, [{ language: 'fr', accepted: 2, total: 3, fallback: ['hello'] }]);
+    const inputs = fixture(true); editPack(inputs, 'pl', pack => { delete pack.hello; });
+    const result = analyze(inputs); assertReady(result.report, true); assert.deepEqual(result.report.disclosure, [{ language: 'pl', accepted: 2, total: 3, fallback: ['hello'] }]);
     const policy = readJson(inputs, DATA_ROOT + 'policy.json'); policy.languages.ja = 'C'; put(inputs, DATA_ROOT + 'policy.json', policy);
     assert.throws(() => analyze(inputs), /cannot be demoted/);
+    for (const code of ['es', 'fr', 'de', 'pt-BR', 'ru', 'id']) {
+        assert.throws(() => analyze(fixture(true, code)), /Official language cannot be demoted/);
+    }
 });
 test('analysis is reproducible from declared inputs without checkout history and preserves meaningful whitespace', () => {
     const inputs = fixture(), before = analyze(inputs); assert.deepEqual(analyze(new Map([...inputs].reverse())), before);

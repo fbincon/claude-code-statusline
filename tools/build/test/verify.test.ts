@@ -1,3 +1,4 @@
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
@@ -18,7 +19,7 @@ function fixture(kind: Channel = 'candidate') {
     const business = BUSINESS.map(name => '@fbincon/statusline-' + name), dependencies = { ...Object.fromEntries(business.map(name => [name, '0.0.0'])), koffi: '3.3.3', 'lossless-json': '4.3.1' };
     put('package.json', { ...identity(commit, kind), ...(kind !== 'candidate' ? { publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' }, repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, bugs: { url: REPOSITORY_URL + '/issues' } } : {}), engines: { node: NODE_RUNTIME_RANGE }, statuslineCompatibility: PACKAGE_COMPATIBILITY, bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies, optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...Object.keys(dependencies), ...NATIVE] });
     for (const name of business) { put(`node_modules/${name}/package.json`, { name, version: '0.0.0' }); put(`node_modules/${name}/dist/src/entry.js`, 'export {};'); }
-    const languages = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
+    const languages = LANGUAGES;
     put('node_modules/@fbincon/statusline-core/resources/i18n/languages.json', languages.map(code => ({ code })));
     for (const code of languages) put(`node_modules/@fbincon/statusline-core/resources/i18n/locales/${code}.json`, { example: code });
     for (const name of ['statusline-native', 'statusline-runtime']) {

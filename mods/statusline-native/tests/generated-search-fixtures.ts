@@ -516,6 +516,101 @@ export const SEARCH_CASES = {
         3,
         4
       ]
+    },
+    {
+      "text": "Mémoire",
+      "query": "mémoire",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "text": "Größe",
+      "query": "GRÖSSE",
+      "rank": null,
+      "positions": []
+    },
+    {
+      "text": "Überblick",
+      "query": "überblick",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "text": "Contexto restante",
+      "query": "contexto",
+      "rank": 1,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "text": "Memória",
+      "query": "memória",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "text": "Остаток контекста",
+      "query": "КОНТЕКСТА",
+      "rank": 3,
+      "positions": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "text": "Konteks tersisa",
+      "query": "konteks",
+      "rank": 1,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
     }
   ],
   "ranking": {

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { nativeCapacityData } from '../generation/native-capacity.js';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 /** Actual-host acceptance of projected production states, separate from UI reducers. */
 import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
@@ -11,7 +12,7 @@ import type { LaunchSpec } from '@fbincon/statusline-core/integration/binding';
 import { isolatedHostEnvironment } from './mod-types.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 export const NATIVE_CAPACITY_CASES = 197;
-export const NATIVE_CAPACITY_ADDITIONAL_CASES = 86;
+export const NATIVE_CAPACITY_ADDITIONAL_CASES = 56 + 5 * LANGUAGES.length;
 export const NATIVE_CAPACITY_TOTAL_CASES = NATIVE_CAPACITY_CASES + NATIVE_CAPACITY_ADDITIONAL_CASES;
 
 export function nativeCapacity(host: LaunchSpec, destination: string) {

@@ -1,3 +1,4 @@
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { PROTOCOL_VERSION, OPERATIONS } from '@fbincon/statusline-core/contracts/ui';
 import { regionalLanguageDifference } from '../compare.js';
 import { test } from 'node:test';
@@ -81,9 +82,9 @@ test('regional comparison exceptions are restricted to known protocol and langua
   assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, PROTOCOL_VERSION));
   assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, PROTOCOL_VERSION + 1));
   assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 14));
-  const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
+  const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = [...LANGUAGES];
   assert(regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, after));
-  assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'fr']));
+  assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'it']));
 });
 
 test('runtime v3 changes only the fallback envelope version for malformed frozen requests', () => {

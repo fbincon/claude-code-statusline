@@ -28,7 +28,8 @@ import { rowSpans } from '@fbincon/statusline-core/rendering/spans';
 import { explain } from '@fbincon/statusline-core/rendering/explain';
 import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { Presentation } from '@fbincon/statusline-core/rendering/language';
-import { MESSAGES } from '@fbincon/statusline-core/i18n/statusline/en';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { LOCALES } from '@fbincon/statusline-core/i18n/generated-locales';
 import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
 import { directory, pathName, formatDate } from '@fbincon/statusline-platform/presentation';
 
@@ -36,18 +37,34 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const description = copy(configurationDescription([2, 1, 310])) as unknown as DescribeResult;
 const home = '/home/example';
 const absent = (): never => { throw new Error('Capacity fixtures must not collect live observations'); };
-const environment: RenderEnvironment = {
-    language: new Presentation('en', MESSAGES), compactStaged: false, now: () => SAMPLE_NOW,
+const environment: Omit<RenderEnvironment, 'language'> = {
+    compactStaged: false, now: () => SAMPLE_NOW,
     directory: (value, style, project) => directory(value, style, project, home, false), basename: value => pathName(value, false),
     formatDate: (seconds, _utc, withDate) => formatDate(seconds, true, withDate), hostname: () => 'devbox',
     git: absent, branchDiff: absent, usage: () => null, task: absent, activePoint: () => ({ value: null }),
     hadSubagents: () => false, live: absent, agentEndings: () => ({}),
 };
-function sample(draft: Draft, width: number, trace?: RenderTrace): PreviewResult {
-    const env = { ...environment, ...(trace ? { trace } : {}) };
-    return { sample: true, main: previewRows(draft.display, width, env, home, draft.host.padding).map(rowSpans), subagents: agentRows(draft.display, width, env).map(rowSpans) };
+export interface CapacityLanguageSource {
+    registry: readonly { code: string }[];
+    data: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }
-export function nativeCapacityData() {
+const generatedLanguages: CapacityLanguageSource = { registry: LANGUAGES.map(code => ({ code })), data: LOCALES };
+
+export function nativeCapacityData(languageSource: CapacityLanguageSource = generatedLanguages) {
+    // Draft validation and the host description still come from the compiled core.
+    // Bootstrap its language registry explicitly instead of accepting invalid drafts
+    // or silently leaving new languages out of capacity acceptance.
+    assert.deepEqual(languageSource.registry.map(({ code }) => code), [...LANGUAGES],
+        'Capacity language registry differs from the compiled core; run node dist/typescript/tools/generation/resources.js --languages-only, then npm run generate to rebuild matching contracts');
+    const messages = Object.fromEntries(LANGUAGES.map(code => {
+        assert(languageSource.data[code], 'Missing effective capacity language pack: ' + code);
+        return [code, Object.fromEntries(Object.entries(languageSource.data[code]).filter(([key]) => key.startsWith('statusline.')))];
+    }));
+    const sample = (draft: Draft, width: number, trace?: RenderTrace): PreviewResult => {
+        const language = draft.display.statusline_language;
+        const env = { ...environment, language: new Presentation(language, messages[language]!, messages.en!), ...(trace ? { trace } : {}) };
+        return { sample: true, main: previewRows(draft.display, width, env, home, draft.host.padding).map(rowSpans), subagents: agentRows(draft.display, width, env).map(rowSpans) };
+    };
     const instance = (id: string) => ({ id, type_id: id, enabled: true, options: defaultItem(), text: null });
     const base: Draft = { display: defaultDisplay(), host: { ...DEFAULT_HOST } };
     base.display.instances = ['model-with-effort','current-dir','git','context-remaining','context-window-size','five-hour-limit','weekly-limit','spend-limit','tokens','task-timer'].map(instance);
@@ -180,28 +197,29 @@ export function nativeCapacityData() {
         const d=copyDraft(base);d.display=applyPreset(d.display,name,()=> 'scenario-fixture');
         add('appearance-scenario-'+name+'-w'+width,editor(d),width,width===32?12:213);
     }
-    for (const language of ['en','zh-CN','zh-TW','zh-HK','ja','ko']) {
+    for (const language of LANGUAGES) {
         const e=editor();e.detail={scope:'main',id:'context-remaining'};e.draft.display.instances.find(n=>n.id==='context-remaining')!.options.presentation='adaptive';
+        e.draft.display.statusline_language=language;
         add('appearance-adaptive-'+language,e,72,24);
-        const colors=editor();openColors(colors,'field:powerline.row_background_gradient');colors.colors!.candidate=['#112233','#445566'];
+        const colors=editor();colors.draft.display.statusline_language=language;openColors(colors,'field:powerline.row_background_gradient');colors.colors!.candidate=['#112233','#445566'];
         add('appearance-row-colors-'+language,colors,32,12);
-        const q=editor();q.quick=openQuick(q.draft,'light-readable');q.quick.selected=13;
+        const q=editor();q.draft.display.statusline_language=language;q.quick=openQuick(q.draft,'light-readable');q.quick.selected=13;
         add('appearance-quick-last-'+language,q,72,213);
     }
-    assert.equal(cases.length,271);
-    for (const language of ['en','zh-CN','zh-TW','zh-HK','ja','ko'] as const) for (const tall of [false,true]) {
+    assert.equal(cases.length,253 + 3 * LANGUAGES.length);
+    for (const language of LANGUAGES) for (const tall of [false,true]) {
         const e=editor();e.draft.display.statusline_language=language;
         e.draft.display.instances[0]!.options.label='Context 界👩🏽‍💻é 한글 '.repeat(5);
         e.draft.display.instances[0]!.options.icon='👩🏽‍💻';
         if(tall){e.page='settings';e.advanced=true;}
         add('i18n-long-'+(tall?'tall':'narrow')+'-'+language,e,tall?72:32,tall?213:12);
     }
-    assert.equal(cases.length,283);
+    assert.equal(cases.length,253 + 5 * LANGUAGES.length);
     return { description, values, cases };
 }
 
-export function nativeCapacityFixtures(): Map<string, string> {
-    const { description, values, cases } = nativeCapacityData();
+export function nativeCapacityFixtures(source?: CapacityLanguageSource): Map<string, string> {
+    const { description, values, cases } = nativeCapacityData(source);
     const header = '// Generated by tools/generation/resources.ts; do not edit.\n';
     const root = 'mods/statusline-native/tests/', result = new Map<string, string>();
     const chunks: unknown[][] = [[]];

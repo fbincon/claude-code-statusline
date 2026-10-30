@@ -2,6 +2,8 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
+The in-progress [twelve-language expansion](language-expansion.md) adds six UI/output languages and editor protocol 31, with acceptance required for 144 combinations and 313 capacity cases. Publication evidence is tracked separately.
+
 v3.15.0 completes all three I18N-02 slices, publication and actual-machine validation. [Final source and delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 remain unchanged.
 
 v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
@@ -71,7 +73,7 @@ M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-
 - **Product focus:** the status line presents tasks, agents, projects and usage clearly; existing on-demand entry points provide detail and explanation. Preserve real zero and distinct missing, stale, partial or unsupported states. Do not infer task outcomes without evidence.
 - **Shared implementation:** core owns pure configuration, catalog, Unicode, layout and explanation; platform owns files, processes and terminals; cli orchestrates services; tui and native Mods adapt interactions. Reuse existing transactions and task stores. [Current architecture](architecture.md).
 - **Configuration boundaries:** UI language saves immediately, display language and appearance follow display Save, and Claude preferences retain separate Apply. Preview, import review and scheme selection produce candidate drafts. Make user default, named profile and project editing targets clear. [Profile semantics](../PROFILES.md).
-- **Compatibility:** the current baseline is display schema 17, editor protocol 30, source registry 3/jobs 4, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
+- **Compatibility:** the current baseline is display schema 17, editor protocol 31, source registry 3/jobs 4, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
 - **Extension authorization:** default capabilities use host input and local state. External file sources, network providers and commands are separately enabled and registered in user configuration. A display scheme may reference a source, but import, preset selection and project binding cannot grant execution or network access.
 - **Scope boundaries:** the formal follow-up is listed above. Existing setup, selective import, static component gradients, explicit row alignment, GitHub automatic refresh and CLI version management remain delivered. Further providers, data and longer-term directions retain separate entry conditions in the [candidate pool](roadmap.md#candidates). Reuse existing global-appearance import; component-style and group reuse belong to IMPORT-02.
 - **Future interfaces:** describe configuration intent, data flow and compatibility before assigning future schema/protocol versions or public command spellings. Reuse catalog capabilities and generated editor resources. New options must survive preview, save/reopen, profile selection, import/export and conflict handling; reading an old configuration does not enable new behavior.
@@ -818,8 +820,8 @@ Completed work below retains historical scope and evidence. SHOWCASE-01 keeps it
 | --- | --- | --- |
 | User journey | Changed user-visible flows | Relevant entry/action/result and cancel/error paths; add save/reopen or recovery where the change affects them, reusing existing journeys |
 | Both editors and CLI | Configuration and components | The same input/configuration yields consistent rules, options and explanations |
-| Six languages and terminal | UI, display and guidance | `en/zh-CN/zh-TW/zh-HK/ja/ko`; main/subagent 40/80/120 columns; native minimum 32×12 and external minimum 64×18, including undersized handling |
-| Translation lifecycle | I18N-02 | All four source changes, translation-bound acceptance, safe deterministic fallback and truthful search; strict six-language release readiness plus compatible original-evidence reuse |
+| Registered languages and terminal | UI, display and guidance | `en/zh-CN/zh-TW/zh-HK/ja/ko/es/fr/de/pt-BR/ru/id`; main/subagent 40/80/120 columns; native minimum 32×12 and external minimum 64×18, including undersized handling |
+| Translation lifecycle | I18N-02 | All four source changes, translation-bound acceptance, safe deterministic fallback and truthful search; strict release readiness for all official languages plus compatible original-evidence reuse |
 | Data sources | Extensions, tasks and diagnosis | Distinguishable sample/actual, source/scope and zero/missing/stale/partial/error states |
 | Save and recovery | Installation and persistence | Old configuration, instance identity, project bindings, concurrent revisions, migration backups, cancellation and failure recovery |
 | External capabilities | EXTENSIONS-01/WORKFLOW-01/COMMAND-01 | Off by default, explicitly enabled and independently disabled; import/preview cannot execute or access the network |

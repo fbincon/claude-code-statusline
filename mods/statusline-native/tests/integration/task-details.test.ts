@@ -7,7 +7,7 @@ const report:TaskDetails={version:1,session_id:'session-test',prompt_id:null,cap
 const languagePane={...PANE,requestId:'statusline-task-details',viewport:{columns:220,rows:30},props:{...PANE.props,bodyColumns:200}};
 for(const language of LANGUAGES)test(`task language initializes before opening, survives failure and reloads on retry/reopen in ${language}`,async($,on)=>{
     const f=setup(on);f.store.uiLanguage=language;let failed=true;
-    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:30,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:31,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
     await $.session.start(START);
     expect(f.descriptions['statusline-task']).toBe(t('task.title',language));
     await $.command.run({...RUN,command:'statusline-task'});
