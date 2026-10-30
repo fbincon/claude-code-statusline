@@ -5,6 +5,8 @@
 
 ## v3.15.0 增量语言工作流
 
+于 2026-10-30 完成：最终 PR／main／tag 门禁、新版本 npm OIDC 发布、全部七项公开验证任务、GitHub／Gitee 同字节附件及本机升级／编辑器／渲染检查均通过。九处偏好已恢复，仅保留本项目 backendVersion 升级变化。没有付费模型测试或发布后新产品发现。[最终来源与交付证据](development/i18n-02-delivery.zh-CN.md#final-release)。
+
 使用[版本决策](releases/approvals/v3.15.0.json)。稳定版和预览版均要求最终 PR／main／tag 门禁及 A/B 语言发布就绪。保留八安装目标、32 Node 情况、十六固定宿主及原 271 项容量案例；新增十二项语言案例（共 283 项）和安装包 36 种界面／输出组合回执。候选验收可以允许安全 B 回退，但公开 tag 提升、维护来源绑定、`release:verify --release`、`release:prepare --stable/--preview` 和 npm 准备必须拒绝。核验原始四交付文件、独立／源码重建、OIDC、六项公开下载和签名任务后，同步 Gitee 引用／附件，升级测试机并恢复偏好。不调用付费模型；发布后新发现只提 issue、不补发修补版。[实现与证据](development/i18n-02-delivery.zh-CN.md)。
 
 ## v3.14.0 自适应与连续背景

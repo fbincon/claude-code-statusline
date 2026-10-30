@@ -2,9 +2,9 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](development-plan.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-**I18N-02 implementation targets v3.15.0.** The accepted compatibility foundation precedes activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md) and [authoring commands](i18n.md#incremental-authoring). No language is added.
+**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). No language was added.
 
-Reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs has 2,311 keys. The [generator](../../tools/generation/resources.ts) requires complete packs, rejects unknown keys and mismatched placeholders, and emits Node and Native resources. Its coverage report measures key completeness; neither the report nor runtime English fallback tracks changed source meaning or translation acceptance. These were the gaps addressed by the implementation below.
+The original design was reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs had 2,311 keys. The [generator](../../tools/generation/resources.ts) required complete packs, rejected unknown keys and mismatched placeholders, and emitted Node and Native resources. Its coverage report measured key completeness; neither the report nor runtime English fallback tracked changed source meaning or translation acceptance. These gaps are addressed by the implementation below.
 
 Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current authoring commands and validation instructions are maintained in the translation guide.
 
@@ -22,7 +22,7 @@ English remains the source and fallback language. All included languages ship in
 
 The existing four B languages cannot silently become C languages to unblock a release. Support level is separate from the number of populated keys. No new language or writing system is selected by this plan; future additions need a defined maintenance scope and relevant functional acceptance.
 
-The workflow completes translation, contextual review, applicable checks and record updates within the authorized task. Successful validation directly produces the matching acceptance record; there is no new reviewer role, signature or separate approval step. Report actual validation scope, including terminology and semantic review where applicable. Structural checks alone do not establish linguistic quality. Give destructive-action, recovery, authorization and numerical-meaning messages particular contextual attention; ordinary copy can be reviewed in batches.
+The workflow completes translation, contextual review, applicable checks and record updates within the authorized task. Validation produces a read-only receipt; explicit `accept` updates the matching acceptance record. This introduces no new reviewer role, signature or separate approval step. Report actual validation scope, including terminology and semantic review where applicable. Structural checks alone do not establish linguistic quality. Give destructive-action, recovery, authorization and numerical-meaning messages particular contextual attention; ordinary copy can be reviewed in batches.
 
 <a id="translation-state"></a>
 
@@ -52,7 +52,7 @@ Handle all four source changes in the first functional delivery:
 | Change placeholders | Quarantine verifiable old templates under their old contract; reject newly submitted mismatches; only current-contract templates enter runtime output |
 | Delete a key | Retire verifiable old entries; never generate the retired key; reject unexplained extra or misspelled keys |
 
-Historical isolation requires an unchanged entry and a verifiable accepted prior identity/contract supplied by version-controlled inputs. It cannot depend on a full Git checkout or a network lookup during generation. JSON parsing, duplicate-key and text-safety checks still apply to historical content. Merely invoking the existing `languages(directory, false)` is insufficient: it relaxes missing-key completeness but still rejects extra keys and placeholder mismatches, and cannot detect stale meaning.
+Historical isolation requires an unchanged entry and a verifiable accepted prior identity/contract supplied by version-controlled inputs. It cannot depend on a full Git checkout or a network lookup during generation. JSON parsing, duplicate-key and text-safety checks still apply to historical content. Relaxing missing-key completeness alone cannot identify stale meaning or prove that an extra key or old placeholder contract has valid historical provenance.
 
 Reports distinguish raw presence, current valid translation, accepted translation, missing/stale/pending/invalid entries and effective English fallback. A complete generated key set is not 100% translation acceptance. For initial migration, use `baseline_accepted` only for matching, verifiable prior evidence, preserving its actual scope and limitations. Otherwise validate the current input and record `validated_accepted`; do not invent past review or rerun already covered checks solely because metadata is new.
 
@@ -72,7 +72,7 @@ The [packer](../../tools/build/pack.ts) currently copies workspace `resources` r
 
 Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Statusline rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
 
-This plan defines capabilities rather than new public command spellings or schema numbers. Implement compatibility only where data actually crosses an interface; adding policy does not by itself require a user-configuration migration. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities; new inputs need explicit binding and compatible readers.
+The translation guide maintains the implemented developer commands. Metadata and reports have internal versioned interfaces; display schema 17 and editor protocol 30 remain unchanged. Implement compatibility where data actually crosses an interface; adding policy does not by itself require a user-configuration migration. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities; new inputs need explicit binding and compatible readers.
 
 <a id="working-flow"></a>
 
@@ -168,4 +168,4 @@ The following are implementation requirements; actual passing evidence is record
 
 Retain existing logical obligations when sharing identical executions. Record automated checks, actual-host results, PTY reconstruction, agent inspection and physical acceptance distinctly. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new failures. Paid checks retain their existing explicit scope and budget requirements.
 
-Documentation completion means paired files, accurate current/future boundaries, consistent work-package navigation and necessary documentation checks. It does not move I18N-02 to `DONE`, implement commands, authorize a release or change installed settings. Follow the [work-package handoff rules](development-plan.md#handoff) for later implementation and publication records.
+Documentation completion means paired files, accurate current/future boundaries, consistent work-package navigation and necessary documentation checks. I18N-02 completion is established by the linked implementation, protected gates, publication and actual-machine evidence, rather than documentation checks alone. Follow the [work-package handoff rules](development-plan.md#handoff) for subsequent maintenance and publication records.

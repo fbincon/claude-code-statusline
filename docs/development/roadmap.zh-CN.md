@@ -2,17 +2,19 @@
 
 [English](roadmap.md) | **简体中文**
 
+v3.15.0 已完成 I18N-02 三个切片、发布及本机验证。[最终交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 保持不变。
+
 v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
 
 v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[交付及发版后发现](draft-history-and-reuse.zh-CN.md)。v3.12.0 的来源／命令／包管理交付及下列早期事实保留为历史。
 
-更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.14.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.15.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
 Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12 已交付；v3.9.1 另已修复 Native 传输容量、绘制树容量及保存结果恢复。后续工作按下列状态继续扩展呈现、复用与交互。FIX-01～FIX-04 与 I18N-01 已随 v3.9.2 发布；APPEARANCE-05、PREVIEW-01 和 EXPLAIN-02 已随 v3.10.0 发布。TASK-02 与 UPDATE-02 第一片已随 v3.11.0 发布。其余未开始工作包及 SHOWCASE-01 保持下表所列状态。参见[正确性修复记录](correctness-maintenance.zh-CN.md)及[外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md)。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
-[I18N-02](development-plan.zh-CN.md#i18n-02)正在面向 v3.15.0 实施。[实现记录](i18n-02-delivery.zh-CN.md)跟踪已接受的兼容准备、增量维护及严格六语发布就绪。不新增语言；I18N-01 保持已交付。
+[I18N-02](development-plan.zh-CN.md#i18n-02) 已随 v3.15.0 达到 DONE。[实现记录](i18n-02-delivery.zh-CN.md)记录兼容准备、增量维护、严格六语发布就绪、全部公开渠道及本机验证。未新增语言；I18N-01 保持已交付。
 
 **导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
 
@@ -73,7 +75,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 
 | 批次 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| 下一工作流 | [I18N-02](development-plan.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 既有生成器／消息、已登记元数据归属及兼容 PR／main／tag 核验；[设计与切片](i18n-workflow.zh-CN.md#delivery-slices) | IN_PROGRESS |
+| 语言工作流 | [I18N-02](development-plan.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 三个切片、兼容 PR／main／tag 核验及公开交付均完成；[v3.15.0 证据](i18n-02-delivery.zh-CN.md#final-release) | DONE |
 | 1 正确性 | [FIX-01](development-plan.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | DONE |
 | 1 正确性 | [FIX-02](development-plan.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | DONE |
 | 1 正确性 | [FIX-03](development-plan.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |
@@ -96,7 +98,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 
 批次表示交付偏好，不额外增加技术依赖。主题、任务浏览与版本审核可在各自前置条件满足后独立推进。UPDATE-02、SOURCES-01 跨批次保留同一工作包身份，各切片可独立交付，整包须全部切片验收才算完成。后续工作可按各自依赖穿插，保留已交付的绑定与历史保护规则。
 
-SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待原十八个正式工作包及全部切片，包括后续完善。I18N-02 是独立的下一工作优先项，不新增为 SHOWCASE-01 前置条件；剩余候选也不增加其前置条件。M1–M12 保留历史编号与交付证据。
+SHOWCASE-01 保留历史 ID。按维护者决定，原 M13 排期改为等待原十八个正式工作包及全部切片，包括后续完善。I18N-02 单独排期，不增加 SHOWCASE-01 的前置条件；剩余候选也不增加其前置条件。M1–M12 保留历史编号与交付证据。
 
 GIT-01、TERMINAL-01 保持已交付；相关 Windows 预览及共享 Git 策略沿用 [M8–M9 交付](m8-m9-delivery.zh-CN.md)，Native 保留 [v3.9.1](native-capacity.zh-CN.md) 确立的边界。现行验证路径仍由 [CI 维护](ci-maintenance.zh-CN.md)定义。
 
