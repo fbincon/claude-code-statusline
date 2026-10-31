@@ -139,6 +139,8 @@ Supported active sessions renew a lease every five seconds; leases expire after 
 
 Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
 
+An overdue read can provisionally account for a timeout while a worker waits for its final lock. A later confirmed success clears that provisional backoff and records the actual completion time; a final pause failure uses its actual cause without counting the same attempt twice. Worker settlement and subsequent lifecycle ticks converge on the same feedback. Orphaned jobs retain bounded retry/backoff, and an older job cannot revise newer feedback.
+
 Rendering, preview, imports and project bindings never dispatch refreshes. JSON sources remain outside automatic scheduling; separately reviewed commands use the scheduling rules below. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
 
 ## Commands
@@ -190,8 +192,14 @@ stdout and stderr together are capped at 1 MiB. Timeout, cancellation, nonzero
 exit and oversized/invalid output remain different outcomes. Descendants are
 terminated as well, including processes retaining output pipes.
 
+Reaching the execution deadline while a manual caller still has interest records
+a failed job with reason `timeout`, retains available execution diagnostics and publishes
+an error observation for `source diagnose`. Deadline expiry alone is not a caller
+cancellation. Explicit cancellation or release of all applicable consumers remains
+separate, and obsolete source revisions or context identities cannot publish results.
+
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
-`source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest until completion or the original deadline. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
+`source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest through completion or publication of the original deadline's timeout result. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
 
 ## Freshness, sharing and links
 
@@ -221,10 +229,12 @@ labels when its host does not expose hyperlink rendering. Actual click behavior
 also depends on Claude Code and the terminal, as explained in the
 [official status-line documentation](https://code.claude.com/docs/en/statusline#osc-8-links-not-clickable).
 
-Display schema 10 and editor protocol 17 carry these additions. Older display
-configurations remain readable without automatic rewriting; saving uses the new
-schema. Reinstall integration when frontend/backend versions differ. Runtime,
-task lifecycle, portable envelope and profile collection versions are unchanged.
+The current interfaces are display schema 17, editor protocol 31, source registry
+3, source jobs 4 and source observations 1. Older display configurations remain
+readable without automatic rewriting; saving uses the current schema. Older jobs
+1–3 remain readable, with absent execution diagnostics treated as unknown.
+Reinstall integration when frontend/backend versions differ. Runtime, task
+lifecycle, portable envelope and profile collection versions evolve independently.
 
 ## Readable operations and saved check details
 

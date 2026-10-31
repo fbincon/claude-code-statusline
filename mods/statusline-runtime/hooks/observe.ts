@@ -149,8 +149,9 @@ export const register: Register = (on, options: PluginOptions) => {
   on('turn.start', async ($, e, next) => {
     try {
       await bind($, options, state);
-      state.turns.main = e.turnId;
-      queue.push('turn_start', {}, await $.clock.now(), { turn_id: e.turnId });
+      const agent = 'agentId' in e && typeof e.agentId === 'string' ? e.agentId : null;
+      state.turns[agent ?? 'main'] = e.turnId;
+      queue.push('turn_start', {}, await $.clock.now(), { turn_id: e.turnId, agent_id: agent });
     } catch {}
     return next(e);
   });

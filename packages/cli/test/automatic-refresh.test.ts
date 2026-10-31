@@ -1,12 +1,13 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { SourceService } from '../src/sources/service.js';
 import { AutomaticRefresh } from '../src/sources/automatic.js';
-import { activeLease, readAutomatic, automaticJobActive, LEASE_MS } from '../src/sources/automatic-state.js';
+import { activeLease, readAutomatic, automaticJobActive, LEASE_MS, type Schedule } from '../src/sources/automatic-state.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { ConfigurationService } from '../src/config/service.js';
 import { createStorage } from '../src/config/storage.js';
 import { contextFor } from '../src/sources/context.js';
@@ -24,7 +25,7 @@ import { ConfigurationProtocol } from '../src/ui/protocol.js';
 
 function fixture(t: TestContext) {
     const root = mkdtempSync(join(tmpdir(), 'automatic refresh ')), directory = join(root, 'config');
-    t.after(() => rmSync(root, { recursive: true, force: true }));
+    t.after(() => { removeTree(root); assert.equal(existsSync(root), false); });
     const git = (args: string[]) => execFileSync('git', ['-C', root, ...args], { stdio: 'pipe' });
     git(['init', '--initial-branch=main']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '--allow-empty', '-m', 'fixture']);
     let now = Date.parse('2026-10-24T00:00:00Z');
@@ -43,6 +44,22 @@ function fixture(t: TestContext) {
         writeFileSync(join(service.root, 'jobs', job.id + '.json'), JSON.stringify({ ...job, state, reason }));
     };
     return { root, directory, configuration, service, scheduler, launched, spec, change, enable, context, tick, finish, git, advance: (ms: number) => now += ms, now: () => now };
+}
+function beforeNextLock(f: ReturnType<typeof fixture>, callback: () => void): void {
+    const lock = f.configuration.io.lock;
+    let pending: (() => void) | null = callback;
+    f.configuration.io.lock = (directory, action) => {
+        const before = pending; pending = null; before?.();
+        return lock(directory, action);
+    };
+}
+function schedule(f: ReturnType<typeof fixture>): Schedule { return readAutomatic(f.directory).schedules[0]!; }
+function consumeProjectedTimeout(f: ReturnType<typeof fixture>, job: SourceJob): Schedule {
+    f.advance(Date.parse(job.deadline_at) + 2001 - f.now()); f.tick();
+    const result = schedule(f);
+    assert.equal(f.service.job(job.id).reason, 'timeout');
+    assert.equal(result.processed, job.id); assert.equal(result.failures, 1); assert.equal(result.last_success, null);
+    return result;
 }
 test('automatic review is separate, persistent, bounded, and revoked by source edits', t => {
     const f = fixture(t);
@@ -269,4 +286,163 @@ test('saved GitHub checks paginate locally and retain their observed identity af
     assert.equal(f.service.inspect('github',f.context(),16).checks[0]!.name,'Check 16');assert.equal(calls,1,'reading pages never invokes the provider');
     f.advance(1);job=f.service.start('github',f.context(),'two');await worker.work(job.id);
     const failed=f.service.inspect('github',f.context(),32);assert.equal(failed.view.reason,'network');assert.equal(failed.view.state,'error');assert.equal(failed.view.freshness,'current');f.advance(301000);assert.equal(f.service.inspect('github',f.context()).view.freshness,'stale');assert.equal(failed.checks.length,3);assert.equal(failed.checks_observed_at,first.checks_observed_at);assert.equal(failed.last_success,first.last_success);
+});
+
+test('late durable automatic success repairs projected timeout feedback immediately and only once', async t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!;
+    let provisional!: Schedule, finished = '';
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        f.advance(500); finished = new Date(f.now()).toISOString();
+        beforeNextLock(f, () => { provisional = consumeProjectedTimeout(f, job); });
+        return { ...emptyObservation(source, context, 'valid', 'valid'), observed_at: finished, value: 42,
+            execution: { finished_at: finished, duration_ms: 500, exit_code: 0, reason: 'completed', summary: '42' } };
+    });
+    await worker.work(job.id);
+    const done = f.service.job(job.id), repaired = schedule(f), diagnosis = f.service.diagnose('github', f.context());
+    assert.equal(done.state, 'completed'); assert.equal(diagnosis.view.state, 'valid'); assert.equal(diagnosis.view.value, 42);
+    assert.equal(repaired.processed, job.id); assert.equal(repaired.failures, 0); assert.equal(repaired.paused, null); assert.equal(repaired.last_success, finished);
+    assert.equal(repaired.next, f.now() + 60000); assert(repaired.next < provisional.next);
+    f.advance(1); f.tick(); f.advance(1); f.tick();
+    assert.deepEqual(schedule(f), repaired, 'later lifecycle reads cannot move the already repaired retry time');
+});
+
+test('manual JSON command success keeps its observation timestamp and dispatches at the original automatic due time', async t => {
+    const f = fixture(t), scope = { project: null, session: null, agent: null }, observed = new Date(f.now() - 60000).toISOString();
+    const output = { version: 1, source_id: 'github', scope, observed_at: observed, state: 'valid', value: 42, unit: null };
+    f.change('edit', { source: { name: 'JSON command', kind: 'command', scope, ttl_seconds: 300,
+        settings: { executable: process.execPath, args: ['-e', 'process.stdout.write(' + JSON.stringify(JSON.stringify(output)) + ')'], cwd: f.root, input: {}, output: 'json', timeout_ms: 5000 } } });
+    f.enable(); const job = f.service.start('github', f.context(), 'manual'); f.tick();
+    await f.service.work(job.id);
+    const done = f.service.job(job.id), saved = schedule(f);
+    assert.equal(done.state, 'completed'); assert.equal(done.reason, 'valid'); assert.equal(done.result?.exit_code, 0);
+    assert.notEqual(done.result?.finished_at, observed); assert.equal(saved.processed, job.id);
+    assert.equal(saved.last_success, observed); assert.equal(saved.failures, 0); assert.equal(saved.paused, null);
+    assert.equal(saved.next, f.now() + 300000); assert.equal(f.launched.length, 1);
+    f.advance(saved.next - f.now());
+    assert.equal(f.tick().scheduled, 1, 'a different process completion timestamp cannot postpone the due refresh');
+    const dispatched = schedule(f);
+    assert.equal(f.launched.length, 2); assert.notEqual(f.launched[1]!.id, job.id);
+    assert.equal(dispatched.last_success, observed); assert.equal(dispatched.processed, job.id);
+    assert.equal(dispatched.next, saved.next + 300000);
+});
+
+for (const reason of ['timeout', 'invalid_output', 'exit'] as const) test(`late durable automatic ${reason} retains one failure and its existing retry time`, async t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!;
+    let provisional!: Schedule;
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        f.advance((reason === 'timeout' ? Date.parse(job.deadline_at) : f.now() + 500) - f.now());
+        const finished = new Date(f.now()).toISOString();
+        beforeNextLock(f, () => { provisional = consumeProjectedTimeout(f, job); });
+        return { ...emptyObservation(source, context, reason),
+            execution: { finished_at: finished, duration_ms: reason === 'timeout' ? 30000 : 500, exit_code: reason === 'timeout' ? null : reason === 'exit' ? 7 : 0, reason, summary: '' } };
+    });
+    await worker.work(job.id);
+    const done = f.service.job(job.id), repaired = schedule(f);
+    assert.equal(done.state, 'failed'); assert.equal(done.reason, reason); assert.equal(repaired.failures, 1);
+    assert.equal(repaired.next, provisional.next); assert.equal(repaired.last_success, null);
+    assert.equal(repaired.paused, reason === 'invalid_output' ? reason : null);
+    assert.equal(f.service.diagnose('github', f.context()).automatic.state, reason === 'invalid_output' ? 'paused' : 'backoff');
+    f.advance(1); f.tick(); f.advance(1); f.tick(); assert.deepEqual(schedule(f), repaired);
+});
+
+for (const ending of ['cancel', 'lease-close'] as const) test(`a durable ${ending} cannot be replaced by late worker success after provisional feedback`, async t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!;
+    let provisional!: Schedule;
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        const finished = new Date(f.now()).toISOString();
+        beforeNextLock(f, () => {
+            provisional = consumeProjectedTimeout(f, job);
+            if (ending === 'cancel') f.service.cancel(job.id); else f.tick('one', 'end');
+        });
+        return { ...emptyObservation(source, context, 'valid', 'valid'), observed_at: finished, value: 42,
+            execution: { finished_at: finished, duration_ms: 1, exit_code: 0, reason: 'completed', summary: '42' } };
+    });
+    await worker.work(job.id);
+    const done = f.service.job(job.id);
+    assert.equal(done.state, 'cancelled'); assert.equal(done.reason, ending === 'cancel' ? 'cancelled' : 'lease_expired'); assert.equal(done.result, null);
+    // Preserve the earlier provisional backoff. Cancellation cannot reconstruct
+    // an old (possibly saturated) failure count and must not invent a success.
+    assert.deepEqual(schedule(f), provisional);
+    f.advance(1); f.tick('fresh'); assert.deepEqual(schedule(f), provisional);
+});
+
+for (const reason of ['valid', 'invalid_output'] as const) test(`lifecycle reconciles durable ${reason} after a crash between job publication and schedule repair`, t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!, provisional = consumeProjectedTimeout(f, job);
+    const finished = new Date(Date.parse(job.deadline_at) - 1).toISOString();
+    // Model the independently committed job bytes left when the worker exits
+    // before writing automatic.json. No callback from that worker is needed.
+    writeFileSync(join(f.service.root, 'jobs', job.id + '.json'), JSON.stringify({ ...job, state: reason === 'valid' ? 'completed' : 'failed', reason,
+        result: { finished_at: finished, duration_ms: 29999, exit_code: 0, reason: reason === 'valid' ? 'completed' : reason, summary: reason === 'valid' ? '42' : '' } }));
+    f.advance(500); f.tick();
+    const repaired = schedule(f);
+    assert.equal(repaired.processed, job.id);
+    if (reason === 'valid') {
+        assert.equal(repaired.failures, 0); assert.equal(repaired.paused, null); assert.equal(repaired.last_success, finished);
+        assert.equal(repaired.next, f.now() + 60000);
+    } else {
+        assert.equal(repaired.failures, 1); assert.equal(repaired.paused, reason); assert.equal(repaired.last_success, null);
+        assert.equal(repaired.next, provisional.next);
+    }
+    f.advance(1); f.tick(); f.advance(1); f.tick(); assert.deepEqual(schedule(f), repaired);
+});
+
+test('an orphaned worker retains bounded timeout recovery and exponential automatic backoff', t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!, provisional = consumeProjectedTimeout(f, job);
+    assert.equal(f.service.job(job.id).state, 'failed');
+    assert.equal(JSON.parse(readFileSync(join(f.service.root, 'jobs', job.id + '.json'), 'utf8')).state, 'running');
+    assert.equal(provisional.next, f.now() + 120000);
+    f.advance(119999); f.tick(); assert.equal(f.launched.length, 1); assert.deepEqual(schedule(f), provisional);
+    f.advance(1); f.tick(); assert.equal(f.launched.length, 2); assert.notEqual(f.launched[1]!.id, job.id);
+    assert.equal(schedule(f).failures, 1, 'dispatch recovery cannot erase or recount the orphan timeout');
+});
+
+for (const reason of ['valid', 'invalid_output'] as const) test(`renewed review dispatches fresh work instead of reconciling deliberately reset ${reason} history`, t => {
+    const f = fixture(t); f.enable(); f.tick(); const prior = f.launched[0]!;
+    f.finish(reason === 'valid' ? 'completed' : 'failed', reason); f.tick();
+    f.change('auto-on', { review_revision: f.service.review('github').review_revision });
+    const reset = schedule(f);
+    assert.equal(reset.processed, prior.id); assert.equal(reset.failures, 0); assert.equal(reset.paused, null); assert.equal(reset.last_success, null);
+    assert.equal(reset.next, f.now());
+    assert.equal(f.tick().scheduled, 1); assert.equal(f.launched.length, 2); assert.notEqual(f.launched[1]!.id, prior.id);
+    assert.equal(schedule(f).failures, 0); assert.equal(schedule(f).paused, null);
+});
+
+for (const reason of ['valid', 'invalid_output'] as const) test(`a still-settling ${reason} job cannot undo renewed review or delay its fresh dispatch`, async t => {
+    const f = fixture(t); f.enable(); f.tick(); const job = f.launched[0]!, revision = f.service.source('github').revision;
+    let reset!: Schedule;
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        f.advance(500); const finished = new Date(f.now()).toISOString();
+        beforeNextLock(f, () => {
+            consumeProjectedTimeout(f, job);
+            f.change('auto-on', { review_revision: revision }); reset = schedule(f);
+            assert.equal(reset.processed, job.id); assert.equal(reset.failures, 0); assert.equal(reset.paused, null); assert.equal(reset.last_success, null);
+            assert.equal(reset.next, f.now());
+        });
+        return { ...emptyObservation(source, context, reason, reason === 'valid' ? 'valid' : 'error'), observed_at: reason === 'valid' ? finished : null, value: reason === 'valid' ? 42 : null,
+            execution: { finished_at: finished, duration_ms: 500, exit_code: 0, reason: reason === 'valid' ? 'completed' : reason, summary: reason === 'valid' ? '42' : '' } };
+    });
+    await worker.work(job.id);
+    assert.equal(f.service.source('github').revision, revision); assert.equal(f.service.job(job.id).reason, reason);
+    assert.deepEqual(schedule(f), reset, 'late worker feedback cannot undo the explicit policy reset');
+    assert.equal(f.tick().scheduled, 1); assert.equal(f.launched.length, 2); assert.notEqual(f.launched[1]!.id, job.id);
+    assert.equal(schedule(f).failures, 0); assert.equal(schedule(f).paused, null);
+});
+
+test('a superseded late worker cannot replace newer successful automatic feedback or observations', async t => {
+    const f = fixture(t); f.enable(); f.tick(); const old = f.launched[0]!;
+    let winner!: Schedule, newer!: SourceJob;
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        f.advance(500); const finished = new Date(f.now()).toISOString();
+        consumeProjectedTimeout(f, old);
+        newer = f.service.start('github', f.context(), 'manual-winner');
+        const replacement = new SourceService(f.configuration, f.now, undefined, async (latest, actual) => ({ ...emptyObservation(latest, actual, 'valid', 'valid'),
+            observed_at: new Date(f.now()).toISOString(), value: 84, execution: { finished_at: new Date(f.now()).toISOString(), duration_ms: 1, exit_code: 0, reason: 'completed', summary: '84' } }));
+        await replacement.work(newer.id); winner = schedule(f);
+        return { ...emptyObservation(source, context, 'valid', 'valid'), observed_at: finished, value: 42,
+            execution: { finished_at: finished, duration_ms: 500, exit_code: 0, reason: 'completed', summary: '42' } };
+    });
+    await worker.work(old.id);
+    assert.equal(f.service.job(old.id).state, 'completed'); assert.equal(f.service.job(old.id).result?.summary, '42');
+    assert.equal(f.service.diagnose('github', f.context()).view.value, 84); assert.equal(winner.processed, newer.id);
+    assert.deepEqual(schedule(f), winner); f.advance(1); f.tick(); assert.deepEqual(schedule(f), winner);
 });

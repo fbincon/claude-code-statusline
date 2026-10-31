@@ -138,6 +138,12 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
             timer = timer.resume(token, now);
         record.active_clock = timer.toDict();
     }
+    // A batch can contain child endings and the later main wrap-up. Settle the
+    // observed endings in time order, rather than the order their turns began.
+    pending.sort((a, b) => {
+        const order = (numeric(a.turn.ended_at_ms) ?? Infinity) - (numeric(b.turn.ended_at_ms) ?? Infinity);
+        return order || Number(a.agent === null) - Number(b.agent === null);
+    });
     for (const { key, record, turn, previous, agent } of pending) {
         const pendingExit = record.end_source === 'hook_session_end';
         const laterEnding = agent === null && record.end_source === 'native_turn_end' && turn.ended_at_ms !== null && truth(record.ended_wall_ns) && compareNumbers(numeric(turn.ended_at_ms)! * 1e6, record.ended_wall_ns) > 0;

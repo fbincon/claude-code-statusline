@@ -20,7 +20,7 @@ import { jsonBytes, artifact } from '../config/storage.js';
 import { commit } from '../recovery/files.js';
 import { safeTarget } from '../integration/paths.js';
 import { contextFor, authRevision } from './context.js';
-import { automaticJobActive, manualJobActive, automaticStatus, refreshIdentity, readAutomatic, writeAutomatic } from './automatic-state.js';
+import { automaticJobActive, manualJobActive, settlementTime, automaticStatus, refreshIdentity, reconcileAutomaticOutcome, readAutomatic, writeAutomatic } from './automatic-state.js';
 import { readLocal, refreshCommand, refreshGithub, failure } from './providers.js';
 interface Stored {
     version: 1;
@@ -170,7 +170,8 @@ export class SourceService {
         return bytes === null ? null : JSON.parse(decodeUtf8(bytes));
     }
     private jobPath(id: string) { return join(this.root, 'jobs', sourceId(id) + '.json'); }
-    job(id: unknown): SourceJob {
+    /** Mutations must distinguish durable terminal state from the public expiry view. */
+    private persistedJob(id: unknown): SourceJob {
         const value = this.readValue(this.jobPath(sourceId(id)));
         if (!object(value) || ![1, 2, 3, 4].includes(value.version as number) || !['running', 'completed', 'failed', 'cancelled'].includes(value.state as string))
             sourceError('not_found');
@@ -192,14 +193,21 @@ export class SourceService {
             sourceId(consumer.owner);
             if(!stamp(consumer.expires_at)||Date.parse(consumer.expires_at)>Date.parse(job.deadline_at))sourceError('invalid');
         }
+        return job;
+    }
+    job(id: unknown): SourceJob {
+        const job = this.persistedJob(id);
         if (job.state === 'running' && Date.parse(job.deadline_at) + 2000 < this.now())
             return { ...job, state: 'failed', reason: 'timeout' };
         return job;
     }
     jobs(): SourceJob[] {
+        return this.listJobs(false);
+    }
+    private listJobs(persisted: boolean): SourceJob[] {
         try {
             return readdirSync(join(this.root, 'jobs')).filter(name => /^[A-Za-z0-9_-]+\.json$/u.test(name)).flatMap(name => { try {
-                return [this.job(name.slice(0, -5))];
+                return [persisted ? this.persistedJob(name.slice(0, -5)) : this.job(name.slice(0, -5))];
             }
             catch {
                 return [];
@@ -210,32 +218,37 @@ export class SourceService {
         }
     }
     private cancelSource(id: string, automaticOnly = false): void {
-        for (const job of this.jobs())
-            if (job.source_id === id && job.state === 'running' && (!automaticOnly || !manualJobActive(job,this.now())))
+        for (const job of this.listJobs(true))
+            if (job.source_id === id && job.state === 'running' && (!automaticOnly || !manualJobActive(job,settlementTime(job,this.now()))))
                 this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: 'cancelled' });
     }
-    private interested(job: SourceJob): boolean {
-        return manualJobActive(job,this.now()) || automaticJobActive(this.configuration.context.configDir,job,this.now());
+    private interestedInResult(job: SourceJob): boolean {
+        const now = settlementTime(job,this.now());
+        return manualJobActive(job,now) || automaticJobActive(this.configuration.context.configDir,job,now);
+    }
+    private superseded(job: SourceJob): boolean {
+        // The public expiry view can permit another job while this worker waits for its final lock.
+        return this.jobs().some(other => other.id !== job.id && other.identity === job.identity && Date.parse(other.started_at) > Date.parse(job.started_at));
     }
     release(id: unknown, owner: unknown): SourceJob {
         const consumer=sourceId(owner);
         return this.configuration.io.lock(this.configuration.context.configDir,()=>{
-            const job=this.job(id);
-            if(job.state!=='running'||!job.consumers.some(c=>c.owner===consumer))return job;
+            const job=this.persistedJob(id);
+            if(job.state!=='running'||!job.consumers.some(c=>c.owner===consumer))return this.job(id);
             job.consumers=job.consumers.filter(c=>c.owner!==consumer);
-            if(!this.interested(job)){job.state='cancelled';job.reason='no_consumers';}
-            this.write(this.jobPath(job.id),job);return job;
+            if(!this.interestedInResult(job)){job.state='cancelled';job.reason='no_consumers';}
+            this.write(this.jobPath(job.id),job);return this.job(id);
         });
     }
     cancel(id: unknown): SourceJob {
         return this.configuration.io.lock(this.configuration.context.configDir, () => {
-            const job = this.job(id);
+            const job = this.persistedJob(id);
             if (job.state === 'running') {
                 job.state = 'cancelled';
                 job.reason = 'cancelled';
                 this.write(this.jobPath(job.id), job);
                 const source = this.source(job.source_id);
-                if (source.enabled && source.revision === job.source_revision)
+                if (source.enabled && source.revision === job.source_revision && !this.superseded(job))
                     this.publish(source, job.context, emptyObservation(source, job.context, 'cancelled'));
             }
             return job;
@@ -364,9 +377,23 @@ export class SourceService {
     }
     cancelInactiveAutomatic(): void {
         this.configuration.io.lock(this.configuration.context.configDir, () => {
-            for (const job of this.jobs()) if (job.state === 'running' && !this.interested(job))
+            for (const job of this.listJobs(true)) if (job.state === 'running' && !this.interestedInResult(job))
                 this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
         });
+    }
+    private recordSchedulingResult(source: SourceDefinition, job: SourceJob, observation: SourceObservation): void {
+        const manualSuccess = job.trigger === 'manual' && ['valid','partial'].includes(observation.state) && observation.value !== null;
+        if (!manualSuccess && job.trigger !== 'automatic') return;
+        const state = readAutomatic(this.configuration.context.configDir), schedule = state.schedules.find(s => s.key === job.identity), policy = this.read().automatic.find(p => p.source_id === source.id);
+        if (!schedule || !policy?.enabled) return;
+        if (manualSuccess) {
+            schedule.processed = job.id; schedule.last_attempt = job.started_at; schedule.last_success = observation.observed_at;
+            schedule.failures = 0; schedule.paused = null; schedule.next = this.now() + policy.interval_seconds * 1000;
+        } else {
+            if (policy.review_revision !== source.revision || source.kind === 'github' && policy.auth_revision !== authRevision() || refreshIdentity(source,job.context) !== job.identity) return;
+            if (!reconcileAutomaticOutcome(schedule, job, policy.interval_seconds * 1000, this.now())) return;
+        }
+        writeAutomatic(this.configuration.context.configDir, state);
     }
     async work(id: string): Promise<void> {
         const job = this.job(id);
@@ -382,56 +409,71 @@ export class SourceService {
             throw error;
         }
         const abort = new AbortController();
-        const watcher = setInterval(() => {
+        let stopped: 'cancelled' | 'timeout' | null = null;
+        const stop = (reason: 'cancelled' | 'timeout') => {
+            if (abort.signal.aborted) return;
+            stopped = reason;
+            abort.abort();
+        };
+        const check = (expired = false) => {
             try {
-                const source = this.source(job.source_id), current = this.job(id);
-                if (current.state !== 'running' || source.revision !== job.source_revision || !source.enabled || refreshIdentity(source,job.context)!==job.identity || !this.interested(current))
-                    abort.abort();
+                const source = this.source(job.source_id), current = this.persistedJob(id);
+                if (current.state !== 'running' || source.revision !== job.source_revision || !source.enabled || refreshIdentity(source,job.context)!==job.identity || !this.interestedInResult(current))
+                    stop('cancelled');
+                else if (expired || this.now() >= Date.parse(job.deadline_at))
+                    stop('timeout');
             }
             catch {
-                abort.abort();
+                stop('cancelled');
             }
-        }, 100);
-        const deadline = setTimeout(() => abort.abort(), Math.max(1, Date.parse(job.deadline_at) - this.now()));
+        };
+        const watcher = setInterval(check, 100);
+        const deadline = setTimeout(() => check(true), Math.max(1, Date.parse(job.deadline_at) - this.now()));
         try {
-            const source = this.source(job.source_id);
-            if (!source.enabled || source.revision !== job.source_revision || refreshIdentity(source,job.context)!==job.identity || !this.interested(this.job(id))) return;
+            const source = this.source(job.source_id), current = this.persistedJob(id);
+            if (current.state !== 'running' || !source.enabled || source.revision !== job.source_revision || refreshIdentity(source,job.context)!==job.identity || !this.interestedInResult(current)) return;
             let observation: SourceObservation;
-            if (!sameContext(observationContext(source, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
+            if (this.now() >= Date.parse(job.deadline_at))
+                observation = emptyObservation(source, job.context, 'timeout');
+            else if (!sameContext(observationContext(source, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
                 observation = emptyObservation(source, job.context, 'identity');
+            else if (this.now() >= Date.parse(job.deadline_at)) // Synchronous project discovery also consumes the remaining budget.
+                observation = emptyObservation(source, job.context, 'timeout');
             else
                 observation = source.kind === 'json' ? readLocal(source, job.context) : source.kind === 'command' ? await refreshCommand(source, job.context, abort.signal) : await this.githubRefresh(source, job.context, abort.signal);
-            if (observation.reason === 'cancelled' && this.now() >= Date.parse(job.deadline_at))
-                observation = emptyObservation(source, job.context, 'timeout');
+            if (observation.reason === 'cancelled' && stopped === 'timeout')
+                observation = { ...observation, state: 'error', reason: 'timeout', ...(observation.execution ? { execution: { ...observation.execution, reason: 'timeout' } } : {}) };
             this.configuration.io.lock(this.configuration.context.configDir, () => {
-                const latest = this.source(job.source_id), state = this.job(id);
+                const latest = this.source(job.source_id), state = this.persistedJob(id);
                 if (state.state !== 'running' || !latest.enabled || latest.revision !== job.source_revision) return;
-                if (!this.interested(state)) {
+                if (stopped === 'cancelled' || !this.interestedInResult(state)) {
                     this.write(this.jobPath(id), { ...state, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
                     return;
                 }
                 if (refreshIdentity(latest,job.context)!==job.identity || !sameContext(observationContext(latest, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
                     observation = emptyObservation(source, job.context, 'identity');
-                if (observation.reason !== 'identity' && observation.reason !== 'account')
-                    this.publish(source, job.context, observation);
-                else
-                    this.write(this.observationPath(source, job.context), { version: 1, current: observation, good: null });
+                const superseded = this.superseded(state);
+                if (!superseded) {
+                    if (observation.reason !== 'identity' && observation.reason !== 'account')
+                        this.publish(source, job.context, observation);
+                    else
+                        this.write(this.observationPath(source, job.context), { version: 1, current: observation, good: null });
+                }
                 state.state = observation.state === 'error' ? 'failed' : 'completed';
                 state.reason = observation.reason;
-                state.result = observation.execution ?? { finished_at: new Date(this.now()).toISOString(), duration_ms: Math.max(0,this.now()-Date.parse(job.started_at)), exit_code: null, reason: observation.reason, summary: String(observation.value ?? '') };
+                state.result = observation.execution ?? (source.kind === 'command' ? null : { finished_at: new Date(this.now()).toISOString(), duration_ms: Math.max(0,this.now()-Date.parse(job.started_at)), exit_code: null, reason: observation.reason, summary: String(observation.value ?? '') });
                 state.version = 4;
                 this.write(this.jobPath(id), state);
-                if(state.trigger==='manual'&&['valid','partial'].includes(observation.state)&&observation.value!==null){
-                    const scheduling=readAutomatic(this.configuration.context.configDir),schedule=scheduling.schedules.find(s=>s.key===state.identity),policy=this.read().automatic.find(p=>p.source_id===source.id);
-                    if(schedule&&policy?.enabled){schedule.processed=state.id;schedule.last_attempt=state.started_at;schedule.last_success=observation.observed_at;schedule.failures=0;schedule.paused=null;schedule.next=this.now()+policy.interval_seconds*1000;writeAutomatic(this.configuration.context.configDir,scheduling);}
-                }
+                if (!superseded) this.recordSchedulingResult(source, state, observation);
             });
         }
         catch (error) {
             try {
-                const state = this.job(id);
-                if (state.state === 'running')
-                    this.write(this.jobPath(id), { ...state, state: 'failed', reason: error instanceof ConfigError ? error.code : 'refresh_failed' });
+                this.configuration.io.lock(this.configuration.context.configDir, () => {
+                    const state = this.persistedJob(id);
+                    if (state.state === 'running')
+                        this.write(this.jobPath(id), { ...state, state: 'failed', reason: error instanceof ConfigError ? error.code : 'refresh_failed' });
+                });
             }
             catch { /* Deadline remains the durable recovery marker. */ }
         }

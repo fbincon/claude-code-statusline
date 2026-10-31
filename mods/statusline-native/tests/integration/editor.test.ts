@@ -244,12 +244,13 @@ test('unknown saves require read reconciliation before retry or close', {timeout
   await ui.unmount();
 });
 
-test('conflicting save retains the draft; explicit reload reads external changes', {timeoutMs: 20000}, async ($, on) => {
+for (const code of ['configuration_conflict','profile_conflict'])
+test(`${code} retains the draft; explicit reload reads external changes`, {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let reject = true;
   fixture.behavior.process = (request, next) =>
     request.operation === 'apply' && reject
-      ? { value: error('configuration_conflict') }
+      ? { value: error(code) }
       : next();
   await $.session.start(START);
   await $.command.run(RUN);
@@ -257,6 +258,7 @@ test('conflicting save retains the draft; explicit reload reads external changes
   await keys(ui, '3', ' ', 'f');
   expect(fixture.closes).toHaveLength(0);
   expect(await visibleText(ui)).toContain('Changes and history');
+  expect(fixture.calls.filter(call=>call.operation==='apply').length).toBe(1);
   await keys(ui,'tab');expect(previewDraft(fixture).display.use_colors).toBe(false);
   fixture.store.draft.display.palette = 'ansi';
   await keys(ui, 'l', 'return', '3');
@@ -266,6 +268,33 @@ test('conflicting save retains the draft; explicit reload reads external changes
   reject = false;
   await keys(ui, 'f');
   expect(fixture.closes).toHaveLength(1);
+  await ui.unmount();
+});
+
+for (const readFails of [false,true])
+test(`a scoped native profile conflict permits ordinary close when inspection ${readFails?'fails':'succeeds'}`, {timeoutMs: 20000}, async ($, on) => {
+  const fixture=setup(on),target={kind:'project',path:'/work'} as const;
+  let conflict=false,applies=0;
+  fixture.behavior.process=(request,next)=> {
+    if(request.operation==='read') {
+      expect(request.payload.target).toEqual(target);
+      if(conflict&&readFails)return {value:output(JSON.stringify({protocol_version:31,error:{code:'io_error',message:'Conflict details unavailable'}}),2)};
+      return {value:reply({...readResult(fixture.store.draft,fixture.store.revision),configuration:{target,profile_id:null,profile_name:null,project_root:null,reason:'user',shared_projects:[]}})};
+    }
+    if(request.operation==='apply') {applies++;expect(request.payload.target).toEqual(target);return {value:error('profile_conflict')};}
+    return next();
+  };
+  await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
+  await keys(ui,'3',' ');const retained=JSON.stringify(previewDraft(fixture));
+  fixture.store.draft.display.palette='ansi';fixture.store.revision='1'.repeat(64);
+  const winner=JSON.stringify(fixture.store);conflict=true;
+  await keys(ui,'f');
+  expect(await visibleText(ui)).toContain('Changes and history');expect(applies).toBe(1);expect(fixture.closes).toHaveLength(0);
+  if(readFails)expect(await visibleText(ui)).toContain('Conflict details unavailable');
+  await keys(ui,'q');expect(JSON.stringify(previewDraft(fixture))).toBe(retained);
+  await keys(ui,{key:'z',ctrl:true});expect(previewDraft(fixture).display.use_colors).toBe(true);
+  await keys(ui,{key:'r',ctrl:true});expect(JSON.stringify(previewDraft(fixture))).toBe(retained);
+  await keys(ui,'q');expect(fixture.closes).toHaveLength(1);expect(applies).toBe(1);expect(JSON.stringify(fixture.store)).toBe(winner);
   await ui.unmount();
 });
 

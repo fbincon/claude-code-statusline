@@ -115,6 +115,11 @@
       "version": "3.16.0",
       "path": "docs/releases/approvals/v3.16.0.json",
       "approved_on": "2026-10-30"
+    },
+    {
+      "version": "3.16.1",
+      "path": "docs/releases/approvals/v3.16.1.json",
+      "approved_on": "2026-10-31"
     }
   ]
 }

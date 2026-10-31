@@ -84,7 +84,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 | --- | --- |
 | `invalid_json`、`invalid_request`、`invalid_configuration` | 修正封装、payload 或草稿；非法 apply 输入不会写配置 |
 | `unsupported_protocol`、`unsupported_operation` | 使用匹配的前后端协议及支持的操作 |
-| `configuration_conflict` | 另一编辑器或安装操作改变了配置，重新读取并协调草稿 |
+| `configuration_conflict`、`profile_conflict` | 配置或明确的用户／方案／项目目标发生修改，保存被明确拒绝；保留草稿，审阅同一目标后再重试 |
 | `not_installed` | 主 renderer 不存在，保存前安装选定后端 |
 | `ownership_mismatch` | renderer 属于其他安装或所有者，保存前解决归属 |
 | `io_error` | 文件操作失败，检查消息及回滚诊断 |
@@ -97,6 +97,8 @@ TypeScript 后端通过 `node packages/cli/dist/src/entry.js runtime --config-di
 桥接拒绝非法或截断响应、协议版本不匹配及非零退出，保留冲突等结构化后端错误。进程启动/拒绝错误使用 `backend_process`，超时错误使用 `backend_timeout`；宿主进程调用的超时为 30 秒。验证入口显示故障并提供预览重试；打开失败后重新打开会重读配置。
 
 Client 编辑器首次打开时读取目录和配置，保留完整草稿及数值缓冲，仅在草稿或宽度变化时更新预览。保存使用基线 revision，成功后更新快照并保持面板打开。冲突保留草稿供显式丢弃/重载；结果不明确时先读取核对再重试。关闭使旧响应失效并丢弃待保存修改。宿主偏好使用独立实际行 API 并逐项报告。生成描述覆盖目录、选项、边界和能力；桥接拒绝不完整或重复目录、未知选项和不安全显示文本。
+
+共享保存状态分类将 `profile_conflict` 与 `configuration_conflict` 都视为已知拒绝。双编辑器的普通 Save 使用明确编辑目标打开现有变更审阅。审阅读取失败时保留已知拒绝和草稿，不能生成未知写入结果。其他方案错误保留既有分类；方案切换和包管理中的保存继续使用各自管理器流程。
 
 参见[架构](architecture.zh-CN.md)、[原生验收](native.zh-CN.md)和[测试](testing.zh-CN.md)。
 
