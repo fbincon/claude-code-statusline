@@ -28,7 +28,7 @@
 
 | 领域 | 交付记录 |
 | --- | --- |
-| 当前正确性工作 | [运行身份、来源超时与保存冲突](runtime-source-save-fixes.zh-CN.md)，v3.16.1 实施／验收进行中 |
+| v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](runtime-source-save-fixes.zh-CN.md#final-release)，已发布并完成本机核验 |
 | 语言 | [十二语言扩展](language-expansion.zh-CN.md) · [I18N-02 生命周期](i18n-02-delivery.zh-CN.md) · [Node 与地区语言](node-regional-languages.zh-CN.md) |
 | 外观、草稿与复用 | [自适应行与场景](adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](appearance-preview-diagnosis.zh-CN.md) |
 | 任务、来源与软件包 | [任务／版本审阅](task-version-review.zh-CN.md) · [来源／命令／包执行](source-command-package-management.zh-CN.md) · [扩展](extensions.zh-CN.md) |

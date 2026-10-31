@@ -8,7 +8,7 @@
 - 独立于调用方取消，保留命令源超时失败、执行诊断及错误观测；延迟结算后按持久化结果核对自动重试反馈（#195）。
 - 将明确目标的方案冲突识别为保存已拒绝，双编辑器打开正常冲突审阅，保留草稿／历史及胜出方已保存配置（#196）。
 - 保持显示 schema 17、编辑器协议 31、既有来源／runtime／存储格式、Native 容量边界及真实历史覆盖。
-- 发布准备及验收进行中；[实现与证据](docs/development/runtime-source-save-fixes.zh-CN.md) · [发布说明](docs/releases/v3.16.1.zh-CN.md)。
+- 已于 2026-10-31 在 npm、GitHub 和 Gitee 发布；[实现与证据](docs/development/runtime-source-save-fixes.zh-CN.md#final-release) · [发布说明](docs/releases/v3.16.1.zh-CN.md)。
 
 ## 3.16.0 — 2026-10-30
 

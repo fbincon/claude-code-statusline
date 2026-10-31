@@ -8,7 +8,7 @@
 - Retain command-source timeout failures, execution diagnostics and error observations independently of caller cancellation; reconcile automatic retry feedback with durable results after delayed settlement (#195).
 - Treat explicit-target profile conflicts as definitive save refusals and open both editors' normal conflict review with draft/history and saved winner preserved (#196).
 - Retain display schema 17, editor protocol 31 and existing source/runtime/storage formats, Native capacity boundaries and truthful historical coverage.
-- Release preparation and acceptance are in progress; [implementation and evidence](docs/development/runtime-source-save-fixes.md) · [Release notes](docs/releases/v3.16.1.md).
+- Published 2026-10-31 on npm, GitHub and Gitee; [implementation and evidence](docs/development/runtime-source-save-fixes.md#final-release) · [Release notes](docs/releases/v3.16.1.md).
 
 ## 3.16.0 — 2026-10-30
 
