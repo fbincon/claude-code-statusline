@@ -2,11 +2,11 @@
 
 [English](RELEASING.md) | **简体中文**
 
-## v3.16.1 运行观测、来源与保存冲突修复
+## v3.16.1 运行、来源与保存冲突修复
 
-准备中；使用[版本决策](releases/approvals/v3.16.1.json)及[实施／验收记录](development/runtime-source-save-fixes.zh-CN.md)。修复 #197／#195／#196，不迁移 schema／协议。要求最终 PR 完整产品验收、main 集成核验及带注释 tag 门禁，保留八安装目标、32 项 Node、十六个固定宿主、全部 313 项容量案例及完整十二语言就绪。要求安装包命令超时／取消和双编辑器冲突旅程，并执行实际交互 runtime 补充；全部付费尝试／重试共享一个 10 美元预算台账。
+已于 **2026-10-31** 在 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 和 [Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 发布，源码为 `d652eda833d97c594abbf17929e347bf77395af2`。必需 PR／main／tag 门禁、独立及交付源码重建、十二语言就绪、七项公开核验和四项交付文件摘要均通过。本机在双编辑器／运行观测检查及十一路径偏好恢复后保留 3.16.1。
 
-npm OIDC／GitHub 发布前核验原始不可变证据、独立／源码重建及四项已下载草稿文件。核验全部公开下载／签名，以明确 refs 同步 Gitee 和同字节附件，再升级测试机、检查已配置状态栏、恢复原偏好且保留升级。只接受同一组 #96 六项既有缺口。发布完成后本机新发现仅提 issue，保留 v3.16.1，本任务不补发其他修补版。门禁和渠道实际结果在执行后记录。
+[交付记录](development/runtime-source-save-fixes.zh-CN.md#final-release)保留原始源码／产物身份、npm 已接受发布及仅核验可见性的重试、失败尝试、本机结果和 3.2882753 美元保守预算上界。[版本决策](releases/approvals/v3.16.1.json)仅接受 #96 六项既有缺口，它们继续未验证。发布完成后保留 v3.16.1，新产品问题仅提 issue，不另发修补版。
 
 ## v3.16.0 语言扩展
 
