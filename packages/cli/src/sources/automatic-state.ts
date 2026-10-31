@@ -16,6 +16,38 @@ export const LEASE_MS = 15000;
 export interface Lease { id: string; session: string; epoch: string; seq: number; expires: number; closed: boolean; keys: string[]; contexts?: SourceContext[] }
 export interface Schedule { key: string; source_id: string; job_id: string | null; processed: string | null; next: number; failures: number; paused: string | null; last_attempt: string | null; last_success: string | null }
 export interface AutomaticState { version: 1; leases: Lease[]; schedules: Schedule[] }
+const pauseReasons = new Set(['auth', 'authentication', 'forbidden', 'permission', 'account', 'identity', 'scope', 'ambiguous', 'missing_program', 'invalid_output', 'output_limit', 'input', 'type', 'invalid']);
+/** One classification for normal lifecycle feedback and delayed durable settlement. */
+export function automaticOutcome(job: SourceJob): { kind: 'success'; finished_at: string } | { kind: 'cancelled' } | { kind: 'failure'; paused: string | null } {
+    if (job.state === 'completed' && ['valid', 'no_pr', 'unknown_checks'].includes(job.reason))
+        return { kind: 'success', finished_at: job.result?.finished_at ?? job.started_at };
+    if (['lease_expired', 'cancelled', 'no_consumers'].includes(job.reason))
+        return { kind: 'cancelled' };
+    return { kind: 'failure', paused: pauseReasons.has(job.reason) ? job.reason : null };
+}
+/** Correct provisional feedback once, without recounting a failure or drifting its retry time. */
+export function reconcileAutomaticOutcome(schedule: Schedule, job: SourceJob, intervalMs: number, now: number): boolean {
+    if (schedule.processed !== job.id) return false;
+    // Renewed review seeds old jobs as processed but deliberately resets their
+    // feedback before a fresh dispatch. It is not a consumed timeout projection.
+    if (schedule.failures === 0 && schedule.paused === null && schedule.last_success === null) return false;
+    const outcome = automaticOutcome(job);
+    if (outcome.kind === 'success') {
+        // Manual success records the observation timestamp, which may differ
+        // from process completion. Only failed feedback needs success repair.
+        if (schedule.failures === 0 && schedule.paused === null) return false;
+        schedule.failures = 0; schedule.paused = null; schedule.last_success = outcome.finished_at;
+        schedule.next = now + intervalMs;
+        return true;
+    }
+    // A public expiry projection can only be failed/timeout. A different
+    // terminal reason is authoritative; cancellation never rolls counters back.
+    if (outcome.kind === 'failure' && job.state !== 'running' && job.reason !== 'timeout' && schedule.paused !== outcome.paused) {
+        schedule.paused = outcome.paused;
+        return true;
+    }
+    return false;
+}
 const path = (directory: string) => join(directory, 'statusline_runtime', 'sources', 'automatic.json');
 const hash = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{64}$/.test(v);
 export function readAutomatic(directory: string): AutomaticState {

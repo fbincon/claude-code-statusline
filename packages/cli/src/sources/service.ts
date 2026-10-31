@@ -20,7 +20,7 @@ import { jsonBytes, artifact } from '../config/storage.js';
 import { commit } from '../recovery/files.js';
 import { safeTarget } from '../integration/paths.js';
 import { contextFor, authRevision } from './context.js';
-import { automaticJobActive, manualJobActive, settlementTime, automaticStatus, refreshIdentity, readAutomatic, writeAutomatic } from './automatic-state.js';
+import { automaticJobActive, manualJobActive, settlementTime, automaticStatus, refreshIdentity, reconcileAutomaticOutcome, readAutomatic, writeAutomatic } from './automatic-state.js';
 import { readLocal, refreshCommand, refreshGithub, failure } from './providers.js';
 interface Stored {
     version: 1;
@@ -381,6 +381,20 @@ export class SourceService {
                 this.write(this.jobPath(job.id), { ...job, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
         });
     }
+    private recordSchedulingResult(source: SourceDefinition, job: SourceJob, observation: SourceObservation): void {
+        const manualSuccess = job.trigger === 'manual' && ['valid','partial'].includes(observation.state) && observation.value !== null;
+        if (!manualSuccess && job.trigger !== 'automatic') return;
+        const state = readAutomatic(this.configuration.context.configDir), schedule = state.schedules.find(s => s.key === job.identity), policy = this.read().automatic.find(p => p.source_id === source.id);
+        if (!schedule || !policy?.enabled) return;
+        if (manualSuccess) {
+            schedule.processed = job.id; schedule.last_attempt = job.started_at; schedule.last_success = observation.observed_at;
+            schedule.failures = 0; schedule.paused = null; schedule.next = this.now() + policy.interval_seconds * 1000;
+        } else {
+            if (policy.review_revision !== source.revision || source.kind === 'github' && policy.auth_revision !== authRevision() || refreshIdentity(source,job.context) !== job.identity) return;
+            if (!reconcileAutomaticOutcome(schedule, job, policy.interval_seconds * 1000, this.now())) return;
+        }
+        writeAutomatic(this.configuration.context.configDir, state);
+    }
     async work(id: string): Promise<void> {
         const job = this.job(id);
         if (job.state !== 'running')
@@ -450,10 +464,7 @@ export class SourceService {
                 state.result = observation.execution ?? (source.kind === 'command' ? null : { finished_at: new Date(this.now()).toISOString(), duration_ms: Math.max(0,this.now()-Date.parse(job.started_at)), exit_code: null, reason: observation.reason, summary: String(observation.value ?? '') });
                 state.version = 4;
                 this.write(this.jobPath(id), state);
-                if(!superseded&&state.trigger==='manual'&&['valid','partial'].includes(observation.state)&&observation.value!==null){
-                    const scheduling=readAutomatic(this.configuration.context.configDir),schedule=scheduling.schedules.find(s=>s.key===state.identity),policy=this.read().automatic.find(p=>p.source_id===source.id);
-                    if(schedule&&policy?.enabled){schedule.processed=state.id;schedule.last_attempt=state.started_at;schedule.last_success=observation.observed_at;schedule.failures=0;schedule.paused=null;schedule.next=this.now()+policy.interval_seconds*1000;writeAutomatic(this.configuration.context.configDir,scheduling);}
-                }
+                if (!superseded) this.recordSchedulingResult(source, state, observation);
             });
         }
         catch (error) {

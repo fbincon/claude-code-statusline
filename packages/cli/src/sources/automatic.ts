@@ -5,9 +5,8 @@ import { sourceId, sourceText, matchesScope, observationContext } from '@fbincon
 import { VERSION } from '@fbincon/statusline-core/release';
 import { revision } from '@fbincon/statusline-platform/hash';
 import { contextFor, authRevision } from './context.js';
-import { readAutomatic, writeAutomatic, refreshIdentity, LEASE_MS, type Schedule } from './automatic-state.js';
+import { readAutomatic, writeAutomatic, refreshIdentity, automaticOutcome, reconcileAutomaticOutcome, LEASE_MS, type Schedule } from './automatic-state.js';
 import { SourceService } from './service.js';
-const pauseReasons = new Set(['auth', 'authentication', 'forbidden', 'permission', 'account', 'identity', 'scope', 'ambiguous', 'missing_program', 'invalid_output', 'output_limit', 'input', 'type', 'invalid']);
 function applicable(source: SourceDefinition, context: SourceContext): boolean {
     return matchesScope(source.scope, context) && (source.kind !== 'github' || !!context.head && !!context.branch && context.branch === source.settings.branch);
 }
@@ -72,13 +71,15 @@ export class AutomaticRefresh {
                     const latest = allJobs.filter(j => j.identity === key && (!processed || j.id===processed.id || Date.parse(j.started_at)>Date.parse(processed.started_at))).sort((a,b) => Date.parse(b.started_at)-Date.parse(a.started_at) || b.id.localeCompare(a.id))[0];
                     if (latest && latest.state !== 'running' && latest.id !== schedule.processed) {
                         schedule.processed = latest.id; schedule.last_attempt = latest.started_at;
-                        if (latest.state === 'completed' && ['valid', 'no_pr', 'unknown_checks'].includes(latest.reason)) {
-                            schedule.failures = 0; schedule.paused = null; schedule.last_success = latest.result?.finished_at ?? latest.started_at;
-                        } else if (!['lease_expired', 'cancelled', 'no_consumers'].includes(latest.reason)) {
-                            schedule.failures = Math.min(10, schedule.failures + 1); schedule.paused = pauseReasons.has(latest.reason) ? latest.reason : null;
+                        const outcome = automaticOutcome(latest);
+                        if (outcome.kind === 'success') {
+                            schedule.failures = 0; schedule.paused = null; schedule.last_success = outcome.finished_at;
+                        } else if (outcome.kind === 'failure') {
+                            schedule.failures = Math.min(10, schedule.failures + 1); schedule.paused = outcome.paused;
                         }
                         schedule.next = now + Math.min(86400000, policy.interval_seconds * 1000 * 2 ** schedule.failures);
-                    }
+                    } else if (latest && latest.state !== 'running')
+                        reconcileAutomaticOutcome(schedule, latest, policy.interval_seconds * 1000, now);
                     if (!schedule.paused && schedule.next <= now) due.push({source,schedule,context,interval:policy.interval_seconds*1000});
                 }
             }

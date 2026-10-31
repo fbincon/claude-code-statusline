@@ -139,6 +139,8 @@ Supported active sessions renew a lease every five seconds; leases expire after 
 
 Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
 
+An overdue read can provisionally account for a timeout while a worker waits for its final lock. A later confirmed success clears that provisional backoff and records the actual completion time; a final pause failure uses its actual cause without counting the same attempt twice. Worker settlement and subsequent lifecycle ticks converge on the same feedback. Orphaned jobs retain bounded retry/backoff, and an older job cannot revise newer feedback.
+
 Rendering, preview, imports and project bindings never dispatch refreshes. JSON sources remain outside automatic scheduling; separately reviewed commands use the scheduling rules below. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
 
 ## Commands
