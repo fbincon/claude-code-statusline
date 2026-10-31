@@ -7,6 +7,7 @@ import { linkTask } from '@fbincon/statusline-core/runtime/tasks/native';
 import { renderTaskTimer } from '@fbincon/statusline-core/rendering/timer';
 import { loadRuntime } from '../src/config/backend-preferences.js';
 import { join } from 'node:path';
+import type { Data } from '@fbincon/statusline-core/runtime/values';
 function observations(unknown = false, gap = false): Observation[] {
     const rows = [o('heartbeat', 0, 0, { payload: { host_version: '2.1.289', loaded_at_ms: 0 } }), o('prompt', 1, 1000, { prompt: 'p' }), o('turn_start', 2, 2000, { prompt: 'p', turn_id: 't' })];
     if (unknown)
@@ -23,6 +24,71 @@ function ingest(f: ReturnType<typeof setup>, rows: Observation[]): void {
         f.store.observe([row], { timing: true });
     }
 }
+for (const parallel of [false, true]) for (const batched of [false, true]) for (const tied of batched ? [false, true] : [false]) test(`agent-scoped turns complete without transcript repair: parallel=${parallel}, batched=${batched}, tied=${tied}`, t => {
+    const f = setup(t), rows: Observation[] = [], usage = { input_tokens: 10, output_tokens: 2, cache_read_input_tokens: 3, cache_creation_input_tokens: 4 };
+    f.preferences(true, true);
+    f.event('UserPromptSubmit', 1);
+    const send = (kind: string, at: number, identity: Data = {}, payload?: Data) => rows.push(o(kind, rows.length, at, { ...identity, ...(payload ? { payload } : {}) }));
+    const request = (turn: string, agent: string | null, at: number) => {
+        const identity = { turn_id: turn, agent, request_id: `${agent ?? 'main'}:${turn}:${at}` };
+        send('turn_start', at, identity);
+        send('request_start', at, identity);
+        send('request_first', at + 100, identity);
+        send('request_end', at + 200, identity, { native: true, usage, status: 'completed' });
+    };
+    const finish = (turn: string, agent: string | null, at: number, count = 1) => {
+        send('turn_end', at, { turn_id: turn, agent }, { status: 'completed', duration_ms: 200, wait_coverage: true });
+        send('turn_usage', at, { turn_id: turn, agent }, { usage: Object.fromEntries(Object.entries(usage).map(([key, value]) => [key, value * count])) });
+        if (agent) send('agent_end', at, { agent });
+    };
+    send('heartbeat', 0, {}, { host_version: '2.1.314', loaded_at_ms: 0 });
+    send('prompt', 1000, { prompt: 'p' });
+    send('turn_start', 2000, { turn_id: 'main-turn' });
+    request('main-turn', null, 2100);
+    const agents = parallel ? ['a', 'b'] : ['a'];
+    for (const agent of agents) {
+        send('agent_start', 3000, { agent, turn_id: 'main-turn' });
+        send('turn_start', 3100, { agent, turn_id: 'shared-child-turn' });
+        request('shared-child-turn', agent, 3200);
+    }
+    send('agent_start', 4000, { agent: 'nested', parent_agent_id: 'a', turn_id: 'shared-child-turn' });
+    send('turn_start', 4100, { agent: 'nested', turn_id: 'nested-turn' });
+    request('nested-turn', 'nested', 4200);
+    finish('nested-turn', 'nested', 5000);
+    for (const agent of agents) finish('shared-child-turn', agent, tied ? 9000 : 6000);
+    request('main-turn', null, 8100);
+    finish('main-turn', null, 9000, 2);
+    if (batched) {
+        f.clock(9000000000n);
+        f.store.observe(rows, { timing: true });
+    } else for (const row of rows) {
+        f.clock(BigInt(numeric(row.observed_at_ms)! * 1e6));
+        f.store.observe([row], { timing: true });
+    }
+    const state = f.store.load('s')!, task = plain(f.tasks.store.state('s', 'p'));
+    assert.equal(Object.keys(state.turns).length, agents.length + 2);
+    assert.deepEqual(Object.values(state.turns).filter(turn => turn.agent_id === null).map(turn => numeric(turn.ended_at_ms)), [9000]);
+    assert.ok(Object.values(state.turns).every(turn => turn.status === 'completed' && turn.start_observed));
+    assert.equal(task.status, 'completed');
+    assert.equal(task.end_source, 'native_turn_end');
+    assert.equal(task.duration_ns, 8e9);
+    assert.deepEqual(task.active_agents, {});
+    const active = plain(f.protocol.activePoint('s', 'p'));
+    assert.equal(active.value, batched ? null : 7);
+    assert.equal(active.reason, batched ? 'abnormal_clock' : null);
+    const metrics = f.points('p', 9000), count = agents.length + 3;
+    assert.equal(metrics['prompt-input-tokens'].value, 17 * count);
+    assert.equal(metrics['prompt-output-tokens'].value, 2 * count);
+    assert.equal(metrics['prompt-input-tokens'].partial, false);
+    assert.equal(metrics['prompt-output-tokens'].partial, false);
+    f.clock(110000000000n);
+    assert.deepEqual(f.store.observe(rows, { timing: true }), { accepted: 0, ignored: rows.length });
+    assert.deepEqual(plain(f.tasks.store.state('s', 'p')), task);
+    assert.deepEqual(plain(f.protocol.activePoint('s', 'p')), active);
+    const delayed = f.points('p', 110000);
+    for (const key of ['run-state', 'ttft', 'output-rate', 'prompt-input-tokens', 'prompt-output-tokens'])
+        assert.deepEqual(delayed[key], metrics[key]);
+});
 test('tests.runtime.test_task_timing.NativeTimingTests.test_native_task_and_pause_clock_are_separate_and_replays_are_idempotent', t => {
     const f = setup(t), rows = observations();
     ingest(f, rows);

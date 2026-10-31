@@ -34,6 +34,18 @@ permission snapshot and agent start/end. Only a verified change feed can claim a
 live permission value. A hook snapshot is explicitly an observation, not settings
 `defaultMode` or proof that the mode has remained unchanged.
 
+The observer preserves `turn.start.agentId` in `turn_start.agent_id` and tracks
+the active turn separately for each agent. An agent turn cannot replace the
+active main turn. Start, request/step, usage and completion therefore refer to
+the same agent-scoped lifecycle entry; an absent agent ID retains main-turn
+semantics. This producer rule does not infer completion or repair incomplete
+historical observations. Restart Claude Code after updating the runtime Mod.
+
+Pending terminal observations are reconciled by observed completion time rather
+than turn start time, preserving completed agents before later main wrap-up in a
+delayed batch. Delivery delay cannot establish a missing monotonic interval:
+active time remains unavailable when its clock evidence is abnormal.
+
 ## Ownership and persistence
 
 Each session has a hashed filename under `statusline_runtime/live`, or `live` under

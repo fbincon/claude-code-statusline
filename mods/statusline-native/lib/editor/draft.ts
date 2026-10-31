@@ -38,7 +38,8 @@ export function copyDraft(draft: Draft): Draft {
 export function sameDraft(left: Draft, right: Draft): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
-export const definitiveSaveRefusal = (code: string): boolean => ['invalid_request','invalid_configuration','configuration_conflict','not_installed','ownership_mismatch','unsupported_protocol','unsupported_operation'].includes(code);
+export const isSaveConflict = (code: string): boolean => code === 'configuration_conflict' || code === 'profile_conflict';
+export const definitiveSaveRefusal = (code: string): boolean => isSaveConflict(code) || ['invalid_request','invalid_configuration','not_installed','ownership_mismatch','unsupported_protocol','unsupported_operation'].includes(code);
 export interface PendingSave {
   draft: Draft; revision: string; target?: ConfigTarget; installation: ReadResult['installation'];
 }

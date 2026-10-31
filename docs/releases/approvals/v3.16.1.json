@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.16.1",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-31",
+  "authority": "On 2026-10-31 the maintainer explicitly approved implementation of the plan to repair issues #197, #195 and #196 and publish v3.16.1. Preserve agent-scoped runtime turn identity and observed terminal ordering, retain command-source timeout results and diagnostics independently of consumer cancellation, and classify definitive explicit-target save conflicts consistently in both editors. Retain existing schema/protocol formats and independent Native props, Pane and Client drawing budgets. Authorize actual-machine Claude Code/statusline configuration and validation and a shared total USD 10 budget for all paid model attempts and retries. The maintainer additionally authorized continuing after TLS errors or unknown final costs without another confirmation, only with conservative outstanding worst-case reservations and guaranteed total-budget headroom. Require every final PR/main/tag automated gate, complete twelve-language readiness, eight installation targets, 32 Node cases, sixteen fixed hosts, all 313 current actual-host capacity cases and applicable installed/interactive regressions before publication. Publish verified identical assets to GitHub/npm OIDC/Gitee, synchronize validated explicit refs, and verify the actual test machine with original preferences restored while retaining the upgrade. Only the six existing issue #96 gaps remain accepted and unverified; no new automated failures are waived. If new product findings appear during actual-machine verification after completed publication, keep v3.16.1 and open issues without publishing another patch as part of this task.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

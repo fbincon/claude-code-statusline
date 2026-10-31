@@ -15,7 +15,7 @@ import { defaultDisplay, defaultItem } from '../src/config/display.js';
 import { DEFAULT_HOST } from '../src/config/draft.js';
 import { ITEMS } from '../src/config/catalog.js';
 import { text } from '../src/i18n/messages.js';
-import type { DescribeResult, Draft, ReadResult, Operation, ResultFor, SourceDefinition } from '../src/contracts/ui.js';
+import type { ConfigTarget, DescribeResult, Draft, ReadResult, Operation, ResultFor, SourceDefinition } from '../src/contracts/ui.js';
 
 const draft = (): Draft => ({ display:defaultDisplay(),host:{...DEFAULT_HOST} });
 const read = (d=draft(), revision='0'.repeat(64)):ReadResult => ({draft:d,revision,installed:true,installation:{},backend_version:'test',capabilities:{} as ReadResult['capabilities']});
@@ -35,6 +35,20 @@ test('history groups edits, preserves immutable snapshots and bindings, forks re
   const changed=copyDraft(e.draft);changed.display.theme='light';e.commitDraft(changed);assert.equal(e.history.redo.length,0);
   const before=copyDraft(e.draft),steps=e.history.undo.length;e.beginSave();assert.equal(e.undo(),false);assert.equal(e.commitDraft(initial),false);e.saveFailed('io_error');assert.equal(e.undo(),false);assert.equal(e.history.undo.length,steps);
   assert.equal(e.reconcileSave(read(before,'1'.repeat(64))),'saved');assert.equal(e.history.undo.length,0);
+});
+test('definitive save conflicts retain scoped drafts and history without requiring reconciliation',()=>{
+  const targets: (ConfigTarget | undefined)[] = [undefined,{kind:'user'},{kind:'profile',id:'shared'},{kind:'project',path:'/project'}];
+  for (const code of ['configuration_conflict','profile_conflict']) for (const target of targets) {
+    const e=editor(),initial=copyDraft(e.draft);
+    if (target) e.baseline.configuration={target,profile_id:target.kind==='profile'?target.id:null,profile_name:null,project_root:null,reason:target.kind,shared_projects:[]};
+    const candidate=copyDraft(initial);candidate.host.padding=7;e.commitDraft(candidate);
+    const baseline=JSON.stringify(e.baseline),history=JSON.stringify(e.history);
+    const submitted=e.beginSave();assert.deepEqual(submitted.target,target);
+    e.saveFailed(code);
+    assert.equal(e.saveState,'idle',code);assert.equal(e.pendingSave,null);
+    assert.deepEqual(e.draft,candidate);assert.equal(JSON.stringify(e.baseline),baseline);assert.equal(JSON.stringify(e.history),history);
+    assert(e.canMutateDraft());assert(e.undo());assert.deepEqual(e.draft,initial);
+  }
 });
 test('history bounds, no-op edits and numeric confirmation/cancellation retain logical action boundaries',()=>{
   const e=editor();for(let i=0;i<105;i++){const d=copyDraft(e.draft);d.host.padding=i%2;e.commitDraft(d);}

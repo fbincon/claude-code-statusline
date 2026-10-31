@@ -21,7 +21,7 @@ import {
   processFailure,
   requestText,
 } from '../lib/backend.ts';
-import { Editor, copyDraft, sameDraft } from '../lib/editor/draft.ts';
+import { Editor, copyDraft, sameDraft, isSaveConflict } from '../lib/editor/draft.ts';
 import { createReview } from '../lib/editor/import-review.ts';
 import { canEdit, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
@@ -312,7 +312,10 @@ async function save(
     editor.saveFailed(error.code);
     state.view.uncertain = editor.saveState === 'unknown';
     state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
-    if(error.code==='configuration_conflict'){openChanges(editor);editor.changeReview!.effect='read';await performChanges(editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});}
+    if (isSaveConflict(error.code)) {
+      openChanges(editor);editor.changeReview!.effect='read';
+      await performChanges(editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
+    }
   } finally {
     if (state.epoch === saving) {
       state.writing = false;

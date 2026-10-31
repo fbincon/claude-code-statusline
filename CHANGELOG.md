@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.1 — 2026-10-31
+
+- Preserve agent identity from runtime turn start through request/usage/completion, and reconcile delayed terminal batches by observed end time (#197).
+- Retain command-source timeout failures, execution diagnostics and error observations independently of caller cancellation (#195).
+- Treat explicit-target profile conflicts as definitive save refusals and open both editors' normal conflict review with draft/history and saved winner preserved (#196).
+- Retain display schema 17, editor protocol 31 and existing source/runtime/storage formats, Native capacity boundaries and truthful historical coverage.
+- Release preparation and acceptance are in progress; [implementation and evidence](docs/development/runtime-source-save-fixes.md) · [Release notes](docs/releases/v3.16.1.md).
+
 ## 3.16.0 — 2026-10-30
 
 - Add complete Spanish, French, German, Brazilian Portuguese, Russian and Indonesian interface/statusline packs.

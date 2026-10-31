@@ -11,16 +11,21 @@ import { newInstance } from '@fbincon/statusline-core/editor/instances';
 import { openSources, sourcesKey, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
 import type { SourceMutationResult } from '@fbincon/statusline-core/contracts/ui';
 
-test('an external save conflict keeps the terminal and draft open until explicit cancellation', {timeout:5000}, async t=>{
-  const state=fixture(), before=JSON.stringify(state.editor.draft);
+for (const code of ['configuration_conflict','profile_conflict']) for (const readFails of [false,true])
+test(`an external ${code} retains the draft and allows cancellation when conflict inspection ${readFails?'fails':'succeeds'}`, {timeout:5000}, async t=>{
+  const state=fixture(),e=state.editor,target={kind:'user'} as const;
+  e.baseline.configuration={target,profile_id:null,profile_name:null,project_root:null,reason:'user',shared_projects:[]};
+  const winner={...e.baseline,draft:copyDraft(e.baseline.draft),revision:'1'.repeat(64)};winner.draft.display.palette='ansi';
+  e.toggle('main',e.selected.main);
+  const before=JSON.stringify(e.draft),baseline=JSON.stringify(e.baseline),history=JSON.stringify(e.history),winning=JSON.stringify(winner);
   const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(value:boolean){this.isRaw=value;return this;}});
   const output=Object.assign(new PassThrough(),{isTTY:true,columns:80,rows:24});
   t.after(()=>{input.end();output.resume();});
-  let attempts=0, sent=false, cancelled=false;
-  const backend={request(operation:string){
+  let attempts=0, reads=0, sent=false, cancelled=false;
+  const backend={request(operation:string,payload:unknown){
     if(operation==='preview') return state.preview;
-    if(operation==='read') return state.editor.baseline;
-    if(operation==='apply') { attempts++;throw new BackendError('configuration_conflict','Concurrent configuration changed'); }
+    if(operation==='read') {reads++;assert.deepEqual(payload,{target});if(readFails)throw new BackendError('io_error','Read unavailable');return winner;}
+    if(operation==='apply') { attempts++;assert.deepEqual((payload as {target:unknown}).target,target);throw new BackendError(code,'Concurrent configuration changed'); }
     throw new Error('Unexpected operation');
   }} as Backend;
   output.on('data',(data:Buffer)=>{
@@ -30,7 +35,9 @@ test('an external save conflict keeps the terminal and draft open until explicit
   });
   const result=await new Session(state,backend).run({input:input as never,output:output as never,term:'xterm-256color'});
   assert.equal(result.outcome,'cancelled',result.message);assert.equal(attempts,1);assert.equal(cancelled,true);
-  assert.equal(JSON.stringify(state.editor.draft),before);assert.equal(input.isRaw,false);
+  assert.equal(reads,1);assert.equal(e.saveState,'idle');assert.equal(e.pendingSave,null);
+  assert.equal(JSON.stringify(e.draft),before);assert.equal(JSON.stringify(e.baseline),baseline);assert.equal(JSON.stringify(e.history),history);
+  assert.equal(JSON.stringify(winner),winning);assert.equal(input.isRaw,false);
 });
 
 test('external uncertain saves freeze mutations and reconcile four outcomes without another apply in six languages', async () => {

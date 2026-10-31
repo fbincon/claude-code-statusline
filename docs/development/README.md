@@ -28,6 +28,7 @@ These records preserve feature-introduction versions, source identities, origina
 
 | Area | Delivery records |
 | --- | --- |
+| Current correctness work | [Runtime identity, source timeout and save conflicts](runtime-source-save-fixes.md), v3.16.1 implementation/acceptance in progress |
 | Languages | [Twelve-language expansion](language-expansion.md) · [I18N-02 lifecycle](i18n-02-delivery.md) · [Node and regional languages](node-regional-languages.md) |
 | Appearance, drafts and reuse | [Adaptive rows and scenes](adaptive-row-scenarios.md) · [Draft history and reuse](draft-history-and-reuse.md) · [Appearance/previews/diagnosis](appearance-preview-diagnosis.md) |
 | Tasks, sources and packages | [Task/version review](task-version-review.md) · [Source/command/package execution](source-command-package-management.md) · [Extensions](extensions.md) |

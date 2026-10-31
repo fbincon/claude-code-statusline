@@ -2,6 +2,12 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.16.1 runtime, source and save-conflict repairs
+
+Preparation in progress; use the [version decision](releases/approvals/v3.16.1.json) and [implementation/acceptance record](development/runtime-source-save-fixes.md). Repair #197/#195/#196 without a schema/protocol migration. Require the complete final-PR product acceptance, verified main integration and annotated-tag gate, retaining eight installations, 32 Node cases, sixteen fixed hosts, all 313 capacity cases and complete twelve-language readiness. Require installed command timeout/cancellation and both-editor conflict journeys, plus an actual interactive runtime supplement using one shared USD 10 ledger for every paid attempt/retry.
+
+Verify original immutable evidence, independent/source rebuilds and the four downloaded draft files before npm OIDC/GitHub publication. Verify all public downloads/signatures, synchronize explicit Gitee refs and identical attachments, then upgrade the test machine, check the configured statusline and restore original preferences while retaining the upgrade. Only the same six #96 gaps are accepted. After completed publication, file issues for new local findings while retaining v3.16.1; do not publish another patch as part of this task. Actual gate and channel results will be recorded after execution.
+
 ## v3.16.0 language expansion
 
 Use the [version decision](releases/approvals/v3.16.0.json). Require all twelve A/B languages to be accepted, 144 independent UI/output combinations and 313 actual-host capacity cases, preserving all 283 previous scenarios. Retain eight installations, 32 Node cases and sixteen fixed hosts. Final PR/main/tag gates, independent/source rebuilds, four matching assets, npm OIDC and public-download/signature verification must pass before completing publication. Synchronize Gitee with explicit refs and verified assets, then upgrade and exercise the test machine with preferences restored. No paid model tests are planned; post-publication findings receive issues without a patch. [Implementation and evidence](development/language-expansion.md).

@@ -18,6 +18,12 @@ The review compares the saved baseline with the unsaved draft. Enter expands a s
 
 A save conflict keeps the draft and history. **C** reads the current configuration for the same target; **Tab** switches baseline → draft, baseline → current file, and current file → draft. **E** exports the draft to a new portable file, stripping machine authorization bindings.
 
+Concurrent changes to an explicitly selected user default, named profile or project
+target open this conflict review directly. A refused write has a known outcome:
+the local draft and the other editor's saved configuration remain intact. Failure
+to read the current target during review does not turn that refusal into an
+unknown save outcome.
+
 **L** requests discard/reload and requires explicit Enter confirmation. **K** retains the draft and adopts the reviewed revision; use the normal Save action to retry. A later concurrent change rejects that save again. Changed target identity, profile resolution or installation ownership blocks this retry. Export or explicitly reload instead.
 
 An unknown save outcome freezes draft/history changes until the existing saved-state check resolves it. Comparison and export remain available. Neither retry nor reload bypasses ownership, revision, transaction or recovery checks.

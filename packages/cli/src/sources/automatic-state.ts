@@ -54,6 +54,10 @@ export function automaticJobActive(directory: string, job: SourceJob, now: numbe
 export function manualJobActive(job: SourceJob, now: number): boolean {
     return job.consumers.some(consumer => Date.parse(consumer.expires_at) > now);
 }
+/** Natural deadline expiry ends execution, not the right to retain its result. */
+export function settlementTime(job: SourceJob, now: number): number {
+    return Math.min(now, Date.parse(job.deadline_at) - 1);
+}
 export function automaticStatus(directory: string, source: SourceDefinition, context: SourceContext, now: number, jobs: SourceJob[]): AutomaticStatus {
     const policy = sourceRegistry(directory).automatic.find(p => p.source_id === source.id);
     const base: AutomaticStatus = { state: 'off', reason: 'off', next_at: null, last_attempt: null, last_success: null, interval_seconds: policy?.interval_seconds ?? (source.kind === 'command' ? 300 : Math.max(60, Math.min(86400, source.ttl_seconds))) };

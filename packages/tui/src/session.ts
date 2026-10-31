@@ -14,6 +14,7 @@ import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { terminal, type TerminalOptions } from '@fbincon/statusline-platform/terminal/session';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
+import { isSaveConflict } from '@fbincon/statusline-core/editor/draft';
 import { EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import { State } from './state.js';
 import { frame, ansiFrame } from './drawing.js';
@@ -141,7 +142,14 @@ export class Session {
             result = await this.backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
                 ...(submitted.target ? { target: submitted.target } : {}) });
             e.committed(result);
-        }catch(error) {e.saveFailed(error instanceof BackendError?error.code:'');if(error instanceof BackendError&&error.code==='configuration_conflict'){openChanges(e);e.changeReview!.effect='read';await performChanges(e,this.backend);}throw error;}
+        } catch(error) {
+            const code = error instanceof BackendError ? error.code : '';
+            e.saveFailed(code);
+            if (isSaveConflict(code)) {
+                openChanges(e);e.changeReview!.effect='read';await performChanges(e,this.backend);
+            }
+            throw error;
+        }
         const value = outcome(result.changed ? 'updated' : 'already-current', this.state.language);
         if (result.backup_dir)
             value.message += t('ui.session.backup', this.state.language, { backup_dir: result.backup_dir });

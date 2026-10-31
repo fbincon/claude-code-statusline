@@ -88,7 +88,7 @@ Unrelated settings are merged from the latest locked snapshot. A write failure r
 | --- | --- |
 | `invalid_json`, `invalid_request`, `invalid_configuration` | Fix the malformed envelope, payload or draft; invalid apply input makes no configuration writes |
 | `unsupported_protocol`, `unsupported_operation` | Use a matching frontend/backend protocol and supported operation |
-| `configuration_conflict` | Another editor or installation changed the configuration; reread and reconcile the draft |
+| `configuration_conflict`, `profile_conflict` | Definitive save refusal because the configuration or explicit user/profile/project target changed; retain the draft and review the same target before retrying |
 | `not_installed` | The main renderer is absent; install the selected backend before saving |
 | `ownership_mismatch` | A renderer belongs to another installation or owner; resolve ownership before saving |
 | `io_error` | A file operation failed; examine the message and any rollback diagnostic |
@@ -101,6 +101,13 @@ The TypeScript backend serves runtime protocol 3 with v1/v2 observe/read compati
 The bridge rejects malformed or truncated responses, protocol mismatches and nonzero exits, preserving structured backend errors such as conflicts. Process start/refusal errors use `backend_process`; timeout errors use `backend_timeout`. The host process call has a 30-second timeout. The editor displays failures and offers a preview retry; reopening reloads configuration after an opening failure.
 
 The Client editor reads descriptions/configuration on its first opening, retains a complete draft and numeric buffers, and requests preview only when draft or width changes. Ordinary redraws reuse preview. Saving sends the baseline revision and retains the pane after updating the committed snapshot. Conflicts retain the draft for explicit discard/reload; ambiguous outcomes require a read check before retry. Closing invalidates outstanding responses and discards pending changes. Host preferences use separate actual-row API calls and per-row results. Generated descriptions cover catalog, choices, ranges and capabilities; the bridge rejects incomplete or duplicate catalog entries, unsupported choices and unsafe display text.
+
+The shared save-state classifier treats `profile_conflict` and
+`configuration_conflict` as known refusals. Ordinary Save in both editors opens
+the existing changes review with the explicit editing target. A failed read in
+that review keeps the known refusal and retained draft; it cannot create an
+unknown write outcome. Other profile errors keep their existing classifications.
+Profile-switch and package-manager saves retain their manager-specific flows.
 
 See [architecture](architecture.md), [native validation](native.md), and [testing](testing.md).
 
