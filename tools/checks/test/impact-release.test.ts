@@ -65,8 +65,12 @@ test('workflow keeps full product obligations and uses separate scoped/release j
     assert.equal(workflow.on.push['paths-ignore'], undefined); assert.equal(workflow.on.pull_request['paths-ignore'], undefined);
     for (const name of ['scoped', 'maintenance', 'release-build', 'release-smoke', 'release-binding']) assert(jobs.acceptance.needs.includes(name));
     assert.equal(jobs.acceptance.if.startsWith('always()'), true);
-    assert.equal(jobs.installed.strategy.matrix.include.length, 8); assert.equal(jobs.mods.strategy.matrix.include.length, 16);
+    for (const key of ['installed', 'runtime', 'mods']) assert.equal(jobs[key].strategy.matrix, '${{ fromJSON(needs.candidate.outputs.' + key + '_matrix) }}');
     assert(jobs.scoped.if.includes("outputs.route == 'maintenance'"));
+    assert(!jobs.scoped.if.includes('draft'), 'Maintenance drafts must get their planned checks');
+    assert(jobs.quick.if.includes("outputs.route != 'maintenance'"), 'A documentation draft must not run the complete development suite');
+    assert(jobs.scoped.steps.some((step: any) => step.with?.name?.includes('draft-scoped')));
+    assert(jobs.maintenance.if.includes("outputs.draft != 'true'"), 'Draft feedback cannot become maintenance evidence');
     assert(jobs.maintenance.steps.some((step: any) => step.run?.includes('impact-workflow.ts record')));
     assert.equal(jobs['release-smoke'].strategy.matrix.os.length, 3);
     assert(jobs['release-build'].steps.some((step: any) => step.run?.includes('impact-release-build.js')));

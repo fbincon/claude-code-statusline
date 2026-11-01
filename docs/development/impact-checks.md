@@ -69,6 +69,8 @@ Existing complete-source tags and historical npm releases retain their existing 
 
 Select the impact route before computing historical depth. The coverage reader uses the original PR base and actual merge base for a core PR. A complete main run can use its accepted first parent. Without that boundary it requires full history on every lane. Maintenance evidence identifies the scoped checks actually executed. It cannot satisfy a missing product obligation.
 
+For core changes, the product coverage policy expands shared npm, recovery, schema and package-layout changes to full history on the affected combinations. Platform-specific paths expand that platform. Shared official-host detection, installation, binding and protocol changes expand the applicable hosts. The planner takes the union across paths. The impact summary identifies the checks already covered by the development, candidate, platform and host jobs. On a mixed change the protected aggregate checks the remaining assets or the entire approval registry against the immutable diff. Its receipt includes the original job and an input digest that the verifier recomputes. Maintenance drafts execute their scoped checks and upload draft feedback.
+
 ## Validation and operation
 
 For a newly scheduled scoped task the planner budgets the test files in the immutable head tree. Execution checks that the compiled file list matches. A serial family can start files for 15 minutes plus five seconds per file. Each admitted file gets its own 15-minute limit. The planning check also reserves build, setup, upload and cleanup time under the hosted job limit. An oversized task must be partitioned before it runs. Reuse continues to check the original receipts under their recorded policy.

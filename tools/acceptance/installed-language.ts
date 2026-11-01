@@ -32,7 +32,7 @@ interface ObservedPair {
 /** Same installed configuration, operation order and assertions in both modes.
  * Baseline sends all six operations through real stdin pipes. Optimized rows
  * share the writer's CLI imports and always reopen in a separate process. */
-export async function installedLanguages(installed: InstalledLanguageFixture) {
+export async function installedLanguages(installed: InstalledLanguageFixture, observedPairs?: (pairs: readonly ObservedPair[]) => void) {
     const mode = languageMode(process.env.TS05_LANGUAGE_MODE, process.env.TS05_DIAGNOSTIC_PATTERN);
     const started = performance.now(), report = process.env.TS04_INSTALLED_REPORT;
     const launches = { cli: 0, writer: 0, reader: 0 };
@@ -119,6 +119,7 @@ export async function installedLanguages(installed: InstalledLanguageFixture) {
             combinations: pairs.length, obligations_sha256: digest(JSON.stringify(obligations)), content_sha256: digest(JSON.stringify({ resources, pairs })),
             resources, pairs, rows,
         }, null, 2) + '\n', { flag: 'wx' });
+        observedPairs?.(pairs);
         return { languages: LANGUAGES, combinations: pairs.length, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 };
     } catch (error) {
         record({ phase: 'fail', operation: active, completed_pairs: pairs.length, error: String(error) });

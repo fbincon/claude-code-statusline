@@ -18,6 +18,7 @@ import { COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, createCoveragePlan } fro
 import { originalHistory } from '../ci-reused-coverage.js';
 import { v2Fixture } from './fixtures/ci-evidence-v2.js';
 import { SECTION_INPUT_PATHS } from '../ci-section-evidence.js';
+import { ACCEPTED_GAPS } from '../../release/approval.js';
 
 function envelope(file: string, value: unknown): Buffer {
     const name = Buffer.from(file), body = Buffer.from(JSON.stringify(value));
@@ -64,7 +65,9 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     git('switch', '-c', 'release-fixture');
     const version = '9.9.9', path = `docs/releases/approvals/v${version}.json`;
     write('docs/releases/approvals/registry.json', JSON.stringify({ schema_version: 1, approvals: [{ version, path, approved_on: '2026-10-28' }] }));
-    write(path, JSON.stringify({ version })); write('packages/core/src/release.ts', `export const VERSION = '${version}';\n`);
+    write(path, JSON.stringify({ schema_version:1, version, decision:'accept-known-gaps', approved_by:'fbincon', approved_on:'2026-10-28',
+        authority:'isolated fixture', reference:'https://github.com/fbincon/claude-code-statusline/issues/96', accepted_gaps:ACCEPTED_GAPS }));
+    write('packages/core/src/release.ts', `export const VERSION = '${version}';\n`);
     if (!activated && !['docs/releases/approvals/registry.json', 'language-fallback'].includes(changedPath)) write(changedPath, '// Accepted change\n');
     const languages = languageFixture();
     if (changedPath === 'language-fallback') editPack(languages, 'ja', pack => { delete pack.hello; });
@@ -122,7 +125,7 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
             const artifacts = [...rebuilt.artifacts, artifact(990, 'ts06-acceptance', 'ci-evidence.json', rebuilt.record)];
             result = {artifacts, total_count:artifacts.length};
         } else if (pathname === '/actions/runs/52/attempts/1/jobs' && rebuilt) {
-            const jobs = [...rebuilt.jobs,{name:'Complete candidate evidence',conclusion:'success'}]; result = {jobs,total_count:jobs.length};
+            const jobs = [...rebuilt.jobs,{...rebuilt.record.product_checks,id:9999,name:'Complete candidate evidence',conclusion:'success'}]; result = {jobs,total_count:jobs.length};
         } else if (pathname === '/actions/runs/52') result = rebuiltRun;
         else if (pathname === '/actions/runs/44/artifacts') result = { artifacts: mainArtifacts, total_count: mainArtifacts.length };
         else if (pathname === '/actions/runs/45/artifacts') result = { artifacts: tagArtifacts, total_count: tagArtifacts.length };
@@ -131,7 +134,7 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
         else if (pathname === '/actions/runs/44') result = mainRun;
         else if (/^\/actions\/runs\/(?:1|12)\/attempts\/2\/jobs$/u.test(pathname)) result = { total_count: 1, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' }] };
         else if (pathname === '/actions/runs/12/attempts/1/jobs') {
-            const jobs = physical ? [...physical.jobs, {name:'Complete candidate evidence', conclusion:'success'}] :
+            const jobs = physical ? [...physical.jobs, {...physical.record.product_checks,id:9999,name:'Complete candidate evidence', conclusion:'success'}] :
                 [...new Map(source.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name, started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
             result = { jobs, total_count: jobs.length };
         }

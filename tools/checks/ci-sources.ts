@@ -27,7 +27,7 @@ async function attemptJobs(runId: number, attempt: number): Promise<any[]> {
     }
     throw new Error('Original job pagination exceeded');
 }
-export async function requireGate(run: any): Promise<void> {
+export async function requireGate(run: any): Promise<any> {
     // Pin the observed attempt. The mutable latest-jobs alias can be expensive
     // (and fail with 502 after retries), and may switch attempts while reading.
     const gates = (await attemptJobs(run.id, run.run_attempt)).filter(job => job.name === 'Complete candidate evidence');
@@ -36,21 +36,22 @@ export async function requireGate(run: any): Promise<void> {
     const fresh = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${run.id}`);
     requireRun(fresh, run.head_sha, run.head_branch, run.event);
     assert.equal(fresh.run_attempt, run.run_attempt, 'Applicable CI attempt changed during verification');
+    return gates[0];
 }
 /** A subsequent attempt can retain a previous success with a different job ID but
  * its original timestamps. A real later execution supersedes the earlier one,
  * including when it failed to upload any artifact. */
-async function verifyLatestPhysicalJobs(record: CompleteEvidenceV2): Promise<void> {
-    assert(Number.isSafeInteger(record.attempt) && record.attempt >= 1 && record.attempt <= 100, 'Invalid Actions attempt count');
-    const expected = new Map(record.executions.map(row => [row.job_name, row]));
-    assert.equal(expected.size, record.executions.length);
+export async function latestPhysicalJobs(runId: number, lastAttempt: number, commit: string, specs: { job: string; os: string }[]) {
+    assert(Number.isSafeInteger(lastAttempt) && lastAttempt >= 1 && lastAttempt <= 100, 'Invalid Actions attempt count');
+    const expected = new Map(specs.map(spec => [spec.job, spec.os]));
+    assert.equal(expected.size, specs.length, 'Duplicate planned physical job');
     const latest = new Map<string, { job: any; attempt: number }>();
-    for (let attempt = 1; attempt <= record.attempt; attempt++) {
+    for (let attempt = 1; attempt <= lastAttempt; attempt++) {
         const visited = new Set<string>();
-        for (const job of await attemptJobs(record.run_id, attempt)) {
-            const expectedJob = expected.get(job.name); if (!expectedJob) continue;
+        for (const job of await attemptJobs(runId, attempt)) {
+            if (!expected.has(job.name)) continue;
             assert(!visited.has(job.name), 'Ambiguous physical jobs in attempt ' + attempt); visited.add(job.name);
-            assert.equal(job.run_id, record.run_id); assert.equal(job.head_sha, record.source_commit); assert.equal(job.run_attempt, attempt);
+            assert.equal(job.run_id, runId); assert.equal(job.head_sha, commit); assert.equal(job.run_attempt, attempt);
             assert(Number.isSafeInteger(job.id) && job.id > 0);
             const prior = latest.get(job.name)?.job;
             if (prior && prior.started_at === job.started_at && prior.completed_at === job.completed_at) {
@@ -62,15 +63,23 @@ async function verifyLatestPhysicalJobs(record: CompleteEvidenceV2): Promise<voi
             latest.set(job.name, { job, attempt });
         }
     }
-    for (const [name, execution] of expected) {
+    for (const [name, os] of expected) {
         const original = latest.get(name); assert(original, 'Missing original physical job ' + name);
-        const { job, attempt } = original;
-        assert.equal(job.conclusion, 'success', 'Latest physical execution did not pass: ' + name);
-        assert.equal(job.status, 'completed'); assert.equal(job.id, execution.job_id, 'A later actual physical execution supersedes this receipt');
-        assert.equal(attempt, execution.identity.attempt, 'Receipt attribution is not the original execution attempt');
-        assert.equal(job.started_at, execution.started_at); assert.equal(job.completed_at, execution.completed_at);
-        assert(Array.isArray(job.labels) && job.labels.includes(execution.identity.os), 'Physical job ran on an unrelated runner');
+        const job = original.job;
+        assert.equal(job.conclusion, 'success', 'Latest physical execution did not pass: ' + name); assert.equal(job.status, 'completed');
+        assert(Array.isArray(job.labels) && job.labels.includes(os), 'Physical job ran on an unrelated runner');
         assert(Date.parse(job.created_at) <= Date.parse(job.started_at), 'Retained job cannot impersonate its original');
+    }
+    return latest;
+}
+async function verifyLatestPhysicalJobs(record: CompleteEvidenceV2): Promise<void> {
+    const latest = await latestPhysicalJobs(record.run_id, record.attempt, record.source_commit, record.coverage_plan.producers);
+    for (const execution of record.executions) {
+        const original = latest.get(execution.job_name); assert(original, 'Missing original physical job');
+        assert.equal(original.job.id, execution.job_id, 'A later actual physical execution supersedes this receipt');
+        assert.equal(original.attempt, execution.identity.attempt, 'Receipt attribution is not the original execution attempt');
+        if (execution.job_created_at !== undefined) assert.equal(original.job.created_at, execution.job_created_at, 'Original job creation identity changed');
+        assert.equal(original.job.started_at, execution.started_at); assert.equal(original.job.completed_at, execution.completed_at);
     }
 }
 async function verifyPhysicalBasis(record: CompleteEvidenceV2, run: any): Promise<void> {
@@ -118,7 +127,13 @@ export async function completeSource(run: any): Promise<{ record: CompleteEviden
     assert.equal(record.schema_version, coverageVersionAt(record.source_commit), 'Evidence schema differs from immutable source activation');
     validateComplete(record, run, artifacts);
     if (record.schema_version === 2) await verifyPhysicalBasis(record, run);
-    await requireGate(run);
+    const gate = await requireGate(run);
+    if (record.schema_version === 2 && record.product_checks) {
+        const receipt = record.product_checks;
+        assert.equal(gate.id,receipt.job_id,'Supplemental receipt names a different aggregate job');
+        assert(Date.parse(gate.started_at) <= Date.parse(receipt.started_at) + 1000 &&
+            Date.parse(receipt.completed_at) <= Date.parse(gate.completed_at) + 1000, 'Supplemental checks outside aggregate execution');
+    }
     await verifyExecutionJobs(record);
     await verifyWorkflowSource(record);
     assert.equal(record.tree, git('rev-parse', record.source_commit + '^{tree}'), 'Accepted tree differs');

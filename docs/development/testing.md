@@ -49,6 +49,8 @@ Package tests use temporary prefixes and configuration directories, a controlled
 
 The versioned evidence tests reconstruct coverage in temporary Git repositories. They exercise v1 and v2 product sources through maintenance commits, tag verification and the npm evidence reader. Tests change the source epoch, history depth, original attempt and individual stage receipts, and require rejection. A fragment must identify the runner and the package, Node, npm and applicable Claude binaries used for its actual assertions.
 
+Use the branch-only `tiered-probe` dispatch to exercise representative full and short histories, the three Windows ARM sections and fixed-host workers. It uses the same physical worker as automatic acceptance. Inspect each original fragment and its phase timings. A targeted retry retains other sections' identities. The diagnostic aggregate and artifacts are separate from promotable complete evidence.
+
 ## Installed performance experiments
 
 [PERF-01](performance/perf-01.md) owns the separately identified installed TS-to-TS

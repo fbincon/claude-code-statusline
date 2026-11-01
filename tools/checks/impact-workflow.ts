@@ -14,6 +14,7 @@ import { latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { listRunArtifacts, newestArtifact, artifactIdentity } from './ci-evidence.ts';
 import { resolveComparison } from './impact-comparison.ts';
 import { languageEvidence, languageInputsAt } from './i18n-evidence.ts';
+import { productResponsibilities } from './impact-product.ts';
 
 export interface ImpactSelection { schema_version: 1; plan: ImpactPlan; reused?: MaintenanceRecord['reused']; package?: { file: string; comparison_sha256: string }; source_package_artifact?: number; source_run?: number }
 export async function selectImpact(directory: string): Promise<ImpactSelection> {
@@ -44,13 +45,15 @@ export async function selectImpact(directory: string): Promise<ImpactSelection> 
         selected.package = await resolveComparison(plan, join(directory, 'package'));
     }
     if (!selected.reused && selected.plan.route === 'maintenance') checkScopedSchedule(selected.plan, [...tree(selected.plan.head).keys()]);
+    if (selected.plan.route === 'product') git('diff','--check',selected.plan.base,selected.plan.head,'--');
     fs.writeFileSync(join(directory, 'selection.json'), JSON.stringify(selected, null, 2) + '\n');
     fs.writeFileSync(join(directory, 'plan.json'), JSON.stringify(selected.plan, null, 2) + '\n');
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, [
         `route=${selected.plan.route === 'product' ? 'full' : 'maintenance'}`, `matrix=${JSON.stringify({ include: selected.plan.tasks })}`,
         `reused=${Boolean(selected.reused)}`, `packaging=${Boolean(selected.package)}`, `source_run=${selected.source_run ?? ''}`, `source_package_artifact=${selected.source_package_artifact ?? ''}`,
     ].join('\n') + '\n');
-    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '### Impact checks\n\n```json\n' + JSON.stringify(selected, null, 2) + '\n```\n');
+    const summary = selected.plan.route === 'product' ? { ...selected, product_checks: productResponsibilities(selected.plan.checks) } : selected;
+    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '### Impact checks\n\n```json\n' + JSON.stringify(summary, null, 2) + '\n```\n');
     return selected;
 }
 export async function recordMaintenance(selection: ImpactSelection, output: string, packageDirectory?: string): Promise<MaintenanceRecord> {

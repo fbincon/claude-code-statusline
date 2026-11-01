@@ -15,23 +15,30 @@ export const FIRST_ENTRY_MS = 180_000 + 2 * 10_000 + FIXTURE_CLEANUP_MS;
 export const APPEARANCE_MS = 120_000;
 export const APPEARANCE_SCHEMES = ['powerline-daily', 'agent-workbench', 'quota-cost', 'narrow-terminal', 'light-readable'] as const;
 
-export function versionChildBudget(version: '3.7.0' | '3.8.0', official: boolean): number {
+export type HistoryDepth = 'full' | 'short';
+export function versionChildBudget(version: '3.7.0' | '3.8.0', official: boolean, depth: HistoryDepth = 'full'): number {
     const baseline = official ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS;
     const editor = official ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS;
-    return supervisionBudget([{ name: 'baseline', budgetMs: baseline }, ...(version === '3.8.0' ? [{ name: 'editor_execution', budgetMs: editor }] : [])]);
+    return supervisionBudget([{ name: 'baseline', budgetMs: baseline }, ...(version === '3.8.0' && depth === 'full' ? [{ name: 'editor_execution', budgetMs: editor }] : [])]);
 }
 export function versionManagementBudget(windows: boolean, official = false): number {
+    return historyProfileBudget(windows, 'full', official);
+}
+export function historyProfileBudget(windows: boolean, depth: HistoryDepth, official = false): number {
     // Each archive can take three independently bounded 60s reads plus backoff;
     // extraction, process handoff, trace publication and cleanup also take time.
     const prepare = 210_000;
-    const sequences = (['3.7.0', '3.8.0'] as const).map(version =>
-        prepare + versionChildBudget(version, official) + FIXTURE_CLEANUP_MS);
-    return (windows ? sequences[0]! + sequences[1]! : Math.max(...sequences)) + HANDOFF_MS;
+    const versions = depth === 'full' ? ['3.7.0', '3.8.0'] as const : ['3.8.0'] as const;
+    const sequences = versions.map(version => prepare + versionChildBudget(version, official, depth) + FIXTURE_CLEANUP_MS);
+    return (windows ? sequences.reduce((a, b) => a + b, 0) : Math.max(...sequences)) + HANDOFF_MS;
 }
 
 export function officialTransitionPhases(windows: boolean): AcceptancePhase[] {
+    return officialHistoryProfilePhases(windows, 'full');
+}
+export function officialHistoryProfilePhases(windows: boolean, depth: HistoryDepth): AcceptancePhase[] {
     return [{ name: 'official-install', budgetMs: FIXTURE_INSTALL_MS },
-        { name: 'official-histories', budgetMs: versionManagementBudget(windows, true) },
+        { name: 'official-histories', budgetMs: historyProfileBudget(windows, depth, true) },
         { name: 'official-cleanup-and-report', budgetMs: FIXTURE_CLEANUP_MS }];
 }
 
