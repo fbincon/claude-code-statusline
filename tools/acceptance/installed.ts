@@ -6,13 +6,14 @@ import { parseArgs } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { reserveInstallFixture } from './install.js';
-import { installedPhases } from './installed-plan.js';
+import { installedPhases, type InstalledSelection } from './installed-plan.js';
 import { PLATFORM_SOURCE_MS, requireHostedBudget, supervisionBudget } from './budgets.js';
 import { superviseInstalled } from './installed-supervisor.js';
 
-export async function runInstalled(artifact: string, commit: string, report: string, pattern?: string, env = process.env): Promise<void> {
-    const phases = installedPhases(process.platform === 'win32', LANGUAGES.length, pattern);
-    if (env.GITHUB_ACTIONS) requireHostedBudget(supervisionBudget(phases), PLATFORM_SOURCE_MS);
+export async function runInstalled(artifact: string, commit: string, report: string, pattern?: string, env = process.env, selection?: InstalledSelection): Promise<void> {
+    assert(!selection || !pattern, 'Physical stages cannot use a diagnostic test pattern');
+    const phases = installedPhases(process.platform === 'win32', LANGUAGES.length, pattern, selection);
+    if (env.GITHUB_ACTIONS && !selection) requireHostedBudget(supervisionBudget(phases), PLATFORM_SOURCE_MS);
     const args = ['--test', '--test-concurrency=1', ...(pattern ? ['--test-name-pattern', pattern] : []),
         fileURLToPath(new URL('../migration/ts-04/test/installed.test.js', import.meta.url))];
     const target = resolve(report), pending = target + '.' + randomUUID() + '.pending';
@@ -21,6 +22,7 @@ export async function runInstalled(artifact: string, commit: string, report: str
     try {
         await superviseInstalled(args, phases, { ...env, TS05_CANDIDATE_ARTIFACT: resolve(artifact), TS05_CANDIDATE_COMMIT: commit,
             TS04_INSTALLED_REPORT: target, TS05_PENDING_RECEIPT: pending, TS05_DIAGNOSTIC_PATTERN: pattern ?? '',
+            TS05_PHYSICAL_STAGE: selection?.stage ?? '', TS05_PHYSICAL_DEPTH: selection?.depth ?? '',
             TS05_RESERVED_FIXTURE: fixture }, target, { fixture });
         const receipt = JSON.parse(fs.readFileSync(pending, 'utf8'));
         assert.equal(receipt.status, pattern ? 'fail' : 'pass', 'Incomplete installed acceptance');

@@ -8,12 +8,13 @@ import { parse } from 'yaml';
 import { exportBaseVerifiers, verifyWithAcceptedBase } from '../ci-trust.js';
 import { digest } from '../ci-evidence.js';
 import { ACTIONS_UPLOAD_MS, PLATFORM_SOURCE_MS } from '../../acceptance/budgets.js';
+import { sourcePhases } from '../../acceptance/physical-budgets.js';
 import type { PromotionSelection } from '../ci-promotion.js';
 
 test('hosted installation jobs reserve the actual source and upload step limits', () => {
     const { jobs } = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
-    const source = jobs.installed.steps.find((step: { run?: string }) => step.run?.includes('tools/checks/all.js --platform'));
-    assert.equal(source['timeout-minutes'] * 60_000, PLATFORM_SOURCE_MS);
+    assert(sourcePhases(true).every(phase => phase.budgetMs === PLATFORM_SOURCE_MS));
+    assert(jobs.installed.steps.some((step: { run?: string }) => step.run?.includes('tools/acceptance/physical.js --plan')));
     for (const job of [jobs.installed, jobs.runtime]) {
         const upload = job.steps.find((step: { uses?: string }) => step.uses?.startsWith('actions/upload-artifact@'));
         assert.equal(upload['timeout-minutes'] * 60_000, ACTIONS_UPLOAD_MS);
@@ -104,8 +105,7 @@ test('workflow wires independent verification and targeted contracts into promot
     assert(trust >= 0 && trust < restore && restore < contracts && contracts < verify);
     assert(promotion[verify].run.includes('--trusted-verification '));
     assert.deepEqual(jobs.integration.strategy.matrix.os, ['ubuntu-24.04', 'windows-2025', 'macos-15']);
-    assert.equal(jobs.installed.strategy.matrix.include.length, 8);
-    assert.equal(jobs.mods.strategy.matrix.include.length, 16);
+    for (const key of ['installed', 'runtime', 'mods']) assert.equal(jobs[key].strategy.matrix, '${{ fromJSON(needs.candidate.outputs.' + key + '_matrix) }}');
     for (const name of ['development', 'candidate']) assert(jobs[name].if.includes("needs.scope.outputs.route == 'full'"));
     assert(!JSON.stringify(jobs).includes('outputs.shadow'));
     assert(jobs.acceptance.needs.includes('promotion') && jobs.acceptance.needs.includes('integration'));

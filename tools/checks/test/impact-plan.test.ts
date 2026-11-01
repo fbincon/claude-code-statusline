@@ -12,6 +12,7 @@ import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence
 import { assessImpactNeeds, selectImpact } from '../impact-workflow.js';
 import { runScopedTestFiles, scopedTests } from '../impact-runner.js';
 import { familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
+import { productResponsibilities, runProductChecks, supplementPlan, validateProductChecks, type ProductCheckReceipt } from '../impact-product.js';
 
 function repository(t: any) {
     const root = fs.mkdtempSync(join(tmpdir(), 'impact-test-')), previous = process.cwd();
@@ -25,6 +26,37 @@ function repository(t: any) {
     t.after(() => { process.chdir(previous); removeTree(root); assert(!fs.existsSync(root)); });
     return { root, git, write, commit };
 }
+test('a product and screenshot change must execute assets on the actual immutable bytes', t => {
+    const png = fs.readFileSync('docs/images/draft-history-reuse/native-draft-history.png');
+    const another = fs.readFileSync('docs/images/typescript/v3.16.0/native/fr/settings.png');
+    const {git, write, commit} = repository(t), base = git('rev-parse','HEAD');
+    write('packages/core/src/render.ts','export const sample = 1;\n');
+    const folder = 'docs/images/example', image = folder + '/sample.png', manifest = 'docs/images/capture.json';
+    const capture = (sha: string) => JSON.stringify({captures:[{file:'example/sample.png',png_sha256:sha}]});
+    write(manifest,capture(hash(png))); fs.mkdirSync(folder); fs.writeFileSync(image,png);
+    const source = (head: string) => ({source_commit:head,tree:git('rev-parse',head + '^{tree}'),event:'pull_request',
+        pr:{base,head,base_ref:'main',number:190,draft:false},run_id:44,attempt:1});
+    const good = source(commit()), impact = createImpactPlan(base,good.source_commit);
+    assert.equal(impact.route,'product'); assert.deepEqual(productResponsibilities(impact.checks),{covered:['actions','docs'],additional:['assets']});
+    const plan = supplementPlan(good); assert.deepEqual(plan.checks,['assets']);
+    const inputs_sha256 = runProductChecks(good.source_commit,plan);
+    const receipt: ProductCheckReceipt = {schema_version:1,kind:'supplemental-product-checks',status:'pass',commit:good.source_commit,tree:good.tree,
+        plan,inputs_sha256,run_id:44,attempt:1,job:'Complete candidate evidence',job_id:13,started_at:new Date().toISOString(),completed_at:new Date().toISOString()};
+    validateProductChecks({...good,product_checks:receipt});
+    assert.throws(() => validateProductChecks(good),/Missing original supplemental/);
+    assert.throws(() => validateProductChecks({...good,product_checks:{...receipt,plan:{...plan,checks:[]}}}),/omitted/);
+    assert.throws(() => validateProductChecks({...good,product_checks:{...receipt,attempt:2}}));
+    write(manifest,capture('f'.repeat(64))); const wrongHash = source(commit());
+    assert.throws(() => runProductChecks(wrongHash.source_commit,supplementPlan(wrongHash)),/Capture digest/);
+    write(manifest,capture(hash(png))); write(folder + '/new.png','broken PNG'); const corrupt = source(commit());
+    assert.throws(() => runProductChecks(corrupt.source_commit,supplementPlan(corrupt)),/PNG/);
+    validateProductChecks({...good,product_checks:receipt}); // The checkout now contains both a later change and an invalid image.
+    fs.unlinkSync(folder + '/new.png'); fs.writeFileSync(image,another); const changedImage = source(commit());
+    changedImage.pr.base = good.source_commit;
+    const images = supplementPlan(changedImage);
+    assert.deepEqual(images.paths,[image]);
+    assert.throws(() => runProductChecks(changedImage.source_commit,images), /Capture digest/);
+});
 test('maintenance categories form a union; product source and bundled instructions keep full acceptance', t => {
     const { git, write, commit } = repository(t);
     for (const [path, content, route, check] of [

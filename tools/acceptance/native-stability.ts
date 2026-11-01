@@ -10,7 +10,10 @@ import { sha256 } from '../build/files.js';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { isolatedHostEnvironment } from './mod-types.js';
 import { retainLog } from './diagnostics.js';
-const [reportPath, executable = 'claude'] = process.argv.slice(2); assert(reportPath);
+import { phaseEvent } from './installed-supervisor.js';
+import { STABILITY_PHASE } from './physical-budgets.js';
+const [reportPath, executable = 'claude', physical] = process.argv.slice(2); assert(reportPath);
+if (physical !== undefined) { assert.equal(physical, '--physical'); phaseEvent(STABILITY_PHASE.name, 'start'); }
 const output = resolve(reportPath), host = claudeLaunch(executable), root = fs.mkdtempSync(join(tmpdir(), 'native-stability-'));
 const name = 'changed host kinds and choices are refused per row while independent rows apply';
 const original = fs.readFileSync(join(repoRoot, 'mods/statusline-native/tests/integration/advanced.test.ts'), 'utf8');
@@ -44,11 +47,13 @@ try {
         const line = text.split(/\r?\n/u).find(value => value.includes(name));
         const duration = line?.match(/\[([\d,.]+)ms\]/u)?.[1];
         const testMs = duration ? Number(duration.replaceAll(',', '')) : null;
-        samples.push({ round, elapsed_ms: performance.now() - started, test_ms: testMs, deadline_margin_ms: testMs === null ? null : 20000 - testMs, status: result.status, log });
+        samples.push({ round, elapsed_ms: performance.now() - started, test_ms: testMs, deadline_margin_ms: testMs === null ? null : 20000 - testMs, status: result.status, log,
+            ...(physical ? { log_sha256: sha256(fs.readFileSync(join(dirname(output), 'native-stability-logs', log))) } : {}) });
         assert.equal(result.error, undefined, text); assert.equal(result.status, 0, text);
         assert(testMs !== null && Number.isFinite(testMs) && testMs >= 0 && testMs < 20000, 'Missing official per-test timing or exhausted original deadline');
     }
     report.status = 'pass';
 } finally {
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n'); fs.rmSync(root, { recursive: true, force: true });
+    if (physical) phaseEvent(STABILITY_PHASE.name, report.status === 'pass' ? 'end' : 'fail');
 }

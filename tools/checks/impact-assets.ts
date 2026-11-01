@@ -1,9 +1,9 @@
 /** Offline validation of maintained media and inspectable capture metadata. */
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { dirname, extname, resolve, relative, isAbsolute } from 'node:path';
+import { extname, posix, resolve } from 'node:path';
 import { crc32, inflateSync } from 'node:zlib';
-import { hash } from './impact-content.ts';
+import { createHash } from 'node:crypto';
 
 export function pngDimensions(raw: Buffer): { width: number; height: number } {
     assert(raw.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), 'Invalid PNG signature');
@@ -36,29 +36,54 @@ export function checkAsset(path: string, raw: Buffer): void {
     else if (extension === '.pdf') assert(raw.toString('ascii', 0, 5) === '%PDF-' && raw.subarray(-1024).toString().includes('%%EOF'), 'Invalid PDF framing');
     else throw new Error('Unregistered asset type: ' + path);
 }
-export function checkAssets(root: string, paths: readonly string[]): void {
+/** Keep capture references relative to their original manifest in either filesystem. */
+export interface AssetInputs {
+    read(path: string): Buffer | undefined;
+    jsonFiles(): string[];
+}
+export function checkAssetInputs(paths: readonly string[], inputs: AssetInputs, observed?: (name: string, bytes: Buffer) => void): void {
     const selected = new Set(paths);
-    for (const name of paths.filter(name => /^docs\/.*\.(?:png|jpe?g|gif|webp|svg|mp4|webm)$/u.test(name))) {
-        const parent = dirname(resolve(root, name));
-        if (fs.existsSync(parent)) for (const sibling of fs.readdirSync(parent).filter(file => file.endsWith('.json'))) selected.add(relative(root, resolve(parent, sibling)).replaceAll('\\', '/'));
+    const changedMedia = new Set(paths.filter(name => /^docs\/.*\.(?:png|jpe?g|gif|webp|svg|mp4|webm|pdf)$/u.test(name)));
+    if (changedMedia.size) for (const name of inputs.jsonFiles()) {
+        if (selected.has(name)) continue;
+        const raw = inputs.read(name);
+        if (!raw?.includes('"captures"')) continue;
+        const captures = JSON.parse(raw.toString('utf8')).captures;
+        if (Array.isArray(captures) && captures.some(row => typeof row?.file === 'string' &&
+            changedMedia.has(posix.join(posix.dirname(name), row.file)))) selected.add(name);
     }
     for (const name of selected) {
-        if (!name.startsWith('docs/') || !/\.(?:png|jpe?g|gif|webp|svg|mp4|webm|pdf|json)$/u.test(name)) continue;
-        const path = resolve(root, name); if (!fs.existsSync(path)) continue;
-        assert(fs.lstatSync(path).isFile()); const raw = fs.readFileSync(path); checkAsset(name, raw);
+        if (!/^docs\/.*\.(?:png|jpe?g|gif|webp|svg|mp4|webm|pdf|json)$/u.test(name)) continue;
+        const raw = inputs.read(name);
+        if (raw === undefined) continue; // A deleted image is still checked against its surviving capture manifest.
+        checkAsset(name, raw); observed?.(name,raw);
         if (!name.endsWith('.json')) continue;
         const record = JSON.parse(raw.toString());
         if (!Array.isArray(record.captures)) continue;
         for (const capture of record.captures) {
-            assert(typeof capture.file === 'string');
-            const image = resolve(dirname(path), capture.file), rel = relative(root, image);
-            assert(!isAbsolute(rel) && rel !== '..' && !rel.startsWith('../') && !rel.startsWith('..\\'), 'Capture escapes repository');
-            const pixels = fs.readFileSync(image); checkAsset(image, pixels);
-            if (capture.png_sha256 !== undefined) assert.equal(hash(pixels), capture.png_sha256, 'Capture digest differs');
-            if (image.endsWith('.png') && capture.width !== undefined) assert.deepEqual(pngDimensions(pixels), { width: capture.width, height: capture.height });
+            assert(typeof capture.file === 'string' && !posix.isAbsolute(capture.file) && !capture.file.includes('\\') && !/^[a-z]:/iu.test(capture.file), 'Invalid capture path');
+            const path = posix.join(posix.dirname(name), capture.file);
+            assert(path !== '..' && !path.startsWith('../'), 'Capture escapes repository');
+            const pixels = inputs.read(path); assert(pixels, 'Missing referenced capture: ' + path);
+            checkAsset(path, pixels); observed?.(path,pixels);
+            if (capture.png_sha256 !== undefined) assert.equal(createHash('sha256').update(pixels).digest('hex'), capture.png_sha256, 'Capture digest differs');
+            if (path.endsWith('.png') && capture.width !== undefined) assert.deepEqual(pngDimensions(pixels), { width: capture.width, height: capture.height });
             if (capture.source_sha256 !== undefined) assert.match(capture.source_sha256, /^[a-f0-9]{64}$/u);
-            // Raw PTY/font sources may intentionally be ignored. Their recorded
-            // identities are not claims that CI reproduced those observations.
         }
     }
+}
+export function checkAssets(root: string, paths: readonly string[]): void {
+    checkAssetInputs(paths, {
+        read(name) {
+            const path = resolve(root, name);
+            if (!fs.existsSync(path)) return undefined;
+            assert(fs.lstatSync(path).isFile(), 'Asset must be a regular file');
+            return fs.readFileSync(path);
+        },
+        jsonFiles() {
+            const directory = resolve(root,'docs');
+            return fs.existsSync(directory) ? fs.readdirSync(directory,{recursive:true,encoding:'utf8'})
+                .filter(path => path.endsWith('.json')).map(path => 'docs/' + path.replaceAll('\\','/')) : [];
+        },
+    });
 }

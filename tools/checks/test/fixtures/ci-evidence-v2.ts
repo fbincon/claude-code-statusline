@@ -6,6 +6,7 @@ import type { CoveragePlan } from '../../ci-coverage.js';
 import { artifactIdentity, digest, policyDigest, type CompleteEvidenceV2, type PhysicalFragment, type PhysicalIdentity } from '../../ci-evidence.js';
 import { languageEvidence, languageInputsAt } from '../../i18n-evidence.js';
 import { sectionInputsAt, sourceCapacityCount, sourceContract } from '../../ci-section-evidence.js';
+import { supplementPlan, runProductChecks } from '../../impact-product.js';
 import { fixture, hash, now, run as defaultRun } from './ci-evidence.js';
 
 type Producer = CoveragePlan['producers'][number];
@@ -33,6 +34,10 @@ export function v2Fixture(plan: CoveragePlan, options: {
         coverage_plan:plan, coverage_plan_sha256:digest(JSON.stringify(plan)+'\n'), input_file_sha256:digest(JSON.stringify(inputs)+'\n'),
         delivery, compiled: {'compiled-tests.json':digest('compiled-tests.json'),'compiled-tests.tar':digest('compiled-tests.tar')},
         acceptance_sha256:digest('{}'), receipts:{}, artifacts:artifacts.map(a=>artifactIdentity(a)), executions:[] };
+    const additional = supplementPlan(record);
+    if (additional.checks.length) record.product_checks = {schema_version:1,kind:'supplemental-product-checks',status:'pass',
+        commit:plan.head,tree:plan.tree,plan:additional,inputs_sha256:runProductChecks(plan.head,additional),
+        run_id:run.id,attempt:run.run_attempt,job_id:9999,job:'Complete candidate evidence',started_at:started,completed_at:ended};
     const write = (path: string, contents: string) => {
         if(!options.directory)return; const file=join(options.directory,path); fs.mkdirSync(dirname(file),{recursive:true});fs.writeFileSync(file,contents);
     };

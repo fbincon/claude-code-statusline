@@ -15,7 +15,7 @@ export interface PhysicalFragment {
 }
 export interface PhysicalExecution {
     identity: PhysicalIdentity; receipt_sha256: string; artifact_id: number; job_id: number; job_name: string;
-    started_at: string; completed_at: string;
+    started_at: string; completed_at: string; job_created_at?: string; artifact_created_at?: string;
 }
 export interface FragmentContext { tarball_sha256: string; run_id?: number; attempt?: number; workflow_sha?: string }
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;

@@ -13,7 +13,8 @@ import { HISTORICAL_RELEASES, type HistoricalRelease } from './historical-releas
 import { prepareHistorical } from './historical-inputs.js';
 import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
-import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from './budgets.js';
+import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS, type HistoryDepth } from './budgets.js';
+import { shortHistoryObserver } from './short-history.js';
 import { VersionPhaseBudget } from './phase-budget.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { phaseEvent, superviseInstalled } from './installed-supervisor.js';
@@ -37,19 +38,28 @@ type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'r
     legacy: string;
     legacyManifest: any;
     historicalVersion: HistoricalRelease;
+    depth: HistoryDepth;
     historicalSha256: string;
     trace: string;
     host?: VersionHost;
 };
 export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+    return versionManagement(installed, 'full', host, tracePath);
+}
+export async function installedHistoryProfile(installed: ReturnType<typeof installCandidate>, depth: HistoryDepth, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+    assert(depth === 'full' || depth === 'short', 'Unknown history depth');
+    const result = await versionManagement(installed, depth, host, tracePath);
+    return depth === 'full' ? { depth, sequence: result } : result;
+}
+async function versionManagement(installed: ReturnType<typeof installCandidate>, depth: HistoryDepth, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const target = JSON.parse(fs.readFileSync(join(installed.root, 'package.json'), 'utf8')).version;
     const controller = new AbortController(), stop = () => controller.abort();
     process.once('SIGTERM', stop); process.once('SIGINT', stop);
     try {
-        const versions: HistoricalRelease[] = compareVersions(target, '3.8.0') > 0 ? ['3.7.0', '3.8.0'] : ['3.7.0'];
+        const versions: HistoricalRelease[] = depth === 'short' ? ['3.8.0'] : compareVersions(target, '3.8.0') > 0 ? ['3.7.0', '3.8.0'] : ['3.7.0'];
         let primaryFailure: { error: unknown } | undefined;
-        const run = (version: HistoricalRelease) => historicalSequence(installed, version, controller.signal, host,
-            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; });
+        const run = (version: HistoricalRelease) => historicalSequence(installed, version, depth, controller.signal, host,
+            version === '3.7.0' || depth === 'short' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; });
         const results: PromiseSettledResult<Record<string, unknown>>[] = [];
         // These are independent historical compatibility journeys, not a
         // concurrent-install test. Avoid two npm/copy-heavy fixtures competing
@@ -68,13 +78,13 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
         const first = values[0]!; if (values[1]) first.previous_release = values[1]; return first;
     } finally { process.off('SIGTERM', stop); process.off('SIGINT', stop); }
 }
-async function historicalSequence(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+async function historicalSequence(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, depth: HistoryDepth, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     // Keep the established Unicode/shell-character fixture depth: Node 22.0.0 on
     // Windows can lose package type resolution when recovery manifests grow deeper.
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(dirname(installed.temporary), 'ts05 version 中文 $` & ')));
     let completed = false;
     try {
-        const result = await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
+        const result = await historicalSequenceIn(installed, historicalVersion, depth, temporary, signal, host, tracePath);
         completed = true; return result;
     } finally {
         // A detached executor may still be finishing after a failed assertion.
@@ -84,7 +94,7 @@ async function historicalSequence(installed: ReturnType<typeof installCandidate>
         else console.error(JSON.stringify({ version_management_fixture_retained: temporary, historical_version: historicalVersion }));
     }
 }
-async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, depth: HistoryDepth, temporary: string, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const legacy = join(temporary, 'historical-' + historicalVersion + '.tgz');
     await prepareHistorical(historicalVersion, legacy);
     const historicalSha256 = HISTORICAL_RELEASES[historicalVersion];
@@ -94,11 +104,11 @@ async function historicalSequenceIn(installed: ReturnType<typeof installCandidat
     fs.writeFileSync(trace, '', { mode: 0o600 });
     const isolated = { ...installed, temporary, env: { ...installed.env, HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home'), CLAUDE_CONFIG_DIR: join(temporary, 'host-config'), npm_config_cache: join(temporary, 'bootstrap-cache') } };
     fs.mkdirSync(isolated.env.HOME, { recursive: true, mode: 0o700 });
-    const input: Input = { temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(isolated) as typeof installed.env : isolated.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), historicalVersion, historicalSha256, trace, host };
+    const input: Input = { temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(isolated) as typeof installed.env : isolated.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), historicalVersion, historicalSha256, trace, host, depth };
     const resultFile = join(temporary, 'history-result.json');
     const program = `import {writeFileSync} from 'node:fs';import {versionManagementChild} from ${JSON.stringify(import.meta.url)};writeFileSync(process.argv[2],JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))),{flag:'wx'});`;
     const phases = [{ name: 'baseline', budgetMs: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS }];
-    if (historicalVersion === '3.8.0') phases.push({ name: 'editor_execution', budgetMs: host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS });
+    if (historicalVersion === '3.8.0' && depth === 'full') phases.push({ name: 'editor_execution', budgetMs: host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS });
     await superviseInstalled(['--input-type=module', '-e', program, JSON.stringify(input), resultFile],
         phases, process.env, trace, { cwd: installed.directory, executable: installed.node, signal });
     return JSON.parse(fs.readFileSync(resultFile, 'utf8'));
@@ -145,7 +155,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const hostRoot = join(hostBin, 'node_modules/@anthropic-ai/claude-code');
     fs.mkdirSync(hostRoot, { recursive: true });
     fs.writeFileSync(join(hostRoot, 'package.json'), JSON.stringify({ bin: { claude: 'cli.js' } }));
-    const hostSource = input.host ? `#!/usr/bin/env node\nconst {spawnSync}=require('node:child_process');const r=spawnSync(${JSON.stringify(input.host.executable)},[...${JSON.stringify(input.host.args)},...process.argv.slice(2)],{stdio:'inherit',shell:false});process.exit(r.status??2);\n` : "#!/usr/bin/env node\nif(process.argv[2]!=='--version')process.exit(2);console.log('2.1.258 (version-only acceptance fixture)');\n";
+    const audit = join(input.temporary, 'short-host-argv.jsonl');
+    const auditCalls = input.depth === 'short' ? `require('node:fs').appendFileSync(${JSON.stringify(audit)},JSON.stringify(process.argv.slice(2))+'\\n');if(!['--version','plugin'].includes(process.argv[2]))process.exit(2);\n` : '';
+    const hostSource = '#!/usr/bin/env node\n' + auditCalls + (input.host ? `const {spawnSync}=require('node:child_process');const r=spawnSync(${JSON.stringify(input.host.executable)},[...${JSON.stringify(input.host.args)},...process.argv.slice(2)],{stdio:'inherit',shell:false});process.exit(r.status??2);\n` : "if(process.argv[2]!=='--version')process.exit(2);console.log('2.1.258 (version-only acceptance fixture)');\n");
     fs.writeFileSync(join(hostRoot, 'cli.js'), hostSource);
     if (process.platform === 'win32')
         fs.writeFileSync(join(hostBin, 'claude.cmd'), '@echo off\r\n');
@@ -156,7 +168,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const userconfig = join(input.temporary, 'update-user-npmrc'), globalconfig = join(input.temporary, 'update-global-npmrc');
     fs.writeFileSync(userconfig, '');
     fs.writeFileSync(globalconfig, '');
-    const env = { ...input.env, PATH: hostBin + delimiter + input.env.PATH, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: userconfig, npm_config_globalconfig: globalconfig, npm_config_cache: join(input.temporary, 'update-cache'), npm_config_prefer_online: 'true', CLAUDE_CONFIG_DIR: configDir };
+    const env = { ...input.env, PATH: hostBin + delimiter + input.env.PATH, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: userconfig, npm_config_globalconfig: globalconfig, npm_config_cache: join(input.temporary, 'update-cache'), npm_config_prefer_online: 'true', CLAUDE_CONFIG_DIR: configDir, ...(input.depth === 'short' ? { npm_config_ignore_scripts: 'true' } : {}) };
     if (process.env.TS06_PROFILE_MANAGEMENT === '1') Object.assign(env, {
         NODE_OPTIONS: '--import=' + new URL('./trace-process.js', import.meta.url).href,
         STATUSLINE_ACCEPTANCE_TIMINGS: input.trace + '.phases.jsonl',
@@ -175,6 +187,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         code: number | null;
         stdout: string;
         stderr: string;
+        elapsed_ms: number;
     }>((resolve, reject) => {
         const operation=args[1]==='ui'&&inputData?JSON.parse(inputData).operation:null;
         const id = ++sequence, started = performance.now(), label = operation?'ui '+operation:args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
@@ -186,11 +199,13 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             child.kill('SIGKILL');
             reject(new Error('Installed version operation timed out: ' + label));
         }, VERSION_OPERATION_MS);
-        child.stdout.on('data', b => stdout += b);
-        child.stderr.on('data', b => stderr += b);
+        child.stdout.setEncoding('utf8').on('data', text => stdout += text);
+        child.stderr.setEncoding('utf8').on('data', text => stderr += text);
         const failed = (error: Error) => { clearTimeout(timer); trace({ phase: 'error', id, command: label, error: error.message }); child.kill('SIGKILL'); reject(error); };
         child.once('error', failed);
-        child.once('exit', (code, signal) => {
+        // Short observations parse complete CLI/official JSON, including
+        // non-ASCII paths. Keep legacy full timing at its original exit event.
+        child.once(input.depth === 'short' ? 'close' : 'exit', (code, signal) => {
             clearTimeout(timer);
             const elapsed_ms = performance.now() - started;
             timings.push({ command: label, elapsed_ms });
@@ -198,7 +213,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             try {
                 if (success)
                     assert.equal(code, 0, stderr + stdout);
-                resolve({ code, stdout, stderr });
+                resolve({ code, stdout, stderr, elapsed_ms });
             }
             catch (error) {
                 reject(error);
@@ -211,28 +226,38 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const state = () => JSON.parse(fs.readFileSync(join(configDir, 'statusline_runtime/installation.json'), 'utf8'));
     const historyRoot = join(configDir, 'statusline_runtime/package-management/installations');
     const historyRecord = () => JSON.parse(fs.readFileSync(join(historyRoot, fs.readdirSync(historyRoot)[0]!), 'utf8'));
+    const observer = input.depth === 'short' ? shortHistoryObserver({ root, entry, node: input.node, npm: input.npm, config: configDir,
+        shim: join(hostRoot, 'cli.js'), host: input.host, archive: input.artifact, legacy: input.legacy, audit, registry, invoke }) : null;
+    const observations = [];
+    let schemaRestore = null;
+    let explicitDisable = null;
+    const installIntegration = () => invoke([entry, 'install', '--config-dir', configDir, input.host ? '--native-editor' : '--no-native-editor',
+        '--no-experimental-slash-tui', input.host && Number(input.host.version.split('.')[2]) >= 289 ? '--native-timing' : '--no-native-timing', '--no-live-metrics']);
     let schemaMigration: Record<string, unknown> | null = null;
     try {
-        await invoke([input.npm, 'install', '--global', '--prefix', prefix, '--offline', '--ignore-scripts', '--bin-links=true', input.legacy]);
-        await invoke([entry, 'install', '--config-dir', configDir, input.host ? '--native-editor' : '--no-native-editor', '--no-experimental-slash-tui', input.host && Number(input.host.version.split('.')[2]) >= 289 ? '--native-timing' : '--no-native-timing', '--no-live-metrics']);
+        const bootstrap = await invoke([input.npm, 'install', '--global', '--prefix', prefix, '--offline', '--ignore-scripts', '--bin-links=true', input.legacy]);
+        await installIntegration();
         await invoke([entry, 'config', '--config-dir', configDir, 'set', 'colors', 'on']);
         await invoke([entry, 'config', '--config-dir', configDir, 'profile', 'save', 'Before upgrade', '--bind', input.temporary]);
         const display = fs.readFileSync(join(configDir, 'claude-statusline.json')), profiles = fs.readFileSync(join(configDir, 'claude-statusline-profiles.json'));
         const settingsPath = join(configDir, 'settings.json'), settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
         settings.env = { KEEP: 'unchanged' };
         fs.writeFileSync(settingsPath, JSON.stringify(settings), { mode: 0o600 });
-        badIntegrity = true;
-        const corrupt = await invoke(command(input.entry, 'update', targetVersion), false);
-        assert.equal(corrupt.code, 2);
-        assert.match(corrupt.stderr, /integrity/);
-        assert.equal(await version(), 'claude-statusline ' + historicalVersion);
-        badIntegrity = false;
-        const incompatible = await invoke(command(input.entry, 'update', incompatibleVersion), false);
-        assert.equal(incompatible.code, 2);
-        assert.equal(await version(), 'claude-statusline ' + historicalVersion);
-        const checked = await invoke([input.entry, 'update', '--check', '--json', '--prefix', prefix, '--config-dir', configDir]);
-        assert.equal(JSON.parse(checked.stdout).target, targetVersion);
-        await invoke(command(input.entry, 'update', targetVersion));
+        if (observer) observations.push(await observer.observe('historical', bootstrap));
+        else {
+            badIntegrity = true;
+            const corrupt = await invoke(command(input.entry, 'update', targetVersion), false);
+            assert.equal(corrupt.code, 2);
+            assert.match(corrupt.stderr, /integrity/);
+            assert.equal(await version(), 'claude-statusline ' + historicalVersion);
+            badIntegrity = false;
+            const incompatible = await invoke(command(input.entry, 'update', incompatibleVersion), false);
+            assert.equal(incompatible.code, 2);
+            assert.equal(await version(), 'claude-statusline ' + historicalVersion);
+            const checked = await invoke([input.entry, 'update', '--check', '--json', '--prefix', prefix, '--config-dir', configDir]);
+            assert.equal(JSON.parse(checked.stdout).target, targetVersion);
+        }
+        const changed = await invoke(command(input.entry, 'update', targetVersion));
         assert.equal(await version(), 'claude-statusline ' + targetVersion);
         assert.equal(state().backend_version, targetVersion);
         assert.equal(state().launch.args[0], entry);
@@ -241,23 +266,40 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const schema = manifest.statuslineCompatibility.read.display[1];
         assert.deepEqual(upgraded, { ...previous, schema_version: schema });
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
+        if (observer) {
+            observations.push(await observer.observe('upgrade', changed));
+            explicitDisable = await observer.disableAndReinstall(targetVersion);
+            // Restore the original active official integration through the CLI so
+            // rollback must really bind the historical package on this host.
+            if (input.host) await installIntegration();
+        }
         if (schema > previous.schema_version) {
             const upgrade = historyRecord();
             const rejected = await invoke(command(entry, 'rollback', historicalVersion), false);
             assert.equal(rejected.code, 2);
             assert.match(rejected.stdout + rejected.stderr, /schema|configuration|Configuration/u);
-            assert.equal(await version(), 'claude-statusline ' + targetVersion);
-            await invoke([entry, 'recover', '--restore-config', upgrade.transaction, '--prefix', prefix, '--config-dir', configDir, '--yes']);
+            const retained = await version(); assert.equal(retained, 'claude-statusline ' + targetVersion);
+            const restored = await invoke([entry, 'recover', '--restore-config', upgrade.transaction, '--prefix', prefix, '--config-dir', configDir, '--yes']);
             assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline.json')), display);
             assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
             schemaMigration = { from: previous.schema_version, to: schema, old_version_refused: true, backup_restored: true };
+            if (observer) schemaRestore = observer.schemaRestore(rejected, retained.slice('claude-statusline '.length), restored, previous.schema_version, schema);
         }
         // This invocation starts in the directory that npm replaces. It must
         // leave that package before loading Koffi or Windows cannot replace it.
-        await invoke(command(entry, 'rollback', historicalVersion));
+        const rolledBack = await invoke(command(entry, 'rollback', historicalVersion));
         assert.equal(await version(), 'claude-statusline ' + historicalVersion);
         assert.equal(state().backend_version, historicalVersion);
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
+        if (observer) {
+            observations.push(await observer.observe('rollback', rolledBack));
+            assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline.json')), display);
+            assert(registryRequests > 0, 'No real controlled registry requests');
+            const controls = await observer.finish();
+            budget.finish(); phaseEvent('baseline', 'end');
+            return { depth: 'short', historical_version: observations[0]!.package_version, historical_sha256: observations[0]!.archive_sha256,
+                target_version: observations[1]!.package_version, host: input.host?.version ?? null, observations, schema_restore: schemaRestore, explicit_disable: explicitDisable, ...controls };
+        }
         const history = historyRecord();
         const recoveryRoot = join(configDir, 'statusline_runtime/package-management/transactions', history.transaction, 'recovery-runner'), recoveryEntry = join(recoveryRoot, 'bin/claude-statusline.js');
         assert(fs.existsSync(recoveryEntry));

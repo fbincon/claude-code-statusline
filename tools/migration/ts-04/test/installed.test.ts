@@ -5,7 +5,7 @@ import { before, after } from 'node:test';
 import { admitInstalledCommand } from '../../../acceptance/installed-admission.js';
 import { installedCase as test } from '../../../acceptance/installed-case.js';
 import { phaseSync } from '../../../acceptance/installed-supervisor.js';
-import { appearancePhase } from '../../../acceptance/installed-plan.js';
+import { APPEARANCE_CASE, appearancePhase, HISTORY_CASE, includesInstalledCase, LANGUAGE_CASE, physicalSelection } from '../../../acceptance/installed-plan.js';
 import { verifyCandidate } from '../../../build/verify.js';
 import { prepareWindowsPowerShell } from '../../../acceptance/windows-shell.js';
 import assert from 'node:assert/strict';
@@ -25,13 +25,15 @@ import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 import { installedFirstEntry } from '../../../acceptance/first-entry.js';
 import { installedLanguages } from '../../../acceptance/installed-language.js';
 import { invokeInstalled, runInstalled, setupInstalled, type ColdCommand } from '../../../acceptance/installed-commands.js';
-import { installedVersionManagement } from '../../../acceptance/version-management.js';
+import { installedHistoryProfile, installedVersionManagement } from '../../../acceptance/version-management.js';
 import { APPEARANCE_MS, APPEARANCE_SCHEMES, FIRST_ENTRY_MS, VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, appearance_scenarios:false, draft_reuse: false, i18n_workflow: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
+const selection = physicalSelection(process.env);
+const sections: Record<string, unknown> = {};
 before(() => {
     phaseSync('verify-candidate', () => verifyCandidate(process.env.TS05_CANDIDATE_ARTIFACT!, process.env.TS05_CANDIDATE_COMMIT!));
     const shell = process.platform === 'win32' ? phaseSync('prepare-powershell', () => {
@@ -58,7 +60,21 @@ after(() => phaseSync('cleanup-and-report', () => {
     const path = process.env.TS05_PENDING_RECEIPT ?? process.env.TS04_INSTALLED_REPORT;
     if (path) {
         fs.mkdirSync(dirname(path), { recursive: true });
-        fs.writeFileSync(path, JSON.stringify({ ...report, status: !process.env.TS05_DIAGNOSTIC_PATTERN && Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
+        let result: Record<string, unknown>;
+        if (selection) {
+            if (includesInstalledCase(selection.stage, APPEARANCE_CASE)) {
+                const { i18n_workflow, version_management, ...installedChecks } = checks;
+                const pass = Object.values(installedChecks).every(Boolean) && Boolean(report.source_operations);
+                sections.installation = { ...report, checks: installedChecks, shell_receipts: shellReceipts, status: pass ? 'pass' : 'fail' };
+                assert(pass, 'Incomplete installed product and recovery checks');
+            }
+            for (const [name, key] of [[LANGUAGE_CASE, 'language'], [HISTORY_CASE, 'history']] as const)
+                if (includesInstalledCase(selection.stage, name)) assert(sections[key], 'Missing completed ' + key + ' section');
+            result = { ...sections, status: 'pass' };
+        } else {
+            result = { ...report, status: !process.env.TS05_DIAGNOSTIC_PATTERN && Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts };
+        }
+        fs.writeFileSync(path, JSON.stringify(result, null, 2) + '\n');
     }
 }));
 const invoke = (...args: Parameters<ColdCommand>) => invokeInstalled(installed, ...args);
@@ -70,8 +86,11 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
     assert.ok(result.result);
     return result.result;
 }
-test('installed effective languages retain independent UI/output saves and read-only previews in all registered combinations', async () => {
-    report.i18n_workflow = await installedLanguages(installed);
+test(LANGUAGE_CASE, async () => {
+    let pairs: readonly unknown[] | undefined;
+    const workflow = await installedLanguages(installed, selection ? observed => { pairs = observed; } : undefined);
+    if (selection) sections.language = { workflow, pairs };
+    else report.i18n_workflow = workflow;
     checks.i18n_workflow = true;
 });
 test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
@@ -80,8 +99,11 @@ test('installed Git policy blocks repository programs without inventing a clean 
 test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:FIRST_ENTRY_MS}, async () => {
     report.first_entry_cases=await installedFirstEntry(installed);checks.first_entry=true;
 });
-test('installed version management survives published release roundtrips, interruption and separate restoration',{timeout:VERSION_MANAGEMENT_MS+60000},async()=>{
-    report.version_management=await installedVersionManagement(installed);checks.version_management=true;
+test(HISTORY_CASE,{timeout:VERSION_MANAGEMENT_MS+60000},async()=>{
+    if (selection) sections.history = await installedHistoryProfile(installed, selection.depth, undefined,
+        process.env.TS04_INSTALLED_REPORT! + '.history.jsonl');
+    else report.version_management = await installedVersionManagement(installed);
+    checks.version_management=true;
 });
 test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:600000}, async () => {
     const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);

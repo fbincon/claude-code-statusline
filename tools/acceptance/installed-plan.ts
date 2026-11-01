@@ -1,17 +1,33 @@
-import { APPEARANCE_MS, APPEARANCE_SCHEMES, FIRST_ENTRY_MS, FIXTURE_CLEANUP_MS, FIXTURE_INSTALL_MS, HANDOFF_MS, versionManagementBudget, type AcceptancePhase } from './budgets.js';
+import { APPEARANCE_MS, APPEARANCE_SCHEMES, FIRST_ENTRY_MS, FIXTURE_CLEANUP_MS, FIXTURE_INSTALL_MS, HANDOFF_MS, historyProfileBudget, type AcceptancePhase } from './budgets.js';
 import { languageAcceptanceBudget } from './language-budget.js';
 
 export const APPEARANCE_CASE = 'installed adaptive indicators and scene schemes retain semantic and persistence contracts';
+export const LANGUAGE_CASE = 'installed effective languages retain independent UI/output saves and read-only previews in all registered combinations';
+export const HISTORY_CASE = 'installed version management survives published release roundtrips, interruption and separate restoration';
+export type InstalledStage = 'complete' | 'installed' | 'language' | 'history';
+export interface InstalledSelection { stage: InstalledStage; depth: 'full' | 'short' }
+export function physicalSelection(env: NodeJS.ProcessEnv): InstalledSelection | undefined {
+    const stage = env.TS05_PHYSICAL_STAGE, depth = env.TS05_PHYSICAL_DEPTH;
+    if (!stage && !depth) return undefined;
+    if (!(stage === 'complete' || stage === 'installed' || stage === 'language' || stage === 'history') ||
+        !(depth === 'full' || depth === 'short') || env.TS05_DIAGNOSTIC_PATTERN)
+        throw new Error('Invalid installed physical stage or history depth');
+    return { stage, depth };
+}
+export function includesInstalledCase(stage: InstalledStage, name: string): boolean {
+    const section = name === LANGUAGE_CASE ? 'language' : name === HISTORY_CASE ? 'history' : 'installed';
+    return stage === 'complete' || stage === section;
+}
 export const appearancePhase = (scheme: string) => 'appearance/' + scheme;
-export function installedPhases(windows: boolean, languages: number, pattern?: string): AcceptancePhase[] {
+export function installedPhases(windows: boolean, languages: number, pattern?: string, selection?: InstalledSelection): AcceptancePhase[] {
     // The previously unbounded journeys have individual envelopes calibrated on
     // successful ARM/x64 runs (e.g. #198 job 124463172951); long subprocesses
     // keep their own limits. Unknown or reordered cases cannot produce a receipt.
     const cases: [string, number][] = [
-        ['installed effective languages retain independent UI/output saves and read-only previews in all registered combinations', languageAcceptanceBudget(languages)],
+        [LANGUAGE_CASE, languageAcceptanceBudget(languages)],
         ['installed Git policy blocks repository programs without inventing a clean worktree', 70_000],
         ['installed first entry uses real npm and a durable binding beyond the npx cache lifetime', FIRST_ENTRY_MS],
-        ['installed version management survives published release roundtrips, interruption and separate restoration', versionManagementBudget(windows)],
+        [HISTORY_CASE, historyProfileBudget(windows, selection?.depth ?? 'full')],
         ['installed terminal policy is shared by setup, configure and the Windows slash bridge', 600_000],
         ['installed selective imports preserve unselected sections, targets and source authority', 180_000],
         ['installed gradients preserve foreground, background, warning, group, Unicode and transfer behavior', 240_000],
@@ -40,7 +56,7 @@ export function installedPhases(windows: boolean, languages: number, pattern?: s
     // Node accepts both a raw expression and /expression/flags on this option.
     const literal = pattern?.match(/^\/(.*)\/([a-z]*)$/u);
     const filter = pattern ? new RegExp(literal?.[1] ?? pattern, literal?.[2]) : undefined;
-    const selected = cases.filter(([name]) => !filter || filter.test(name));
+    const selected = cases.filter(([name]) => (!filter || filter.test(name)) && (!selection || includesInstalledCase(selection.stage, name)));
     if (!selected.length) throw new Error('No installed acceptance cases match the diagnostic pattern');
     return [
         { name: 'verify-candidate', budgetMs: 60_000 },

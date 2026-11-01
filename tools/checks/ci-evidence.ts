@@ -13,6 +13,7 @@ import { validateFragmentIdentity, validatePhysicalIdentity, type PhysicalExecut
 import { sectionInputsAt, sourceCapacityCount, sourceContract, validateSectionEvidence, verifySectionLogBytes } from './ci-section-evidence.ts';
 import { envelopeBytes } from './evidence-zip.ts';
 import { languageEvidence, type LanguageEvidence } from './i18n-evidence.ts';
+import { validateProductChecks, type ProductCheckReceipt } from './impact-product.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 export const git = (...args: string[]) => execFileSync('git', ['--no-replace-objects', ...args], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -32,6 +33,7 @@ interface EvidenceBase {
 }
 export interface CompleteEvidenceV1 extends EvidenceBase { schema_version: 1; executions: any[] }
 export interface CompleteEvidenceV2 extends EvidenceBase {
+    product_checks?: ProductCheckReceipt;
     schema_version: 2; coverage_plan: CoveragePlan; coverage_plan_sha256: string; executions: PhysicalExecution[];
 }
 export type CompleteEvidence = CompleteEvidenceV1 | CompleteEvidenceV2;
@@ -100,15 +102,22 @@ export async function artifactJson(artifact: any, file: string, expectedHash?: s
     if (expectedHash) assert.equal(digest(content), expectedHash, 'Original envelope file changed');
     return JSON.parse(content.toString('utf8'));
 }
-export function requireRun(run: any, commit: string, branch: string, event = 'push'): void {
+function requireRunIdentity(run: any, commit: string, branch: string, event: string): void {
     assert.match(commit, SHA); assert.equal(run.head_sha, commit); assert.equal(run.head_branch, branch); assert.equal(run.event, event);
     assert.equal(run.repository?.full_name, CI_REPOSITORY); assert.equal(run.head_repository?.full_name, CI_REPOSITORY);
-    assert.equal(run.path, '.github/workflows/ci.yml'); assert.equal(run.status, 'completed', `Latest applicable CI ${run.id} has not completed`);
+    assert.equal(run.path, '.github/workflows/ci.yml');
+}
+export function requireRun(run: any, commit: string, branch: string, event = 'push'): void {
+    requireRunIdentity(run, commit, branch, event);
+    assert.equal(run.status, 'completed', `Latest applicable CI ${run.id} has not completed`);
     assert.equal(run.conclusion, 'success', `Latest applicable CI ${run.id} did not pass`);
 }
 export function validateComplete(record: CompleteEvidence, run: any, artifacts: any[], now = Date.now()): void {
-    assert([1, 2].includes(record.schema_version), 'Unsupported complete evidence schema'); assert.equal(record.kind, 'complete'); assert.equal(record.repository, CI_REPOSITORY);
     requireRun(run, record.source_commit, record.branch, record.event);
+    validateEnvelope(record, run, artifacts, now);
+}
+function validateEnvelope(record: CompleteEvidence, run: any, artifacts: any[], now: number): void {
+    assert([1, 2].includes(record.schema_version), 'Unsupported complete evidence schema'); assert.equal(record.kind, 'complete'); assert.equal(record.repository, CI_REPOSITORY);
     assert.equal(record.run_id, run.id); assert.equal(record.attempt, run.run_attempt); assert.equal(record.workflow, run.path);
     assert.match(record.tree, SHA); assert.match(record.workflow_sha, SHA); assert.match(record.policy_sha256, HASH);
     assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now, 'Evidence envelope is expired or has an invalid creation time');
@@ -211,6 +220,7 @@ function validateV2Coverage(record: CompleteEvidenceV2, artifacts: any[]): void 
     assert.equal(digest(lock), record.toolchain.lock_sha256, 'Development lockfile bytes differ from the source');
     const context = coverageContext(record);
     const plan = verifyCoveragePlan(record.coverage_plan, context.base, record.source_commit, record.inputs, context.basis);
+    validateProductChecks(record);
     assert.equal(plan.tree, record.tree); assert.match(record.coverage_plan_sha256, HASH);
     const tarball = record.delivery[`fbincon-claude-code-statusline-${record.version}.tgz`]!;
     const specs = new Map(plan.producers.map(spec => [spec.id, spec]));
@@ -234,6 +244,7 @@ function validateV2Coverage(record: CompleteEvidenceV2, artifacts: any[]): void 
         assert(Number.isSafeInteger(row.job_id) && row.job_id > 0 && !jobs.has(row.job_id), 'Duplicate or invalid physical job ID'); jobs.add(row.job_id);
         const artifact = newestArtifact(artifacts, spec.artifact);
         assert.equal(row.artifact_id, artifact.id, 'Physical execution names an unrelated artifact');
+        if (row.artifact_created_at !== undefined) assert.equal(row.artifact_created_at, artifact.created_at, 'Artifact creation identity changed');
         const start = Date.parse(row.started_at), end = Date.parse(row.completed_at), created = Date.parse(artifact.created_at);
         // Actions job timestamps have second precision. The producer uploads before completion.
         assert(Number.isFinite(start) && end >= start && created >= start - 1000 && created <= end + 1000,
@@ -295,20 +306,26 @@ export async function verifyWorkflowSource(record: CompleteEvidence): Promise<vo
 export async function recordComplete(evidence: string, selectionFile: string, acceptanceFile: string, output: string): Promise<void> {
     assert(process.env.GITHUB_EVENT_NAME === 'pull_request' || process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'main',
         'Only automatic PR/main acceptance can create promotable evidence');
-    assert.equal(coverageVersionAt(git('rev-parse', 'HEAD')), 1, 'The v1 producer cannot issue evidence for an activated v2 source');
+    const version = coverageVersionAt(git('rev-parse', 'HEAD'));
     const selection = JSON.parse(fs.readFileSync(selectionFile, 'utf8')), accepted = JSON.parse(fs.readFileSync(acceptanceFile, 'utf8'));
     assert.equal(accepted.status, 'pass');
-    const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
+    const { assessEvidenceDirectory, evidenceFiles } = await import('../release/prepare.js');
     const source = join(evidence, 'ts06-candidate'), build = JSON.parse(fs.readFileSync(join(source, 'build-manifest.json'), 'utf8'));
     const { verifyDelivery } = await import('../build/verify.js');
     const verified = verifyDelivery(join(source, build.candidate.file), build.commit);
-    const assessed = assessEvidence(evidenceFiles(evidence), accepted.commit, accepted.tarball_sha256, verified.sourceEntries);
     assert.equal(build.commit, accepted.commit); assert.equal(build.commit, git('rev-parse', 'HEAD'));
+    assert.equal(verified.sha256, accepted.tarball_sha256); assert.equal(verified.source.application_version, accepted.application_version);
+    const workflow = version === 2 ? await import('./ci-physical-workflow.ts') : null;
+    const planBytes = workflow ? fs.readFileSync(join(source, 'coverage-plan.json')) : null;
+    const proposed = planBytes ? JSON.parse(planBytes.toString('utf8')) : null;
+    const context = workflow ? { ...await workflow.eventBasis(build.commit, proposed.basis === 'conservative'), ...workflow.coverageRun() } : undefined;
+    const assessed = assessEvidenceDirectory(evidence, build.commit, verified.sha256, verified.sourceEntries, context);
+    for (const [key, value] of Object.entries(assessed)) assert.deepEqual(accepted[key], value, 'Acceptance report differs from source receipts: ' + key);
     const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH!, 'utf8'));
     const pr = process.env.GITHUB_EVENT_NAME === 'pull_request' ? { number: event.number, head: event.pull_request.head.sha, base: event.pull_request.base.sha, base_ref: event.pull_request.base.ref, draft: event.pull_request.draft } : null;
     const created = new Date();
     const runId = Number(process.env.GITHUB_RUN_ID), attempt = Number(process.env.GITHUB_RUN_ATTEMPT), jobsByAttempt = new Map<number, any[]>();
-    const reports = evidenceFiles(evidence), executions: any[] = [];
+    const reports = version === 1 ? evidenceFiles(evidence) : [], executions: any[] = [];
     for (const report of reports) {
         const execution = report.execution, originalAttempt = Number(execution?.attempt);
         assert.equal(Number(execution?.run_id), runId); assert(Number.isSafeInteger(originalAttempt) && originalAttempt > 0 && originalAttempt <= attempt);
@@ -332,19 +349,35 @@ export async function recordComplete(evidence: string, selectionFile: string, ac
             job_id: matching[0].id, job_name: name, started_at: matching[0].started_at, completed_at: matching[0].completed_at });
     }
     const language = languageEvidence(verified.sourceEntries, build.commit);
-    const record: CompleteEvidence = { ...(language ? { language } : {}), schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: build.commit,
+    const common: EvidenceBase = { ...(language ? { language } : {}), kind: 'complete', repository: CI_REPOSITORY, source_commit: build.commit,
         tree: git('rev-parse', 'HEAD^{tree}'), run_id: runId, attempt, event: process.env.GITHUB_EVENT_NAME!,
         branch: pr ? event.pull_request.head.ref : process.env.GITHUB_REF_NAME!, workflow: '.github/workflows/ci.yml', workflow_sha: process.env.GITHUB_WORKFLOW_SHA!, pr,
         created_at: created.toISOString(), expires_at: new Date(created.getTime() + 30 * 86400000).toISOString(), policy_sha256: policyDigest(build.commit), version: accepted.application_version,
         toolchain: { node: verified.source.node, npm: verified.source.npm, typescript: verified.source.typescript, lock_sha256: verified.source.lock_sha256 },
-        coverage: { installations: assessed.installations, runtime_installations: assessed.runtime_installations, hosts: assessed.hosts, native_capacity_cases: 197 },
+        coverage: { installations: assessed.installations, runtime_installations: assessed.runtime_installations, hosts: assessed.hosts, native_capacity_cases: version === 1 ? 197 : sourceCapacityCount(verified.sourceEntries) },
         inputs: JSON.parse(fs.readFileSync(join(source, 'runtime-inputs.json'), 'utf8')),
         delivery: Object.fromEntries([build.candidate.file, build.source.file, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, digest(fs.readFileSync(join(source, name)))])),
-        receipts: fileReceipts(evidence), artifacts: selection.artifacts,
+        receipts: fileReceipts(evidence, version), artifacts: selection.artifacts,
         acceptance_sha256: digest(fs.readFileSync(acceptanceFile)), input_file_sha256: digest(fs.readFileSync(join(source, 'runtime-inputs.json'))),
         compiled: Object.fromEntries(['compiled-tests.json', 'compiled-tests.tar'].map(name => [name, digest(fs.readFileSync(join(evidence, 'ci-compiled-tests', name)))])),
-        executions,
     };
+    let record: CompleteEvidence;
+    if (workflow && context && planBytes) {
+        const plan = verifyCoveragePlan(proposed, context.base, build.commit, common.inputs, context.basis);
+        const raw = await listRunArtifacts(runId);
+        const physical = await workflow.collectPhysical(evidence, plan, selection, raw, verified.sha256, false);
+        assert('physical_producers' in assessed);
+        assert.deepEqual(physical.map(row => row.receipt_sha256), assessed.physical_producers.map(row => row.receipt_sha256),
+            'Original receipt bytes changed after release readiness');
+        record = { ...common, schema_version: 2, coverage_plan: plan, coverage_plan_sha256: digest(planBytes), executions: physical };
+        const { issueProductChecks } = await import('./impact-product-run.ts');
+        record.product_checks = await issueProductChecks(record);
+        const run = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}`);
+        requireRunIdentity(run, record.source_commit, record.branch, record.event);
+        assert.equal(run.status, 'in_progress', 'The aggregate must issue its own current running attempt');
+        assert.equal(run.conclusion, null);
+        validateEnvelope(record, run, raw, Date.now());
+    } else record = { ...common, schema_version: 1, executions };
     assert.equal(selection.run_id, record.run_id); assert.equal(selection.commit, record.source_commit);
     await verifyWorkflowSource(record);
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });

@@ -1,14 +1,16 @@
 import nodeTest, { type TestOptions } from 'node:test';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { withinInstalledBudget } from './installed-admission.js';
-import { APPEARANCE_CASE, installedPhases } from './installed-plan.js';
+import { APPEARANCE_CASE, includesInstalledCase, installedPhases, physicalSelection } from './installed-plan.js';
 import { phaseAsync } from './installed-supervisor.js';
 
 type Body = () => unknown;
-const phases = new Map(installedPhases(process.platform === 'win32', LANGUAGES.length).map(p => [p.name, p.budgetMs]));
+const selection = physicalSelection(process.env);
+const phases = new Map(installedPhases(process.platform === 'win32', LANGUAGES.length, undefined, selection).map(p => [p.name, p.budgetMs]));
 export function installedCase(name: string, body: Body): void;
 export function installedCase(name: string, options: TestOptions, body: Body): void;
 export function installedCase(name: string, optionsOrBody: TestOptions | Body, body?: Body): void {
+    if (selection && !includesInstalledCase(selection.stage, name)) return;
     const options = typeof optionsOrBody === 'function' ? {} : optionsOrBody;
     const run = typeof optionsOrBody === 'function' ? optionsOrBody : body!;
     nodeTest(name, options, async () => {

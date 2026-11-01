@@ -1,14 +1,16 @@
 import * as fs from 'node:fs';
 import { installCandidate } from './install.js';
 import { phaseSync, phaseAsync } from './installed-supervisor.js';
-import { installedVersionManagement, type VersionHost } from './version-management.js';
-const [artifact, commit, host, report, trace] = process.argv.slice(2);
+import { installedHistoryProfile, installedVersionManagement, type VersionHost } from './version-management.js';
+const [artifact, commit, host, report, trace, depth] = process.argv.slice(2);
 if (!artifact || !commit || !host || !report)
     throw new Error('Require artifact, commit, host JSON and report');
+if (depth !== undefined && depth !== 'full' && depth !== 'short') throw new Error('Unknown history profile');
 const installed = phaseSync('official-install', () => installCandidate(artifact, commit));
 let result: Record<string, unknown>;
 try {
-    result = await phaseAsync('official-histories', () => installedVersionManagement(installed, JSON.parse(host) as VersionHost, trace));
+    const official = JSON.parse(host) as VersionHost;
+    result = await phaseAsync('official-histories', () => depth ? installedHistoryProfile(installed, depth, official, trace) : installedVersionManagement(installed, official, trace));
 }
 finally {
     phaseSync('official-cleanup-and-report', () => {
