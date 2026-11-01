@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## 跨 CI 版本的发布证据
+
+按 tag 源码选择证据格式，并复核最新适用的 main 与 tag 关系。完整来源沿用原包和原始执行。维护来源校验自己的四件交付物和烟测回执，再绑定原产品运行、策略与历史深度。已通过验证且包含十二语言和编辑器恢复验收的 v1 产品基线，可以为已激活的维护来源提供完整历史，保留原 v1 身份。缺少原作业、分片或适用的晋升收据均会阻断 npm 准备。
+
 ## v3.16.1 运行、来源与保存冲突修复
 
 已于 **2026-10-31** 在 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 和 [Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 发布，源码为 `d652eda833d97c594abbf17929e347bf77395af2`。必需 PR／main／tag 门禁、独立及交付源码重建、十二语言就绪、七项公开核验和四项交付文件摘要均通过。本机在双编辑器／运行观测检查及十一路径偏好恢复后保留 3.16.1。

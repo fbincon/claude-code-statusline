@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import type { PromotionSelection } from './ci-promotion.ts';
 
-const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+const git = (...args: string[]) => execFileSync('git', ['--no-replace-objects', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 export const BASE_VERIFICATION_CHECKS = ['accepted-base-code', 'latest-base-and-pr-runs', 'merge-head-base-tree', 'original-envelope-and-artifacts', 'complete-coverage', 'original-file-bytes'];
 
 export function exportBaseVerifiers(base: string, directory: string): void {
@@ -23,7 +23,7 @@ export function exportBaseVerifiers(base: string, directory: string): void {
         assert(identity?.startsWith('100644 blob ') || identity?.startsWith('100755 blob '), 'Verifier must be a regular Git blob');
         assert((path.startsWith('tools/checks/') || /^tools\/generation\/i18n\/[^/]+\.ts$/u.test(path)) && !path.includes('\\') && !path.split('/').some(part => part === '..' || part === '.'));
         const target = join(directory, path); fs.mkdirSync(dirname(target), { recursive: true });
-        fs.writeFileSync(target, execFileSync('git', ['show', base + ':' + path], { maxBuffer: 4 * 1024 * 1024 }), { flag: 'wx' });
+        fs.writeFileSync(target, execFileSync('git', ['--no-replace-objects', 'show', base + ':' + path], { maxBuffer: 4 * 1024 * 1024 }), { flag: 'wx' });
     }
 }
 
@@ -43,6 +43,7 @@ export async function verifyWithAcceptedBase(selection: PromotionSelection, evid
         const integration = await import(pathToFileURL(join(directory, 'tools/checks/ci-integration.ts')).href);
         const baseRun = sources.latestRun(await sources.runsFor(base), base, 'main');
         assert(baseRun, 'Independent verifier has no successful base gate'); assert.equal(baseRun.id, selection.base_run);
+        if (selection.source_record.schema_version === 2) await sources.requireGate(baseRun);
         await integration.verifyMerge(selection.integration);
         const run = sources.latestRun(await sources.runsFor(head, 'pull_request'), head, selection.source_record.branch, 'pull_request');
         assert(run); assert.equal(run.id, selection.source_run);

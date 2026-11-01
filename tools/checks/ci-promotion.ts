@@ -12,6 +12,8 @@ export { completeSource, runsFor, latestRun } from './ci-sources.ts';
 import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestArtifact, requireRun, verifyRecordedFiles, type CompleteEvidence, type ArtifactIdentity } from './ci-evidence.ts';
 import type { MaintenanceReleaseSelection } from './impact-release.ts';
 import { verifyTagIdentity } from './ci-tag.ts';
+import { coverageVersionAt } from './ci-coverage.ts';
+import { originalContext, originalHistory } from './ci-reused-coverage.ts';
 export { verifyTagIdentity } from './ci-tag.ts';
 
 export interface PromotionSelection {
@@ -86,14 +88,19 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     const record = await verifyOriginal(selection, evidence), directory = join(evidence, 'ts06-candidate');
     assert(selection.filename && selection.source_commit);
     const { verifyDelivery } = await import('../build/verify.js');
-    const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
+    const { assessEvidenceDirectory } = await import('../release/prepare.js');
     const checked = verifyDelivery(join(directory, selection.filename), selection.source_commit);
     verifyLanguageEvidence(record.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
-    const accepted = assessEvidence(evidenceFiles(evidence), selection.source_commit, checked.sha256, checked.sourceEntries);
+    const accepted = assessEvidenceDirectory(evidence, selection.source_commit, checked.sha256, checked.sourceEntries, originalContext(record));
     const previous = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance/candidate-acceptance.json'), 'utf8'));
     verifyLanguageEvidence(previous.language, checked.sourceEntries, selection.source_commit, selection.route === 'tag');
     assert.equal(previous.status, accepted.status); assert.equal(previous.commit, selection.source_commit); assert.equal(previous.tarball_sha256, checked.sha256);
     assert.equal(previous.application_version, record.version);
+    if (record.schema_version === 2) {
+        assert.equal(previous.coverage_version, 2);
+        for (const key of ['coverage_version', 'history_coverage', 'physical_producers'] as const)
+            assert.deepEqual(previous[key], (accepted as Record<string, unknown>)[key], 'Original coverage differs: ' + key);
+    }
     // Recheck version-scoped approval from the immutable source, not the current working tree.
     const { sourceStableApproval } = await import('../release/approval.js');
     if (checked.source.channel === 'stable') {
@@ -110,7 +117,8 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
         tag: selection.tag, tag_object: selection.tag_object, run_id: Number(process.env.GITHUB_RUN_ID), attempt: Number(process.env.GITHUB_RUN_ATTEMPT),
         source_run: selection.source_run, source_envelope: selection.source_envelope, source_record_sha256: digest(JSON.stringify(record)), delivery: record.delivery,
         integration: selection.integration ?? null, integration_run: selection.integration_run ?? null, integration_envelope: selection.integration_envelope ?? null, integration_record_sha256: selection.integration_record_sha256 ?? null,
-        executed: ['tag-identity', 'main-ancestry', 'original-artifacts', 'complete-receipts', 'release-approval'], reused: record.coverage, created_at: new Date().toISOString(), status: 'pass' };
+        executed: ['tag-identity', 'main-ancestry', 'original-artifacts', 'complete-receipts', 'release-approval'], reused: record.coverage,
+        original_history: originalHistory(record), created_at: new Date().toISOString(), status: 'pass' };
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
 }
 export async function publishedTagEvidence(tag: string, commit: string, run: any): Promise<{ sourceRun: number; integrationRun: number; promotion: any; artifacts: number[]; record: CompleteEvidence } | null> {
@@ -118,6 +126,7 @@ export async function publishedTagEvidence(tag: string, commit: string, run: any
     const artifacts = await listRunArtifacts(run.id);
     if (!artifacts.some(value => value.name === 'ci-promotion')) {
         assert(!artifacts.some(value => value.name === 'ci-promotion-selection'), 'Selected tag promotion is missing its original receipt');
+        assert.equal(coverageVersionAt(commit), 1, 'Missing v2 tag promotion');
         return null;
     }
     const promotion = await artifactJson(newestArtifact(artifacts, 'ci-promotion'), 'promotion.json');
@@ -137,6 +146,8 @@ export async function publishedTagEvidence(tag: string, commit: string, run: any
     }
     assert.deepEqual(original.envelope, promotion.source_envelope); assert.equal(digest(JSON.stringify(original.record)), promotion.source_record_sha256);
     assert.deepEqual(original.record.delivery, promotion.delivery);
+    if (original.record.schema_version === 2) assert.deepEqual(original.record.coverage, promotion.reused);
+    assert.deepEqual(promotion.original_history, originalHistory(original.record));
     verifySourceLanguage(original.record.language, original.record.source_commit, true);
     return { sourceRun: promotion.source_run, integrationRun, promotion, artifacts: original.artifact_ids, record: original.record };
 }

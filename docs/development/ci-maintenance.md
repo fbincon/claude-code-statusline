@@ -10,6 +10,12 @@ Current native capacity and recovery use bounded visible frames and add three-pl
 
 I18N-02 separates product acceptance from language publication readiness. The accepted-base exporter includes the pure build-only language analyzer; complete and maintenance records bind a versioned language report to their original source and all declared inputs. Main may reuse safe B-language fallback acceptance, while both complete-source and maintenance-source public releases require complete A/B readiness. Missing activated reports cannot use legacy pre-v3.15 compatibility. Language metadata is build-owned and requires generation, consuming checks and actual package comparison; generated fallback membership is presentation data only when exact generation and origin rules agree. Original source/policy digest meanings and receipt identities stay unchanged. See [implementation](i18n-02-delivery.md) and [authoring](i18n.md#incremental-authoring).
 
+## Complete evidence versions
+
+The reader rollout precedes producer activation. The original v1 envelope still describes a complete historical suite on every installation, Node and host combination. The v2 reader chooses the contract from the immutable source and its activation history. It reconstructs the expected obligations from the frozen Node inputs and the verified comparison base. The planner records which physical execution satisfies each obligation and which Windows ARM stage owns it. Deleting the activation marker, submitting a v1 envelope for an activated commit or substituting an earlier green job blocks promotion.
+
+The verifier checks the original run, attempt, job ID and times, artifact ID and digest, candidate bytes, runner and executable identities, history depth and section results. For the current twelve-language source, v2 verifies 313 capacity cases per host. The 197-case field in a v1 envelope retains its historical meaning. When Actions retains an unaffected job during a rerun its original identity is preserved. The accepted first parent performs this verification before candidate compiler output is restored. The reader-only deployment continues to produce v1.
+
 ## CI latency and stability work
 
 ### Candidate promotion across PR, main and tag

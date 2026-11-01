@@ -9,6 +9,7 @@ import { artifactIdentity, artifactJson, digest, git, listRunArtifacts, newestAr
 import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import type { PromotionSelection } from './ci-promotion.ts';
 import { BASE_VERIFICATION_CHECKS } from './ci-trust.ts';
+import { originalHistory } from './ci-reused-coverage.ts';
 
 export const SMOKE_TARGETS = ['ubuntu-24.04', 'windows-2025', 'macos-15'];
 type Integration = NonNullable<PromotionSelection['integration']>;
@@ -122,6 +123,11 @@ export function validateIntegration(record: any, run: any, selection: PromotionS
     assert.deepEqual(record.integration, selection.integration); assert.equal(record.source_commit, selection.source_commit); assert.equal(record.source_run, selection.source_run);
     assert.deepEqual(record.source_envelope, selection.source_envelope); assert.equal(record.source_record_sha256, digest(JSON.stringify(selection.source_record)));
     assert.deepEqual(record.delivery, selection.source_record.delivery); assert.equal(record.policy_sha256, selection.source_record.policy_sha256);
+    if (selection.source_record.schema_version === 2) {
+        assert.equal(record.schema_version, 2, 'A v2 candidate requires accepted-base verification');
+        assert.deepEqual(record.reused, selection.source_record.coverage);
+    }
+    assert.deepEqual(record.original_history, originalHistory(selection.source_record));
     if (record.schema_version === 2) validateBaseVerification(record.verification, selection, run, read);
     validateSmokes(record.smokes, selection);
     const expectedNames = SMOKE_TARGETS.map(target => 'ci-integration-' + target).sort();
@@ -189,7 +195,8 @@ export async function recordIntegration(selection: PromotionSelection, directory
         integration: selection.integration, source_commit: selection.source_commit, source_run: selection.source_run, source_envelope: selection.source_envelope,
         source_record_sha256: digest(JSON.stringify(selection.source_record)), delivery: selection.source_record!.delivery, policy_sha256: selection.source_record!.policy_sha256,
         verification, executed: ['merge-parents', 'pr-head-base', 'tree-and-policy', 'original-artifacts', 'complete-receipts', 'accepted-base-verifier', 'promotion-contract-regressions', 'three-platform-installation-smoke'],
-        reused: selection.source_record!.coverage, smokes: reports, artifacts: selected.artifacts, created_at: new Date().toISOString() };
+        reused: selection.source_record!.coverage, original_history: originalHistory(selection.source_record!),
+        smokes: reports, artifacts: selected.artifacts, created_at: new Date().toISOString() };
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

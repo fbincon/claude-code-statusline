@@ -13,6 +13,8 @@ import { REPOSITORY, validatePlan, requirePublishContext, registryMetadata, veri
 import { publishedTagEvidence, runsFor } from '../checks/ci-promotion.js';
 import { verifyRecordedFiles, artifactIdentity, newestArtifact, listRunArtifacts } from '../checks/ci-evidence.js';
 import { publishedMaintenanceRelease, verifyMaintenanceBundle } from '../checks/impact-release.js';
+import { coverageVersionInArchive } from '../checks/ci-coverage.js';
+import { originalContext } from '../checks/ci-reused-coverage.js';
 
 export function selectCiRun(runs: any[], commit: string, branch: string) {
     const matching = runs.filter(run => run.head_sha === commit && run.head_branch === branch && run.event === 'push'
@@ -61,26 +63,34 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     assert.equal(selection.channel, publicChannel());
     const directory = join(evidence, selection.maintenance_release ? 'ci-release-package' : 'ts06-candidate'), filename = 'fbincon-claude-code-statusline-' + VERSION + '.tgz';
     const artifact = join(directory, filename), checked = verifyDelivery(artifact, selection.commit);
+    let coverage: ReturnType<typeof originalContext>;
     if (selection.promotion) {
         const run = (await runsFor(selection.commit)).find(value => value.id === selection.tag_ci_run);
         const verified = await publishedTagEvidence(selection.tag, selection.commit, run);
         assert(verified); assert.equal(verified.sourceRun, selection.ci_run); assert.deepEqual(verified.promotion, selection.promotion);
         assert.deepEqual(verified.artifacts, selection.artifact_ids); verifyRecordedFiles(verified.record, evidence);
+        coverage = originalContext(verified.record);
     }
     assert.equal(checked.source.channel, selection.channel);
     fs.mkdirSync(output);
     if (selection.maintenance_release) {
         await verifyMaintenanceBundle(selection.maintenance_release, directory);
         fs.writeFileSync(join(output, 'acceptance.json'), JSON.stringify({ kind: 'maintenance-release', status: 'pass', commit: selection.commit,
-            tarball_sha256: checked.sha256, executed: selection.maintenance_release.executed, reused: selection.maintenance_release.reused }, null, 2) + '\n');
+            tarball_sha256: checked.sha256, executed: selection.maintenance_release.executed, reused: selection.maintenance_release.reused,
+            original_history: selection.maintenance_release.original_history }, null, 2) + '\n');
     } else {
-    execFileSync(process.execPath, [join(import.meta.dirname, 'prepare.js'), '--' + selection.channel,
-        '--artifact', artifact, '--commit', selection.commit, '--evidence', evidence, '--report', join(output, 'acceptance.json')], { stdio: 'pipe' });
-    const acceptance = JSON.parse(fs.readFileSync(join(output, 'acceptance.json'), 'utf8'));
-    const ciAcceptance = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance', 'candidate-acceptance.json'), 'utf8'));
-    for (const field of ['status', 'commit', 'tarball_sha256', 'channel', 'preview_ready', 'stable_ready', 'runtime_installations'])
-        assert.equal(ciAcceptance[field], acceptance[field], 'CI acceptance differs: ' + field);
-    assert.equal(acceptance[selection.channel === 'stable' ? 'stable_ready' : 'preview_ready'], true);
+        assert.equal(coverageVersionInArchive(checked.sourceEntries), coverage ? 2 : 1, 'Missing original tag coverage');
+        const args = coverage ? ['--coverage-basis', coverage.basis, '--coverage-run-id', String(coverage.run_id),
+            '--coverage-attempt', String(coverage.attempt), '--coverage-workflow-sha', coverage.workflow_sha,
+            ...(coverage.base ? ['--coverage-base', coverage.base] : [])] : [];
+        execFileSync(process.execPath, [join(import.meta.dirname, 'prepare.js'), '--' + selection.channel,
+            '--artifact', artifact, '--commit', selection.commit, '--evidence', evidence, '--report', join(output, 'acceptance.json'), ...args], { stdio: 'pipe' });
+        const acceptance = JSON.parse(fs.readFileSync(join(output, 'acceptance.json'), 'utf8'));
+        const ciAcceptance = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance', 'candidate-acceptance.json'), 'utf8'));
+        for (const field of ['status', 'commit', 'tarball_sha256', 'channel', 'preview_ready', 'stable_ready', 'runtime_installations',
+            ...(coverage ? ['coverage_version', 'history_coverage', 'physical_producers'] : [])])
+            assert.deepEqual(ciAcceptance[field], acceptance[field], 'CI acceptance differs: ' + field);
+        assert.equal(acceptance[selection.channel === 'stable' ? 'stable_ready' : 'preview_ready'], true);
     }
     const plan: PublishPlan = { schema_version: 1, tag: selection.tag, commit: selection.commit, version: VERSION,
         channel: selection.channel, dist_tag: selection.channel === 'stable' ? 'latest' : 'beta', filename,
@@ -97,6 +107,12 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.tag_ci_run ?? selection.ci_run}; original complete acceptance ${sourceRun}. Eight installation targets, 32 runtime cases and sixteen hosts ${selection.maintenance_release ? 'are reused; current maintenance, build and installation checks passed' : 'passed'}. Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
     console.log(message);
+    const history = selection.maintenance_release?.original_history ?? selection.promotion?.original_history;
+    if (history) {
+        const detail = `Original v${history.source_schema} run ${history.run_id} executed ${history.history_jobs.full} full and ${history.history_jobs.short} short history jobs.\n`;
+        if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, detail);
+        console.log(detail);
+    }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values, positionals } = parseArgs({ allowPositionals: true, options: { selection: { type: 'string' }, evidence: { type: 'string' }, output: { type: 'string' } } });

@@ -67,6 +67,8 @@ A maintenance-source tag builds its **own** package, source archive, manifest an
 
 Existing complete-source tags and historical npm releases retain their existing reader. Published tags and assets are never changed to test the new route. A dry-run checks preparation and bytes; it does not establish a new publication or validate a new trusted-publisher binding.
 
+Select the impact route before computing historical depth. The coverage reader uses the original PR base and actual merge base for a core PR. A complete main run can use its accepted first parent. Without that boundary it requires full history on every lane. Maintenance evidence identifies the scoped checks actually executed. It cannot satisfy a missing product obligation.
+
 ## Validation and operation
 
 For a newly scheduled scoped task the planner budgets the test files in the immutable head tree. Execution checks that the compiled file list matches. A serial family can start files for 15 minutes plus five seconds per file. Each admitted file gets its own 15-minute limit. The planning check also reserves build, setup, upload and cleanup time under the hosted job limit. An oversized task must be partitioned before it runs. Reuse continues to check the original receipts under their recorded policy.

@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { artifactIdentity, newestArtifact, selectCompleteArtifacts, validateComplete, verifyRecordedFiles, digest, fileReceipts, type CompleteEvidence } from '../ci-evidence.js';
+import { artifactIdentity, newestArtifact, selectCompleteArtifacts, validateComplete, verifyRecordedFiles, digest, fileReceipts, type CompleteEvidenceV1 } from '../ci-evidence.js';
 import { latestRun, verifyTagIdentity } from '../ci-promotion.js';
 import { commit, hash, now, run, fixture } from './fixtures/ci-evidence.js';
 import { requireGate, verifyExecutionJobs } from '../ci-sources.js';
@@ -30,16 +30,16 @@ test('failed, cancelled, expired, corrupt, ambiguous and incomplete evidence fai
         const { record, artifacts } = fixture(); assert.throws(() => validateComplete(record, { ...run, ...change }, artifacts));
     }
     for (const mutate of [
-        (record: CompleteEvidence) => { record.attempt = 1; },
-        (record: CompleteEvidence) => { record.coverage.hosts = 13; },
-        (record: CompleteEvidence) => { record.expires_at = new Date(now - 1).toISOString(); },
-        (record: CompleteEvidence) => { record.artifacts.pop(); },
-        (record: CompleteEvidence) => { record.artifacts.push(record.artifacts[0]!); },
-        (record: CompleteEvidence) => { record.delivery['../escape'] = hash; },
-        (record: CompleteEvidence) => { (record.inputs as any).shared = ['22.x']; },
-        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '24.x')!.job_id = 999; },
-        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '24.x')!.node_sha256 = 'c'.repeat(64); },
-        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '22.x')!.execution.reused_installed = true; },
+        (record: CompleteEvidenceV1) => { record.attempt = 1; },
+        (record: CompleteEvidenceV1) => { record.coverage.hosts = 13; },
+        (record: CompleteEvidenceV1) => { record.expires_at = new Date(now - 1).toISOString(); },
+        (record: CompleteEvidenceV1) => { record.artifacts.pop(); },
+        (record: CompleteEvidenceV1) => { record.artifacts.push(record.artifacts[0]!); },
+        (record: CompleteEvidenceV1) => { record.delivery['../escape'] = hash; },
+        (record: CompleteEvidenceV1) => { (record.inputs as any).shared = ['22.x']; },
+        (record: CompleteEvidenceV1) => { record.executions.find(value => value.runtime_case === '24.x')!.job_id = 999; },
+        (record: CompleteEvidenceV1) => { record.executions.find(value => value.runtime_case === '24.x')!.node_sha256 = 'c'.repeat(64); },
+        (record: CompleteEvidenceV1) => { record.executions.find(value => value.runtime_case === '22.x')!.execution.reused_installed = true; },
     ]) { const { record, artifacts } = fixture(); mutate(record); assert.throws(() => validateComplete(record, run, artifacts)); }
     for (const change of [{ expired: true }, { digest: 'sha256:' + 'c'.repeat(64) }, { expires_at: new Date(now - 1).toISOString() }]) {
         const { record, artifacts } = fixture(); Object.assign(artifacts[0]!, change); assert.throws(() => validateComplete(record, run, artifacts));

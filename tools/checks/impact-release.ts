@@ -14,6 +14,8 @@ import { verifyTagIdentity } from './ci-tag.ts';
 import { withImpactVerifier } from './impact-trust.ts';
 import { comparePackages, type PackageComparison } from '../build/impact-package.ts';
 import { verifyLanguageEvidence, verifySourceLanguage, type LanguageEvidence } from './i18n-evidence.ts';
+import { coverageVersionAt } from './ci-coverage.ts';
+import { originalHistory } from './ci-reused-coverage.ts';
 
 export interface MaintenanceReleaseSelection {
     schema_version: 2; kind: 'maintenance-release-selection'; tag: string; tag_object: string; commit: string; integration_commit: string;
@@ -26,6 +28,7 @@ export interface ReleaseBinding {
     run_id: number; attempt: number; delivery: Record<string, string>; package_artifact: ArtifactIdentity; comparison: PackageComparison;
     smokes: { artifact: ArtifactIdentity; receipt: any }[]; approval: unknown; created_at: string;
     executions: ExecutionJob[]; executed: string[]; reused: CompleteEvidence['coverage'];
+    original_history?: ReturnType<typeof originalHistory>;
 }
 async function mainForSource(commit: string): Promise<any | undefined> {
     const direct = latestRun(await runsFor(commit), commit, 'main'); if (direct) return direct;
@@ -66,6 +69,7 @@ export async function selectMaintenanceRelease(tag: string, commit: string): Pro
             const accepted = await integratedCandidate(promotion.source_commit); assert(accepted && accepted.integration_run === run.id);
             product = { record: accepted.source_record!, envelope: accepted.source_envelope!, artifact_ids: accepted.artifact_ids! };
         } else product = await completeSource(run);
+        originalHistory(product.record, coverageVersionAt(commit));
         // Per-source input identities are retained unchanged. Cross-source reuse
         // is proven by actual payload comparison under an already accepted policy.
         return { schema_version: 2, kind: 'maintenance-release-selection', tag, tag_object: verifyTagIdentity(tag, commit), commit,
@@ -77,7 +81,8 @@ export async function verifyReleaseSelection(selection: MaintenanceReleaseSelect
     assert.equal(selection.schema_version, 2); assert.equal(selection.kind, 'maintenance-release-selection');
     const current = await selectMaintenanceRelease(selection.tag, selection.commit); assert.deepEqual(current, selection, 'Release evidence changed');
 }
-export function validateReleaseBinding(binding: ReleaseBinding, selection: MaintenanceReleaseSelection, run: any): void {
+export function validateReleaseBinding(binding: ReleaseBinding, selection: MaintenanceReleaseSelection, run: any,
+    releaseEpoch: 1 | 2 = selection.product.record.schema_version): void {
     assert.equal(binding.schema_version, 2); assert.equal(binding.kind, 'maintenance-release'); assert.equal(binding.status, 'pass');
     assert.equal(binding.repository, CI_REPOSITORY); requireRun(run, selection.commit, selection.tag); assert.deepEqual(binding.selection, selection);
     assert.equal(binding.run_id, run.id); assert.equal(binding.attempt, run.run_attempt);
@@ -89,6 +94,7 @@ export function validateReleaseBinding(binding: ReleaseBinding, selection: Maint
     const version = selection.tag.slice(1); assert.equal(binding.comparison.head_sha256, binding.delivery[`fbincon-claude-code-statusline-${version}.tgz`]);
     assert.deepEqual(Object.keys(binding.delivery).sort(), ['SHA256SUMS', 'build-manifest.json', `fbincon-claude-code-statusline-${version}.tgz`, `claude-code-statusline-${version}-source.tar.gz`].sort());
     assert.deepEqual(binding.reused, selection.product.record.coverage);
+    assert.deepEqual(binding.original_history, originalHistory(selection.product.record, releaseEpoch));
     assert.equal(binding.comparison.schema_version, 1); assert.equal(binding.comparison.kind, 'package-comparison');
     assert.deepEqual(binding.executed, ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval']);
     assert.deepEqual(binding.executions.map(job => job.name).sort(), ['Build current maintenance release source', ...SMOKE_TARGETS.map(target => 'Maintenance release smoke / ' + target)].sort());
@@ -128,13 +134,14 @@ export async function recordReleaseBinding(selection: MaintenanceReleaseSelectio
     }
     const executions: ExecutionJob[] = [executionJob(await jobsFor(runId, buildExecution.attempt), 'Build current maintenance release source', buildExecution.attempt)];
     for (const { receipt } of smokes) executions.push(executionJob(await jobsFor(runId, Number(receipt.execution.attempt)), 'Maintenance release smoke / ' + receipt.target, Number(receipt.execution.attempt)));
+    const releaseEpoch = coverageVersionAt(selection.commit);
     const binding: ReleaseBinding = { ...(checked.language ? { language: checked.language } : {}), schema_version: 2, kind: 'maintenance-release', status: 'pass', repository: CI_REPOSITORY, selection,
         run_id: runId, attempt: Number(process.env.GITHUB_RUN_ATTEMPT), package_artifact: artifactIdentity(newestArtifact(artifacts, 'ci-release-package')),
         delivery: Object.fromEntries([filename, `claude-code-statusline-${version}-source.tar.gz`, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, hash(fs.readFileSync(join(delivery, name)))])),
-        comparison, smokes, executions, approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
+        comparison, smokes, executions, original_history: originalHistory(selection.product.record, releaseEpoch), approval: checked.source.channel === 'stable' ? sourceStableApproval(checked.sourceEntries, version) : null,
         created_at: new Date().toISOString(), executed: ['maintenance-chain', 'tag-identity', 'reproducible-source-build', 'independent-product-comparison', 'three-platform-installation-smoke', 'release-approval'], reused: selection.product.record.coverage };
     const run = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}`);
-    validateReleaseBinding(binding, selection, { ...run, status: 'completed', conclusion: 'success' }); // The aggregate still must pass before any consumer accepts this receipt.
+    validateReleaseBinding(binding, selection, { ...run, status: 'completed', conclusion: 'success' }, releaseEpoch); // The aggregate still must pass before any consumer accepts this receipt.
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(binding, null, 2) + '\n', { flag: 'wx' }); return binding;
 }
 export async function publishedMaintenanceRelease(tag: string, commit: string, run: any): Promise<ReleaseBinding | null> {
@@ -143,7 +150,7 @@ export async function publishedMaintenanceRelease(tag: string, commit: string, r
         assert(!artifacts.some(item => item.name === 'ci-release-selection'), 'Missing selected maintenance release receipt'); return null;
     }
     const binding = await artifactJson(newestArtifact(artifacts, 'ci-release-binding'), 'release-binding.json') as ReleaseBinding;
-    await requireGate(run); await verifyReleaseSelection(binding.selection); validateReleaseBinding(binding, binding.selection, run);
+    await requireGate(run); await verifyReleaseSelection(binding.selection); validateReleaseBinding(binding, binding.selection, run, coverageVersionAt(commit));
     verifySourceLanguage(binding.language, binding.selection.commit, true);
     assert.deepEqual(artifactIdentity(newestArtifact(artifacts, 'ci-release-package')), binding.package_artifact);
     for (const smoke of binding.smokes) {

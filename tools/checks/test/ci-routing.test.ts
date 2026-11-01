@@ -14,6 +14,10 @@ import { BASE_VERIFICATION_CHECKS } from '../ci-trust.js';
 import { fixture, run, hash } from './fixtures/ci-evidence.js';
 import { fixture as languageFixture, editPack } from '../../generation/test/i18n-fixture.js';
 import { languageEvidence, languageInputsAt } from '../i18n-evidence.js';
+import { COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, createCoveragePlan } from '../ci-coverage.js';
+import { originalHistory } from '../ci-reused-coverage.js';
+import { v2Fixture } from './fixtures/ci-evidence-v2.js';
+import { SECTION_INPUT_PATHS } from '../ci-section-evidence.js';
 
 function envelope(file: string, value: unknown): Buffer {
     const name = Buffer.from(file), body = Buffer.from(JSON.stringify(value));
@@ -29,7 +33,7 @@ const changes = [
     'docs/releases/approvals/registry.json', 'packages/core/src/render.ts', 'packages/cli/resources/generated.json',
     'tools/acceptance/new-journey.ts', 'tools/acceptance/screenshots.ts', 'tools/checks/ci-watch.ts',
     'tools/release/notes.ts', 'tools/acceptance/package-lock.json', 'tools/build/pack.ts',
-    '.github/workflows/ci.yml', 'tools/release/approval.ts', 'tools/checks/ci-evidence.ts', 'tools/checks/ci-sources.ts', 'language-fallback',
+    '.github/workflows/ci.yml', 'tools/release/approval.ts', 'tools/checks/ci-evidence.ts', 'tools/checks/ci-sources.ts', 'language-fallback', 'coverage-v2',
 ];
 for (const changedPath of changes) test(changedPath + ': full PR evidence reuses the identical bytes through main, tag and npm', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'ci routing ')), originalCwd = process.cwd();
@@ -48,13 +52,20 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     write('tools/release/approval.ts', '// Stable approval validator\n');
     write('docs/releases/approvals/registry.json', '{"schema_version":1,"approvals":[]}\n');
     write('tools/checks/ci-sources.ts', '// Baseline verifier fixture\n');
+    const activated = changedPath === 'coverage-v2';
+    if (activated) {
+        write(COVERAGE_ACTIVATION_PATH, COVERAGE_ACTIVATION); write('.node-version','24.21.0\n');
+        for (const path of ['package.json','package-lock.json']) write(path,fs.readFileSync(join(originalCwd,path),'utf8'));
+        for (const name of ['ci-coverage','impact-lock','runtime-inputs']) write('tools/checks/' + name + '.ts', '// Accepted v2 policy\n');
+        for (const path of SECTION_INPUT_PATHS) write(path, fs.readFileSync(join(originalCwd,path),'utf8'));
+    }
     git('add', '.'); git('commit', '-m', 'earlier main'); const earlier = git('rev-parse', 'HEAD');
     git('commit', '--allow-empty', '-m', 'accepted base'); const base = git('rev-parse', 'HEAD');
     git('switch', '-c', 'release-fixture');
     const version = '9.9.9', path = `docs/releases/approvals/v${version}.json`;
     write('docs/releases/approvals/registry.json', JSON.stringify({ schema_version: 1, approvals: [{ version, path, approved_on: '2026-10-28' }] }));
     write(path, JSON.stringify({ version })); write('packages/core/src/release.ts', `export const VERSION = '${version}';\n`);
-    if (!['docs/releases/approvals/registry.json', 'language-fallback'].includes(changedPath)) write(changedPath, '// Accepted change\n');
+    if (!activated && !['docs/releases/approvals/registry.json', 'language-fallback'].includes(changedPath)) write(changedPath, '// Accepted change\n');
     const languages = languageFixture();
     if (changedPath === 'language-fallback') editPack(languages, 'ja', pack => { delete pack.hello; });
     for (const [path, bytes] of languages) write(path, new TextDecoder().decode(bytes));
@@ -65,13 +76,14 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     git('switch', 'main'); git('merge', '--no-ff', 'release-fixture', '-m', 'integrate'); const commit = git('rev-parse', 'HEAD');
     git('update-ref', 'refs/remotes/origin/main', commit); git('tag', '-a', 'v' + version, head, '-m', 'isolated local fixture');
     process.chdir(root); process.env.GH_TOKEN = 'isolated-test-token'; process.env.GITHUB_RUN_ID = '44'; process.env.GITHUB_RUN_ATTEMPT = '2';
-    const { record: source, artifacts: originalArtifacts } = fixture();
+    const legacy = fixture(), prRun = { ...run, head_sha: head, head_branch: 'release-fixture', event: 'pull_request', run_attempt: activated ? 1 : run.run_attempt };
+    const physical = activated ? v2Fixture(createCoveragePlan(base,head,legacy.record.inputs), {run:prRun,version,prBase:base}) : undefined;
+    const { record: source, artifacts: originalArtifacts } = physical ?? legacy;
     source.source_commit = head; source.tree = git('rev-parse', head + '^{tree}'); source.workflow_sha = head;
     source.policy_sha256 = policyDigest(head); source.event = 'pull_request'; source.branch = 'release-fixture';
     source.pr = { number: 23, head, base, base_ref: 'main', draft: false }; source.version = version;
     source.language = languageEvidence(languageInputsAt(head), head);
     source.delivery = Object.fromEntries(Object.entries(source.delivery).map(([name, value]) => [name.replaceAll('3.9.1', version), value]));
-    const prRun = { ...run, head_sha: head, head_branch: source.branch, event: 'pull_request' };
     const baseRun = { ...run, id: 1, head_sha: base }, mainRun = { ...run, id: 44, head_sha: commit };
     const tagRun = { ...run, id: 45, head_sha: head, head_branch: 'v' + version };
     const pr = { number: 23, state: 'closed', merged_at: new Date().toISOString(), draft: false, merge_commit_sha: commit,
@@ -82,6 +94,7 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
         return { id, name, expired: false, digest: 'sha256:' + digest(zip), expires_at: originalArtifacts[0]!.expires_at };
     };
     let available = [...originalArtifacts], mainArtifacts: any[] = [], tagArtifacts: any[] = [], extraRuns: any[] = [];
+    let rebuilt: ReturnType<typeof v2Fixture> | undefined, rebuiltRun: typeof run | undefined;
     let missingEnvelope = false;
     t.mock.method(globalThis, 'fetch', async (input: string | URL | Request, options?: RequestInit) => {
         const url = new URL(String(input));
@@ -97,21 +110,29 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
         let result: unknown;
         if (pathname === '/actions/workflows/ci.yml/runs') {
             const sha = url.searchParams.get('head_sha'), event = url.searchParams.get('event');
-            result = { workflow_runs: sha === head ? (event === 'pull_request' ? [prRun, ...extraRuns] : [tagRun]) : sha === commit ? [mainRun] : sha === base ? [baseRun] : [] };
+            result = { workflow_runs: rebuiltRun && sha === rebuiltRun.head_sha ? [rebuiltRun] :
+                sha === head ? (event === 'pull_request' ? [prRun, ...extraRuns] : [tagRun]) : sha === commit ? [mainRun] : sha === base ? [baseRun] : [] };
         } else if (/^\/commits\/[a-f0-9]{40}\/pulls$/u.test(pathname)) result = [pr];
         else if (pathname === '/pulls/23') result = pr;
         else if (pathname === '/contents/.github/workflows/ci.yml') result = { type: 'file', sha: git('rev-parse', head + ':.github/workflows/ci.yml') };
         else if (pathname === '/actions/runs/12/artifacts') {
             const artifacts = [...available, ...(missingEnvelope ? [] : [artifact(900, 'ts06-acceptance', 'ci-evidence.json', source)])];
             result = { artifacts, total_count: artifacts.length };
-        } else if (pathname === '/actions/runs/44/artifacts') result = { artifacts: mainArtifacts, total_count: mainArtifacts.length };
+        } else if (pathname === '/actions/runs/52/artifacts' && rebuilt) {
+            const artifacts = [...rebuilt.artifacts, artifact(990, 'ts06-acceptance', 'ci-evidence.json', rebuilt.record)];
+            result = {artifacts, total_count:artifacts.length};
+        } else if (pathname === '/actions/runs/52/attempts/1/jobs' && rebuilt) {
+            const jobs = [...rebuilt.jobs,{name:'Complete candidate evidence',conclusion:'success'}]; result = {jobs,total_count:jobs.length};
+        } else if (pathname === '/actions/runs/52') result = rebuiltRun;
+        else if (pathname === '/actions/runs/44/artifacts') result = { artifacts: mainArtifacts, total_count: mainArtifacts.length };
         else if (pathname === '/actions/runs/45/artifacts') result = { artifacts: tagArtifacts, total_count: tagArtifacts.length };
         else if (pathname === '/actions/runs/12') result = prRun;
         else if (pathname === '/actions/runs/1') result = baseRun;
         else if (pathname === '/actions/runs/44') result = mainRun;
         else if (/^\/actions\/runs\/(?:1|12)\/attempts\/2\/jobs$/u.test(pathname)) result = { total_count: 1, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' }] };
         else if (pathname === '/actions/runs/12/attempts/1/jobs') {
-            const jobs = [...new Map(source.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name, started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
+            const jobs = physical ? [...physical.jobs, {name:'Complete candidate evidence', conclusion:'success'}] :
+                [...new Map(source.executions.map(row => [row.job_id, { id: row.job_id, name: row.job_name, started_at: row.started_at, completed_at: row.completed_at, conclusion: 'success' }])).values()];
             result = { jobs, total_count: jobs.length };
         }
         else if (pathname === '/actions/runs/44/attempts/2/jobs') result = { total_count: 4, jobs: [{ name: 'Complete candidate evidence', conclusion: 'success' },
@@ -124,7 +145,7 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     assert.equal(selection.route, 'main'); assert.equal('shadow' in selection, false); assert.equal(selection.source_commit, head);
     assert.equal(selection.source_run, prRun.id); assert.deepEqual(selection.source_record?.delivery, source.delivery);
     const smokes = SMOKE_TARGETS.map((target, index) => ({ schema_version: 1, kind: 'integration-smoke', status: 'pass', target,
-        integration_commit: commit, source_commit: head, tarball_sha256: hash, node: source.toolchain.node, node_sha256: hash,
+        integration_commit: commit, source_commit: head, tarball_sha256: source.delivery[selection.filename!], node: source.toolchain.node, node_sha256: hash,
         platform: ['linux', 'win32', 'darwin'][index], arch: index === 2 ? 'arm64' : 'x64',
         checks: ['offline-empty-cache-install', 'version', 'install', 'doctor', 'render', 'configuration-read-write', 'uninstall-preserves-unowned-settings'],
         model_calls: 0, lifecycle_scripts: false, execution: { run_id: 44, attempt: 2, job: 'integration' } }));
@@ -149,7 +170,8 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     const promoted = { schema_version: 1, kind: 'tag-promotion', status: 'pass', repository: CI_REPOSITORY, commit: head, source_commit: head,
         run_id: tagRun.id, attempt: tagRun.run_attempt, tag: 'v' + version, tag_object: tag.tag_object, source_run: tag.source_run,
         source_envelope: tag.source_envelope, source_record_sha256: digest(JSON.stringify(source)), delivery: source.delivery,
-        integration: tag.integration, integration_run: tag.integration_run, integration_envelope: tag.integration_envelope, integration_record_sha256: tag.integration_record_sha256 };
+        integration: tag.integration, integration_run: tag.integration_run, integration_envelope: tag.integration_envelope, integration_record_sha256: tag.integration_record_sha256,
+        ...(activated ? {reused:source.coverage, original_history:originalHistory(source)} : {}) };
     tagArtifacts = [artifact(3000, 'ci-promotion', 'promotion.json', promoted)];
     if (changedPath === 'language-fallback') {
         await assert.rejects(publishedTagEvidence('v' + version, head, tagRun), /Release language gate failed/);
@@ -157,6 +179,29 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
     }
     const published = await publishedTagEvidence('v' + version, head, tagRun);
     assert.equal(published?.sourceRun, prRun.id); assert.equal(published?.integrationRun, mainRun.id);
+    if (activated) {
+        assert(published?.promotion.original_history.history_jobs.short > 0);
+        const forged = {...promoted, original_history:{...promoted.original_history,source_schema:1}};
+        tagArtifacts = [artifact(3001,'ci-promotion','promotion.json',forged)];
+        await assert.rejects(publishedTagEvidence('v' + version,head,tagRun));
+        tagArtifacts = []; await assert.rejects(publishedTagEvidence('v' + version,head,tagRun), /Missing v2 tag promotion/);
+        write('packages/core/src/render.ts','export const width = 5;\n'); git('add','packages/core/src/render.ts');
+        const changed = git('commit-tree',git('write-tree'),'-p',base,'-p',head,'-m','different integrated content');
+        pr.merge_commit_sha = changed;
+        assert.match((await selectMain(changed,base)).reason,/Integrated tree differs/);
+        git('update-ref','refs/remotes/origin/main',changed); git('tag','-f','-a','v' + version,changed,'-m','isolated rebuilt main fixture');
+        rebuiltRun = {...run,id:52,run_attempt:1,head_sha:changed};
+        rebuilt = v2Fixture(createCoveragePlan(base,changed,source.inputs,'accepted-main'), {run:rebuiltRun,version});
+        const direct = await selectTag('v' + version,changed);
+        assert.equal(direct.source_run,52); assert.equal(direct.source_commit,changed); assert.equal(direct.integration,undefined);
+        const next = {...promoted, commit:changed, source_commit:changed, tag_object:direct.tag_object, source_run:52,
+            source_envelope:direct.source_envelope, source_record_sha256:digest(JSON.stringify(rebuilt.record)), delivery:rebuilt.record.delivery,
+            integration:null, integration_run:null, integration_envelope:null, integration_record_sha256:null,
+            reused:rebuilt.record.coverage, original_history:originalHistory(rebuilt.record)};
+        tagArtifacts = [artifact(3002,'ci-promotion','promotion.json',next)];
+        const reread = await publishedTagEvidence('v' + version,changed,{...tagRun,head_sha:changed});
+        assert.equal(reread?.sourceRun,52); assert.equal(reread?.integrationRun,52);
+    }
     assert.equal(predictMain(head, base).route, 'main');
     if (changedPath === changes[0]) {
         assert.equal((await selectMain(commit, earlier)).route, 'main', 'Batched push uses the accepted real first parent');

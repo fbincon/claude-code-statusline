@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import ts from 'typescript';
+import { canonical, runtimeLock } from './impact-lock.ts';
+export { canonical, runtimeLock, runtimeManifest } from './impact-lock.ts';
 
 export const hash = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const canonical = (value: unknown): string => JSON.stringify(value, (_key, item) =>
-    item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b, 'en'))) : item);
 export interface Blob { mode: string; oid: string; bytes(): Buffer }
 export function git(...args: string[]): string {
     return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -69,11 +69,6 @@ export function emitted(text: string, presentation = false, identity = false, pa
         return output.outputText;
     } finally { transformed.dispose(); }
 }
-export function runtimeManifest(bytes: Buffer): string {
-    const value = JSON.parse(bytes.toString('utf8'));
-    for (const name of ['description', 'keywords', 'homepage', 'bugs', 'repository', 'author', 'contributors', 'funding', 'license']) delete value[name];
-    return canonical(value);
-}
 export const localePath = (path: string) => /^packages\/core\/resources\/i18n\/locales\/[^/]+\.json$/u.test(path);
 export const generatedLocalePath = (path: string) => /^packages\/core\/src\/i18n\/(?:generated-locales|statusline\/[^/]+)\.ts$/u.test(path) ||
     /^mods\/statusline-native\/lib\/i18n\/(?:generated-locales|locales\/[^/]+)\.ts$/u.test(path);
@@ -112,33 +107,6 @@ export function messageShape(bytes: Buffer): unknown {
         assert.equal(typeof text, 'string');
         return [key, [...(text as string).matchAll(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/gu)].map(match => match[1]).sort()];
     }));
-}
-/** Lockfile flags alone cannot establish that a dependency is development-only. */
-export function runtimeLock(bytes: Buffer): string {
-    const lock = JSON.parse(bytes.toString('utf8'));
-    assert.equal(lock.lockfileVersion, 3); assert(lock.packages);
-    const seen = new Set<string>(), result: Record<string, unknown> = {};
-    function visit(path: string) {
-        if (seen.has(path)) return;
-        seen.add(path);
-        const entry = lock.packages[path]; assert(entry, 'Missing runtime dependency: ' + path);
-        if (entry.link) { assert(typeof entry.resolved === 'string'); visit(entry.resolved); result[path] = entry; return; }
-        const { dev: _dev, devOptional: _devOptional, ...identity } = entry;
-        result[path] = identity;
-        for (const name of Object.keys({ ...entry.dependencies, ...entry.optionalDependencies, ...entry.peerDependencies })) {
-            let parent = path, found: string | undefined;
-            while (true) {
-                const candidate = (parent ? parent + '/' : '') + 'node_modules/' + name;
-                if (lock.packages[candidate]) { found = candidate; break; }
-                if (!parent) break;
-                parent = parent.includes('/node_modules/') ? parent.slice(0, parent.lastIndexOf('/node_modules/')) : '';
-            }
-            if (!found && entry.peerDependenciesMeta?.[name]?.optional === true && !entry.dependencies?.[name]) continue;
-            assert(found, 'Unresolved runtime dependency: ' + name); visit(found);
-        }
-    }
-    for (const name of ['core', 'platform', 'cli', 'tui']) visit('packages/' + name);
-    return canonical(result);
 }
 export function productPath(path: string): boolean {
     return /^packages\/[^/]+\/(?:src|resources)\//u.test(path) || /^packages\/[^/]+\/package\.json$/u.test(path) ||
