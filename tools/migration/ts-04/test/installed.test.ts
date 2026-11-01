@@ -1,7 +1,13 @@
 import { VERSION } from '@fbincon/statusline-core/release';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { strip } from '@fbincon/statusline-core/rendering/layout';
-import test, { before, after } from 'node:test';
+import { before, after } from 'node:test';
+import { admitInstalledCommand } from '../../../acceptance/installed-admission.js';
+import { installedCase as test } from '../../../acceptance/installed-case.js';
+import { phaseSync } from '../../../acceptance/installed-supervisor.js';
+import { appearancePhase } from '../../../acceptance/installed-plan.js';
+import { verifyCandidate } from '../../../build/verify.js';
+import { prepareWindowsPowerShell } from '../../../acceptance/windows-shell.js';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname, delimiter } from 'node:path';
@@ -17,47 +23,47 @@ import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershe
 import { sha256 } from '../../../build/files.js';
 import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 import { installedFirstEntry } from '../../../acceptance/first-entry.js';
+import { installedLanguages } from '../../../acceptance/installed-language.js';
+import { invokeInstalled, runInstalled, setupInstalled, type ColdCommand } from '../../../acceptance/installed-commands.js';
 import { installedVersionManagement } from '../../../acceptance/version-management.js';
-import { VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
+import { APPEARANCE_MS, APPEARANCE_SCHEMES, FIRST_ENTRY_MS, VERSION_MANAGEMENT_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false, task_viewer: false, appearance_scenarios:false, draft_reuse: false, i18n_workflow: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
-    installed = installCandidate();
-    driver = join(installed.temporary, 'acceptance-driver.mjs');
-    fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
-    report = { schema_version: 1, stage: installed.packed.source.channel && installed.packed.source.channel !== 'candidate' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
-    report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
-    report.execution = { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null };
-    if(process.env.TS05_DIAGNOSTIC_PATTERN)report.diagnostic_only={pattern:process.env.TS05_DIAGNOSTIC_PATTERN,promotable:false};
+    phaseSync('verify-candidate', () => verifyCandidate(process.env.TS05_CANDIDATE_ARTIFACT!, process.env.TS05_CANDIDATE_COMMIT!));
+    const shell = process.platform === 'win32' ? phaseSync('prepare-powershell', () => {
+        const result = prepareWindowsPowerShell();
+        if (process.env.TS04_INSTALLED_REPORT) fs.writeFileSync(process.env.TS04_INSTALLED_REPORT + '.shell-setup.json', JSON.stringify(result, null, 2) + '\n');
+        console.log(JSON.stringify({ powershell_environment_setup: result }));
+        assert.equal(result.status, 'pass', 'Windows PowerShell preparation failed before candidate invocation');
+        return result;
+    }) : null;
+    phaseSync('install-fixture', () => {
+        installed = installCandidate(undefined, undefined, process.env.TS05_RESERVED_FIXTURE);
+        driver = join(installed.temporary, 'acceptance-driver.mjs');
+        fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
+        report = { schema_version: 1, stage: installed.packed.source.channel && installed.packed.source.channel !== 'candidate' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
+        report.powershell_setup = shell;
+        report.execution = { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null };
+        if(process.env.TS05_DIAGNOSTIC_PATTERN)report.diagnostic_only={pattern:process.env.TS05_DIAGNOSTIC_PATTERN,promotable:false};
+    });
 });
-after(() => {
+after(() => phaseSync('cleanup-and-report', () => {
     // Do not publish a passing receipt if teardown itself fails.
     installed?.cleanup();
-    const path = process.env.TS04_INSTALLED_REPORT;
+    if (installed) assert(!fs.existsSync(installed.temporary), 'Installed fixture remained after cleanup');
+    const path = process.env.TS05_PENDING_RECEIPT ?? process.env.TS04_INSTALLED_REPORT;
     if (path) {
         fs.mkdirSync(dirname(path), { recursive: true });
         fs.writeFileSync(path, JSON.stringify({ ...report, status: !process.env.TS05_DIAGNOSTIC_PATTERN && Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
     }
-});
-function invoke(args: string[], config: string, input = '', environment: NodeJS.ProcessEnv = {}) {
-    return spawnSync(installed.node, [installed.entry, ...args], { cwd: installed.directory, env: { ...installed.env, CLAUDE_CONFIG_DIR: config, ...environment }, input, encoding: 'utf8', timeout: 30000 });
-}
-function run(args: string[], config: string, input = '', environment: NodeJS.ProcessEnv = {}): string {
-    const result = invoke(args, config, input, environment);
-    assert.equal(result.error, undefined);
-    assert.equal(result.status, 0, result.stderr + result.stdout);
-    return result.stdout;
-}
-function setup(name: string): string {
-    const config = join(installed.temporary, name);
-    fs.mkdirSync(config, { mode: 0o700 });
-    fs.writeFileSync(join(config, 'settings.json'), '{"env":{"KEEP":"unchanged"}}\n', { mode: 0o600 });
-    run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
-    return config;
-}
+}));
+const invoke = (...args: Parameters<ColdCommand>) => invokeInstalled(installed, ...args);
+const run: ColdCommand = (...args) => runInstalled(installed, ...args);
+const setup = (name: string) => setupInstalled(installed, name);
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
     const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 31, operation, payload }), environment));
     assert.equal(result.protocol_version, 31);
@@ -65,38 +71,13 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
     return result.result;
 }
 test('installed effective languages retain independent UI/output saves and read-only previews in all registered combinations', async () => {
-    const config = setup('i18n-workflow');
-    run(['config', 'set-items', 'context-remaining'], config); run(['config', 'set', 'colors', 'off'], config);
-    const messages = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/messages.js')).href);
-    const dictionaries = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/generated-locales.js')).href);
-    const rendered = new Map<string, string>(); let combinations = 0;
-    for (const language of LANGUAGES) {
-        const effective = JSON.parse(fs.readFileSync(join(installed.modules, 'statusline-core/resources/i18n/locales', language + '.json'), 'utf8'));
-        assert.deepEqual(effective, dictionaries.LOCALES[language]);
-        for (const key of Object.keys(effective)) assert.equal(messages.messageOrigin(key, language), dictionaries.FALLBACK_KEYS[language].includes(key) ? 'en' : language);
-        ui(config, 'set_ui_language', { ui_language: language });
-        for (const output of LANGUAGES) {
-            const current = ui(config, 'read'), path = join(config, 'claude-statusline.json'), before = fs.readFileSync(path);
-            const draft = structuredClone(current.draft); draft.display.statusline_language = output;
-            assert.equal(ui(config, 'preview', { draft, width: 80 }).sample, true);
-            assert.deepEqual(fs.readFileSync(path), before);
-            ui(config, 'apply', { draft, expected_revision: current.revision });
-            assert.equal(ui(config, 'read').draft.display.statusline_language, output);
-            assert.equal(ui(config, 'read_ui_preferences').ui_language, language);
-            const actual = run(['render'], config, '{"context_window":{"remaining_percentage":50}}', { COLUMNS: '120' });
-            assert(actual.includes('50%'));
-            if (rendered.has(output)) assert.equal(actual, rendered.get(output), 'UI preference changed output language');
-            else rendered.set(output, actual);
-            combinations++;
-        }
-    }
-    report.i18n_workflow = { languages: LANGUAGES, combinations, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 };
+    report.i18n_workflow = await installedLanguages(installed);
     checks.i18n_workflow = true;
 });
 test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
     report.git_policy_cases = await installedGitPolicy(installed); checks.git_policy = true;
 });
-test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:180000}, async () => {
+test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:FIRST_ENTRY_MS}, async () => {
     report.first_entry_cases=await installedFirstEntry(installed);checks.first_entry=true;
 });
 test('installed version management survives published release roundtrips, interruption and separate restoration',{timeout:VERSION_MANAGEMENT_MS+60000},async()=>{
@@ -278,12 +259,14 @@ test('installed explicit-row alignment survives editing, hiding, transfers and n
     run(['config','alignment','remove','table'], config);
     assert.equal(run(['render'], config, '{}', { COLUMNS: '42' }), fallback);
     const receipt = join(installed.temporary, 'joint-display.json');
+    admitInstalledCommand(120000);
     execFileSync(installed.node,[driver,installed.modules,'joint-display',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
     report.alignment_matrix = JSON.parse(fs.readFileSync(receipt,'utf8'));
     report.alignment_cases = 4; checks.alignments = true;
 });
 test('installed draft history, structural repairs and reuse preserve revisions across save and reopen',()=>{
     const config=setup('draft-reuse'),receipt=join(installed.temporary,'draft-reuse.json');
+    admitInstalledCommand(120000);
     execFileSync(installed.node,[driver,installed.modules,'draft-reuse',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
     report.draft_reuse=JSON.parse(fs.readFileSync(receipt,'utf8'));checks.draft_reuse=true;
 });
@@ -415,6 +398,7 @@ test('private packed candidate contains only compiled business entry points and 
 });
 test('tests.integration.test_compatibility.CompatibilityTests.test_forwarded_functions_and_types_share_identity', () => {
     const receipt = join(installed.temporary, 'modules.json');
+    admitInstalledCommand(10000);
     const result = spawnSync(installed.node, [driver, installed.modules, 'modules', '', receipt], { cwd: installed.directory, env: installed.env, encoding: 'utf8', timeout: 10000 });
     assert.equal(result.status, 0, result.stderr);
     assert.deepEqual(JSON.parse(fs.readFileSync(receipt, 'utf8')), { same_binding: true, literal_argv: ['中文 & $`/entry.js'], clock_available: true, tui: true });
@@ -503,6 +487,7 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             const readInput = `$source = [IO.File]::ReadAllText(${quote(input)}, [Text.Encoding]::UTF8); `;
             const encoding = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); `;
             const command = mark('started') + POWERSHELL_BOOTSTRAP + mark('modules') + powershellIsolation(installed.env) + encoding + mark('encoding') + readInput + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
+            admitInstalledCommand(20000);
             const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config }));
             report.powershell_profile = 'OS profile with -NoProfile, explicit built-in Management/Utility, no automatic module search; isolated product paths restored before Node';
             shellReceipts.push(executed.receipt);
@@ -538,6 +523,7 @@ process.on('exit', code => record('exit:' + code));
             assert.equal(result.status, 0, JSON.stringify(executed.receipt));
             assert.equal(result.stdout.replaceAll('\r\n', '\n'), expected);
             const bash = process.env.TS04_GIT_BASH ?? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git/bin/bash.exe');
+            admitInstalledCommand(20000);
             const executedBash = runShell(bash, ['--noprofile', '--norc', '-c', 'export PATH="$(cygpath -u "$TS04_NODE_DIR"):/usr/bin"; "$(cygpath -u "$TS04_BIN")" "$TS04_OPERATION"'], operation, { ...installed.env, CLAUDE_CONFIG_DIR: config, TS04_NODE_DIR: installed.nodeDir, TS04_BIN: installed.bin, TS04_OPERATION: operation }, payload);
             shellReceipts.push(executedBash.receipt);
             const shell = executedBash.result;
@@ -545,6 +531,7 @@ process.on('exit', code => record('exit:' + code));
             assert.equal(shell.stdout, expected);
         }
         else {
+            admitInstalledCommand(10000);
             const result = spawnSync(installed.bin, [operation], { env: { ...installed.env, CLAUDE_CONFIG_DIR: config }, input: payload, encoding: 'utf8', timeout: 10000 });
             assert.equal(result.status, 0, result.stderr);
             assert.equal(result.stdout, expected);
@@ -612,6 +599,7 @@ test('installed task viewer is available without installation and shares registe
     const viewerURL=pathToFileURL(join(installed.modules,'statusline-core/dist/src/editor/task-viewer.js')).href;
     const frameURL=pathToFileURL(join(installed.modules,'statusline-tui/dist/src/task-viewer.js')).href;
     const program=`import {taskViewer,receiveTask,taskViewerKey,taskViewerView} from ${JSON.stringify(viewerURL)};import {taskFrame} from ${JSON.stringify(frameURL)};const languages=${JSON.stringify(LANGUAGES)};for(const language of languages){const view=taskViewer('session',null,language);receiveTask(view,{version:1,session_id:'session',prompt_id:'prompt',captured_at:'2026-10-28T00:00:00Z',status:'running',phase:'main',elapsed_seconds:0,active_seconds:null,progress:{completed:0,total:1},agents:[{id:'agent',parent_id:null,name:'Agent',status:'running',evidence:[]}],evidence:[],limitations:['independent_snapshots']});taskViewerView(view,80,12);view.selected='agent:agent:0';taskViewerKey(view,{key:'e'});for(const width of [32,80,120]){const frame=taskFrame(view,width,16);if(frame.rows.length!==16||view.selected!=='agent:agent:0')throw Error('Viewer lost reading state');}}console.log(JSON.stringify({languages,views:languages.length*3}));`;
+    admitInstalledCommand(30000);
     const result=spawnSync(installed.node,['--input-type=module','-e',program],{cwd:installed.directory,env:installed.env,encoding:'utf8',timeout:30000});
     assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,LANGUAGES.length*3);assert(!fs.existsSync(config));
     report.task_viewer={languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true};checks.task_viewer=true;
@@ -728,6 +716,7 @@ test('installed recovery restores interrupted editor publication without Python'
     const config = setup('recover-config');
     run(['config', '--config-dir', config, 'set', 'colors', 'on'], config);
     const before = ['settings.json', 'claude-statusline.json'].map(name => fs.readFileSync(join(config, name)));
+    admitInstalledCommand(15000);
     const result = spawnSync(installed.node, [driver, installed.modules, 'crash', config], { cwd: installed.directory, env: installed.env, timeout: 15000 });
     assert.equal(result.error, undefined);
     assert.notEqual(result.status, 0);
@@ -812,22 +801,24 @@ test('installed source operations approve commands separately and protect review
 });
 
 test('installed adaptive indicators and scene schemes retain semantic and persistence contracts',()=>{
-    const config=setup('appearance-scenarios'),schemes=['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'];
+    const config=phaseSync(appearancePhase('setup'), () => setup('appearance-scenarios')), schemes=APPEARANCE_SCHEMES;
     const common={languages:LANGUAGES,widths:[40,80,120],semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0};
     const parts: {schemes:string[]}[]=[],executions: {scheme:string;timeout_ms:number;elapsed_ms:number;status:string}[]=[];
     report.appearance_scenario_executions=executions;
     // Each scene retains all registered languages, five samples and three widths.
     // The 120-second subprocess deadline bounds one scene, not all 450 previews.
-    for(const scheme of schemes){
+    for(const scheme of schemes) phaseSync(appearancePhase(scheme), () => {
         const receipt=join(installed.temporary,'appearance-'+scheme+'.json'),started=performance.now();
-        const execution={scheme,timeout_ms:120000,elapsed_ms:0,status:'running'};executions.push(execution);
+        const execution={scheme,timeout_ms:APPEARANCE_MS,elapsed_ms:0,status:'running'};executions.push(execution);
         process.stdout.write(JSON.stringify({appearance_scenario:{scheme,phase:'start',timeout_ms:execution.timeout_ms}})+'\n');
         try{
             execFileSync(installed.node,[driver,installed.modules,'appearance-scenarios',config,receipt,scheme],{cwd:installed.directory,env:installed.env,timeout:execution.timeout_ms});
             const part=JSON.parse(fs.readFileSync(receipt,'utf8'));assert.deepEqual(part,{...common,schemes:[scheme]});parts.push(part);execution.status='pass';
         }catch(error){execution.status='fail';throw error;}
         finally{execution.elapsed_ms=performance.now()-started;process.stdout.write(JSON.stringify({appearance_scenario:execution})+'\n');}
-    }
-    const combined={...common,schemes:parts.flatMap(part=>part.schemes)};assert.deepEqual(combined,{...common,schemes});
-    report.appearance_scenarios=combined;checks.appearance_scenarios=true;
+    });
+    phaseSync(appearancePhase('verify'), () => {
+        const combined={...common,schemes:parts.flatMap(part=>part.schemes)};assert.deepEqual(combined,{...common,schemes});
+        report.appearance_scenarios=combined;checks.appearance_scenarios=true;
+    });
 });

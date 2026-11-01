@@ -8,8 +8,10 @@ import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { prepareModTypes, recordModHost, isolatedHostEnvironment } from './mod-types.js';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
-import { OFFICIAL_TRANSITION_MS } from './budgets.js';
+import { Writable } from 'node:stream';
+import { OFFICIAL_TRANSITION_MS, officialTransitionPhases, requireHostedBudget } from './budgets.js';
 import { nativeCapacity } from './native-capacity.js';
+import { superviseInstalled } from './installed-supervisor.js';
 import { retainLog, sanitizeLog } from './diagnostics.js';
 import { sha256 } from '../build/files.js';
 import assert from 'node:assert/strict';
@@ -35,6 +37,7 @@ function run(executable: string, args: string[], env = environment, timeout = 18
     }
     return result.stdout;
 }
+const startedHost = performance.now();
 try {
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
     if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].includes(version)) throw new Error('Unsupported unpinned host');
@@ -63,7 +66,28 @@ try {
     report.installed = JSON.parse(fs.readFileSync(installedReport, 'utf8'));
     if (report.installed.tarball_sha256 !== candidate.sha256 || report.installed.status !== 'pass') throw new Error('Installed Mod evidence differs from candidate');
     const transitionReport=join(temporary,'package-management.json');
-    run(process.execPath,[fileURLToPath(new URL('./version-management-official.js',import.meta.url)),artifact,values.commit!,JSON.stringify({...host,version}),transitionReport,join(dirname(reportPath),'package-management-trace.jsonl')],{...process.env},OFFICIAL_TRANSITION_MS);
+    const transitionArgs = [fileURLToPath(new URL('./version-management-official.js', import.meta.url)), artifact, values.commit!,
+        JSON.stringify({ ...host, version }), transitionReport, join(dirname(reportPath), 'package-management-trace.jsonl')];
+    if (process.env.GITHUB_ACTIONS) requireHostedBudget(OFFICIAL_TRANSITION_MS, performance.now() - startedHost);
+    const transitionStarted = performance.now();
+    let transitionError: unknown, bytes = 0;
+    const chunks: Buffer[] = [];
+    const capture = new Writable({ write(chunk: Buffer, _encoding, done) {
+        // The worker's original output remains visible; retain a bounded command log in the official receipt.
+        if (bytes < 1024 * 1024) chunks.push(Buffer.from(chunk.subarray(0, 1024 * 1024 - bytes)));
+        bytes += chunk.length; process.stdout.write(chunk, done);
+    } });
+    try {
+        await superviseInstalled(transitionArgs, officialTransitionPhases(process.platform === 'win32'), process.env,
+            join(dirname(reportPath), 'official-transition'), { cwd: repoRoot, output: { stdout: capture, stderr: capture } });
+    } catch (error) { transitionError = error; throw error; }
+    finally {
+        const output = Buffer.concat(chunks).toString('utf8') + (bytes > 1024 * 1024 ? '\n<output truncated>\n' : '');
+        const log = retainLog(join(dirname(reportPath), 'logs'), `command-${report.phases.length + 1}.log`, output);
+        report.phases.push({ argv: transitionArgs.map(arg => sanitizeLog(arg)), elapsed_ms: performance.now() - transitionStarted,
+            timeout_ms: OFFICIAL_TRANSITION_MS, status: transitionError ? null : 0, signal: null,
+            error: transitionError instanceof Error ? sanitizeLog(transitionError.message) : null, log });
+    }
     report.package_management=JSON.parse(fs.readFileSync(transitionReport,'utf8'));
     report.status = 'pass';
 } catch (error) { report.error = sanitizeLog(String(error)); process.exitCode = 1; }

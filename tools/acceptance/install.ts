@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { join, resolve, relative, isAbsolute, sep, delimiter } from 'node:path';
+import { join, resolve, relative, isAbsolute, sep, delimiter, dirname, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { repoRoot } from '../migration/ts-03/common.js';
@@ -8,10 +8,17 @@ import { verifyCandidate } from '../build/verify.js';
 import { PACKAGE } from '../build/model.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 export { PACKAGE } from '../build/model.js';
-export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT, commit = process.env.TS05_CANDIDATE_COMMIT) {
+export function reserveInstallFixture(): string {
+    return fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'ts05 installed 中文 $` & ')));
+}
+export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT, commit = process.env.TS05_CANDIDATE_COMMIT, reserved?: string) {
     if (!artifact || !commit) throw new Error("Require a previously built TS-05 artifact and fixed commit; acceptance never repacks");
     const packed = verifyCandidate(resolve(artifact), commit);
-    const temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'ts05 installed 中文 $` & '))), directory = join(temporary, 'prefix'), nodeDir = join(temporary, 'node-bin');
+    const temporary = reserved ?? reserveInstallFixture();
+    if (reserved && (fs.realpathSync.native(reserved) !== reserved || !fs.lstatSync(reserved).isDirectory() ||
+        fs.readdirSync(reserved).length || dirname(reserved) !== fs.realpathSync.native(tmpdir()) ||
+        !basename(reserved).startsWith('ts05 installed 中文 '))) throw new Error('Invalid or nonempty reserved installation fixture');
+    const directory = join(temporary, 'prefix'), nodeDir = join(temporary, 'node-bin');
     // Keep Unicode cleanup reliable on every supported Node release.
     const cleanup = () => removeTree(temporary);
     fs.mkdirSync(directory);

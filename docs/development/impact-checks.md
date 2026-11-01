@@ -69,6 +69,8 @@ Existing complete-source tags and historical npm releases retain their existing 
 
 ## Validation and operation
 
+For changes to the installed acceptance runner, exercise the affected candidate in addition to the planned tool-family checks. Use the Windows ARM host with an x64 process when investigating emulation or shell startup. Record the actual package SHA-256 separately from the revision of the harness used for a comparison. [Installed language combinations](testing.md#installed-language-combinations).
+
 Regression coverage includes the actual PR #181 PNG/JSON change set, mixed maintenance, product changes, dependency closure, renames, unknown files, skipped/draft jobs, package equivalence, immutable-base execution and complete-baseline → multiple-maintenance → tag/npm provenance. Fault cases include failed latest runs, expired or corrupted artifacts, wrong source identities and missing selected release evidence.
 
 Keep routing decisions and original execution identities in job summaries and delivery records. Review actual execution counts and elapsed times; reused receipts are not new samples. Roll back scheduling through a normal reviewed PR if needed, retaining evidence readers and existing published identities. See [CI maintenance](ci-maintenance.md), [testing](testing.md) and [release preparation](../RELEASING.md).

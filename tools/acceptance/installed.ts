@@ -1,23 +1,39 @@
-import { spawnSync } from 'node:child_process';
-import { resolve, dirname } from 'node:path';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { fileURLToPath } from 'node:url';
-import { verifyCandidate } from '../build/verify.js';
-import { prepareWindowsPowerShell } from './windows-shell.js';
-import { INSTALLED_SUITE_MS } from './budgets.js';
-const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, 'diagnostic-pattern': { type: 'string' } } });
-if (!values.artifact || !values.commit || !values.report) throw new Error('Usage: test:installed -- --artifact TGZ --commit FULL_SHA --report FILE');
-const artifact = resolve(values.artifact), report = resolve(values.report);
-verifyCandidate(artifact, values.commit); mkdirSync(dirname(report), { recursive: true });
-const shellSetup = process.platform === 'win32' ? prepareWindowsPowerShell() : null;
-if (shellSetup) {
-    writeFileSync(report + '.shell-setup.json', JSON.stringify(shellSetup, null, 2) + '\n');
-    console.log(JSON.stringify({ powershell_environment_setup: shellSetup }));
-    if (shellSetup.status !== 'pass') throw new Error('Windows PowerShell environment preparation failed; no candidate test was run');
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { reserveInstallFixture } from './install.js';
+import { installedPhases } from './installed-plan.js';
+import { PLATFORM_SOURCE_MS, requireHostedBudget, supervisionBudget } from './budgets.js';
+import { superviseInstalled } from './installed-supervisor.js';
+
+export async function runInstalled(artifact: string, commit: string, report: string, pattern?: string, env = process.env): Promise<void> {
+    const phases = installedPhases(process.platform === 'win32', LANGUAGES.length, pattern);
+    if (env.GITHUB_ACTIONS) requireHostedBudget(supervisionBudget(phases), PLATFORM_SOURCE_MS);
+    const args = ['--test', '--test-concurrency=1', ...(pattern ? ['--test-name-pattern', pattern] : []),
+        fileURLToPath(new URL('../migration/ts-04/test/installed.test.js', import.meta.url))];
+    const target = resolve(report), pending = target + '.' + randomUUID() + '.pending';
+    fs.mkdirSync(dirname(target), { recursive: true });
+    const fixture = reserveInstallFixture();
+    try {
+        await superviseInstalled(args, phases, { ...env, TS05_CANDIDATE_ARTIFACT: resolve(artifact), TS05_CANDIDATE_COMMIT: commit,
+            TS04_INSTALLED_REPORT: target, TS05_PENDING_RECEIPT: pending, TS05_DIAGNOSTIC_PATTERN: pattern ?? '',
+            TS05_RESERVED_FIXTURE: fixture }, target, { fixture });
+        const receipt = JSON.parse(fs.readFileSync(pending, 'utf8'));
+        assert.equal(receipt.status, pattern ? 'fail' : 'pass', 'Incomplete installed acceptance');
+        fs.renameSync(pending, target);
+    } catch (error) {
+        let partial: Record<string, unknown> = {};
+        try { partial = JSON.parse(fs.readFileSync(pending, 'utf8')); } catch { /* Worker can die before teardown. */ }
+        fs.writeFileSync(pending, JSON.stringify({ ...partial, status: 'fail', error: error instanceof Error ? error.message : String(error) }, null, 2) + '\n');
+        fs.renameSync(pending, target); throw error;
+    }
 }
-const result = spawnSync(process.execPath, ['--test', '--test-concurrency=1', ...(values['diagnostic-pattern'] ? ['--test-name-pattern', values['diagnostic-pattern']] : []), fileURLToPath(new URL('../migration/ts-04/test/installed.test.js', import.meta.url))], {
-    env: { ...process.env, TS05_CANDIDATE_ARTIFACT: artifact, TS05_CANDIDATE_COMMIT: values.commit, TS04_INSTALLED_REPORT: report, TS05_POWERSHELL_SETUP: JSON.stringify(shellSetup), TS05_DIAGNOSTIC_PATTERN: values['diagnostic-pattern'] ?? '' }, stdio: 'inherit', timeout: INSTALLED_SUITE_MS,
-});
-if (result.error) throw result.error;
-process.exitCode = result.status ?? 1;
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, 'diagnostic-pattern': { type: 'string' } } });
+    if (!values.artifact || !values.commit || !values.report) throw new Error('Usage: test:installed -- --artifact TGZ --commit FULL_SHA --report FILE');
+    await runInstalled(values.artifact, values.commit, values.report, values['diagnostic-pattern']);
+}
