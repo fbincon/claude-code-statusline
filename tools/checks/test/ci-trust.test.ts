@@ -110,6 +110,7 @@ test('workflow wires independent verification and targeted contracts into promot
     assert(!JSON.stringify(jobs).includes('outputs.shadow'));
     assert(jobs.acceptance.needs.includes('promotion') && jobs.acceptance.needs.includes('integration'));
     assert(jobs.acceptance.name.includes('Manual validation (not PR evidence)'));
+    assert.equal(jobs.acceptance.steps.find((step: any) => step.uses?.startsWith('actions/checkout@')).with['fetch-depth'], 0, 'Schema activation requires the complete source history');
     const record = jobs.acceptance.steps.find((step: any) => step.run?.includes('ci-evidence.js record'));
     assert(record.if.includes("github.event_name != 'workflow_dispatch'"));
     assert(jobs.scope.steps.find((step: any) => step.id === 'promotion').env.CI_BASE.includes('pull_request.base.sha'));

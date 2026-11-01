@@ -1,4 +1,4 @@
-import { artifactIdentity, type CompleteEvidence } from '../../ci-evidence.js';
+import { artifactIdentity, type CompleteEvidenceV1 } from '../../ci-evidence.js';
 import { TARGETS, HOSTS, runtimeInputs } from '../../runtime-inputs.js';
 import { CI_REPOSITORY } from '../../ci-watch.js';
 export const commit = 'a'.repeat(40), hash = 'b'.repeat(64), now = Date.now();
@@ -8,7 +8,7 @@ export function fixture() {
     const names = ['ts06-candidate', 'ci-compiled-tests', ...TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
         ...HOSTS.map(host => `ts06-mods-${host.os}-${host.claude}`), ...inputs.matrix.include.map(row => `ts06-runtime-${row.target.os}-${row.target.arch}-${row.node}`)];
     const artifacts = names.map((name, index) => ({ id: 100 + index, name, digest: 'sha256:' + hash, expired: false, created_at: new Date(now).toISOString(), expires_at: new Date(now + 86400000).toISOString() }));
-    const record: CompleteEvidence = { schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: commit, tree: commit, workflow_sha: commit,
+    const record: CompleteEvidenceV1 = { schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: commit, tree: commit, workflow_sha: commit,
         run_id: 12, attempt: 2, event: 'push', branch: 'main', workflow: '.github/workflows/ci.yml', pr: null, created_at: new Date(now).toISOString(), expires_at: new Date(now + 86400000).toISOString(),
         policy_sha256: hash, version: '3.9.1', toolchain: { node: 'v24.21.0', npm: '11.19.0', typescript: '5.9.3', lock_sha256: hash }, coverage: { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: 197 }, inputs,
         acceptance_sha256: hash, input_file_sha256: hash, compiled: { 'compiled-tests.json': hash, 'compiled-tests.tar': hash },

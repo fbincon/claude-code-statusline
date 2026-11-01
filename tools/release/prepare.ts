@@ -16,6 +16,9 @@ import { VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECU
 import { verifyLanguageEvidence } from '../checks/i18n-evidence.ts';
 import { parseOfficialTestSummary, verifyOfficialTestBatches, type OfficialTestReceipt } from '../acceptance/official-tests.js';
 import { sha256 as digestBytes } from '../build/files.js';
+import { coverageVersionAt, coverageVersionInArchive, historyCounts, verifyCoveragePlan, type CoveragePlan } from '../checks/ci-coverage.ts';
+import { validateFragmentIdentity } from '../checks/ci-fragment.ts';
+import { validateSectionEvidence, validateInstalledDetails, verifySectionLogBytes, SECTION_INPUT_PATHS, sectionInputsAt } from '../checks/ci-section-evidence.ts';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
@@ -57,12 +60,67 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
         assert.equal(value.previous_release.host, value.host);
     }
 }
-export function assessEvidence(reports: any[], commit: string, sha256: string, sourceEntries: ReadonlyMap<string, Uint8Array>) {
+function officialInputs(sourceEntries: ReadonlyMap<string, Uint8Array>) {
     assert(sourceEntries instanceof Map, 'Immutable source entries are required for official test coverage');
-    const officialSources = Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => {
+    return Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => {
         const prefix = 'mods/' + name + '/';
         return [name, Object.fromEntries([...sourceEntries].filter(([path]) => path.startsWith(prefix)).map(([path, bytes]) => [path.slice(prefix.length), digestBytes(Buffer.from(bytes))]))];
     }));
+}
+function hostDetails(report: any, commit: string, sha256: string, officialSources: ReturnType<typeof officialInputs>, typesUnavailable: string[]): void {
+    assert(HOST_TARGETS.includes(report.target), 'Unexpected host target');
+    assert.equal(report.target, report.platform + '-' + report.host);
+    assert.equal(report.model_calls, 0);
+    const required = Number(report.host.split('.')[2]) >= 289 ? ['statusline-native', 'statusline-runtime'] : ['statusline-native'];
+    for (const name of required) {
+        const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
+        verifyOfficialTestBatches(mod.official_test_batches, officialSources[name]!);
+        if (name === 'statusline-native') {
+            assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES);
+            assert.equal(mod.capacity.actual_host, true); assert.equal(mod.capacity.model_calls, 0);
+            assert.equal(mod.capacity.original_cases, 197);
+            assert.equal(mod.capacity.total_cases, NATIVE_CAPACITY_TOTAL_CASES);
+            assert.equal(mod.capacity.additional_cases, NATIVE_CAPACITY_ADDITIONAL_CASES);
+            assert.equal(mod.capacity.shared_execution, true);
+            assert.match(mod.capacity.baseline_names_sha256, /^[a-f0-9]{64}$/u);
+            assert.match(mod.capacity.additional_names_sha256, /^[a-f0-9]{64}$/u);
+            assert.equal(mod.capacity.validation?.status, 'pass');
+            assert.equal(mod.capacity.validation.timeout_ms, NATIVE_CAPACITY_TIMEOUT_MS);
+            assert(Number.isFinite(mod.capacity.validation.elapsed_ms) && mod.capacity.validation.elapsed_ms >= 0 && mod.capacity.validation.elapsed_ms <= NATIVE_CAPACITY_TIMEOUT_MS, 'Invalid capacity validation duration');
+            verifyOfficialTestBatches(mod.capacity.execution, nativeCapacitySourceInventory(officialSources[name]!), NATIVE_CAPACITY_TIMEOUT_MS);
+            assert.equal(mod.capacity.execution.totals.tests, NATIVE_CAPACITY_TOTAL_CASES, 'Incomplete actual-host capacity execution');
+            assert.equal(mod.capacity.test_files, mod.capacity.execution.totals.files, 'Capacity file count differs');
+        }
+        if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
+        else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
+    }
+    assert.equal(report.installed.status, 'pass'); assert.equal(report.installed.tarball_sha256, sha256);
+    assert.equal(report.installed.source.commit, commit);
+}
+function officialLogs(report: any, root: string): void {
+    const readLog = (log: string, sha256: string): Buffer => {
+        assert(/^[a-z0-9.-]+\.log$/u.test(log), 'Invalid official log name');
+        const logs = join(root, 'logs'), file = join(logs, log);
+        assert(!fs.lstatSync(logs).isSymbolicLink() && fs.lstatSync(logs).isDirectory(), 'Linked official log directory');
+        const stat = fs.lstatSync(file);
+        assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4 * 1024 * 1024, 'Invalid official result log');
+        const bytes = fs.readFileSync(file);
+        assert.equal(digestBytes(bytes), sha256, 'Official result log changed');
+        return bytes;
+    };
+    for (const mod of Object.values(report.mods ?? {}) as { official_test_batches?: OfficialTestReceipt; capacity?: { execution?: OfficialTestReceipt; validation?: { log: string; log_sha256: string } } }[]) {
+        for (const batch of [...mod.official_test_batches?.batches ?? [], ...mod.capacity?.execution?.batches ?? []]) {
+            const bytes = readLog(batch.log, batch.log_sha256);
+            assert.deepEqual(parseOfficialTestSummary(bytes.toString('utf8'), batch.test_files), {
+                tests: batch.tests, files: batch.files, pass: batch.pass, fail: batch.fail, skip: batch.skip,
+            }, 'Official result log does not match its receipt');
+        }
+        if (mod.capacity?.validation) readLog(mod.capacity.validation.log, mod.capacity.validation.log_sha256);
+    }
+}
+export function assessEvidence(reports: any[], commit: string, sha256: string, sourceEntries: ReadonlyMap<string, Uint8Array>) {
+    assert.equal(coverageVersionInArchive(sourceEntries), 1, 'Activated source requires physical evidence');
+    const officialSources = officialInputs(sourceEntries);
     const typesUnavailable: string[] = [], seen = new Set<string>();
     for (const report of reports) {
         assert.equal(report.status, 'pass', 'Failed/skipped evidence cannot pass');
@@ -79,80 +137,15 @@ export function assessEvidence(reports: any[], commit: string, sha256: string, s
             assert.equal(report.runtime_tests, true, 'Missing product runtime tests');
         }
         if (INSTALL_TARGETS.includes(report.target)) {
-            assert.equal(report.offline_install, true); assert.equal(report.initially_empty_npm_cache, true);
-            assert.equal(report.lifecycle_scripts, false); assert.equal(report.outside_checkout, true);
-            assert.equal(report.path_excludes_python_and_compilers, true);
-            if (report.target.startsWith('windows-')) {
-                assert.equal(report.powershell_setup?.status, 'pass', 'Windows shell environment evidence is required');
-                assert.equal(report.powershell_setup.candidate_invoked, false);
-                assert.equal(report.powershell_setup.receipt.status, 0);
-                assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
-                assert.equal(report.powershell_setup.receipt.error, null);
-            }
             assert.equal(Object.keys(report.checks).length, compareVersions(VERSION, '3.15.0') >= 0 ? 27 : 26); assert(Object.values(report.checks).every(value => value === true));
-            assert(report.source_operations&&typeof report.source_operations==='object');
-            for(const key of ['separate_approval','interval_300','ttl_independent','non_git','manual_consumer_preserved','last_success_after_failure','execution_summary','bindings_reused','drafts_protected','reviewed_cleanup','settings_unchanged'])assert.equal(report.source_operations[key],true);assert.equal(report.source_operations.model_calls,0);
-            assert.equal(report.checks.appearance_scenarios,true);
-            assert.deepEqual(report.appearance_scenarios,{languages:LANGUAGES,widths:[40,80,120],schemes:['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'],semantic_fitting:true,scenario_previews:true,round_trip:true,save_reopen:true,installed_modules:true,model_calls:0});
-            assert.equal(report.checks.draft_reuse,true);
-            assert.deepEqual(report.draft_reuse,{languages:LANGUAGES,widths:[40,80,120],history:true,atomic_repairs:true,style_fields:true,group_closure:true,unbound_sources:true,conflict_retry:true,unknown_reconciliation:true,save_reopen:true,installed_modules:true,model_calls:0});
-            assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
-            assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
-            if(compareVersions(VERSION,'3.10.0')>=0)assert.deepEqual(report.appearance_preview_diagnosis,{theme:'ocean',gradient:'glacier',scenarios:6,readonly_file:true,input_only:true,unsaved_draft:true});
-            assert.equal(report.checks.task_viewer,true);assert.deepEqual(report.task_viewer,{languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true});
-            assert.equal(report.checks.alignments, true); assert.equal(report.alignment_cases, 4);
-            assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:LANGUAGES.length*3,installed_modules:true,saved_reopened:true,preview_matches:true});
+            validateInstalledDetails(report, LANGUAGES, compareVersions(VERSION,'3.10.0')>=0);
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);
-            assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
-            assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
-            assert.equal(report.checks.terminal_colors, true); assert.equal(report.terminal_color_cases, report.target.startsWith('windows-') ? 15 : 3);
-            if (report.target.startsWith('windows-')) {
-                assert(Array.isArray(report.terminal_shell_evidence), 'Missing actual Windows shell preview evidence');
-                const expected = ['setup', 'configure', 'slash'].flatMap(entry => ['powershell', 'cmd', 'git-bash'].map(shell => entry + '/' + shell));
-                assert.deepEqual(report.terminal_shell_evidence.map((row: any) => row.entry + '/' + row.shell).sort(), expected.sort(), 'Incomplete Windows shell preview evidence');
-                for (const row of report.terminal_shell_evidence) {
-                    assert.equal(row.colors, 256); assert.equal(row.input_tty, true); assert.equal(row.restored, true); assert.equal(row.cancelled, true);
-                }
-            }
-            assert.equal(report.checks.cost_rates, true); assert.equal(report.cost_rate_cases, 4);
             if (compareVersions(VERSION, '3.15.0') >= 0) {
                 assert.equal(report.checks.i18n_workflow, true);
                 assert.deepEqual(report.i18n_workflow, { languages: LANGUAGES, combinations: LANGUAGES.length ** 2, effective_resources: true, readonly_preview: true, save_reopen: true, installed_modules: true, model_calls: 0 });
             }
-            assert.equal(report.checks.automatic_refresh, true); assert.equal(report.automatic_refresh_cases, 4);
-            assert.equal(report.checks.groups, true); assert.equal(report.group_cases, 4);
-            assert.equal(report.checks.indicators, true); assert.equal(report.indicator_cases, 3);
-            assert.equal(report.checks.setup, true); assert.equal(report.setup_cases, 3);
-            assert.equal(report.checks.extensions, true); assert.equal(report.extension_cases, 4);
         } else {
-            assert(HOST_TARGETS.includes(report.target), 'Unexpected host target');
-            assert.equal(report.target, report.platform + '-' + report.host);
-            assert.equal(report.model_calls, 0);
-            const required = Number(report.host.split('.')[2]) >= 289 ? ['statusline-native', 'statusline-runtime'] : ['statusline-native'];
-            for (const name of required) {
-                const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
-                verifyOfficialTestBatches(mod.official_test_batches, officialSources[name]!);
-                if (name === 'statusline-native') {
-                    assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES);
-                    assert.equal(mod.capacity.actual_host, true); assert.equal(mod.capacity.model_calls, 0);
-                    assert.equal(mod.capacity.original_cases, 197);
-                    assert.equal(mod.capacity.total_cases, NATIVE_CAPACITY_TOTAL_CASES);
-                    assert.equal(mod.capacity.additional_cases, NATIVE_CAPACITY_ADDITIONAL_CASES);
-                    assert.equal(mod.capacity.shared_execution, true);
-                    assert.match(mod.capacity.baseline_names_sha256, /^[a-f0-9]{64}$/u);
-                    assert.match(mod.capacity.additional_names_sha256, /^[a-f0-9]{64}$/u);
-                    assert.equal(mod.capacity.validation?.status, 'pass');
-                    assert.equal(mod.capacity.validation.timeout_ms, NATIVE_CAPACITY_TIMEOUT_MS);
-                    assert(Number.isFinite(mod.capacity.validation.elapsed_ms) && mod.capacity.validation.elapsed_ms >= 0 && mod.capacity.validation.elapsed_ms <= NATIVE_CAPACITY_TIMEOUT_MS, 'Invalid capacity validation duration');
-                    verifyOfficialTestBatches(mod.capacity.execution, nativeCapacitySourceInventory(officialSources[name]!), NATIVE_CAPACITY_TIMEOUT_MS);
-                    assert.equal(mod.capacity.execution.totals.tests, NATIVE_CAPACITY_TOTAL_CASES, 'Incomplete actual-host capacity execution');
-                    assert.equal(mod.capacity.test_files, mod.capacity.execution.totals.files, 'Capacity file count differs');
-                }
-                if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
-                else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
-            }
-            assert.equal(report.installed.status, 'pass'); assert.equal(report.installed.tarball_sha256, sha256);
-            assert.equal(report.installed.source.commit, commit);
+            hostDetails(report, commit, sha256, officialSources, typesUnavailable);
             versionSequence(report.package_management, true); assert.equal(report.package_management.host, report.host);
         }
     }
@@ -165,40 +158,102 @@ export function evidenceFiles(root: string): any[] {
         const path = join(root, entry.name);
         if (entry.isSymbolicLink()) throw new Error('Linked evidence is not accepted');
         if (entry.isDirectory()) return evidenceFiles(path);
+        assert.notEqual(entry.name,'fragment.json','Physical receipts cannot be accepted as v1 evidence');
         if (!['installed.json', 'mods.json', 'runtime.json'].includes(entry.name)) return [];
         const report = JSON.parse(fs.readFileSync(path, 'utf8'));
         if (entry.name === 'mods.json') {
-            const readLog = (log: string, sha256: string): Buffer => {
-                assert(/^[a-z0-9.-]+\.log$/u.test(log), 'Invalid official log name');
-                const logs = join(root, 'logs'), file = join(logs, log);
-                assert(!fs.lstatSync(logs).isSymbolicLink() && fs.lstatSync(logs).isDirectory(), 'Linked official log directory');
-                const stat = fs.lstatSync(file);
-                assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 4 * 1024 * 1024, 'Invalid official result log');
-                const bytes = fs.readFileSync(file);
-                assert.equal(digestBytes(bytes), sha256, 'Official result log changed');
-                return bytes;
-            };
-            for (const mod of Object.values(report.mods ?? {}) as { official_test_batches?: OfficialTestReceipt; capacity?: { execution?: OfficialTestReceipt; validation?: { log: string; log_sha256: string } } }[]) {
-                for (const batch of [...mod.official_test_batches?.batches ?? [], ...mod.capacity?.execution?.batches ?? []]) {
-                    const bytes = readLog(batch.log, batch.log_sha256);
-                    assert.deepEqual(parseOfficialTestSummary(bytes.toString('utf8'), batch.test_files), {
-                        tests: batch.tests, files: batch.files, pass: batch.pass, fail: batch.fail, skip: batch.skip,
-                    }, 'Official result log does not match its receipt');
-                }
-                if (mod.capacity?.validation) readLog(mod.capacity.validation.log, mod.capacity.validation.log_sha256);
-            }
+            officialLogs(report, root);
         }
         return [report];
     });
 }
+export interface ReleaseCoverageContext { base: string | null; basis: CoveragePlan['basis']; run_id: number; attempt: number; workflow_sha: string }
+function evidenceBytes(path: string, limit: number): Buffer {
+    const stat = fs.lstatSync(path); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size > 0 && stat.size <= limit, 'Invalid evidence file: ' + path);
+    const bytes = fs.readFileSync(path); assert.equal(bytes.length,stat.size); return bytes;
+}
+function physicalPaths(root: string): string[] {
+    const found: string[] = []; let visited=0;
+    function inspect(prefix: string, depth: number): void {
+        assert(depth<=64,'Physical evidence directory nesting exceeds bound');
+        for (const entry of fs.readdirSync(join(root,prefix),{withFileTypes:true})) {
+            assert(++visited<=100_000,'Physical evidence inventory exceeds bound');
+            assert(!entry.isSymbolicLink(), 'Linked evidence is not accepted');
+            const path = prefix ? prefix + '/' + entry.name : entry.name;
+            if (entry.isDirectory()) inspect(path,depth+1);
+            else if (entry.name === 'fragment.json') found.push(path);
+            else assert(!['installed.json','runtime.json','mods.json'].includes(entry.name), 'Mixed v1/v2 receipt: ' + path);
+        }
+    }
+    inspect('',0); return found.sort();
+}
+/** The caller supplies independently established comparison and run provenance.
+ * Embedded plan fields never select their own required coverage. */
+export function assessEvidenceDirectory(directory: string, commit: string, sha256: string, entries: ReadonlyMap<string, Uint8Array>, context?: ReleaseCoverageContext) {
+    const root = resolve(directory); assert(fs.lstatSync(root).isDirectory());
+    const version = coverageVersionInArchive(entries);
+    assert.equal(coverageVersionAt(commit),version,'Git and archive coverage activation disagree');
+    if (version === 1) {
+        assert(!context, 'Cannot use a v2 context with historical evidence');
+        return assessEvidence(evidenceFiles(root),commit,sha256,entries);
+    }
+    assert(context && Number.isSafeInteger(context.run_id) && context.run_id > 0 && Number.isSafeInteger(context.attempt) && context.attempt > 0,
+        'v2 requires independently verified comparison and original run context');
+    assert.match(context.workflow_sha,/^[a-f0-9]{40}$/u);
+    const candidate = join(root,'ts06-candidate'); assert(fs.lstatSync(candidate).isDirectory());
+    const inputs = JSON.parse(evidenceBytes(join(candidate,'runtime-inputs.json'),1024*1024).toString());
+    const plan = verifyCoveragePlan(JSON.parse(evidenceBytes(join(candidate,'coverage-plan.json'),1024*1024).toString()),context.base,commit,inputs,context.basis);
+    assert.deepEqual(physicalPaths(root),plan.producers.map(p=>p.receipt).sort(),'Missing, duplicate or unexpected physical receipts');
+    const gitInputs = sectionInputsAt(commit), contractPaths = new Set<string>(SECTION_INPUT_PATHS);
+    const archived = [...entries.keys()].filter(path=>contractPaths.has(path)||path.startsWith('mods/statusline-native/')||path.startsWith('mods/statusline-runtime/'));
+    assert.deepEqual(archived.sort(),[...gitInputs.keys()].sort(),'Archive and Git section inventories differ');
+    for (const path of archived) assert(Buffer.from(entries.get(path)!).equals(gitInputs.get(path)!),'Archive and Git section inputs differ: '+path);
+    const manifest = JSON.parse(Buffer.from(entries.get('package.json')!).toString('utf8'));
+    const npm = /^npm@(\d+\.\d+\.\d+)$/u.exec(manifest.packageManager)?.[1]; assert(npm,'Missing source development npm identity');
+    const officialSources = officialInputs(entries), unavailable: string[] = [], executables = new Map<string,string>();
+    const physical = plan.producers.map(producer => {
+        const bytes = evidenceBytes(join(root,producer.receipt),16*1024*1024), fragment: unknown = JSON.parse(bytes.toString('utf8'));
+        validateFragmentIdentity(fragment,producer,plan,{...context,tarball_sha256:sha256});
+        const id = fragment.identity, key = [id.os,id.process_arch,id.host_arch,id.node].join('/');
+        const tools = [id.node_sha256,id.npm,id.npm_sha256].join('/');
+        assert(!executables.has(key) || executables.get(key) === tools,'Different executables for the same frozen runner and Node');
+        executables.set(key,tools); if (id.node === inputs.development) assert.equal(id.npm,npm,'Development npm differs from original source');
+        validateSectionEvidence(fragment,producer,plan,entries);
+        if (fragment.report.official) {
+            const official = fragment.report.official as any;
+            const requiredNames = Number(id.host!.split('.')[2]) >= 289 ? ['statusline-native','statusline-runtime'] : ['statusline-native'];
+            for (const name of requiredNames) {
+                const mod = official.mods[name];
+                verifyOfficialTestBatches(mod.official_test_batches,officialSources[name]!);
+                // The frozen section verifier already reconstructed this inventory
+                // using the original languages, independent of this reader's release.
+                if (name==='statusline-native') verifyOfficialTestBatches(mod.capacity.execution,mod.capacity.execution.source_files,300_000);
+                if (id.host==='2.1.296') unavailable.push(official.target+'/'+name);
+            }
+            verifySectionLogBytes(join(root,producer.artifact),fragment.report,(output,batch) => {
+                assert.deepEqual(parseOfficialTestSummary(output,batch.test_files),{tests:batch.tests,files:batch.files,pass:batch.pass,fail:batch.fail,skip:batch.skip},'Official log differs from physical receipt');
+            });
+        }
+        return {producer_id:id.producer_id,artifact:producer.artifact,stage:id.stage,depth:id.depth,obligations:id.obligations,
+            run_id:id.run_id,attempt:id.attempt,job:id.job,job_key:id.job_key,receipt_sha256:digestBytes(bytes)};
+    });
+    return {status:'pass',commit,tarball_sha256:sha256,installations:plan.obligations.filter(r=>r.kind==='installed').length,
+        runtime_installations:plan.obligations.filter(r=>r.kind==='runtime').length,hosts:plan.obligations.filter(r=>r.kind==='host').length,
+        type_declarations_unavailable:unavailable,public_release:false,coverage_version:2,history_coverage:historyCounts(plan.obligations),physical_producers:physical};
+}
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' }, stable: { type: 'boolean' }, candidate: { type: 'boolean' } } });
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' }, stable: { type: 'boolean' }, candidate: { type: 'boolean' },
+        'coverage-basis':{type:'string'},'coverage-base':{type:'string'},'coverage-run-id':{type:'string'},'coverage-attempt':{type:'string'},'coverage-workflow-sha':{type:'string'} } });
     if (!values.artifact || !values.commit || !values.evidence || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE');
     assert(!(values.preview && values.stable), 'Choose preview or stable readiness');
     assert(!(values.candidate && (values.preview || values.stable)), 'Candidate acceptance and publication are separate modes');
     const candidate = verifyDelivery(resolve(values.artifact), values.commit);
     verifyLanguageEvidence(candidate.language, candidate.sourceEntries, values.commit, values.preview === true || values.stable === true);
-    const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256, candidate.sourceEntries);
+    const basis = values['coverage-basis'];
+    if (Object.keys(values).some(key=>key.startsWith('coverage-'))) assert(basis && ['pull_request','accepted-main','conservative'].includes(basis),'Invalid coverage basis');
+    const context = basis ? {basis:basis as CoveragePlan['basis'],base:values['coverage-base'] ?? null,run_id:Number(values['coverage-run-id']),
+        attempt:Number(values['coverage-attempt']),workflow_sha:values['coverage-workflow-sha'] ?? ''} : undefined;
+    const result = assessEvidenceDirectory(values.evidence, values.commit, candidate.sha256, candidate.sourceEntries, context);
     if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
     let approval = null;
     if (values.stable || values.candidate && candidate.source.channel === 'stable') {

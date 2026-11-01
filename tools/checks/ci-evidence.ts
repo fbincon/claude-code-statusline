@@ -8,15 +8,18 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { TARGETS, HOSTS } from './runtime-inputs.ts';
+import { coverageVersionAt, verifyCoveragePlan, type CoveragePlan } from './ci-coverage.ts';
+import { validateFragmentIdentity, validatePhysicalIdentity, type PhysicalExecution } from './ci-fragment.ts';
+import { sectionInputsAt, sourceCapacityCount, sourceContract, validateSectionEvidence, verifySectionLogBytes } from './ci-section-evidence.ts';
 import { envelopeBytes } from './evidence-zip.ts';
 import { languageEvidence, type LanguageEvidence } from './i18n-evidence.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+export const git = (...args: string[]) => execFileSync('git', ['--no-replace-objects', ...args], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 export interface ArtifactIdentity { id: number; name: string; digest: string; expires_at: string }
-export interface CompleteEvidence {
-    schema_version: 1; kind: 'complete'; repository: string; source_commit: string; tree: string;
+interface EvidenceBase {
+    kind: 'complete'; repository: string; source_commit: string; tree: string;
     run_id: number; attempt: number; event: string; branch: string; workflow: string; workflow_sha: string;
     pr: { number: number; head: string; base: string; base_ref: string; draft: boolean } | null;
     created_at: string; expires_at: string; policy_sha256: string; version: string;
@@ -24,9 +27,15 @@ export interface CompleteEvidence {
     coverage: { installations: number; runtime_installations: number; hosts: number; native_capacity_cases: number };
     inputs: unknown; delivery: Record<string, string>; receipts: Record<string, string>;
     acceptance_sha256: string; input_file_sha256: string; compiled: Record<string, string>;
-    artifacts: ArtifactIdentity[]; executions: any[];
+    artifacts: ArtifactIdentity[];
     language?: LanguageEvidence;
 }
+export interface CompleteEvidenceV1 extends EvidenceBase { schema_version: 1; executions: any[] }
+export interface CompleteEvidenceV2 extends EvidenceBase {
+    schema_version: 2; coverage_plan: CoveragePlan; coverage_plan_sha256: string; executions: PhysicalExecution[];
+}
+export type CompleteEvidence = CompleteEvidenceV1 | CompleteEvidenceV2;
+export { validateFragmentIdentity, type PhysicalIdentity, type PhysicalFragment, type PhysicalExecution } from './ci-fragment.ts';
 /** Release registrations are data; executable release checks remain acceptance policy. */
 export function acceptancePolicyPath(path: string): boolean {
     return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
@@ -98,20 +107,27 @@ export function requireRun(run: any, commit: string, branch: string, event = 'pu
     assert.equal(run.conclusion, 'success', `Latest applicable CI ${run.id} did not pass`);
 }
 export function validateComplete(record: CompleteEvidence, run: any, artifacts: any[], now = Date.now()): void {
-    assert.equal(record.schema_version, 1); assert.equal(record.kind, 'complete'); assert.equal(record.repository, CI_REPOSITORY);
+    assert([1, 2].includes(record.schema_version), 'Unsupported complete evidence schema'); assert.equal(record.kind, 'complete'); assert.equal(record.repository, CI_REPOSITORY);
     requireRun(run, record.source_commit, record.branch, record.event);
     assert.equal(record.run_id, run.id); assert.equal(record.attempt, run.run_attempt); assert.equal(record.workflow, run.path);
     assert.match(record.tree, SHA); assert.match(record.workflow_sha, SHA); assert.match(record.policy_sha256, HASH);
     assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now, 'Evidence envelope is expired or has an invalid creation time');
     assert(Date.parse(record.expires_at) - Date.parse(record.created_at) <= 30 * 86400000);
-    assert.deepEqual(record.coverage, { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: 197 });
+    let capacity = 197;
+    if (record.schema_version === 2) {
+        const entries = sectionInputsAt(record.source_commit);
+        assert.equal(record.version, sourceContract(entries).version, 'Physical envelope names the wrong source version');
+        capacity = sourceCapacityCount(entries);
+    }
+    assert.deepEqual(record.coverage, { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: capacity });
     assert.match(record.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
     assert.deepEqual(Object.keys(record.delivery).sort(), ['SHA256SUMS', 'build-manifest.json', `fbincon-claude-code-statusline-${record.version}.tgz`, `claude-code-statusline-${record.version}-source.tar.gz`].sort());
     assert(Object.values(record.delivery).every(value => HASH.test(value)));
     assert.match(record.acceptance_sha256, HASH); assert.match(record.input_file_sha256, HASH);
     assert.deepEqual(Object.keys(record.compiled).sort(), ['compiled-tests.json', 'compiled-tests.tar']);
     assert(Object.values(record.compiled).every(value => HASH.test(value)));
-    assert(Object.keys(record.receipts).length >= 56 && Object.values(record.receipts).every(value => HASH.test(value)));
+    if (record.schema_version === 1) assert(Object.keys(record.receipts).length >= 56);
+    assert(Object.values(record.receipts).every(value => HASH.test(value)));
     assert(Object.keys(record.receipts).every(path => !path.startsWith('/') && !path.includes('\\') && path.split('/').every(part => part && part !== '.' && part !== '..')));
     const inputs = record.inputs as any;
     assert.equal(inputs?.schema_version, 1); assert.match(inputs.development, /^24\.\d+\.\d+$/u);
@@ -123,9 +139,11 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
         if (!key.endsWith('.x')) assert.equal(value, key);
     }
     assert.deepEqual(inputs.shared, Object.keys(inputs.versions).filter(key => inputs.versions[key] === inputs.development));
-    const expectedNames = ['ts06-candidate', 'ci-compiled-tests', ...TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
+    const legacyNames = ['ts06-candidate', 'ci-compiled-tests', ...TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
         ...HOSTS.map(host => `ts06-mods-${host.os}-${host.claude}`), ...Object.keys(inputs.versions).filter(key => !inputs.shared.includes(key))
             .flatMap(key => TARGETS.map(target => `ts06-runtime-${target.os}-${target.arch}-${key}`))];
+    const expectedNames = record.schema_version === 1 ? legacyNames :
+        ['ts06-candidate', 'ci-compiled-tests', ...record.coverage_plan.producers.map(producer => producer.artifact)];
     const ids = new Set<number>(), names = new Set<string>();
     for (const expected of record.artifacts) {
         assert(!ids.has(expected.id) && !names.has(expected.name), 'Ambiguous source artifacts'); ids.add(expected.id); names.add(expected.name);
@@ -135,6 +153,14 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
     }
     assert(names.has('ts06-candidate') && names.has('ci-compiled-tests'));
     assert.deepEqual([...names].sort(), expectedNames.sort(), 'Incomplete original artifact coverage');
+    if (record.event === 'pull_request') {
+        assert(record.pr && record.pr.draft === false && record.pr.head === record.source_commit && record.pr.base_ref === 'main'); assert.match(record.pr.base, SHA);
+        assert(Number.isSafeInteger(record.pr.number) && record.pr.number > 0);
+    } else { assert.equal(record.event, 'push'); assert.equal(record.branch, 'main'); assert.equal(record.pr, null); }
+    if (record.schema_version === 2) validateV2Coverage(record, artifacts);
+    else validateLegacyExecutions(record, inputs);
+}
+function validateLegacyExecutions(record: CompleteEvidenceV1, inputs: any): void {
     assert.equal(record.executions.length, 56, 'Missing original execution references');
     const obligations = new Set<string>();
     for (const execution of record.executions) {
@@ -165,29 +191,98 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
             for (const key of ['run_id', 'attempt', 'job']) assert.equal(execution.execution[key], installed.execution[key], 'Shared runtime execution changed');
         } else assert.notEqual(execution.execution.reused_installed, true, 'Different runtime cannot share installation execution');
     }
-    if (record.event === 'pull_request') {
-        assert(record.pr && record.pr.draft === false && record.pr.head === record.source_commit && record.pr.base_ref === 'main'); assert.match(record.pr.base, SHA);
-        assert(Number.isSafeInteger(record.pr.number) && record.pr.number > 0);
-    } else { assert.equal(record.event, 'push'); assert.equal(record.branch, 'main'); assert.equal(record.pr, null); }
 }
-export function fileReceipts(directory: string): Record<string, string> {
+/** For reduced main coverage only an independently accepted, actual first parent is eligible. */
+export function coverageContext(record: CompleteEvidenceV2): { base: string | null; basis: CoveragePlan['basis'] } {
+    const basis = record.coverage_plan.basis;
+    if (basis === 'conservative') return { base: null, basis };
+    if (record.event === 'pull_request') {
+        assert.equal(basis, 'pull_request'); assert(record.pr); return { base: record.pr.base, basis };
+    }
+    assert.equal(basis, 'accepted-main'); assert.equal(record.event, 'push'); assert.equal(record.branch, 'main');
+    return { base: git('rev-parse', record.source_commit + '^1'), basis };
+}
+function validateV2Coverage(record: CompleteEvidenceV2, artifacts: any[]): void {
+    assert.equal(coverageVersionAt(record.source_commit), 2, 'Physical receipts require an activated source');
+    const manifest = JSON.parse(git('show', record.source_commit + ':package.json'));
+    const lock = execFileSync('git', ['--no-replace-objects', 'cat-file', 'blob', record.source_commit + ':package-lock.json'], {maxBuffer:16 * 1024 * 1024});
+    assert.equal(manifest.packageManager, 'npm@' + record.toolchain.npm, 'Development npm differs from the source toolchain');
+    assert.equal(manifest.devDependencies?.typescript, record.toolchain.typescript, 'TypeScript differs from the source toolchain');
+    assert.equal(digest(lock), record.toolchain.lock_sha256, 'Development lockfile bytes differ from the source');
+    const context = coverageContext(record);
+    const plan = verifyCoveragePlan(record.coverage_plan, context.base, record.source_commit, record.inputs, context.basis);
+    assert.equal(plan.tree, record.tree); assert.match(record.coverage_plan_sha256, HASH);
+    const tarball = record.delivery[`fbincon-claude-code-statusline-${record.version}.tgz`]!;
+    const specs = new Map(plan.producers.map(spec => [spec.id, spec]));
+    const jobs = new Set<number>(), identities = new Map<string, string>();
+    assert.deepEqual(Object.keys(record.receipts).sort(), plan.producers.map(p => p.receipt).sort(), 'Incomplete physical receipt paths');
+    for (const row of record.executions) {
+        const id = row.identity.producer_id, spec = specs.get(id); assert(spec, 'Unexpected or duplicate physical execution: ' + id); specs.delete(id);
+        validatePhysicalIdentity(row.identity, spec, plan, { run_id: record.run_id, attempt: record.attempt,
+            workflow_sha: record.workflow_sha, tarball_sha256: tarball });
+        const identity = row.identity;
+        if (identity.node === record.toolchain.node.replace(/^v/u, '')) assert.equal(identity.npm, record.toolchain.npm, 'Development npm identity differs');
+        // Only sections credited to the same logical obligation are joined.
+        // Independent targets retain the actual executable identities they ran.
+        const binaries = JSON.stringify([identity.os, identity.platform, identity.process_arch, identity.host_arch,
+            identity.node, identity.node_sha256, identity.npm, identity.npm_sha256, identity.host, identity.host_sha256]);
+        for (const obligation of spec.obligations) {
+            if (identities.has(obligation)) assert.equal(identities.get(obligation), binaries, 'Shared obligation changed runner or Node/npm/host binaries');
+            identities.set(obligation, binaries);
+        }
+        assert.equal(row.receipt_sha256, record.receipts[spec.receipt]); assert.equal(row.job_name, spec.job);
+        assert(Number.isSafeInteger(row.job_id) && row.job_id > 0 && !jobs.has(row.job_id), 'Duplicate or invalid physical job ID'); jobs.add(row.job_id);
+        const artifact = newestArtifact(artifacts, spec.artifact);
+        assert.equal(row.artifact_id, artifact.id, 'Physical execution names an unrelated artifact');
+        const start = Date.parse(row.started_at), end = Date.parse(row.completed_at), created = Date.parse(artifact.created_at);
+        // Actions job timestamps have second precision. The producer uploads before completion.
+        assert(Number.isFinite(start) && end >= start && created >= start - 1000 && created <= end + 1000,
+            'Physical artifact creation is outside the original job interval');
+    }
+    assert.equal(specs.size, 0, 'Missing physical execution(s): ' + [...specs.keys()].join(', '));
+}
+export function fileReceipts(directory: string, version: 1 | 2 = 1): Record<string, string> {
     const result: Record<string, string> = {};
+    const files = version === 1 ? ['installed.json', 'runtime.json', 'mods.json', 'source-tests.json', 'native-stability.json'] : ['fragment.json'];
     function visit(root: string, prefix: string) {
         for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
             assert(!entry.isSymbolicLink(), 'Linked evidence is not accepted');
             const path = join(root, entry.name), name = prefix + entry.name;
             if (entry.isDirectory()) visit(path, name + '/');
-            else if (['installed.json', 'runtime.json', 'mods.json', 'source-tests.json', 'native-stability.json'].includes(entry.name)) result[name] = digest(fs.readFileSync(path));
+            else if (files.includes(entry.name)) {
+                if (version === 2) assert(entry.isFile() && fs.statSync(path).size <= 16 * 1024 * 1024, 'Invalid physical fragment file');
+                result[name] = digest(fs.readFileSync(path));
+            }
         }
     }
     visit(directory, ''); return Object.fromEntries(Object.entries(result).sort());
 }
 export function verifyRecordedFiles(record: CompleteEvidence, directory: string): void {
-    assert.deepEqual(fileReceipts(directory), record.receipts, 'Original receipts changed');
+    assert.deepEqual(fileReceipts(directory, record.schema_version), record.receipts, 'Original receipts changed');
     for (const [name, hash] of Object.entries(record.delivery))
         assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate', name))), hash, 'Delivery bytes changed');
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'))), record.input_file_sha256, 'Runtime input bytes changed');
     assert.deepEqual(JSON.parse(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'), 'utf8')), record.inputs, 'Recorded runtime inputs differ from original bytes');
+    if (record.schema_version === 2) {
+        const bytes = fs.readFileSync(join(directory, 'ts06-candidate/coverage-plan.json'));
+        assert.equal(digest(bytes), record.coverage_plan_sha256, 'Coverage plan bytes changed');
+        assert.deepEqual(JSON.parse(bytes.toString('utf8')), record.coverage_plan, 'Coverage plan differs from original candidate');
+        const context = coverageContext(record);
+        const plan = verifyCoveragePlan(record.coverage_plan, context.base, record.source_commit, record.inputs, context.basis);
+        const physical = new Map(record.executions.map(row => [row.identity.producer_id, row]));
+        assert.equal(physical.size, record.executions.length, 'Duplicate physical execution'); assert.equal(physical.size, plan.producers.length);
+        const entries = sectionInputsAt(record.source_commit);
+        for (const spec of plan.producers) {
+            const row = physical.get(spec.id); assert(row, 'Missing physical execution: ' + spec.id);
+            const raw = fs.readFileSync(join(directory, spec.receipt)); assert.equal(digest(raw), row.receipt_sha256, 'Original fragment bytes changed');
+            const fragment: unknown = JSON.parse(raw.toString('utf8'));
+            validateFragmentIdentity(fragment, spec, plan, { run_id: record.run_id, attempt: record.attempt, workflow_sha: record.workflow_sha,
+                tarball_sha256: record.delivery[`fbincon-claude-code-statusline-${record.version}.tgz`]! });
+            assert.deepEqual(fragment.identity, row.identity, 'Original fragment identity differs from execution record');
+            validateSectionEvidence(fragment, spec, plan, entries);
+            verifySectionLogBytes(join(directory, spec.artifact), fragment.report);
+        }
+    }
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-acceptance/candidate-acceptance.json'))), record.acceptance_sha256, 'Acceptance bytes changed');
     for (const [name, hash] of Object.entries(record.compiled))
         assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
@@ -200,6 +295,7 @@ export async function verifyWorkflowSource(record: CompleteEvidence): Promise<vo
 export async function recordComplete(evidence: string, selectionFile: string, acceptanceFile: string, output: string): Promise<void> {
     assert(process.env.GITHUB_EVENT_NAME === 'pull_request' || process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'main',
         'Only automatic PR/main acceptance can create promotable evidence');
+    assert.equal(coverageVersionAt(git('rev-parse', 'HEAD')), 1, 'The v1 producer cannot issue evidence for an activated v2 source');
     const selection = JSON.parse(fs.readFileSync(selectionFile, 'utf8')), accepted = JSON.parse(fs.readFileSync(acceptanceFile, 'utf8'));
     assert.equal(accepted.status, 'pass');
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');

@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { canonical, emitted, generatedLocalePath, git, hash, localePath, messageShape, productPath, runtimeLock, runtimeManifest, tree, type Blob } from './impact-content.ts';
+import { withoutCiScripts } from './impact-lock.ts';
 import { productionOwners } from './impact-ownership.ts';
 import { HOSTS } from './runtime-inputs.ts';
 import { checkScopedSchedule } from './impact-budget.ts';
@@ -61,7 +62,6 @@ function classify(path: string, before: Blob | undefined, after: Blob | undefine
     if (/^archive\//u.test(path)) return result('tools', ['archive'], 'Frozen archive integrity, never regenerated');
     if (path === 'package-lock.json') return equal(runtimeLock) ? result('build', ['packaging', 'build'], 'Runtime dependency closure unchanged; compare built payload') : result('product', [], 'Runtime dependency closure changed');
     if (path === 'package.json') {
-        const withoutCiScripts = (bytes: Buffer) => { const value = JSON.parse(bytes.toString()); for (const key of Object.keys(value.scripts ?? {})) if (key.startsWith('ci:')) delete value.scripts[key]; return value; };
         return equal(withoutCiScripts) ? result('policy', ['checks'], 'CI command registration only') : result('build', ['packaging', 'build'], 'Build manifest change requires payload comparison');
     }
     if (/^packages\/[^/]+\/package\.json$/u.test(path) && equal(runtimeManifest)) return result('build', ['packaging', 'build'], 'Non-executable workspace metadata; verify package contract');
