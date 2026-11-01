@@ -197,13 +197,51 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     expect(heading.props.color).toBe('suggestion');
     expect(heading.props.bold).toBe(true);
     expect(text(tree.children[1]!).replace(/[\[\]]/g, '')).toContain('2 Subagents');
-    expect(text(tree.children[2]!)).toBe('Click region for keys.');
+    expect(text(tree.children[2]!)).toBe(t('native.ui.client.draw.click_region_for_keys','en'));
     expect(text(tree.children[3]!)).not.toContain('H show');
     expect(text(tree.children[3]!)).not.toContain('Ctrl+G');
     const footer = tree.children[5] as Node;
     expect(footer.props.key).toBe('shortcut-region');
     expect(text(footer)).toContain('S save');
     expect(text(footer)).toContain('Esc focus');
+  }
+});
+
+test('an editor notice keeps the keyboard focus instruction visible on narrow panes', () => {
+  const state = view();
+  state.error = 'Example warning';
+  for (const columns of [32, 72, 120]) {
+    const tree = draw(elements, state, columns, 24) as unknown as Node;
+    expect(text(tree.children[1]!)).toContain('Click the editor body');
+    expect(text(tree.children[2]!)).toBe(state.error);
+    expect(render(tree)).toHaveLength(24);
+  }
+});
+
+test('picker details use catalog guidance even for missing or colliding instance IDs', () => {
+  for (const scope of ['main','subagent'] as const) {
+    const id = scope === 'main' ? 'model' : 'elapsed';
+    const state = view(), e = state.editor!;
+    const instances = scope === 'main' ? e.draft.display.instances : e.draft.display.subagents.instances;
+    e.page = scope === 'main' ? 'main' : 'subagents';
+    for (const collision of [false, true]) {
+      if (collision) instances[0]!.id = id;
+      const before = JSON.stringify(e.draft);
+      handleKey(state,{key:'a'},80,24);
+      e.selected[scope] = id;
+      handleKey(state,{key:'e',ctrl:true},80,24);
+      expect(e.detailItem?.id).toBe(id);
+      expect(e.guidanceScroll).toBe(0);
+      for (const [width,height] of [[32,12],[80,24],[196,200]]) {
+        expect(text(draw(elements,state,width!,height!) as unknown as Node)).toContain(t('guidance.title','en'));
+      }
+      handleKey(state,{key:'end'},80,24);
+      handleKey(state,{key:'g',ctrl:true},80,24);
+      expect(e.adding).toBe(true); expect(e.selected[scope]).toBe(id);
+      expect(e.detail).toBeNull(); expect(e.history.undo.length).toBe(0);
+      expect(JSON.stringify(e.draft)).toBe(before);
+      handleKey(state,{key:'g',ctrl:true},80,24);
+    }
   }
 });
 

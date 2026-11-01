@@ -333,6 +333,10 @@ try {
                 }
             }
             pty.send('\x1b');
+            if (values.extended) {
+                await pty.wait(text => text.includes(t('ui.exit.unsaved', language)) && text.includes('› ' + t('ui.exit.keep', language)));
+                pty.send('\x1b[B\r');
+            }
             await pty.exited();
             assert.equal(pty.child.exitCode, 0);
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');

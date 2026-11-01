@@ -1,4 +1,4 @@
-import { openChanges, changesKey } from '@fbincon/statusline-core/editor/change-review';
+import { openChanges, changesKey, stepDraftHistory } from '@fbincon/statusline-core/editor/change-review';
 import { openReuse, reuseKey } from '@fbincon/statusline-core/editor/reuse-manager';
 import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
@@ -52,6 +52,7 @@ const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting',
 export class State {
     editor: Editor;
     input: Input | null = null;
+    exitChoice: 'keep' | 'discard' | null = null;
     preview: PreviewResult | null = null;
     message = '';
     localized: {
@@ -63,12 +64,7 @@ export class State {
     constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current); }
     get scope(): Scope { return this.editor.page === 'subagents' ? 'subagent' : 'main'; }
     get form(): boolean { return !!this.editor.detail || ['settings', 'layout'].includes(this.editor.page); }
-    get detailItem() {
-        const e = this.editor, detail = e.detail;
-        if (!detail) return undefined;
-        // Picker IDs denote catalog types; configured IDs may collide with those names.
-        return e.adding ? e.catalog(detail.scope).find(item => item.id === detail.id) : e.definition(detail.scope, detail.id);
-    }
+    get detailItem() { return this.editor.detailItem; }
     get detailLabel(): string {
         const e = this.editor, detail = e.detail;
         if (!detail) return '';
@@ -77,6 +73,11 @@ export class State {
     get modified(): boolean {
         const input = this.input;
         return this.editor.modified || (input?.kind === 'field' && input.buffer !== input.original);
+    }
+    private requestExit(): Effect {
+        if (!this.modified) return 'cancel';
+        this.exitChoice = 'keep';
+        return null;
     }
     notice(value: string | LocalizedText): void { this.message = typeof value === 'string' ? value : value.fallback; this.localized = typeof value === 'string' ? {} : { message: value }; }
     rows(): Row[] {
@@ -202,41 +203,56 @@ export class State {
             this.notice(e.fieldErrorMessages[field] ?? e.fieldErrors[field] ?? '');
     }
     key(event: Key, columns = 80, rows = 24): Effect {
-        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && (k === 'escape' || (ctrl && k === 'g'));
+        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && !event.meta && (k === 'escape' || (ctrl && k === 'g'));
         const size = dimensions(columns, rows), height = size.listHeight;
-        if (ctrl && k === 'c')
+        if (ctrl && k === 'c' && !event.paste && !event.text && !event.meta)
             return 'interrupt';
+        if (this.exitChoice !== null) {
+            if (event.paste || event.text || event.meta || event.overflow) return null;
+            if (cancel) this.exitChoice = null;
+            else if (!ctrl && k === 'up') this.exitChoice = 'keep';
+            else if (!ctrl && k === 'down') this.exitChoice = 'discard';
+            else if (!ctrl && k === 'return') {
+                const discard = this.exitChoice === 'discard';
+                this.exitChoice = null;
+                if (discard) return 'cancel';
+            }
+            return null;
+        }
         if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' && !event.text && !event.paste) return 'reconcile';
         if (e.saveState === 'pending') return null;
-        if (!size.available)
-            return k === 'escape' ? 'cancel' : null;
+        if (!size.available && !cancel) return null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
         if(e.changeReview)return changesKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
         if(e.reuse)return reuseKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
-        if(ctrl&&!event.text&&!event.paste&&k.toLowerCase()==='t'&&!this.input){openChanges(e);return null;}
-        if(ctrl&&!event.text&&!event.paste&&['z','r'].includes(k.toLowerCase())&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(k.toLowerCase()==='r');return null;}
+        const draftControl = ctrl && !event.meta && !event.text && !event.paste && !this.input && e.inDraftView && !e.packageLocked;
+        if (draftControl && k.toLowerCase() === 't') { openChanges(e); return null; }
+        if (draftControl && ['z', 'r'].includes(k.toLowerCase())) {
+            this.notice(stepDraftHistory(e, k.toLowerCase() === 'r'));
+            return null;
+        }
         if(e.packages)return packageKey(e.packages,event);
-        if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?'cancel':null;}
+        if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?this.requestExit():null;}
         if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
-        if(e.diagnosis)return diagnosisKey(e,event);
+        if (e.diagnosis) return diagnosisKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         if(e.colors)return colorsKey(e,event,this.language);
-        if(ctrl&&k.toLowerCase()==='l'&&!this.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
+        if (draftControl && k.toLowerCase() === 'l') { openDiagnosis(e); return null; }
         if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
-        if (ctrl && k.toLowerCase() === 'b' && !this.input && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text && !event.paste) { openGroups(e); return null; }
+        if (draftControl && k.toLowerCase() === 'b') { openGroups(e); return null; }
         if (e.sources) return sourcesKey(e,event);
-        if (ctrl && k.toLowerCase()==='y' && !this.input && !e.review && !e.quick && !e.explanation) { openSources(e); return 'sources'; }
+        if (draftControl && k.toLowerCase() === 'y') { openSources(e); return 'sources'; }
         if (e.profiles) return profilesKey(e, event);
-        if (ctrl && k.toLowerCase() === 'o' && !this.input && !e.detail && !e.adding && !e.review && !e.quick && !e.explanation) {
+        if (draftControl && k.toLowerCase() === 'o' && !e.detail) {
             if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
             return null;
         }
-        if (event.paste && (!this.input || this.input.kind === 'category')) return null;
-        if(ctrl&&['v','w','n'].includes(k.toLowerCase())&&!this.input){if(k.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(k.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,this.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
+        if ((event.paste || event.text) && (!this.input || this.input.kind === 'category')) return null;
+        if(ctrl&&!event.meta&&!event.text&&!event.paste&&!this.input&&(e.inDraftView||e.quick||e.review)&&['v','w','n'].includes(k.toLowerCase())){if(k.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(k.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,this.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
         if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
         if (e.saveState === 'unknown') {this.notice(text('editor.save_unknown'));return null;}
-        if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review && !e.explanation) {
+        if (draftControl && k.toLowerCase() === 'p' && !e.detail) {
             if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
             return null;
         }
@@ -370,8 +386,7 @@ export class State {
         }
         if (ctrl && k === 's')
             return 'save';
-        if (k === 'escape')
-            return 'cancel';
+        if (cancel && k === 'escape') return this.requestExit();
         if (k === 'return') {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';

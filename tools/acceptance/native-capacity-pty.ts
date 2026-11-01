@@ -1,3 +1,4 @@
+import { taskInputJourney } from './task-input-pty.js';
 import { taskFixture } from './task-fixture.js';
 /** Installed, real Claude PTYs for #154/#155; no model calls; one explicitly reviewed controlled-command journey. */
 import * as fs from 'node:fs';
@@ -74,7 +75,11 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const before = fs.readFileSync(join(config, 'claude-statusline.json'));
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
-    const columns = external ? 120 : 200; let rows = action === 'tall' ? 220 : external ? 32 : 50;
+    const nativeTask = action === 'native-task';
+    const compactTask = nativeTask && name === 'native-task-viewer';
+    const columns = nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
+    const initialRows = nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
+    let rows = initialRows;
     const p = openPty(config, columns, rows, environment, 'en', external
         ? { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project }
         : { executable: host.executable, args: [...host.args, '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
@@ -104,10 +109,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     try {
         if (!external) {
             await until(text => text.includes('❯') && fs.existsSync(hostLog) && fs.readFileSync(hostLog, 'utf8').includes('$.command.register (statusline-native): /statusline-configure-native listed'), 'host command ready', 30000);
-            await key('/statusline-configure-native\r', 'open native command');
+            if (!nativeTask) await key('/statusline-configure-native\r', 'open native command');
         }
-        await until(text => text.includes('Configure Status Line') && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
-        if (!external) {
+        if (!nativeTask) await until(text => text.includes('Configure Status Line') && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
+        if (!external && !nativeTask) {
             let clicked = false;
             for (let y = 0; y < screen.buffer.length && !clicked; y++) {
                 const row = screen.buffer[y]!, x = row.findIndex((cell, i) => cell.data === '[' && row[i + 1]?.data === 'x' && row[i + 2]?.data === ']');
@@ -115,7 +120,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             }
             assert(clicked, 'No observed Client item to focus');
         }
-        capture('before');
+        if (!nativeTask) capture('before');
         if(action==='draft-history') {
             await key(external?'\x04':'d','one logical copy');await until(text=>text.includes('Configure Status Line *'),'copy retained');
             await key(external?'\x1a':'\x1f',external?'undo copy (Ctrl+Z)':'undo copy (Ctrl+_)');await until(text=>text.includes('Configure Status Line')&&!text.includes('Configure Status Line *'),'undo restored baseline');
@@ -171,20 +176,24 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(()=>jobs().some(job=>job.state==='completed'),'actual runtime lease dispatched the controlled command',25000);
             const observed=jobs();assert.equal(observed.length,1);assert.equal(observed[0].result.summary,'live-session-command');assert.equal(observed[0].result.exit_code,0);assert.equal(typeof observed[0].context.session,'string');
             await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');assert(records().some(row=>row.operation==='source_inspect'&&row.phase==='complete'&&row.source_value==='live-session-command'));capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
-        } else if(action==='native-task'){
-            await key('q','close configuration');await until(text=>!text.includes('Configure Status Line'),'configuration closed');
-            await key('/statusline-task\r','open native task');await until(text=>/Session: [^\s]+/u.test(text),'session identity visible');
-            const session=read().match(/Session: ([a-zA-Z0-9-]+)/u)?.[1];assert(session,'Missing observed session');
-            // The session heading can render while the first read is still in
-            // flight. Publish only after that read completes, then require an
-            // actual second read instead of pressing a still-busy Refresh.
-            await until(()=>completed('task_details'),'initial native task read completed');
-            // Backend stdout can complete before the host applies its result.
-            // Refresh is intentionally ignored while that UI is still busy.
-            await until(text=>text.includes(t('task.title','en')+' · '+t('task.readonly','en'))&&/Read at: \d{4}-\d{2}-\d{2}T/u.test(text),'initial native task presentation ready');
-            const evidence=taskFixture(config,session);
-            await key('r','read published task');await until(()=>records().filter(row=>row.operation==='task_details'&&row.phase==='complete').length===2,'published task refresh completed');await until(text=>text.includes('captured-task'),'native task report visible');capture('after');
-            assert.deepEqual(fs.readFileSync(evidence.path),evidence.bytes);
+        } else if(nativeTask){
+            const selected = () => {
+                read();
+                return screen.buffer.map(line => line.map(cell => cell.bold ? cell.data : ' ').join('').trim()).join('\n');
+            };
+            const clickText = async (text: string) => {
+                read();
+                for (const [y,row] of screen.buffer.entries()) {
+                    const x = row.findIndex((_, i) => row.slice(i,i + text.length).map(cell => cell.data).join('') === text);
+                    if (x >= 0) {
+                        await key(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`, 'click visible report row ' + text);
+                        return;
+                    }
+                }
+                assert.fail('No visible report row contains ' + text);
+            };
+            await taskInputJourney(config, { key, read, until, selected, capture, clickText,
+                reads: () => records().filter(row => row.operation === 'task_details' && row.phase === 'complete').length }, compactTask);
         } else if(action==='colors') {
             await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
             for(let i=0;i<80&&!/›.*Statusline theme/u.test(read());i++)await key('\x1b[B','find theme');
@@ -237,8 +246,15 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             rows = 50; offset = p.captured().length; screen = new Capture(columns, rows); p.resize(columns, rows);
             await until(text => text.includes('Configure Status Line *') && text.includes('Preview'), 'draft retained after safe resize'); capture('resized');
         } else { await key('2', 'subagent page'); await key('1', 'main page'); capture('after'); }
-        if (external) { p.send('\x1b'); await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before); }
-        else { await key('q', 'close without another save'); await until(text => !text.includes(action==='native-task'?t('task.title','en'):'Configure Status Line'), 'pane closed'); }
+        if (external) {
+            p.send('\x1b');
+            if (['version-status', 'package-cleanup', 'external-task'].includes(action)) {
+                await until(text => text.includes(t('ui.exit.unsaved','en')) && text.includes('› ' + t('ui.exit.keep','en')), 'keep dirty draft selected');
+                await key('\x1b[B\r', 'confirm discard');
+            }
+            await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before);
+        }
+        else if (!nativeTask) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
         if (action !== 'save') assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), before, 'Cancelled journey changed display configuration');
         assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
         status = 'pass';
@@ -249,7 +265,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         try { process.kill(-p.child.pid!, 'SIGTERM'); } catch { /* Already ended. */ }
         await delay(100); try { process.kill(-p.child.pid!, 'SIGKILL'); } catch { /* Already ended. */ }
         await p.close();
-        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: action === 'tall' ? 220 : external ? 32 : 50,
+        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: initialRows,
             model_calls: 0, source_commands: action==='live-command'?1:0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
             display_after_sha256: sha256(fs.readFileSync(join(config, 'claude-statusline.json'))), steps };
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
@@ -268,17 +284,17 @@ try {
         ['background-gradient-2','background-gradient-2','pages'], ['agent-gradient-all','agent-gradient-all','pages'],
         ['gradient-text-128','gradient-text-128','pages'], ['tall-minimal','minimal-main','tall'],
         ['foreground-gradients','import-four-gradients','pages'], ['explanation','plain-main-w72','explain'],
-        ['native-version-status','plain-main-w72','version-status'],['native-task-viewer','plain-main-w72','native-task'],
+        ['native-version-status','plain-main-w72','version-status'],['native-task-viewer','plain-main-w72','native-task'],['native-task-docked','plain-main-w72','native-task'],
         ['theme-selector','plain-main-w72','colors'],['sample-scenarios','plain-main-w72','scenarios'],['input-file-diagnosis','plain-main-w72','diagnose-file'],
     ]) await runCase(name!, fixture!, action!);
     for (const [name, fixture, action] of [['external-quick','plain-main-w72','quick'], ['external-profiles','profiles-list-2','profiles'], ['external-import','plain-main-w72','import'],['external-colors','plain-main-w72','colors'],['external-scenarios','plain-main-w72','scenarios'],['external-file-diagnosis','plain-main-w72','diagnose-file'],['external-version-status','plain-main-w72','version-status'],['external-task-viewer','plain-main-w72','external-task']]) await runCase(name!, fixture!, action!, true);
     for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
     for(const external of [false,true])for(const [name,fixture,action]of [['draft-history','plain-main-w72','draft-history'],['style-reuse','plain-main-w72','style-reuse'],['group-reuse','draft-reuse-groups-review-w196','group-reuse'],['alignment-repair','draft-reuse-groups-review-w196','alignment-repair']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
     await runCase('native-live-command','plain-main-w72','live-command');
-    assert.equal(reports.length, 42); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    assert.equal(reports.length, 43); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 42 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === 43 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

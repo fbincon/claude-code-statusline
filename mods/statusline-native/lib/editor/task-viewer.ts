@@ -196,6 +196,15 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
         header.push({ key: 'warning', text: renderMessage(view.warning, view.language) });
     if (view.error)
         header.push({ key: 'error', text: renderMessage(view.error, view.language) + (view.report ? ' · ' + tr('task.captured', { value: view.report.captured_at }) : '') });
+    // Small inline panes still need a visible selected report row. The identity
+    // editor exposes both full identifiers when the single-line header is clipped.
+    if (!view.input && height <= header.length) {
+        const identity = { key: 'identity', text: header[0]!.text + ' · ' + (view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current')) };
+        const notices = header.slice(3).reverse();
+        const compact = [identity, ...notices, header[2]!].slice(0, Math.max(0, height - 1));
+        if (notices.length && compact.length === 1) compact[0] = notices[0]!;
+        header.splice(0, header.length, ...compact);
+    }
     const rows = taskViewerRows(view, width);
     const previous = view.rows.findIndex(row => row.key === view.selected);
     let index = rows.findIndex(row => row.key === view.selected);
@@ -217,6 +226,21 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
     const body = rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row,
         ...(width < 2 ? { text: clipText(row.text, 1) } : {}), selected: row.key === view.selected }));
     return [...boundedHeader, ...body].slice(0, Math.max(1, height));
+}
+/** A native host field sends the complete replacement on edit or submit. */
+export function replaceTaskField(view: TaskViewer, field: 'session' | 'prompt' | 'search', value: string): boolean {
+    const limit = field === 'search' ? 256 : 1024;
+    const result = inputKey('', undefined, { key: value, text: true }, limit);
+    if (result.error) {
+        view.error = text('input.' + result.error, { limit });
+        return false;
+    }
+    if (view.error && typeof view.error === 'object' &&
+        ['input.invalid', 'input.limit', 'task.error.input'].includes(view.error.key)) view.error = null;
+    if (field === 'session') view.sessionInput = result.state;
+    else if (field === 'prompt') view.promptInput = result.state;
+    else view.searchInput = result.state;
+    return true;
 }
 export function taskViewerKey(view: TaskViewer, event: TextKey): 'read' | 'close' | null {
     const key = event.key === 'return' ? 'enter' : event.key;

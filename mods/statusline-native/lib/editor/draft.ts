@@ -177,7 +177,11 @@ export class Editor {
   undo(redo = false): boolean {
     if (!this.canMutateDraft() || this.numericBefore) return false;
     const source = redo ? this.history.redo : this.history.undo, target = redo ? this.history.undo : this.history.redo;
-    const entry = source.pop(); if (!entry) return false;
+    const entry = source.pop();
+    if (!entry) {
+      this.compositionError = text(redo ? 'history.no_redo' : 'history.no_undo');
+      return false;
+    }
     target.push(snapshot(this.draft, entry.label)); boundHistory(this.history);
     this.restoreDraft(entry.draft); this.mutationGeneration++;
     this.groupManager = null; this.colors = null; this.structureProposal = null; this.changeReview = null;
@@ -201,6 +205,21 @@ export class Editor {
   adoptRevision(current: ReadResult, generation: number, target: string): boolean {
     if (!this.canMutateDraft(generation) || targetIdentity(current) !== target || targetIdentity(this.baseline) !== target || !current.installed) return false;
     this.baseline = { ...current, draft: copyDraft(current.draft) }; this.mutationGeneration++; return true;
+  }
+
+  /** A manager, picker or read-only page owns its input until the user leaves it. */
+  get inDraftView(): boolean {
+    return !this.adding && this.guidanceScroll === null &&
+      !(this.changeReview || this.reuse || this.packages || this.taskViewer || this.diagnosis ||
+        this.colors || this.alignmentManager || this.groupManager || this.sources || this.profiles ||
+        this.explanation || this.quick || this.review);
+  }
+
+  get detailItem(): CatalogItem | undefined {
+    if (!this.detail) return undefined;
+    const { scope, id } = this.detail;
+    // Catalog type IDs and configured instance IDs are independent namespaces.
+    return this.adding ? this.catalog(scope).find(item => item.id === id) : this.definition(scope, id);
   }
 
   get modified(): boolean {

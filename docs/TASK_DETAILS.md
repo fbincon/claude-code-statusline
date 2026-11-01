@@ -2,7 +2,9 @@
 
 **English** | [简体中文](TASK_DETAILS.zh-CN.md)
 
-Use `/statusline-task` in a supported Claude Code terminal with the native editor installed. The separate pane shows the current task, attributable agents, known state, checklist counts and timing evidence. **R / Refresh** rereads published state; **J/K** or Page Down/Up page; **Q / Close** closes it. The Client input row also accepts the shared reading controls below. There is no background polling.
+Open `/statusline-task` in a supported Claude Code terminal with the native editor installed. When the pane has focus, press **Enter** or **G** to search, **F** to filter status, **E** to show evidence and **S** to edit the session or task identity. **N/P** select the next/previous row, **J/K** page down/up, **Z** expands or collapses the selected agent, **R** rereads published state and **Q** closes the pane. Refresh is manual.
+
+You can start with the keyboard. If the prompt still has focus, use **Ctrl+X then Tab** to move focus to the pane or click a control. Click anywhere in the report body to use the arrow keys, Page Up/Down, Home/End, Enter and `/` there. If a native field opens while the prompt holds a draft, click the field or press Ctrl+X then Tab. When the ⏎ submit hint appears, type or paste the complete value including spaces. **Enter** confirms the field. Use **Tab** to reach **Cancel**, then **Enter** to restore the previous value. Esc returns focus to Claude.
 
 The standalone terminal viewer works without the native pane or an installed editor:
 
@@ -28,7 +30,7 @@ Command descriptions and initial titles use the loaded interface language. Task-
 
 Use arrows to select a row, Page Up/Down to page, `/` to search names/IDs, `F` to cycle observed agent statuses, left/right or Enter to collapse/expand a selected agent, and `E` to show/hide evidence. `S` edits session/task identity; an empty prompt selects the published current-task pointer. Search is case-insensitive, and matching children retain their parents as context. Summary and all statuses are the default. Native host-only names remain unavailable to the external viewer.
 
-Session and resolved task identity stay above the scrolling body. Refresh and resizing retain the selected row where it still exists; selecting another task resets task-specific reading state. Failed refreshes retain the previous report and its original capture time, with a visible error. A report containing no observations remains distinct from a failed read. Close or cancel input with Q/Escape (Ctrl+G also cancels input); Native Escape retains the host's focus behavior.
+Short native panes reserve space for the selected report row and use the visible body height for paging. Open **S** to inspect the full identity when its heading is compact. Refresh and resizing keep the selected row when it still exists. Selecting another task resets task-specific reading state. Failed refreshes retain the previous report and its capture time. In the external viewer, Q closes the reading view and Esc or Ctrl+G cancels a field.
 
 ## Read the evidence
 

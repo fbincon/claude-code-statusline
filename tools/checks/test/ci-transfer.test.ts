@@ -122,3 +122,17 @@ test('Windows worker resolves setup-node from mixed-case Path and reports bootst
     assert.match(safeError({code:'CI_NPM_INSTALL_FAILED',exitCode:1}),/failed .*exit=1/u);
     assert.match(safeError({message:'SDK cache lock mismatch'}),/integrity mismatch/u);
 });
+
+test('the transfer SDK install limit follows the Action worker platform and architecture',async()=>{
+    const here=join(process.cwd(),'.github/actions/transfer-artifact');
+    const {npmInstallTimeoutMs}=await import(pathToFileURL(join(here,'bootstrap.mjs')).href);
+    const {safeError}=await import(pathToFileURL(join(here,'result.mjs')).href);
+    assert.equal(npmInstallTimeoutMs('win32','arm64'),180_000);
+    for(const [platform,arch] of [['win32','x64'],['win32','ia32'],['linux','arm64'],['darwin','arm64']]) {
+        assert.equal(npmInstallTimeoutMs(platform,arch),90_000);
+    }
+    const limit=npmInstallTimeoutMs(process.platform,process.arch);
+    assert.equal(npmInstallTimeoutMs(),limit);
+    assert.equal(safeError({code:'CI_NPM_INSTALL_TIMEOUT',timeoutMs:limit,npmVersion:'11.19.0',elapsedMs:limit+21}),
+        `Pinned npm install timed out (npm 11.19.0, Node ${process.version}/${process.arch}, timeout_ms=${limit}, exit=none, elapsed_ms=${limit+21})`);
+});

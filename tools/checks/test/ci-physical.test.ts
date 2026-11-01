@@ -1,10 +1,10 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, createCoveragePlan } from '../ci-coverage.js';
 import { digest, validateComplete, verifyRecordedFiles, type CompleteEvidenceV2 } from '../ci-evidence.js';
 import { completeSource, verifyExecutionJobs } from '../ci-sources.js';
@@ -15,8 +15,10 @@ import { sectionFixtureEntries, sectionFixtureReport, writeSectionLogs } from '.
 import { fixture as languageFixture } from '../../generation/test/i18n-fixture.js';
 import { fixture, now, run as originalRun } from './fixtures/ci-evidence.js';
 import { v2Fixture } from './fixtures/ci-evidence-v2.js';
+import { writeDelivery } from '../../build/test/fixtures/delivery.js';
+import { assessEvidenceDirectory } from '../../release/prepare.js';
 
-function source(t: TestContext) {
+function source(t: TestContext, packageDelivery = false) {
     const original = process.cwd(), root = fs.mkdtempSync(join(tmpdir(), 'physical-evidence-'));
     t.after(() => { process.chdir(original); fs.rmSync(root, { recursive:true, force:true, maxRetries:5,retryDelay:50 }); });
     const write = (path:string, bytes: Uint8Array|string) => { fs.mkdirSync(dirname(join(root,path)),{recursive:true}); fs.writeFileSync(join(root,path),bytes); };
@@ -41,7 +43,9 @@ function source(t: TestContext) {
     const inputs=fixture().record.inputs, plan=createCoveragePlan(base,head,inputs);
     const run={ ...originalRun, head_sha:head, head_branch:'physical', event:'pull_request', run_attempt:1 };
     const directory=join(root,'downloaded');
-    const all=v2Fixture(plan,{run,inputs,directory,prNumber:23,version:'3.16.1',reportFor:(p,i)=>sectionFixtureReport(p,plan,entries,i),writeLogs:writeSectionLogs});
+    const delivery = packageDelivery ? writeDelivery(root, join(directory, 'ts06-candidate'), head,
+        new Map(git('ls-files', '-z').split('\0').filter(Boolean).map(path => [path, fs.readFileSync(join(root, path))]))) : undefined;
+    const all=v2Fixture(plan,{run,inputs,directory,delivery,prNumber:23,reportFor:(p,i)=>sectionFixtureReport(p,plan,entries,i),writeLogs:writeSectionLogs});
     return {...all, root,base,head,git,plan,run,directory};
 }
 test('physical evidence requires the exact verified plan, all original stages and the source-bound per-host capacity', async t=>{
@@ -208,4 +212,63 @@ test('candidate and collector use the event PR or an independently gated push fi
     process.env.GITHUB_EVENT_NAME='workflow_dispatch';fs.writeFileSync(path,JSON.stringify({repository,inputs:{validation:'full'}}));assert.throws(probeMode);
     fs.writeFileSync(path,JSON.stringify({repository,inputs:{validation:'tiered-probe'}}));assert(probeMode());
     process.env.GITHUB_REF_TYPE='tag';assert.throws(probeMode);
+});
+
+test('compiled record CLI issues complete evidence and rejects changed acceptance after loading its collectors', t => {
+    const { root, head, base, directory, artifacts, jobs, record, run, plan, git } = source(t, true);
+    const cli = fileURLToPath(new URL('../ci-evidence.js', import.meta.url));
+    const repo = { full_name: CI_REPOSITORY };
+    const save = (name: string, value: unknown) => {
+        const path = join(root, name); fs.writeFileSync(path, JSON.stringify(value)); return path;
+    };
+    const event = save('event.json', { number: 23, repository: repo, pull_request: { draft: false,
+        head: { sha: head, ref: run.head_branch, repo }, base: { sha: base, ref: 'main', repo } } });
+    const selection = save('selection.json', { run_id: run.id, commit: head, artifacts: record.artifacts });
+    const filename = 'fbincon-claude-code-statusline-' + record.version + '.tgz';
+    const sourceEntries = sectionFixtureEntries();
+    sourceEntries.set(COVERAGE_ACTIVATION_PATH, Buffer.from(COVERAGE_ACTIVATION));
+    const assessment = assessEvidenceDirectory(directory, head, record.delivery[filename]!, sourceEntries,
+        { basis: 'pull_request', base, run_id: run.id, attempt: 1, workflow_sha: head });
+    const accepted = { ...assessment, application_version: record.version };
+    const acceptance = save('acceptance.json', accepted);
+    const prefix = 'https://api.github.com/repos/' + CI_REPOSITORY;
+    const path = '/actions/runs/' + run.id;
+    const responses = save('actions.json', {
+        [prefix + path + '/artifacts?per_page=100&page=1']: { artifacts, total_count: artifacts.length },
+        [prefix + path + '/attempts/1/jobs?per_page=100&page=1']: { jobs, total_count: jobs.length },
+        [prefix + path]: { ...run, status: 'in_progress', conclusion: null },
+        [prefix + '/contents/.github/workflows/ci.yml?ref=' + head]: { type: 'file', sha: git('rev-parse', head + ':.github/workflows/ci.yml') },
+    });
+    // Only the GitHub transport is substituted. Both archives, local policy, logs and every fragment are verified by the CLI.
+    const preload = join(root, 'actions.mjs');
+    fs.writeFileSync(preload, `import { readFileSync } from 'node:fs';
+const responses = JSON.parse(readFileSync(${JSON.stringify(responses)}, 'utf8'));
+globalThis.fetch = async url => {
+    if (!Object.hasOwn(responses, url)) throw new Error('Unexpected fixture request: ' + url);
+    return Response.json(responses[url]);
+};`);
+    const issue = (output: string) => spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, cli, 'record',
+        '--evidence', directory, '--selection', selection, '--acceptance', acceptance, '--output', output], {
+        cwd: root, encoding: 'utf8', timeout: 60_000,
+        env: { ...process.env, GH_TOKEN: 'offline-fixture', GITHUB_TOKEN: 'offline-fixture', CI_VALIDATION: '',
+            GITHUB_SHA: head, GITHUB_REF_NAME: run.head_branch, GITHUB_REF_TYPE: 'branch', GITHUB_OUTPUT: join(root, 'github-output'),
+            GITHUB_JOB: 'acceptance', GITHUB_EVENT_NAME: 'pull_request',
+            GITHUB_EVENT_PATH: event, GITHUB_REPOSITORY: CI_REPOSITORY, GITHUB_RUN_ID: String(run.id),
+            GITHUB_WORKFLOW_SHA: head, GITHUB_RUN_ATTEMPT: '1', CI_CANDIDATE_ID: String(artifacts[0]!.id),
+            CI_COMPILED_ID: String(artifacts[1]!.id) },
+    });
+    const output = join(root, 'issued.json'), success = issue(output);
+    assert.equal(success.status, 0, success.error?.message ?? success.stderr);
+    const issued: CompleteEvidenceV2 = JSON.parse(fs.readFileSync(output, 'utf8'));
+    assert.equal(issued.source_commit, head);
+    assert.equal(issued.acceptance_sha256, digest(fs.readFileSync(acceptance)));
+    assert.deepEqual(issued.delivery, record.delivery);
+    assert.equal(issued.executions.length, plan.producers.length);
+    validateComplete(issued, run, artifacts);
+
+    save('acceptance.json', { ...accepted, installations: 0 });
+    const rejected = join(root, 'rejected.json'), invalid = issue(rejected);
+    assert.equal(invalid.status, 1, invalid.error?.message ?? invalid.stderr);
+    assert.match(invalid.stderr, /Acceptance report differs from source receipts: installations/u);
+    assert(!fs.existsSync(rejected));
 });

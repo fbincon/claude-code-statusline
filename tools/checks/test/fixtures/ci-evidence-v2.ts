@@ -12,6 +12,7 @@ import { fixture, hash, now, run as defaultRun } from './ci-evidence.js';
 type Producer = CoveragePlan['producers'][number];
 export function v2Fixture(plan: CoveragePlan, options: {
     run?: any; inputs?: any; directory?: string; prNumber?: number; prBase?: string; version?: string;
+    delivery?: Record<string, string>;
     writeLogs?: (directory: string, report: Record<string, unknown>) => void;
     reportFor?: (producer: Producer, identity: PhysicalIdentity, plan: CoveragePlan) => Record<string, unknown>;
 } = {}) {
@@ -22,7 +23,7 @@ export function v2Fixture(plan: CoveragePlan, options: {
     const artifacts = names.map((name,index) => ({ id: 2000 + index, name, digest: 'sha256:' + digest(name),
         expired: false, created_at: ended, expires_at: new Date(now + 86400000).toISOString() }));
     const filename = `fbincon-claude-code-statusline-${version}.tgz`;
-    const delivery = Object.fromEntries(['SHA256SUMS', 'build-manifest.json', filename, `claude-code-statusline-${version}-source.tar.gz`].map(name => [name, digest(name)]));
+    const delivery = options.delivery ?? Object.fromEntries(['SHA256SUMS', 'build-manifest.json', filename, `claude-code-statusline-${version}-source.tar.gz`].map(name => [name, digest(name)]));
     const language = languageEvidence(languageInputsAt(plan.head),plan.head);
     const blob = (path: string) => execFileSync('git',['--no-replace-objects','cat-file','blob',plan.head+':'+path]);
     const manifest = JSON.parse(blob('package.json').toString('utf8'));
@@ -41,7 +42,7 @@ export function v2Fixture(plan: CoveragePlan, options: {
     const write = (path: string, contents: string) => {
         if(!options.directory)return; const file=join(options.directory,path); fs.mkdirSync(dirname(file),{recursive:true});fs.writeFileSync(file,contents);
     };
-    for(const name of Object.keys(delivery))write('ts06-candidate/'+name,name);
+    if (!options.delivery) for(const name of Object.keys(delivery))write('ts06-candidate/'+name,name);
     for(const name of Object.keys(record.compiled))write('ci-compiled-tests/'+name,name);
     write('ts06-candidate/runtime-inputs.json',JSON.stringify(inputs)+'\n');write('ts06-candidate/coverage-plan.json',JSON.stringify(plan)+'\n');
     write('ts06-acceptance/candidate-acceptance.json','{}');

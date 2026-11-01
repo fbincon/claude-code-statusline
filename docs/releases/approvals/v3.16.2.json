@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.16.2",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-11-01",
+  "authority": "On 2026-11-01 fbincon approved the keyboard-first native task pane, editor input and draft protection repairs, and stable publication of 3.16.2. Require the final reviewed PR, accepted main and annotated tag gates, the complete product matrix and twelve-language readiness. Include real host task fields, paste isolation, small panes, GNOME Terminal shortcuts, decoder and discard checks. Preserve independent Client props, Pane and drawing budgets. Publish the verified original bytes through npm OIDC, GitHub and Gitee. Upgrade the actual test machine and restore personal preferences while retaining the upgrade. Only the six recorded issue #96 gaps are accepted. All model calls, failed attempts and retries share a USD 10 ceiling, reserving the entire per-attempt cap when final cost is unknown.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

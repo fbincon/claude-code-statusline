@@ -332,7 +332,7 @@ Windows 使用 `claude-statusline.cmd configure`。stdin、stdout 必须都是 T
 | Enter | 项目及原有设置行保存；高级字段编辑或确认输入 |
 | Ctrl+S | 非字段输入状态下保存完整草稿 |
 | Ctrl+K | 保存结果未知时，只读核对保存状态 |
-| Esc | 先取消当前输入；否则丢弃草稿并关闭 |
+| Esc | 先取消当前字段。在顶层，干净草稿直接关闭，有未保存修改时显示放弃确认，默认继续编辑。 |
 | Ctrl+C | 恢复终端、以 130 退出、不保存 |
 
 切页和缩放保留各页草稿、选择、搜索和滚动位置。搜索／分类筛选时禁用排序；保存前检查当前 revision，无改动不创建备份。
@@ -525,7 +525,7 @@ Layout 选择 auto/explicit，通过“New row before”设置全部已配置主
 
 Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后打开差异审阅；Enter 展开分区，A 接受完整候选到草稿，再单独保存。原生审阅用 Ctrl+G 或 Q 取消，外部审阅用 Esc 或 Ctrl+G 取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 
-Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。外部编辑器用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃外部编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
+Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。外部编辑器用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；padding／refresh 数字编辑用 Backspace 删除、Esc 恢复。在顶层按 Esc 时，有未保存的修改会显示确认页。选中**放弃更改并关闭**并按 Enter 即可退出。字段／路径输入期间 s/f/q 等普通字符只作为文本。
 
 | 预设 | 主状态栏布局 | 子 Agent 默认 |
 | --- | --- | --- |

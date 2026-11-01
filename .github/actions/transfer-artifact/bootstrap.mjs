@@ -6,6 +6,9 @@ import { dirname, join, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 const here=dirname(fileURLToPath(import.meta.url));
+export function npmInstallTimeoutMs(platform=process.platform, architecture=process.arch) {
+    return platform==='win32' && architecture==='arm64' ? 180_000 : 90_000;
+}
 export function npmCli(environment=process.env, executable=process.execPath, platform=process.platform) {
     const windows=platform==='win32', executables=windows?['node.exe','npm.cmd']:['node','npm'];
     // A Windows worker has a case-sensitive copy of process.env. setup-node prepends to Path.
@@ -44,16 +47,16 @@ export function bootstrap(temp=process.env.RUNNER_TEMP, cache=process.env.npm_co
         fs.writeFileSync(join(stage,'package.json'),pkg);fs.writeFileSync(join(stage,'package-lock.json'),lock);
         const env=Object.fromEntries(Object.entries(process.env).filter(([k])=>/^(?:PATH|HOME|USERPROFILE|TEMP|TMP|SystemRoot|WINDIR|ComSpec|PATHEXT|LOCALAPPDATA|APPDATA|HOMEDRIVE|HOMEPATH|ProgramData|ProgramFiles|HTTP_PROXY|HTTPS_PROXY|NO_PROXY|NODE_EXTRA_CA_CERTS)$/iu.test(k)));
         // Registry tarballs stay in npm's integrity-checked content cache. No runner or API token reaches npm.
-        const cli=npmCli(),start=performance.now();
+        const cli=npmCli(),timeoutMs=npmInstallTimeoutMs(),start=performance.now();
         let npmVersion='unknown';try{npmVersion=JSON.parse(fs.readFileSync(join(dirname(cli),'../package.json'),'utf8')).version;}catch{}
         try{
             execFileSync(process.execPath,[cli,...(cache?['--cache',cache]:[]),'ci','--ignore-scripts','--no-audit','--no-fund','--prefer-offline','--fetch-retries=1','--fetch-timeout=25000'],{
-                cwd:stage,env,timeout:90_000,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024,windowsHide:true});
+                cwd:stage,env,timeout:timeoutMs,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024,windowsHide:true});
         }catch(cause){
             const integrity=/\bEINTEGRITY\b/u.test(String(cause.stderr??''));
             const error=new Error('Isolated npm installation failed');
             error.code=integrity?'CI_NPM_BAD_INTEGRITY':cause.code==='ETIMEDOUT'?'CI_NPM_INSTALL_TIMEOUT':'CI_NPM_INSTALL_FAILED';
-            error.exitCode=cause.status;error.elapsedMs=Math.round(performance.now()-start);error.npmVersion=npmVersion;throw error;
+            error.exitCode=cause.status;error.elapsedMs=Math.round(performance.now()-start);error.npmVersion=npmVersion;error.timeoutMs=timeoutMs;throw error;
         }
         fs.writeFileSync(join(stage,'complete.json'),key,{flag:'wx'});
         fs.renameSync(stage,root);

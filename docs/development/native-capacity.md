@@ -10,6 +10,8 @@ The host owns the complete Editor, catalog, baseline, draft, manager candidates 
 
 Both `ui.message` and `ui.render` use the same projection. Epochs, generations, cumulative key batches and acknowledgements retain their existing ordering and deduplication. An empty input batch reports an actual Client resize once; actual region dimensions remain separate from the bounded presentation dimensions used for drawing and key paging.
 
+While handling keys, bound the Client-reported viewport by the area assigned to it by its enclosing pane. Some hosts report the larger terminal viewport on a key event. Drawing and keyboard paging must use the same fitted area, including immediately after End or a resize.
+
 Props, the enclosing Pane and the Client drawing have separate preflights: 48,000 conservatively serialized characters, 10,000 values and depth 16. Non-ASCII escape expansion is included. These are internal safety budgets, not an implementation of Claude's validator; actual host mounting remains mandatory. Projection first reduces page height, then display width, retaining the 32×12 minimum, selected content, preview colors and usable paging. The capacity notice leads the section title so clipping and another active notice cannot hide it. An unrepresentable minimum enters recovery instead of trimming the stored configuration.
 
 Blank space uses a single height-bearing Box. Frame sides use fixed nodes, rather than wrappers for every empty row. Preview and chrome runs merge adjacent identical styles after grapheme-safe clipping. Production sample rendering and saved configuration stay independent of presentation fitting.

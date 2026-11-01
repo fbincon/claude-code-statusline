@@ -389,7 +389,7 @@ export async function recordComplete(evidence: string, selectionFile: string, ac
     await verifyWorkflowSource(record);
     fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+async function main(): Promise<void> {
     const { values, positionals } = parseArgs({ allowPositionals: true, options: { run: { type: 'string' }, output: { type: 'string' }, evidence: { type: 'string' }, selection: { type: 'string' }, acceptance: { type: 'string' } } });
     assert(values.output);
     if (positionals[0] === 'select') {
@@ -401,4 +401,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         assert.equal(positionals[0], 'record'); assert(values.evidence && values.selection && values.acceptance);
         await recordComplete(resolve(values.evidence), resolve(values.selection), resolve(values.acceptance), resolve(values.output));
     }
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+    // Physical and supplemental collectors import this module. Finish its evaluation before waiting on them.
+    // An interrupted or unsettled issuance must fail even when Node has no more active handles.
+    process.exitCode = 1;
+    void main().then(() => { process.exitCode = 0; }, error => { console.error(error); });
 }

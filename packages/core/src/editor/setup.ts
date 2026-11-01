@@ -33,7 +33,7 @@ export class SetupState {
         if(key==='preview-next'){this.previewOffset++;return null;}
         if (key === 'interrupt') return 'interrupt';
         if (key === 'escape' || key === 'cancel') return 'cancel';
-        if (key === 'l') { this.language = LANGUAGES[(LANGUAGES.indexOf(this.language) + 1) % LANGUAGES.length]!; return 'language'; }
+        if (key.toLowerCase() === 'l') { this.language = LANGUAGES[(LANGUAGES.indexOf(this.language) + 1) % LANGUAGES.length]!; return 'language'; }
         if (this.phase === 'quick') {
             if (key === 'backspace' && this.quick!.step === 'scenario') { this.phase = 'choice'; this.selected = 1; return null; }
             const result = quickKey(this.quick!, key);

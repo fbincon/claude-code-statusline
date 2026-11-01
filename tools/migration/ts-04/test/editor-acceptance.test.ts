@@ -18,6 +18,9 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_escape_leaves_both_f
     try {
         await ready(p);
         p.send(' \x1b');
+        await p.wait(output => output.includes('Discard unsaved configuration changes?') && output.includes('› Continue editing'));
+        assert.deepEqual(f.bytes(), before);
+        p.send('\x1b[B\r');
         await p.exited();
         assert.equal(p.child.exitCode, 0);
         assert.deepEqual(f.bytes(), before);

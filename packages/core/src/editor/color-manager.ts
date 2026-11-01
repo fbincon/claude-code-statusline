@@ -73,17 +73,20 @@ export function colorDraft(e: Editor): Draft {
 }
 export function colorsKey(e: Editor, event: TextKey, language: Language): null {
     const m = e.colors!, key = event.key;
-    if ((e.saveState !== 'idle' || m.generation !== e.mutationGeneration) && !(key === 'escape' || event.ctrl && key.toLowerCase() === 'g' || ['up', 'down', 'home', 'end', 'pageup', 'pagedown'].includes(key))) {
+    const commandKey = !event.text && !event.paste && !event.meta;
+    const cancel = commandKey && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
+    const navigation = commandKey && !event.ctrl && ['up', 'down', 'home', 'end', 'pageup', 'pagedown'].includes(key);
+    if ((e.saveState !== 'idle' || m.generation !== e.mutationGeneration) && !cancel && !navigation) {
         e.canMutateDraft(m.generation);
         return null;
     }
     if (m.input) {
-        if (key === 'escape' || event.ctrl && key.toLowerCase() === 'g') {
+        if (cancel) {
             m.input = null;
             m.error = false;
             return null;
         }
-        if (key === 'return' && !event.text && !event.paste) {
+        if (commandKey && !event.ctrl && key === 'return') {
             try {
                 if (m.kind === 'gradient' && m.editing === null)
                     m.candidate = parseGradient(m.input.value);
@@ -114,7 +117,7 @@ export function colorsKey(e: Editor, event: TextKey, language: Language): null {
     }
     if (event.text || event.paste || event.meta || event.overflow)
         return null;
-    if (key === 'escape' || event.ctrl && key.toLowerCase() === 'g') {
+    if (cancel) {
         e.colors = null;
         return null;
     }

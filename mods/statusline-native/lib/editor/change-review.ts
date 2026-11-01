@@ -26,6 +26,11 @@ export function openChanges(e: Editor, structure = false): void {
 }
 function active(m: ChangeReview): ReviewState { return m.comparison === 1 ? m.external ?? m.review : m.comparison === 2 ? m.replacement ?? m.review : m.review; }
 export function changePreview(e: Editor): Draft { return e.changeReview ? active(e.changeReview).result.draft : e.draft; }
+export function stepDraftHistory(e: Editor, redo: boolean): LocalizedText {
+  return e.undo(redo)
+    ? text('history.counts', { undo: e.history.undo.length, redo: e.history.redo.length })
+    : e.compositionError;
+}
 export function changesKey(e: Editor, event: TextKey, language: Language, width: number, height: number): 'changes' | null {
   const m = e.changeReview!, key = event.key === 'enter' ? 'return' : event.key;
   if (event.overflow) return null;

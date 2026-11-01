@@ -26,3 +26,19 @@ test('paste cannot save, navigate, accept import or cancel; over-limit text is e
   state.key({key:'A\nS',paste:true});
   assert.equal(state.localized.message?.key,'input.invalid');
 });
+
+test('dirty quit defaults to the draft, including after resize; only a real choice discards', () => {
+  const state=fixture(),e=state.editor;
+  assert.equal(state.key({key:'escape'}),'cancel');
+  state.key({key:' '}); const draft=structuredClone(e.draft), history=structuredClone(e.history);
+  for (const size of [[80,24],[32,12],[12,2]] as const) {
+    const key=(value: string, modifiers = {})=>state.key({key:value,...modifiers},size[0],size[1]);
+    assert.equal(key('escape'),null); assert.equal(state.exitChoice,'keep');
+    assert(plain(state,size[0],size[1]).some(line=>line.includes('› Continue')));
+    for (const type of ['text','paste','meta']) for(const value of ['down','return','escape','d']) key(value,{[type]:true});
+    assert.equal(state.exitChoice,'keep'); key('return'); assert.equal(state.exitChoice,null);
+    key('escape'); key('down'); assert.equal(state.exitChoice,'discard'); key('escape'); assert.equal(state.exitChoice,null);
+    assert.deepEqual(e.draft,draft); assert.deepEqual(e.history,history);
+    key('escape'); key('down'); assert.equal(key('return'),'cancel');
+  }
+});

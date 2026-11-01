@@ -115,7 +115,15 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
     report.terminal_console_observations=consoleObservations;
     if (process.platform === 'win32') {
         const config = setup('terminal-colors');
-        const before = fs.readFileSync(join(config,'settings.json'));
+        const settingsPath = join(config,'settings.json'), displayPath = join(config,'claude-statusline.json');
+        const displayBytes = () => fs.existsSync(displayPath) ? fs.readFileSync(displayPath) : null;
+        const originalSettings = fs.readFileSync(settingsPath), originalDisplay = displayBytes();
+        const assertCancelled = (label: string, entry: string, saved: {status: number; discard_confirmed: boolean}) => {
+            assert.equal(saved.status, 0, label);
+            assert.equal(saved.discard_confirmed, entry !== 'setup', label + ' discard confirmation');
+            assert.deepEqual(fs.readFileSync(settingsPath), originalSettings, label + ' changed settings');
+            assert.deepEqual(displayBytes(), originalDisplay, label + ' changed the display configuration');
+        };
         const choices: [string, NodeJS.ProcessEnv, number][] = [
             ['powershell-cmd',{TERM:undefined,COLORTERM:undefined,NO_COLOR:undefined,WT_SESSION:'inherited-parent'},256],
             ['git-bash',{TERM:'xterm-256color',COLORTERM:undefined,NO_COLOR:undefined},256],
@@ -130,8 +138,9 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
             try {
                 const stop=performance.now()+16000;
                 while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
-                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No color receipt');
+                assert.equal(child.code(),0,`${entry}/${name}: `+(fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No color receipt'));
                 const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
+                assertCancelled(`${entry}/${name}`,entry,saved);
                 consoleObservations.push({entry,environment:name,before_mode:saved.before_mode,after_mode:saved.after_mode,before_output_mode:saved.before_output_mode,after_output_mode:saved.after_output_mode});
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
@@ -157,16 +166,15 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 const stop=performance.now()+30000;
                 while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
                 const shellError=join(installed.temporary,'color-shell.stderr');
-                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):`No ${shell}/${entry} console receipt: `+(fs.existsSync(shellError)?fs.readFileSync(shellError,'utf8'):''));
+                assert.equal(child.code(),0,`${shell}/${entry}: `+(fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No console receipt: '+(fs.existsSync(shellError)?fs.readFileSync(shellError,'utf8'):'')));
                 const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
-                assert.equal(saved.status,0);assert.equal(saved.input_tty,true);
+                assertCancelled(`${shell}/${entry}`,entry,saved);assert.equal(saved.input_tty,true);
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
                 if(invocation) assert.equal(bridge.readResult(invocation.result,config).outcome,'cancelled');
                 shellEvidence.push({entry,shell,colors:256,input_tty:true,restored:true,cancelled:true});
             } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
         }
-        assert.deepEqual(fs.readFileSync(join(config,'settings.json')),before);
     }
     report.terminal_color_cases=process.platform==='win32'?15:3;
     checks.terminal_colors=true;
@@ -713,6 +721,10 @@ test('installed external editor saves and cancels in a real native terminal', { 
             try {
                 await p.wait(value => value.includes('Preview (sample data)'));
                 p.send(choice === 'save' ? ' \x13' : ' \x1b');
+                if (choice === 'cancel') {
+                    await p.wait(value => value.includes('Discard unsaved configuration changes?'));
+                    p.send('\x1b[B\r');
+                }
                 await p.exited();
                 assert.equal(p.child.exitCode, 0);
                 assert.deepEqual(p.attributes(), p.before);
@@ -726,7 +738,8 @@ test('installed external editor saves and cancels in a real native terminal', { 
         assert.ok(output.includes('\x1b[?1049l'));
         const capture = new Capture(columns, rows);
         capture.feed(output);
-        assert.ok((capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n').includes('Preview (sample data)'));
+        const lastFrame = (capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n');
+        assert.ok(lastFrame.includes(choice === 'save' ? 'Preview (sample data)' : 'Discard unsaved configuration changes?'));
         if (choice === 'save')
             assert.equal(JSON.parse(fs.readFileSync(path, 'utf8')).instances.find((item: any) => item.id === 'model-with-effort').enabled, false);
         else
