@@ -49,6 +49,10 @@
 
 传输 Action 在每台 runner 使用自己的完整性锁定 SDK。同一 Linux 机器单次冷准备为 4.586 秒，npm 缓存占用 28 MiB，runner 临时目录安装 187 MiB。使用热 npm 缓存、换新临时目录时为 1.424 秒，重用初始化后的目录约 1 ms。普通本地开发和包构建仍使用独立的仓库根锁。
 
+托管探测在 `b2f9af7` 上实际生成了 41,997,730 字节的完整 ZIP（制品 `13070430658`）和 5,225,964 字节的轻量 ZIP（`13069489705`），实测减少 87.56%。Linux 上模拟丢失上传确认后，在 14.205 秒内找回第一次成功的原制品。轻包提交前模拟断连，两次调用共用 5.457 秒。Windows 首读完整输入耗时 16.002 秒，读取轻包时注入中断，恢复共用 1.433 秒。各步骤包含的初始化与恢复工作不同。摘要不符、HTTP 403 和上传对象歧义均在第一次操作直接失败，持续 503 两次后终止。两个作业各排队 2 秒，runner 时间合计 169 秒，墙钟 175 秒。[托管探测](https://github.com/fbincon/claude-code-statusline/actions/runs/41273837453) · [诊断回执](https://github.com/fbincon/claude-code-statusline/actions/runs/41273837453/artifacts/13070182754)
+
+首次 Windows 探测在 SDK 准备阶段发现 Node Worker 对 runner 的 `Path` 按大小写查找的问题。修复后，另在本地回读两个托管 ZIP，核对服务端 SHA-256，用完整候选重新生成清单。还原的压缩包 `3c9ebd6dbcd3f4e92d9f9dfe0463bd4f7fe527cf2716642ab5e9bfdea6685373` 通过了离线安装、doctor、渲染、配置读写及卸载保留检查。[首次 Windows 准备失败](https://github.com/fbincon/claude-code-statusline/actions/runs/41273548069/job/124751285890) · [传输改动](https://github.com/fbincon/claude-code-statusline/pull/203)
+
 ## 解读口径
 
 Runner 时间按作业求和，包含并行执行。墙钟还受依赖关系与可用容量影响。无模型诊断可验证 worker、恢复行为及专项耗时。下一次自然触发的核心产品 PR 用于观测优化后的整轮耗时，并与 70 分钟目标比较。六项既有物理与宿主声明缺口继续绑定原发布记录。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)
