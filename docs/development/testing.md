@@ -51,6 +51,8 @@ The versioned evidence tests reconstruct coverage in temporary Git repositories.
 
 Use the branch-only `tiered-probe` dispatch to exercise representative full and short histories, the three Windows ARM sections and fixed-host workers. It uses the same physical worker as automatic acceptance. Inspect each original fragment and its phase timings. A targeted retry retains other sections' identities. The diagnostic aggregate and artifacts are separate from promotable complete evidence.
 
+Use a clean checkout per fixed host when running official Mod diagnostics locally. A previous host can leave ignored declarations under the plugin’s `.claude-plugin/types` directory. Record the exact host and declaration headers before accepting its type or test results. [Measured samples](ci-efficiency.md)
+
 ## Installed performance experiments
 
 [PERF-01](performance/perf-01.md) owns the separately identified installed TS-to-TS

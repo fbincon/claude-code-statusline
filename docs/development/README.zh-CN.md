@@ -14,7 +14,7 @@
 | --- | --- |
 | 遵循工作区与贡献约定 | 仅维护英文的 [AGENTS.md](../../AGENTS.md) · [贡献指南](../../CONTRIBUTING.zh-CN.md) · [仓库治理](repository-governance.zh-CN.md) |
 | 理解实现 | [架构](architecture.zh-CN.md) · [共享契约](contracts.zh-CN.md) · [渲染与 Unicode](rendering.zh-CN.md) |
-| 选择验证与 CI 证据 | [测试与验收](testing.zh-CN.md) · [影响检查](impact-checks.zh-CN.md) · [CI 维护／晋级](ci-maintenance.zh-CN.md) |
+| 选择验证与 CI 证据 | [测试与验收](testing.zh-CN.md) · [影响检查](impact-checks.zh-CN.md) · [CI 维护／晋级](ci-maintenance.zh-CN.md) · [CI 实测耗时](ci-efficiency.zh-CN.md) |
 | 维护宿主接入 | [原生编辑器](native.zh-CN.md) · [容量／恢复](native-capacity.zh-CN.md) · [任务计时](timer.zh-CN.md) · [实时指标](live.zh-CN.md) |
 | 维护语言 | [翻译指南](i18n.zh-CN.md) · [多语言工作流](i18n-workflow.zh-CN.md) |
 | 制作与核验媒体 | [图片索引](../images/README.zh-CN.md) · [SHOWCASE-01 证据](showcase.zh-CN.md) |

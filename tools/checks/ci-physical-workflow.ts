@@ -108,10 +108,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     const plan = await workflowPlan(candidate, command !== 'plan' && json(path).basis === 'conservative');
     if (command === 'plan') {
         write(path, plan);
+        const historyInput = (spec: CoverageProducer) => spec.stage === 'history' || spec.stage === 'complete' ? spec.depth : 'none';
+        output('short_history', String(plan.producers.some(spec => historyInput(spec) === 'short')));
         for (const group of ['installed', 'runtime', 'mods']) {
             const include = plan.producers.filter(spec => spec.job_key === group).map(spec => ({
                 id: spec.id, job: spec.job, artifact: physicalName(spec, probeMode()), os: spec.os, arch: spec.arch,
-                host_arch: spec.host_arch, node: spec.node, host: spec.host ?? '',
+                host_arch: spec.host_arch, node: spec.node, host: spec.host ?? '', history: historyInput(spec),
             }));
             assert(include.length); output(group + '_matrix', JSON.stringify({ include }));
         }

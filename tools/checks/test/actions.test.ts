@@ -20,12 +20,12 @@ function fixture(t: TestContext) {
     return { root, write, workflow, check: () => checkActions(root) };
 }
 
-test('all maintained workflows have complete, commented Action identities', () => {
+test('maintained workflows resolve local Actions and pin every external reference with a version', () => {
     const result = checkActions(repoRoot);
     assert.deepEqual(result.errors, []);
     assert(result.files > 0);
     assert(result.references.length > 0);
-    assert(result.references.every(reference => reference.version));
+    assert(result.references.every(reference => reference.uses.startsWith('./') || reference.version));
 });
 
 test('checkout aliases use the same canonical boundary as their workflow files', t => {

@@ -1,0 +1,43 @@
+name: Verified artifact transfer
+description: Transfer an exact artifact with one bounded recovery on the current runner
+inputs:
+  operation:
+    description: upload or download
+    required: true
+  path:
+    description: Upload directory/file or new destination directory
+    required: true
+  name:
+    description: Exact upload name or expected name of a single download
+  artifact-ids:
+    description: Comma-separated immutable download IDs
+  run-id:
+    description: Original download workflow run
+  github-token:
+    description: Read-only GitHub API token
+    default: ${{ github.token }}
+  expected-digest:
+    description: Independently selected SHA-256 for a single download
+  merge-multiple:
+    description: Extract a single ID directly into the destination
+    default: 'false'
+  retention-days:
+    description: Days to retain an uploaded artifact
+    default: '30'
+  compression-level:
+    description: ZIP compression level
+    default: '6'
+  diagnostic-fault:
+    description: Transfer diagnostic branch dispatch only
+outputs:
+  artifact-id:
+    description: Immutable ID of a single transferred artifact
+  artifact-digest:
+    description: SHA-256 of one original ZIP
+  recovery:
+    description: none, retried or reconciled
+  receipt:
+    description: Private local transfer receipt path
+runs:
+  using: node24
+  main: entry.mjs

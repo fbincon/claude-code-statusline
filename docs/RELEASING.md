@@ -8,6 +8,8 @@ Select the evidence schema from the tagged source and revalidate the latest appl
 
 Activated sources require the history profile named by the original coverage plan, including every stage of a split installation. The tag and npm reader retain the counts of actual full and short history jobs and the product run that executed them. For a mixed core change, a required asset or approval receipt must also survive verification through main and tag.
 
+Promotion resolves the complete original candidate by immutable artifact ID and verifies original ZIP and package digests. A worker-input manifest or a transfer-probe artifact cannot satisfy those release inputs. Preserve the independently verified selection and accepted-base check before restoring cross-source compiler output. [CI measurements](development/ci-efficiency.md)
+
 ## v3.16.1 runtime, source and save-conflict repairs
 
 Published **2026-10-31** on [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1), [GitHub stable/Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) and [Gitee stable](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1), from source `d652eda833d97c594abbf17929e347bf77395af2`. Required PR/main/tag gates, independent and delivered-source rebuilds, twelve-language readiness, seven public verification jobs and all four delivery-file digests passed. The actual machine retains 3.16.1 after both-editor/runtime checks and eleven-path preference restoration.

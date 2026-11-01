@@ -1,32 +1,51 @@
 /** Deterministic Actions observation. Read only; never reruns, cancels or merges. */
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import * as fs from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parseArgs } from 'node:util';
+import { parseArgs, promisify } from 'node:util';
+import { isTransient, responseError, retryRead } from './ci-transfer-policy.ts';
 export const CI_REPOSITORY = 'fbincon/claude-code-statusline';
+const exec = promisify(execFile);
+/** Local observation uses the caller's existing gh authentication. Keep diagnostics
+ * redacted, including signed redirects, and preserve only known transfer errors. */
+export async function ghReadBytes(path: string, maxBuffer: number, signal: AbortSignal): Promise<Buffer> {
+    assert(path.startsWith(`repos/${CI_REPOSITORY}/`));
+    try {
+        const result = await exec('gh',['api','--hostname','github.com',path],{encoding:'buffer',maxBuffer,signal});
+        return result.stdout;
+    } catch (error) {
+        if (signal.aborted) throw signal.reason;
+        const diagnostic = String((error as any).stderr ?? '');
+        const status = Number(/HTTP (\d{3})/u.exec(diagnostic)?.[1]) || undefined;
+        const code = /certificate|\bx509:/iu.test(diagnostic) ? 'CERTIFICATE_VERIFICATION_FAILED' :
+            /TLS handshake timeout|i\/o timeout|context deadline exceeded/iu.test(diagnostic) ? 'ETIMEDOUT' :
+            /connection reset by peer|ECONNRESET|:\s*(?:unexpected )?EOF\s*$|stream error: stream ID \d+; INTERNAL_ERROR/imu.test(diagnostic) ? 'ECONNRESET' : undefined;
+        const reason = status ? 'HTTP ' + status : code ?? 'gh exit ' + String((error as any).code);
+        throw Object.assign(new Error('GitHub read failed (' + reason + ')'), { status, code });
+    }
+}
 export async function githubRead(path: string): Promise<any> {
     assert(path.startsWith(`repos/${CI_REPOSITORY}/`), 'Unexpected repository API path');
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
-    if (!token) {
-        try { return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] })); }
-        catch (error) {
-            const status = Number(String((error as any).stderr ?? '').match(/HTTP (\d{3})/u)?.[1]) || undefined;
-            throw Object.assign(new Error('GitHub read failed' + (status ? ': HTTP ' + status : '')), { status });
-        }
-    }
-    const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'statusline-ci-evidence' }, signal: AbortSignal.timeout(30000) });
-    if (!response.ok) throw Object.assign(new Error('GitHub read failed: HTTP ' + response.status), { status: response.status });
-    return response.json();
+    return retryRead(async signal => {
+        if (!token) return JSON.parse((await ghReadBytes(path,32 * 1024 * 1024,signal)).toString('utf8'));
+        const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'statusline-ci-evidence' }, redirect:'error', signal });
+        if (!response.ok) { await response.body?.cancel(); throw responseError(response); }
+        return response.json();
+    });
 }
 export function summarizeJobs(jobs: any[]) {
     const seconds = (end: string, start: string) => Math.max(0, (Date.parse(end) - Date.parse(start)) / 1000);
-    const originals = new Map<string, number>();
+    const originals = new Map<string, { id: number; attempt: number; conclusion: string | null }>();
     return [...jobs].sort((a, b) => a.run_attempt - b.run_attempt || a.id - b.id).map(job => {
         const key = JSON.stringify([job.name, job.started_at, job.completed_at]);
-        const reused = job.completed_at ? originals.get(key) : undefined;
-        if (job.completed_at && reused === undefined) originals.set(key, job.id);
+        const previous = originals.get(key);
+        const retained = previous && previous.attempt < job.run_attempt && previous.conclusion === job.conclusion &&
+            (previous.id === job.id || Date.parse(job.created_at) > Date.parse(job.completed_at));
+        const reused = retained ? previous.id : undefined;
+        if (job.completed_at && reused === undefined) originals.set(key,{id:job.id,attempt:job.run_attempt,conclusion:job.conclusion});
         return { id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
         fresh_execution: reused === undefined, reused_from_job_id: reused ?? null,
         queue_seconds: job.started_at && job.created_at ? seconds(job.started_at, job.created_at) : null,
@@ -52,13 +71,33 @@ export function jobProgress(jobs: any[]) {
             .sort((a, b) => a.id - b.id).map(job => ({ id: job.id, name: job.name, attempt: job.run_attempt, conclusion: job.conclusion,
                 steps: (job.steps ?? []).filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) };
 }
-export async function collectRun(runId: number, head: string) {
-    const prefix = `repos/${CI_REPOSITORY}/actions/runs/${runId}`, run = await githubRead(prefix);
-    assert.equal(run.head_sha, head, 'CI run belongs to another head');
-    assert.equal(run.repository?.full_name, CI_REPOSITORY, 'CI run belongs to another repository');
-    assert.equal(run.path, '.github/workflows/ci.yml', 'Unexpected CI workflow');
-    const jobs = await readJobs(runId, 'all');
-    return { schema_version: 1, run_id: runId, head, event: run.event, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion, created_at: run.created_at, updated_at: run.updated_at, jobs: summarizeJobs(jobs) };
+export function attemptCosts(jobs: ReturnType<typeof summarizeJobs>) {
+    const attempts = [...new Set(jobs.map(job => job.attempt))].sort((a,b) => a-b);
+    return attempts.map(attempt => {
+        const active = jobs.filter(job => job.attempt === attempt && job.conclusion !== 'skipped');
+        const fresh = active.filter(job => job.fresh_execution);
+        return { attempt, fresh_jobs: fresh.length, retained_jobs: active.length - fresh.length,
+            completed_runner_seconds: fresh.reduce((sum,job) => sum + (job.execution_seconds ?? 0),0),
+            known_queue_seconds: fresh.reduce((sum,job) => sum + (job.queue_seconds ?? 0),0),
+            longest_queue_seconds: Math.max(0,...fresh.map(job => job.queue_seconds ?? 0)) };
+    });
+}
+export async function collectRun(runId: number, head: string, read = githubRead) {
+    const path = `repos/${CI_REPOSITORY}/actions/runs/${runId}`;
+    let before = await read(path);
+    for (let sample = 0; sample < 3; sample++) {
+        const jobs = summarizeJobs(await readJobs(runId, 'all',read)), run = await read(path);
+        assert.equal(run.head_sha, head, 'CI run belongs to another head');
+        assert.equal(run.repository?.full_name, CI_REPOSITORY, 'CI run belongs to another repository');
+        assert.equal(run.path, '.github/workflows/ci.yml', 'Unexpected CI workflow');
+        if (before.run_attempt === run.run_attempt && before.status === run.status &&
+            jobs.every(job => job.attempt <= run.run_attempt)) {
+            return { schema_version: 1, run_id: runId, head, event: run.event, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion,
+                created_at: run.created_at, updated_at: run.updated_at, jobs, attempt_costs: attemptCosts(jobs) };
+        }
+        before = run;
+    }
+    throw new Error('CI attempt changed repeatedly while collecting execution times');
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { run: { type: 'string' }, head: { type: 'string' }, report: { type: 'string' }, watch: { type: 'boolean' }, 'timeout-minutes': { type: 'string', default: '120' } } });
@@ -79,7 +118,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
                 // A rerun can start while historical details are being read. Never exit successfully for an older observation.
                 if (report.status === 'completed' || !values.watch) {
                     if (values.report) { const path = resolve(values.report); fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, JSON.stringify(report, null, 2) + '\n'); }
-                    console.log(JSON.stringify({ jobs: report.jobs.length, failed: report.jobs.filter(job => job.conclusion === 'failure').map(job => ({ name: job.name, attempt: job.attempt, steps: job.steps.filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) }));
+                    console.log(JSON.stringify({ jobs: report.jobs.length, attempt_costs:report.attempt_costs, failed: report.jobs.filter(job => job.conclusion === 'failure').map(job => ({ name: job.name, attempt: job.attempt, steps: job.steps.filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) }));
                     process.exitCode = report.status !== 'completed' ? 2 : report.conclusion === 'success' ? 0 : 1; break;
                 }
             } else {
@@ -89,7 +128,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
             failures = 0;
         } catch (error) {
             // An identity/assertion failure is never transient.
-            if (error instanceof assert.AssertionError || [401, 403, 404].includes((error as any)?.status) || ++failures >= 3) throw error;
+            if (!isTransient(error) || ++failures >= 3) throw error;
             console.error('CI observation temporarily unavailable; retrying (' + failures + '/3)');
         }
         if (Date.now() >= deadline) { console.error('Observation deadline reached; CI was not cancelled.'); process.exitCode = 2; break; }

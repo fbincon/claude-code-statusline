@@ -6,7 +6,8 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
+import { ghReadBytes, githubRead, CI_REPOSITORY } from './ci-watch.ts';
+import { responseError, retryRead } from './ci-transfer-policy.ts';
 import { TARGETS, HOSTS } from './runtime-inputs.ts';
 import { coverageVersionAt, verifyCoveragePlan, type CoveragePlan } from './ci-coverage.ts';
 import { validateFragmentIdentity, validatePhysicalIdentity, type PhysicalExecution } from './ci-fragment.ts';
@@ -40,7 +41,8 @@ export type CompleteEvidence = CompleteEvidenceV1 | CompleteEvidenceV2;
 export { validateFragmentIdentity, type PhysicalIdentity, type PhysicalFragment, type PhysicalExecution } from './ci-fragment.ts';
 /** Release registrations are data; executable release checks remain acceptance policy. */
 export function acceptancePolicyPath(path: string): boolean {
-    return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
+    return path.startsWith('.github/workflows/') || path.startsWith('.github/actions/transfer-artifact/') ||
+        /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
 }
 export function policyDigest(revision: string, read = git): string {
     assert(SHA.test(revision));
@@ -85,18 +87,23 @@ export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
 export async function artifactJson(artifact: any, file: string, expectedHash?: string): Promise<any> {
     assert(['ci-evidence.json', 'promotion.json', 'smoke.json', 'maintenance.json', 'receipt.json', 'release-binding.json'].includes(file));
     const identity = artifactIdentity(artifact), path = `repos/${CI_REPOSITORY}/actions/artifacts/${identity.id}/zip`;
-    let bytes: Buffer;
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
-    if (token) {
-        const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, 'User-Agent': 'statusline-ci-evidence' }, redirect: 'manual', signal: AbortSignal.timeout(30000) });
+    const bytes = await retryRead(async signal => {
+        if (!token) return ghReadBytes(path,4 * 1024 * 1024,signal);
+        const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, 'User-Agent': 'statusline-ci-evidence' }, redirect: 'manual', signal });
+        await response.body?.cancel();
+        if (response.status >= 400) throw responseError(response);
         assert.equal(response.status, 302, 'Cannot resolve evidence download');
-        const location = response.headers.get('location'); assert(location && location.startsWith('https://'));
+        const location = response.headers.get('location'); assert(location);
+        const url = new URL(location); assert(url.protocol === 'https:' && !url.username && !url.password);
         // Never forward API credentials to the signed object-storage URL.
-        const body = await fetch(location, { signal: AbortSignal.timeout(60000) }); assert(body.ok && body.body, 'Cannot download evidence');
+        const body = await fetch(url, { signal });
+        if (!body.ok) { await body.body?.cancel(); throw responseError(body); }
+        assert(body.body, 'Missing evidence download');
         const chunks: Buffer[] = []; let size = 0;
         for await (const chunk of body.body) { size += chunk.length; assert(size <= 4 * 1024 * 1024, 'Evidence envelope too large'); chunks.push(Buffer.from(chunk)); }
-        bytes = Buffer.concat(chunks);
-    } else bytes = execFileSync('gh', ['api', '--hostname', 'github.com', path], { maxBuffer: 4 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] });
+        return Buffer.concat(chunks);
+    });
     assert.equal('sha256:' + digest(bytes), identity.digest, 'Evidence ZIP digest mismatch');
     const content = envelopeBytes(bytes, file);
     if (expectedHash) assert.equal(digest(content), expectedHash, 'Original envelope file changed');

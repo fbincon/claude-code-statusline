@@ -14,7 +14,7 @@ Development/builds use Node 24.21.0 and npm 11.19.0, pinned by [`.node-version`]
 | --- | --- |
 | Follow workspace and contribution rules | [AGENTS.md](../../AGENTS.md), maintained in English · [Contributing](../../CONTRIBUTING.md) · [Repository governance](repository-governance.md) |
 | Understand the implementation | [Architecture](architecture.md) · [Shared contracts](contracts.md) · [Rendering and Unicode](rendering.md) |
-| Select validation and CI evidence | [Testing and acceptance](testing.md) · [Impact checks](impact-checks.md) · [CI maintenance/promotion](ci-maintenance.md) |
+| Select validation and CI evidence | [Testing and acceptance](testing.md) · [Impact checks](impact-checks.md) · [CI maintenance/promotion](ci-maintenance.md) · [Measured CI costs](ci-efficiency.md) |
 | Work on host integrations | [Native editor](native.md) · [Capacity/recovery](native-capacity.md) · [Task timing](timer.md) · [Live metrics](live.md) |
 | Maintain languages | [Translation guide](i18n.md) · [Multilingual workflow](i18n-workflow.md) |
 | Produce and verify media | [Image index](../images/README.md) · [SHOWCASE-01 evidence](showcase.md) |

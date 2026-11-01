@@ -244,7 +244,8 @@ for (const changedPath of changes) test(changedPath + ': full PR evidence reuses
         mainArtifacts = mainArtifacts.filter(value => value.name !== 'ci-promotion');
         await assert.rejects(selectTag('v' + version, head), /Missing artifact/u);
         // Each genuine build/acceptance/trust change still alters policy; no release directory exclusion.
-        for (const path of ['tools/build/pack.ts', 'tools/acceptance/installed.ts', 'tools/checks/ci-sources.ts', 'tools/release/new-validator.ts', '.github/workflows/ci.yml']) {
+        for (const path of ['tools/build/pack.ts', 'tools/acceptance/installed.ts', 'tools/checks/ci-sources.ts', 'tools/release/new-validator.ts',
+            '.github/workflows/ci.yml','.github/actions/transfer-artifact/package-lock.json','.github/actions/transfer-artifact/index.mjs']) {
             const beforePolicy = policyDigest(git('rev-parse', 'HEAD'), git);
             write(path, '// Changed acceptance rule\n'); git('add', path); git('commit', '-m', 'policy fixture');
             assert.notEqual(policyDigest(git('rev-parse', 'HEAD'), git), beforePolicy);

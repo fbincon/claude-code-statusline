@@ -8,6 +8,8 @@
 
 已激活源码须满足原覆盖清单指定的历史深度，并提供拆分安装的每个阶段。tag 和 npm 读取端保留实际完整与短历史作业数及其原始产品运行。混合核心改动中必需的媒体或批准数据回执也须通过 main 与 tag 复核。
 
+晋升按不可变制品 ID 选择原完整候选，校验原 ZIP 和包摘要。worker 输入清单或传输诊断制品不能满足发布输入要求。跨源恢复编译输出前，完成独立来源选择及已接受基线复核。[CI 实测](development/ci-efficiency.zh-CN.md)
+
 ## v3.16.1 运行、来源与保存冲突修复
 
 已于 **2026-10-31** 在 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 和 [Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 发布，源码为 `d652eda833d97c594abbf17929e347bf77395af2`。必需 PR／main／tag 门禁、独立及交付源码重建、十二语言就绪、七项公开核验和四项交付文件摘要均通过。本机在双编辑器／运行观测检查及十一路径偏好恢复后保留 3.16.1。
