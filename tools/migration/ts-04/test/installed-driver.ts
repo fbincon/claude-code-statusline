@@ -240,8 +240,10 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
             records.writeUInt16LE(1, offset + 8); records.writeUInt16LE(code === 19 ? 0x53 : code, offset + 10);
             records.writeUInt16LE(code, offset + 14); records.writeUInt32LE(code === 19 ? 8 : 0, offset + 16);
         }
-        if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, keys.length * 2, [0])) throw new Error('WriteConsoleInputW failed');
+        const count = keys.length * 2, written = [0];
+        if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, count, written) || written[0] !== count) throw new Error('WriteConsoleInputW did not send every key record');
     };
+    const discardEditor = operation === 'windows-editor' && choice !== 'save';
     let previewCancelled = false, discardConfirmed = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     // The production editor can move to an independent runtime. Preserve its
@@ -261,14 +263,15 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
             scheduled = true;
             setTimeout(() => {
                 const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
-                    : choice === 'save' ? ' \x13' : ' \x1b';
+                    : discardEditor ? ' \x1b' : ' \x13';
                 sendKeys(keys);
             }, 50);
         }
         if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
         }
-        if (operation !== 'windows-setup' && choice === 'cancel' && !discardConfirmed && output.includes('Discard unsaved configuration changes?')) {
+        // This action fits the narrowest editor, even when the dialog title is clipped.
+        if (discardEditor && !discardConfirmed && output.replace(/\x1b\[[0-9;]*m/gu, '').includes('Discard changes and close')) {
             discardConfirmed = true; setTimeout(() => sendKeys('\x1b[B\r'), 50);
         }
     };
@@ -280,13 +283,13 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         return (write as any)(chunk, ...args);
     };
     const poll=setInterval(observeOutput,25);
-    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
+    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', operation, choice, columns, rows, scheduled, discardConfirmed, output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
     fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_editor',pid:process.pid}),{mode:0o600});
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, discard_confirmed: discardConfirmed, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }
     finally {
