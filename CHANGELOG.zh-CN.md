@@ -8,7 +8,7 @@
 - 撤销和重做显示准确反馈，活动输入框不再触发后台草稿历史。在 Native 添加选择器中可查看只读的目录类型要求。
 - 外部编辑器按 Esc 放弃未保存草稿前需要确认。Alt、功能键序列和粘贴文字分别处理，避免误执行命令。
 - 缩放后保持诊断输入光标与选中项可见，报告翻页使用真实视口高度。
-- [发布说明](docs/releases/v3.16.2.zh-CN.md)
+- 已于 2026-11-01 发布。[发布说明](docs/releases/v3.16.2.zh-CN.md) · [交付核验](docs/development/editor-input-delivery.zh-CN.md#final-release)
 
 ## 3.16.1 — 2026-10-31
 

@@ -28,6 +28,7 @@ These records preserve feature-introduction versions, source identities, origina
 
 | Area | Delivery records |
 | --- | --- |
+| v3.16.2 editor controls | [Keyboard, draft protection and release verification](editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](runtime-source-save-fixes.md#final-release), published with actual-machine verification complete |
 | Languages | [Twelve-language expansion](language-expansion.md) · [I18N-02 lifecycle](i18n-02-delivery.md) · [Node and regional languages](node-regional-languages.md) |
 | Appearance, drafts and reuse | [Adaptive rows and scenes](adaptive-row-scenarios.md) · [Draft history and reuse](draft-history-and-reuse.md) · [Appearance/previews/diagnosis](appearance-preview-diagnosis.md) |
