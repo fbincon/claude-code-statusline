@@ -53,6 +53,8 @@ Completed on 2026-10-28: final PR/main/tag gates, OIDC publication, public downl
 
 ## Source-bound CI evidence promotion
 
+Use the original complete acceptance for installed language coverage. Same-package language comparison runs record harness performance separately and cannot be promoted into a missing release receipt. [Installed language combinations](development/testing.md#installed-language-combinations).
+
 Release preparation follows the [impact plan](development/impact-checks.md). Core changes require complete final-PR product acceptance, a normal merge and verified main integration with three-platform smoke. Equivalent complete sources retain the existing annotated-tag promotion and publish their original bytes.
 
 A maintenance PR runs its scoped checks; main independently verifies its source and receipts. A tag at an accepted maintenance source builds a new package/source/manifest/checksum set bound to that source, verifies independent and source-archive rebuilds, compares product payloads using accepted code, and runs three-platform installation smoke. Release binding explicitly links the original complete product coverage and intervening maintenance evidence. Tag SHA, package source SHA and npm provenance agree; no old package or receipt is relabeled.

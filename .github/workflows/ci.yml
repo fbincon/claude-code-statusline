@@ -11,8 +11,13 @@ on:
       validation:
         description: Explicit full validation or isolated diagnostics (never PR or release evidence)
         type: choice
-        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe]
+        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe, language-comparison]
         default: full
+      language_input:
+        description: Package for the manual language comparison
+        type: choice
+        options: [dispatch-source, v3.16.1]
+        default: dispatch-source
 
 permissions:
   contents: read
@@ -32,6 +37,7 @@ defaults:
 jobs:
   scope:
     name: Classify changes and select evidence
+    if: github.event_name != 'workflow_dispatch' || inputs.validation != 'language-comparison'
     permissions:
       contents: read
       actions: read
@@ -513,6 +519,7 @@ jobs:
       - name: Install the shared artifact offline with empty cache and scripts disabled
         run: node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
       - name: Native platform, process, failure and terminal tests without Python
+        timeout-minutes: 30
         run: node dist/typescript/tools/checks/all.js --platform --report "$RUNNER_TEMP/evidence/source-tests.json"
       - name: Record runtime obligations sharing this exact execution
         env:
@@ -522,6 +529,7 @@ jobs:
         run: npm run migration:receipt -- "$RUNNER_TEMP/evidence/platform.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
+        timeout-minutes: 10
         with:
           name: ts06-installed-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/evidence/
@@ -577,6 +585,7 @@ jobs:
         run: node dist/typescript/tools/acceptance/runtime.js --case "${{ matrix.node }}" --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/runtime.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
+        timeout-minutes: 10
         with:
           name: ts06-runtime-${{ matrix.target.os }}-${{ matrix.target.arch }}-${{ matrix.node }}
           path: ${{ runner.temp }}/evidence/
@@ -664,7 +673,7 @@ jobs:
   acceptance:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
     needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion, scoped, maintenance, release-build, release-smoke, release-binding]
-    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
+    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && inputs.validation != 'language-comparison'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -723,6 +732,116 @@ jobs:
         with:
           name: ${{ github.event_name == 'workflow_dispatch' && 'ci-manual-acceptance' || 'ts06-acceptance' }}
           path: ${{ runner.temp }}/acceptance/
+          if-no-files-found: error
+          retention-days: 30
+
+  language-input:
+    name: Prepare immutable language comparison input (diagnostic)
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'language-comparison'
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.input.outputs.commit }}
+      digest: ${{ steps.input.outputs.digest }}
+      filename: ${{ steps.input.outputs.filename }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - name: Build the dispatched source once for all comparison runners
+        if: inputs.language_input != 'v3.16.1'
+        run: node dist/typescript/tools/build/candidate.js --channel public --commit "$GITHUB_SHA" --output "$RUNNER_TEMP/language-input"
+      - name: Fetch the recorded PR 198 release for an explicit historical comparison
+        if: inputs.language_input == 'v3.16.1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module -e "import { VERSION } from '@fbincon/statusline-core/release'; import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui'; if (VERSION !== '3.16.1' || PROTOCOL_VERSION !== 31) throw new Error('Historical v3.16.1 requires a compatible 3.16.1/protocol-31 harness; select dispatch-source for the current product')"
+          gh release download v3.16.1 --repo fbincon/claude-code-statusline --pattern fbincon-claude-code-statusline-3.16.1.tgz --pattern SHA256SUMS --dir "$RUNNER_TEMP/language-input"
+      - name: Verify input bytes and package source
+        id: input
+        env:
+          LANGUAGE_INPUT: ${{ inputs.language_input }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import { join } from 'node:path';
+          import assert from 'node:assert/strict';
+          import { verifyCandidate } from './dist/typescript/tools/build/verify.js';
+          const directory = join(process.env.RUNNER_TEMP, 'language-input');
+          const historical = process.env.LANGUAGE_INPUT === 'v3.16.1';
+          const commit = historical ? 'd652eda833d97c594abbf17929e347bf77395af2' : process.env.GITHUB_SHA;
+          const filename = historical ? 'fbincon-claude-code-statusline-3.16.1.tgz' : JSON.parse(fs.readFileSync(join(directory, 'build-manifest.json'), 'utf8')).candidate.file;
+          const input = verifyCandidate(join(directory, filename), commit);
+          if (historical) assert.equal(input.sha256, '71e714f72b436acf6b24b78461b314dea12c01dc9ee00a7033a5c393bf7f891c');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `commit=${commit}\ndigest=${input.sha256}\nfilename=${filename}\n`);
+          JS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: diagnostic-language-input
+          path: |
+            ${{ runner.temp }}/language-input/${{ steps.input.outputs.filename }}
+            ${{ runner.temp }}/language-input/SHA256SUMS
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+
+  language-comparison:
+    name: Language comparison (diagnostic) / ${{ matrix.os }} / Node ${{ matrix.node }}
+    needs: language-input
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'language-comparison'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, node: '24.21.0', host_arch: x64 }
+          - { os: macos-15-intel, node: '24.21.0', host_arch: x64 }
+          - { os: windows-11-arm, node: '24.21.0', host_arch: arm64 }
+          - { os: windows-11-arm, node: '22.0.0', host_arch: arm64 }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          architecture: x64
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: diagnostic-language-input
+          path: ${{ runner.temp }}/language-input
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: x64
+      - name: Compare three pairs on the same runner and package
+        env:
+          PACKAGE_FILE: ${{ needs.language-input.outputs.filename }}
+          PACKAGE_COMMIT: ${{ needs.language-input.outputs.commit }}
+          PACKAGE_DIGEST: ${{ needs.language-input.outputs.digest }}
+          TS05_TARGET: ${{ matrix.os }}-x64
+          TS06_RESOLVED_NODE: ${{ matrix.node }}
+          TS03_EXPECT_PROCESS_ARCH: x64
+          TS03_EXPECT_HOST_ARCH: ${{ matrix.host_arch }}
+        run: |
+          node dist/typescript/tools/acceptance/language-comparison.js \
+            --artifact "$RUNNER_TEMP/language-input/$PACKAGE_FILE" --commit "$PACKAGE_COMMIT" --sha256 "$PACKAGE_DIGEST" \
+            --output "$RUNNER_TEMP/language-comparison"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: diagnostic-language-comparison-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/language-comparison/
           if-no-files-found: error
           retention-days: 30
 

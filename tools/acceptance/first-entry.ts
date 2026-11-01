@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
+import { runSourceProcess as runFixtureProcess } from '@fbincon/statusline-platform/source-process';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
@@ -17,10 +18,12 @@ type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'r
 export async function installedFirstEntry(installed: ReturnType<typeof installCandidate>): Promise<number> {
     const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, env: installed.env, artifact: installed.packed.tarball, npm: npmEntry() };
     const program = `import {firstEntryChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await firstEntryChild(JSON.parse(process.argv[1]))));`;
-    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: 180000, windowsHide: true });
-    assert.equal(result.error, undefined);
-    const trace=join(installed.temporary,'first-entry-trace.jsonl');
-    assert.equal(result.status, 0, result.stderr + result.stdout + (fs.existsSync(trace)?fs.readFileSync(trace,'utf8'):''));
+    let stderr = '';
+    const result = await runFixtureProcess({ executable: installed.node, args: ['--input-type=module', '-e', program, JSON.stringify(input)],
+        cwd: installed.directory, input: '', environment: process.env, timeoutMs: 180_000, captureStderr: value => { stderr = value; } });
+    const trace = join(installed.temporary, 'first-entry-trace.jsonl');
+    assert.equal(result.reason, 'completed', stderr + result.stdout + (fs.existsSync(trace) ? fs.readFileSync(trace,'utf8') : ''));
+    assert.equal(result.code, 0);
     const receipt = JSON.parse(result.stdout);
     removeTree(receipt.cacheRoot);
     assert(!fs.existsSync(receipt.cacheRoot), 'The simulated npx cache must actually be absent before restarting');

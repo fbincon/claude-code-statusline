@@ -10,7 +10,8 @@ import { emitted, productInputs, runtimeLock, canonical, hash } from '../impact-
 import { checkAssets, pngDimensions } from '../impact-assets.js';
 import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
 import { assessImpactNeeds, selectImpact } from '../impact-workflow.js';
-import { scopedTests } from '../impact-runner.js';
+import { runScopedTestFiles, scopedTests } from '../impact-runner.js';
+import { familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
 
 function repository(t: any) {
     const root = fs.mkdtempSync(join(tmpdir(), 'impact-test-')), previous = process.cwd();
@@ -154,6 +155,40 @@ test('planned targets retain platform and host responsibilities without scheduli
     assert.equal(tasksFor(['checks']).length, 3); assert.equal(tasksFor(['native']).length, 16);
     assert.equal(tasksFor(['runtime']).length, 12);
     assert(scopedTests('checks').some(path => path.endsWith('ci-trust.test.js')));
+});
+test('each scoped test file owns a fresh deadline and any failed file keeps the family failed', async t => {
+    const root = fs.mkdtempSync(join(tmpdir(), 'scoped-files-'));
+    t.after(() => { removeTree(root); assert(!fs.existsSync(root)); });
+    const files = ['one.test.cjs', 'two.test.cjs'].map(name => join(root, name));
+    const order = join(root, 'order'), env = { ...process.env };
+    // This regression starts its own real Node test runs from inside node:test.
+    delete env.NODE_TEST_CONTEXT;
+    for (const [i, file] of files.entries()) fs.writeFileSync(file,
+        `const test=require('node:test');test('file ${i}',()=>require('node:fs').appendFileSync(${JSON.stringify(order)},'${i}'));`);
+    const pass = join(root, 'pass');
+    await runScopedTestFiles(files, pass, env);
+    const receipt = JSON.parse(fs.readFileSync(pass + '.phases.json', 'utf8'));
+    assert.equal(receipt.status, 'pass'); assert.equal(receipt.promotable, false);
+    assert.deepEqual(receipt.phases, files.map(name => ({ name, budgetMs: 900_000 })));
+    assert.equal(receipt.budget_ms, familyEnvelopeMs(files.length));
+    assert.equal(fs.readFileSync(order, 'utf8'), '01');
+
+    fs.appendFileSync(files[0]!, "\nrequire('node:test')('deliberate scoped failure',()=>{throw Error('scoped assertion')});");
+    const fail = join(root, 'fail');
+    await assert.rejects(runScopedTestFiles(files, fail, env), /one\.test\.cjs/);
+    const rejected = JSON.parse(fs.readFileSync(fail + '.phases.json', 'utf8'));
+    assert.equal(rejected.status, 'fail');
+    assert(rejected.events.some((row: any) => row.name === files[0] && row.event === 'fail'));
+    assert.equal(fs.readFileSync(order, 'utf8'), '0101', 'Later selected files still execute after an ordinary assertion failure');
+});
+test('scheduling budgets use the selected Git source inventory and reject an infeasible hosted task', () => {
+    const files = Array.from({ length: 57 }, (_, i) => 'packages/cli/test/test-' + i + '.test.ts');
+    const task = tasksFor(['cli', 'docs']).find(row => row.id === 'linux')!;
+    assert.equal(scopedSourceFiles('cli', files).length, 57);
+    assert.equal(scopedSourceFiles('migration', ['tools/migration/ts-04/test/installed.test.ts']).length, 0);
+    assert.equal(scopedTaskBudget(task, files), 25 * 60_000 + 15 * 60_000 + 15 * 60_000 + familyEnvelopeMs(57));
+    const oversized = Array.from({ length: 4500 }, (_, i) => 'packages/cli/test/large-' + i + '.test.ts');
+    assert.throws(() => scopedTaskBudget(task, oversized), /partition the task/);
 });
 test('scoped receipt cannot substitute another commit, task, plan, result or execution', t => {
     const { git, write, commit } = repository(t), base = git('rev-parse', 'HEAD'); write('docs/test.md', '# Text');

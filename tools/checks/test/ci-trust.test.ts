@@ -7,7 +7,40 @@ import { execFileSync } from 'node:child_process';
 import { parse } from 'yaml';
 import { exportBaseVerifiers, verifyWithAcceptedBase } from '../ci-trust.js';
 import { digest } from '../ci-evidence.js';
+import { ACTIONS_UPLOAD_MS, PLATFORM_SOURCE_MS } from '../../acceptance/budgets.js';
 import type { PromotionSelection } from '../ci-promotion.js';
+
+test('hosted installation jobs reserve the actual source and upload step limits', () => {
+    const { jobs } = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+    const source = jobs.installed.steps.find((step: { run?: string }) => step.run?.includes('tools/checks/all.js --platform'));
+    assert.equal(source['timeout-minutes'] * 60_000, PLATFORM_SOURCE_MS);
+    for (const job of [jobs.installed, jobs.runtime]) {
+        const upload = job.steps.find((step: { uses?: string }) => step.uses?.startsWith('actions/upload-artifact@'));
+        assert.equal(upload['timeout-minutes'] * 60_000, ACTIONS_UPLOAD_MS);
+    }
+});
+
+test('same-package language comparisons run only on a diagnostic branch dispatch', () => {
+    const workflow = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+    const id = 'language-comparison', jobs = workflow.jobs, comparison = jobs[id];
+    assert(workflow.on.workflow_dispatch.inputs.validation.options.includes(id));
+    assert.equal(comparison.if, "github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'language-comparison'");
+    assert.equal(workflow.on.workflow_dispatch.inputs.language_input.default, 'dispatch-source');
+    assert.deepEqual(workflow.on.workflow_dispatch.inputs.language_input.options, ['dispatch-source', 'v3.16.1']);
+    assert.equal(jobs['language-input'].if, comparison.if);
+    assert.equal(comparison.needs, 'language-input');
+    assert.equal(jobs.scope.if, "github.event_name != 'workflow_dispatch' || inputs.validation != 'language-comparison'");
+    assert(jobs.acceptance.if.includes("inputs.validation != 'language-comparison'"));
+    assert(!jobs.acceptance.needs.includes(id) && !jobs.acceptance.needs.includes('language-input'));
+    assert.deepEqual(comparison.strategy.matrix.include.map((row: { os: string; node: string; host_arch: string }) =>
+        [row.os, row.node, row.host_arch]), [
+        ['ubuntu-24.04', '24.21.0', 'x64'], ['macos-15-intel', '24.21.0', 'x64'],
+        ['windows-11-arm', '24.21.0', 'arm64'], ['windows-11-arm', '22.0.0', 'arm64'],
+    ]);
+    const uploads = comparison.steps.filter((step: { uses?: string }) => step.uses?.startsWith('actions/upload-artifact@'));
+    assert.equal(uploads.length, 1);
+    assert.match(uploads[0].with.name, /^diagnostic-language-comparison-/u);
+});
 
 test('cross-check loads immutable base code even if HEAD replaces every verifier with a no-op', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'trusted-base-')), previous = process.cwd();

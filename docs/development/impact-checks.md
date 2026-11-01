@@ -69,6 +69,10 @@ Existing complete-source tags and historical npm releases retain their existing 
 
 ## Validation and operation
 
+For a newly scheduled scoped task the planner budgets the test files in the immutable head tree. Execution checks that the compiled file list matches. A serial family can start files for 15 minutes plus five seconds per file. Each admitted file gets its own 15-minute limit. The planning check also reserves build, setup, upload and cleanup time under the hosted job limit. An oversized task must be partitioned before it runs. Reuse continues to check the original receipts under their recorded policy.
+
+For changes to the installed acceptance runner, exercise the affected candidate in addition to the planned tool-family checks. Use the Windows ARM host with an x64 process when investigating emulation or shell startup. Record the actual package SHA-256 separately from the revision of the harness used for a comparison. [Installed language combinations](testing.md#installed-language-combinations).
+
 Regression coverage includes the actual PR #181 PNG/JSON change set, mixed maintenance, product changes, dependency closure, renames, unknown files, skipped/draft jobs, package equivalence, immutable-base execution and complete-baseline → multiple-maintenance → tag/npm provenance. Fault cases include failed latest runs, expired or corrupted artifacts, wrong source identities and missing selected release evidence.
 
 Keep routing decisions and original execution identities in job summaries and delivery records. Review actual execution counts and elapsed times; reused receipts are not new samples. Roll back scheduling through a normal reviewed PR if needed, retaining evidence readers and existing published identities. See [CI maintenance](ci-maintenance.md), [testing](testing.md) and [release preparation](../RELEASING.md).

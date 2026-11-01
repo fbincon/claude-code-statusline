@@ -16,7 +16,7 @@ import { officialEnvironment } from './install.js';
 import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from './budgets.js';
 import { VersionPhaseBudget } from './phase-budget.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
+import { phaseEvent, superviseInstalled } from './installed-supervisor.js';
 export interface VersionHost {
     executable: string;
     args: readonly string[];
@@ -95,18 +95,17 @@ async function historicalSequenceIn(installed: ReturnType<typeof installCandidat
     const isolated = { ...installed, temporary, env: { ...installed.env, HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home'), CLAUDE_CONFIG_DIR: join(temporary, 'host-config'), npm_config_cache: join(temporary, 'bootstrap-cache') } };
     fs.mkdirSync(isolated.env.HOME, { recursive: true, mode: 0o700 });
     const input: Input = { temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(isolated) as typeof installed.env : isolated.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), historicalVersion, historicalSha256, trace, host };
-    const program = `import {versionManagementChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))));`;
-    let stderr = '';
-    const result = await runSourceProcess({ executable: installed.node, args: ['--input-type=module', '-e', program, JSON.stringify(input)], cwd: installed.directory, input: '',
-        environment: process.env, timeoutMs: (host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS) +
-            (historicalVersion === '3.8.0' ? host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS : 0), signal, captureStderr: value => { stderr = value; } });
-    const diagnostics = stderr + result.stdout + '\n' + fs.readFileSync(trace, 'utf8').slice(-16000);
-    assert.equal(result.reason, 'completed', diagnostics);
-    assert.equal(result.code, 0, diagnostics);
-    return JSON.parse(result.stdout);
+    const resultFile = join(temporary, 'history-result.json');
+    const program = `import {writeFileSync} from 'node:fs';import {versionManagementChild} from ${JSON.stringify(import.meta.url)};writeFileSync(process.argv[2],JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))),{flag:'wx'});`;
+    const phases = [{ name: 'baseline', budgetMs: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS }];
+    if (historicalVersion === '3.8.0') phases.push({ name: 'editor_execution', budgetMs: host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS });
+    await superviseInstalled(['--input-type=module', '-e', program, JSON.stringify(input), resultFile],
+        phases, process.env, trace, { cwd: installed.directory, executable: installed.node, signal });
+    return JSON.parse(fs.readFileSync(resultFile, 'utf8'));
 }
 export async function versionManagementChild(input: Input): Promise<Record<string, unknown>> {
     const { historicalVersion, historicalSha256 } = input;
+    phaseEvent('baseline', 'start');
     const budget = new VersionPhaseBudget(input.host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS,
         input.host ? OFFICIAL_VERSION_EDITOR_EXECUTION_MS : VERSION_EDITOR_EXECUTION_MS, phase => {
             const failure = { phase: 'phase_timeout', acceptance_phase: phase, historical_version: historicalVersion };
@@ -322,6 +321,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         let editorExecution:Record<string,unknown>|null=null;
         if(historicalVersion==='3.8.0') {
             budget.beginEditor();
+            phaseEvent('baseline', 'end'); phaseEvent('editor_execution', 'start');
             trace({phase:'acceptance_phase',acceptance_phase:'editor_execution'});
             const executionTimingStart=timings.length;
             let controlEntry=entry;
@@ -382,7 +382,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             assert.equal(registryRequests,requests);
             editorExecution={verified_execution:true,retained_control:true,downgrade_roundtrip:true,old_protocol_rejected:true,detach_continues:true,progress_complete:true,package_recovery:true,separate_configuration_restore:true,protected_cleanup:true,configuration_preserved:true,real_npm:true,model_calls:0,operation_timings:timings.splice(executionTimingStart)};
         }
-        return { acceptance_phases:budget.finish(), editor_execution:editorExecution, editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
+        const acceptance_phases = budget.finish();
+        phaseEvent(acceptance_phases.at(-1)!.phase, 'end');
+        return { acceptance_phases, editor_execution:editorExecution, editor_review:editorReview, cases: 7, historical_version: historicalVersion, historical_sha256: historicalSha256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
         budget.close();

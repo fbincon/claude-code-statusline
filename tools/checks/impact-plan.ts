@@ -7,6 +7,7 @@ import { parseArgs } from 'node:util';
 import { canonical, emitted, generatedLocalePath, git, hash, localePath, messageShape, productPath, runtimeLock, runtimeManifest, tree, type Blob } from './impact-content.ts';
 import { productionOwners } from './impact-ownership.ts';
 import { HOSTS } from './runtime-inputs.ts';
+import { checkScopedSchedule } from './impact-budget.ts';
 
 export const CHECKS = ['actions', 'docs', 'assets', 'archive', 'generation', 'approval', 'core', 'platform', 'cli', 'tui',
     'checks', 'release', 'build', 'acceptance', 'benchmarks', 'migration', 'packaging', 'native', 'runtime'] as const;
@@ -119,6 +120,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         assert(values.output, 'Package comparison requires --output FILE');
         const { resolveComparison } = await import('./impact-comparison.ts'); await resolveComparison(plan, resolve(values.output) + '.package');
     }
+    if (plan.route === 'maintenance') checkScopedSchedule(plan, [...tree(plan.head).keys()]);
     if (values.output) fs.writeFileSync(values.output, JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
     console.log(JSON.stringify(plan, null, 2));
     if (plan.route === 'blocked') process.exitCode = 1;
