@@ -12,7 +12,7 @@ Promotion resolves the complete original candidate by immutable artifact ID and 
 
 ## v3.16.2 keyboard and editor repairs
 
-Use the [3.16.2 version decision](releases/approvals/v3.16.2.json). Validate the original candidate in the complete product matrix, retain all 313 existing capacity cases, and exercise the task pane and editor regressions. Real-host paste must preserve the complete field and conversation draft. Require complete twelve-language readiness and the final PR, exact-source main and annotated-tag gates. Verify the four delivery files and source rebuild before npm OIDC publication and public verification. Synchronize the validated refs and release files with Gitee. Upgrade the actual machine and restore its preferences while retaining 3.16.2. [Release notes](releases/v3.16.2.md)
+Stable 3.16.2 was published on 2026-11-01. The final PR, main and annotated-tag gates passed. Independent builds reproduced all four delivery files, all seven public-download and signature jobs passed, and the installed test machine retained 3.16.2 with its preferences restored. The version decision accepts six previously recorded gaps. [Delivery record](development/editor-input-delivery.md#final-release) · [Release notes](releases/v3.16.2.md) · [Version decision](releases/approvals/v3.16.2.json)
 
 ## v3.16.1 runtime, source and save-conflict repairs
 

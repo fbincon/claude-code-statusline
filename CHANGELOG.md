@@ -8,7 +8,7 @@
 - Give accurate undo/redo feedback, keep draft history out of active fields and open read-only catalog requirements from the Native add picker.
 - Protect unsaved external editor changes on Esc and keep Alt, function-key sequences and literal pasted text from triggering commands.
 - Keep the diagnosis caret and selection visible after resizing. Report scrolling follows the current page height.
-- [Release notes](docs/releases/v3.16.2.md)
+- Published 2026-11-01. [Release notes](docs/releases/v3.16.2.md) · [Verified delivery](docs/development/editor-input-delivery.md#final-release)
 
 ## 3.16.1 — 2026-10-31
 
