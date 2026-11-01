@@ -41,7 +41,7 @@ function source(t: TestContext) {
     const inputs=fixture().record.inputs, plan=createCoveragePlan(base,head,inputs);
     const run={ ...originalRun, head_sha:head, head_branch:'physical', event:'pull_request', run_attempt:1 };
     const directory=join(root,'downloaded');
-    const all=v2Fixture(plan,{run,inputs,directory,prNumber:23,version:'3.16.1',reportFor:(p,i)=>sectionFixtureReport(p,plan,entries,i),writeLogs:writeSectionLogs});
+    const all=v2Fixture(plan,{run,inputs,directory,prNumber:23,reportFor:(p,i)=>sectionFixtureReport(p,plan,entries,i),writeLogs:writeSectionLogs});
     return {...all, root,base,head,git,plan,run,directory};
 }
 test('physical evidence requires the exact verified plan, all original stages and the source-bound per-host capacity', async t=>{

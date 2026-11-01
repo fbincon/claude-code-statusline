@@ -21,7 +21,7 @@ test(`an external ${code} retains the draft and allows cancellation when conflic
   const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(value:boolean){this.isRaw=value;return this;}});
   const output=Object.assign(new PassThrough(),{isTTY:true,columns:80,rows:24});
   t.after(()=>{input.end();output.resume();});
-  let attempts=0, reads=0, sent=false, cancelled=false;
+  let attempts=0, reads=0, sent=false, cancelled=false, confirmed=false;
   const backend={request(operation:string,payload:unknown){
     if(operation==='preview') return state.preview;
     if(operation==='read') {reads++;assert.deepEqual(payload,{target});if(readFails)throw new BackendError('io_error','Read unavailable');return winner;}
@@ -32,9 +32,10 @@ test(`an external ${code} retains the draft and allows cancellation when conflic
     const text=data.toString();
     if(!sent && text.includes('Configure Status Line')) {sent=true;setImmediate(()=>input.write('\x13'));}
     if(!cancelled && text.includes('Changes and history')) {cancelled=true;setImmediate(()=>input.write('q\x1b'));}
+    if(!confirmed && text.includes('Discard unsaved configuration changes?')) {confirmed=true;setImmediate(()=>input.write('\x1b[B\r'));}
   });
   const result=await new Session(state,backend).run({input:input as never,output:output as never,term:'xterm-256color'});
-  assert.equal(result.outcome,'cancelled',result.message);assert.equal(attempts,1);assert.equal(cancelled,true);
+  assert.equal(result.outcome,'cancelled',result.message);assert.equal(attempts,1);assert(cancelled&&confirmed);
   assert.equal(reads,1);assert.equal(e.saveState,'idle');assert.equal(e.pendingSave,null);
   assert.equal(JSON.stringify(e.draft),before);assert.equal(JSON.stringify(e.baseline),baseline);assert.equal(JSON.stringify(e.history),history);
   assert.equal(JSON.stringify(winner),winning);assert.equal(input.isRaw,false);

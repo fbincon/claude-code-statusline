@@ -34,10 +34,19 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     if(e.packages)return {actions:[['Enter',t('ui.hints.select',state.language)],['R',t('profiles.refresh',state.language)],['Q/Esc',t('task.close',state.language)]],help:[['C',t('ui.hints.cancel',state.language)],hint('L','reload'),['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
     if(e.taskViewer)return {actions:[['R',t('profiles.refresh',e.taskViewer.language)],['Q/Esc',t('task.close',e.taskViewer.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',e.taskViewer.language)],['/ F E S ←→',t('task.viewer.keys',e.taskViewer.language)]]};
     if(e.colors)return {actions:[['Ctrl+S',t('colors.apply',state.language)],hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('Enter','edit')]};
-    if(e.diagnosis)return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('PgUp/PgDn','scroll')]};
+    if (e.diagnosis) {
+        if (e.diagnosis.report) return { actions: [hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓ PgUp/PgDn', 'scroll')] };
+        return { actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')],
+            help: e.diagnosis.input ? [hint('←→ Home/End', 'edit'), hint('Ctrl+U', 'clear')] : [hint('↑↓', 'select')] };
+    }
     if(e.saveState==='unknown')return {actions:[['Ctrl+K',t('editor.check_saved',state.language)]],help:[['Ctrl+Y',t('sources.title',state.language)]]};
     if (e.groupManager || e.alignmentManager) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [hint('↑↓','select'),hint('←→','adjust')] };
-    if (e.sources) return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[['Ctrl+S',t('sources.save',state.language)],['R',t('sources.reload',state.language)]]};
+    if (e.sources) {
+        const help: Hint[] = [hint('↑↓','select')];
+        if (e.sources.page === 'form') help.push(['Ctrl+S',t('sources.save',state.language)]);
+        if (e.sources.page === 'list') help.push(['R',t('sources.reload',state.language)]);
+        return { actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help };
+    }
     if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help:[hint('↑↓','select'),['R',t('profiles.refresh',state.language)]] };
     if (e.quick) return {
         actions: [hint('Enter','accept'),hint('Backspace','back'),hint('Esc/Ctrl+G','cancel')],

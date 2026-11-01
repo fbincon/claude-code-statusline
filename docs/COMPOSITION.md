@@ -32,7 +32,7 @@ instances of the same type; it follows their current order.
 
 The picker searches names, descriptions and categories in all supported
 languages. Enter adds the selected type after the previously selected instance;
-Ctrl+E shows its sources and requirements before adding. Ctrl+G returns from the
+In the add picker, Ctrl+E opens the read-only sources and requirements for the catalog type. This works for a new type and for a type with existing instances. In the configured list, Ctrl+E edits the selected instance. Ctrl+G returns from the
 guidance or cancels the picker. Accepting an addition clears the old list filter
 so the new instance is visible. Reordering requires an unfiltered list.
 

@@ -22,7 +22,10 @@ for (const scope of ['main', 'subagent'] as const) {
         assert.equal(e.instance(scope, id)!.options.label, null);
         assert.deepEqual(f.bytes(), before);
         await f.session.key({ key: 'g', ctrl: true });
-        const cancelled = await f.session.key({ key: 'escape' });
+        assert.equal(await f.session.key({ key: 'escape' }), null);
+        assert.equal(f.state.exitChoice, 'keep');
+        await f.session.key({ key: 'down' });
+        const cancelled = await f.session.key({ key: 'return' });
         assert.equal(typeof cancelled === 'object' && cancelled?.outcome, 'cancelled');
         assert.deepEqual(f.bytes(), before);
         // Save the retained draft explicitly, then resolve the same instance identity.

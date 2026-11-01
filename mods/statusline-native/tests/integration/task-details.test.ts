@@ -2,8 +2,13 @@ import { expect,test } from 'claude-code/testing';
 import { setup,START,RUN,PANE,reply,output } from '../fixtures.ts';
 import type { TaskDetails } from '../../lib/generated-contracts.ts';
 import { LANGUAGES,t,text } from '../../lib/i18n/index.ts';
+import { withinBudget } from '../../ui/frame.ts';
 
 const report:TaskDetails={version:1,session_id:'session-test',prompt_id:null,captured_at:'2026-10-28T00:00:00Z',status:'unknown',phase:'unknown',elapsed_seconds:null,active_seconds:null,progress:null,agents:[],evidence:[],limitations:['independent_snapshots']};
+async function taskClient(ui:any):Promise<string> {
+    const client=await ui.find({type:'Client'});
+    return 'task-client-'+client.props.props.epoch;
+}
 const languagePane={...PANE,requestId:'statusline-task-details',viewport:{columns:220,rows:30},props:{...PANE.props,bodyColumns:200}};
 for(const language of LANGUAGES)test(`task language initializes before opening, survives failure and reloads on retry/reopen in ${language}`,async($,on)=>{
     const f=setup(on);f.store.uiLanguage=language;let failed=true;
@@ -14,13 +19,13 @@ for(const language of LANGUAGES)test(`task language initializes before opening, 
     expect((f.opens.at(-1) as {title:string}).title).toBe(t('task.title',language));
     let ui=await $.ui.mount(languagePane);
     expect(await ui.find({type:'Text',text:t('task.title',language)+' · '+t('task.readonly',language)})).toBeDefined();
-    expect(await ui.find({type:'Text',text:t('task.unknown',language)})).toBeDefined();
-    expect(await ui.find({type:'Text',text:t('native.backend_error',language,{code:'invalid_request',detail:text('task.error.input')})})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.unknown',language)})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('native.backend_error',language,{code:'invalid_request',detail:text('task.error.input')})})).toBeDefined();
     expect((await ui.find({type:'Button',key:'task-refresh'}))!.props.label).toBe(t('profiles.refresh',language));
     expect((await ui.find({type:'Button',key:'task-close'}))!.props.label).toBe(t('task.close',language));
     failed=false;await ui.press({key:'task-refresh'});
-    expect(await ui.find({type:'Text',text:t('native.backend_error',language,{code:'invalid_request',detail:text('task.error.input')})})).toBeUndefined();
-    expect(await ui.find({type:'Text',text:t('task.progress',language,{value:t('task.unknown',language)})})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('native.backend_error',language,{code:'invalid_request',detail:text('task.error.input')})})).toBeUndefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.progress',language,{value:t('task.unknown',language)})})).toBeDefined();
     expect(await ui.find({type:'Text',text:t('task.title',language)+' · '+t('task.readonly',language)})).toBeDefined();
     await ui.press({key:'task-close'});await ui.unmount();
     const next=LANGUAGES[(LANGUAGES.indexOf(language)+1)%LANGUAGES.length]!;f.store.uiLanguage=next;
@@ -38,7 +43,7 @@ test('failed task preference reads use English guidance and do not prevent task 
     await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
     expect(f.descriptions['statusline-task']).toBe(t('task.title','en'));
     const ui=await $.ui.mount({...PANE,requestId:'statusline-task-details'});
-    expect(await ui.find({type:'Text',text:t('task.language_unavailable','en')})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.language_unavailable','en')})).toBeDefined();
     expect((await ui.find({type:'Button',key:'task-close'}))!.props.label).toBe(t('task.close','en'));
     expect(f.calls.some(c=>c.operation==='task_details')).toBe(true);await ui.unmount();
 });
@@ -54,6 +59,14 @@ test('task details retain a large report while bounding the plain Pane and keepi
     await ui.press({key:'task-down'});await ui.redraw({...pane.props,bodyColumns:32,scroll:{offset:0,bodyRows:12}});
     expect(await ui.find({type:'Button',key:'task-refresh'})).toBeDefined();
     expect(f.calls.filter(call=>call.operation==='task_details').length).toBe(1);
+    await ui.redraw({...pane.props,bodyColumns:76,scroll:{offset:0,bodyRows:6}});
+    const current=await taskClient(ui);
+    await ui.key({in:current,key:'home'});
+    expect(await ui.find({in:current,type:'Text',text:/^Read at:/u})).toBeDefined();
+    await ui.press({key:'task-next'});
+    expect(await ui.find({in:current,type:'Text',text:/^Observed state:/u})).toBeDefined();
+    const operations=['search','filter','evidence','identity','up','down','refresh','close','next','previous','fold'];
+    for(const id of operations)expect(await ui.find({type:'Button',key:'task-'+id})).toBeDefined();
     expect(large.agents.length).toBe(256);await ui.unmount();
 });
 
@@ -67,13 +80,13 @@ test('task command reads explicit session evidence into a separate pane without 
     await $.command.run({...RUN,command:'statusline-task'});
     const pane={...PANE,requestId:'statusline-task-details'};
     const ui=await $.ui.mount(pane);
-    expect(await ui.find({type:'Text',text:'Checklist completed / total: 3/5'})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:'Checklist completed / total: 3/5'})).toBeDefined();
     report.progress!.completed=4;
     await ui.press({key:'task-refresh'});
-    expect(await ui.find({type:'Text',text:'Checklist completed / total: 3/5'})).toBeUndefined();
-    expect(await ui.find({type:'Text',text:'Checklist completed / total: 4/5'})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:'Checklist completed / total: 3/5'})).toBeUndefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:'Checklist completed / total: 4/5'})).toBeDefined();
     f.store.uiLanguage='ja';await ui.press({key:'task-refresh'});
-    expect(await ui.find({type:'Text',text:t('task.progress','ja',{value:'4/5'})})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.progress','ja',{value:'4/5'})})).toBeDefined();
     expect(f.calls.some(c=>c.operation==='task_details' && typeof c.payload.session_id==='string')).toBe(true);
     expect(f.calls.some(c=>['apply','profiles_apply','runtime'].includes(c.operation))).toBe(false);
     expect(f.configCalls).toEqual([]);
@@ -85,12 +98,64 @@ test('native task input shares search, evidence and refresh position without rer
     f.behavior.process=(request,next)=>request.operation==='task_details'?{value:reply({...value,session_id:request.payload.session_id})}:next();
     await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
     const ui=await $.ui.mount(languagePane);
-    const press=async(key:string)=>{const client=await ui.find({type:'Client'});await ui.key({in:'task-client-'+(client!.props.props as any).epoch,key});};
-    await press('/');for(const key of 'child')await press(key);await press('return');await press('e');await press('end');
-    expect(await ui.find({type:'Text',text:'    Child [child]: Failed'})).toBeDefined();
+    const press=async(key:string)=>ui.key({in:await taskClient(ui),key});
+    await press('/');await ui.input({key:'task-field-search',text:'child'});
+    await ui.press({key:'task-evidence'});await press('end');
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:'    Child [child]: Failed'})).toBeDefined();
     expect(f.calls.filter(call=>call.operation==='task_details').length).toBe(1);
     await ui.press({key:'task-refresh'});expect(f.calls.filter(call=>call.operation==='task_details').length).toBe(2);
-    expect(await ui.find({type:'Text',text:t('task.viewer.filter','en',{status:t('task.viewer.all','en'),query:'child'})})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.viewer.filter','en',{status:t('task.viewer.all','en'),query:'child'})})).toBeDefined();
     expect(f.calls.some(call=>['apply','sources_apply','set_ui_language'].includes(call.operation))).toBe(false);
     await ui.unmount();
+});
+
+test('native host fields keep ordinary spaces, validate the submitted value and cancel without a read',async($,on)=>{
+    const f=setup(on);
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:reply({...report,session_id:request.payload.session_id})}:next();
+    await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
+    const ui=await $.ui.mount(languagePane);
+    await ui.press({key:'task-search'});await ui.input({key:'task-field-search',text:'x'.repeat(257)});
+    expect(await ui.find({type:'Input',key:'task-field-search'})).toBeDefined();
+    expect(await ui.find({type:'Text',text:t('input.limit','en',{limit:256})})).toBeDefined();
+    await ui.input({key:'task-field-search',text:'中 文 👩‍💻'});
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.viewer.filter','en',{status:'All',query:'中 文 👩‍💻'})})).toBeDefined();
+    await ui.press({key:'task-identity'});await ui.input({key:'task-field-session',kind:'change',text:'changed session'});
+    await ui.press({key:'task-cancel'});
+    expect(f.calls.filter(row=>row.operation==='task_details').length).toBe(1);
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:'Session: session-test'})).toBeDefined();
+    await ui.unmount();
+});
+
+test('large Unicode identities, backend errors and tiny recovery retain bounded task controls', {timeoutMs:20000}, async($,on)=>{
+    const f=setup(on);
+    const oversized='marker '+('錯👩‍💻'.repeat(2500));
+    let fail=false;
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:fail?
+        output(JSON.stringify({protocol_version:31,error:{code:'probe',message:oversized}}),2):
+        reply({...report,session_id:request.payload.session_id})}:next();
+    await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
+    const wide={...languagePane,viewport:{columns:10000,rows:100},props:{...languagePane.props,bodyColumns:9990}};
+    const ui=await $.ui.mount(wide);
+    const session='🚀'.repeat(1024),prompt='界'.repeat(1024);
+    await ui.press({key:'task-identity'});
+    await ui.input({key:'task-field-session',kind:'change',text:session});
+    fail=true;
+    await ui.input({key:'task-field-prompt',text:prompt});
+    const inClient=await taskClient(ui);
+    const client=await ui.find({type:'Client'});
+    expect(withinBudget(client!.props.props)).toBe(true);
+    expect(withinBudget(await ui.drawn({in:inClient}))).toBe(true);
+    expect(withinBudget(await ui.drawn())).toBe(true);
+    expect(await ui.find({in:inClient,type:'Text',text:/probe: marker/u})).toBeDefined();
+    await ui.redraw({...wide.props,bodyColumns:22,scroll:{offset:0,bodyRows:3}});
+    expect(withinBudget(await ui.drawn())).toBe(true);
+    expect(await ui.find({type:'Text',text:/probe: marker/u})).toBeDefined();
+    expect(await ui.find({type:'Button',key:'task-close'})).toBeDefined();
+    await ui.press({key:'task-identity'});
+    await ui.redraw(wide.props);
+    expect(withinBudget(await ui.drawn())).toBe(true);
+    expect((await ui.find({type:'Input',key:'task-field-session'}))!.props.value).toBe(session);
+    expect((await ui.find({type:'Input',key:'task-field-prompt'}))!.props.value).toBe(prompt);
+    expect(await ui.find({type:'Text',text:/probe: marker/u})).toBeDefined();
+    await ui.press({key:'task-cancel'});await ui.unmount();
 });

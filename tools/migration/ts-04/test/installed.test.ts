@@ -713,6 +713,10 @@ test('installed external editor saves and cancels in a real native terminal', { 
             try {
                 await p.wait(value => value.includes('Preview (sample data)'));
                 p.send(choice === 'save' ? ' \x13' : ' \x1b');
+                if (choice === 'cancel') {
+                    await p.wait(value => value.includes('Discard unsaved configuration changes?'));
+                    p.send('\x1b[B\r');
+                }
                 await p.exited();
                 assert.equal(p.child.exitCode, 0);
                 assert.deepEqual(p.attributes(), p.before);
@@ -726,7 +730,8 @@ test('installed external editor saves and cancels in a real native terminal', { 
         assert.ok(output.includes('\x1b[?1049l'));
         const capture = new Capture(columns, rows);
         capture.feed(output);
-        assert.ok((capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n').includes('Preview (sample data)'));
+        const lastFrame = (capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n');
+        assert.ok(lastFrame.includes(choice === 'save' ? 'Preview (sample data)' : 'Discard unsaved configuration changes?'));
         if (choice === 'save')
             assert.equal(JSON.parse(fs.readFileSync(path, 'utf8')).instances.find((item: any) => item.id === 'model-with-effort').enabled, false);
         else

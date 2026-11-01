@@ -1,3 +1,4 @@
+import { taskControls, taskNotice } from '../ui/task-controls.ts';
 import { openChanges, performChanges, changePreview } from '../lib/editor/change-review.ts';
 import { performReuse } from '../lib/editor/reuse-manager.ts';
 import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
@@ -5,7 +6,7 @@ import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
 import { colorDraft } from '../lib/editor/color-manager.ts';
 import { previewWidth } from '../lib/editor/preview-settings.ts';
 import { performSourceAction, closeSources, closeSourceDraft } from '../lib/editor/source-manager.ts';
-import { taskViewer, taskViewerView, taskViewerKey, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
+import { taskViewer, taskViewerView, taskViewerKey, replaceTaskField, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
 import type {
@@ -34,7 +35,7 @@ import { MIN_COLUMNS, MIN_ROWS, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
-import { withinBudget, frameElements } from '../ui/frame.ts';
+import { withinBudget, frameElements, frameTree, CapacityError } from '../ui/frame.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
@@ -119,6 +120,7 @@ interface Session {
   generation: number;
   columns: number;
   rows: number;
+  pane: { columns: number; rows: number };
   displayColumns: number;
   displayRows: number;
   saveOutcome: 'none' | 'pending' | 'saved' | 'unknown' | 'refused';
@@ -504,10 +506,10 @@ async function openEditor(
 /** Task host calls stay in this statically inspected entry; presentation is shared in core. */
 const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
 export interface TaskPaneState extends TaskViewer {
-  owned: boolean; epoch: number; ack: number; frameGeneration: number; chain: Promise<void>;
+  owned: boolean; epoch: number; ack: number; frameGeneration: number; form: number; fromClient: boolean; focusDenied: boolean; chain: Promise<void>;
 }
 export function taskPaneState(): TaskPaneState {
-  return {...taskViewer(),input:null,owned:false,epoch:0,ack:0,frameGeneration:0,chain:Promise.resolve()};
+  return {...taskViewer(),input:null,owned:false,epoch:0,ack:0,frameGeneration:0,form:0,fromClient:false,focusDenied:false,chain:Promise.resolve()};
 }
 
 async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
@@ -561,6 +563,50 @@ async function refreshTaskDetails($: EngineInterface, options: PluginOptions, st
   }
 }
 
+type TaskField = NonNullable<TaskViewer['input']>;
+const fieldInfo = {
+  session: { label: 'catalog.categories.session', buffer: 'sessionInput' },
+  prompt: { label: 'catalog.categories.task', buffer: 'promptInput' },
+  search: { label: 'ui.hints.search', buffer: 'searchInput' },
+} as const;
+const taskAliases = new Map([['g', '/'], ['n', 'down'], ['p', 'up'], ['z', 'enter']]);
+function fieldKey(field: TaskField) { return 'task-field-' + field; }
+async function focusTaskField($: EngineInterface, state: TaskPaneState, key: string) {
+  const epoch = state.epoch, form = state.form;
+  // The host can wait for the next drawing from an action, never from the
+  // drawing hook itself. It may also keep focus in the person's composer.
+  let denied: boolean;
+  try { denied = !!(await $.ui.focus({requestId: TASK_PANE, key})).deny; }
+  catch { denied = true; }
+  if (epoch !== state.epoch || form !== state.form || state.closed) return;
+  state.focusDenied = denied;
+  if (state.focusDenied) $.ui.invalidate('ui.render');
+}
+async function handleTaskKey($: EngineInterface, options: PluginOptions, state: TaskPaneState, event: Parameters<typeof taskViewerKey>[1], fromClient=false) {
+  if (state.closed) return;
+  const previous = state.input;
+  const name = !previous && !event.ctrl && !event.meta && !event.text
+    ? taskAliases.get(event.key.toLowerCase()) ?? event.key : event.key;
+  const action = taskViewerKey(state, {...event, key: name});
+  if (action === 'close') { await $.ui.close({id:TASK_PANE}); return; }
+  const generation = state.generation;
+  const changed = state.input !== previous;
+  if (changed) {
+    state.form++;
+    state.fromClient = !!state.input && fromClient;
+    state.focusDenied = false;
+  }
+  $.ui.invalidate('ui.render');
+  // Client focus and the pane's keyboard ring are separate. Reopen the same
+  // pane to request the ring for a field, respecting refusals over chat text.
+  if (changed && state.fromClient) {
+    await $.ui.open({id:TASK_PANE,title:t('task.title',state.language),focus:true,closeOnEscape:true,rows:24,columns:88});
+    if (generation !== state.generation || state.closed) return;
+  }
+  if (changed) await focusTaskField($, state, state.input ? fieldKey(state.input) : 'task-search');
+  if (action === 'read' && generation === state.generation) await refreshTaskDetails($,options,state);
+}
+
 export function registerTaskDetails(on: On, options: PluginOptions, state: TaskPaneState): void {
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
@@ -574,6 +620,16 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
     state.generation++;state.epoch++;state.closed=true;state.busy=false;state.report=null;return next(e);
   });
+  on('ui.focus',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
+    const epoch=state.epoch, form=state.form;
+    const result=await next(e);
+    if (!result.deny && state.input && state.focusDenied && epoch===state.epoch && form===state.form &&
+        e.element?.startsWith('task-field-')) {
+      state.focusDenied=false;
+      $.ui.invalidate('ui.render');
+    }
+    return result;
+  });
   on('ui.message',{component:'Pane'},async($,e,next)=>{
     if(e.requestId!==TASK_PANE||e.element!=='task-client-'+state.epoch||e.module!=='ui/client/surface.ts'||e.surface!=='terminal'||!state.owned||state.closed)return next(e);
     const batch=parseBatch(e.data);
@@ -584,9 +640,10 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
         if(message.seq<=state.ack)continue;
         if(message.seq!==state.ack+1){state.error=localizedText('task.fallback');break;}
         state.ack=message.seq;
-        const action=taskViewerKey(state,message.event);
-        if(action==='close'){await $.ui.close({id:TASK_PANE});break;}
-        if(action==='read')await refreshTaskDetails($,options,state);
+        // Once an actual host text field opens it exclusively owns new input;
+        // a late batch from the unmounted reading region cannot edit the field.
+        if (!state.input) await handleTaskKey($,options,state,message.event,true);
+        if (state.closed) break;
       }
       $.ui.invalidate('ui.render');return {};
     });
@@ -595,28 +652,89 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
     if(e.surface!=='terminal')return $.ui.resolve(e).Text({...styles.text,children:[tr('task.fallback')]});
-    const {Box,Text,Button,Client}=$.ui.resolve(e);
-    let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(6,Math.min(10000,e.props.scroll.bodyRows));
-    for(;;) {
-      const lines=taskViewerView(state,Math.max(2,width-2),Math.max(1,height-3));
-      const {elements,frame}=frameElements();
-      elements.Text({...styles.muted,wrap:'truncate',children:[clip(tr('task.viewer.help_read'),width)]});
-      const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
-      const pane=Box({width,height,flexDirection:'column',children:[
-        Text({...styles.accent,bold:true,wrap:'truncate',children:[clip((reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+tr('task.title')+' · '+(state.busy?tr('profiles.loading'):tr('task.readonly')),width)]}),
-        ...lines.map(row=>Text({...styles.text,bold:row.selected,wrap:'truncate',children:[row.text]})),
-        Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:1,props:{epoch:state.epoch,ack:state.ack,generation:++state.frameGeneration,columns:width,rows:1,displayColumns:width,displayRows:1,language:state.language,busy:false,frame}}),
-        Box({flexDirection:'row',columnGap:1,children:[
-          Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{taskViewerKey(state,{key:'pageup'});$.ui.invalidate('ui.render');}}),
-          Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{taskViewerKey(state,{key:'pagedown'});$.ui.invalidate('ui.render');}}),
-          Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
-          Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
-        ]}),
+    const ui=$.ui.resolve(e), {Box,Text,Button,Input,Client}=ui;
+    const widthLimit=Math.max(1,Math.min(10000,e.props.bodyColumns)), heightLimit=Math.max(1,Math.min(10000,e.props.scroll.bodyRows));
+    const activeEpoch=state.epoch, activeForm=state.form;
+    const active=()=>!state.closed && activeEpoch===state.epoch && activeForm===state.form;
+    const textLine=(value:string,width:number)=>Text({...styles.text,wrap:'truncate',children:[taskNotice(value,width)]});
+    const needsFocus=!e.props.isFocused||state.focusDenied;
+    let width=widthLimit,height=heightLimit;
+    const title=(reduced=false)=>Text({...styles.accent,bold:true,wrap:'truncate',children:[clip(
+      (reduced?t('native.capacity.reduced',state.language,{columns:width,rows:height})+' · ':'')+
+      tr('task.title')+' · '+(state.busy?tr('profiles.loading'):tr('task.readonly')),width)]});
+    const notice = state.error ? renderMessage(state.error,state.language) :
+      state.warning ? renderMessage(state.warning,state.language) : '';
+    const fallback = () => {
+      const edit = !!state.input;
+      const pane = Box({flexDirection:'column',children:[
+        textLine(notice || tr('task.fallback'),width),
+        Button({...recoveryButton,key:edit?'task-cancel':'task-identity',hotkey:edit?'c':'s',
+          label:tr(edit?'profiles.cancel':'task.controls.identity'),onPress:()=>handleTaskKey($,options,state,edit?{key:'g',ctrl:true}:{key:'s'})}),
+        Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
       ]});
-      if(withinBudget(pane))return pane;
-      if(height>6)height=Math.max(6,Math.floor(height*.75));
-      else if(width>32)width=Math.max(32,Math.floor(width*.75));
-      else return Text({...styles.text,children:[tr('task.fallback')]});
+      if (!withinBudget(pane)) throw new CapacityError();
+      return pane;
+    };
+    if (state.input) {
+      const fields: TaskField[] = state.input === 'search' ? ['search'] : ['session','prompt'];
+      const inputs=fields.map(field=>{
+        const replace=(value:string)=>{
+          if(!active() || !state.input)return false;
+          const wasDenied=state.focusDenied, previousError=state.error;
+          state.focusDenied=false;
+          const ok=replaceTaskField(state,field,value);
+          if(previousError!==state.error || wasDenied)$.ui.invalidate('ui.render');
+          return ok;
+        };
+        return Input({key:fieldKey(field),label:tr(fieldInfo[field].label),value:state[fieldInfo[field].buffer].value,
+          ...(field===state.input?{autoFocus:true}:{}),submitLabel:tr('ui.hints.accept'),onInput:(value)=>{replace(value);},
+          onSubmit:async(value)=>{if(replace(value))await handleTaskKey($,options,state,{key:'return'});}});
+      });
+      const cancel=Button({...recoveryButton,key:'task-cancel',label:tr('profiles.cancel'),onPress:()=>active()&&handleTaskKey($,options,state,{key:'g',ctrl:true})});
+      const note=needsFocus?tr('task.controls.focus_field'):tr('task.controls.field_help');
+      let instructions = textLine(note,width);
+      if (state.fromClient) {
+        // Keep the clicked instance across the transfer. If the host declines
+        // focus, ordinary keys stay in that region until the person chooses
+        // the actual field. The native Input alone owns text and paste.
+        const {elements,frame}=frameElements();
+        elements.Text({...styles.muted,wrap:'truncate',children:[clip(note,width)]});
+        const props={epoch:state.epoch,ack:state.ack,generation:++state.frameGeneration,columns:width,rows:1,
+          displayColumns:width,displayRows:1,language:state.language,busy:true,frame};
+        if (!withinBudget(props) || !withinBudget(frameTree(frame))) return fallback();
+        instructions=Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:1,props});
+      }
+      const pane = Box({width,flexDirection:'column',children:[title(),instructions,...inputs,cancel,
+        ...(notice?[textLine(notice,width)]:[])]});
+      return withinBudget(pane) ? pane : fallback();
+    }
+    for(;;) {
+      if(width<28||height<4)return fallback();
+      const reportRows=height-3;
+      const lines=taskViewerView(state,width,reportRows);
+      try {
+        const {elements,frame}=frameElements();
+        elements.Box({width,flexDirection:'column',children:lines.map(row=>elements.Text({
+          ...styles.text,bold:row.selected,wrap:'truncate',children:[
+            row.key==='error'||row.key==='warning'?taskNotice(row.text,width):row.text,
+          ],
+        }))});
+        const reduced=width<widthLimit||height<heightLimit;
+        const buttons=taskControls(ui,state.language,width,(name)=>{if(active()&&!state.input)return handleTaskKey($,options,state,{key:name});});
+        const props={epoch:state.epoch,ack:state.ack,generation:++state.frameGeneration,
+          columns:width,rows:reportRows,displayColumns:width,displayRows:reportRows,language:state.language,busy:false,frame};
+        if(!withinBudget(props)||!withinBudget(frameTree(frame)))throw new CapacityError();
+        const heading=needsFocus?tr('task.title')+' · '+tr('task.controls.focus'):reportRows===1?notice:'';
+        const pane=Box({width,height,flexDirection:'column',children:[
+          heading?textLine(heading,width):title(reduced),
+          Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:reportRows,props}),
+          ...buttons,
+        ]});
+        if(withinBudget(pane))return pane;
+      } catch(error) { if(!(error instanceof CapacityError))throw error; }
+      if(height>4)height=Math.max(4,Math.floor(height*.75));
+      else if(width>28)width=Math.max(28,Math.floor(width*.75));
+      else return fallback();
     }
   });
 }
@@ -636,6 +754,7 @@ export const register: Register = (on, options) => {
     generation: 0,
     columns: 72,
     rows: 24,
+    pane: { columns: 72, rows: 24 },
     displayColumns: 72,
     displayRows: 24,
     saveOutcome: 'none',
@@ -740,9 +859,13 @@ export const register: Register = (on, options) => {
     const run = state.inputChain.then(async () => {
       if (batch.epoch !== state.epoch || !state.placed) return {};
       const currentEpoch = state.epoch;
-      if (state.columns !== batch.columns || state.rows !== batch.rows) {
-        state.columns = batch.columns;
-        state.rows = batch.rows;
+      // Some hosts report the terminal viewport on a Client key event. Page
+      // navigation must use the region the enclosing pane actually assigned.
+      const columns = Math.min(batch.columns, state.pane.columns);
+      const rows = Math.min(batch.rows, state.pane.rows);
+      if (state.columns !== columns || state.rows !== rows) {
+        state.columns = columns;
+        state.rows = rows;
         props(state);
       }
       for (const message of batch.events) {
@@ -876,6 +999,7 @@ export const register: Register = (on, options) => {
     const { Box, Text, Button, Client } = $.ui.resolve(e);
     const width = Math.max(2, Math.min(10000, e.props.bodyColumns));
     const height = Math.max(0, Math.min(10000, e.props.scroll.bodyRows));
+    state.pane = { columns: width, rows: height };
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;

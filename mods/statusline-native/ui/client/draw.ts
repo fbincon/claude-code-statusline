@@ -1,7 +1,7 @@
 import { changesView } from '../../lib/editor/change-review.ts';
 import { reuseView } from '../../lib/editor/reuse-manager.ts';
 import { packageView } from '../../lib/editor/package-manager.ts';
-import { diagnosisLines } from '../../lib/editor/diagnosis-view.ts';
+import { diagnosisPage } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
 import { colorsView } from '../../lib/editor/color-manager.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
@@ -67,7 +67,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   let title = '';
   if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,view.language??'en',inner,layout.bodyRows):reuseView(e,view.language??'en',inner,layout.bodyRows)).map(row=>line(row.text,rowStyle(row.selected===true))));
   } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
-  } else if(e.diagnosis){title=tr('diagnosis.title');const lines=diagnosisLines(e,view.language??'en',inner),capacity=Math.max(1,layout.bodyRows-1),start=Math.min(e.diagnosis.scroll,Math.max(0,lines.length-capacity));content.push(...lines.slice(start,start+capacity).map(text=>line(text)));content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if (e.diagnosis) {
+    title = tr('diagnosis.title');
+    const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);
+    content.push(...page.lines.map(text => line(text)));
+    if (layout.bodyRows > 1) content.push(line(page.summary, styles.muted));
   } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
   } else if(e.alignmentManager) {
     title=tr('alignment.title');
@@ -98,7 +102,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
   } else if (e.guidanceScroll !== null && e.detail) {
     title = tr('guidance.title');
-    const item = e.definition(e.detail.scope,e.detail.id)!;
+    const item = e.detailItem!;
     const lines = guidanceLines(item, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(e.guidanceScroll, Math.max(0, lines.length - capacity));
     content.push(...lines.slice(start, start + capacity).map(text => line(text)));
@@ -180,21 +184,31 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
   const pages = ['main', 'subagents', 'settings', 'layout'];
-  const labels = columns < 48 ? ['main','subagents','settings','layout'].map(key => tr('native.tabs.short.' + key))
-    : ['main','subagents','settings','layout'].map(key => tr('native.tabs.' + key));
+  const labels = pages.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
+  const focusHint = tr('native.ui.client.draw.click_region_for_keys');
+  const hasNotice = Boolean(notice || capacityNotice);
+  const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
+  // Keep both the notice and the click instruction. On narrow panes the numbered tabs suffice.
+  const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(focusHint) > columns;
   const tabs: TextSpan[] = [];
   labels.forEach((label, i) => {
+    if (numberedTabs) {
+      const n = String(i + 1);
+      tabs.push({ text: (i ? ' ' : '') + (pages[i] === e.page ? '[' + n + ']' : n), style: pages[i] === e.page ? styles.accent : styles.key });
+      return;
+    }
     if (i) tabs.push({ text: ' · ', style: styles.muted });
     tabs.push({ text: String(i + 1), style: styles.key });
     tabs.push({ text: ' ' + (pages[i] === e.page ? '[' + label + ']' : label), style: { ...(pages[i] === e.page ? styles.accent : styles.muted), bold: false } });
   });
+  if (hasNotice) tabs.push({ text: (numberedTabs ? ' ' : ' · ') + focusHint, style: styles.muted });
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
       chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line(capacityNotice || tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
+        : line(capacityNotice || focusHint, styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
       section(ui, 'preview-region', e.diagnosis?.report ? tr('diagnosis.output') : e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language)+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(inner,e.previewWidth)+'c', preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({

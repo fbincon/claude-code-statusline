@@ -10,6 +10,10 @@ Activated sources require the history profile named by the original coverage pla
 
 Promotion resolves the complete original candidate by immutable artifact ID and verifies original ZIP and package digests. A worker-input manifest or a transfer-probe artifact cannot satisfy those release inputs. Preserve the independently verified selection and accepted-base check before restoring cross-source compiler output. [CI measurements](development/ci-efficiency.md)
 
+## v3.16.2 keyboard and editor repairs
+
+Use the [3.16.2 version decision](releases/approvals/v3.16.2.json). Validate the original candidate in the complete product matrix, retain all 313 existing capacity cases, and exercise the task pane and editor regressions. Real-host paste must preserve the complete field and conversation draft. Require complete twelve-language readiness and the final PR, exact-source main and annotated-tag gates. Verify the four delivery files and source rebuild before npm OIDC publication and public verification. Synchronize the validated refs and release files with Gitee. Upgrade the actual machine and restore its preferences while retaining 3.16.2. [Release notes](releases/v3.16.2.md)
+
 ## v3.16.1 runtime, source and save-conflict repairs
 
 Published **2026-10-31** on [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1), [GitHub stable/Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) and [Gitee stable](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1), from source `d652eda833d97c594abbf17929e347bf77395af2`. Required PR/main/tag gates, independent and delivered-source rebuilds, twelve-language readiness, seven public verification jobs and all four delivery-file digests passed. The actual machine retains 3.16.1 after both-editor/runtime checks and eleven-path preference restoration.

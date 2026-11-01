@@ -89,7 +89,13 @@ test('tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save
             const session = await Session.open(f.backend);
             session.state.editor.draft.display.statusline_language = output;
             const before = f.bytes();
-            assert.equal((await session.key({ key: 'escape' }) as any).outcome, 'cancelled');
+            const changed = output !== session.state.editor.baseline.draft.display.statusline_language;
+            let cancelled = await session.key({ key: 'escape' });
+            if (changed) {
+                assert.equal(cancelled, null); assert.equal(session.state.exitChoice, 'keep');
+                await session.key({ key: 'down' }); cancelled = await session.key({ key: 'return' });
+            }
+            assert.equal((cancelled as any).outcome, 'cancelled');
             assert.deepEqual(f.bytes(), before);
             await session.save();
             const persisted = await f.backend.request('read');

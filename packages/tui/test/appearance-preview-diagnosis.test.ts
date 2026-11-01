@@ -7,6 +7,53 @@ import { openDiagnosis, diagnosisKey, diagnosisRequest } from '@fbincon/statusli
 import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 import { SetupState } from '@fbincon/statusline-core/editor/setup';
 import { frame } from '../src/drawing.js';
+import { dimensions } from '../src/layout.js';
+
+test('diagnosis keeps the current field and grapheme caret visible on short terminals', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const s = fixture(language);
+        s.key({ key: 'l', ctrl: true });
+        s.key({ key: 'return' });
+        s.key({ key: '目录/'.repeat(25) + '📁尾', paste: true });
+        for (const rows of [18, 19, 20, 24]) {
+            const screen = plain(s, 64, rows).join('\n');
+            assert(screen.includes('📁尾▏'));
+        }
+        s.key({ key: 'g', ctrl: true });
+        s.key({ key: 'end' }, 64, 18);
+        assert(plain(s, 64, 18).join('\n').includes('› ' + t('colors.cancel', language)));
+        assert.equal(s.editor.diagnosis!.path, '');
+    }
+});
+
+test('diagnosis End, Up and page movement follow the visible report after resizing', () => {
+    const s = fixture();
+    openDiagnosis(s.editor);
+    const v = s.editor.diagnosis!;
+    v.report = true;
+    v.result = {
+        sample: false, scope: 'main', width: 60, source: 'test file', observed_at: null, diagnosed_at: '2026-11-01T10:00:00Z',
+        session_id: null, prompt_id: null, host_version: null, include_local: false, instances: [],
+        output: Array.from({ length: 40 }, (_, i) => ({ id: String(i), spans: [{ text: 'report line ' + i, foreground: null, background: null, bold: false }] })),
+        host_fields: { worktree: { session_name: null, git_name: null, selected_source: null },
+            cache_miss: { status: 'not_observed', causes: [], last_miss_at: null, tools_added: null, tools_removed: null, system_char_delta: null } },
+    };
+    const window = (rows: number) => {
+        const summary = plain(s, 80, rows).join('\n').match(/(\d+)–(\d+)\/(\d+)/u);
+        assert(summary, 'missing page position');
+        return summary.slice(1).map(Number);
+    };
+    s.key({ key: 'end' }, 80, 24);
+    const [first, last, total] = window(24);
+    assert.equal(last, total);
+    s.key({ key: 'up' }, 80, 24);
+    assert.deepEqual(window(24), [first! - 1, total! - 1, total]);
+    const [resized] = window(18);
+    s.key({ key: 'pageup' }, 80, 18);
+    assert.equal(window(18)[0], resized! - (dimensions(80, 18).content.innerHeight - 1));
+    s.key({ key: 'home' }, 80, 18);
+    assert.equal(window(18)[0], 1);
+});
 test('selected theme bands retain their actual colors while their labels remain highlighted', () => {
     const s = fixture();
     openColors(s.editor, 'field:theme');
@@ -106,4 +153,17 @@ test('standalone setup shares temporary preview controls without changing its ca
     assert.equal(state.previewWidth, '40');
     assert.equal(JSON.stringify(state.candidate), before);
     assert.equal(state.phase, 'checks');
+});
+
+test('literal escape is editable text in color and file diagnosis fields', () => {
+    const s=fixture(), e=s.editor;
+    openColors(e,'field:powerline.row_background_gradient');
+    e.colors!.input={value:'',cursor:0,scroll:0};
+    for(const flag of ['text','paste']) colorsKey(e,{key:'escape',[flag]:true},'en');
+    assert.equal(e.colors!.input?.value,'escapeescape');
+    colorsKey(e,{key:'escape'},'en'); assert.equal(e.colors!.input,null);
+    openDiagnosis(e); diagnosisKey(e,{key:'return'});
+    for(const flag of ['text','paste']) diagnosisKey(e,{key:'escape',[flag]:true});
+    assert.equal(e.diagnosis!.input?.value,'escapeescape');
+    diagnosisKey(e,{key:'escape'}); assert.equal(e.diagnosis!.input,null); assert.equal(e.diagnosis!.path,'');
 });

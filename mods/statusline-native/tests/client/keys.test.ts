@@ -15,10 +15,36 @@ function view(): View {
 
 test('native undo alternative and redo retain text-input and pending-save boundaries', () => {
   const state=view(),e=state.editor!,count=e.draft.display.instances.length;
-  e.instanceAction('main','copy');handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count);
-  handleKey(state,{key:'r',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+  handleKey(state,{key:'r',ctrl:true},80,24);expect(state.localized?.message?.key).toBe('history.no_redo');
+  e.instanceAction('main','copy');
+  for (const key of ['/', '_', 'z']) {
+    handleKey(state,{key,ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count);
+    expect(state.localized?.message?.key).toBe('history.counts');
+    handleKey(state,{key:'r',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+  }
+  handleKey(state,{key:'t',ctrl:true},80,24);
+  handleKey(state,{key:'r'},80,24);expect(e.changeReview?.message?.key).toBe('history.no_redo');
+  handleKey(state,{key:'u'},80,24);handleKey(state,{key:'u'},80,24);expect(e.changeReview?.message?.key).toBe('history.no_undo');
+  handleKey(state,{key:'r'},80,24);handleKey(state,{key:'q'},80,24);expect(e.changeReview).toBeNull();
   state.input={kind:'search',scope:'main',original:'',selected:e.selected.main};handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
   state.input=null;state.uncertain=true;handleKey(state,{key:'_',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
+});
+
+test('diagnosis path input owns keys while changes remain undoable in the editor', () => {
+  const state = view(), e = state.editor!, count = e.draft.display.instances.length;
+  handleKey(state,{key:'d'},80,24);
+  handleKey(state,{key:'l',ctrl:true},80,24);
+  handleKey(state,{key:'return'},80,24);
+  handleKey(state,{key:'abc',text:true},80,24);
+  for (const key of ['_', '/', 'r', 't', 'b', 'y', 'o', 'a', 'd', 'x']) {
+    expect(handleKey(state,{key,ctrl:true},80,24)).toBeNull();
+    expect(e.diagnosis?.input?.value).toBe('abc');
+    expect(e.draft.display.instances.length).toBe(count+1);
+    expect(e.history.undo.length).toBe(1); expect(e.history.redo.length).toBe(0);
+    expect(e.changeReview).toBeNull();
+  }
+  handleKey(state,{key:'g',ctrl:true},80,24); handleKey(state,{key:'g',ctrl:true},80,24);
+  handleKey(state,{key:'/',ctrl:true},80,24); expect(e.draft.display.instances.length).toBe(count);
 });
 
 test('search input uses the same 256-codepoint limit as the external editor', () => {

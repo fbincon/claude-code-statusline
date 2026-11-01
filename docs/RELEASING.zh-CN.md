@@ -10,6 +10,10 @@
 
 晋升按不可变制品 ID 选择原完整候选，校验原 ZIP 和包摘要。worker 输入清单或传输诊断制品不能满足发布输入要求。跨源恢复编译输出前，完成独立来源选择及已接受基线复核。[CI 实测](development/ci-efficiency.zh-CN.md)
 
+## v3.16.2 快捷键与编辑器修复
+
+使用 [3.16.2 版本决策](releases/approvals/v3.16.2.json)。原始候选必须通过完整产品矩阵，保留既有 313 个容量案例并验证任务窗格及编辑器回归。真实宿主中粘贴的内容必须完整进入字段，聊天草稿必须保持原文。十二种语言就绪，最终 PR、对应源码的 main 与带注解 tag 门禁全部通过后，核验四件交付物及源码重建，执行 npm OIDC 发布和公开核验。将已验证的引用及发布文件同步至 Gitee。本机升级并恢复原偏好，保留 3.16.2。[发布说明](releases/v3.16.2.zh-CN.md)
+
 ## v3.16.1 运行、来源与保存冲突修复
 
 已于 **2026-10-31** 在 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.1)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 和 [Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.1) 发布，源码为 `d652eda833d97c594abbf17929e347bf77395af2`。必需 PR／main／tag 门禁、独立及交付源码重建、十二语言就绪、七项公开核验和四项交付文件摘要均通过。本机在双编辑器／运行观测检查及十一路径偏好恢复后保留 3.16.1。

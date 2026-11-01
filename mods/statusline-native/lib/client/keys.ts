@@ -1,4 +1,4 @@
-import { openChanges, changesKey } from '../editor/change-review.ts';
+import { openChanges, changesKey, stepDraftHistory } from '../editor/change-review.ts';
 import { openReuse, reuseKey } from '../editor/reuse-manager.ts';
 import { packageManager, packageKey, packageView } from '../editor/package-manager.ts';
 import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
@@ -48,29 +48,33 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if(e.changeReview)return changesKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
   if(e.reuse)return reuseKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
-  if(event.ctrl&&!event.text&&key.toLowerCase()==='t'&&!view.input){openChanges(e);return null;}
-  // Current Unix hosts reserve Ctrl+Z for suspend before Client receives it.
-  if(event.ctrl&&!event.text&&['z','_','r'].includes(key.toLowerCase())&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.colors&&!e.packages){e.undo(key.toLowerCase()==='r');return null;}
+  const draftControl = event.ctrl && !event.meta && !event.text && !view.input && e.inDraftView && !e.packageLocked;
+  if (draftControl && shortcut === 't') { openChanges(e); return null; }
+  // Legacy terminals encode Ctrl+/ and Ctrl+_ alike. Keep forwarded Ctrl+Z as well.
+  if (draftControl && ['/', '_', 'z', 'r'].includes(shortcut)) {
+    setMessage(view, 'message', stepDraftHistory(e, shortcut === 'r'));
+    return null;
+  }
   if(e.packages){packageView(e.packages,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);return packageKey(e.packages,event);}
   if(e.packageLocked){setMessage(view,'message',localizedText('package.ui.editor_locked'));return key==='escape'||event.ctrl&&key.toLowerCase()==='g'?'close':null;}
-  if(e.diagnosis)return diagnosisKey(e,event);
+  if (e.diagnosis) return diagnosisKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows - 1);
   if(e.colors)return colorsKey(e,event,view.language ?? 'en');
-  if(event.ctrl&&key.toLowerCase()==='l'&&!view.input&&!e.sources&&!e.profiles&&!e.groupManager&&!e.alignmentManager&&!e.quick&&!e.review&&!e.explanation){openDiagnosis(e);return null;}
+  if (draftControl && shortcut === 'l') { openDiagnosis(e); return null; }
   if (e.alignmentManager) return alignmentsKey(e,event);
   if (e.groupManager) return groupsKey(e, event);
-  if (event.ctrl && key.toLowerCase() === 'b' && !view.input && !view.uncertain && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text) { openGroups(e); return null; }
+  if (draftControl && shortcut === 'b' && !view.uncertain) { openGroups(e); return null; }
   if (e.sources) return sourcesKey(e,event);
-  if (event.ctrl && key.toLowerCase()==='y' && !view.input && !e.review && !e.quick && !e.explanation) {openSources(e);return 'sources';}
+  if (draftControl && shortcut === 'y') { openSources(e); return 'sources'; }
   if (e.profiles) return profilesKey(e, { ...event, key: key === 'return' ? 'enter' : key });
-  if (event.ctrl && key.toLowerCase() === 'o' && !view.input && !e.detail && !e.adding && !e.review && !e.quick && !e.explanation && !view.uncertain) {
+  if (draftControl && shortcut === 'o' && !e.detail && !view.uncertain) {
     if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
     return null;
   }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
-  if(event.ctrl&&['v','w','n'].includes(key.toLowerCase())&&!view.input){if(key.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(key.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,view.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
+  if(event.ctrl&&!event.meta&&!event.text&&!view.input&&(e.inDraftView||e.quick||e.review)&&['v','w','n'].includes(shortcut)){if(key.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(key.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,view.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
   if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
   if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
-  if (event.ctrl && key.toLowerCase()==='p' && !view.input && !e.detail && !e.adding && !e.review && !view.uncertain) {
+  if (draftControl && shortcut === 'p' && !e.detail && !view.uncertain) {
     if(e.acceptNumeric()) e.quick=openQuick(e.draft); return null;
   }
   if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
@@ -90,7 +94,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e.guidanceScroll !== null && e.detail) {
     const layout = editorLayout(view, columns, rows);
     const width = Math.max(2, columns - (layout.framed ? 2 : 0));
-    const item = e.definition(e.detail.scope,e.detail.id)!;
+    const item = e.detailItem!;
     const capacity = Math.max(1, layout.bodyRows - 1), maximum = Math.max(0, guidanceLines(item, view.language ?? 'en', width).length - capacity);
     if (key === 'up') e.guidanceScroll--;
     else if (key === 'down') e.guidanceScroll++;
@@ -170,12 +174,15 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
       return null;
     }
     if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker(scope);return null;}
-    if(e.adding&&event.ctrl&&key.toLowerCase()==='y'){e.detail={scope,id:e.selected[scope]};e.guidanceScroll=0;return null;}
     if(e.adding&&['tab','1','2','3','4'].includes(key))return null;
   }
-  if (event.ctrl && key.toLowerCase() === 'e' && (e.page === 'main' || e.page === 'subagents')) {
+  if (event.ctrl && !event.meta && shortcut === 'e' && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
-    if (e.selected[scope]) { e.detail = { scope, id: e.selected[scope] }; e.setting = 'item:label'; }
+    if (e.selected[scope]) {
+      e.detail = { scope, id: e.selected[scope] };
+      if (e.adding) e.guidanceScroll = 0;
+      else e.setting = 'item:label';
+    }
     return null;
   }
   if (event.ctrl && key.toLowerCase() === 'f' && !e.detail && (e.page === 'main' || e.page === 'subagents')) {

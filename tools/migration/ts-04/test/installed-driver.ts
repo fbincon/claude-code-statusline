@@ -117,7 +117,8 @@ else if (operation === 'draft-reuse') {
         await assert.rejects(session.save(),(error:any)=>error.code==='profile_conflict');
         assert.equal(applyAttempts,attempts+1);assert.equal(e.saveState,'idle');assert.equal(e.pendingSave,null);assert.deepEqual(e.draft,candidate);
         assert.equal(JSON.stringify(e.baseline),baseline);assert.equal(JSON.stringify(e.history),history);assert.deepEqual(e.changeReview?.current?.configuration?.target,target);assert.deepEqual(files(),saved);
-        await session.key({key:'q'});assert.equal((await session.key({key:'escape'})).outcome,'cancelled');assert.deepEqual(files(),saved);assert.equal(applyAttempts,attempts+1);
+        await session.key({key:'q'});assert.equal(await session.key({key:'escape'}),null);assert.equal(state.exitChoice,'keep');
+        await session.key({key:'down'});assert.equal((await session.key({key:'return'})).outcome,'cancelled');assert.deepEqual(files(),saved);assert.equal(applyAttempts,attempts+1);
     }
     fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths:[40,80,120],history:true,atomic_repairs:true,style_fields:true,group_closure:true,unbound_sources:true,conflict_retry:true,unknown_reconciliation:true,save_reopen:true,installed_modules:true,model_calls:0}));
 }
@@ -241,7 +242,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         }
         if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, keys.length * 2, [0])) throw new Error('WriteConsoleInputW failed');
     };
-    let previewCancelled = false;
+    let previewCancelled = false, discardConfirmed = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     // The production editor can move to an independent runtime. Preserve its
     // real console handles and record its writes through a fixture-only preload,
@@ -266,6 +267,9 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         }
         if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
+        }
+        if (operation !== 'windows-setup' && choice === 'cancel' && !discardConfirmed && output.includes('Discard unsaved configuration changes?')) {
+            discardConfirmed = true; setTimeout(() => sendKeys('\x1b[B\r'), 50);
         }
     };
     const write = process.stdout.write.bind(process.stdout);

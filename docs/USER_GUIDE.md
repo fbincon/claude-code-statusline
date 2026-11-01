@@ -328,7 +328,7 @@ Windows uses `claude-statusline.cmd configure`. Both stdin and stdout must be TT
 | Enter | Save on item/original settings rows; edit or confirm advanced fields |
 | Ctrl+S | Save the full draft outside field input |
 | Ctrl+K | Check saved state while the save outcome is unknown |
-| Esc | Cancel current input first; otherwise discard and close |
+| Esc | Cancel the active field. At the top level, close a clean draft or confirm whether to discard unsaved changes. The default keeps editing. |
 | Ctrl+C | Restore the terminal, exit 130, and discard |
 
 Each page retains its draft, selection, search, and scroll during page changes and resize. Filtering preserves hidden items' relative order. A save checks the current revision before writing; unchanged settings create no backup.
@@ -537,7 +537,7 @@ Settings contains global format choices, risk thresholds, subagent visibility an
 
 While a save is pending or unknown, both editors block display-draft mutations, including already-open source/profile managers. Ctrl+K in the external TUI and K in Native check the submitted snapshot without saving again. Definitive results unlock editing; conflict retains the draft. Read-only source inspection remains available. See [save recovery](development/correctness-maintenance.md#shared-draft-protection--fix-01).
 
-Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In the external editor, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the external editor. During field/path editing ordinary characters, including s/f/q, remain input.
+Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In the external editor, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Backspace edits padding/refresh numbers and Esc restores the previous value. At the top level, Esc asks before discarding unsaved changes. Select **Discard changes and close** and press Enter to leave. During field/path editing ordinary characters, including s/f/q, remain input.
 
 | Preset | Main layout | Subagent defaults |
 | --- | --- | --- |

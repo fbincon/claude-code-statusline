@@ -10,6 +10,8 @@ For named display schemes, user-side project bindings and read-only task inspect
 
 Historical extension diagnosis filters current and last-good observations before selection and evaluates expiration at input time. Later or untimestamped values and auxiliary PR/check fields do not enter historical output; missing times stay unknown. Live rendering is unchanged. Evidence retains every agent for each component instance. Diagnosis does not execute Git to infer an old input identity; unavailable associations remain unavailable.
 
+In either editor, open the input-file diagnosis and press Enter on the path field. The caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
+
 ## Run a diagnosis
 
 Use a JSON payload that you already captured from Claude Code's statusline stdin:

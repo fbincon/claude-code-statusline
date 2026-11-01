@@ -26467,6 +26467,193 @@
           "ko": "인터페이스 언어"
         }
       }
+    },
+    "bcaa7cf1dfa5c55394699527748a15d22356e7337e76227736166e3b7231beb4": {
+      "key": "diagnosis.help",
+      "english": "Enter to edit or run · Ctrl+G to go back · display settings stay unchanged",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "64df5955116898f3dab9f7d0c04bd5a700f589992c5f62314be00a44d06629c8": {
+      "key": "history.no_redo",
+      "english": "Nothing to redo.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "history.no_redo",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1c6bea3010b35c45b1fd49bcbf25d8d3c332c7eedf16bbc57bb273e46e7e80bb": {
+      "key": "history.no_undo",
+      "english": "Nothing to undo.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "history.no_undo",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4243ebccc353cfb924de0935de12ecf333290aed50307a14cd08edb4575bd5f7": {
+      "key": "native.ui.client.draw.click_region_for_keys",
+      "english": "Click the editor body for keys. Esc releases focus.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "native.ui.client.draw.click_region_for_keys",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "683fe9c70187dc2472508ceb5140a847d2ce6904579b2343e737908cf31d9417": {
+      "key": "task.controls.evidence",
+      "english": "Evidence",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.evidence",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "739fed0dd8764dcf8e3b81e3b047786885313df83745bf1f813dc8e239f58783": {
+      "key": "task.controls.field_help",
+      "english": "Enter to confirm · Tab to reach Cancel",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.field_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ed7362fe45037eec00ad0e899f4a567004e30cf72fba25295eb1a44d869915a0": {
+      "key": "task.controls.focus",
+      "english": "Press Ctrl+X then Tab to focus the task pane, or click a control.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.focus",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c14c3bd61804146cc5cc6cc08fd2eb22029d593e7e2133e349adfd21322ca230": {
+      "key": "task.controls.fold",
+      "english": "Fold",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.fold",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6aa00d2894ba0ae0dc9bcf8772eca1eda0e4a45b188b45cc0d086a4e5c43a847": {
+      "key": "task.controls.identity",
+      "english": "Identity",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.identity",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "44f9284f90e54b096514ed8fdf85758e432390a08f1b886ef98fb09f272bb391": {
+      "key": "ui.exit.discard",
+      "english": "Discard changes and close",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.exit.discard",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "65d2496aa111ffc0d89b74dae3e974c58f5a433ccf9e2414825309188e3bc9ff": {
+      "key": "ui.exit.keep",
+      "english": "Continue editing",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.exit.keep",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b54125f0e3b3cfe9f8d5c908fa0011fa15da04877e1cd8d4abfb7abef8ce13b3": {
+      "key": "ui.exit.unsaved",
+      "english": "Discard unsaved configuration changes?",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.exit.unsaved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fbab079a63a7911c3b0e3b15ba3aa9b70cae97fc1f1429c30911e9d15276d814": {
+      "key": "ui.hints.redo",
+      "english": "redo",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.redo",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0317b4e684d60e021963f43891854a508bf3208ae7efce73057eea576dec73eb": {
+      "key": "ui.hints.undo",
+      "english": "undo",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.undo",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "78c7e8ca6db25335ae6cdd7151fddd1a33e10d33b41cf7c381d50cc259afe226": {
+      "key": "ui.session.draft_imported_ctrl_s_saves_esc_discards",
+      "english": "Draft imported. Ctrl+S saves the draft.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.session.draft_imported_ctrl_s_saves_esc_discards",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "83517beb5f03c523334aba82fad99f3fda0709967ce023c2a5e48c8571919575": {
+      "key": "ui.session.preset_expanded_ctrl_s_saves_esc_discards",
+      "english": "Preset expanded. Ctrl+S saves the draft.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.session.preset_expanded_ctrl_s_saves_esc_discards",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "255506469399dd4ea49e33c757e218c7ef0fe733a85a438664e21aad755c9518": {
+      "key": "task.controls.focus_field",
+      "english": "Click the field or press Ctrl+X then Tab. Type only when ⏎ appears.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.controls.focus_field",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -26493,6 +26680,42 @@
         {
           "source": "cfcd7abd7ef8115094c0a60a188429f6eb21b64b5323d7e36ce98ad9e7383a15",
           "translation": "7cc8f549ca9205ae36058cc940554d7384190a9ab7ef037a79c07743493d612e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "451d70329140ae94d0bf2ec29dbd5b359287ecac901fcc738b8aaa578c44c2fb",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "3ea02126006b947080018bdee80913f041aa2ec0c9e4fb5ff335308e407da113",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "9a5548971d49cc839fc0eadaf9c260466f64f3d1ede8f3ba3a591ab5316e58ad",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "74b88b227b2575374736df952de4b9a0636f79005fc528dada06ead933bb2bee",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -26526,6 +26749,42 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "beaae7dbda9fbae4997bdcb0808e54e54f2db9f1449db4df5f23c8ffd66c77f6",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "124f4fc6575a9335f5e141a7abb3da8d29a34aaf8caaf8a31aac26fdeeab86cf",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "ddf75e3ae9ccdb042864406d373389cbe4d4ae1de5434deb1afbadf7b2e88b8b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "a4b71bbd6254a5f76d903f9216420880e3bc8dc1386aa9ed29b128b1203c6376",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "ko": {
@@ -26551,6 +26810,42 @@
         {
           "source": "cfcd7abd7ef8115094c0a60a188429f6eb21b64b5323d7e36ce98ad9e7383a15",
           "translation": "4c43f548c1437092d008ea4daac26aa8587a3acfd34d6ad49cbe511f9049d886",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "9165c5fc2187af9455ca58d7e4bf8c80f45fb85960e0be0c8af7ddd382fae496",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "687e1f85ef7364ee42db83b270302c57a16aa06d28f51eebc189bccda8fe51e9",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "beaedc06f7c5618560db02a4c1f97c0e8a470ce6c56f9288cb4e0dad4daacacf",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "5fc5b2fc40a26b04e0e47284c73f4f9ce6f72527c5bf1c10e849741f6bc0688c",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -26584,6 +26879,42 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "f21bd2fe50134329d52ebd6a2b58a6dec6b589566262480737e2501297243019",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "d771564eb782ecbec5722d758f22443d51b2a42e7b36787190136380feabdd8d",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "8958a81a461ea442180f2da4087c4d305e027f04a11f247f710b982006b560be",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "5ffa67286747307b9ad28b82f1daab9da7c898e08e4f2ee92502af6ee6c3cbec",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "zh-HK": {
@@ -26609,6 +26940,42 @@
         {
           "source": "cfcd7abd7ef8115094c0a60a188429f6eb21b64b5323d7e36ce98ad9e7383a15",
           "translation": "25150492fa5d53d73b0fffc6f8904a5053fc420bbba493f66d92ba16703cbb9b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "efef14714b7e003282507272871ddb823cfbe18dfeedf96decb3bf191e5dbcda",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "3ebb79bc9c861e0ce884d84ae7c62cf7f8777f5c154de8c32f75efe7dbc47323",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "3803a8cbcd66ceb7a19a746d10b54e509c0fb96807e41739d4c119b50c97a1ef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "1f7ddf95cf372aaf54f19260c94912688000e50d87a821df248f02ef2770c705",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -26642,6 +27009,42 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "965a44eeb4f8b386407e08ec12b21f30024f88de7ab33e036c35c5ce66798f20",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "3ebb79bc9c861e0ce884d84ae7c62cf7f8777f5c154de8c32f75efe7dbc47323",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "3803a8cbcd66ceb7a19a746d10b54e509c0fb96807e41739d4c119b50c97a1ef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "1f7ddf95cf372aaf54f19260c94912688000e50d87a821df248f02ef2770c705",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "es": {
@@ -26662,6 +27065,42 @@
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
         }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "97e774ab3f2516d8493d05c8a4982e1684f312ec826b0e6dc3d6f0450f336da4",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "eb1f10c8d27c5729440072e6b289100d0f6cd6187bba484931d3cac76c958a3a",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "affac29653e9c8153b55dcdabb003db2cacc08bca5abc66e27a43b5baa01e086",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "625909738e01b584458e504884a5db9a364b9a57a98e30f2faed08747e929c8a",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
       ]
     },
     "pt-BR": {
@@ -26678,6 +27117,194 @@
         {
           "source": "1a623b68ed1bad5469fe535d628e76a7156065f395485f8fd1bde434a98aa27c",
           "translation": "7780d60ca0343dcfaadb48a5fb6cf4528ad732d7238cc9e9a1df508c84f98509",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "aa4cf5485795b8dc183ad538998189833f2a8e7401512dd6766731a6e3b257a7",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "1f77153315c3f0990353e7e714d49d86fbe60b4125a2e03b042ecb42286fc6dd",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "9eac0e92fd02aba94a1a38e08c1d1a3336233c25c550f612ac01da5df8569a45",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "f5aaa93e2abeaf9ae30c253849f947b23a5a1c32ed54113e5cf3b7fe952cd221",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
+    },
+    "de": {
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "8ce81be624533d9697e9e62980dd5a6a3938f90645971c87a39bd5394f90cc1b",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "25af0ea68e096ec7aded103b2e42a52bf5e6be25d50530fe79c0aa105ab16dba",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "c10b3cecb49c88b2be41ab777247b03b8a7df876dea2bf524834563b17ee152a",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "ef7d0185dadcaa2a5e76c7e1a419b2eebc8b9412a82729afd08308ff286cab62",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
+    },
+    "fr": {
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "5145462dd9869783059a93e412e702aa651c604c979e90d5094031218165fa53",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "d0338581b5c25a5bdc3e4438a781590cd81b2f2f506eb6570a6491b7531c333f",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "565ea0223fef73151d910c4b620f47b5f01c4e3f04c7994ec0309b2c29051504",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "11af11a6d029d8996fd6a2011b15f42a127ccf8b106caf5c713ca0c1544245e8",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
+    },
+    "id": {
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "2b879ae2eb84a27b4cfe4123b6fed450979cd82eca87926c05b6d4f502638afa",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "edb706c79a3f10e836dc88802b0219f05aa67ecbbdb1fa9dcd83582dfa8fb923",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "6ee5eb53d2a5ef951b2e67ca3280cbed95e3c2b710e560edc4313c1bfc9c0224",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "70482c01308c811a80209bd1d37a5f1cb03ed2993357dd39d7f4e6f372a99e2b",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ]
+    },
+    "ru": {
+      "diagnosis.help": [
+        {
+          "source": "11872b83418e5c7ec8338fba14dc5e3fd218ea5e20fd24ad91c98be47a635c64",
+          "translation": "404df9b19bfa80d05a8dcab328f06133249906ada42fc0c10b4d04caecd77b44",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "native.ui.client.draw.click_region_for_keys": [
+        {
+          "source": "834ea2221b9cd9e70b4315432519fc388d9eb22b329378201ae2ad90a08dc10f",
+          "translation": "3bc491f02b17683a8c53493e91d5e9ab1357a7fc8fa1122772a82fd9c9aaa71d",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
+        {
+          "source": "f1081441c38969d37ebd3287cf9666c4001a55914d8339f51783b28820f5e30b",
+          "translation": "13a191c1192149dbc13e0bb7f08df74b92391188a7356e897e0f051278f71410",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "ui.session.preset_expanded_ctrl_s_saves_esc_discards": [
+        {
+          "source": "b4085a3fccacc525f21d9d652494fc2771cb2696e9ea1d55067560d12ccaf39d",
+          "translation": "b481a7a6a7e378f9c7cfaa85faa85374129b1c003278a3d353e33d26db18a91f",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"

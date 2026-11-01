@@ -369,7 +369,10 @@ test('tests.ui.test_language.LanguageUiTests.test_cancelled_screen_keeps_persist
     f.e.page = 'settings';
     f.e.setting = 'field:statusline_language';
     await f.session.key({ key: 'right' });
-    const result = await f.session.key({ key: 'escape' });
+    assert.equal(await f.session.key({ key: 'escape' }), null);
+    assert.equal(f.state.exitChoice, 'keep');
+    await f.session.key({ key: 'down' });
+    const result = await f.session.key({ key: 'return' });
     assert.equal((result as any).outcome, 'cancelled');
     assert.deepEqual(f.bytes(), bytes);
 });
@@ -377,10 +380,11 @@ test('tests.ui.test_interactive_config.SaveAndRunTests.test_cancel_and_interrupt
     const f = await fixture(t);
     const before = f.bytes();
     await f.session.key({ key: ' ' });
-    for (const key of [{ key: 'escape' }, { key: 'c', ctrl: true }]) {
-        const result = await f.session.key(key);
-        assert.ok(['cancelled', 'interrupted'].includes((result as any).outcome));
-    }
+    assert.equal(await f.session.key({ key: 'escape' }), null);
+    assert.equal(f.state.exitChoice, 'keep');
+    await f.session.key({ key: 'down' });
+    assert.equal(((await f.session.key({ key: 'return' })) as any).outcome, 'cancelled');
+    assert.equal(((await f.session.key({ key: 'c', ctrl: true })) as any).outcome, 'interrupted');
     assert.equal(f.calls.some(c => c.operation === 'apply'), false);
     assert.deepEqual(f.bytes(), before);
 });

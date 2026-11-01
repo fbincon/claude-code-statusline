@@ -23,6 +23,21 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     const size = dimensions(canvas.columns, canvas.rows);
 
+    if (state.exitChoice !== null) {
+        const choices = ['keep', 'discard'] as const;
+        const first = canvas.rows >= 3 ? 1 : 0;
+        if (first) canvas.put(0, 0, [heading(tr('ui.exit.unsaved'))]);
+        const visible = canvas.rows === 1 ? [state.exitChoice] : choices;
+        visible.forEach((choice, index) => {
+            const selected = choice === state.exitChoice;
+            canvas.line(first + index, (selected ? '› ' : '  ') + tr('ui.exit.' + choice), false, selected);
+        });
+        if (canvas.rows >= 4) canvas.put(canvas.rows - 1, 0, shortcuts([
+            ['↑↓', tr('ui.hints.select')], ['Enter', tr('ui.hints.accept')], ['Esc/Ctrl+G', tr('ui.hints.back')],
+        ], canvas.columns));
+        return canvas.frame();
+    }
+
     if (!size.available) {
         canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line'))]);
         const message = tr('ui.drawing.terminal_too_small_need_x_current_x', {
@@ -55,7 +70,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
-    const summaryHints = state.form && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
+    const summaryHints = state.form && !e.diagnosis && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
     canvas.content(size.content, size.content.innerHeight - 1, [

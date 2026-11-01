@@ -66,9 +66,34 @@ test('native explicit file diagnosis retains a large report in the host and retu
     const client = await ui.find({ key: await clientKey(ui) });
     expect(withinBudget(client!.props.props)).toBe(true);
     expect(JSON.stringify(client!.props.props).includes('style_reasons')).toBe(false);
-    await keys(ui, 'pagedown', { key: 'g', ctrl: true }, { key: 'g', ctrl: true });
+    const position = async () => {
+        const current = await ui.find({ key: await clientKey(ui) });
+        const range = JSON.stringify(current!.props.props).match(/(\d+)–(\d+)\/(\d+)/);
+        expect(range).toBeDefined();
+        return range!.slice(1).map(Number);
+    };
+    await keys(ui, 'end');
+    const [first, last, total] = await position();
+    expect(last).toBe(total);
+    await keys(ui, 'up');
+    expect((await position())[0]).toBe(first! - 1);
+    await keys(ui, 'pageup');
+    expect((await position())[0]).toBe(first! - 1 - (last! - first! + 1));
+    await keys(ui, { key: 'g', ctrl: true }, { key: 'g', ctrl: true });
     expect(JSON.stringify(f.store.draft)).toBe(before);
     expect(f.calls.some(c => c.operation === 'apply')).toBe(false);
+    await ui.unmount();
+});
+test('short native diagnosis pane keeps the active path and selected action visible', async ($, on) => {
+    const f = setup(on);
+    await $.session.start(START);
+    await $.command.run(RUN);
+    const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 32, scroll: { offset: 0, bodyRows: 12 } } });
+    await keys(ui, { key: 'l', ctrl: true }, 'return', '目录/'.repeat(25) + '📁尾');
+    expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: /📁尾▏/ })).toBeDefined();
+    await keys(ui, { key: 'g', ctrl: true }, 'end');
+    expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: new RegExp('› ' + t('colors.cancel', 'en')) })).toBeDefined();
+    expect(f.calls.some(c => c.operation === 'apply' || c.operation === 'diagnose_file')).toBe(false);
     await ui.unmount();
 });
 test('closing a pending file diagnosis keeps the editor responsive and rejects its late report', { timeoutMs: 20000 }, async ($, on) => {

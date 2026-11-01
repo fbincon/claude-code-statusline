@@ -1,6 +1,7 @@
 import test from 'node:test';
 import { fixture, assert, fs, join } from './support.js';
 import { openPty } from './pty.js';
+import { t } from '@fbincon/statusline-core/i18n/messages';
 const posix = { skip: process.platform === 'win32' ? 'POSIX PTY; Windows uses separate console acceptance' : false, timeout: 15000 };
 for (const [width, height] of [[64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]])
     test(`real external TS editor save and full terminal restoration at ${width}x${height}`, posix, async (t) => {
@@ -69,4 +70,70 @@ test('bridge timeout returns a bounded result without summary or configuration w
     finally {
         await pty.close();
     }
+});
+
+test('Alt, delayed CSI and pasted commands preserve an external draft until explicit Save', posix, async t => {
+    const f = await fixture(t), before = f.bytes(), p = openPty(f.root);
+    try {
+        await p.wait(output => output.includes('Configure Status Line'));
+        p.send(' \x1bf');
+        await p.wait(output => output.includes('Configure Status Line *'));
+        const offset = p.captured().toString().length;
+        p.send('\x1b[');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        p.send('B');
+        await p.wait(output => output.slice(offset).includes('Configure Status Line *'));
+        assert(!p.captured().toString().includes('Discard unsaved configuration changes?'));
+        p.send('\x1b');
+        await p.wait(output => output.includes('› Continue editing'));
+        const confirm = p.captured().toString().length;
+        p.send('\x1b\r\x1b[200~down\x1b[201~\x1b[200~return\x1b[201~\x13');
+        await p.wait(output => output.slice(confirm).includes('› Continue editing'));
+        assert.deepEqual(f.bytes(), before);
+        const keep = p.captured().toString().length;
+        p.send('\r'); await p.wait(output => output.slice(keep).includes('Configure Status Line *'));
+        p.send('\x13'); await p.exited(); assert.equal(p.child.exitCode, 0);
+        assert.equal(JSON.parse(fs.readFileSync(f.displayPath,'utf8')).instances[0].enabled, false);
+        assert.deepEqual(p.attributes(),p.before);
+    } finally { await p.close(); }
+});
+
+test('pasting key names into the last source field never writes before explicit save', posix, async t => {
+    const f = await fixture(t), p = openPty(f.root, 120, 30), registry = join(f.root, 'claude-statusline-sources.json');
+    const paste = (value: string) => '\x1b[200~' + value + '\x1b[201~';
+    try {
+        await p.wait(output => output.includes('Configure Status Line'));
+        p.send('\x19\r\r' + paste('probe') + '\t'.repeat(6) + paste(join(f.root,'probe.json')) + '\t'.repeat(3));
+        p.send(['enter','return','tab','escape','R'].map(paste).join(''));
+        await p.wait(output => output.includes('enterreturntabescapeR'));
+        assert.equal(fs.existsSync(registry), false);
+        p.send('\x13'); await p.wait(output => output.includes('Source saved.'));
+        const [source] = JSON.parse(fs.readFileSync(registry,'utf8')).sources;
+        assert.equal(source.id, 'probe'); assert.equal(source.settings.unit, 'enterreturntabescapeR');
+        assert.equal(source.enabled, false);
+        for (const [key, name] of [['R','Reload uppercase'],['r','Reload lowercase']] as const) {
+            const current = await f.backend.request('sources_read');
+            await f.backend.request('sources_apply', { action:'edit', expected_revision:current.revision, id:source.id,
+                source:{ name, kind:source.kind, scope:source.scope, ttl_seconds:source.ttl_seconds, settings:source.settings } });
+            const saved = fs.readFileSync(registry);
+            p.send(key); await p.wait(output => output.includes(name)); assert.deepEqual(fs.readFileSync(registry), saved);
+        }
+        const saved = fs.readFileSync(registry);
+        p.send('\x07\x1b'); await p.exited(); assert.equal(p.child.exitCode, 0);
+        assert.deepEqual(fs.readFileSync(registry), saved); assert.deepEqual(p.attributes(),p.before);
+    } finally { await p.close(); }
+});
+
+test('setup persists uppercase and lowercase language shortcuts exactly once each', posix, async context => {
+    const f = await fixture(context), before = f.bytes(), pref = join(f.root,'statusline-ui.json');
+    const p = openPty(f.root, 100, 30, {}, 'en', {executable:f.launch.executable,args:[...f.launch.args,'setup','--config-dir',f.root],cwd:f.root});
+    try {
+        await p.wait(output => output.includes(t('setup.title','en')));
+        for (const [key, language] of [['L','zh-CN'], ['l','zh-TW']] as const) {
+            p.send(key); await p.wait(output => output.includes(t('setup.title',language)));
+            assert.equal(JSON.parse(fs.readFileSync(pref,'utf8')).ui_language, language);
+        }
+        p.send('\x1b'); await p.exited(); assert.equal(p.child.exitCode,0);
+        assert.deepEqual(f.bytes(),before); assert.deepEqual(p.attributes(),p.before);
+    } finally { await p.close(); }
 });

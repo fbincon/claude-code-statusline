@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { TaskDetails } from '../src/contracts/ui.js';
-import { taskViewer, taskViewerKey, taskViewerRows, taskViewerView, receiveTask, readTask } from '../src/editor/task-viewer.js';
+import { taskViewer, taskViewerKey, taskViewerRows, taskViewerView, receiveTask, readTask, replaceTaskField } from '../src/editor/task-viewer.js';
 import { LANGUAGES, t } from '../src/i18n/messages.js';
 import { displayWidth } from '../src/unicode/index.js';
 const report = (): TaskDetails => ({ version: 1, session_id: 'session', prompt_id: 'prompt', captured_at: '2026-10-28T00:00:00Z', status: 'running', phase: 'main', elapsed_seconds: 0, active_seconds: null, progress: { completed: 0, total: 3 },
@@ -32,6 +32,34 @@ test('collapse keeps descendants hidden and search exposes matching descendants'
     assert(!taskViewerRows(view, 100).some(row => row.agent === 'child'));
     view.query = 'child';
     assert(taskViewerRows(view, 100).some(row => row.agent === 'child'));
+});
+test('compact reading always shows the selected report row and pages by its visible capacity', () => {
+    const view = taskViewer('session');
+    receiveTask(view, report());
+    for (const height of [1, 2, 3, 4, 6]) {
+        view.error = 'Refresh error';
+        taskViewerKey(view, { key: 'home' });
+        const first = taskViewerView(view, 76, height);
+        assert.equal(first.length, height);
+        assert(first.some(row => row.selected && row.key === 'captured:0'));
+        const bodyKeys = new Set(view.rows.map(row => row.key));
+        assert.equal(view.capacity, first.filter(row => bodyKeys.has(row.key)).length);
+        taskViewerKey(view, { key: 'pagedown' });
+        const page = taskViewerView(view, 76, height);
+        assert(page.some(row => row.selected && row.key !== 'captured:0'));
+    }
+});
+test('a complete host text replacement keeps spaces and rejects the entire invalid edit', () => {
+    const view = taskViewer('session');
+    taskViewerKey(view, { key: '/' });
+    assert(replaceTaskField(view, 'search', '中 文 👩‍💻'));
+    assert(!replaceTaskField(view, 'search', 'x'.repeat(257)));
+    assert(!replaceTaskField(view, 'search', 'a\nb'));
+    assert.equal(view.searchInput.value, '中 文 👩‍💻');
+    assert(replaceTaskField(view, 'search', 'ok'));
+    assert.equal(view.error, null);
+    taskViewerKey(view, { key: 'enter' });
+    assert.equal(view.query, 'ok');
 });
 test('refresh and Unicode resize retain the selected agent, while identity change clears old results', () => {
     const view = taskViewer('session');

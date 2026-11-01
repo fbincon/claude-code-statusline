@@ -4,6 +4,7 @@ import { copyDraft } from './draft.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { t, type Language } from '../i18n/messages.js';
 import { wrapText } from './text.js';
+import { clip, displayWidth } from '../unicode/index.js';
 import { targetLabel } from './profile-manager.js';
 export interface DiagnosisView {
     path: string;
@@ -21,14 +22,15 @@ export interface DiagnosisView {
 }
 export function openDiagnosis(e: Editor): void { e.diagnosis = { path: '', scope: e.detail?.scope ?? (e.page === 'subagents' ? 'subagent' : 'main'), observedAt: '', includeLocal: false, cursor: 0, input: null, result: null, error: '', scroll: 0, busy: false, report: false, generation: 0 }; }
 export function diagnosisRequest(e: Editor, width: number) { const v = e.diagnosis!; return { draft: copyDraft(e.draft), path: v.path, scope: v.scope, width, observed_at: v.observedAt || null, include_local: v.includeLocal }; }
-export function diagnosisKey(e: Editor, event: TextKey): 'diagnoseFile' | null {
-    const v = e.diagnosis!, key = event.key, cancel = key === 'escape' || event.ctrl && key.toLowerCase() === 'g';
+export function diagnosisKey(e: Editor, event: TextKey, language: Language = 'en', width = 80, capacity = 8): 'diagnoseFile' | null {
+    const v = e.diagnosis!, key = event.key;
+    const cancel = !event.text && !event.paste && !event.meta && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
     if (v.input) {
         if (cancel) {
             v.input = null;
             return null;
         }
-        if (key === 'return' && !event.text && !event.paste) {
+        if (key === 'return' && !event.text && !event.paste && !event.ctrl && !event.meta) {
             v.generation++;
             if (v.cursor === 0)
                 v.path = v.input.value;
@@ -52,15 +54,19 @@ export function diagnosisKey(e: Editor, event: TextKey): 'diagnoseFile' | null {
             e.diagnosis = null;
         return null;
     }
-    if (v.report) {
-        if (key === 'up' || key === 'pageup')
-            v.scroll = Math.max(0, v.scroll - (key === 'up' ? 1 : 8));
-        if (key === 'down' || key === 'pagedown')
-            v.scroll += key === 'down' ? 1 : 8;
-        if (key === 'home')
-            v.scroll = 0;
-        if (key === 'end')
-            v.scroll = 1000000;
+    if (v.report && v.result) {
+        if (event.ctrl || !['up', 'down', 'pageup', 'pagedown', 'home', 'end'].includes(key)) return null;
+        const count = Math.max(1, capacity);
+        const end = Math.max(0, reportLines(e, language, width).length - count);
+        const start = Math.min(v.scroll, end);
+        switch (key) {
+            case 'home': v.scroll = 0; break;
+            case 'end': v.scroll = end; break;
+            case 'up': v.scroll = Math.max(0, start - 1); break;
+            case 'down': v.scroll = Math.min(end, start + 1); break;
+            case 'pageup': v.scroll = Math.max(0, start - count); break;
+            case 'pagedown': v.scroll = Math.min(end, start + count); break;
+        }
         return null;
     }
     if (event.ctrl)
@@ -95,12 +101,8 @@ export function diagnosisKey(e: Editor, event: TextKey): 'diagnoseFile' | null {
     }
     return null;
 }
-export function diagnosisLines(e: Editor, language: Language, width: number): string[] {
-    const v = e.diagnosis!, r = v.result, tr = (key: string, params: Record<string, unknown> = {}) => t('diagnose.' + key, language, params);
-    if (!v.report || !r)
-        return wrapText([t('diagnosis.target', language, { target: targetLabel(e, language) }),
-            ...[t('diagnosis.path', language) + ': ' + v.path, t('diagnosis.scope', language) + ': ' + v.scope, t('diagnosis.time', language) + ': ' + (v.observedAt || tr('unknown')), t('diagnosis.local', language) + ': ' + t('values.' + (v.includeLocal ? 'on' : 'off'), language), t(v.busy ? 'diagnosis.busy' : 'diagnosis.run', language), t('diagnosis.previous', language), t('colors.cancel', language)].map((line, i) => (i === v.cursor ? '› ' : '  ') + line),
-            ...(v.input ? [inputView(v.input, width)] : []), v.error, t('diagnosis.help', language)], width);
+function reportLines(e: Editor, language: Language, width: number): string[] {
+    const r = e.diagnosis!.result!, tr = (key: string, params: Record<string, unknown> = {}) => t('diagnose.' + key, language, params);
     const lines = [t('diagnosis.title', language), t('diagnosis.target', language, { target: targetLabel(e, language) }), tr('source', { value: r.source }), tr('times', { input: r.observed_at ?? tr('unknown'), now: r.diagnosed_at }), t(r.include_local ? 'diagnosis.with_local' : 'diagnosis.input_only', language), tr('identity', { session: r.session_id ?? tr('unknown'), prompt: r.prompt_id ?? tr('unknown') }), tr('output', { width: r.width }), ...r.output.map(row => row.spans.map(s => s.text).join(''))];
     for (const item of r.instances) {
         lines.push('', e.instanceLabel(r.scope, item.id, language) + ' (' + item.id + ')');
@@ -119,4 +121,36 @@ export function diagnosisLines(e: Editor, language: Language, width: number): st
     }
     lines.push('', tr('limits'));
     return wrapText(lines, width);
+}
+
+export function diagnosisPage(e: Editor, language: Language, width: number, capacity: number) {
+    const v = e.diagnosis!;
+    const count = Math.max(1, capacity);
+    if (v.report && v.result) {
+        const lines = reportLines(e, language, width);
+        const start = Math.min(v.scroll, Math.max(0, lines.length - count));
+        return { lines: lines.slice(start, start + count), summary: `${start + 1}–${Math.min(start + count, lines.length)}/${lines.length}` };
+    }
+
+    const fields = [
+        [t('diagnosis.path', language), v.path],
+        [t('diagnosis.scope', language), v.scope],
+        [t('diagnosis.time', language), v.observedAt || t('diagnose.unknown', language)],
+        [t('diagnosis.local', language), t(v.includeLocal ? 'values.on' : 'values.off', language)],
+        [t(v.busy ? 'diagnosis.busy' : 'diagnosis.run', language)],
+        [t('diagnosis.previous', language)],
+        [t('colors.cancel', language)],
+    ] as const;
+    const lines = [clip(t('diagnosis.target', language, { target: targetLabel(e, language) }), width)];
+    for (const [index, [label, value]] of fields.entries()) {
+        if (index === v.cursor && v.input) {
+            const prefix = '› ' + clip(label, Math.floor(width / 2)) + ' ';
+            lines.push(prefix + inputView({ ...v.input }, width - displayWidth(prefix)));
+        } else {
+            const content = value === undefined ? label : label + ': ' + value;
+            lines.push(clip((index === v.cursor ? '› ' : '  ') + content, width));
+        }
+    }
+    const start = Math.max(0, v.cursor + 2 - count);
+    return { lines: lines.slice(start, start + count), summary: v.error || t('diagnosis.help', language) };
 }

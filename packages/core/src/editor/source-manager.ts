@@ -74,8 +74,9 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     const m = editor.sources;
     if (!m)
         return null;
-    const key = event.key === 'return' ? 'enter' : event.key, plain = !event.text && !event.paste && !event.ctrl && !event.meta;
-    if (!event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g')) {
+    const key = event.key === 'return' ? 'enter' : event.key;
+    const commandKey = !event.text && !event.paste && !event.meta, plain = commandKey && !event.ctrl;
+    if (commandKey && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g')) {
         if (m.page === 'list')
             m.effect = 'close';
         else {
@@ -87,9 +88,9 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         return m.effect ? 'sources' : null;
     }
     if (m.page === 'form') {
-        if (!event.text && (key === 'tab' || plain && ['up', 'down'].includes(key)))
+        if (plain && ['tab', 'up', 'down'].includes(key))
             m.cursor = Math.max(0, Math.min(m.fields.length - 1, m.cursor + (key === 'up' ? -1 : 1)));
-        else if (!event.text && (key === 'enter' || event.ctrl && key.toLowerCase() === 's')) {
+        else if ((plain && key === 'enter') || (commandKey && event.ctrl && key.toLowerCase() === 's')) {
             if (key === 'enter' && m.cursor < m.fields.length - 1)
                 m.cursor++;
             else
@@ -118,7 +119,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     if (m.page === 'auto-review' && ['left', 'right'].includes(key)) { m.automaticInterval = Math.max(60, Math.min(86400, m.automaticInterval + (key === 'left' ? -60 : 60))); return null; }
     if (key === 'up' || key === 'down')
         m.cursor = Math.max(0, Math.min(count(editor) - 1, m.cursor + (key === 'up' ? -1 : 1)));
-    if (key === 'r' && m.page === 'list')
+    if (key.toLowerCase() === 'r' && m.page === 'list')
         m.effect = 'load';
     if (key === 'enter') {
         if (m.page === 'list') {

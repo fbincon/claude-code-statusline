@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.2 — 2026-11-01
+
+- Use keyboard controls and native text fields in the task pane. Short terminals retain a visible report row, and clicking the report enables familiar reading keys.
+- Give accurate undo/redo feedback, keep draft history out of active fields and open read-only catalog requirements from the Native add picker.
+- Protect unsaved external editor changes on Esc and keep Alt, function-key sequences and literal pasted text from triggering commands.
+- Keep the diagnosis caret and selection visible after resizing. Report scrolling follows the current page height.
+- [Release notes](docs/releases/v3.16.2.md)
+
 ## 3.16.1 — 2026-10-31
 
 - Preserve agent identity from runtime turn start through request/usage/completion, and reconcile delayed terminal batches by observed end time (#197).
