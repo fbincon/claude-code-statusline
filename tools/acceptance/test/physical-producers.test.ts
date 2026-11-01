@@ -1,12 +1,24 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { ACTIONS_PREPARATION_MS, ACTIONS_UPLOAD_MS, HANDOFF_MS, HOSTED_JOB_MS, requireHostedBudget, supervisionBudget } from '../budgets.js';
 import { APPEARANCE_CASE, HISTORY_CASE, LANGUAGE_CASE, installedPhases, physicalSelection, type InstalledStage } from '../installed-plan.js';
-import { admitOfficialCommand, officialPhases, requiresStability, sourcePhases, STABILITY_PHASE } from '../physical-budgets.js';
+import { admitOfficialCommand, officialPhases, physicalJobBudget, requiresStability, sourcePhases, STABILITY_PHASE } from '../physical-budgets.js';
 import { observedNpm } from '../physical.js';
+import { installedHarnessEnvironment } from '../physical-sections.js';
+
+test('the installed harness and its source children inherit the Python and compiler guard', () => {
+    const child = `const {execFileSync}=require('node:child_process'),assert=require('node:assert/strict');
+        for(const tool of ['python','gcc']) assert.throws(()=>execFileSync('/missing-fixture/'+tool), /Python-free validation rejected/);`;
+    const parent = `require('node:child_process').execFileSync(process.execPath,['-e',process.argv[1]],{stdio:'inherit'});`;
+    const result = spawnSync(process.execPath, ['-e', parent, child], {
+        env: installedHarnessEnvironment(process.env), encoding: 'utf8', timeout: 10_000,
+    });
+    assert.ifError(result.error); assert.equal(result.status, 0, result.stderr);
+});
 
 test('physical stages partition all 28 installed cases and preserve the shared relocated fixture order', () => {
     const cases = (stage: InstalledStage) => installedPhases(false, 12, undefined, { stage, depth: 'full' })
@@ -37,6 +49,18 @@ test('each physical budget preserves its admitted command, history and stability
         }
     }
     assert(requiresStability('windows-2025', '2.1.294')); assert(!requiresStability('ubuntu-24.04', '2.1.294'));
+});
+
+test('matrix preflight rejects growth before dispatch and preserves independent shard and runtime allowances', () => {
+    const base = { os: 'windows-11-arm', job_key: 'installed', host: null, depth: 'full', stage: 'complete' } as const;
+    const expected = supervisionBudget(installedPhases(true, 12, undefined, base)) + supervisionBudget(sourcePhases(true)) +
+        ACTIONS_PREPARATION_MS + ACTIONS_UPLOAD_MS;
+    assert.equal(physicalJobBudget(base, 12), expected);
+    assert(physicalJobBudget({ ...base, job_key: 'runtime' }, 12) < expected);
+    assert.throws(() => physicalJobBudget(base, 100), /partition/);
+    assert.throws(() => physicalJobBudget({ ...base, stage: 'language' }, 100), /partition/);
+    assert.equal(physicalJobBudget({ ...base, stage: 'history' }, 100), physicalJobBudget({ ...base, stage: 'history' }, 12));
+    assert.equal(physicalJobBudget({ ...base, os: 'windows-2025', host: '2.1.294', job_key: 'mods' }, 12), HOSTED_JOB_MS);
 });
 
 test('npm identity binds the implementation invoked by the observed npm entry', t => {

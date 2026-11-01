@@ -10,15 +10,19 @@ import { sha256 } from '../build/files.js';
 import type { CoverageProducer } from '../checks/ci-coverage.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { runInstalled } from './installed.js';
-import { installedPhases } from './installed-plan.js';
 import { superviseInstalled } from './installed-supervisor.js';
-import { requireHostedBudget, supervisionBudget } from './budgets.js';
-import { officialPhases, requiresStability, sourcePhases, STABILITY_PHASE } from './physical-budgets.js';
+import { officialPhases, physicalJobBudget, requiresStability, sourcePhases, STABILITY_PHASE } from './physical-budgets.js';
 
 export type PhysicalWork = Pick<CoverageProducer, 'stage' | 'depth' | 'os' | 'job_key' | 'host'> & { target: string };
 type Report = Record<string, any>;
 const json = (path: string) => JSON.parse(fs.readFileSync(path, 'utf8'));
 const entry = (name: string) => fileURLToPath(new URL(name + '.js', import.meta.url));
+
+/** Keep the original runtime suite's guard on every installed harness and
+ * source process, including actors that discharge a shared development row. */
+export function installedHarnessEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+    return { ...env, NODE_OPTIONS: '--import=' + pathToFileURL(join(repoRoot, 'tools/testing/no-python.mjs')).href };
+}
 
 async function officialSections(spec: PhysicalWork, artifact: string, commit: string, output: string, claude: string, env: NodeJS.ProcessEnv): Promise<Report> {
     assert.equal(spec.stage, 'complete'); assert(spec.host);
@@ -48,8 +52,6 @@ async function installedSections(spec: PhysicalWork, artifact: string, commit: s
     const platform = spec.job_key === 'installed', hasSource = spec.stage === 'installed' || spec.stage === 'complete';
     const phases = sourcePhases(platform);
     const selected = { stage: spec.stage, depth: spec.depth };
-    requireHostedBudget(supervisionBudget(installedPhases(process.platform === 'win32', LANGUAGES.length, undefined, selected)),
-        hasSource ? supervisionBudget(phases) : 0);
     const path = join(output, 'installation-work');
     await runInstalled(artifact, commit, path, undefined, env, selected);
     const sections = json(path);
@@ -57,7 +59,7 @@ async function installedSections(spec: PhysicalWork, artifact: string, commit: s
         const groups = join(output, 'source-groups.json');
         const runner = 'tools/typescript/test.mjs';
         await superviseInstalled([runner, ...(platform ? [] : ['--runtime'])], phases,
-            { ...env, TS05_SOURCE_GROUP_REPORT: groups, NODE_OPTIONS: '--import=' + pathToFileURL(join(repoRoot, 'tools/testing/no-python.mjs')).href },
+            { ...env, TS05_SOURCE_GROUP_REPORT: groups },
             join(output, 'source-tests'), { cwd: repoRoot });
         const observed: { name: string; files: number; exit_code: number }[] = json(groups);
         assert.deepEqual(observed.map(row => row.name), ['isolated', 'serial']);
@@ -73,6 +75,7 @@ async function installedSections(spec: PhysicalWork, artifact: string, commit: s
 /** Every physical process gets a new installation, home, configuration and
  * npm cache, even when a hosted retry happens on the same machine. */
 export async function executePhysicalSections(spec: PhysicalWork, artifact: string, commit: string, output: string, claude = 'claude'): Promise<Report> {
+    physicalJobBudget(spec, LANGUAGES.length);
     const root = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'physical-acceptance-')));
     const home = join(root, 'home');
     try {
@@ -84,7 +87,7 @@ export async function executePhysicalSections(spec: PhysicalWork, artifact: stri
             npm_config_prefix: join(root, 'npm-prefix'), TS05_LANGUAGE_MODE: 'optimized', TS05_DIAGNOSTIC_PATTERN: '' };
         return spec.job_key === 'mods'
             ? await officialSections(spec, artifact, commit, output, claude, env)
-            : await installedSections(spec, artifact, commit, output, env);
+            : await installedSections(spec, artifact, commit, output, installedHarnessEnvironment(env));
     } finally {
         removeTree(root); assert(!fs.existsSync(root), 'Physical acceptance workspace was not removed');
     }

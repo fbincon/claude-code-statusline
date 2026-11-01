@@ -470,7 +470,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CI_VALIDATION: ${{ inputs.validation }}
-        run: node tools/checks/ci-physical-workflow.ts plan "$RUNNER_TEMP/candidate"
+        run: |
+          node tools/checks/ci-physical-workflow.ts plan "$RUNNER_TEMP/candidate"
+          node dist/typescript/tools/acceptance/physical-budgets.js "$RUNNER_TEMP/candidate/coverage-plan.json"
       - id: identity
         name: Record immutable artifact identity
         run: |
