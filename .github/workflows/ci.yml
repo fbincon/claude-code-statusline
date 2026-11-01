@@ -11,7 +11,7 @@ on:
       validation:
         description: Explicit full validation or isolated diagnostics (never PR or release evidence)
         type: choice
-        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe, language-comparison, tiered-probe]
+        options: [full, promotion-shadow, windows-probe, macos-probe, windows-source-probe, language-comparison, tiered-probe, artifact-transfer-probe]
         default: full
       language_input:
         description: Package for the manual language comparison
@@ -37,7 +37,7 @@ defaults:
 jobs:
   scope:
     name: Classify changes and select evidence
-    if: github.event_name != 'workflow_dispatch' || inputs.validation != 'language-comparison'
+    if: github.event_name != 'workflow_dispatch' || (inputs.validation != 'language-comparison' && inputs.validation != 'artifact-transfer-probe')
     permissions:
       contents: read
       actions: read
@@ -56,6 +56,11 @@ jobs:
       impact_matrix: ${{ steps.impact.outputs.matrix }}
       impact_reused: ${{ steps.impact.outputs.reused }}
       impact_packaging: ${{ steps.impact.outputs.packaging }}
+      plan_id: ${{ steps.plan_upload.outputs.artifact-id }}
+      package_id: ${{ steps.package_upload.outputs.artifact-id }}
+      transfer_commit: ${{ steps.transfer_source.outputs.commit }}
+      promotion_selection_id: ${{ steps.promotion_selection.outputs.artifact-id }}
+      release_selection_id: ${{ steps.release_selection.outputs.artifact-id }}
       impact_source_run: ${{ steps.impact.outputs.source_run }}
       impact_package_artifact: ${{ steps.impact.outputs.source_package_artifact }}
     steps:
@@ -88,7 +93,8 @@ jobs:
           CI_REF_NAME: ${{ github.ref_name }}
           CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node tools/checks/impact-workflow.ts select --directory "$RUNNER_TEMP/impact"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: plan_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.impact.outputs.route == 'maintenance'
         with:
           name: ci-impact-plan
@@ -97,7 +103,8 @@ jobs:
             ${{ runner.temp }}/impact/plan.json
           if-no-files-found: error
           retention-days: 30
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: package_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.impact.outputs.packaging == 'true' && steps.impact.outputs.route == 'maintenance'
         with:
           name: ci-impact-package
@@ -121,14 +128,32 @@ jobs:
           CI_DOCS_ONLY: ${{ env.IMPACT_CHECKS == 'true' && 'false' || steps.scope.outputs.docs_only }}
           CI_IMPACT_ROUTE: ${{ steps.impact.outputs.route }}
         run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: transfer_source
+        name: Preserve the transport source identified by the existing evidence selection
+        if: steps.promotion.outputs.route == 'main' || steps.promotion.outputs.route == 'release' || steps.impact.outputs.reused == 'true'
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {join} from 'node:path';
+          const read = name => JSON.parse(fs.readFileSync(join(process.env.RUNNER_TEMP, name)));
+          const selection = read('promotion-selection.json');
+          const commit = selection.route === 'release' ? selection.release.verifier_commit : selection.route === 'main' ? selection.integration.base : read('impact/selection.json').reused.verifier_commit;
+          assert.match(commit, /^[a-f0-9]{40}$/u);
+          if (selection.route !== 'release') assert.equal(commit, execFileSync('git', ['--no-replace-objects', 'rev-parse', 'HEAD^1'], {encoding:'utf8'}).trim());
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'commit=' + commit + '\n');
+          JS
+      - id: promotion_selection
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.promotion.outputs.promotion_route != ''
         with:
           name: ci-promotion-selection
           path: ${{ runner.temp }}/promotion-selection.json
           if-no-files-found: error
           retention-days: 30
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: release_selection
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.promotion.outputs.route == 'release'
         with:
           name: ci-release-selection
@@ -148,6 +173,9 @@ jobs:
     name: Scoped / ${{ matrix.id }}
     needs: scope
     if: needs.scope.outputs.route == 'maintenance' && needs.scope.outputs.impact_reused != 'true'
+    permissions:
+      contents: read
+      actions: read
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -162,15 +190,22 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-impact-plan
+          artifact-ids: ${{ needs.scope.outputs.plan_id }}
           path: ${{ runner.temp }}/impact
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         if: needs.scope.outputs.impact_packaging == 'true'
         with:
+          operation: download
           name: ci-impact-package
+          artifact-ids: ${{ needs.scope.outputs.package_id }}
           path: ${{ runner.temp }}/package
       - name: Install only the selected official host
         if: matrix.host != ''
@@ -189,12 +224,12 @@ jobs:
           args=()
           if [[ "$IMPACT_PACKAGE" == true ]]; then args=(--artifact "$RUNNER_TEMP/package/head.tgz"); fi
           npm run ci:check -- --plan "$RUNNER_TEMP/impact/plan.json" --task "$IMPACT_TASK" --report "$RUNNER_TEMP/scoped/receipt.json" "${args[@]}"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         if: always()
         with:
+          operation: upload
           name: ci-${{ needs.scope.outputs.draft == 'true' && 'draft-scoped' || 'scoped' }}-${{ matrix.id }}
           path: ${{ runner.temp }}/scoped/receipt.json
-          if-no-files-found: error
           retention-days: 30
 
   maintenance:
@@ -215,13 +250,45 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - id: transport
+        name: Compare the transport code with the selected accepted Git source
+        env:
+          TRANSPORT_COMMIT: ${{ needs.scope.outputs.transfer_commit }}
+        run: &trusted_transfer_check |
+          known=false
+          if [[ "$TRANSPORT_COMMIT" =~ ^[a-f0-9]{40}$ ]] && git --no-replace-objects cat-file -e "$TRANSPORT_COMMIT:tools/checks/ci-transfer-trust.ts"; then
+            git --no-replace-objects cat-file blob "$TRANSPORT_COMMIT:tools/checks/ci-transfer-trust.ts" > "$RUNNER_TEMP/accepted-transfer-check.mts"
+            if NODE_OPTIONS= node "$RUNNER_TEMP/accepted-transfer-check.mts" "$TRANSPORT_COMMIT"; then known=true; fi
+          fi
+          echo "verified=$known" >> "$GITHUB_OUTPUT"
+      - if: (needs.scope.outputs.impact_reused != 'true' || steps.transport.outputs.verified == 'true')
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-impact-plan
+          artifact-ids: ${{ needs.scope.outputs.plan_id }}
           path: ${{ runner.temp }}/impact
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.scope.outputs.impact_package_artifact != ''
+      - if: needs.scope.outputs.impact_reused == 'true' && steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          artifact-ids: ${{ needs.scope.outputs.plan_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/impact
+      - if: needs.scope.outputs.impact_package_artifact != '' && (needs.scope.outputs.impact_reused != 'true' || steps.transport.outputs.verified == 'true')
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          run-id: ${{ needs.scope.outputs.impact_source_run }}
+          artifact-ids: ${{ needs.scope.outputs.impact_package_artifact }}
+          path: ${{ runner.temp }}/package
+          merge-multiple: true
+      - if: needs.scope.outputs.impact_package_artifact != '' && needs.scope.outputs.impact_reused == 'true' && steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           github-token: ${{ github.token }}
           run-id: ${{ needs.scope.outputs.impact_source_run }}
@@ -240,19 +307,23 @@ jobs:
           args=()
           if [[ -n "$IMPACT_PACKAGE" ]]; then args=(--package "$RUNNER_TEMP/package"); fi
           node tools/checks/impact-workflow.ts record --selection "$RUNNER_TEMP/impact/selection.json" --output "$RUNNER_TEMP/maintenance/maintenance.json" "${args[@]}"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-maintenance
           path: ${{ runner.temp }}/maintenance/maintenance.json
-          if-no-files-found: error
           retention-days: 30
 
   release-build:
     name: Build current maintenance release source
     needs: scope
     if: needs.scope.outputs.route == 'release'
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     outputs:
+      package_id: ${{ steps.package.outputs.artifact-id }}
       filename: ${{ steps.build.outputs.filename }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -264,21 +335,28 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
       - id: build
         run: node dist/typescript/tools/build/impact-release-build.js --output "$RUNNER_TEMP/release" --rebuild "$RUNNER_TEMP/rebuilt"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: package
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-release-package
           path: ${{ runner.temp }}/release/
-          if-no-files-found: error
           compression-level: 0
           retention-days: 30
 
   release-smoke:
     name: Maintenance release smoke / ${{ matrix.os }}
     needs: release-build
+    permissions:
+      contents: read
+      actions: read
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -294,19 +372,24 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-release-package
+          artifact-ids: ${{ needs.release-build.outputs.package_id }}
           path: ${{ runner.temp }}/release
       - run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/release/${{ needs.release-build.outputs.filename }}" --source "$GITHUB_SHA" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         if: always()
         with:
+          operation: upload
           name: ci-release-smoke-${{ matrix.os }}
           path: ${{ runner.temp }}/smoke/
-          if-no-files-found: error
           retention-days: 30
 
   release-binding:
@@ -327,30 +410,66 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run build
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - id: transport
+        name: Compare the transport code with the selected accepted Git source
+        env:
+          TRANSPORT_COMMIT: ${{ needs.scope.outputs.transfer_commit }}
+        run: *trusted_transfer_check
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-release-selection
+          artifact-ids: ${{ needs.scope.outputs.release_selection_id }}
           path: ${{ runner.temp }}/selection
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
+          github-token: ${{ github.token }}
+          artifact-ids: ${{ needs.scope.outputs.release_selection_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/selection
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
           name: ci-release-package
+          artifact-ids: ${{ needs.release-build.outputs.package_id }}
           path: ${{ runner.temp }}/release
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          artifact-ids: ${{ needs.release-build.outputs.package_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/release
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/original
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           github-token: ${{ github.token }}
           run-id: ${{ needs.scope.outputs.source_run }}
           artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
           path: ${{ runner.temp }}/original
+      - run: npm run build
       - env:
           GH_TOKEN: ${{ github.token }}
         run: node dist/typescript/tools/checks/impact-release.js --selection "$RUNNER_TEMP/selection/promotion-selection.json" --original "$RUNNER_TEMP/original" --delivery "$RUNNER_TEMP/release" --output "$RUNNER_TEMP/binding/release-binding.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-release-binding
           path: ${{ runner.temp }}/binding/release-binding.json
-          if-no-files-found: error
           retention-days: 30
 
   quick:
@@ -374,8 +493,12 @@ jobs:
     name: Development checks and portable test outputs
     needs: scope
     if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && needs.scope.outputs.route == 'full' && (inputs.validation != 'tiered-probe' || github.ref_type == 'branch')
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     outputs:
+      compiled_digest: ${{ steps.compiled.outputs.artifact-digest }}
       compiled_id: ${{ steps.compiled.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -386,6 +509,9 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - if: inputs.validation == 'tiered-probe'
         run: npm run build
@@ -394,11 +520,11 @@ jobs:
       - name: Bind portable compiled tests to this source
         run: node dist/typescript/tools/build/test-bundle.js create "$RUNNER_TEMP/compiled-tests"
       - id: compiled
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-compiled-tests
           path: ${{ runner.temp }}/compiled-tests/
-          if-no-files-found: error
           retention-days: 30
 
   candidate:
@@ -413,6 +539,15 @@ jobs:
       commit: ${{ steps.identity.outputs.commit }}
       filename: ${{ steps.identity.outputs.filename }}
       candidate_id: ${{ steps.candidate_upload.outputs.artifact-id }}
+      candidate_digest: ${{ steps.candidate_upload.outputs.artifact-digest }}
+      worker_id: ${{ steps.worker_upload.outputs.artifact-id }}
+      worker_digest: ${{ steps.worker_upload.outputs.artifact-digest }}
+      worker_manifest: ${{ steps.worker.outputs.manifest_sha256 }}
+      worker_input: ${{ steps.fingerprint.outputs.input_sha256 }}
+      producer_attempt: ${{ steps.worker.outputs.producer_attempt }}
+      historical_digest: ${{ steps.historical_upload.outputs.artifact-digest }}
+      short_historical_id: ${{ steps.short_historical.outputs.artifact-id }}
+      short_historical_digest: ${{ steps.short_historical.outputs.artifact-digest }}
       historical_id: ${{ steps.historical_upload.outputs.artifact-id }}
       installed_matrix: ${{ steps.plan.outputs.installed_matrix }}
       runtime_matrix: ${{ steps.plan.outputs.runtime_matrix }}
@@ -426,6 +561,9 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
       - name: Require version tags to match application identity
@@ -452,11 +590,11 @@ jobs:
       - name: Prepare checksum-pinned historical inputs once
         run: node dist/typescript/tools/acceptance/historical-inputs.js "$RUNNER_TEMP/historical"
       - id: historical_upload
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-historical-inputs
           path: ${{ runner.temp }}/historical/
-          if-no-files-found: error
           retention-days: 30
           compression-level: 0
       - name: Two independent builds from one immutable commit
@@ -481,14 +619,47 @@ jobs:
           const manifest = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/candidate/build-manifest.json'));
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `commit=${manifest.commit}\nfilename=${manifest.candidate.file}\n`);
           JS
-      - id: candidate_upload
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - id: short_historical
+        if: steps.plan.outputs.short_history == 'true'
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
+          name: ci-historical-380
+          path: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
+          compression-level: 0
+      - id: fingerprint
+        if: inputs.validation != 'windows-probe'
+        name: Freeze the worker inputs before the original candidate upload
+        env:
+          COMMIT: ${{ steps.identity.outputs.commit }}
+          FILENAME: ${{ steps.identity.outputs.filename }}
+        run: node tools/build/worker-input.ts fingerprint "$RUNNER_TEMP/candidate" --commit "$COMMIT" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - id: candidate_upload
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate/
-          if-no-files-found: error
           compression-level: 0
           retention-days: 30
+      - id: worker
+        if: inputs.validation != 'windows-probe'
+        name: Bind the worker package to the original candidate object
+        env:
+          COMMIT: ${{ steps.identity.outputs.commit }}
+          FILENAME: ${{ steps.identity.outputs.filename }}
+          ORIGINAL_ID: ${{ steps.candidate_upload.outputs.artifact-id }}
+          ORIGINAL_DIGEST: ${{ steps.candidate_upload.outputs.artifact-digest }}
+          INPUT_DIGEST: ${{ steps.fingerprint.outputs.input_sha256 }}
+        run: node tools/build/worker-input.ts create "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/worker-input" --commit "$COMMIT" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --candidate-id "$ORIGINAL_ID" --candidate-digest "$ORIGINAL_DIGEST" --input-sha256 "$INPUT_DIGEST"
+      - id: worker_upload
+        if: inputs.validation != 'windows-probe'
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
+          name: ci-worker-input
+          path: ${{ runner.temp }}/worker-input
+          compression-level: 0
 
   installed:
     name: ${{ matrix.job }}
@@ -521,33 +692,52 @@ jobs:
           node-version: '24.21.0'
           architecture: ${{ matrix.arch }}
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
-          artifact-ids: ${{ needs.candidate.outputs.candidate_id }}
+          name: ci-worker-input
+          artifact-ids: ${{ needs.candidate.outputs.worker_id }}
+          expected-digest: ${{ needs.candidate.outputs.worker_digest }}
           merge-multiple: true
-          path: ${{ runner.temp }}/candidate
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+          path: ${{ runner.temp }}/worker-input
+      - if: matrix.history != 'none'
+        uses: ./.github/actions/transfer-artifact
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
-          artifact-ids: ${{ needs.candidate.outputs.historical_id }}
+          name: ${{ matrix.history == 'short' && 'ci-historical-380' || 'ci-historical-inputs' }}
+          artifact-ids: ${{ matrix.history == 'short' && needs.candidate.outputs.short_historical_id || needs.candidate.outputs.historical_id }}
+          expected-digest: ${{ matrix.history == 'short' && needs.candidate.outputs.short_historical_digest || needs.candidate.outputs.historical_digest }}
           merge-multiple: true
           path: ${{ runner.temp }}/historical
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
+          name: ci-compiled-tests
           artifact-ids: ${{ needs.development.outputs.compiled_id }}
+          expected-digest: ${{ needs.development.outputs.compiled_digest }}
           merge-multiple: true
           path: ${{ runner.temp }}/compiled-tests
-      - name: Restore original compiled tests and select pinned historical inputs
+      - name: Verify the worker manifest before restoring executable tests
+        env:
+          COMMIT: ${{ needs.candidate.outputs.commit }}
+          ORIGINAL_ID: ${{ needs.candidate.outputs.candidate_id }}
+          ORIGINAL_DIGEST: ${{ needs.candidate.outputs.candidate_digest }}
+          PRODUCER_ATTEMPT: ${{ needs.candidate.outputs.producer_attempt }}
+          INPUT_DIGEST: ${{ needs.candidate.outputs.worker_input }}
+          MANIFEST: ${{ needs.candidate.outputs.worker_manifest }}
+          HISTORY: ${{ matrix.history }}
         run: |
+          node tools/build/worker-input.ts restore "$RUNNER_TEMP/worker-input" "$RUNNER_TEMP/candidate" --commit "$COMMIT" --filename "$CANDIDATE_FILE" --run-id "$GITHUB_RUN_ID" --attempt "$PRODUCER_ATTEMPT" --candidate-id "$ORIGINAL_ID" --candidate-digest "$ORIGINAL_DIGEST" --input-sha256 "$INPUT_DIGEST" --manifest-sha256 "$MANIFEST"
           node tools/build/test-bundle.ts restore "$RUNNER_TEMP/compiled-tests"
-          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
-          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
+          if [[ "$HISTORY" == full ]]; then echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"; fi
+          if [[ "$HISTORY" != none ]]; then echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"; fi
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: matrix.node != '24.21.0'
         with:
@@ -562,13 +752,13 @@ jobs:
           echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Execute the planned coverage on this runner
         run: node dist/typescript/tools/acceptance/physical.js --plan "$RUNNER_TEMP/candidate/coverage-plan.json" --producer "$PRODUCER" --artifact "$RUNNER_TEMP/candidate/$CANDIDATE_FILE" --output "$RUNNER_TEMP/evidence"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         if: always()
         timeout-minutes: 10
         with:
+          operation: upload
           name: ${{ matrix.artifact }}
           path: ${{ runner.temp }}/evidence/
-          if-no-files-found: error
           retention-days: 30
 
   runtime:
@@ -602,7 +792,7 @@ jobs:
   acceptance:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
     needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion, scoped, maintenance, release-build, release-smoke, release-binding]
-    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && inputs.validation != 'language-comparison' && inputs.validation != 'tiered-probe'
+    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && inputs.validation != 'language-comparison' && inputs.validation != 'tiered-probe' && inputs.validation != 'artifact-transfer-probe'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -620,6 +810,9 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - name: Require successful documentation or complete product checks
         env:
           CI_NEEDS: ${{ toJSON(needs) }}
@@ -630,27 +823,32 @@ jobs:
         run: node tools/checks/ci-scope.ts gate
       - if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
+          name: ts06-candidate
           artifact-ids: ${{ needs.candidate.outputs.candidate_id }}
+          expected-digest: ${{ needs.candidate.outputs.candidate_digest }}
           merge-multiple: true
-          path: ${{ runner.temp }}/evidence/ts06-candidate
+          path: ${{ runner.temp }}/bootstrap/ts06-candidate
       - id: evidence
         name: Select immutable artifacts from successful attempts
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node tools/checks/ci-physical-workflow.ts select "$RUNNER_TEMP/evidence" "$RUNNER_TEMP/evidence-selection.json"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        run: node tools/checks/ci-physical-workflow.ts select "$RUNNER_TEMP/bootstrap" "$RUNNER_TEMP/evidence-selection.json"
+      - uses: ./.github/actions/transfer-artifact
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
           artifact-ids: ${{ steps.evidence.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
+      - name: Join the verified full candidate and independently selected receipts
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        run: mv "$RUNNER_TEMP/bootstrap/ts06-candidate" "$RUNNER_TEMP/evidence/ts06-candidate"
       - name: Restore verified portable test outputs
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
@@ -674,12 +872,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full' && github.event_name != 'workflow_dispatch'
         run: node dist/typescript/tools/checks/ci-evidence.js record --evidence "$RUNNER_TEMP/evidence" --selection "$RUNNER_TEMP/evidence-selection.json" --acceptance "$RUNNER_TEMP/acceptance/candidate-acceptance.json" --output "$RUNNER_TEMP/acceptance/ci-evidence.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
+          operation: upload
           name: ${{ github.event_name == 'workflow_dispatch' && 'ci-manual-acceptance' || 'ts06-acceptance' }}
           path: ${{ runner.temp }}/acceptance/
-          if-no-files-found: error
           retention-days: 30
 
   tiered-results:
@@ -699,31 +897,35 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '24.21.0'
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
+          name: ts06-candidate
           artifact-ids: ${{ needs.candidate.outputs.candidate_id }}
+          expected-digest: ${{ needs.candidate.outputs.candidate_digest }}
           merge-multiple: true
-          path: ${{ runner.temp }}/evidence/ts06-candidate
+          path: ${{ runner.temp }}/bootstrap/ts06-candidate
       - id: selection
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node tools/checks/ci-physical-workflow.ts select "$RUNNER_TEMP/evidence" "$RUNNER_TEMP/evidence-selection.json"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        run: node tools/checks/ci-physical-workflow.ts select "$RUNNER_TEMP/bootstrap" "$RUNNER_TEMP/evidence-selection.json"
+      - uses: ./.github/actions/transfer-artifact
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
           artifact-ids: ${{ steps.selection.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
+      - name: Join the verified full candidate and independently selected receipts
+        run: mv "$RUNNER_TEMP/bootstrap/ts06-candidate" "$RUNNER_TEMP/evidence/ts06-candidate"
       - env:
           GH_TOKEN: ${{ github.token }}
         run: node tools/checks/ci-physical-workflow.ts probe "$RUNNER_TEMP/evidence" "$RUNNER_TEMP/evidence-selection.json" "$RUNNER_TEMP/tiered-results.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-diagnostic-tiered-results
           path: ${{ runner.temp }}/tiered-results.json
-          if-no-files-found: error
           retention-days: 30
 
   language-input:
@@ -840,6 +1042,9 @@ jobs:
     name: Windows supervisor and installed diagnostics / ${{ matrix.os }}
     needs: candidate
     if: inputs.validation == 'windows-probe'
+    permissions:
+      contents: read
+      actions: read
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -855,15 +1060,22 @@ jobs:
           node-version: '24.21.0'
           architecture: x64
           cache: npm
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ts06-candidate
-          path: ${{ runner.temp }}/candidate
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ci-historical-inputs
-          path: ${{ runner.temp }}/historical
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          name: ts06-candidate
+          artifact-ids: ${{ needs.candidate.outputs.candidate_id }}
+          path: ${{ runner.temp }}/candidate
+      - uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          name: ci-historical-inputs
+          artifact-ids: ${{ needs.candidate.outputs.historical_id }}
+          path: ${{ runner.temp }}/historical
       - run: npm run build
       - name: Verify actual native process boundaries
         run: node --test packages/platform/dist/test/source-process.test.js
@@ -1007,12 +1219,38 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - id: transport
+        name: Compare the transport code with the selected accepted Git source
+        env:
+          TRANSPORT_COMMIT: ${{ needs.scope.outputs.transfer_commit }}
+        run: *trusted_transfer_check
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-promotion-selection
+          artifact-ids: ${{ needs.scope.outputs.promotion_selection_id }}
           path: ${{ runner.temp }}/selection
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          artifact-ids: ${{ needs.scope.outputs.promotion_selection_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/selection
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           github-token: ${{ github.token }}
           run-id: ${{ needs.scope.outputs.source_run }}
@@ -1025,12 +1263,12 @@ jobs:
       - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
       - name: Install original PR package and exercise critical commands
         run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.scope.outputs.filename }}" --source "${{ needs.scope.outputs.source_commit }}" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         if: always()
         with:
+          operation: upload
           name: ci-integration-${{ matrix.os }}
           path: ${{ runner.temp }}/smoke/
-          if-no-files-found: error
           retention-days: 30
 
   promotion:
@@ -1051,12 +1289,38 @@ jobs:
         with:
           node-version: '24.21.0'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - id: transport
+        name: Compare the transport code with the selected accepted Git source
+        env:
+          TRANSPORT_COMMIT: ${{ needs.scope.outputs.transfer_commit }}
+        run: *trusted_transfer_check
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
         with:
+          operation: download
           name: ci-promotion-selection
+          artifact-ids: ${{ needs.scope.outputs.promotion_selection_id }}
           path: ${{ runner.temp }}/selection
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          artifact-ids: ${{ needs.scope.outputs.promotion_selection_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/selection
+      - if: steps.transport.outputs.verified == 'true'
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - if: steps.transport.outputs.verified != 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           github-token: ${{ github.token }}
           run-id: ${{ needs.scope.outputs.source_run }}
@@ -1080,10 +1344,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tools/checks/ci-integration.ts --run "$GITHUB_RUN_ID" --output "$RUNNER_TEMP/smoke-selection.json"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: ./.github/actions/transfer-artifact
         if: needs.scope.outputs.promotion_route == 'main'
         with:
-          github-token: ${{ github.token }}
+          operation: download
           run-id: ${{ github.run_id }}
           artifact-ids: ${{ steps.smokes.outputs.artifact_ids }}
           path: ${{ runner.temp }}/smokes
@@ -1091,9 +1355,172 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --smokes "$RUNNER_TEMP/smokes" --smoke-selection "$RUNNER_TEMP/smoke-selection.json" --trusted-verification "$RUNNER_TEMP/promotion/trusted-verification.json" --output "$RUNNER_TEMP/promotion/promotion.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: ./.github/actions/transfer-artifact
         with:
+          operation: upload
           name: ci-promotion
           path: ${{ runner.temp }}/promotion/
-          if-no-files-found: error
           retention-days: 30
+
+  artifact-transfer-probe:
+    name: Build and recover original diagnostic transfers
+    if: &transfer_probe_event github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'artifact-transfer-probe'
+    runs-on: ubuntu-24.04
+    permissions: { contents: read, actions: read }
+    outputs:
+      filename: ${{ steps.identify.outputs.filename }}
+      delivery: ${{ steps.identify.outputs.delivery }}
+      full_id: ${{ steps.full.outputs.artifact-id }}
+      full_digest: ${{ steps.full.outputs.artifact-digest }}
+      light_id: ${{ steps.light.outputs.artifact-id }}
+      light_digest: ${{ steps.light.outputs.artifact-digest }}
+      input_sha256: ${{ steps.input.outputs.input_sha256 }}
+      manifest_sha256: ${{ steps.worker.outputs.manifest_sha256 }}
+      attempt: ${{ steps.worker.outputs.producer_attempt }}
+      identities: ${{ steps.verify.outputs.identities }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { ref: '${{ github.sha }}', fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build twice and freeze the actual runtime and planning inputs, without dispatching the matrix
+        run: |
+          npm run release:build -- --commit "$GITHUB_SHA" --output "$RUNNER_TEMP/candidate"
+          node tools/checks/runtime-inputs.ts "$RUNNER_TEMP/candidate/runtime-inputs.json"
+          node tools/checks/ci-physical-workflow.ts plan "$RUNNER_TEMP/candidate"
+      - id: identify
+        run: node tools/checks/ci-transfer-probe.ts identify "$RUNNER_TEMP/candidate"
+      - id: input
+        env: { FILENAME: '${{ steps.identify.outputs.filename }}' }
+        run: node tools/build/worker-input.ts fingerprint "$RUNNER_TEMP/candidate" --commit "$GITHUB_SHA" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --candidate-name ci-diagnostic-transfer-candidate
+      - id: full
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
+          path: ${{ runner.temp }}/candidate
+          name: ci-diagnostic-transfer-candidate
+          compression-level: 0
+          diagnostic-fault: upload-lost-ack
+      - id: worker
+        env:
+          FILENAME: ${{ steps.identify.outputs.filename }}
+          ORIGINAL_ID: ${{ steps.full.outputs.artifact-id }}
+          ORIGINAL_DIGEST: ${{ steps.full.outputs.artifact-digest }}
+          INPUT_DIGEST: ${{ steps.input.outputs.input_sha256 }}
+        run: node tools/build/worker-input.ts create "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/worker-input" --commit "$GITHUB_SHA" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --candidate-id "$ORIGINAL_ID" --candidate-digest "$ORIGINAL_DIGEST" --input-sha256 "$INPUT_DIGEST" --candidate-name ci-diagnostic-transfer-candidate
+      - id: light
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
+          path: ${{ runner.temp }}/worker-input
+          name: ci-diagnostic-transfer-worker
+          compression-level: 0
+          diagnostic-fault: upload-reset
+      - id: verify
+        env:
+          FULL_RECEIPT: ${{ steps.full.outputs.receipt }}
+          LIGHT_RECEIPT: ${{ steps.light.outputs.receipt }}
+        run: node tools/checks/ci-transfer-probe.ts producer "$RUNNER_TEMP/candidate"
+
+  artifact-transfer-readback:
+    name: Verify transferred objects on a separate Windows runner
+    needs: artifact-transfer-probe
+    if: *transfer_probe_event
+    runs-on: windows-2025
+    permissions: { contents: read, actions: read }
+    env:
+      ORIGINAL_ID: ${{ needs.artifact-transfer-probe.outputs.full_id }}
+      ORIGINAL_DIGEST: ${{ needs.artifact-transfer-probe.outputs.full_digest }}
+      PRODUCER_ATTEMPT: ${{ needs.artifact-transfer-probe.outputs.attempt }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { ref: '${{ github.sha }}', persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/actions/transfer-artifact/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - id: full
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          name: ci-diagnostic-transfer-candidate
+          artifact-ids: ${{ env.ORIGINAL_ID }}
+          expected-digest: ${{ env.ORIGINAL_DIGEST }}
+          path: ${{ runner.temp }}/full
+      - id: light
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          name: ci-diagnostic-transfer-worker
+          artifact-ids: ${{ needs.artifact-transfer-probe.outputs.light_id }}
+          expected-digest: ${{ needs.artifact-transfer-probe.outputs.light_digest }}
+          path: ${{ runner.temp }}/light
+          diagnostic-fault: download-reset
+      - name: Restore original bytes through the production raw reader
+        env:
+          FILENAME: ${{ needs.artifact-transfer-probe.outputs.filename }}
+          INPUT_DIGEST: ${{ needs.artifact-transfer-probe.outputs.input_sha256 }}
+          MANIFEST: ${{ needs.artifact-transfer-probe.outputs.manifest_sha256 }}
+        run: node tools/build/worker-input.ts restore "$RUNNER_TEMP/light" "$RUNNER_TEMP/restored" --commit "$GITHUB_SHA" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$PRODUCER_ATTEMPT" --candidate-id "$ORIGINAL_ID" --candidate-digest "$ORIGINAL_DIGEST" --input-sha256 "$INPUT_DIGEST" --manifest-sha256 "$MANIFEST" --candidate-name ci-diagnostic-transfer-candidate
+      - id: digest
+        continue-on-error: true
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          artifact-ids: ${{ env.ORIGINAL_ID }}
+          path: ${{ runner.temp }}/reject-digest
+          diagnostic-fault: digest-mismatch
+      - id: permission
+        continue-on-error: true
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          artifact-ids: ${{ env.ORIGINAL_ID }}
+          path: ${{ runner.temp }}/reject-permission
+          diagnostic-fault: forbidden
+      - id: ambiguity
+        continue-on-error: true
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
+          name: ci-diagnostic-transfer-ambiguous
+          path: ${{ runner.temp }}/light/worker-input.json
+          diagnostic-fault: ambiguous
+      - id: exhausted
+        continue-on-error: true
+        uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          artifact-ids: ${{ env.ORIGINAL_ID }}
+          path: ${{ runner.temp }}/reject-exhausted
+          diagnostic-fault: persistent-503
+      - name: Require verified identities, exact delivery bytes and real rejected operations
+        env:
+          EXPECTED_IDENTITIES: ${{ needs.artifact-transfer-probe.outputs.identities }}
+          EXPECTED_DELIVERY: ${{ needs.artifact-transfer-probe.outputs.delivery }}
+          FULL_RECEIPT: ${{ steps.full.outputs.receipt }}
+          LIGHT_RECEIPT: ${{ steps.light.outputs.receipt }}
+          DIGEST_OUTCOME: ${{ steps.digest.outcome }}
+          DIGEST_RECEIPT: ${{ steps.digest.outputs.receipt }}
+          PERMISSION_OUTCOME: ${{ steps.permission.outcome }}
+          PERMISSION_RECEIPT: ${{ steps.permission.outputs.receipt }}
+          AMBIGUITY_OUTCOME: ${{ steps.ambiguity.outcome }}
+          AMBIGUITY_RECEIPT: ${{ steps.ambiguity.outputs.receipt }}
+          EXHAUSTED_OUTCOME: ${{ steps.exhausted.outcome }}
+          EXHAUSTED_RECEIPT: ${{ steps.exhausted.outputs.receipt }}
+        run: node tools/checks/ci-transfer-probe.ts readback "$RUNNER_TEMP/full"
+      - uses: ./.github/actions/transfer-artifact
+        with:
+          operation: upload
+          name: ci-diagnostic-transfer-readback
+          path: ${{ runner.temp }}/transfer-diagnostic.json

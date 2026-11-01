@@ -16,7 +16,7 @@ test('hosted installation jobs reserve the actual source and upload step limits'
     assert(sourcePhases(true).every(phase => phase.budgetMs === PLATFORM_SOURCE_MS));
     assert(jobs.installed.steps.some((step: { run?: string }) => step.run?.includes('tools/acceptance/physical.js --plan')));
     for (const job of [jobs.installed, jobs.runtime]) {
-        const upload = job.steps.find((step: { uses?: string }) => step.uses?.startsWith('actions/upload-artifact@'));
+        const upload = job.steps.find((step: any) => step.uses === './.github/actions/transfer-artifact' && step.with.operation === 'upload');
         assert.equal(upload['timeout-minutes'] * 60_000, ACTIONS_UPLOAD_MS);
     }
 });
@@ -30,7 +30,7 @@ test('same-package language comparisons run only on a diagnostic branch dispatch
     assert.deepEqual(workflow.on.workflow_dispatch.inputs.language_input.options, ['dispatch-source', 'v3.16.1']);
     assert.equal(jobs['language-input'].if, comparison.if);
     assert.equal(comparison.needs, 'language-input');
-    assert.equal(jobs.scope.if, "github.event_name != 'workflow_dispatch' || inputs.validation != 'language-comparison'");
+    assert(jobs.scope.if.includes("inputs.validation != 'language-comparison'"));
     assert(jobs.acceptance.if.includes("inputs.validation != 'language-comparison'"));
     assert(!jobs.acceptance.needs.includes(id) && !jobs.acceptance.needs.includes('language-input'));
     assert.deepEqual(comparison.strategy.matrix.include.map((row: { os: string; node: string; host_arch: string }) =>

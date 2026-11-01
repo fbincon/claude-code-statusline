@@ -12,6 +12,7 @@ tools/migration/ts-05/** text eol=lf
 package*.json text eol=lf
 tsconfig*.json text eol=lf
 .github/workflows/*.yml text eol=lf
+.github/actions/transfer-artifact/** text eol=lf
 tools/typescript/*.mjs text eol=lf
 tools/generation/** text eol=lf
 tools/testing/** text eol=lf

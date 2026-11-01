@@ -1,0 +1,11 @@
+{
+  "name": "statusline-ci-artifact-transport",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@actions/artifact": "2.3.2",
+    "@actions/http-client": "2.2.3",
+    "yauzl": "3.4.0"
+  }
+}

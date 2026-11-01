@@ -33,6 +33,8 @@ Only existing locale keys/placeholders, registered human-help literal value slot
 
 Dependency classification follows the runtime closure from the four business workspaces, including optional dependencies and linked workspace dependencies. A lockfile's `dev` flag alone cannot remove a runtime dependency from this closure.
 
+A change to artifact transport is CI policy. The local Action and its dependency lock are acceptance-policy inputs. Build tooling that constructs a new worker manifest also requires package comparison. The light input must reproduce the archived candidate bytes, frozen Node resolutions and required coverage plan. Validate transport faults with targeted tests and a diagnostic dispatch.
+
 ## Local interface
 
 Use immutable committed inputs. The planner only reads source until `--compare` is explicitly requested:

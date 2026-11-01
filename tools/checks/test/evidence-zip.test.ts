@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { crc32, deflateRawSync } from 'node:zlib';
 import { envelopeBytes } from '../evidence-zip.js';
+import { artifactJson, digest } from '../ci-evidence.js';
 function zip(entries: { name: string; body: string; method: number }[]): Buffer {
     const files: Buffer[] = [], records: Buffer[] = []; let offset = 0;
     for (const entry of entries) {
@@ -15,6 +16,31 @@ function zip(entries: { name: string; body: string; method: number }[]): Buffer 
     const directory = Buffer.concat(records), end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50); end.writeUInt16LE(entries.length, 8); end.writeUInt16LE(entries.length, 10);
     end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16); return Buffer.concat([...files, directory, end]);
 }
+test('original evidence reads recover temporary transfers from the pinned ID and keep credentials off object storage', async t => {
+    const previous = process.env.GH_TOKEN; process.env.GH_TOKEN = 'isolated-test-token';
+    t.after(() => { if (previous === undefined) delete process.env.GH_TOKEN; else process.env.GH_TOKEN = previous; });
+    const raw = zip([{name:'receipt.json',body:'{"status":"pass"}',method:8}]);
+    const artifact = {id:42,name:'ci-scoped-linux',expired:false,expires_at:new Date(Date.now()+60_000).toISOString(),digest:'sha256:'+digest(raw)};
+    let api = 0, storage = 0, denied = false;
+    t.mock.method(globalThis,'fetch', async (input: string | URL | Request, options?: RequestInit) => {
+        const url = new URL(String(input));
+        if (url.hostname === 'api.github.com') {
+            api++; assert(url.pathname.endsWith('/actions/artifacts/42/zip'));
+            assert.equal((options?.headers as Record<string,string>).Authorization,'Bearer isolated-test-token');
+            if (denied) return new Response(null,{status:403});
+            if (api === 1) return new Response(null,{status:429,headers:{'Retry-After':'0'}});
+            return new Response(null,{status:302,headers:{location:'https://storage.invalid/original'}});
+        }
+        assert.equal(url.hostname,'storage.invalid'); assert.equal(options?.headers,undefined);
+        return ++storage === 1 ? new Response(null,{status:503}) : new Response(new Uint8Array(raw));
+    });
+    assert.deepEqual(await artifactJson(artifact,'receipt.json'),{status:'pass'});
+    assert.equal(api,3); assert.equal(storage,2);
+    await assert.rejects(artifactJson({...artifact,digest:'sha256:'+'f'.repeat(64)},'receipt.json'),/digest mismatch/u);
+    assert.equal(api,4); assert.equal(storage,3);
+    denied = true; await assert.rejects(artifactJson(artifact,'receipt.json'));
+    assert.equal(api,5); assert.equal(storage,3);
+});
 test('envelope reader supports stored and deflated artifacts without shell or extraction', () => {
     for (const method of [0, 8]) {
         const bytes = zip([{ name: 'ci-evidence.json', body: '{"schema_version":1}', method }, { name: 'candidate-acceptance.json', body: '{}', method }]);
