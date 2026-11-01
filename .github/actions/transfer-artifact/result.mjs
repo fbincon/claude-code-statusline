@@ -4,7 +4,8 @@ export function safeError(e) {
     if(['CI_NPM_INSTALL_TIMEOUT','CI_NPM_INSTALL_FAILED','CI_NPM_BAD_INTEGRITY'].includes(e?.code)){
         const detail=e.code==='CI_NPM_INSTALL_TIMEOUT'?'timed out':e.code==='CI_NPM_BAD_INTEGRITY'?'integrity mismatch':'failed';
         const version=/^\d+\.\d+\.\d+$/u.test(e.npmVersion)?e.npmVersion:'unknown';
-        return 'Pinned npm install '+detail+' (npm '+version+', exit='+ (Number.isInteger(e.exitCode)?e.exitCode:'none')+', elapsed_ms='+(Number.isSafeInteger(e.elapsedMs)?e.elapsedMs:'unknown')+')';
+        const limit=Number.isSafeInteger(e.timeoutMs)&&e.timeoutMs>0?e.timeoutMs:'unknown';
+        return 'Pinned npm install '+detail+' (npm '+version+', Node '+process.version+'/'+process.arch+', timeout_ms='+limit+', exit='+(Number.isInteger(e.exitCode)?e.exitCode:'none')+', elapsed_ms='+(Number.isSafeInteger(e.elapsedMs)?e.elapsedMs:'unknown')+')';
     }
     const status=Number(e?.status??e?.statusCode??String(e?.message??'').match(/Failed request: \((\d{3})\)/u)?.[1]);
     if(Number.isInteger(status)&&status>=100&&status<=599)return 'HTTP '+status;
