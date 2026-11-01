@@ -107,3 +107,18 @@ test('a late server confirmation during backoff reuses its original ID; a second
     await assert.rejects(boundedUpload({...io,list:async()=>[],upload:async()=>{if(++calls===1)throw err(504);return object;}}),/Missing confirmed/u);
     assert.equal(calls,2);
 });
+
+test('Windows worker resolves setup-node from mixed-case Path and reports bootstrap failures separately without private diagnostics',async t=>{
+    const here=join(process.cwd(),'.github/actions/transfer-artifact'),{npmCli}=await import(pathToFileURL(join(here,'bootstrap.mjs')).href);
+    const {safeError}=await import(pathToFileURL(join(here,'result.mjs')).href);
+    const temp=fs.mkdtempSync(join(tmpdir(),'setup-node-cli-'));t.after(()=>fs.rmSync(temp,{recursive:true,force:true,maxRetries:2}));
+    const install=join(temp,'24.21.0','x64'),bin=join(install,'node_modules','npm','bin');fs.mkdirSync(bin,{recursive:true});
+    const cli=join(bin,'npm-cli.js');fs.writeFileSync(cli,'// installed npm CLI');
+    const actionNode=join(temp,'externals','node24','bin','node.exe');
+    assert.equal(npmCli({Path:join(temp,'unused')+';'+install},actionNode,'win32'),cli);
+    assert.equal(npmCli({PATH:join(temp,'unused'),pAtH:install},actionNode,'win32'),cli);
+    assert.throws(()=>npmCli({},actionNode,'win32'),(e:unknown)=>safeError(e)==='Pinned npm CLI not found');
+    assert.match(safeError({code:'CI_NPM_INSTALL_TIMEOUT',npmVersion:'11.19.0',elapsedMs:90000}),/timed out .*11\.19\.0.*90000/u);
+    assert.match(safeError({code:'CI_NPM_INSTALL_FAILED',exitCode:1}),/failed .*exit=1/u);
+    assert.match(safeError({message:'SDK cache lock mismatch'}),/integrity mismatch/u);
+});
