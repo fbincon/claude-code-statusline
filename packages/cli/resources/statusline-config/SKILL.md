@@ -105,8 +105,9 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
    - custom subagent rows: on or off
    - scope labels: off, when-subagents, or always
    - colors: on or off
-   - palette: default or ansi; if colors are off, skip this question and retain the
-     current palette
+   - palette: default or ansi. Resolve the colors answer before constructing this
+     question; never put colors and palette in the same tool call. If the selected
+     colors answer is off, do not ask about palette and retain its saved value.
    - directory style: full, home, project-relative, or basename
    - separator style: classic, compact, or powerline (uses the saved glyph; ASCII by default)
    - padding: 0, 1, 2, or 4; accept a custom integer from 0 through 32
