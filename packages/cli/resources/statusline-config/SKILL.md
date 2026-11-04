@@ -70,7 +70,9 @@ If the invocation arguments are empty:
    `enabled` values and saved display/host values as the initial choices; catalog
    `default_enabled` describes factory defaults, not the user's current selection.
 3. Use AskUserQuestion for the generated metric pages below. Translate page/group
-   labels into `ui_language`; use the localized descriptions and retain metric IDs.
+   labels into `ui_language`. Each metric option's `label` must be its exact catalog
+   ID, such as `model-with-effort`; put the localized explanation and current state
+   in `description`. Do not replace IDs with translated names or change their case.
    Each page is one multi-select question with at most three metric options plus
    exactly one localized **None on this page** option, giving 2–4 options. Mark the
    currently enabled metrics clearly in descriptions; do not imply that the tool
