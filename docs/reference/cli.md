@@ -132,15 +132,26 @@ Each pair is mutually exclusive. Explicit flags override saved values, which ove
 
 ## Slash-command support
 
-The `/statusline-config` argument parser supports `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, `language`, and `reset`. Its subagent operations are `list-items`, `set-items`, `enable`, `disable`, and `order`. On Claude Code 2.1.258+ with hooks enabled, these execute locally; older/unknown hosts use a model turn. The no-argument wizard always uses a model turn.
+The `/statusline-config` argument parser delegates to the shared configuration parser and supports these 19 top-level actions:
 
-`preset`, `import`, `export`, `item`, and `layout` are terminal CLI/editor operations; the local slash parser rejects them. `/statusline-configure` accepts no configuration arguments. [Choosing an entry point](../USER_GUIDE.md#choose-a-configuration-entry-point).
+| Actions | Scope |
+| --- | --- |
+| `show`, `list-items`, `set-items`, `enable`, `disable`, `order` | Inspect or change user-default main items |
+| `subagents` | `list-items`, `set-items`, `enable`, `disable`, `order` |
+| `set`, `apply`, `item` | Display/host options, one combined save or scoped item options |
+| `instance`, `group`, `alignment`, `layout` | Explicit composition, including supported structural dry-run/review flags |
+| `preset`, `import`, `export` | Apply or transfer configuration with the same supported flags as the terminal action |
+| `language`, `reset` | Interface-language preference or user-default configuration reset |
+
+On Claude Code 2.1.258+ with hooks enabled, these execute locally. Older/unknown hosts or a disabled hook use the skill in a model turn. The no-argument wizard always uses model turns. Pass one action's literal arguments; shell operators and arbitrary terminal commands are not a supported execution interface. A leading `--config-dir` is a terminal option, not a slash action.
+
+`config profile` and `config project` management remain terminal CLI/editor operations. Ordinary slash display changes and the wizard edit the user default; a project binding can still select a named profile instead. `/statusline-configure` accepts no configuration arguments; `help`, `-h`, and `--help` show usage. [Choosing an entry point](../USER_GUIDE.md#choose-a-configuration-entry-point).
 
 <a id="配置命令详解"></a>
 
 ## Configuration command reference
 
-The basic operations listed in [slash-command support](#slash-command-support) also accept `/statusline-config` in Claude Code. Advanced operations use the terminal CLI or editor. For example:
+The operations listed in [slash-command support](#slash-command-support) also accept `/statusline-config` in Claude Code; profile/project management uses the terminal CLI or editor. For example:
 
 ```bash
 claude-statusline config set colors off

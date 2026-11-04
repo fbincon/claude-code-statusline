@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.16.3",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-11-05",
+  "authority": "On 2026-11-05 fbincon confirmed the plan to update both bundled configuration skills and publish stable 3.16.3. Require accurate user-default/profile scope, structural preflight and current-value questions, bounded question pages, registry-derived themes, matching slash command support and an external launcher fallback that does not start terminal tools. Require final reviewed PR, accepted main and annotated tag automated gates, complete product acceptance and twelve-language readiness. Preserve independent Client props, Pane and drawing budgets. Publish original verified bytes through npm OIDC, GitHub and Gitee, then upgrade the actual test machine and restore personal configuration choices. Only the six recorded issue #96 gaps are accepted. All paid calls, failures and retries share USD 10 total, with at most USD 8 before publication and USD 2 after publication; unknown attempts retain their full conservative request reservation and may continue only with terminated prior work and guaranteed remaining headroom.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

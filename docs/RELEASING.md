@@ -10,6 +10,10 @@ Activated sources require the history profile named by the original coverage pla
 
 Promotion resolves the complete original candidate by immutable artifact ID and verifies original ZIP and package digests. A worker-input manifest or a transfer-probe artifact cannot satisfy those release inputs. Preserve the independently verified selection and accepted-base check before restoring cross-source compiler output. [CI measurements](development/ci-efficiency.md)
 
+## v3.16.3 bundled configuration skills
+
+Prepare stable 3.16.3 under its [version decision](releases/approvals/v3.16.3.json). Bundled skill instructions are product execution inputs: follow the impact plan and require successful final-head PR, merged-main and annotated-tag evidence before publication. Verify reproducible delivery files, installed rendered skills, npm OIDC, public downloads/signatures and the matching GitHub/Gitee files. Upgrade the test machine and verify its retained preferences. Six actual skill-call scenarios are approved within a shared USD 10 budget: at most USD 8 before publication and USD 2 after it, including failures and retries. Unknown attempts retain their full conservative request reservation. Only the same six existing #96 gaps remain accepted and unverified. Validation and publication are in progress. [Implementation and evidence](development/skill-workflows.md#final-release) · [Release notes](releases/v3.16.3.md)
+
 ## v3.16.2 keyboard and editor repairs
 
 Stable 3.16.2 was published on 2026-11-01. The final PR, main and annotated-tag gates passed. Independent builds reproduced all four delivery files, all seven public-download and signature jobs passed, and the installed test machine retained 3.16.2 with its preferences restored. The version decision accepts six previously recorded gaps. [Delivery record](development/editor-input-delivery.md#final-release) · [Release notes](releases/v3.16.2.md) · [Version decision](releases/approvals/v3.16.2.json)

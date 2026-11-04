@@ -130,13 +130,24 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## slash 命令支持范围
 
-`/statusline-config` 参数解析器支持 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`language`、`reset`，其中子 Agent 操作为 `list-items`、`set-items`、`enable`、`disable`、`order`。Claude Code 2.1.258+ 且 hooks 启用时本地执行，旧版或未知版本使用模型回合；无参数问答向导始终使用模型回合。
+`/statusline-config` 参数解析委托给共享配置解析器，支持以下十九项顶层动作：
 
-`preset`、`import`、`export`、`item`、`layout` 使用终端 CLI 或编辑器，本地 slash 解析器拒绝这些操作。`/statusline-configure` 不接受配置参数，详见[入口选择](../USER_GUIDE.zh-CN.md#选择配置入口)。
+| 动作 | 范围 |
+| --- | --- |
+| `show`、`list-items`、`set-items`、`enable`、`disable`、`order` | 查看或修改用户默认主栏条目 |
+| `subagents` | `list-items`、`set-items`、`enable`、`disable`、`order` |
+| `set`、`apply`、`item` | 显示／宿主选项、一次组合保存或指定范围条目选项 |
+| `instance`、`group`、`alignment`、`layout` | 明确的组合操作，包括受支持的结构 dry-run／审阅参数 |
+| `preset`、`import`、`export` | 应用或传输配置，支持与对应终端动作相同的参数 |
+| `language`、`reset` | 界面语言偏好或用户默认配置重置 |
+
+Claude Code 2.1.258+ 且 hooks 启用时本地执行；旧版、未知版本或 hook 被禁用时，通过 skill 使用模型回合。无参数问答向导始终使用模型回合。传入单个动作的字面参数；shell 操作符和任意终端命令不是受支持的执行接口。前置 `--config-dir` 是终端选项，不是 slash 动作。
+
+`config profile`／`config project` 管理仍使用终端 CLI 或编辑器。普通 slash 显示修改和向导修改用户默认配置，项目绑定仍可能选择命名方案。`/statusline-configure` 不接受配置参数；`help`、`-h`、`--help` 显示用法。详见[入口选择](../USER_GUIDE.zh-CN.md#选择配置入口)。
 
 ## 配置命令详解
 
-[slash 命令支持范围](#slash-命令支持范围)列出的基础操作可在 Claude Code 中使用 `/statusline-config`，高级操作使用终端 CLI 或编辑器。例如：
+[slash 命令支持范围](#slash-命令支持范围)列出的操作可在 Claude Code 中使用 `/statusline-config`；方案／项目管理使用终端 CLI 或编辑器。例如：
 
 ```bash
 claude-statusline config set colors off

@@ -10,6 +10,10 @@
 
 晋升按不可变制品 ID 选择原完整候选，校验原 ZIP 和包摘要。worker 输入清单或传输诊断制品不能满足发布输入要求。跨源恢复编译输出前，完成独立来源选择及已接受基线复核。[CI 实测](development/ci-efficiency.zh-CN.md)
 
+## v3.16.3 内置配置技能
+
+按[版本决策](releases/approvals/v3.16.3.json)准备稳定版 3.16.3。内置技能指令是产品执行输入：遵循影响计划，公开发布前要求最终 head 的 PR、合并 main 和注释 tag 证据全部通过。核验可复现交付文件、安装后渲染的技能、npm OIDC、公开下载／签名，以及 GitHub／Gitee 的同字节文件。升级测试机并核对保留的个人偏好。六项实际技能调用场景获准在共用 10 美元预算内验证：发布前最多 8 美元，发布后最多 2 美元，失败与重试均计入；结果未知的尝试保留完整保守请求预留。仅继续接受 #96 六项既有未验证缺口。验证与公开发布进行中。[实现与证据](development/skill-workflows.zh-CN.md#final-release) · [发布说明](releases/v3.16.3.zh-CN.md)
+
 ## v3.16.2 快捷键与编辑器修复
 
 稳定版 3.16.2 已于 2026-11-01 发布。最终 PR、main 和注释标签门禁均通过。独立构建复现了四件交付文件，公开下载和签名的七个作业全部通过。本机保留 3.16.2，并已核对个人偏好。版本决策仅接受此前记录的六项缺口。[交付记录](development/editor-input-delivery.zh-CN.md#final-release) · [发布说明](releases/v3.16.2.zh-CN.md) · [版本决策](releases/approvals/v3.16.2.json)

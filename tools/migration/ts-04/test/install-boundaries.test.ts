@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { parse as parseYaml } from 'yaml';
 import { fresh, snapshot, assert, fs, join, doctor } from './install-support.js';
 import { main } from '@fbincon/statusline-cli/main';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
@@ -12,8 +13,14 @@ import { claudeLaunch, commandFor, quoteArgument } from '@fbincon/statusline-pla
 import { CONFIG_FILENAME, SCHEMA_VERSION, defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
-import { conflicts } from '@fbincon/statusline-core/config/catalog';
+import { BY_SCOPE, conflicts } from '@fbincon/statusline-core/config/catalog';
+import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 const simple = { native: false, nativeTiming: false, liveMetrics: false };
+function skillHeader(value: string): Record<string, unknown> {
+    const header = /^---\n([\s\S]+?)\n---\n/u.exec(value);
+    assert.ok(header, 'Bundled skill must have a YAML frontmatter block');
+    return parseYaml(header[1]!) as Record<string, unknown>;
+}
 test('skill templates preserve literal replacement syntax and placeholder-looking launch paths', () => {
     const launch = { executable: '/tmp/node $& $` $$', args: ["/tmp/entry $' __CLAUDE_STATUSLINE_LANGUAGES__.js"] };
     const bash = [launch.executable, ...launch.args].map(quoteArgument).join(' ');
@@ -29,7 +36,57 @@ function legacy(version: number) {
     const d = defaultDisplay(), { instances: _instances, groups: _groups, ...subagents } = d.subagents;
     return { schema_version: version, items: ['model'], use_colors: true, palette: 'default', directory_style: 'home', separator_style: 'classic', ...(version >= 2 ? { scope_labels: d.scope_labels, subagents: version === 2 ? { enabled: true, items: ['name'] } : { ...subagents, items: ['name'], item_options: {} } } : {}), ...(version >= 3 ? { formatting: d.formatting, item_options: {}, layout: d.layout } : {}), ...(version >= 4 ? { metrics: d.metrics } : {}) };
 }
-test('tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints', t => { const f = fresh(t); f.install(simple); const value = f.read('skills/statusline-config/SKILL.md').toString(); assert.ok(value.includes(wizardGroups())); assert.equal(wizardGroups().includes('`spacer`'), false); assert.ok(value.includes('Do not collapse copies')); assert.equal(conflicts('subagent', ['status-elapsed', 'elapsed']), true); assert.equal(conflicts('subagent', ['status', 'elapsed']), false); });
+test('tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints', t => {
+    const f = fresh(t); f.install(simple);
+    const value = f.read('skills/statusline-config/SKILL.md').toString(), groups = wizardGroups();
+    assert.ok(value.includes(groups));
+    const pages = groups.split('\n').filter(line => line.startsWith('   - ')).map(line => {
+        const page = /^   - (Main|Subagents) \/ ([a-z-]+) \/ page ([1-9]\d*): (.+)$/u.exec(line);
+        assert.ok(page, 'Every generated catalog row must identify its scope, group and page');
+        const ids = [...page[4]!.matchAll(/`([^`]+)`/gu)].map(match => match[1]!);
+        assert.ok(ids.length >= 1 && ids.length <= 3, 'Reserve one of the four question options for selecting no metrics');
+        return { scope: page[1] === 'Main' ? 'main' as const : 'subagent' as const, group: page[2]!, number: Number(page[3]), ids };
+    });
+    for (const scope of ['main', 'subagent'] as const) {
+        const expected = [...BY_SCOPE[scope].values()].filter(item => !['text', 'spacer'].includes(item.id));
+        const selected = pages.filter(page => page.scope === scope);
+        assert.deepEqual(selected.flatMap(page => page.ids).sort(), expected.map(item => item.id).sort());
+        for (const group of new Set(expected.map(item => item.group))) {
+            const grouped = selected.filter(page => page.group === group);
+            assert.deepEqual(grouped.map(page => page.number), grouped.map((_page, index) => index + 1));
+            assert.deepEqual(grouped.flatMap(page => page.ids), expected.filter(item => item.group === group).map(item => item.id));
+        }
+    }
+    assert.equal(conflicts('subagent', ['status-elapsed', 'elapsed']), true);
+    assert.equal(conflicts('subagent', ['status', 'elapsed']), false);
+});
+test('installed skill metadata advertises the shared slash parser and registry-derived theme choices', t => {
+    const f = fresh(t); f.install(simple);
+    const value = f.read('skills/statusline-config/SKILL.md').toString(), header = skillHeader(value);
+    assert.equal(header.name, 'statusline-config');
+    assert.equal(header['disable-model-invocation'], true);
+    const commands: Record<string, string> = {
+        show: 'show --json', 'list-items': 'list-items --json', 'set-items': 'set-items model', enable: 'enable model',
+        disable: 'disable model', order: 'order model', subagents: 'subagents list-items --json', set: 'set colors on',
+        apply: 'apply --items model --colors on --palette default --directory-style full --separator-style classic --padding 0 --refresh-interval event --hide-vim-mode-indicator off',
+        item: 'item main model foreground ansi:5', instance: 'instance main list --json', group: 'group main list --json',
+        alignment: 'alignment list --json', layout: 'layout auto', preset: 'preset minimal', import: 'import example.json --dry-run',
+        export: 'export example.json', language: 'language show --json', reset: 'reset',
+    };
+    assert.equal(typeof header['argument-hint'], 'string');
+    const advertised = (header['argument-hint'] as string).replace(/^\[|\]$/gu, '').split('|');
+    assert.deepEqual([...advertised].sort(), Object.keys(commands).sort());
+    for (const [action, command] of Object.entries(commands)) assert.equal(parseSlashArguments(command).action, action);
+    for (const command of ['profile list', 'project list']) assert.throws(() => parseSlashArguments(command));
+    const themes = /set theme ([a-z|-]+)`/u.exec(value);
+    assert.ok(themes, 'Rendered appearance guidance must expose the theme choices');
+    assert.deepEqual(themes[1]!.split('|'), [...THEME_IDS]);
+    assert.equal(value.includes('__CLAUDE_STATUSLINE_'), false);
+    const external = skillHeader(f.read('skills/statusline-configure/SKILL.md').toString());
+    assert.equal(external.name, 'statusline-configure');
+    assert.equal(external['disable-model-invocation'], true);
+    assert.deepEqual(external['disallowed-tools'], ['Bash', 'PowerShell']);
+});
 test('tests.config.test_catalog.LanguageWizardContractTests.test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically', t => { const f = fresh(t); f.install(simple); const value = f.read('skills/statusline-config/SKILL.md').toString(); for (const text of ['config language show --json', 'ui_language', 'Do not write anything if the user cancels', '--statusline-language ' + LANGUAGES.join('|')])
     assert.ok(value.includes(text)); for (const language of LANGUAGES)
     assert.ok(value.includes(`${language} (${LANGUAGE_NAMES[language]})`)); assert.equal(value.split(' config apply ').length, 2); });
