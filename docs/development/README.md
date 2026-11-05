@@ -28,7 +28,7 @@ These records preserve feature-introduction versions, source identities, origina
 
 | Area | Delivery records |
 | --- | --- |
-| v3.16.3 configuration skills | [Question paging, scope and fallback workflows](skill-workflows.md), validation and publication in progress |
+| v3.16.3 configuration skills | [Question paging, scope and fallback workflows](skill-workflows.md#final-release), published with six actual skill-call scenarios and actual-machine verification complete |
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](runtime-source-save-fixes.md#final-release), published with actual-machine verification complete |
 | Languages | [Twelve-language expansion](language-expansion.md) · [I18N-02 lifecycle](i18n-02-delivery.md) · [Node and regional languages](node-regional-languages.md) |
