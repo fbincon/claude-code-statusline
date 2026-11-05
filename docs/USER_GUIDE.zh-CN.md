@@ -376,14 +376,20 @@ claude-statusline install --no-experimental-slash-tui
 
 无参数运行 `/statusline-config`，按问答选择主栏、子 Agent 条目和显示选项。向导使用 Claude 模型回合，保留仍启用条目的相对顺序，将新条目追加到末尾；全部选择完成后调用一次原子 `config apply`，中途取消不保存。
 
-支持的带参数操作为 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`reset`：
+向导修改所选 Claude 配置目录中的用户默认配置。绑定命名方案的项目继续使用各自显示配置，宿主设置仍在该目录内共用。管理方案及项目绑定时，使用编辑器的目标选择器或终端 `config profile`／`config project` 命令。向导先读取已保存的界面语言、当前设置和两份条目目录，以当前值为起点，将较多选项拆成有界问答页，并在翻页时保留已有答案。某页的“本页全不选”仅清空该页条目，明确的“保留当前值”选项保留已保存值；取消或仍有未解决答案时不执行最终保存。
+
+重复指标、text／spacer 实例、分组或主行对齐规则需要使用支持实例的编辑器，或明确的 instance／group／alignment 命令。向导在提问前检测这些结构，停止且不修改它们；接入尚未安装或其他工具拥有子 Agent renderer 时也停止。向导表单以外的外观设置保持不变；当前主题及高级外观选项以命令帮助或编辑器为准。
+
+保存前，向导重新读取显示、宿主及归属状态。若这些状态在问答期间变化，先检查变更，再重新运行向导。这是尽力而为的复核：最终 `config apply` 不接受修订号参数，因此读取与写入之间仍可能发生变化。
+
+支持的带参数操作为 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`item`、`instance`、`group`、`alignment`、`layout`、`preset`、`import`、`export`、`language`、`reset`：
 
 ```text
 /statusline-config set-items model-with-effort current-dir git context-remaining task-timer
 /statusline-config show
 ```
 
-在 2.1.258+ 且 hooks 启用时，由本地 hook 执行以上操作，不进入模型回合；旧版或未知版本通过 skill 使用模型回合。高级 `preset`、`import`、`export`、`item`、`layout` 操作使用终端 CLI 或编辑器，详见 [slash 执行范围](reference/cli.zh-CN.md#slash-命令支持范围)。
+在 2.1.258+ 且 hooks 启用时，由本地 hook 执行以上操作，不进入模型回合；旧版、未知版本或 hook 被禁用时，通过 skill 使用模型回合。slash 与终端 CLI 共用这些操作的解析，包括受支持的 dry-run 和结构审阅参数。`profile`／`project` 管理仍使用终端 CLI 或编辑器；slash 不接受任意终端命令，也不接受前置 `--config-dir`。详见 [slash 执行范围](reference/cli.zh-CN.md#slash-命令支持范围)。
 
 配置本工具请使用本工具的命令；Claude 内建 `/statusline` 可能将 `statusLine.command` 替换为其他实现。
 
@@ -819,7 +825,7 @@ Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进
 
 若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
 
-若启用了 `disableAllHooks`，本地启动器不会运行。回退 skill 会提示这一点，并禁止 Bash/PowerShell 自行启动交互编辑器；该例外可能产生一个极短模型回合。重新启用 hooks 后新开会话再试。
+若启用了 `disableAllHooks`，本地启动器不会运行。本地拦截不可用时，回退 skill 会说明未能启动编辑器，建议在终端运行 `claude-statusline configure`（Windows 使用 `claude-statusline.cmd configure`）或使用 `/statusline-config`。它禁止通过 Bash／PowerShell 或其他模型工具启动终端界面；该例外可能产生一个极短模型回合。检查 hooks 设置后新开会话再试。
 
 ### 带参数的 slash 命令仍进入模型
 

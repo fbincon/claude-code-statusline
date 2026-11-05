@@ -1,6 +1,6 @@
 ---
 name: statusline-configure
-description: Open the experimental local interactive status line configuration launcher.
+description: Open the local external terminal status line configuration editor.
 argument-hint: ""
 disable-model-invocation: true
 disallowed-tools:
@@ -8,12 +8,16 @@ disallowed-tools:
   - PowerShell
 ---
 
-# Experimental Interactive Status Line Configuration
+# External Terminal Status Line Configuration
 
-This command is normally intercepted by a local `UserPromptExpansion` hook before
-model invocation. The local hook did not run, for example because Claude Code hooks
-are disabled with `disableAllHooks`.
+This no-argument command is normally intercepted by a local `UserPromptExpansion`
+hook before model invocation. This request reached the fallback skill, so the
+local hook did not complete handling it. Disabled hooks, including `disableAllHooks`,
+are one possible cause; do not claim that hooks were definitely disabled or that
+the editor opened.
 
-Do not start curses or any terminal interface through Bash or another tool. Reply
-only that the experimental hook did not run and suggest running
-`claude-statusline configure` in a terminal or using `/statusline-config`.
+Do not call tools, start a terminal interface, or change configuration. Reply
+briefly that the local launcher did not handle this request. Suggest running
+`claude-statusline configure` in an interactive terminal (`claude-statusline.cmd configure`
+on Windows), or using `/statusline-config` for guided questions. This entry accepts
+no configuration arguments; do not forward invocation arguments to an editor.

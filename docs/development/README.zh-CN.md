@@ -28,6 +28,7 @@
 
 | 领域 | 交付记录 |
 | --- | --- |
+| v3.16.3 配置技能 | [问答分页、范围与回退流程](skill-workflows.zh-CN.md)，验证和公开发布进行中 |
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](editor-input-delivery.zh-CN.md#final-release) |
 | v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](runtime-source-save-fixes.zh-CN.md#final-release)，已发布并完成本机核验 |
 | 语言 | [十二语言扩展](language-expansion.zh-CN.md) · [I18N-02 生命周期](i18n-02-delivery.zh-CN.md) · [Node 与地区语言](node-regional-languages.zh-CN.md) |

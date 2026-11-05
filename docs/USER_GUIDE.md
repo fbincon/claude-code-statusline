@@ -372,14 +372,20 @@ Save, cancellation, and errors return a short result to the original conversatio
 
 Run `/statusline-config` without arguments to answer questions about main/subagent items and display options. The wizard uses Claude model turns, preserves the relative order of retained items, appends newly enabled items, and submits one atomic `config apply` after all questions are complete. Cancelling midway does not save settings.
 
-Supported argument-based operations are `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, and `reset`:
+The wizard edits the user-default configuration in the selected Claude configuration directory. Projects bound to named profiles keep their own display; host settings remain shared within that directory. Use an editor's target selector or terminal `config profile` / `config project` commands to manage profiles and bindings. The wizard reads saved interface language, current settings and both catalogs first. It starts from the current values, splits larger choices into bounded question pages and preserves answers across pages. A page's “None” choice clears only that page's items; explicit “Keep current” choices retain the saved value. Cancellation or an unresolved answer prevents the final save.
+
+Repeated metrics, text/spacer instances, groups or main-row alignment rules need the instance-aware editors or explicit instance/group/alignment commands. The wizard detects these structures before asking questions and stops without modifying them. It also stops if the integration is absent or another tool owns the subagent renderer. It preserves appearance fields outside the guided form; discover current theme and advanced appearance choices through command help or either editor.
+
+Before saving, the wizard rereads the display, host and ownership state. If that state changed during the questions, restart the wizard after reviewing the change. This recheck is best effort: the final `config apply` does not accept a revision argument, so a change between that read and the write remains possible.
+
+Supported argument-based operations are `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, `item`, `instance`, `group`, `alignment`, `layout`, `preset`, `import`, `export`, `language`, and `reset`:
 
 ```text
 /statusline-config set-items model-with-effort current-dir git context-remaining task-timer
 /statusline-config show
 ```
 
-On 2.1.258+ the local hook handles these operations without a model turn, when hooks are enabled. Older/unknown hosts use the skill in a model turn. Advanced `preset`, `import`, `export`, `item`, and `layout` commands require the terminal CLI or editor. See [slash execution](reference/cli.md#slash-command-support).
+On 2.1.258+ the local hook handles these operations without a model turn, when hooks are enabled. Older/unknown hosts or a disabled hook use the skill in a model turn. The slash parser shares these operations with the terminal CLI, including their supported dry runs and structural review flags. `profile` and `project` management remain terminal CLI/editor operations; slash commands do not accept arbitrary terminal commands or a leading `--config-dir`. See [slash execution](reference/cli.md#slash-command-support).
 
 Use this tool's configuration commands; Claude's built-in `/statusline` may replace `statusLine.command` with a different implementation.
 
@@ -843,7 +849,7 @@ Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the w
 
 When the hook ends after 600 seconds, the TUI should normally already have timed out at 570 seconds. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
 
-With `disableAllHooks`, the local launcher does not run. The fallback skill explains this and prohibits launching the interactive editor through Bash/PowerShell; this exception may use a very short model turn. Reenable hooks and try a new session.
+With `disableAllHooks`, the local launcher does not run. If local interception is unavailable, the fallback skill reports that it could not launch the editor and suggests `claude-statusline configure` in a terminal (`claude-statusline.cmd configure` on Windows) or `/statusline-config`. It prohibits starting a terminal interface through Bash/PowerShell or another model tool; this exception may use a very short model turn. Check the hook settings and try a new session.
 
 <a id="带参数的-slash-命令仍进入模型"></a>
 

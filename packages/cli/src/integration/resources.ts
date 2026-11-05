@@ -7,6 +7,7 @@ import { isLinkOrReparse } from '@fbincon/statusline-platform/files';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { BY_SCOPE } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
+import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 import { jsonBytes } from '../config/storage.js';
 import { safeTarget } from './transaction.js';
 import { SKILL, EXTERNAL, VERSION, type ModSpec } from './model.js';
@@ -16,10 +17,13 @@ export function wizardGroups(): string {
     const lines: string[] = [];
     for (const [scope, label] of [['main', 'Main'], ['subagent', 'Subagents']] as const) {
         const items = [...BY_SCOPE[scope].values()].filter(item => !['text', 'spacer'].includes(item.id));
-        for (const group of new Set(items.map(item => item.group)))
-            lines.push(`   - ${label} / ${group}: ` + items.filter(item => item.group === group).map(item => '`' + item.id + '`').join(', '));
+        for (const group of new Set(items.map(item => item.group))) {
+            const members = items.filter(item => item.group === group);
+            for (let offset = 0; offset < members.length; offset += 3)
+                lines.push(`   - ${label} / ${group} / page ${offset / 3 + 1}: ` + members.slice(offset, offset + 3).map(item => '`' + item.id + '`').join(', '));
+        }
     }
-    lines.push('   Use default_enabled, format_options and excludes from the live listings; do not infer defaults from this grouping.');
+    lines.push('   Use current enabled/position, format_options and excludes from the live listings. Catalog default_enabled is not the current selection.');
     return lines.join('\n');
 }
 export function renderSkill(launch: LaunchSpec, external = false): Buffer {
@@ -34,7 +38,7 @@ export function renderSkill(launch: LaunchSpec, external = false): Buffer {
         const rules = [`Bash(${bash} config *)`];
         if (process.platform === 'win32')
             rules.push(`PowerShell(${powershell} config *)`);
-        const replacements = { ALLOWED_RULES: rules.map(rule => '  - ' + JSON.stringify(rule)).join('\n'), COMMAND: command, ITEM_GROUPS: wizardGroups(), LANGUAGES: LANGUAGES.map(code => `${code} (${LANGUAGE_NAMES[code]})`).join(', '), LANGUAGE_CHOICES: LANGUAGES.join('|') };
+        const replacements = { ALLOWED_RULES: rules.map(rule => '  - ' + JSON.stringify(rule)).join('\n'), COMMAND: command, ITEM_GROUPS: wizardGroups(), LANGUAGES: LANGUAGES.map(code => `${code} (${LANGUAGE_NAMES[code]})`).join(', '), LANGUAGE_CHOICES: LANGUAGES.join('|'), THEME_CHOICES: THEME_IDS.join('|') };
         // Insert argv literally in one pass: replacement-string $&, $` and $'
         // syntax, or a placeholder-looking path, must never expand as a template.
         template = template.replace(token, (_match, key: string) => {

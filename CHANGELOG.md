@@ -2,6 +2,15 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.3 — 2026-11-05
+
+- Keep `/statusline-config` questions within the host tool's limits, retaining current values and combining all item/language pages before one save.
+- Stop the type-based wizard before changing instance, group or alignment compositions; explain user-default scope and named-profile bindings accurately.
+- Generate current appearance choices and document the nineteen shared slash-parser actions, with profile/project management kept in terminal commands or editors.
+- Require literal argument handling in model fallback, check installation/ownership before questions and reread saved state before applying answers.
+- Update `/statusline-configure` fallback guidance for the stable Node terminal editor, preserving tool restrictions and Windows command spelling.
+- Release validation and publication are pending. [Implementation and evidence](docs/development/skill-workflows.md) · [Release notes](docs/releases/v3.16.3.md).
+
 ## 3.16.2 — 2026-11-01
 
 - Use keyboard controls and native text fields in the task pane. Short terminals retain a visible report row, and clicking the report enables familiar reading keys.
