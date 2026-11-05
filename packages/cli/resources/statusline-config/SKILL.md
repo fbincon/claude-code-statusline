@@ -5,12 +5,19 @@ argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|ap
 disable-model-invocation: true
 allowed-tools:
   - AskUserQuestion
+  - Read
 __CLAUDE_STATUSLINE_ALLOWED_RULES__
 ---
 
 # Configure Claude Code Statusline
 
 Never edit settings or statusline files directly. Use only `__CLAUDE_STATUSLINE_COMMAND__ config ...`.
+Every Bash or PowerShell call must invoke only that installed configuration command.
+Do not run helper scripts, pipelines, or utilities such as `jq`, `grep`, `wc`,
+`pwd`, Python, or `node -e`, including to process command output.
+If Claude Code saves a large command result to a file, use Read only on that
+command's persisted tool-output file, with offset/limit as needed. Do not read
+unrelated files. If required command data remains unavailable, stop without writing.
 The no-argument guided form edits the user-default display and user-level Claude
 host settings. A project bound to a named display scheme continues to use that
 scheme. Terminal editor targets are `claude-statusline configure --user` for the

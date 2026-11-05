@@ -65,6 +65,11 @@ test('installed skill metadata advertises the shared slash parser and registry-d
     const value = f.read('skills/statusline-config/SKILL.md').toString(), header = skillHeader(value);
     assert.equal(header.name, 'statusline-config');
     assert.equal(header['disable-model-invocation'], true);
+    const allowed = header['allowed-tools'] as string[];
+    assert.ok(allowed.includes('AskUserQuestion') && allowed.includes('Read'));
+    assert.ok(allowed.every(tool => ['AskUserQuestion', 'Read'].includes(tool) || /^(?:Bash|PowerShell)\(/u.test(tool)));
+    for (const contract of ["Every Bash or PowerShell call must invoke only that installed configuration command.",
+        "command's persisted tool-output file", 'If required command data remains unavailable, stop without writing.']) assert.ok(value.includes(contract));
     const commands: Record<string, string> = {
         show: 'show --json', 'list-items': 'list-items --json', 'set-items': 'set-items model', enable: 'enable model',
         disable: 'disable model', order: 'order model', subagents: 'subagents list-items --json', set: 'set colors on',

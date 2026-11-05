@@ -10,6 +10,8 @@ This record tracks the v3.16.3 repairs to the two canonical skill templates in `
 
 Model fallback must parse literal arguments and quote each value for the selected shell rather than interpolate raw invocation text. Preserve spaces, Unicode, empty values and shell metacharacters inside values; do not evaluate substitutions, variables, globs, pipes, redirections or chained commands. Let the installed configuration command validate the action once and report its exact result.
 
+Every shell call is limited to that installed configuration command. If Claude Code persists a large catalog result, the skill permits the read-only `Read` tool to inspect that command's output file. It must not run utilities or helper scripts to process the output or read unrelated files; inaccessible required data stops the workflow without a write.
+
 The wizard edits the user-default display in the active Claude configuration directory. Named-profile project bindings can select another display; host settings remain shared user-level settings in that directory. It must not claim that every project's display changes, silently select another target or modify profile bindings.
 
 `statusline-configure/SKILL.md` is the short fallback shown when local interception did not handle the call. The external editor is a stable Node terminal TUI; the historical `--experimental-slash-tui` preference name remains for compatibility. The fallback describes failure to launch without inferring its cause, suggests terminal `configure` or the wizard and uses `.cmd` for Windows. It retains `disable-model-invocation: true`, the Bash/PowerShell exclusions and the prohibition on starting a terminal interface through any model tool.
