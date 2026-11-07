@@ -91,19 +91,20 @@
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-复现本指南示例时，固定版本使用 `@3.16.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
+如需从 npm 安装指定正式版，在包名后加 `@VERSION`，版本取所选标签去掉开头的 `v`。安装软件包与接入 Claude 分两步。确认 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd` 和 `.ps1`，Claude 接入绑定绝对 Node 可执行文件及 JavaScript 入口。
 
 ### 离线安装
 
-从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
+从发行列表选定准确的正式版标签，将该标签的四个附件下载到同一目录。附件包括 `fbincon-claude-code-statusline-VERSION.tgz`、可重建的 `claude-code-statusline-VERSION-source.tar.gz`、`build-manifest.json` 和 `SHA256SUMS`。安装前核验 `SHA256SUMS` 列出的三个文件。[GitHub 发行列表](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee 发行列表](https://gitee.com/fbincon/claude-code-statusline/releases)
+
+在 Linux 或 WSL 的示例中，将 `VERSION` 替换为所选标签的版本号。
 
 ```bash
-# Linux / WSL；macOS 使用 shasum -a 256 -c SHA256SUMS
-sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.16.0.tgz
+sha256sum -c SHA256SUMS &&
+  npm install --global --offline --ignore-scripts "./fbincon-claude-code-statusline-VERSION.tgz"
 ```
 
-PowerShell 用 `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` 将每个摘要与 `SHA256SUMS` 比较，再用相同 npm 参数安装本地 tgz。GitHub/Gitee 自动源码 ZIP 不是可重建源码附件。源码构建见[开发指南](development/README.zh-CN.md#从源码构建与安装)。
+macOS 使用 `shasum -a 256 -c SHA256SUMS` 校验。PowerShell 用 `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` 逐项与 `SHA256SUMS` 比较。摘要一致后用相同的 npm 参数安装已验证的本地 tgz。从源码构建时，使用 Release 的可重建源码附件。[源码构建](development/README.zh-CN.md#从源码构建与安装)
 
 ### 接入 Claude Code
 
@@ -116,7 +117,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows 使用 `claude-statusline.cmd`，或明确的 Node/JavaScript 入口。随后在受信任终端重启 Claude Code，加载安装的插件和命令。
+Windows 使用 `claude-statusline.cmd`，或明确的 Node/JavaScript 入口。随后在受信任终端重启 Claude Code，加载安装的插件和命令。如需引导式预览和接入审核，使用[首次设置](SETUP.zh-CN.md)。
 
 ### `install` 会做什么
 
@@ -343,7 +344,7 @@ Windows 使用 `claude-statusline.cmd configure`。stdin、stdout 必须都是 T
 
 内容和 `Preview (sample data)` 使用独立区域：64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。
 
-Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设与文件操作分组。Layout 按模式、行边界、逐项适配分组，标题不可选中。固定样例预览复用生产渲染，不读取实时 Git 或 transcript。[当前页面截图](images/README.zh-CN.md#当前图片)。
+Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设与文件操作分组。Layout 按模式、行边界、逐项适配分组，标题不可选中。固定样例预览复用生产渲染，不读取实时 Git 或 transcript。[v3.16.0 TypeScript 编辑器采集](images/typescript/v3.16.0/README.zh-CN.md)。
 
 底部提示随当前输入状态变化：分类选择显示方向键和 Home/End；数字输入显示 Digits、Backspace，Ctrl+U 属于搜索／文本输入。主状态栏与子代理页显示 Enter/Ctrl+S 保存，筛选时隐藏排序提示；空间不足时添加／复制／移除采用短文案。继承值按界面语言翻译，用户标签、图标、文本和 Git 引用保持原样。配置文本实际改变后，标题在确认输入前即显示修改标记；仅打开编辑或修改文件路径不会标记配置已改动。
 
@@ -370,11 +371,13 @@ claude-statusline install --no-experimental-slash-tui
 
 以上命令二选一。省略两参数时保留已保存偏好，缺失偏好时默认启用。接入变化后重启 Claude Code。
 
-保存、取消或错误会返回原会话中的简短结果。外部 TUI 在 570 秒后取消且不保存，独立 `configure` 无自动超时。`help`、`-h`、`--help` 返回用法，其他参数拒绝。启动器不可用时使用独立编辑器或向导。详见[启动器实现](development/README.zh-CN.md#外部启动器与结果回传)。
+保存、取消或错误会返回原会话中的简短结果。外部 TUI 在 570 秒后取消且不保存，独立 `configure` 无自动超时。`help`、`-h`、`--help` 返回用法，其他参数拒绝。启动器不可用时使用独立编辑器或向导。[TypeScript 启动器与结果契约](development/contracts.zh-CN.md#typescript-后端绑定)。
 
 ## `/statusline-config` 问答向导
 
 无参数运行 `/statusline-config`，按问答选择主栏、子 Agent 条目和显示选项。向导使用 Claude 模型回合，保留仍启用条目的相对顺序，将新条目追加到末尾；全部选择完成后调用一次原子 `config apply`，中途取消不保存。
+
+下文的问答分页与保存前重读从软件包 v3.16.3 起适用。升级后重新运行 `claude-statusline install`，再重启 Claude Code 以加载匹配的技能。[v3.16.3 发布说明](releases/v3.16.3.zh-CN.md)
 
 向导修改所选 Claude 配置目录中的用户默认配置。绑定命名方案的项目继续使用各自显示配置，宿主设置仍在该目录内共用。管理方案及项目绑定时，使用编辑器的目标选择器或终端 `config profile`／`config project` 命令。向导先读取已保存的界面语言、当前设置和两份条目目录，以当前值为起点，将较多选项拆成有界问答页，并在翻页时保留已有答案。某页的“本页全不选”仅清空该页条目，明确的“保留当前值”选项保留已保存值；取消或仍有未解决答案时不执行最终保存。
 
@@ -582,9 +585,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录含 65 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
-
-常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
+在编辑器中选择条目或按 ID 启用。下表列出常用的可选主栏条目。
 
 | 分组 | 可选 ID |
 | --- | --- |
@@ -593,13 +594,11 @@ claude-statusline config subagents list-items
 | 仓库 | `pr`、`repo`、`worktree` |
 | 上下文与用量 | `context-used`、`cost`、`prompt-cache` |
 
-子 Agent 目录含 15 个指标及两个布局组件，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
+默认选择、宿主要求和缺值处理见[主栏显示项](DISPLAY_ITEMS.zh-CN.md#主栏显示项)和[子 Agent 显示项](DISPLAY_ITEMS.zh-CN.md#子-agent-显示项)。脚本查询见[目录命令](reference/cli.zh-CN.md#可配置显示项)。
 
 ## 主状态栏显示含义
 
-Git 使用 `↑N`、`↓N` 表示与上游的提交差距，`● N`（Linux/macOS）或 `●N`（Windows/WSL）表示暂存文件，`~N` 表示未暂存，`!N` 表示冲突，`?N` 表示未跟踪。`Git!` 表示查询失败，非 Git 目录省略该项。
-
-Token 为会话累计：`hit` 是缓存读取输入，`miss` 是普通输入与缓存创建之和，`out` 是输出。统计包含可发现的子 Agent transcript，与上下文占用或限额口径不同。
+[Git 标记](DISPLAY_ITEMS.zh-CN.md#git-markers)与 [Token 字段](DISPLAY_ITEMS.zh-CN.md#token-fields)解释主栏各项含义。排查 `Git!` 时，见 [Git 故障排查](#git-信息缺失或显示-git)。
 
 <a id="任务计时预览"></a>
 <a id="任务计时"></a>
@@ -640,15 +639,7 @@ claude-statusline doctor
 
 ## 配置文件
 
-| `<CLAUDE_CONFIG_DIR>` 下的文件 | 用途 |
-| --- | --- |
-| `claude-statusline.json` | 显示项、顺序、格式、布局和子 Agent 可见性 |
-| `claude-statusline-features.json` | 外部编辑器的独立偏好 |
-| `claude-statusline-native.json` | 会话内 Client 的独立偏好 |
-| `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
-| `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
-
-通过 CLI 或编辑器修改。显示 schema v17 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+使用 CLI 或编辑器修改当前配置。显示设置和会话内 Client 偏好分别存放在 `claude-statusline.json` 和 `claude-statusline-native.json` 等文件。路径、格式及完整文件清单见[配置参考](reference/cli.zh-CN.md#配置文件)。恢复旧文件前查看[版本兼容步骤](#版本兼容)。
 
 ## 自定义配置目录与环境变量
 
@@ -667,30 +658,27 @@ claude-statusline configure --config-dir /path/to/claude-config
 
 ### 从 Python 迁移
 
-切换写入实现前停止活动 Claude 会话并备份配置目录。记录原 Python 命令的绝对路径和版本，保留其环境用于回退。已有 Python 命令占用相同 PATH 名称时，先将 npm 包安装到独立目录：
+切换写入实现前停止活动 Claude 会话并备份配置目录。记录原 Python 命令的绝对路径和版本，保留其环境以便回退。选定正式版并按[离线安装步骤](#离线安装)核验同版附件。从准备长期保留的目录把已核验的 tgz 安装到独立 prefix，再用其 Node 入口。将 `VERSION` 替换为已核验版本。
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.16.0
+npm install --prefix ./statusline-node --offline --ignore-scripts "./fbincon-claude-code-statusline-VERSION.tgz"
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js --version
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
 ```
 
-请从长期保留的安装目录运行，并在接入期间保留该目录和 Node 可执行文件。隔离测试时给每条命令传入相同的 `--config-dir`。已有显示配置、明确的采集/编辑器偏好及无关设置均保留；未保存采集偏好时两者默认关闭。不要用 npm `--force` 覆盖归属不明的 PATH 命令。历史 Python 分发名说明见 [v2.0.0 指南](https://github.com/fbincon/claude-code-statusline/blob/v2.0.0/docs/USER_GUIDE.zh-CN.md)。
+接入期间保留安装目录与 Node 可执行文件。隔离测试时给接入和检查命令传入相同的 `--config-dir`。接入保留已有显示、明确的采集和编辑器偏好及无关设置。未保存采集偏好时两种采集默认关闭。保留原 PATH 入口的归属，继续通过绝对 Node/JS 入口调用新的包。历史分发名见 [v2.0.0 指南](https://github.com/fbincon/claude-code-statusline/blob/v2.0.0/docs/USER_GUIDE.zh-CN.md)。
 
-回退时停止 Claude，使用 Node 入口执行 `install --no-native-timing --no-live-metrics` 和 `uninstall`，从切换前备份恢复兼容配置或原本不存在的状态，再用保留的 Python 入口执行 `install` 和 `doctor`。按原记录恢复 PATH 选择；npm 不删除保留的 Python 环境。
+回退时停止 Claude，使用 Node 入口执行 `install --no-native-timing --no-live-metrics` 和 `uninstall`，从切换前的备份恢复兼容配置或原本不存在的状态。再用保留的 Python 入口执行 `install` 与 `doctor`，按原记录恢复 PATH。
 
 ### 审核包变更
 
-两个编辑器都提供本机“版本与安装”页面，支持显式元数据和 dry-run 审核。执行持久全局安装升级时先运行 `claude-statusline update --check`，再运行 `claude-statusline update`。审核解析精确目标，验证兼容性并刷新匹配集成。`rollback` 默认上一成功版本，配置恢复单独操作。[版本管理与恢复](PACKAGE_MANAGEMENT.zh-CN.md)说明脚本约束、v3.7.0 边界及保留恢复入口。
+在任一编辑器中打开 **设置 → 版本与安装**，或用 `claude-statusline update --check` 开始 CLI 元数据审核。软件包回退和配置还原分别审核。[升级、回退与恢复步骤](PACKAGE_MANAGEMENT.zh-CN.md)
 
 ### 手动 npm 替换
 
-```text
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-```
-
-目录安装升级时保持相同 prefix；离线升级使用已校验的本地 tgz，并加 `--offline --ignore-scripts`。
+使用相同的全局或显式 prefix，按[npm 安装](#安装-npm-包)或[离线安装](#离线安装)步骤安装所需版本，再同步接入。
 
 ### 同步 Claude Code 接入
 
@@ -705,9 +693,7 @@ claude-statusline config show
 
 ### 版本兼容
 
-显示 schema 17 以实例 ID 保存顺序与行边界。旧配置 v1–v16 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
-
-当前显示 schema v17、配置协议 v31、独立运行协议 v3 要求前后端资源匹配。兼容的显示 v1–v16 文件读取时不重写，实际保存才备份原字节并迁移为 v17；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+显示 schema 17 使用实例 ID 记录顺序和行边界。读取兼容的旧格式时在内存转换，实际保存或安装执行迁移前会备份原字节。使用匹配的编辑器资源和后端，切换版本前核对目标包支持的格式与条目。[配置格式](reference/cli.zh-CN.md#配置文件) · [组合迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -793,7 +779,8 @@ claude-statusline doctor
 1. 运行 `claude-statusline doctor`，核实宿主 2.1.287+、插件资源及后端绑定；低版本暂挂属于兼容处理。
 2. 确认没有明确关闭 Native、宿主主动禁用插件、safe/bare 或策略限制；按需要运行 `install --native-editor` 后在受信任终端重启 Claude Code。
 3. 面板打开后先点击 Client 区域；macOS 参照[鼠标报告与 Client 焦点检查](#macos-鼠标报告与-client-焦点)，最新反馈中的有效配置仍未验证。取消输入用 Ctrl+G；Esc 仍由宿主处理。
-4. 保存冲突保留草稿，`R` 明确丢弃重载；保存结果不明先 `K` 核对，故障用 Retry／Close。版本／资源不匹配时重新安装匹配 wheel 并重装接入，不手工接管外来缓存。
+4. 保存冲突时草稿保留，确认后用 `R` 放弃草稿并重新加载。保存结果不明时用 `K` 核对，失败时使用 Retry／Close。
+5. 版本或资源不匹配时，在同一 prefix 重装匹配的 npm 包。通过该入口运行 `claude-statusline install` 和 `claude-statusline doctor`，再重启 Claude Code。[安装已验证软件包](#离线安装)
 
 ### `/statusline-configure` 不可见或显示 suspended
 
@@ -865,25 +852,15 @@ claude-statusline doctor
 
 ### Git 信息缺失或显示 `Git!`
 
-Linux / WSL / macOS：
+Linux、WSL 或 macOS 上用 `command -v git` 检查 PATH，PowerShell 中用 `Get-Command git`。非 Git 目录会省略工作树状态项。`Git!` 表示未取得工作树状态，也可能是采集策略拒绝。从项目目录运行 `claude-statusline doctor` 查看过滤器策略。[Git 采集策略](DIAGNOSTICS.zh-CN.md#git-采集策略)
+
+停用渲染器的内置 Git 查询，需要关闭组合项、独立状态项和已提交分支比较。对于按类型配置的用户默认显示，执行以下命令。
 
 ```bash
-command -v git
-git -C /path/to/project status --porcelain=v2 --branch --ahead-behind
+claude-statusline config disable git git-branch git-changes git-ahead-behind branch-diff
 ```
 
-Windows PowerShell：
-
-```powershell
-Get-Command git
-git -C 'C:\Path With Spaces\project' status --porcelain=v2 --branch --ahead-behind
-```
-
-非 Git 目录不显示 Git 项是正常行为。`Git!` 表示 Git 调用缺失、超时或结果无法解析。禁用 `git` 后 renderer 不再执行 Git 查询：
-
-```bash
-claude-statusline config disable git
-```
+如果项目选用了命名方案，或显示中有重复实例，在编辑器中选择对应目标并关闭上述条目的所有启用实例。
 
 ### Token 或计时器暂时不显示
 

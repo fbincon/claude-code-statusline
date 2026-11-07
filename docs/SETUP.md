@@ -2,7 +2,7 @@
 
 **English** | [简体中文](SETUP.zh-CN.md)
 
-For a complete installation-to-display walkthrough, see [usage demonstrations](SHOWCASE.md). After installing the npm package, run:
+After [installing the npm package](USER_GUIDE.md#installation-and-integration), use setup to preview the display and review Claude integration. The [usage demonstrations](SHOWCASE.md) show the full workflow.
 
 ```sh
 claude-statusline setup --dry-run

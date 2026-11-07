@@ -12,7 +12,6 @@ Select **Check version metadata** to contact the configured npm registry. This r
 
 Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. Execution and history cleanup each require their own explicit review; the product never elevates privileges.
 
-
 Ordinary npm manifest modes `0600`, `0644` and `0664` are supported. Recovery journals and snapshots still require private permissions. The v3.11.0 false warning is fixed by [#173](https://github.com/fbincon/claude-code-statusline/issues/173).
 
 ## Execute, detach and reconnect
