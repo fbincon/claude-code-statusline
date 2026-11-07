@@ -9,7 +9,7 @@
 - 生成当前外观选项，文档覆盖共享 slash 解析器的十九项动作，方案／项目管理继续使用终端命令或编辑器。
 - 模型回退要求按字面处理参数，提问前检查安装／归属，应用答案前重新读取已保存状态。
 - 更新 `/statusline-configure` 对稳定 Node 终端编辑器的回退说明，保留工具限制及 Windows 命令写法。
-- 发布验证与公开发布待完成。[实现与证据](docs/development/skill-workflows.zh-CN.md) · [发布说明](docs/releases/v3.16.3.zh-CN.md)。
+- 已于 2026-11-05 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.3.zh-CN.md) · [交付核验](docs/development/skill-workflows.zh-CN.md#final-release)。
 
 ## 3.16.2 — 2026-11-01
 
