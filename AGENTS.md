@@ -5,7 +5,7 @@ Keep personal preferences, machine setup and credential handling in user-level g
 
 ## Workspace boundaries
 
-The active product is TypeScript. Follow the [current architecture](docs/development/architecture.md#current-typescript-workspace); Python sections preserve historical context.
+The active product is TypeScript. Follow the [current architecture](docs/development/architecture.md#current-typescript-workspace). See the [historical Python architecture](docs/development/history/python-implementation.md#python-architecture) for the original layout and implementation notes.
 
 | Location | Responsibility |
 | --- | --- |

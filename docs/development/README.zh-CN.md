@@ -17,14 +17,14 @@
 | 选择验证与 CI 证据 | [测试与验收](testing.zh-CN.md) · [影响检查](impact-checks.zh-CN.md) · [CI 维护／晋级](ci-maintenance.zh-CN.md) · [CI 实测耗时](ci-efficiency.zh-CN.md) |
 | 维护宿主接入 | [原生编辑器](native.zh-CN.md) · [容量／恢复](native-capacity.zh-CN.md) · [任务计时](timer.zh-CN.md) · [实时指标](live.zh-CN.md) |
 | 维护语言 | [翻译指南](i18n.zh-CN.md) · [多语言工作流](i18n-workflow.zh-CN.md) |
-| 制作与核验媒体 | [图片索引](../images/README.zh-CN.md) · [SHOWCASE-01 证据](showcase.zh-CN.md) |
+| 制作与核验媒体 | [图片索引](../images/README.zh-CN.md) · [SHOWCASE-01 采集步骤](showcase.zh-CN.md#collection) |
 | 准备发布 | [发布流程](../RELEASING.zh-CN.md#current-typescript-publication) |
 
-[路线图](roadmap.zh-CN.md#milestones)负责当前优先级与工作包状态，[开发计划](development-plan.zh-CN.md#future-work)负责范围、依赖、切片及验收；[候选池](roadmap.zh-CN.md#candidates)记录尚未选定的想法。规划修改与历史交付记录不宣布新行为可用。
+共同设计约定、验收和交接见[开发计划](development-plan.zh-CN.md#work-index)。[路线图](roadmap.zh-CN.md)维护优先级和工作包状态，其中[候选池](roadmap.zh-CN.md#candidates)记录未选定的方向及进入条件。
 
 ### 迁移与交付记录
 
-[开发历史索引](history/README.zh-CN.md#delivery-records)汇集功能交付记录、迁移阶段、性能报告和历史验证入口。
+[开发历史索引](history/README.zh-CN.md)汇集[已交付设计](history/README.zh-CN.md#completed-work-designs)、各版交付记录、迁移阶段、性能报告和历史验证流程。
 
 ## 文档导航
 

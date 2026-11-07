@@ -602,14 +602,13 @@ claude-statusline config subagents list-items
 
 <a id="任务计时预览"></a>
 <a id="任务计时"></a>
+<a id="prompt-计时标记"></a>
 
 ### 任务总耗时与执行耗时
 
-`task-timer` 从最近一次人类任务最早可信提交开始计时，包含排队、用户等待、所属子 Agent 和主 Agent 收尾，默认启用。`prompt-timer` 作为兼容别名继续被配置命令和导入接受，保存后的配置使用 `task-timer`。
+`task-timer` 显示任务总耗时，`task-active-timer` 显示执行耗时。详见[计时定义、标记与可用性](DISPLAY_ITEMS.zh-CN.md#timer-definitions)。
 
-计时使用 `⏱` 表示运行、`✓` 表示成功、`■` 表示中断、`✗` 表示失败；结束未确认时显示 `? <elapsed>+`。有子 Agent 时可显示 `⏳ 2 agents · <elapsed>` 或 `⏳ main wrap-up · <elapsed>`。传统 `Stop` 是结束候选，可信继续活动保留原任务和时钟；完成需要可靠结束证据、所属代理及必要报告已处理、主 Agent 收尾完成。已接受的终态值冻结。详见[标记与计时范围](reference/cli.zh-CN.md#prompt-计时标记)。
-
-`task-active-timer` 为可选项，默认未选中；从开始执行后累计耗时，排除已核实的用户等待，并行工作不会重复累加。它需要 Claude Code 2.1.289+ 的原生计时及完整任务／等待观测，可这样启用：
+如需显示执行耗时，在 Claude Code 2.1.289+ 上执行以下命令。
 
 ```text
 claude-statusline install --native-timing
@@ -617,19 +616,11 @@ claude-statusline config enable task-active-timer
 claude-statusline doctor
 ```
 
-改变采集器接入后重启 Claude Code。新安装默认关闭原生计时，保留已保存的明确选择；高级实时指标独立管理，此计时项无需开启它们。缺失观测、等待覆盖不完整、状态过期或时钟不可信时隐藏执行耗时，不把未知等待当作零。原生单轮耗时、会话运行时间和累计 API 耗时是独立指标，不校准两个任务时钟，详见[计时契约](development/timer.zh-CN.md)。
+改变采集器接入后重启 Claude Code。执行耗时仍未显示时，先检查 `doctor` 的接入结果，再按[执行耗时的观测要求](DISPLAY_ITEMS.zh-CN.md#timer-definitions)核对覆盖情况。
 
 ## 子 Agent 行与三种作用域
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
-
-- 全局底栏属于主会话；任务启动过代理后，可用 `Main/Session` 标记范围。
-- 主栏 `tokens` 聚合整个会话，包括可发现的代理用量。
-- 每条代理行描述自己的任务，代理 `tokens` 表示上下文占用，不是累计 API 用量。
-
-切换到代理 transcript 不会改变全局栏范围，因为 Claude Code 未提供当前焦点代理 ID。能够确定结束的代理用时会冻结，详见[行字段及宽度规则](reference/cli.zh-CN.md#子-agent-行与三种作用域)。
+子 Agent 行显示单个任务。理解主栏和代理行上的同名字段时，见[显示作用域](DISPLAY_ITEMS.zh-CN.md#display-scopes)。行缺失或被第三方接管时，见[子 Agent 行排查](#子-agent-行不显示或发生所有权冲突)。
 
 ## 显示与宿主选项
 
@@ -922,7 +913,6 @@ claude-statusline config set refresh-interval 1
 [配置命令详解](reference/cli.zh-CN.md#配置命令详解)
 
 <a id="git-标记"></a>
-<a id="prompt-计时标记"></a>
 <a id="token-含义"></a>
 
 [主状态栏显示含义](reference/cli.zh-CN.md#主状态栏显示含义)

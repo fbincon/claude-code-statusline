@@ -612,14 +612,14 @@ To interpret the main line, see [Git markers](DISPLAY_ITEMS.md#git-markers) and 
 
 <a id="task-timing-preview"></a>
 <a id="task-timing"></a>
+<a id="prompt-timing-markers"></a>
+<a id="prompt-计时标记"></a>
 
 ### Task total and execution time
 
-`task-timer` measures the latest human task from its earliest trusted submission, including queueing, user waits, owned subagents and main-agent wrap-up. It is enabled by default. `prompt-timer` remains a compatibility alias accepted by configuration commands and imports; saved configuration uses `task-timer`.
+Use `task-timer` for total task time and `task-active-timer` for execution time. See the [clock definitions, markers and availability](DISPLAY_ITEMS.md#timer-definitions).
 
-The timer shows `⏱` while running, `✓` on success, `■` on interruption, `✗` on failure, and `? <elapsed>+` when an ending is unconfirmed. With agents it can show `⏳ 2 agents · <elapsed>` or `⏳ main wrap-up · <elapsed>`. A classic `Stop` is an ending candidate; verified continuation retains the same task and clock. Completion requires reliable ending evidence, resolved owned agents and required reports, and finished main-agent wrap-up. Accepted terminal values freeze. [Detailed markers and timing scope](reference/cli.md#prompt-timer-markers).
-
-`task-active-timer` is optional and unselected by default. It measures execution after work starts, excluding verified user waits; concurrent work is not counted twice. It requires native timing on Claude Code 2.1.289+ and complete task/wait observations. Enable it with:
+To show execution time, run these commands with Claude Code 2.1.289 or later.
 
 ```text
 claude-statusline install --native-timing
@@ -627,19 +627,13 @@ claude-statusline config enable task-active-timer
 claude-statusline doctor
 ```
 
-Restart Claude Code after changing collector integration. Fresh installs default to native timing off; explicit saved choices remain respected. Advanced live metrics are independent and need not be enabled for this timer. Missing observations, incomplete wait coverage, stale state or an untrusted clock hide execution time rather than assuming zero waiting. Native single-turn duration, session runtime and cumulative API duration are separate quantities and do not calibrate either task clock. See the [timing contract](development/timer.md).
+Restart Claude Code after changing collector integration. If execution time is still missing, check the integration result in `doctor` and the [observation requirements](DISPLAY_ITEMS.md#timer-definitions).
+
+<a id="子-agent-行与三种作用域"></a>
 
 ## Subagent rows and the three scopes
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
-
-- The global bottom line describes the main/session scope; `Main/Session` can label it after a task has launched agents.
-- Main `tokens` aggregates the session, including discoverable agent usage.
-- Each agent row describes its own task; its `tokens` field is context occupancy, not cumulative API usage.
-
-Viewing an agent transcript does not change the global line's scope: Claude Code does not supply a focused-agent identifier. Completed agent elapsed values freeze when an end can be established. [Row fields and width rules](reference/cli.md#subagent-rows-and-the-three-scopes).
+Each subagent row shows one task. See [display scopes](DISPLAY_ITEMS.md#display-scopes) for how fields with the same name differ between the main line and subagent rows. For missing rows or a third-party override, see [subagent troubleshooting](#subagent-rows-are-missing-or-ownership-conflicts-occur).
 
 ## Display and host options
 
@@ -963,17 +957,11 @@ Management commands generally use 0 for success and 2 for argument/configuration
 
 <a id="git-markers"></a>
 <a id="git-标记"></a>
-<a id="prompt-timing-markers"></a>
-<a id="prompt-计时标记"></a>
 <a id="token-fields"></a>
 <a id="token-含义"></a>
 <a id="主状态栏显示含义"></a>
 
 [Main status line fields](reference/cli.md#main-status-line-fields)
-
-<a id="子-agent-行与三种作用域"></a>
-
-[Subagent rows and the three scopes](reference/cli.md#subagent-rows-and-the-three-scopes)
 
 <a id="colors"></a>
 <a id="default-refresh-every-second"></a>
