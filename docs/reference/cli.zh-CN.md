@@ -478,61 +478,17 @@ claude-statusline config enable project-name hostname context-used
 
 ### 任务计时标记
 
-| 标记 | 含义 |
-| --- | --- |
-| `⏱` | 任务正在运行，时间持续增长 |
-| `✓` | 任务已可靠确认完成 |
-| `■` | 任务被中断或会话结束 |
-| `✗` | Claude Code 报告执行失败 |
-| `? <elapsed>+` | Stop 候选尚未确认，或历史结束证据不完整；显示已知耗时下界 |
-
-所属代理和主 Agent 收尾有两个运行阶段：
-
-```text
-⏱ 4m 12s
-⏳ 2 agents · 4m 12s
-⏳ main wrap-up · 4m 12s
-? 4m 35s+
-✓ 4m 35s
-```
-
-`task-timer` 从最早可信用户提交开始，包含排队、用户等待、所属代理、必要报告和主 Agent 收尾。传统 `Stop` 是结束候选，可信继续活动取消候选并沿用原时钟。完成需要可归属的原生完成或已核验的 transcript／进程 idle 结束证据，以及代理、报告和收尾均已处理；超时或心跳过期不会推定完成。后台 shell、server、monitor、workflow 和 agent-team 账本不阻塞完成。
-
-可靠失败或用户中断冻结已接受的终态值，重复 hook 和后续刷新不延长结果。原生单轮耗时独立保存，不校准任务时钟；无可靠归属的事件不会关联到更新的任务。旧配置和命令中的 `prompt-timer` 是 `task-timer` 别名，不另计为目录项。
-
-| 时间指标 | 含义与来源 |
-| --- | --- |
-| 任务总耗时 | `task-timer`：最早可信提交至已确认完成、失败或中断，包含排队、等待、代理及收尾 |
-| 任务执行耗时 | `task-active-timer`：开始执行后的累计耗时，排除已核实的用户等待；完整原生覆盖才显示 |
-| 原生单轮耗时 | transcript 的 `turn_duration.durationMs` 或所属原生完成报告；独立记录，不能替代任务总耗时 |
-| 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行／恢复之间的间隔 |
-| API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，由独立 `api-duration` 项显示 |
-
-会话与 API 指标定义见[官方状态栏字段](https://code.claude.com/docs/en/statusline)。执行耗时默认未选中，需要 Claude Code 2.1.289+ 原生计时；覆盖不完整、等待边界未知、状态过期或时钟异常时隐藏，不假设等待为零。启用步骤见[用户指南](../USER_GUIDE.zh-CN.md#任务总耗时与执行耗时)，归属与结束规则见[计时契约](../development/timer.zh-CN.md)。
-
-后台代理报告可能具有不同宿主 prompt ID，明确所属关系使其继续属于原人类任务。本地 `/statusline-config show` 等快捷命令不启动新计时任务；隐藏 `tokens` 后仍可保留任务计时。
+任务总耗时、执行耗时和显示标记见[指标定义](../DISPLAY_ITEMS.zh-CN.md#timer-definitions)。启用步骤见[使用指南](../USER_GUIDE.zh-CN.md#任务总耗时与执行耗时)。
 
 ## 子 Agent 行与三种作用域
 
-Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态；token 只使用当前 task 的 `tokenCount`。
+Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态。
 
-默认子 Agent 行类似：
+宽度直接使用 payload 中的正整数 `columns`，无效时回退 80 列。每行使用完整宽度预算，输入文本中的换行、制表符和控制字符会被清理。
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
+普通行拟合先截短任务文本，再按 `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task` 的顺序省略可选字段。启用的状态字段优先保留，极窄时 `status-elapsed` 可能只显示图标。使用组、自适应指标、Powerline 或自定义优先级时，拟合由对应的布局和优先级规则决定。各路径均按可见终端单元格限制单行宽度。
 
-条目、默认状态和数据来源见[子 Agent 显示项](../DISPLAY_ITEMS.zh-CN.md#子-agent-显示项)。
-
-宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → context-remaining → model-with-effort → task` 删除可选段；`status` 与 `status-elapsed` 始终保留（启用 `status` 时 `name`、`elapsed` 也最后保留），极窄时 `status-elapsed` 退化为只显示状态图标。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
-
-三种作用域必须区分：
-
-- 全局底栏属于主 Agent；`scope-labels=when-subagents` 在当前 prompt 曾启动子 Agent 后前置固定的 `Main/Session`。
-- 主栏 `tokens` 是 session 累计，继续包含可发现的主与子 Agent transcript。
-- 每个官方子 Agent 行只描述自己的 task，并只使用 `tasks[]` 字段。
-
-Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent transcript 后，最底部全局栏不会读取或猜测当前焦点，也不会通过 transcript mtime、进程内存或键盘事件推断；`Main/Session` 正是对这一边界的明确标注。
+字段含义、默认选择与数据作用域见[指标定义](../DISPLAY_ITEMS.zh-CN.md#display-scopes)。
 
 ## 显示与宿主选项
 
@@ -545,7 +501,7 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 | `separator-style` | `classic`、`compact`、`powerline` | `classic` | 顶层条目的分隔方式 |
 | `theme` | `classic`、`dark`、`light`、`terminal`、`ocean`、`ember`、`slate`、`blossom` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
 | `powerline-glyph` | `ascii`、`powerline` | `ascii` | Powerline 边界使用 ASCII `>` 或可选的字体相关箭头 |
-| `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
+| `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置本地化的主会话作用域标签 |
 | `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
 | `padding` | `0`–`32` | `0` | Claude Code 在状态栏内容前增加的水平空白字符数 |
 | `refresh-interval` | `event`、`1`–`3600` | `1` | 除事件刷新外，按指定秒数定时重跑 renderer；`event` 表示只按事件刷新 |

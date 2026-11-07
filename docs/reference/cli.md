@@ -494,61 +494,17 @@ See [token fields and scope](../DISPLAY_ITEMS.md#token-fields) for definitions.
 
 ### Task timing markers
 
-| Marker | Meaning |
-| --- | --- |
-| `⏱` | Task is running; time continues increasing |
-| `✓` | Task completion is reliably confirmed |
-| `■` | Task was interrupted or the session ended |
-| `✗` | Claude Code reported execution failure |
-| `? <elapsed>+` | A Stop candidate is unconfirmed or historical ending evidence is incomplete; shows the known elapsed lower bound |
-
-Owned agents and main-agent wrap-up add two running phases:
-
-```text
-⏱ 4m 12s
-⏳ 2 agents · 4m 12s
-⏳ main wrap-up · 4m 12s
-? 4m 35s+
-✓ 4m 35s
-```
-
-`task-timer` starts at the earliest trusted user submission and includes queueing, user waits, owned agents, required reports and main-agent wrap-up. A classic `Stop` is an ending candidate; verified continuation clears it without resetting the clock. Completion needs an attributed native ending or verified transcript/process-idle evidence, plus resolved agents, reports and wrap-up. No timeout or expired heartbeat fabricates completion. Background shell, server, monitor, workflow and agent-team ledgers do not block completion.
-
-Reliable failures and user interruptions freeze the accepted terminal value; duplicate hooks and later refreshes do not extend it. Native single-turn duration is recorded independently and never calibrates task clocks. Events without reliable ownership do not attach to a newer task. `prompt-timer` in old configuration or commands is an alias of `task-timer`, not an extra catalog item.
-
-| Time metric | Meaning and source |
-| --- | --- |
-| Task total time | `task-timer`: earliest trusted submission to confirmed completion, failure or interruption, including queueing, waits, agents and wrap-up |
-| Task execution time | `task-active-timer`: accumulated time after execution starts, excluding verified user waits; shown only with complete native coverage |
-| Native turn duration | Transcript `turn_duration.durationMs` or an attributed native completion report; recorded separately and cannot replace task total time |
-| Session runtime | `cost.total_duration_ms`; cumulative time the CLI session runs, excluding time between runs/resumes |
-| API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses, shown by the independent `api-duration` item |
-
-See the [official status-line fields](https://code.claude.com/docs/en/statusline) for session and API definitions. Execution time defaults unselected and requires native timing on Claude Code 2.1.289+. Incomplete coverage, unknown wait boundaries, stale state or abnormal clocks hide it instead of assuming zero waiting. See [enabling task clocks](../USER_GUIDE.md#task-total-and-execution-time) and the [timing contract](../development/timer.md).
-
-Background-agent reports can have different host prompt IDs; explicit ownership retains the original human task. Local shortcuts such as `/statusline-config show` do not start a new timed task. Hiding `tokens` still permits task timing.
+See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clocks and their output markers, and the [user guide](../USER_GUIDE.md#task-total-and-execution-time) for enablement.
 
 ## Subagent rows and the three scopes
 
-On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state; tokens come only from the current task's `tokenCount`.
+On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state.
 
-A default subagent row looks like:
+The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
+Basic fitting shortens task text, then omits optional fields in the order `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task`. It prioritizes enabled status fields, and very narrow widths may reduce `status-elapsed` to its icon. Groups, adaptive indicators, Powerline and custom priorities use their respective fitting rules. Each path fits a single row by visible terminal cells.
 
-See [subagent items](../DISPLAY_ITEMS.md#subagent-items) for defaults and field definitions.
-
-Width uses the payload's positive integer `columns` directly, falling back to 80 when invalid, without the main-line margin. Input newlines, tabs, and control characters are sanitized. Overflow first truncates task text, then drops optional segments in the order `current-dir → tokens → context-used → context-remaining → model-with-effort → task`. `status` and `status-elapsed` are always retained; with `status` enabled, `name` and `elapsed` are also retained until last. At extreme widths, `status-elapsed` becomes an icon only. ASCII, CJK, emoji, combining characters, and ANSI paths all stay within `columns` of visible width without wrapping.
-
-Keep these three scopes distinct:
-
-- The global bottom line belongs to the main agent; `scope-labels=when-subagents` prepends `Main/Session` (Chinese output: `主会话`) after the current prompt has launched subagents.
-- Main-line `tokens` is cumulative session usage, still including discoverable main and subagent transcripts.
-- Each official subagent row describes only its own task, using only `tasks[]` fields.
-
-Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switching to a subagent transcript, the global bottom line neither reads nor guesses focus using transcript mtime, process memory, or keyboard events. `Main/Session` explicitly identifies this boundary.
+See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meanings, defaults and data scopes.
 
 <a id="显示与宿主选项"></a>
 

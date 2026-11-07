@@ -136,7 +136,7 @@ The `git` compound and `git-branch`, `git-changes` and `git-ahead-behind` share 
 
 ## Token fields
 
-`tokens` reports cumulative API usage for the current Claude Code session, including discoverable subagent transcripts:
+`tokens` breaks cumulative API usage in the [session scope](#display-scopes) into three counts.
 
 - `hit`: cache read input tokens.
 - `miss`: ordinary input tokens plus cache creation input tokens.
@@ -144,7 +144,67 @@ The `git` compound and `git-branch`, `git-changes` and `git-ahead-behind` share 
 
 Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. Separate items show context occupancy and rate-limit usage.
 
-The host payload's `prompt-cache` hit ratio and write count describe the main conversation. A subagent row's `tokens` comes from that task's `tokenCount`.
+The host payload's `prompt-cache` hit ratio and write count describe the main conversation.
+
+<a id="display-scopes"></a>
+
+## Main, session and subagent scope
+
+A default subagent row looks like this.
+
+```text
+⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
+```
+
+| Scope | Data shown |
+| --- | --- |
+| Main line | The global bottom line keeps the main session scope. With `scope-labels=when-subagents`, it displays a scope label such as `Main/Session` or `主会话` after the task is observed to have launched subagents. |
+| Session usage | Main-line `tokens` reports cumulative API usage for the session, including discoverable main and subagent transcripts. |
+| Individual subagent | Host fields come from the corresponding task in `tasks[]`. The row's `tokens` uses that task's `tokenCount` and describes its current context occupancy. |
+
+When you view a subagent transcript, the host payload omits `focused_agent` and `viewing_task_id`. Rendering uses the supplied session and task identities. See [subagent items](#subagent-items) for field defaults and [ended agents](#branch-base-and-ended-agents) for frozen durations.
+
+<a id="timer-definitions"></a>
+
+## Task clocks and markers
+
+`task-timer` is enabled by default and shows the latest human task’s total time and outcome. These markers describe the available states.
+
+| Marker | Meaning |
+| --- | --- |
+| `⏱` | Task is running; time continues increasing |
+| `✓` | Task completion is reliably confirmed |
+| `■` | Task was interrupted or the session ended |
+| `✗` | Claude Code reported execution failure |
+| `? <elapsed>+` | A Stop candidate is unconfirmed or historical ending evidence is incomplete; shows the known elapsed lower bound |
+
+The examples include two running phases for owned agents and main-agent wrap-up.
+
+```text
+⏱ 4m 12s
+⏳ 2 agents · 4m 12s
+⏳ main wrap-up · 4m 12s
+? 4m 35s+
+✓ 4m 35s
+```
+
+`task-timer` starts at the earliest trusted user submission and includes queueing, user waits, owned agents, required reports and main-agent wrap-up. A classic `Stop` is an ending candidate; verified continuation clears it without resetting the clock. Completion needs an attributed native ending or verified transcript/process-idle evidence, plus resolved agents, reports and wrap-up. No timeout or expired heartbeat fabricates completion. Background shell, server, monitor, workflow and agent-team ledgers do not block completion.
+
+Reliable failures and user interruptions freeze the accepted terminal value; duplicate hooks and later refreshes do not extend it. Native single-turn duration is recorded independently and never calibrates task clocks. Events without reliable ownership do not attach to a newer task. Configuration commands and imports accept the `prompt-timer` alias, and saved configuration uses `task-timer`.
+
+| Time metric | Meaning and source |
+| --- | --- |
+| Task total time | `task-timer`: earliest trusted submission to confirmed completion, failure or interruption, including queueing, waits, agents and wrap-up |
+| Task execution time | `task-active-timer` accumulates time after execution starts. It excludes verified user waits and counts overlapping work once. |
+| Native turn duration | Transcript `turn_duration.durationMs` or an attributed native completion report; recorded separately and cannot replace task total time |
+| Session runtime | `cost.total_duration_ms`; cumulative time the CLI session runs, excluding time between runs/resumes |
+| API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses, shown by the independent `api-duration` item |
+
+`task-active-timer` starts unselected and requires Claude Code 2.1.289 or later with native timing enabled. New installations default to native timing off. Reinstalling respects saved choices, and advanced live metrics are independent. See [enabling task clocks](USER_GUIDE.md#task-total-and-execution-time).
+
+Execution time is omitted when task or wait observations are incomplete, wait boundaries are unknown, the state is stale or the clock is untrusted. See the [timing contract](development/timer.md) and the [official session and API fields](https://code.claude.com/docs/en/statusline).
+
+Background-agent reports can have different host prompt IDs; explicit ownership retains the original human task. Local shortcuts such as `/statusline-config show` do not start a new timed task. Hiding `tokens` still permits task timing.
 
 ## Clocks, availability and scope
 
@@ -165,9 +225,6 @@ Main-conversation cache statistics include requests and misses. Cache warmth des
 - Missing, malformed, negative and non-finite values are unavailable, not zero.
   Observed zero cost, duration or line counts render explicitly. New token counts
   require nonnegative integers and window capacities must be positive.
-- `task-timer` measures the latest human task, including agents and final
-  wrap-up. Session runtime and cumulative API duration are separate official
-  quantities; adding these items does not alter the timer reducer.
 - Text is sanitized before terminal rendering. Existing palettes, separators,
   scope labels and width handling apply to the new items and deterministic previews.
 

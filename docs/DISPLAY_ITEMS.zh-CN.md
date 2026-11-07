@@ -140,7 +140,7 @@
 
 ## Token 含义
 
-`tokens` 是当前 Claude Code 会话的累计 API 使用量，也会合并可发现的 subagent transcript：
+`tokens` 将[会话作用域](#display-scopes)内的累计 API 用量分成三项。
 
 - `hit`：cache read input tokens。
 - `miss`：普通 input tokens 与 cache creation input tokens 之和。
@@ -148,7 +148,67 @@
 
 数值使用紧凑格式，例如 `950`、`12.4K`、`1.05M`。上下文占用和限额用量由各自条目显示。
 
-`prompt-cache` 的命中率和写入量来自宿主提供的主对话 payload。子 Agent 行的 `tokens` 来自单个任务的 `tokenCount`。
+`prompt-cache` 的命中率和写入量来自宿主提供的主对话 payload。
+
+<a id="display-scopes"></a>
+
+## 主栏、会话和子 Agent 的作用域
+
+默认子 Agent 行示例。
+
+```text
+⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
+```
+
+| 作用域 | 数据含义 |
+| --- | --- |
+| 主栏 | 全局底栏保留主会话作用域。设置 `scope-labels=when-subagents` 时，已观测到任务启动过子 Agent 后会显示作用域标签，例如 `Main/Session` 或 `主会话`。 |
+| 会话用量 | 主栏 `tokens` 为当前会话累计 API 用量，包含可发现的主和子 Agent transcript。 |
+| 单个子 Agent | 该行的宿主字段来自 `tasks[]` 中对应的任务。`tokens` 取该任务的 `tokenCount`，表示当前上下文占用。 |
+
+查看子 Agent transcript 时，宿主 payload 缺少 `focused_agent` 和 `viewing_task_id`。渲染使用已提供的会话与任务身份。各字段和默认状态见[子 Agent 显示项](#子-agent-显示项)，终态耗时见[已结束代理](#分支基准与已结束代理)。
+
+<a id="timer-definitions"></a>
+
+## 任务时钟与标记
+
+`task-timer` 默认启用，显示最近一次人类任务的总耗时和结果。下表列出可能的状态标记。
+
+| 标记 | 含义 |
+| --- | --- |
+| `⏱` | 任务正在运行，时间持续增长 |
+| `✓` | 任务已可靠确认完成 |
+| `■` | 任务被中断或会话结束 |
+| `✗` | Claude Code 报告执行失败 |
+| `? <elapsed>+` | Stop 候选尚未确认，或历史结束证据不完整；显示已知耗时下界 |
+
+下例包含所属代理运行和主 Agent 收尾两个阶段。
+
+```text
+⏱ 4m 12s
+⏳ 2 agents · 4m 12s
+⏳ main wrap-up · 4m 12s
+? 4m 35s+
+✓ 4m 35s
+```
+
+`task-timer` 从最早可信用户提交开始，包含排队、用户等待、所属代理、必要报告和主 Agent 收尾。传统 `Stop` 是结束候选，可信继续活动取消候选并沿用原时钟。完成需要可归属的原生完成或已核验的 transcript／进程 idle 结束证据，以及代理、报告和收尾均已处理；超时或心跳过期不会推定完成。后台 shell、server、monitor、workflow 和 agent-team 账本不阻塞完成。
+
+可靠失败或用户中断冻结已接受的终态值，重复 hook 和后续刷新不延长结果。原生单轮耗时独立保存，不校准任务时钟；无可靠归属的事件不会关联到更新的任务。配置命令和导入仍接受 `prompt-timer` 别名，保存后的配置使用 `task-timer`。
+
+| 时间指标 | 含义与来源 |
+| --- | --- |
+| 任务总耗时 | `task-timer`：最早可信提交至已确认完成、失败或中断，包含排队、等待、代理及收尾 |
+| 任务执行耗时 | `task-active-timer` 累计开始执行后的耗时，排除已核实的用户等待，并行工作只累计一次。 |
+| 原生单轮耗时 | transcript 的 `turn_duration.durationMs` 或所属原生完成报告；独立记录，不能替代任务总耗时 |
+| 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行／恢复之间的间隔 |
+| API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，由独立 `api-duration` 项显示 |
+
+`task-active-timer` 默认未选中，需要 Claude Code 2.1.289+ 和显式启用的原生计时。新安装默认关闭原生计时，重装保留已有偏好，高级实时指标独立设置。启用步骤见[使用指南](USER_GUIDE.zh-CN.md#任务总耗时与执行耗时)。
+
+任务或等待观测不完整、等待边界未知、状态过期或时钟不可信时隐藏执行耗时。详见[计时契约](development/timer.zh-CN.md)与[官方会话和 API 字段](https://code.claude.com/docs/en/statusline)。
+
+后台代理报告可能具有不同宿主 prompt ID，明确所属关系使其继续属于原人类任务。本地 `/statusline-config show` 等快捷命令不启动新计时任务；隐藏 `tokens` 后仍可保留任务计时。
 
 ## 时钟、可用性与作用域
 
@@ -165,8 +225,6 @@
 - 倒计时遵循现有宿主刷新间隔；`event` 只在事件触发时更新，启用显示项不会修改刷新设置。
 - 缺失、异常类型、负数和非有限数值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
   新 token 数需为非负整数，窗口容量需大于零。
-- `task-timer` 统计最近一次人的任务，包含子 Agent 和主 Agent 收尾；会话运行时间与累计 API 耗时是
-  独立官方指标，新增项不改变计时状态机。
 - 文本先净化再渲染。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
 
 字段定义依据 [Claude Code 官方状态栏说明](https://code.claude.com/docs/en/statusline)。

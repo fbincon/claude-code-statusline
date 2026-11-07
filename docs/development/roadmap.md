@@ -2,17 +2,59 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-This roadmap owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies, slices and acceptance. The [delivery index](history/README.md#delivery-records) links implementation and publication evidence.
+This roadmap owns product direction, priorities and work-package status. The [development plan](development-plan.md#work-index) explains how to define scope, dependencies, slices and acceptance. The [history index](history/README.md#delivery-records) links implementation and publication evidence.
 
-The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`. M1–M12 and the eighteen selected follow-up packages are delivered. [SHOWCASE-01](showcase.md#delivery) demonstrates those workflows using the recorded package and capture inputs. The stage tables list work-package status.
+M1–M12 and the eighteen selected follow-up packages are delivered. [SHOWCASE-01](showcase.md#delivery) demonstrates those workflows using the recorded package and capture inputs. The candidate pool below lists possible future work.
 
-**Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
+[Candidates](#candidates) · [Planning baseline](#baseline) · [References and acknowledgements](#reference) · [Delivered milestones](#milestones) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
+
+<a id="candidates"></a>
+
+## Candidate pool and entry conditions
+
+The [delivered mainline](#milestones) covers the previously selected improvements, including automatic command refresh under [COMMAND-02](development-plan.md#command-02). Existing IMPORT-01, APPEARANCE-04 and COMPOSITION-03 remain delivered. The pool below contains only unselected directions.
+
+### Functional candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| Additional token-rate views | Compare observed session or recent-window token throughput; select one scope first | Define duration, token inclusion, replay deduplication and main/agent scope; preserve existing latest-request `output-rate` meaning |
+| Additional cache views | Inspect read/write amounts or ratios for a selected request/session scope | Existing `prompt-cache` already exposes hit ratio/write tokens; require a distinct need, authoritative fields and an explicit denominator |
+| Daily remaining budget | Show a verified daily allowance remainder or a clearly identified user budget | Reliable amounts, currency, freshness, full period boundaries and timezone; a `monthly` label alone is insufficient |
+| Quota consumption pacing and time cursors | Compare quota consumption with verified window progress | Establish window boundaries, elapsed-time meaning and unknown behavior; distinguish countdown, consumption and estimates |
+| GitLab provider | Inspect a branch's merge request and CI; begin with manual read-only lookup | Actual demand, authoritative fields, existing authentication and repository/branch/HEAD identity; define GitLab-specific states |
+| Gitee provider | Inspect a branch's pull request and CI; begin with manual read-only lookup | Actual demand, authoritative fields and provider-specific authentication/identity; repository mirroring is separate |
+| Service status | Show a selected service's published status and freshness | Reliable source and distinct unavailable/stale states; global service status does not establish personal request or gateway health |
+| Voice configuration hint | Indicate observed voice-input configuration | Verify configuration precedence and availability; configured enablement does not establish active recording |
+| Sandbox configuration hint | Indicate observed sandbox configuration | Verify managed/CLI overrides and availability; configured enablement does not establish active isolation |
+
+### Supporting candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| Migration guidance | Help a user map an existing setup to this product | Verified source/target versions, capability mapping, manual steps and recovery; do not promise lossless automatic conversion |
+
+The [contribution guide](../../CONTRIBUTING.md), [bilingual Bug form](../../.github/ISSUE_TEMPLATE/bug_report.yml) and blank question/feature Issues are already available; see [repository maintenance](repository-governance.md). They are maintained entry points, rather than new development candidates.
+
+### Longer-term candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| JJ | Show Jujutsu state for a real user's repository | Identified demand, reliable output and availability/identity semantics; select read-only fields first |
+| Other clients | Reuse a selected capability with a named client | A verified input/lifecycle contract and a concrete integration/support boundary |
+| Plugin marketplace | Discover and manage third-party components | Actual extension use plus a selected distribution, trust, compatibility and lifecycle model |
+| Automatic script downloads | Obtain a named external component | A separately selected source, integrity, review, installation and removal design |
+| General Shell mode | Support a concrete command requiring Shell interpretation | A separate interaction and execution-authorization design beyond the existing executable/argv source |
+
+Candidates have no assigned version or date. Listing one does not start development or make it a prerequisite for the formal packages or SHOWCASE-01. Promote a candidate only through an explicit scope decision and a corresponding work-package update. Evaluate distinct user needs and data definitions rather than component counts.
 
 <a id="baseline"></a>
 
 <a id="current-baseline-and-product-direction"></a>
 
 ## Planning baseline and product direction
+
+The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`.
 
 The table describes the capabilities used to plan from v3.16.0. See the [user guide](../USER_GUIDE.md) for current procedures and the [changelog](../../CHANGELOG.md) for changes since that baseline.
 
@@ -62,7 +104,14 @@ Keep the original project and authors credited when discussing these references.
 
 ## Stages and dependencies
 
-### Planned mainline
+These records preserve the status, original dependencies and scheduling of delivered work. See [delivery history](#delivery-history) for versions and evidence.
+
+<a id="planned-mainline"></a>
+
+### Delivered mainline
+
+<details>
+<summary>View delivered mainline packages, dependencies and scheduling</summary>
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
@@ -91,11 +140,16 @@ Batches express delivery preference, not extra technical dependencies. Themes, t
 
 SHOWCASE-01 retains its historical ID. Its earlier M13 placement is superseded by the maintainer's decision to wait for the original eighteen formal packages and their slices, including later improvements. I18N-02 was scheduled separately and does not add a prerequisite for SHOWCASE-01; remaining candidates do not add prerequisites either. M1–M12 retain their historical numbering and delivery evidence.
 
-SHOWCASE-01 is delivered using the published v3.16.0 package with non-Powerline demonstrations. [Prerequisites, collection and separate acceptance records](showcase.md) retain the original product/evidence identities; [the user walkthrough](../SHOWCASE.md) owns reproducible usage. This maintenance creates no new product release.
+SHOWCASE-01 is delivered using the published v3.16.0 package with non-Powerline demonstrations. [Prerequisites, collection and separate acceptance records](showcase.md) retain the original product/evidence identities; [the user walkthrough](../SHOWCASE.md) owns reproducible usage.
 
 GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcomes and the shared Git policy from [M8–M9 delivery](m8-m9-delivery.md), and preserve the native boundaries established by [v3.9.1](native-capacity.md). Current validation routes remain defined in [CI maintenance](ci-maintenance.md).
 
+</details>
+
 ### Delivered stages
+
+<details>
+<summary>View earlier milestones and independent maintenance</summary>
 
 | Stage | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
@@ -120,47 +174,9 @@ GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcom
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
 | Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
-M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2, then M8 and M13; its current prerequisites are in the planned table above. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
+M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2, then M8 and M13; its final prerequisites are in the delivered mainline. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
 
-<a id="candidates"></a>
-
-## Candidate pool and entry conditions
-
-The formal packages above own all selected improvements, including automatic command refresh under [COMMAND-02](development-plan.md#command-02). Existing IMPORT-01, APPEARANCE-04 and COMPOSITION-03 remain delivered. The pool below contains only unselected directions.
-
-### Functional candidates
-
-| Candidate | User scenario and minimum slice | Evidence and entry condition |
-| --- | --- | --- |
-| Additional token-rate views | Compare observed session or recent-window token throughput; select one scope first | Define duration, token inclusion, replay deduplication and main/agent scope; preserve existing latest-request `output-rate` meaning |
-| Additional cache views | Inspect read/write amounts or ratios for a selected request/session scope | Existing `prompt-cache` already exposes hit ratio/write tokens; require a distinct need, authoritative fields and an explicit denominator |
-| Daily remaining budget | Show a verified daily allowance remainder or a clearly identified user budget | Reliable amounts, currency, freshness, full period boundaries and timezone; a `monthly` label alone is insufficient |
-| Quota consumption pacing and time cursors | Compare quota consumption with verified window progress | Establish window boundaries, elapsed-time meaning and unknown behavior; distinguish countdown, consumption and estimates |
-| GitLab provider | Inspect a branch's merge request and CI; begin with manual read-only lookup | Actual demand, authoritative fields, existing authentication and repository/branch/HEAD identity; define GitLab-specific states |
-| Gitee provider | Inspect a branch's pull request and CI; begin with manual read-only lookup | Actual demand, authoritative fields and provider-specific authentication/identity; repository mirroring is separate |
-| Service status | Show a selected service's published status and freshness | Reliable source and distinct unavailable/stale states; global service status does not establish personal request or gateway health |
-| Voice configuration hint | Indicate observed voice-input configuration | Verify configuration precedence and availability; configured enablement does not establish active recording |
-| Sandbox configuration hint | Indicate observed sandbox configuration | Verify managed/CLI overrides and availability; configured enablement does not establish active isolation |
-
-### Supporting candidates
-
-| Candidate | User scenario and minimum slice | Evidence and entry condition |
-| --- | --- | --- |
-| Migration guidance | Help a user map an existing setup to this product | Verified source/target versions, capability mapping, manual steps and recovery; do not promise lossless automatic conversion |
-
-The [contribution guide](../../CONTRIBUTING.md), [bilingual Bug form](../../.github/ISSUE_TEMPLATE/bug_report.yml) and blank question/feature Issues are already available; see [repository maintenance](repository-governance.md). They are maintained entry points, rather than new development candidates.
-
-### Longer-term candidates
-
-| Candidate | User scenario and minimum slice | Evidence and entry condition |
-| --- | --- | --- |
-| JJ | Show Jujutsu state for a real user's repository | Identified demand, reliable output and availability/identity semantics; select read-only fields first |
-| Other clients | Reuse a selected capability with a named client | A verified input/lifecycle contract and a concrete integration/support boundary |
-| Plugin marketplace | Discover and manage third-party components | Actual extension use plus a selected distribution, trust, compatibility and lifecycle model |
-| Automatic script downloads | Obtain a named external component | A separately selected source, integrity, review, installation and removal design |
-| General Shell mode | Support a concrete command requiring Shell interpretation | A separate interaction and execution-authorization design beyond the existing executable/argv source |
-
-Candidates have no assigned version or date. Listing one does not start development or make it a prerequisite for the formal packages or SHOWCASE-01. Promote a candidate only through an explicit scope decision and a corresponding work-package update. Evaluate distinct user needs and data definitions rather than component counts.
+</details>
 
 <a id="packages"></a>
 
@@ -202,4 +218,4 @@ Keep future plans separate from stable usage instructions. Update both languages
 
 Run `npm run docs:check` and `git diff --check`. Compare bilingual IDs, dependencies, statuses and delivered facts, and verify links from a checkout containing only committed files. Local planning archives and raw validation records remain private and are not dependencies of these public documents.
 
-Current work-package status is maintained in the [stage tables](#milestones); design details and slice acceptance are in the [development plan](development-plan.md#future-work). Preserve the completed delivery records when updating either.
+The [stage tables](#milestones) record completed work-package status. See the [delivered designs](development-plan.md#completed-designs) for original scope, slices and acceptance.

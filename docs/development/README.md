@@ -17,14 +17,14 @@ Development and builds use the Node version in [`.node-version`](../../.node-ver
 | Select validation and CI evidence | [Testing and acceptance](testing.md) · [Impact checks](impact-checks.md) · [CI maintenance/promotion](ci-maintenance.md) · [Measured CI costs](ci-efficiency.md) |
 | Work on host integrations | [Native editor](native.md) · [Capacity/recovery](native-capacity.md) · [Task timing](timer.md) · [Live metrics](live.md) |
 | Maintain languages | [Translation guide](i18n.md) · [Multilingual workflow](i18n-workflow.md) |
-| Produce and verify media | [Image index](../images/README.md) · [SHOWCASE-01 evidence](showcase.md) |
+| Produce and verify media | [Image index](../images/README.md) · [SHOWCASE-01 capture procedure](showcase.md#collection) |
 | Prepare a publication | [Release process](../RELEASING.md#current-typescript-publication) |
 
-The [roadmap](roadmap.md#milestones) owns current priorities and work-package status; the [development plan](development-plan.md#future-work) owns scope, dependencies, slices and acceptance. The [candidate pool](roadmap.md#candidates) contains unselected ideas. Planning edits and historical delivery records do not announce new behavior.
+Use the [development plan](development-plan.md#work-index) for shared design rules, acceptance and handoff. The [roadmap](roadmap.md) owns priorities and work-package status. Its [candidate pool](roadmap.md#candidates) lists unselected directions and their entry conditions.
 
 ### Migration and delivery records
 
-The [development history index](history/README.md#delivery-records) collects delivery records, migration stages, performance reports and historical validation procedures.
+The [development history index](history/README.md) collects [delivered designs](history/README.md#completed-work-designs), versioned delivery records, migration stages, performance reports and historical validation procedures.
 
 ## Contents
 
