@@ -2,6 +2,8 @@
 
 [English](candidate.md) | **简体中文**
 
+本页记录 TS-05 阶段的原候选包及验收范围。当前步骤见[候选包构建与隔离安装](../../testing.zh-CN.md#candidate-build-and-isolated-installation)。
+
 使用 Node **24.21.0**、npm **11.19.0** 和锁定的 TypeScript **5.9.3**。
 日常开发、生成、测试、文档和候选构建不需要 Python 或原生编译器。四个业务包保持独立；
 测试支持工作区和维护工具仅供开发使用。
