@@ -4,15 +4,56 @@
 
 当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
 
-当前目录包含 65 个主栏指标、15 个子 Agent 指标，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
+目录包含 65 个主栏指标和 15 个子 Agent 指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子 Agent 的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 主栏显示项
 
+### 默认主栏条目
+
+默认按下表顺序启用。额度由宿主的 `used_percentage` 换算为剩余百分比。可用窗口取决于宿主、账号和当次 payload。
+
+| ID | 显示内容 | 数据不可用时的行为 |
+| --- | --- | --- |
+| `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
+| `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
+| `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如原生 Linux/macOS 的 `Git main ↑1● 2` 或 Windows/WSL 的 `Git main ↑1●2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
+| `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略 |
+| `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
+| `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
+| `weekly-limit` | 7 天窗口的剩余百分比，显示为 `weekly` | 未提供该窗口时省略 |
+| `spend-limit` | gateway spend 限额的剩余百分比 | 未提供该窗口时省略 |
+| `tokens` | 当前会话累计的 `hit · miss · out` | 没有 session/transcript 信息时省略 |
+| `task-timer` | 最近一次人类任务的总耗时与结果，包含排队、用户等待、所属 Agent 与收尾 | 尚无可识别任务时省略 |
+
+### 常用可选主栏条目
+
+以下条目默认未选中。主栏 `context-used` 与 `context-remaining` 可分别选择，相邻的上下文条目按配置顺序用内部圆点连接。费用显示采用宿主提供的数值，实际账单以服务商记录为准。
+
+| ID | 显示内容 | 数据不可用时的行为 |
+| --- | --- | --- |
+| `version` | Claude Code 版本，例如 `v2.1.258` | 未提供版本时省略 |
+| `session` | 优先使用 `session_name`，否则使用 `session_id` 前八个字符 | 两者均不可用时省略 |
+| `cost` | 会话金额、运行时间和增删行，例如 `Total $0.12 · 12m 30s · +156/-23` | `cost.total_cost_usd` 缺失或无效时省略整项。已观测的零金额显示为零。时长为正或增删行至少一项非零时显示对应部分。 |
+| `prompt-cache` | 主对话缓存命中率及写入量，需 Claude Code 2.1.251+ | 命中率须在 0–1 之间，写入量非零时才显示。两者均无可用显示值时省略。 |
+| `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
+| `agent` | `--agent` 会话的 agent 名称，例如 `Agent orchestrator` | 没有 agent 字段时省略 |
+| `vim-mode` | vim mode 开启时的当前模式，例如 `vim NORMAL` | 没有 vim 字段时省略 |
+| `thinking` | 扩展思考启用时显示 `thinking` | 未启用时省略 |
+| `pr` | 宿主 `pr.number` 和可选的 `pr.review_state`。GitLab 合并请求显示为 `MR !1234` | 没有有效编号时省略 |
+| `repo` | 宿主的 `workspace.repo.owner` 和 `workspace.repo.name`，如 `Repo acme/widget` | 缺少任一字段时省略 |
+
+| ID | 显示内容 | 数据来源 | 数据不可用时的行为 |
+| --- | --- | --- | --- |
+| `context-used` | `Context N% used`，使用 `round()` 取整 | Claude 官方 statusline payload 的 `context_window.used_percentage` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
+| `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 按当前平台路径语义取得的末级目录名；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
+| `hostname` | `Host NAME` | 本机 Node 的 `os.hostname()`；由本机运行时提供 | 本机名称查询失败，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
+
+### 独立指标与实时主栏条目
+
 | ID | 示例 | 定义与来源 |
 | --- | --- | --- |
-| `task-timer` | `✓ 1m 42s` | 人类任务总耗时，包含排队、所属 Agent 和收尾；`prompt-timer` 为兼容别名。 |
 | `task-active-timer` | `Active 1m 30s` | 可选执行耗时；原生用户等待覆盖不完整时隐藏。 |
 | `model` | `claude-opus` | 优先使用 `model.id`，缺失时使用 `model.display_name`。 |
 | `effort` | `high` | 实时 `effort.level`；模型不支持或字段缺失时隐藏。 |
@@ -55,15 +96,59 @@
 
 ## 子 Agent 显示项
 
-| ID | 示例 | 定义与来源 |
-| --- | --- | --- |
-| `model` | `sonnet-5` | 已解析的 `tasks.model`，沿用去除 `claude-` 前缀的子 Agent 格式。 |
-| `effort` | `high` 或 `16000` | 明确配置的 `tasks.effort`，支持数值预算；继承主会话 effort 时字段缺失。不受模型支持的配置等级可能与实际执行值不同。需 Claude Code 2.1.214+。 |
-| `context-tokens` | `Context 84K / 200K` | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
-| `context-window-size` | `200K window` | 已解析的 `tasks.contextWindowSize`。 |
+子 Agent 独立行需 Claude Code 2.1.205+。每项使用当前任务的数据。绑定的外部值见下文。
 
-子 Agent 独立行及上下文字段需 2.1.205+。每项使用自己的任务数据，不以主会话值填补缺失字段。
-现有子 Agent `tokens` 表示上下文占用，不表示 API 累计消耗。
+| ID | 默认 | 内容 |
+| --- | --- | --- |
+| `status-elapsed` | 开 | 状态图标 + 用时，如 `⏱ 1m 18s`；缺失或非法 `startTime` 时只显示图标。与 `status`、`elapsed` 互斥 |
+| `status` | 关 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
+| `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
+| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
+| `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
+| `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
+| `elapsed` | 关 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
+| `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
+| `tokens` | 关 | 当前 task 的紧凑 token 数 |
+| `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
+| `model` | 关 | 已解析的 `tasks.model`，沿用去除 `claude-` 前缀的子 Agent 格式。 |
+| `effort` | 关 | 明确配置的 `tasks.effort`，支持数值预算；继承主会话 effort 时字段缺失。不受模型支持的配置等级可能与实际执行值不同。需 Claude Code 2.1.214+。 |
+| `context-tokens` | 关 | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
+| `context-window-size` | 关 | 已解析的 `tasks.contextWindowSize`。 |
+
+<a id="git-markers"></a>
+
+## Git 标记
+
+`git` 条目使用以下紧凑标记：
+
+| 标记 | 含义 |
+| --- | --- |
+| `↑N` | 当前分支领先 upstream N 个提交 |
+| `↓N` | 当前分支落后 upstream N 个提交 |
+| `[gone]` | 已配置的 upstream 不再存在 |
+| `● N` / `●N` | staged 文件数；原生 Linux/macOS 使用前者，Windows/WSL 使用后者 |
+| `~N` | unstaged 文件数 |
+| `!N` | 冲突文件数 |
+| `?N` | untracked 文件数 |
+| `Git!` | 工作树状态不可用，例如 Git 命令缺失、超时、结果无法解析或采集策略拒绝 |
+
+干净且与 upstream 同步的仓库只显示分支名。detached HEAD 显示为 `HEAD@` 加 7 位 commit ID。
+
+组合项 `git` 与 `git-branch`、`git-changes`、`git-ahead-behind` 共用工作树观测。`branch-diff` 单独查询已提交分支差异。排查策略拒绝时查看 `doctor` 的过滤器说明。[Git 采集策略](DIAGNOSTICS.zh-CN.md#git-采集策略)
+
+<a id="token-fields"></a>
+
+## Token 含义
+
+`tokens` 是当前 Claude Code 会话的累计 API 使用量，也会合并可发现的 subagent transcript：
+
+- `hit`：cache read input tokens。
+- `miss`：普通 input tokens 与 cache creation input tokens 之和。
+- `out`：output tokens。
+
+数值使用紧凑格式，例如 `950`、`12.4K`、`1.05M`。上下文占用和限额用量由各自条目显示。
+
+`prompt-cache` 的命中率和写入量来自宿主提供的主对话 payload。子 Agent 行的 `tokens` 来自单个任务的 `tokenCount`。
 
 ## 时钟、可用性与作用域
 
@@ -73,7 +158,7 @@
 
 输入与输出的可用性独立判断：只观测到输出时，不推定输入为零。不完整的累计快照保留另一项的已知总量，各计数器从自己的快照位置继续叠加主／子 Agent 增量。旧会话缓存仅从可用 transcript 恢复一次可用性，不重复累计消息 ID。
 
-缓存字段需 Claude Code 2.1.251+；warm 说明本地 TTL 有效，不保证下一次请求一定命中服务端缓存。请求／miss 统计仅覆盖主对话，详细 miss 原因留待后续。Git 分项与组合项每次刷新复用同一缓存采集结果。
+主对话缓存统计包含请求次数和 miss。warm 描述本地 TTL 观测，下一次请求是否命中由服务端决定。宿主从 2.1.260 起可提供详细 miss 原因。
 
 - 重置时间戳为 Unix **秒**。每次刷新共用一个时钟；不足一秒的未来期限向上取整，依次使用秒、
   分钟／秒、小时／分钟、天／小时显示。过期时旧额度及倒计时同时隐藏；没有时间戳的旧比例输入仍可读取。
@@ -95,11 +180,7 @@
 claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
 ```
 
-CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v8 与
-JSON 协议 v12 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
-
-旧包可能无法读取 schema v8，也不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
-另行遵循[原生接入降级步骤](USER_GUIDE.zh-CN.md#升级)。
+CLI 列表和 JSON `describe` 返回共享目录。最低版本描述已验证的宿主门槛，字段可用性取决于实际输入。降级前检查目标包的显示项和格式支持，并准备兼容备份。[配置文件格式](reference/cli.zh-CN.md#配置文件) · [版本兼容](USER_GUIDE.zh-CN.md#版本兼容)
 
 ## 实时状态项
 
@@ -107,7 +188,7 @@ JSON 协议 v12 为当前契约。最低版本元数据表示已验证的功能�
 
 ## 分支基准与已结束代理
 
-使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1–v7 只在内存补默认值，实际保存才备份并迁移到 v8，配置协议为 v12；包降级前恢复旧版配置备份。
+使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`。两个编辑器都提供可留空的 Metrics 字段。ref 或 merge-base 缺失、浅克隆缺少历史以及超时时显示 `Diff —`。
 
 运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；任务计时完成证据见[计时契约](development/timer.zh-CN.md)。
 

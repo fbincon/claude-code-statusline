@@ -2,6 +2,8 @@
 
 **English** | [简体中文](candidate.zh-CN.md)
 
+This page records the original TS-05 candidate and acceptance scope. Use [candidate build and isolated installation](../../testing.md#candidate-build-and-isolated-installation) for current procedures.
+
 Use Node **24.21.0**, npm **11.19.0** and the locked TypeScript **5.9.3**.
 Ordinary development, generation, tests, documentation and candidate builds need
 no Python or native compiler. Four business packages remain independent; the

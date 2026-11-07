@@ -25,7 +25,9 @@ With no subcommand, an interactive invocation opens the reviewed [persistent-ins
 
 ```text
 claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id] COMMAND ...
-claude-statusline update [--check] [--version EXACT | --channel latest|beta] [--json]
+claude-statusline update [--version EXACT | --channel latest|beta] [--prefix PATH] [--config-dir PATH] [--yes]
+claude-statusline update (--check | --dry-run) [--version EXACT | --channel latest|beta]
+  [--prefix PATH] [--config-dir PATH] [--json]
 claude-statusline rollback [--version EXACT]
 claude-statusline recover --package [--version EXACT]
 claude-statusline recover --restore-config BACKUP_ID
@@ -73,6 +75,8 @@ claude-statusline --version
 ```
 
 In Windows PowerShell, replace the command name with `claude-statusline.cmd`; arguments and output formats are identical. Brackets and ellipses above indicate syntax, not literal arguments. See the [internal commands appendix](../development/README.md#appendix-internal-commands) for commands called by Claude Code.
+
+Package management accepts `--json` with `--check` or `--dry-run`. Noninteractive writes require an exact `--version`, explicit `--prefix` and `--yes`. See [package management](../PACKAGE_MANAGEMENT.md) for update, rollback and recovery workflows.
 
 View built-in help at any level:
 
@@ -238,13 +242,13 @@ claude-statusline config set-items model-with-effort current-dir git task-timer
 
 All items not listed become disabled. This is useful for defining a minimal status line from scratch.
 
-An empty item list is valid and disables all rendered content:
+For a type-based display, an empty item list clears the main selection.
 
 ```bash
 claude-statusline config set-items
 ```
 
-The tool remains installed, with hooks and configuration intact; the renderer simply outputs no status-line text. Restore the display with `enable`, another `set-items`, or `reset`.
+The integration, hooks and subagent selection remain in place. Use `config subagents set-items` to clear the subagent selection. Restore the main selection with `enable` or another `set-items`.
 
 Unknown and duplicate items are rejected without writing files:
 
@@ -458,59 +462,13 @@ This command:
 
 ## Configurable display items
 
-The main catalog has 65 metrics plus `text` and `spacer`; the subagent catalog has 15 metrics plus those two layout types. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
-
-All the following items are enabled by default; table order is also the initial display order:
-
-| ID | Display | Behavior when data is unavailable |
-| --- | --- | --- |
-| `model-with-effort` | Current model ID, falling back to display name; appends effort level when present | Omitted without model fields |
-| `current-dir` | Claude Code's current working directory | Omitted without a directory field |
-| `git` | `Git ` plus branch, upstream differences, and working-tree changes, such as `Git main ↑1● 2` on native Linux/macOS or `Git main ↑1●2` on Windows/WSL | Omitted outside Git repositories; displays `Git!` on query errors |
-| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage |
-| `context-window-size` | Total context window, such as `1M window` | Omitted when Claude Code provides no window size |
-| `five-hour-limit` | Remaining percentage of the 5-hour window | Omitted without this window |
-| `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |
-| `spend-limit` | Remaining percentage of the gateway spend limit | Omitted without this window |
-| `tokens` | Cumulative session `hit · miss · out` | Omitted without session/transcript information |
-| `task-timer` | Duration and result of the current or latest real prompt | Omitted until a prompt can be identified |
-
-Limit percentages are calculated from Claude Code's `used_percentage`. This tool does not query account-limit services; available windows depend on the Claude Code version, account, and current status-line payload.
-
-The following items come from the public status-line payload in Claude Code 2.1.258+ and are **disabled by default**. Enable them with `/statusline-config enable`:
-
-| ID | Display | Behavior when data is unavailable |
-| --- | --- | --- |
-| `version` | Claude Code version, such as `v2.1.258` | Omitted without a version |
-| `session` | `Session ` plus the session name set with `/rename`, otherwise the first 8 characters of its ID, such as `Session explain prompt-cache` | Omitted without a session ID |
-| `cost` | Session cost, session runtime, and added/deleted lines, such as `Total $0.12 · 12m 30s · +156/-23`; cost always appears (`Total $0.00` without data), while zero duration or both zero line counts are omitted | Omitted without the cost field |
-| `prompt-cache` | Cache hit rate and written tokens, such as `cache 91% · 352K w` | Omitted without prompt_cache, which is absent before the first API response; out-of-range hit rates leave only tokens |
-| `cache-miss-reason` | Host-reported likely cause | Off by default; reads `prompt_cache.last_miss_cause`, preserving unknown codes |
-| `fast-mode` | `fast` when fast mode is enabled | Omitted when disabled |
-| `agent` | Agent name in a `--agent` session, such as `Agent orchestrator` | Omitted without the agent field |
-| `vim-mode` | Current mode when vim mode is enabled, such as `vim NORMAL` | Omitted without the vim field |
-| `thinking` | `thinking` when extended thinking is enabled | Omitted when disabled |
-| `pr` | Current branch's open PR/MR, such as `PR #1234 · approved`; GitLab merge requests appear as `MR !1234` | Omitted without an open PR/MR on the current branch |
-| `worktree` | Claude worktree session name or current linked Git worktree, such as `Worktree feat-x` | Omitted without both `worktree.name` and `workspace.git_worktree` |
-| `repo` | `Repo ` plus the origin remote repository, such as `Repo acme/widget` | Omitted without a remote identity |
-
-The `cost` amount comes from Claude Code's `total_cost_usd`; with third-party API endpoints, such as a DeepSeek proxy, it is an estimate using default model rates and is for reference only. `prompt-cache` and `tokens` measure different usage: the former comes from the status-line payload and excludes subagent traffic; the latter aggregates transcripts, including discoverable subagent transcripts.
-
-The following three optional items show context usage, project directory name, and hostname, and are also **disabled by default**:
-
-| ID | Display | Source | Behavior when data is unavailable |
-| --- | --- | --- | --- |
-| `context-used` | `Context N% used`, rounded with `round()` | `context_window.used_percentage` in Claude's official status-line payload | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
-| `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
-| `hostname` | `Host NAME` | Local Node `os.hostname()`; not a Claude Code 2.1.258+ payload field | Omitted if the local hostname lookup fails or returns an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
-
-Enable all three together:
+Use `config list-items --json` and `config subagents list-items --json` for the full catalog in each scope. Use `config enable` for main IDs and `config subagents enable` for subagent IDs.
 
 ```bash
 claude-statusline config enable project-name hostname context-used
 ```
 
-Main-line `context-used` and `context-remaining` are independent options; enable either or both. Adjacent context items follow configured order and use internal dot separators, such as `Context 73% left · Context 27% used · 200K window`.
+See [metric definitions](../DISPLAY_ITEMS.md) for defaults, host requirements and unavailable values.
 
 <a id="主状态栏显示含义"></a>
 
@@ -520,32 +478,13 @@ Main-line `context-used` and `context-remaining` are independent options; enable
 
 ### Git markers
 
-The `git` item uses these compact markers:
-
-| Marker | Meaning |
-| --- | --- |
-| `↑N` | Current branch is N commits ahead of upstream |
-| `↓N` | Current branch is N commits behind upstream |
-| `[gone]` | Configured upstream no longer exists |
-| `● N` / `●N` | Staged file count; native Linux/macOS use the former, Windows/WSL the latter |
-| `~N` | Unstaged file count |
-| `!N` | Conflicted file count |
-| `?N` | Untracked file count |
-| `Git!` | Git command missing, timed out, or returned unparseable results |
-
-A clean repository synchronized with upstream shows only its branch name. Detached HEAD appears as `HEAD@` followed by a 7-character commit ID.
+See [Git markers and collection scope](../DISPLAY_ITEMS.md#git-markers) for the displayed fields.
 
 <a id="token-含义"></a>
 
 ### Token fields
 
-`tokens` reports cumulative API usage for the current Claude Code session, including discoverable subagent transcripts:
-
-- `hit`:cache read input tokens.
-- `miss`: ordinary input tokens plus cache creation input tokens.
-- `out`:output tokens.
-
-Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. They do not indicate remaining context or rate-limit usage; separate items show those metrics.
+See [token fields and scope](../DISPLAY_ITEMS.md#token-fields) for definitions.
 
 <a id="prompt-计时标记"></a>
 
@@ -599,24 +538,7 @@ A default subagent row looks like:
 ⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
 ```
 
-Sortable items and defaults:
-
-| ID | Default | Content |
-| --- | --- | --- |
-| `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`; only the icon when `startTime` is missing or invalid. Mutually exclusive with `status` and `elapsed` |
-| `status` | Off | `pending …`, `running ⏱`, `completed ✓`, `failed ✗`, `killed ■`, `paused/waiting ⏳`; unknown status uses `?` |
-| `name` | On | `name`, otherwise normalized `type`, otherwise `Agent` |
-| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` when available |
-| `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
-| `context-used` | Off | `Context N% used`, from `tokenCount / contextWindowSize` rounded to a percentage |
-| `elapsed` | Off | Duration from the task's epoch-millisecond `startTime`; future timestamps count as 0 seconds |
-| `task` | On | `label`, otherwise `description`; omitted when identical to the name |
-| `tokens` | Off | Compact token count for the current task |
-| `current-dir` | Off | Task `cwd`, respecting directory style |
-| `model` | Off | Independent task model identifier |
-| `effort` | Off | Explicit task effort or numeric budget; 2.1.214+ |
-| `context-tokens` | Off | Task token count versus context capacity |
-| `context-window-size` | Off | Context capacity for the task model |
+See [subagent items](../DISPLAY_ITEMS.md#subagent-items) for defaults and field definitions.
 
 Width uses the payload's positive integer `columns` directly, falling back to 80 when invalid, without the main-line margin. Input newlines, tabs, and control characters are sanitized. Overflow first truncates task text, then drops optional segments in the order `current-dir → tokens → context-used → context-remaining → model-with-effort → task`. `status` and `status-elapsed` are always retained; with `status` enabled, `name` and `elapsed` are also retained until last. At extreme widths, `status-elapsed` becomes an icon only. ASCII, CJK, emoji, combining characters, and ANSI paths all stay within `columns` of visible width without wrapping.
 
@@ -920,9 +842,9 @@ Windows PowerShell:
 
 ```powershell
 $env:CLAUDE_CONFIG_DIR = 'C:\Path With Spaces\Claude 配置'
-claude-statusline.exe install
-claude-statusline.exe configure
-claude-statusline.exe config show
+claude-statusline.cmd install
+claude-statusline.cmd configure
+claude-statusline.cmd config show
 ```
 
 Management commands also accept explicit `--config-dir PATH`, which takes precedence over the environment variable.

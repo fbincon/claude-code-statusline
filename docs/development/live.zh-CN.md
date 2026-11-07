@@ -52,7 +52,7 @@ native 心跳建立 epoch，每 5 秒更新，超过 15 秒失效，时钟倒退
 
 ## 验证
 
-当前验证使用 core 运行时测试、CLI 存储／接入测试、`generate:check`、匹配安装包检查及具有可用精确宿主声明的官方 Mod 验证／测试。按[影响检查](impact-checks.zh-CN.md)选择适用任务；[候选验收](typescript-migration/ts-05/candidate.zh-CN.md)说明 `test:installed` 和 `test:mods`。它们使用临时配置，不调用模型；安装成功和模拟心跳不构成真实会话加载或人工交互验收。已退役 Python 冒烟工具保留为历史归档。
+当前验证使用 core 运行时测试、CLI 存储／接入测试、`generate:check`、匹配安装包检查及具有可用精确宿主声明的官方 Mod 验证／测试。按[影响检查](impact-checks.zh-CN.md)选择适用任务；[候选验收](testing.zh-CN.md#candidate-build-and-isolated-installation)说明 `test:installed` 和 `test:mods`。它们使用临时配置，不调用模型；安装成功和模拟心跳不构成真实会话加载或人工交互验收。已退役 Python 冒烟工具保留为历史归档。
 
 另见[架构](architecture.zh-CN.md)、[测试](testing.zh-CN.md)、
 [官方 Mods 事件](https://code.claude.com/docs/en/plugins/mods/reference)和

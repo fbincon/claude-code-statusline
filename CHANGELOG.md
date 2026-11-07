@@ -9,7 +9,7 @@
 - Generate current appearance choices and document the nineteen shared slash-parser actions, with profile/project management kept in terminal commands or editors.
 - Require literal argument handling in model fallback, check installation/ownership before questions and reread saved state before applying answers.
 - Update `/statusline-configure` fallback guidance for the stable Node terminal editor, preserving tool restrictions and Windows command spelling.
-- Release validation and publication are pending. [Implementation and evidence](docs/development/skill-workflows.md) · [Release notes](docs/releases/v3.16.3.md).
+- Published on npm, GitHub and Gitee on 2026-11-05. [Release notes](docs/releases/v3.16.3.md) · [Verified delivery](docs/development/skill-workflows.md#final-release).
 
 ## 3.16.2 — 2026-11-01
 

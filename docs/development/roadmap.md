@@ -2,30 +2,19 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-The v3.16.0 [twelve-language expansion](language-expansion.md#final-release) adds six UI/output languages and editor protocol 31, covering 144 combinations and 313 capacity cases. Publication and actual-machine status: complete; original identities and actual evidence remain in the delivery record.
+This roadmap owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies, slices and acceptance. The [delivery index](history/README.md#delivery-records) links implementation and publication evidence.
 
-v3.15.0 delivers all three I18N-02 slices, publication and actual-machine verification. [Final delivery](i18n-02-delivery.md#final-release). Display schema 17/editor protocol 30 were unchanged in that release.
-
-v3.14.0 delivers APPEARANCE-07, APPEARANCE-06 and PROFILE-02 and resolves #178/#180; all three packages are DONE. [Implementation, delivery and verification](adaptive-row-scenarios.md). Display schema 17/editor protocol 30.
-
-v3.13.0 delivers every UX-03, COMPOSITION-04 and IMPORT-02 slice; all three packages are DONE. [Delivery and post-publication findings](draft-history-and-reuse.md). v3.12.0 source/command/package management and earlier delivery facts remain historical.
-
-Updated: **2026-10-30** (Asia/Shanghai) · Product baseline: **v3.16.0** · Original planning baseline: **`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
-
-Claude Code Statusline presents tasks, subagents, projects and usage clearly, with shared configuration behavior across the CLI and both editors. M1–M12, the eighteen selected follow-up packages and all their slices are delivered. SHOWCASE-01 now completes their bilingual usage demonstrations and documentation maintenance against the existing v3.16.0 package; see its [separate acceptance and delivery records](showcase.md#delivery). The table below retains package identities and dependencies; unselected ideas remain in the candidate pool.
-
-This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
-
-[I18N-02](development-plan.md#i18n-02) is DONE in v3.15.0. The [implementation record](i18n-02-delivery.md) records compatibility preparation, incremental maintenance, strict six-language release readiness, all public channels and actual-machine verification. No language was added; I18N-01 remains delivered.
+The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`. M1–M12 and the eighteen selected follow-up packages are delivered. [SHOWCASE-01](showcase.md#delivery) demonstrates those workflows using the recorded package and capture inputs. The stage tables list work-package status.
 
 **Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
 
-
-TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](source-command-package-management.md) completes UPDATE-02 and fixes #173. [Earlier delivery](task-version-review.md).
-
 <a id="baseline"></a>
 
-## Current baseline and product direction
+<a id="current-baseline-and-product-direction"></a>
+
+## Planning baseline and product direction
+
+The table describes the capabilities used to plan from v3.16.0. See the [user guide](../USER_GUIDE.md) for current procedures and the [changelog](../../CHANGELOG.md) for changes since that baseline.
 
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
@@ -41,7 +30,7 @@ TASK-02 and UPDATE-02 slice 1 were delivered in v3.11.0; [v3.12.0 delivery](sour
 | Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.16.0 delivery](language-expansion.md#final-release), [v3.15.0 delivery](i18n-02-delivery.md#final-release), [v3.14.0 delivery](adaptive-row-scenarios.md), [v3.13.0 delivery](draft-history-and-reuse.md), [v3.12.0 delivery](source-command-package-management.md), [v3.11.0 delivery](task-version-review.md), [v3.10.0 delivery](appearance-preview-diagnosis.md), [v3.9.2 release](../releases/v3.9.2.md), [correctness delivery](correctness-maintenance.md), [v3.9.1 release](../releases/v3.9.1.md), [native capacity and delivery](native-capacity.md), [M10–M12 delivery](m10-m12-delivery.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot at `f68d26eeddda98ab4041d2b9e873ade556fa1909` remains historical; release identities and actual verification stay in the delivery records.
+The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot is `f68d26eeddda98ab4041d2b9e873ade556fa1909`. See the [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [architecture](architecture.md) and [delivery index](history/README.md#delivery-records) for the corresponding definitions and evidence.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
@@ -199,29 +188,9 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 
 ## Delivered work and historical evidence
 
-| Version | Work packages | Status | Implementation and delivery record |
-| --- | --- | --- | --- |
-| v3.2.0 | UX-01, UX-02, EXPLAIN-01 | DONE | [Configuration experience](configuration-experience.md) |
-| v3.3.0 | DIAG-01, INPUT-01 | DONE | [Real-input diagnosis](real-input-diagnostics.md) |
-| v3.4.0 | PROFILE-01, PROJECT-01, TASK-01 | DONE | [Profiles, projects and task details](profiles-projects-tasks.md) |
-| v3.5.0 | SETUP-01, APPEARANCE-01, APPEARANCE-02 | DONE | [Setup and complete appearances](setup-appearance.md) |
-| v3.6.0 | EXTENSIONS-01, LINKS-01, WORKFLOW-01, COMMAND-01, CAPABILITIES-01 | DONE | [Extensions and workflows](extensions.md) |
-| v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](m4-m7-delivery.md) |
-| v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](m8-m9-delivery.md) |
-| v3.9.0 | IMPORT-01, APPEARANCE-04, COMPOSITION-03 | DONE | [Selective import, gradients and alignment](m10-m12-delivery.md) |
-| v3.9.1 | #154 transport capacity, #155 render-tree capacity and save-result recovery | DONE | [Native capacity and delivery](native-capacity.md) |
-| v3.9.2 | FIX-01–FIX-04, I18N-01: drafts, indicators, refresh consumers, historical diagnosis and task language | DONE | [Correctness delivery and publication](correctness-maintenance.md) |
-| v3.10.0 | APPEARANCE-05, PREVIEW-01, EXPLAIN-02: themes, color editing, sample scenarios and file diagnosis | DONE | [Appearance, previews and diagnosis delivery](appearance-preview-diagnosis.md) |
-| v3.11.0 | TASK-02, UPDATE-02 slice 1 | DONE | [Task browsing and version review](task-version-review.md) |
-| v3.12.0 | SOURCES-01, COMMAND-02, UPDATE-02 slices 2/3; #173 | DONE | [v3.12.0 delivery](source-command-package-management.md) |
-| v3.13.0 | All UX-03, COMPOSITION-04 and IMPORT-02 slices | DONE | [Draft history, repairs and reuse delivery](draft-history-and-reuse.md) |
-| v3.14.0 | APPEARANCE-07, APPEARANCE-06, PROFILE-02; #178/#180 | DONE | [Adaptive appearance and scenario delivery](adaptive-row-scenarios.md) |
-| v3.15.0 | All I18N-02 slices; incremental six-language maintenance | DONE | [Incremental language workflow delivery](i18n-02-delivery.md#final-release) |
-| v3.16.0 | Six additional UI/statusline languages; editor protocol 31 | DONE | [Twelve-language delivery](language-expansion.md#final-release) |
+Use the [version-to-work-package index](history/README.md#delivery-by-version) for work-package mappings through the planning baseline, and the [topic index](history/README.md#delivery-records) for later records and migration evidence. The [changelog](../../CHANGELOG.md) leads to version-specific user-facing notes.
 
-The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
-
-CI-01 is complete as repository maintenance without a new product version. Its [validation and update procedure](ci-maintenance.md) records the final PR/main matrices, manual workflow checks and retained failure history.
+[CI-01 validation and update procedure](ci-maintenance.md) records the final PR/main matrices, manual workflow checks and retained failures for that repository-maintenance delivery.
 
 <a id="maintenance"></a>
 
@@ -229,7 +198,7 @@ CI-01 is complete as repository maintenance without a new product version. Its [
 
 Maintain this roadmap and the [development plan](development-plan.md) with their Simplified Chinese counterparts. Update stages and status here, scope and acceptance in the plan, and actual implementation/publication evidence in the relevant delivery record. Use `NOT_STARTED` → `IN_PROGRESS` → `VALIDATING` → `DONE`; a documentation edit does not advance a feature's status.
 
-Keep future plans separate from stable usage instructions. Update both languages together, preserve work-package IDs and section anchors, and explain scope or dependency changes. Add links from the development guide when a new record becomes useful to contributors.
+Keep future plans separate from stable usage instructions. Update both languages together, preserve work-package IDs and section anchors, and explain scope or dependency changes. Link new delivery evidence from the [delivery index](history/README.md#delivery-records).
 
 Run `npm run docs:check` and `git diff --check`. Compare bilingual IDs, dependencies, statuses and delivered facts, and verify links from a checkout containing only committed files. Local planning archives and raw validation records remain private and are not dependencies of these public documents.
 

@@ -4,15 +4,56 @@
 
 Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/post-migration-fixes.md).
 
-The current catalog contains 65 main and 15 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
+The catalog contains 65 main metrics and 15 subagent metrics. The tables list defaults and common definitions. Use `config list-items --json` and `config subagents list-items --json` for all IDs. `prompt-timer` is a compatibility alias for `task-timer`. Main compounds can coexist with independent items. Subagent `status-elapsed` excludes `status` and `elapsed`. [Configure display items](USER_GUIDE.md#configurable-display-items)
 
 Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
 
 ## Main items
 
+### Default main items
+
+Enabled in the order shown. Remaining limits are calculated from the host's `used_percentage`. Available windows depend on the host, account and current payload.
+
+| ID | Display | Behavior when data is unavailable |
+| --- | --- | --- |
+| `model-with-effort` | Current model ID, falling back to display name; appends effort level when present | Omitted without model fields |
+| `current-dir` | Claude Code's current working directory | Omitted without a directory field |
+| `git` | `Git ` plus branch, upstream differences, and working-tree changes, such as `Git main ↑1● 2` on native Linux/macOS or `Git main ↑1●2` on Windows/WSL | Omitted outside Git repositories; displays `Git!` on query errors |
+| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage |
+| `context-window-size` | Total context window, such as `1M window` | Omitted when Claude Code provides no window size |
+| `five-hour-limit` | Remaining percentage of the 5-hour window | Omitted without this window |
+| `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |
+| `spend-limit` | Remaining percentage of the gateway spend limit | Omitted without this window |
+| `tokens` | Cumulative session `hit · miss · out` | Omitted without session/transcript information |
+| `task-timer` | Elapsed time and outcome of the latest human task, including queueing, user waits, owned agents and wrap-up | Omitted until a task can be identified |
+
+### Common optional main items
+
+These items are optional. Select `context-used` and `context-remaining` independently. Adjacent context items follow the configured order and use internal dots. Cost display uses the value supplied by the host. Consult the provider's billing record for actual charges.
+
+| ID | Display | Behavior when data is unavailable |
+| --- | --- | --- |
+| `version` | Claude Code version, such as `v2.1.258` | Omitted without a version |
+| `session` | Session name or the first eight characters of `session_id` | Omitted when both values are unavailable |
+| `cost` | Session cost, runtime and line changes, for example `Total $0.12 · 12m 30s · +156/-23` | Omitted unless `cost.total_cost_usd` is finite. An observed zero amount displays as zero. The duration appears when positive and the line counts appear when at least one is nonzero. |
+| `prompt-cache` | Main-conversation cache hit ratio and written tokens. Requires Claude Code 2.1.251+. | The ratio must be in 0–1 and the write count is shown when nonzero. The item is omitted when neither value can be shown. |
+| `fast-mode` | `fast` when fast mode is enabled | Omitted when disabled |
+| `agent` | Agent name in a `--agent` session, such as `Agent orchestrator` | Omitted without the agent field |
+| `vim-mode` | Current mode when vim mode is enabled, such as `vim NORMAL` | Omitted without the vim field |
+| `thinking` | `thinking` when extended thinking is enabled | Omitted when disabled |
+| `pr` | Host `pr.number` and optional `pr.review_state`. A GitLab merge request appears as `MR !1234`. | Omitted without a valid number |
+| `repo` | Host `workspace.repo.owner` and `workspace.repo.name`, for example `Repo acme/widget` | Omitted when either field is missing |
+
+| ID | Display | Source | Behavior when data is unavailable |
+| --- | --- | --- | --- |
+| `context-used` | `Context N% used`, rounded with `round()` | `context_window.used_percentage` in Claude's official status-line payload | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
+| `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
+| `hostname` | `Host NAME` | Local Node `os.hostname()`; provided by the local runtime | Omitted if the local hostname lookup fails or returns an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
+
+### Independent and live main items
+
 | ID | Example | Definition and source |
 | --- | --- | --- |
-| `task-timer` | `✓ 1m 42s` | Total human-task elapsed, including queueing, owned agents and wrap-up; `prompt-timer` remains an alias. |
 | `task-active-timer` | `Active 1m 30s` | Optional execution time; hidden when native user-wait coverage is incomplete. |
 | `model` | `claude-opus` | `model.id`, falling back to `model.display_name`. |
 | `effort` | `high` | Live `effort.level`; no value when unsupported or absent. |
@@ -55,16 +96,55 @@ Examples below use English output. `statusline-language=zh-CN` localizes built-i
 
 ## Subagent items
 
-| ID | Example | Definition and source |
-| --- | --- | --- |
-| `model` | `sonnet-5` | Resolved `tasks.model`, using the existing agent format without the `claude-` prefix. |
-| `effort` | `high` or `16000` | Explicit configured `tasks.effort`, including numeric budgets. Absent when inherited; unsupported configured levels may differ from effective effort. Requires Claude Code 2.1.214+. |
-| `context-tokens` | `Context 84K / 200K` | `tasks.tokenCount` versus `tasks.contextWindowSize`. |
-| `context-window-size` | `200K window` | Resolved `tasks.contextWindowSize`. |
+Subagent rows require Claude Code 2.1.205+. Each field uses the current task's data. Bound external values are described below.
 
-Subagent rows and the context fields require 2.1.205+. Each item uses its task's
-data; main-session values do not fill missing agent fields. Existing agent
-`tokens` means context occupancy, not cumulative API consumption.
+| ID | Default | Content |
+| --- | --- | --- |
+| `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`; only the icon when `startTime` is missing or invalid. Mutually exclusive with `status` and `elapsed` |
+| `status` | Off | `pending …`, `running ⏱`, `completed ✓`, `failed ✗`, `killed ■`, `paused/waiting ⏳`; unknown status uses `?` |
+| `name` | On | `name`, otherwise normalized `type`, otherwise `Agent` |
+| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` when available |
+| `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
+| `context-used` | Off | `Context N% used`, from `tokenCount / contextWindowSize` rounded to a percentage |
+| `elapsed` | Off | Duration from the task's epoch-millisecond `startTime`; future timestamps count as 0 seconds |
+| `task` | On | `label`, otherwise `description`; omitted when identical to the name |
+| `tokens` | Off | Compact token count for the current task |
+| `current-dir` | Off | Task `cwd`, respecting directory style |
+| `model` | Off | Resolved `tasks.model`, using the existing agent format without the `claude-` prefix. |
+| `effort` | Off | Explicit configured `tasks.effort`, including numeric budgets. Absent when inherited; unsupported configured levels may differ from effective effort. Requires Claude Code 2.1.214+. |
+| `context-tokens` | Off | `tasks.tokenCount` versus `tasks.contextWindowSize`. |
+| `context-window-size` | Off | Resolved `tasks.contextWindowSize`. |
+
+## Git markers
+
+The `git` item uses these compact markers:
+
+| Marker | Meaning |
+| --- | --- |
+| `↑N` | Current branch is N commits ahead of upstream |
+| `↓N` | Current branch is N commits behind upstream |
+| `[gone]` | Configured upstream no longer exists |
+| `● N` / `●N` | Staged file count; native Linux/macOS use the former, Windows/WSL the latter |
+| `~N` | Unstaged file count |
+| `!N` | Conflicted file count |
+| `?N` | Untracked file count |
+| `Git!` | Worktree status unavailable, for example when Git is missing, times out, returns unparseable output or is blocked by collection policy |
+
+A clean repository synchronized with upstream shows only its branch name. Detached HEAD appears as `HEAD@` followed by a 7-character commit ID.
+
+The `git` compound and `git-branch`, `git-changes` and `git-ahead-behind` share a worktree observation. `branch-diff` queries committed branch differences separately. Inspect `doctor` for the filter-policy result when collection is blocked. [Git collection policy](DIAGNOSTICS.md#git-collection-policy)
+
+## Token fields
+
+`tokens` reports cumulative API usage for the current Claude Code session, including discoverable subagent transcripts:
+
+- `hit`: cache read input tokens.
+- `miss`: ordinary input tokens plus cache creation input tokens.
+- `out`: output tokens.
+
+Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. Separate items show context occupancy and rate-limit usage.
+
+The host payload's `prompt-cache` hit ratio and write count describe the main conversation. A subagent row's `tokens` comes from that task's `tokenCount`.
 
 ## Clocks, availability and scope
 
@@ -74,7 +154,7 @@ Cumulative input/output use the existing cost-state snapshot plus transcript del
 
 Input and output availability are independent: an output-only observation does not imply zero input. Partial cumulative snapshots retain the other counter's known total and apply each counter's subsequent main/subagent delta from its own snapshot. Older cached sessions recover availability once from available transcripts without recounting message IDs.
 
-Cache fields require Claude Code 2.1.251+. Cache warmth reports local TTL, not a guarantee of the next server cache hit; request/miss statistics cover only the main conversation. Detailed miss causes remain a later extension. Git components and the compound reuse one cached collector result per refresh.
+Main-conversation cache statistics include requests and misses. Cache warmth describes the local TTL observation. The server determines whether the next request hits. Hosts from 2.1.260 can provide detailed miss reasons.
 
 - Reset timestamps are Unix epoch **seconds**. A refresh captures one clock for
   all countdowns. Future fractions round up to a second; displays use seconds,
@@ -103,14 +183,7 @@ For example, replace the main selection with independent metrics:
 claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
 ```
 
-The shared catalog is returned by CLI listings and JSON `describe`. Both TUI
-editors and the installed wizard consume it. Display schema v8 and JSON protocol
-v12 remain the current contracts; minimum-version metadata describes verified boundaries, not
-whether live data has arrived. Unverified field minima remain unknown.
-
-Older packages do not recognize newly selected IDs and may not read schema v8. Before downgrading, use the newer package to remove new IDs from both
-scopes or restore a compatible configuration backup. Follow the existing
-[native integration downgrade procedure](USER_GUIDE.md#upgrading) separately.
+CLI listings and JSON `describe` return the shared catalog. Minimum-version metadata records verified host boundaries. Field availability also depends on the payload. Before downgrading, check the target package's item and format support and prepare a compatible backup. [Configuration formats](reference/cli.md#configuration-files) · [Version compatibility](USER_GUIDE.md#version-compatibility)
 
 ## Live state items
 
@@ -118,7 +191,7 @@ The five Phase 5 items default unselected. Collection uses the independent `inst
 
 ## Branch base and ended agents
 
-Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1–v7 normalize in memory; actual saves back up and migrate to v8, with configuration protocol v12. Restore an older configuration backup before a package downgrade.
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`. Both editors expose the same nullable Metrics field. Missing refs or merge-bases, unavailable shallow history and timeouts display `Diff —`.
 
 Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
 

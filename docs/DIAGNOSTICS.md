@@ -76,6 +76,8 @@ See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_
 
 ## Git collection policy
 
+Run `claude-statusline doctor` from the project directory to inspect the active Git policy. The four status fields share a worktree observation. The committed `branch-diff` field has its own query. [Git items and markers](DISPLAY_ITEMS.md#git-markers)
+
 `Git!` with cached `git_policy.filter_blocked` or `git_policy.policy_unavailable` means collection could not safely preserve filter semantics; it never means a clean worktree. `doctor` inspects filter definitions in the current directory without running their commands. See the [compatibility table](development/m8-m9-delivery.md#git-invocation-policy). Deliberately correct configuration in your own Git workflow; this product never rewrites it. Cached diagnosis never retries Git.
 
 ## Package operation diagnosis

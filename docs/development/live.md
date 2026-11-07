@@ -70,7 +70,7 @@ answers or arbitrary tool arguments in this store.
 
 ## Validation
 
-Current validation uses core runtime tests, CLI store/integration tests, `generate:check`, matching installed-package checks and official Mod validation/tests with available exact-host declarations. Use [impact checks](impact-checks.md) to select the applicable tasks; [candidate acceptance](typescript-migration/ts-05/candidate.md) describes `test:installed` and `test:mods`. These run in temporary configuration without model calls. Installation and a mocked heartbeat do not establish real-session loading or human interaction acceptance. The retired Python smoke tool remains historical archive material.
+Current validation uses core runtime tests, CLI store/integration tests, `generate:check`, matching installed-package checks and official Mod validation/tests with available exact-host declarations. Use [impact checks](impact-checks.md) to select the applicable tasks; [candidate acceptance](testing.md#candidate-build-and-isolated-installation) describes `test:installed` and `test:mods`. These run in temporary configuration without model calls. Installation and a mocked heartbeat do not establish real-session loading or human interaction acceptance. The retired Python smoke tool remains historical archive material.
 
 See [architecture](architecture.md), [testing](testing.md),
 [official Mods events](https://code.claude.com/docs/en/plugins/mods/reference), and

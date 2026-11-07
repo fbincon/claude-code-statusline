@@ -2,7 +2,7 @@
 
 [English](SETUP.md) | **简体中文**
 
-从安装到实际显示的完整流程见[使用演示](SHOWCASE.zh-CN.md)。安装 npm 包后运行：
+[安装 npm 软件包](USER_GUIDE.zh-CN.md#安装与接入)后运行设置向导，预览显示并审核 Claude 接入。[使用演示](SHOWCASE.zh-CN.md)展示完整流程。
 
 ```sh
 claude-statusline setup --dry-run

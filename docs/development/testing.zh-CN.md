@@ -12,30 +12,74 @@
 | 核心行为／运行依赖 | 完整产品检查及适用安装／运行时／宿主矩阵 |
 | 终端、实机或付费工作 | 范围明确的采集、源码绑定报告及实际限制；付费调用需要获批预算和共用账本 |
 
-普通测试使用隔离配置／安装目录，不调用付费模型。[候选验收](typescript-migration/ts-05/candidate.zh-CN.md)说明安装、终端、电源及付费入口。PTY 重建和代理画面检查不等于实机或人工验收。[issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)原有六项缺口仍未验证，不豁免新增失败。
+普通测试使用隔离的配置和安装目录。[候选包验收](#candidate-build-and-isolated-installation)介绍安装与宿主检查，交互终端、实机和付费场景有独立入口。分别记录 PTY 重建、操作者观察和实机结果。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)的六项既有缺口继续标为未验证。
 
-当前 Native 容量规则与适用宿主检查见[容量与恢复](native-capacity.zh-CN.md)。[交付索引](README.zh-CN.md#迁移与交付记录)链接各功能证据；历史记录中的数量描述其指定版本，不代表对当前 main 新执行了一轮检查。
+当前 Native 容量规则与适用宿主检查见[容量与恢复](native-capacity.zh-CN.md)。[交付索引](history/README.zh-CN.md#delivery-records)链接各功能证据；历史记录中的数量描述其指定版本，不代表对当前 main 新执行了一轮检查。
 
 ## 当前 TypeScript 检查
 
-[按影响检查](impact-checks.zh-CN.md)新增维护专项回执及当前源码发布关联。核心改动保留完整 8/32/16 矩阵和全部当前容量义务；普通维护执行计划检查。意外跳过、证据缺失和不兼容归属均阻断，本地专项回执与手动诊断不能代替 Actions 验收。
-
 [CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)区分草稿反馈、完整候选验收和集成／发布核验。完整核心候选覆盖 8 安装目标、32 个 Node 场景、16 宿主及全部适用 Native 容量检查。main 三平台冒烟是原包的额外集成证据，不能替代缺失的 PR 验收。回归覆盖错误或过期运行／附件、重复回执、源码／tree／base／策略变化、移动 tag、编译输出来源及失败／跳过依赖。手动诊断和本地冒烟不属于可发布验收。
 
-维护使用 `npm run ci:plan` 和 `ci:check`；完整产品入口保留 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标／十六宿主证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
+维护改动按[影响计划](impact-checks.zh-CN.md)执行 `npm run ci:plan` 与选中的 `ci:check` 任务。核心改动执行 `npm run check` 及适用的完整产品验收。
 默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
 
 清理命令的回归测试在隔离临时目录中验证预览、完整删除、重复执行、符号链接边界，以及源码和历史资料的保留。重建检查前可运行 `npm run clean -- --dry-run` 和 `npm run clean`；命令范围见[开发指南](README.zh-CN.md#清理编译输出)。
+
+<a id="candidate-build-and-isolated-installation"></a>
+
+### 候选包构建与隔离安装
+
+使用[固定开发工具链](README.zh-CN.md#准备开发环境)，选定完整提交 SHA，并在仓库根目录运行。输出目录必须是新目录。
+
+```bash
+SOURCE_COMMIT=$(git rev-parse HEAD)
+CHECK_ROOT=$(mktemp -d)
+npm run candidate:build -- --commit "$SOURCE_COMMIT" --output "$CHECK_ROOT/candidate"
+```
+
+构建先导出选定的 Git tree，核验文件清单及 blob 身份，再在两个独立目录中使用锁定依赖和空 npm 缓存分别构建。两个软件包压缩档必须逐字节一致。获取构建依赖需要联网。保留候选 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS` 的原始文件名，并放在同一目录。将 `CANDIDATE_TGZ` 设为生成的候选软件包绝对路径。
+
+```bash
+CANDIDATE_TGZ="/absolute/path/to/the/generated-candidate.tgz"
+npm run candidate:verify -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT"
+```
+
+工程包名为 `@fbincon/statusline-ts05-candidate`，版本为 `0.0.0-ts05.g<12 位提交哈希>`。应用版本单独记录在 `candidate.json`。手动检查使用临时 prefix、空 npm 缓存和明确的 Claude 配置目录。
+
+```bash
+npm install --prefix "$CHECK_ROOT/prefix" --cache "$CHECK_ROOT/npm-cache" \
+  --offline --ignore-scripts --no-audit --no-fund "$CANDIDATE_TGZ"
+CANDIDATE_JS="$CHECK_ROOT/prefix/node_modules/@fbincon/statusline-ts05-candidate/bin/claude-statusline.js"
+node "$CANDIDATE_JS" --version
+node "$CANDIDATE_JS" install --config-dir "$CHECK_ROOT/claude-config" --dry-run
+```
+
+在 PowerShell 中为对应变量设置绝对路径，并使用 `node` 调用已安装的 JavaScript 入口。测试接入时绑定匹配的 Node 可执行文件和 JavaScript 入口。使用 `doctor` 和 `recover --dry-run` 在同一测试配置下查看待处理事务。参见[安装与恢复](contracts.zh-CN.md#候选安装与恢复)。
+
+验收时向各执行器提供同一产物和提交，每个平台和固定宿主使用新的报告路径。将示例宿主路径替换为选定的 Claude 可执行文件。安装验收使用隔离 prefix 和配置，并禁用生命周期脚本。官方宿主检查记录准确宿主和对应声明的可用性。
+
+```bash
+npm run test:installed -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT" \
+  --report "$CHECK_ROOT/installed.json"
+CLAUDE_HOST="/absolute/path/to/fixed-claude"
+npm run test:mods -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT" \
+  --report "$CHECK_ROOT/mods.json" --claude "$CLAUDE_HOST"
+```
+
+按[绑定源码的 CI 规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)选择矩阵和复用证据。记录实际检查、平台与运行时身份、软件包摘要、限制及有意跳过的项目。本地候选报告证明其自身的执行结果。
+
+### 终端、实机及付费验收
+
+- 使用 `acceptance:terminal` 运行明确选定的交互场景，使用隔离设置并生成绑定源码的报告。将操作者的观察与自动 PTY 检查分别记录。[终端执行器](../../tools/acceptance/terminal.ts)
+- 在操作者发起的真实休眠或重启前后运行 `acceptance:power`，记录事件、宿主和观测结果。[电源执行器](../../tools/acceptance/power.ts)
+- 付费场景需要明确范围、获批预算及共用账本。新增模型请求需要 `--run-real-calls`。保留失败、重试和结果不明的请求及其预算预留。[付费执行器](../../tools/acceptance/paid.ts)
+- 使用独立的 `reference:verify` 流程复现历史 Python 基线。[冻结 Python 归档](../../archive/python/README.zh-CN.md)
 
 ### 安装后的语言组合
 
 候选包逐一验证所有已注册的界面和输出语言组合。每种界面语言有一个驱动，调用已安装 CLI 的入口函数。对每种输出语言，驱动核对预览前后文件字节，使用原 revision 应用草稿，再从新进程重开配置并按 120 列渲染。每行保留一对组合，六个操作全部经过真实 CLI 管道；这些冷启动组合覆盖每种界面和输出语言。十二种语言共 144 对，验收最多启动 231 个候选 Node 进程。
 
 在驱动所在分支手动运行 CI 工作流，选择 `validation=language-comparison`。默认从派发所指的提交统一构建输入。使用兼容驱动时，选择 `language_input=v3.16.1` 可复测 #198 摘要固定的原包。Linux x64、macOS Intel 和使用 x64 Node 的 Windows ARM 宿主均测试同一份包。Windows 分别执行开发 Node 和 22.0.0。各 runner 交错运行三组旧驱动与当前驱动，保留每次测量、包与驱动身份、进程启动数和语义结果。此对照单独运行安装语言场景，完整平台和发布验收还要求其余场景。[安装验收时限](ci-maintenance.zh-CN.md#安装验收时限)。
-
-## I18N-02 验收
-
-v3.15.0 I18N-02 验收覆盖源／上下文／术语及译文失效、历史占位符／删除隔离、不安全及重复输入、合法英文术语、不可变冻结／验证与显式验收。Node／Native 生成夹具验证有效消息及搜索来源。安装验收新增 36 种独立界面／输出组合、只读预览、保存回读及准确有效 JSON。实际宿主容量保留 271 项并新增十二项长 Unicode 语言案例，共 283 项。发布测试保留已接受基线独立性，并证明安全 B 回退的 PR／main 不能授权公开发布。不代表新增付费或实体验收。[原始证据](i18n-02-delivery.zh-CN.md)。后续 [v3.16.0 扩展](language-expansion.zh-CN.md)另行记录 144 组语言组合与 313 项容量案例。
 
 ## 发布批准与 CI 分流
 
@@ -45,7 +89,7 @@ v3.15.0 I18N-02 验收覆盖源／上下文／术语及译文失效、历史占�
 
 安装验收现要求二十类检查，包含 Git 策略、共享终端能力、持久首次入口及显式版本管理。Windows 回执包含十五项环境场景与九种真实 shell／入口组合；模拟环境本身不能证明实际 shell 启动通过。详见[实现与诊断证据](m8-m9-delivery.zh-CN.md)。
 
-包测试使用临时 prefix、配置目录、受控 loopback registry 和禁用生命周期脚本的真实 npm。往返、中断及独立恢复前，先核验公开 v3.7.0 归档摘要；可用 `TS06_LEGACY_370_ARTIFACT` 指向已下载副本，仍执行相同摘要检查。runtime 与官方宿主回执必须包含每项操作结果。测试不更改开发者日常 Claude 配置，也不调用模型。当前发布要求见[发布指南](../RELEASING.zh-CN.md#v380-git终端与版本管理)。
+包测试使用临时 prefix、配置目录、受控 loopback registry 和禁用生命周期脚本的真实 npm。往返、中断及独立恢复前，先核验公开 v3.7.0 归档摘要；可用 `TS06_LEGACY_370_ARTIFACT` 指向已下载副本，仍执行相同摘要检查。runtime 与官方宿主回执必须包含每项操作结果。测试不更改开发者日常 Claude 配置，也不调用模型。当前发布要求见[发布指南](../RELEASING.zh-CN.md#current-typescript-publication)。
 
 版本化证据测试在临时 Git 仓库重建覆盖清单，分别让 v1 和 v2 产品来源经过维护提交、tag 核验和 npm 证据读取。测试修改源码契约版本、历史深度、原始 attempt 或单个阶段回执，要求验证器拒绝。分片须标识实际执行断言的 runner、候选包、Node、npm 和适用的 Claude 可执行文件。
 
@@ -66,396 +110,36 @@ TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分�
 
 ## 历史 Python 与迁移阶段记录
 
-以下保留原始阶段结论、命令和限制，来源为[归档前提交](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176)。这些 Python 路径已移入 archive/python，不能当作当前 main 的日常命令。通过 `reference:verify` 重建原布局验证；不刷新历史数据、不重置付费账本。
-
-<details>
-<summary>展开历史命令、阶段结论与验收限制</summary>
-
-普通验证全部使用临时 Claude 配置。测试不会安装到用户真实设置，也不会调用模型。
-
-TS-03 新增 `npm test` 验证共享核心／正式适配器，以 `npm run generate:check` 检查 TypeScript 生成资源。下方 Python 生成检查仅作为迁移期只读对照，普通写入入口已退役。新的八目标后端工作流补充既有矩阵。
-
-迁移门槛更新（2026-10-15）：按 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)，完整性能测量和预算达标不再阻塞 TS-03～TS-06，包括预览／正式交付。[TS-03／03-F 已依据既有非性能证据 DONE](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，最新 D06 仍为 FAIL（104 通过／60 失败／28 不确定）；后续性能工作归 TS-06 之后的 [PERF-01](performance/perf-01.zh-CN.md)。功能／稳定性、精确采集次数及平台／安装／恢复验收继续适用；本次不启动后续实施，也不修改 CI。
-
-下方 TS-03 分批记录保留当时的数量与门槛；当前状态见[迁移总计划](typescript-migration.zh-CN.md)，最新既有验证证据见关闭记录。
-
-## 本地检查
-
-共享目录/协议测试覆盖严格输入、Unicode 路径和不访问实时来源的样例预览。运行 `python tools/generate_ui_contracts.py --check` 检查 TypeScript 与 Python 定义一致；原生工作流也执行契约测试。参见[协议说明](contracts.zh-CN.md)。
-
-`tests/ui/test_apply_protocol.py` 覆盖加锁前完整草稿校验、两编辑器冲突、等待锁期间的归属变化、外部同名安装、无关设置合并、回滚、v1 迁移、重复保存，以及 CLI/curses/JSON 等价性；还使用安装后的源码 CLI 验证 Unicode/特殊字符路径。官方 Mod 测试覆盖进程拒绝/超时、非法封装、协议不匹配、apply 结果、预览重试、缓存重绘及缩放/关闭后完成的响应。模拟 Mod API 失败时返回 `{ deny: 'reason' }`；直接抛错的测试 stub 会被宿主跳过。
-
-在仓库根目录创建虚拟环境，安装项目和开发工具：
-
-编辑器测试覆盖三页、完整保存和新 revision、取消重开、数值边界、窄面板、目录互斥排序、实际宿主行、锁定/拒绝/部分成功、冲突、未知保存结果、写入保护及旧响应。准备对应宿主声明后运行 `claude plugin test mods/statusline-native`，不调用模型。
-
-```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -e . ruff build twine 'readme-renderer[md]'
-PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests -t . -v
-.venv/bin/ruff check --select F,E9 src tests tools
-.venv/bin/python tools/check_docs.py
-git diff --check
-```
-
-Windows 使用 `.venv\Scripts\python.exe` 和 `.venv\Scripts\ruff.exe`，设置 `PYTHONUTF8=1` 以输出 UTF-8。Linux/macOS 的终端集成测试需要原生 curses 和 tmux。平台专属跳过会明确报告；Linux 测试不能替代 Windows/macOS CI。
-
-测试按实现子系统分组。CLI、安装与 PTY/tmux/shell 场景位于 `tests/integration`，生命周期和并发场景位于 `tests/runtime`。`tests/support.py` 统一定位源码，不依赖测试目录的嵌套层级。兼容测试验证旧模块运行入口及函数/类型共享身份。
-
-## 安装包检查
-
-原生工作流检查 Linux 2.1.287/2.1.288/2.1.289/2.1.294 和 Windows/macOS 2.1.288/2.1.289/2.1.294 的实际构建声明、官方插件验证/测试及 TypeScript。`tools/native_install_smoke.py` 验证真实官方 marketplace 安装、绝对后端绑定、完整协议保存、重复安装、外部明确禁用、兼容恢复和卸载，不用认证或模型调用。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
-
-按 [发布指南](../RELEASING.zh-CN.md) 从固定提交导出到新目录构建。构建作业先创建本地专属 fixture，再检查它们未进入发行包：
-
-```bash
-python tools/inspect_dist.py --write-exclusion-fixtures
-python -m build
-python tools/inspect_dist.py --check-long-description
-```
-
-仅在可丢弃的导出源码中创建 fixture；已有同名文件时工具会拒绝覆盖。检查支持 `--source PATH --dist PATH`，覆盖版本一致性、英文 README 元数据、平台依赖、全部 Python 包文件、两个 skill 模板、双语文档、测试与维护工具。本地 ROADMAP、验收记录、字节码和缓存必须排除。
-
-在隔离环境安装 wheel 后，离开源码目录并把该环境 CLI 加入 PATH：
-
-```bash
-python /path/to/source/tools/ci_smoke.py --report /path/to/report.json
-```
-
-Smoke 使用带空格和中文的临时路径，验证安装 dry-run、安装、doctor、幂等重装、冲突回滚、渲染和卸载。macOS 桌面验收仍需显式运行 `tools/macos_terminal_smoke.py`，并使用真实 Terminal.app 会话。
-
-## 真实计时验收
-
-以下命令调用付费 Claude 模型，必须显式启动并提供总预算；普通测试和 CI 不运行它：
-
-```bash
-.venv/bin/python tools/live_timer_acceptance.py \
-  --budget-usd 10 --budget-ledger dist/validation/task-timer/budget.json \
-  --report-dir dist/validation/live-timer
-```
-
-每次使用新报告目录。Linux 工具只把认证、网关环境和模型选择写入私有临时配置，显式通过 PATH 绑定被测 CLI，并将所属生命周期 hook 替换为调用生产 reducer 的记录器。工具运行单 Agent 和两次并行 Agent 场景。Agent probe 仅运行指定的小型 sleep 命令，无需访问仓库数据。
-
-每次调用将剩余额度传给 Claude 的 `--max-budget-usd`，跨场景累计已知费用；缺少最终费用时保守预留该次完整额度，并停止后续场景。重试预算必须包含此前尝试。官方上限包含子 Agent 费用，但恢复会话的历史费用不会自动计入，因此需独立累计，见 [官方 CLI 说明](https://code.claude.com/docs/en/cli-reference)。
-
-报告记录 OS、Python、包与 Claude 版本、hook 顺序、真实 Agent 启停、等待/收尾阶段、终态证据、原生 duration 是否存在及生产 renderer 的冻结结果。原始 stream、hook payload 和隔离设置留在忽略的报告目录，只公开脱敏事实。Print 模式验收用于确定事件顺序，不代表交互终端视觉验收；原生 duration 的可用情况需如实报告。
-
-单次并行验收中，Agent 可能在首个主 Stop 前结束，因此跳过等待阶段。整组验收仍要求至少一次真实等待 → 收尾顺序，每轮都必须保留原任务与冻结的渲染结果。已采集会话可不调用付费模型而重新检查：
-
-```bash
-.venv/bin/python tools/live_timer_acceptance.py verify-existing dist/validation/live-timer
-```
-
-计时行为发布必须满足所有适用门槛，包括真实计时证据；本轮 UI 晋升不调用付费套件。另见 [计时约定](timer.zh-CN.md) 和 [架构](architecture.zh-CN.md)。
-
-原生 wheel 必须逐字节包含唯一维护源的运行文件与版本/协议/哈希清单，排除测试、开发依赖和宿主声明；sdist 包含 `src/build_native.py` 及 Mod 开发源，独立重建后包文件、metadata、入口应一致。
-
-## Client 与外部入口检查
-
-v1.3.0 检查四种安装组合、分别关闭、旧 owned 外部资源恢复、第三方命令冲突、重装、降级和卸载。Python 测试覆盖外部与 Client 两种保存顺序，验证旧草稿冲突时无覆盖、无多余备份，且保留无关配置。
-
-固定宿主官方测试覆盖真实 Client 模块、Space/Tab/方向键、搜索快捷键隔离、Ctrl+G、数值边界、批次确认/去重/缺口、同帧快速输入、宿主冻结快照、旧 epoch、重复打开、保存锁与结果核对、Client 恢复、预览缓存及迟到响应。布局检查包含 32×12、分组边框、CJK 和组合字符。
-
-Linux 自动 PTY 在 120×30 停靠及 80×48 内嵌布局检查点击获焦、三页、保存、取消、Esc 和继续同一 session。持久模式使用私有 tmux server，同时安装两条入口，验证原有外部 popup 保存后 Client 读取新值。执行 `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<新目录>`；原始数据私有保存，不进分发包。wheel/sdist/重建 wheel 核对 Client 模块清单。普通检查不调用付费模型。
-
-2026-10-04 维护者分别确认 a2 Client 在 Linux、Windows、macOS 真人验收通过。正式晋升沿用已验收交互；自动检查另验证安装策略和发布资产。新增覆盖两个正式默认、明确 false、2.1.257/258/286/287/288 及未知版本、旧宿主显式启用、暂挂回滚及主动插件禁用。官方安装 smoke 另核实真实默认安装、关闭后重装不反弹。本轮不调用付费模型/计时套件。
-
-干净提交 `9c9d553` 构建的 v1.4.0 wheel 通过核心／官方安装 smoke，并保存完整作用域目录。Linux Claude Code 2.1.289 持久 PTY 在 120×30、80×48 分别验证默认选择和 27 项选择（三个既有项加全部 24 个新增主栏项），共四组通过。Agent 目视检查使用真实捕获单元格的重建画面，`manual_visual_acceptance` 保持 false；原始报告保留在忽略的 dist/validation。
-
-## 显示指标检查与性能
-
-Token 回归另覆盖输入／输出部分观测、明确零值、非法字段、各计数器独立累计快照增量、嵌套子 Agent 归属、折叠消息 ID 及旧缓存一次恢复、不重复扫描。最终本地运行 478 项测试：470 项通过，八项预期平台跳过。
-
-独立指标测试使用固定时钟，覆盖缺失／合法零值、作用域来源及无副作用预览。Git 与 transcript 延迟采集且每次刷新共享结果。使用隔离的本地样例分别记录启动与采集耗时，不调用模型：
-
-```text
-python tools/benchmark_render.py --samples 30 --report dist/validation/display-performance.json
-```
-
-默认 warm 模式先预热隔离的字节码目录；`--bytecode-mode cold` 使用空目录并禁止写入，避免源码更新造成旧代码读缓存、新代码每次重新编译的不公平比较。改动前后在同一机器、同一 Python 比较 P50／P95；报告记录被测提交。冷 transcript 样例使用不同会话，热样例复用状态。这是可复现的小样例基线，不代表大型仓库或会话历史的耗时上限。
-
-Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0670e0d`，完整显示代码 `50eb39f`，相同工具 SHA256 `8917e61f6e01a3c527fb94054af6c69d99d5d8805416707a48c039bc9054884e`。小型本地样例与调度噪声限制结论；渲染样例仅选择 model-with-effort。下表单位 ms，Before／After 为改动前／后。
-
-| Metric (ms) | Before P50 / P95 | After P50 / P95 |
-| --- | --- | --- |
-| Python startup | 15.529 / 24.098 | 17.438 / 24.191 |
-| Model-only render process | 48.119 / 59.094 | 50.133 / 59.574 |
-| Git cold | 2.730 / 2.952 | 2.901 / 3.243 |
-| Git warm | 0.010 / 0.016 | 0.036 / 0.048 |
-| Transcript cold | 0.403 / 0.532 | 0.483 / 0.822 |
-| Transcript warm | 0.126 / 0.153 | 0.141 / 0.165 |
-
-## Phase 4 验证
-
-高级表单回归覆盖逐项文本／格式、数字边界、字段取消、分行维护及仅明确保存才写设置的文件操作。原生测试覆盖输入中的快捷键字符、实际宿主行别名、缺失／不支持／锁定、类型／选项变化、逐项部分成功，以及工具 Save 与宿主 Apply 独立。Unicode 文本验证与 Python 一致，256 字符限制按码点计算。
-
-从安装的 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`，真实检查 curses 弹窗 Ctrl+S、Client 保存／回读、中文路径、导入错误、未保存草稿导出、取消及两种尺寸的显式布局。维护者已于 2026-10-05 确认人工验收，macOS 范围为独立 TUI／CLI；CI 增加固定 Linux 2.1.289，保留原有平台矩阵。
-
-### v1.5.0a1 候选验证记录
-
-2026-10-05，预览 Python 507 项通过（499 项通过、8 项平台跳过），官方 Mod 40 项通过。干净 `07804ba` 的 v1.5.0a1 wheel 安装后通过核心／真实官方安装 smoke 与 120×30／80×48 高级持久 PTY，包括主题／逐轮计时 Apply／Reload 和工具保存独立性；重定基后的 `e978411` 源文件树字节一致。代理视觉检查见[图片索引](../images/archive/README.zh-CN.md#v150a1-phase-4-终端重建画面)，捕获时人工验收待确认，2026-10-05 已确认通过（macOS 独立 TUI／CLI）。
-
-同机 Python 3.14.4、相同脚本 SHA256 前缀 `0f299dcff19d`、隔离预热字节码、50 样本，基线 `6c7826e` 与格式代码 `a040243`：
-
-| 指标（ms） | 改前 P50 / P95 | 改后 P50 / P95 |
-| --- | --- | --- |
-| Python 启动 | 15.879 / 23.208 | 14.793 / 20.556 |
-| 模型单项渲染进程 | 51.170 / 61.929 | 55.245 / 63.612 |
-| Git 冷 | 2.712 / 3.209 | 3.006 / 5.517 |
-| Git 暖 | 0.036 / 0.053 | 0.010 / 0.014 |
-| Transcript 冷 | 0.458 / 0.618 | 0.451 / 0.582 |
-| Transcript 暖 | 0.142 / 0.162 | 0.139 / 0.150 |
-
-模型单项 P50 增约 4.1 ms（8%），P95 增约 1.7 ms；五项格式／显式布局为 52.690/60.660、53.498/62.186 ms，与基线不是同一显示样例。调度噪声、小样例及缓存状态限制结论，不能作为性能上限。使用 `--display-case legacy|formatted|explicit` 重现，基线用相同新脚本与原运行代码；按需采集继续由回归覆盖。
-
-## v1.5.0 正式验收
-
-2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
-
-正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。
-
-## 独立运行检查
-
-运行 `python tools/generate_runtime_contracts.py --check`、`python -m unittest tests.runtime.live.test_protocol tests.runtime.live.test_store tests.integration.test_runtime_installer`，以及固定 2.1.289 的运行 Mod 验证／测试／类型检查。`python tools/runtime_install_smoke.py --report PATH` 仅使用临时配置，不调用模型。CI 保留全部旧编辑器检查并增加 Windows／macOS 2.1.289。模拟协议心跳验证桥接，不代表真实会话加载。另见[实时契约](live.zh-CN.md)。
-
-## Phase 5 指标迁移
-
-显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
-
-## Phase 5 真实验收
-
-使用 `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case single|single-agent|parallel --budget-ledger dist/validation/phase5/budget.json --run-real-calls`。既有 ledger 必须明确授权 10 美元，全部尝试和重试共享加锁预留；费用未知保留整次额度。省略 --run-real-calls 可免费重验记录；不得新建账本重置支出。工具隔离配置，仅允许 Agent 与 sleep，验证真实请求汇总、最新请求时长、主线程收尾和多次冻结代理渲染，保持遥测导出设置。Headless 检查不代表人工或 Windows/macOS 会话交互验收。
-
-## v1.6.0 正式版验收
-
-2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
-
-晋升重验正式默认行为、a1 升级偏好保留、两 Mod／后端版本绑定、全部平台 CI 及已安装分发包／PTY。单代理／并行／主线程收尾捕获记录可免费重验；本次仅版本／默认行为变更，不重置原有 10 美元账本，也不重复付费套件。
-
-## v1.6.1 外部 TUI 分组验证
-
-本地 561 项 Python 测试中 553 项通过、8 项预期平台跳过；native 41 项与 runtime 8 项官方 Mod 测试、双 TypeScript、生成契约及 Ruff 通过。新增 UI 回归覆盖连续归组、稳定字段 key、标题不可选中、跨组分页、中文／组合字符、0／8／16／256 色和全部页面的绘制边界。64×18／19 使用紧凑分隔，64×20 起使用边框。
-
-安装匹配 wheel 后，在隔离环境额外安装 `pyte`，运行下列免费 PTY 验证；每次使用新的报告目录。它以私有配置检查四页、格式详情、输入中缩放、取消不写盘和重排后的数值保存，尺寸为 64×18、64×20、80×24、120×30、80×48：
-
-```bash
-python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline \
-  --report-dir dist/validation/external-tui-NEW --commit SOURCE_COMMIT
-```
-
-截图用 `tools/render_native_capture.py --surface external --bounds 0 0 COLUMNS ROWS --commit SOURCE_COMMIT` 从真实捕获 JSON 重建；Pillow 和字体仅用于文档。原始数据、隔离配置和构建留在忽略的 dist/validation，分发包只含公开图片与脱敏来源。自动 PTY、代理视觉检查与真人验收分别记录；历史人工确认不作为本次展示修改的新增真人验收。双入口还须运行匹配 wheel 的持久高级 PTY，核实外部保存后的 Client 互读。全部 20 项 PR／合并／标签 CI 与正式资产检查继续适用。
-
-## 任务计时预览验证
-
-任务计时预览通过 590 项 Python 测试（582 项通过、8 项预期平台跳过）、41 项原生编辑器及 10 项运行 Mod 官方测试，以及两个 TypeScript 项目、官方静态验证、生成契约、Ruff 和文档链接检查。安装验证覆盖默认仅计时元数据、持久显式关闭、独立开关、安装事务备份迁移及诊断绑定；回归覆盖 Stop 续跑、迟到原生结束、未闭合／重叠等待、时钟失效／重启／Windows 校时、历史冻结值、报告／消息别名与提交索引追加／替换。
-
-真实 Linux x86_64／Python 3.14.4／Claude Code 2.1.289 已验证单 Agent、并行及收尾、阻止 Stop 后续跑、自动 SDK 问题等待／中断、默认原生计时及关闭后的兼容采集。生产计时可用时冻结，不完整执行证据隐藏。真实并行任务约 14.1 秒，最后原生单轮为 3.7 秒。全部尝试及重试共用原 10 美元账本，初始证据费用 0.801859 美元，无未知费用。SDK 回复为受控输入，不是真人验收；真实机器睡眠及真实 Windows/macOS 模型会话待验，CI 和模拟时钟独立记录。
-
-必须使用既有账本和新案例目录，不得新建账本重置花费。`wait`／`interrupt` 额外需要可选验收依赖 `claude-agent-sdk`，SDK 使用 PATH 中实际宿主。不加 `--run-real-calls` 即仅复核已有记录：
-
-```bash
-.venv/bin/python tools/task_timer_acceptance.py \
-  --root dist/validation/task-timer/parallel \
-  --case parallel --backend /absolute/venv/bin/claude-statusline \
-  --budget-ledger dist/validation/task-timer/budget.json \
-  --cap-usd 1 --run-real-calls
-```
-
-案例为 `single`、`single-agent`、`parallel`、`stop-continue`、`wait`、`interrupt`、`compat`。费用未知时保留全部额度，阻止新增付费尝试；旧计时脚本同样要求此账本，并保留历史记录复核。原始流、SDK 输入和私有配置保留在忽略的 `dist/validation`。
-
-同一解释器和机器、相同脚本 SHA256 `808a8b5224fa52584bfa0b9ac09ee052e64dac2b186391af1a0fa5fbcfbf6b4f`，在各源码 PYTHONPATH 下运行 `tools/benchmark_task_timer.py --samples 30 --report PATH`，比较基线 `4268743` 与任务计时实现。样例覆盖 100／10,000／100,000 行、1／32 任务，启动另使用单 prompt 生产 renderer：
-
-| Metric (ms) | Before P50 / P95 | After P50 / P95 |
-| --- | --- | --- |
-| Python startup | 15.548 / 18.292 | 13.667 / 18.026 |
-| Timer imports | 40.502 / 50.502 | 40.548 / 51.444 |
-| Timer render process | 51.673 / 60.577 | 53.221 / 62.110 |
-| Hot refresh: 100,000 rows, 32 tasks | 0.001 / 0.009 | 0.001 / 0.002 |
-| Terminal: 100 rows, 32 tasks | 0.021 / 0.023 | 0.048 / 0.056 |
-| Terminal: 10,000 rows, 32 tasks | 0.861 / 0.893 | 0.048 / 0.061 |
-| Terminal: 100,000 rows, 32 tasks | 9.486 / 9.595 | 0.048 / 0.061 |
-
-未变化的热刷新不读取 transcript；终态查找复用有界游标索引。100,000 行／32 任务（16.6 MB）的首次提交索引从 9.84 ms 变为 22.44 ms，仍需扫描一次源文件。计时 renderer 启动 P50 增加约 1.5 ms；本地样例、调度和缓存噪声限制结论，不构成性能上界。原始历史和路径报告保持私有。
-
-## v1.7.0 正式验收
-
-2026-10-07，维护者确认 v1.7.0a1 预览已在 Linux、macOS、Windows 完成验证，未提供具体 OS、架构、终端和 Claude Code 版本。该确认记录平台验收；自动 CI、SDK 受控场景和硬件睡眠／恢复证据继续分别记录。
-
-正式 1.7.0 沿用已验收任务计时实现和协议。使用安装包核验正式编辑器默认、已保存关闭选择、兼容／未知宿主以及 a1 到正式版的资源／后端升级。继续运行现有 590 项 Python、51 项官方 Mod 测试、生成契约、TypeScript、Ruff、文档和全部 PR／合并／标签 CI。稳定 wheel 免费复核六个捕获场景，保留原 0.801859 美元账本，并核验独立重建、双编辑器 PTY、草稿／公开资产和 URL 安装。详见[正式 Release 记录](../releases/v1.7.0.md)。
-
-## TUI 优化验收
-
-分组分页回归覆盖实际可见行、跨页分组、无孤立标题、边界翻页及页内位置保留。绘制检查四页与格式详情在 32×12、64×18、64×20、80×24、120×30 和 80×48 的布局，并验证缩放期间保留输入及字段 key。快捷键检查普通说明、独立粗体按键（Client 使用宿主主题主要文字色）、完整提示组裁剪、中文／组合字符及外部 0／8／16／256 色。
-
-运行本页全部检查、两个 Mod 官方验证／测试与 TypeScript；使用新报告目录运行外部五尺寸 PTY，以及 `native_mod_acceptance.py --persistent --advanced` 的已安装 Client／外部互读、逐项格式、布局、文件与宿主偏好测试。验收脚本按稳定字段身份定位，报告保留源提交与宿主版本。原始捕获只用于目视验收，图库 PNG 与来源记录不变；自动化检查不建立新真人验收。
-
-## Client 底部快捷键与大小写
-
-原生回归检查主题强调色 Configure Status Line 标题、大写按键／小写说明、所有页面 Tab 优先顺序、H/A/搜索／编辑／恢复条件提示、完整组换行、一行实际样例及共享的底部／分页预算。覆盖 32×12、32×13、48×12、64×18、64×20、80×24、120×30、80×48，以及字段、路径、数值／搜索输入、展开偏好、忙碌和结果不明状态。大小写检查保留混合大小写文本、中文和组合字符，覆盖 Ctrl/Meta、Ctrl+E/G/U、Shift+Tab；官方挂载测试也验证大写操作和原样文本输入。
-
-已安装持久 PTY 脚本比较新标题与 Preview 的真实终端颜色，检查 S save 按键／说明样式及页面提示顺序，并在原有编辑、缩放、配置互读流程中验证大写保存／完成／丢弃／偏好操作和混合大小写条目文本。使用新的忽略报告目录并检查终端捕获重建，保留历史图库；自动化与真人／平台验收分别记录。完整 PR／合并／标签 CI 与安装包要求见发布指南。
-
-## 原生主题验收
-
-每个受支持主题使用独立的忽略目录：
-
-```bash
-.venv/bin/python tools/native_mod_acceptance.py --theme light --terminal-theme light --theme-only \
-  --report-dir dist/validation/theme-light
-```
-
-在支持的宿主上依次检查 dark、light-daltonized、dark-daltonized、light-ansi、dark-ansi、auto 和 `custom:statusline-validation-light`。自定义夹具以 light 为基础，明确覆盖正文、反色、辅助色和强调色。每次在 120×30 与 80×48 捕获四页及项目格式表单，按解码后的背景检查快捷键／说明对比度，并验证主题草稿不提前生效、独立 Apply 成功且不保存工具草稿。读取主题时优先采用当前 settings，再兼容旧全局存储。保存与跨编辑器互读另运行完整 persistent／advanced 验收。
-
-`tools/terminal_colors.py` 在处理反色前分别解析默认前景和背景，验收与捕获渲染共用该逻辑。RGB 单元格精确；ANSI 名称使用已记录的捕获调色板，不代表物理终端的自定义 ANSI 颜色。重建图片属于终端证据，与系统截图、真人验收分别记录。
-
-原生捕获脚本将 `--terminal-theme light|dark` 与 `--theme` 独立设置。在新的报告目录中运行四种深浅组合；每次捕获 default／ANSI 和 Colors off，通过键盘选择匹配的预览底色，检查全部预览单元格使用该标准底色，并记录终端默认前景／背景、共享 xterm ANSI 调色板和明确的分析夹具来源。夹具不修改物理终端配置。UI 测试覆盖加载／错误、溢出、中文／组合字符及宿主容器隔离；实际宿主另检查主题单独 Apply 与工具配置保持不变。
-
-## 外部终端配色验收
-
-`ui.theme` 使用终端默认主界面、粗体按键／标题、普通说明及反色选择。测试覆盖四页及项目格式表单的 0／8／16／256 色、颜色启动／默认色失败、有限颜色对分配、ANSI／RGB 样例映射和终端默认预览背景。外部最低尺寸仍为 64×18；32×12 验证缩放／取消提示，工作尺寸检查单元格边界、中文／组合字符和状态保留。
-
-使用已安装 wheel，在两组终端默认色夹具中运行，每次使用新的忽略报告目录：
-
-```bash
-.venv/bin/python tools/external_tui_acceptance.py \
-  --backend /path/to/installed/claude-statusline --commit COMMIT_HASH \
-  --terminal-theme light --report-dir dist/validation/external-light
-```
-
-再用 `--terminal-theme dark` 和另一报告目录运行。该选项为捕获分析提供默认色，不修改物理终端配置。两组夹具均覆盖 64×18、64×20、80×24、120×30、80×48、四页、格式表单、数值输入／错误、缩放、字节一致的取消及保存互读。每次捕获检查默认主界面及反色选择至少 4.5:1 的对比度、粗体按键／普通说明、终端默认预览背景、Palette default／ansi 与 Colors off 草稿，以及保存后的 ANSI 生产输出。捕获元数据记录默认前景／背景及 xterm ANSI 调色板，图片绘制读取该调色板。真实终端配置与真人验收分别记录。
-
-本补丁本地 Python 检查通过 659 项测试（651 项通过、八项预期平台跳过）；Claude Code 2.1.295 官方 Mod 测试通过 59 项 native 与十项 runtime。两个 TypeScript 项目使用准确 2.1.294 生成声明：2.1.295 无登录类型加载在生成声明前停于登录检查。固定 CI 宿主保留现有版本，以及 13 项 Python／构建和十项 Mod 门槛。
-
-## 双语界面验收
-
-实现阶段通过 680 项 Python 测试（672 通过，8 项预期平台跳过）、71 项原生及 10 项运行 Mod 官方测试、两个 TypeScript 工程、资源／契约生成、Ruff 和文档链接检查。中英文各有 932 个匹配消息键。UI 测试保留选中项、输入／搜索和未保存草稿，覆盖写入失败／重开、双语／自定义标签搜索、中文／组合字符，以及原生 32×12、外部 64×18 边界。完整异步交互测试使用有界 20 秒时限。
-
-固定 `19c7473` 构建的 wheel 通过独立语言 PTY：外部 64×18、64×20、80×24、120×30、80×48；持久化原生 120×30／80×48，覆盖即时保存、取消草稿、外部共享语言和 CLI 重置／原生重开。高级持久化 PTY 通过表单、布局、预设、可移植文件、宿主 Apply／重新加载、保存与取消；验收驱动修正使用 `9625fa3`，包内界面源保持一致。基本／原生／运行安装检查通过。直接主题 PTY 验证 RGB，复用器语言／高级采集采用明确浅色样本并记录宿主量化；代理检查单元格／PNG 与人类验收分别记录。
-
-按[翻译校验](i18n.zh-CN.md#校验修改)针对已安装正式 wheel 运行两种 `--language-only`、完整外部 PTY 及 `native_mod_acceptance.py --persistent --advanced`。PR、合并和标签均需通过 23 项跨平台检查。安装／资源测试验证升级和普通卸载保留偏好字节。原始证据保持忽略，[图片来源](../images/README.zh-CN.md#双语终端采集)记录精确源；本版本不运行付费模型／计时套件。
-
-## 状态栏本地化验收
-
-语言检查覆盖显示／协议 v6 迁移、UI／输出独立、保存取消与拒绝、旧格式导入、预设、已知值及原始文字、内置标签边界、终端宽度和延迟资源。CLI 测试隔离配置目录，不继承维护者语言。`tools/generate_i18n.py --check` 同时检查生成的 Python 子集和单行状态栏消息。
-
-安装包后端源码 `0786ad2` 通过外部 64×18、64×20、80×24、120×30、80×48 PTY。原生工具 `bc50d80` 在固定 Claude Code 2.1.294 下通过持久化 120×30 与 80×48。每个尺寸先重置英文输出再切换，保存后验证生产渲染；图片见[采集来源](../images/README.zh-CN.md#状态栏语言采集)。
-
-```bash
-python tools/benchmark_render.py --samples 50 --display-case formatted --language en --report dist/validation/language-en.json
-python tools/benchmark_render.py --samples 50 --display-case formatted --language zh-CN --report dist/validation/language-zh-CN.json
-```
-
-同一 50 样本热字节码基准测得 v1.8.0 P50／P95 为 54.261／66.363 ms，英文 55.051／64.294 ms，中文 54.313／68.506 ms。小型数据与调度噪声限制结论；正常渲染不读取 UI 偏好或解析 UI JSON。444 个英文默认生产／预览对照均与基线一致。本轮采用本地命令和固定样例，不调用付费模型，也不代表新的人类验收。
-
-## 项目查找与导入审阅验收
-
-本地通过 730 项 Python 测试（722 通过、8 项平台跳过）、87 项原生及 10 项运行 Mod 官方测试。共享搜索样例覆盖分级、Unicode 码点映射、同分稳定性和生成目录元数据；弹层测试覆盖分类隔离、全部项目说明、结构化差异、窄窗口、候选预览、取消、接受和并发保存冲突。新进程中的普通模型渲染不加载编辑器搜索／说明／审阅模块。
-
-提交 `469c08cbf10526898178d2177a6ffa4f1206ad99` 的 1.10.0 安装包通过双语场景：外部 64×18、64×20、80×24、120×30、80×48；固定 Claude Code 2.1.294、官方持久化安装 Mod 的原生 120×30、80×48。原生发现流程使用直接 PTY，避免复用器转换选定的 RGB 预览背景；原有 advanced 工具继续保留 tmux／弹窗路径。
-
-```bash
-python tools/external_tui_acceptance.py --discovery --backend /absolute/venv/bin/claude-statusline \
-  --commit VERIFIED_SHA --report-dir dist/validation/new-external-discovery
-python tools/native_mod_acceptance.py --persistent --discovery --claude /absolute/fixed-host/claude \
-  --backend /absolute/venv/bin/claude-statusline --report-dir dist/validation/new-native-discovery
-```
-
-场景涵盖分级高亮、分类／排序保护、来源说明、无效导入保留、取消审阅保留未保存调色板、删除源文件后接受内存候选、明确保存前不写盘、两种候选预览及重开读回。十六张已检查的[捕获图](../images/README.zh-CN.md#discovery-and-import-review)重建真实单元格，不代表新增人类或 Windows／macOS 终端验收。
-
-候选包通过基础／原生／运行接入检查；独立 1.9.0→1.10.0 升级逐字节保留显示／界面语言和全部显式接入／采集关闭偏好。sdist 独立重建的 185 个 wheel 文件一致，资源／排除项与严格长描述渲染检查通过。最终合并／标签／索引证据写入 Release，本地原始报告保留在忽略的 `dist/validation/v1.10`。
-
-## 代表性渲染性能基准
-
-在独立 Python 进程中运行扩大的合成样例：
-
-```bash
-PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --report dist/validation/render-warm.json
-PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --bytecode-mode cold --report dist/validation/render-cold.json
-```
-
-`small`、`medium`、`large` 分别包含 100／10,000／100,000 行 transcript，0／8／32 个代理（每个 100 行，包含嵌套文件），以及 32／1,000／10,000 个 Git 已跟踪文件。使用 `--profiles small` 可快速检查。分别测量启动／导入、字节码、transcript 冷／热／追加、干净／有改动 Git 的未命中／命中／过期、中英自动／显式布局的 40／120 列渲染，以及复杂 Unicode 代理行。数据准备与重置不计时，并断言未变化的 transcript／Git 缓存命中不重复收集。操作系统文件缓存不受控制。
-
-报告保留原始样本、P50/P95、源代码和样例校验值、解释器／平台及工作区状态。固定前后源码，使用相同脚本和样例交替比较三轮；发布前排查可重复的退化。旧版默认样例和扩大样例均不调用模型，也不读取个人 transcript。
-
-使用固定导出源码与冻结的同一份脚本进行前后对照：
-
-```bash
-python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_SHA --samples 50 --rounds 3 --report-dir dist/validation/new-comparison
-```
-
-执行器逐一核对运行源码与指定 Git 提交的 blob，交替前后顺序，区分冷／热字节码，保存原始样本并比较各轮中位数。每个代理使用不同名称／说明，同时测量进程内与全新官方 `render-subagents` 进程。若各轮 P50／P95 同向变化且超出基线轮间波动范围，标记为需要排查；单轮噪声不构成验收结论。大历史和一万个 Git 文件使完整样例比小规模快速检查耗时更长。
-
-## 字符簇与预览样式验收
-
-1.11 候选通过 762 项 Python 测试（754 通过、8 项平台跳过）、固定 Claude Code 2.1.294 的 92 项原生和 10 项运行时 Mod 官方测试、两套 TypeScript、生成资源／协议、Ruff 与 1,105 个文档链接检查。两端 Unicode 内核均通过固定 Unicode 18.0 的全部 853 条分簇标准用例。已安装包的基础／原生／运行时检查和 1.10.0 升级保留显示／界面语言及明确关闭的编辑器／采集偏好。
-
-`tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` 在 xterm-256color、vt100 下以 32／64／120 列检查已安装 curses 适配器。基于独立 wcwidth 参考库的终端解码器核验完整字符簇、跨样式状态、背景、短文本重绘与缩放，并保留原始字节。
-
-检查已安装原生组件的显式背景：
-
-```bash
-python tools/native_mod_acceptance.py --persistent --rendering-only --theme light --terminal-theme light \
-  --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline \
-  --report-dir dist/validation/new-native-rendering-light
-```
-
-两个主题参数均改为 `dark` 后重复。此直接 PTY 使用已记录的合成预览协议样例，其余操作仍交给已安装后端；在 120×30／80×48 核验 ANSI 256／RGB 背景、独立重置、跨 span emoji 样式、整簇裁切及短文本重绘，不新增用户配色设置。普通安装包预览、双语查找、语言切换及完整保存／取消／导入／导出另有真实后端验收报告。捕获单元格和代理检查的 PNG 重建图与人类平台验收分开记录；不声称新增 Windows／macOS 人工终端验收，也不调用付费模型。
-
-完整对照按每个场景的 50 次样本段交替前后源码，逐轮交换先后顺序。另一工作进程等待当前测量与下一场景的数据准备完成后才运行，测量不会并发。缩短同场景前后测量间隔以降低时序漂移影响，采样数与覆盖范围不变。
-
-Linux／Python 3.10 的 CI 曾暴露空闲 curses 读取未及时处理 SIGTERM 的超时。所有平台现以 250 ms 输入轮询处理待决信号，空闲超时不触发 VT 重绘；本地额外重复 20 轮 SIGINT／SIGHUP／SIGTERM（共 60 次）验证退出码与终端恢复。
-
-## 条件显示与外观验收
-
-共享 `tests/fixtures/appearance.json` 验证 Python／TypeScript 的颜色和规则。v1.11 固定快照采用 `/fixture/project`，不依赖账户 home。安装包键盘验收的所有操作均调用真实后端，覆盖条件草稿、前／背景色、主题、Powerline、导出、取消、导入审阅、保存及重新打开。
-
-```bash
-python tools/external_tui_acceptance.py --appearance --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --terminal-theme dark --report-dir dist/validation/appearance-external-dark
-python tools/native_mod_acceptance.py --persistent --appearance --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline --theme dark --terminal-theme dark --report-dir dist/validation/appearance-native-dark
-python tools/benchmark_render.py --suite appearance --samples 50 --report dist/validation/appearance-warm.json
-```
-
-编辑器再以浅色主题重复。外部覆盖五种窗口的双语流程，原生覆盖 120×30／80×48 双语流程。仅候选的 appearance 基准覆盖关闭新功能、条件、自定义颜色、四类主题角色及 ASCII／箭头／单色 Powerline，在 40／120 列运行主状态栏和 32 代理进程；再以 `--bytecode-mode cold` 重复。前后性能回归使用单独的三轮 representative 比较；报告保留样本，并区分模拟、终端捕获、agent 图片检查与真人平台验收。
-
-## 组件组合验收
-
-参见[组件指南](../COMPOSITION.zh-CN.md)、[固定源码性能报告](performance-v2.0.0.zh-CN.md)及[捕获来源](../images/composition/README.zh-CN.md)。覆盖类型／实例边界、旧版只读迁移、复制与选项、禁用位置、文字、留白及原始采集不重复。下列安装包验证使用隔离配置与本地按键／斜杠命令：
-
-```sh
-python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --composition --report-dir dist/validation/new-external-composition
-python tools/native_mod_acceptance.py --backend /absolute/venv/bin/claude-statusline --persistent --composition --report-dir dist/validation/new-native-composition
-python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candidate CANDIDATE_WHEEL --report-dir dist/validation/new-upgrade
-```
-
-原生采用 A／D／X 以避免宿主截获控制键，外部采用 Ctrl+A／D／X。原生预览按实际可绘制宽度适配，缩放导致边框出现／消失时重新计算；两边状态快照保留组件选择器及复制身份。
-
-TS-03 C 增加 Linux 独立进程的 26 个固定案例重放、三处获准 CLI 文字差异的准确哈希、配置事务、真实 Node CLI JSON 交互和 Python／TS 混合配置／偏好写入者。43 项 PR 检查及八目标源码绑定产物在合并前全部通过。
-
-TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 206/516；另有 10 项混合 token 测试保留 03-E 的待完成渲染断言。本地 TS 276 项测试中 275 通过，Linux 跳过 1 项 Windows 共享冲突测试。新增确定性动作重放将 24 个会话与原始 Python 对照，独立于原有字节精确案例核验数值类型、返回值和最终 JSON 文件状态。真实多进程验证 live、任务及用量写入；本地 Git 仓库覆盖 submodule、worktree、分歧、浅克隆、不可变缓存和共享超时。详见 [03-D 证据](typescript-migration/ts-03/validation.03-d.json)。尚有 116 个固定案例和 310 个台账项目待完成，因此 `--complete` 仍须失败；性能与两个 Mod 绑定 TS 的完整验证继续作为后续门槛。
-
-## TS-03 E 渲染验收
-
-独立 TS 执行器现已重放全部 **161** 个固定案例。对照仍仅允许原有三项准确的 CLI 文案字段差异，未新增数值、协议、状态、文件或退出码豁免。台账已映射 **389/516** 项测试，仍有 **127** 项等待最终审计；十项混合 token 测试已补齐渲染断言。本地 `npm test` **455 项中 454 通过**，Linux 预期跳过一项 Windows 共享冲突测试；原 Python **856 项中 847 通过**、九项平台跳过。独立官方 Mod 测试 **native 112／runtime 10** 全部通过。
-
-覆盖五种语言的全部指标、40／80／120 列和极窄宽度、显式行／留白／Powerline、固定旧版外观字节、选择性 ANSI 复位、零值／缺失／部分观测、重复来源复用及子代理结束证据冻结。额外对照核验 2,092 组浮点格式、数值构造语法，以及所有 Unicode 码点在 Python 3.14 下的大小写折叠／首字母大写。导入追踪拒绝最小渲染路径加载原生采集器和 UI 词库；独立 ASCII 进程确认 Unicode 表初始化数量为零。参见 [03-E 证据](typescript-migration/ts-03/validation.03-e.json)。D06 性能矩阵、隔离 Mod 到 TS 的绑定及完整 516 项台账审计继续作为 03-F 门槛。
-
-TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中不提供 Python。真实主机探测使用临时绑定、合成密钥和不可达的 loopback API。`npm run migration:inventory -- --complete` 要求 516 项均有替代测试或具名 TS-04 责任。固定 D06 后端工具为 `npm run migration:benchmark -- NEW_DIRECTORY`，要求干净且已提交的源码；`--validate` 仅校验功能夹具。参见 [TS-04 交接](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)。
-
-原正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。按当时门槛，TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。
-
-## TS-04 安装验收
-
-[候选流程](typescript-migration/ts-04/candidate.zh-CN.md)覆盖私有离线 npm 归档、八个
-原生目标和 13 个固定官方宿主作业。`npm run migration:inventory:ts04 -- --complete`
-检查全部 265 项责任，拒绝 pending；原 516 项 TS-03 台账保留为历史记录，转交的
-45 个完整测试／八项部分断言均由 TS-04 承接。`npm run migration:installed` 单独验证
-安装后入口、双编辑器、中断恢复及 Python 升级／兼容备份回放；普通 `npm test` 不能
-替代此门槛。回执源码哈希、归档摘要及必需 CI 结论必须匹配审查过的 head。
-
-本地 `npm run migration:host:ts04` 使用合成凭据且不调用模型，验证真实宿主中的
-已安装原生编辑器保存和 runtime 调用；它与已批准延期至发布前的实体／桌面／视觉
-验收分开记录。源码及进程中断测试不宣称硬件断电验证。性能后续工作仍归 PERF-01。
-
-</details>
+早期命令、阶段结论和验证限制见[历史验收记录](history/acceptance-records.zh-CN.md)。原章节入口如下。
+
+- <a id="i18n-02-验收"></a>[I18N-02 原始验收范围](history/acceptance-records.zh-CN.md#i18n-02-验收)随 v3.15.0 记录。
+- <a id="本地检查"></a>[本地检查](history/acceptance-records.zh-CN.md#本地检查)
+- <a id="安装包检查"></a>[安装包检查](history/acceptance-records.zh-CN.md#安装包检查)
+- <a id="真实计时验收"></a>[真实计时验收](history/acceptance-records.zh-CN.md#真实计时验收)
+- <a id="client-与外部入口检查"></a>[Client 与外部入口检查](history/acceptance-records.zh-CN.md#client-与外部入口检查)
+- <a id="显示指标检查与性能"></a>[显示指标检查与性能](history/acceptance-records.zh-CN.md#显示指标检查与性能)
+- <a id="phase-4-验证"></a>[Phase 4 验证](history/acceptance-records.zh-CN.md#phase-4-验证)
+- <a id="v150a1-候选验证记录"></a>[v1.5.0a1 候选验证记录](history/acceptance-records.zh-CN.md#v150a1-候选验证记录)
+- <a id="v150-正式验收"></a>[v1.5.0 正式验收](history/acceptance-records.zh-CN.md#v150-正式验收)
+- <a id="独立运行检查"></a>[独立运行检查](history/acceptance-records.zh-CN.md#独立运行检查)
+- <a id="phase-5-指标迁移"></a>[Phase 5 指标迁移](history/acceptance-records.zh-CN.md#phase-5-指标迁移)
+- <a id="phase-5-真实验收"></a>[Phase 5 真实验收](history/acceptance-records.zh-CN.md#phase-5-真实验收)
+- <a id="v160-正式版验收"></a>[v1.6.0 正式版验收](history/acceptance-records.zh-CN.md#v160-正式版验收)
+- <a id="v161-外部-tui-分组验证"></a>[v1.6.1 外部 TUI 分组验证](history/acceptance-records.zh-CN.md#v161-外部-tui-分组验证)
+- <a id="任务计时预览验证"></a>[任务计时预览验证](history/acceptance-records.zh-CN.md#任务计时预览验证)
+- <a id="v170-正式验收"></a>[v1.7.0 正式验收](history/acceptance-records.zh-CN.md#v170-正式验收)
+- <a id="tui-优化验收"></a>[TUI 优化验收](history/acceptance-records.zh-CN.md#tui-优化验收)
+- <a id="client-底部快捷键与大小写"></a>[Client 底部快捷键与大小写](history/acceptance-records.zh-CN.md#client-底部快捷键与大小写)
+- <a id="原生主题验收"></a>[原生主题验收](history/acceptance-records.zh-CN.md#原生主题验收)
+- <a id="外部终端配色验收"></a>[外部终端配色验收](history/acceptance-records.zh-CN.md#外部终端配色验收)
+- <a id="双语界面验收"></a>[双语界面验收](history/acceptance-records.zh-CN.md#双语界面验收)
+- <a id="状态栏本地化验收"></a>[状态栏本地化验收](history/acceptance-records.zh-CN.md#状态栏本地化验收)
+- <a id="项目查找与导入审阅验收"></a>[项目查找与导入审阅验收](history/acceptance-records.zh-CN.md#项目查找与导入审阅验收)
+- <a id="代表性渲染性能基准"></a>[代表性渲染性能基准](history/acceptance-records.zh-CN.md#代表性渲染性能基准)
+- <a id="字符簇与预览样式验收"></a>[字符簇与预览样式验收](history/acceptance-records.zh-CN.md#字符簇与预览样式验收)
+- <a id="条件显示与外观验收"></a>[条件显示与外观验收](history/acceptance-records.zh-CN.md#条件显示与外观验收)
+- <a id="组件组合验收"></a>[组件组合验收](history/acceptance-records.zh-CN.md#组件组合验收)
+- <a id="ts-03-e-渲染验收"></a>[TS-03 E 渲染验收](history/acceptance-records.zh-CN.md#ts-03-e-渲染验收)
+- <a id="ts-04-安装验收"></a>[TS-04 安装验收](history/acceptance-records.zh-CN.md#ts-04-安装验收)
 
 [来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。

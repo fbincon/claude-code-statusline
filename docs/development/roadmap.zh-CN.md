@@ -2,30 +2,19 @@
 
 [English](roadmap.md) | **简体中文**
 
-v3.16.0 的[十二语言扩展](language-expansion.zh-CN.md#final-release)新增六种界面／输出语言并采用编辑器协议 31，覆盖 144 组组合和 313 项容量案例。发布及本机验证状态：已完成；原始来源与实际证据见交付记录。
+本路线图维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖、切片和验收。[交付索引](history/README.zh-CN.md#delivery-records)汇集实现与发布证据。
 
-v3.15.0 已完成 I18N-02 三个切片、发布及本机验证。[最终交付](i18n-02-delivery.zh-CN.md#final-release)。显示 schema 17／编辑器协议 30 在该版本保持不变。
+**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](language-expansion.zh-CN.md#final-release) 作为产品基线，原始规划源码为 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`。M1–M12 和选定的十八个后续工作包已交付。[SHOWCASE-01](showcase.zh-CN.md#delivery)使用记录中的软件包和采集输入演示这些流程。各工作包状态见下文阶段表。
 
-v3.14.0 已交付 APPEARANCE-07、APPEARANCE-06、PROFILE-02，并解决 #178／#180；三个工作包均为 DONE。[实现、交付与验证](adaptive-row-scenarios.zh-CN.md)。显示 schema 17／编辑器协议 30。
-
-v3.13.0 已完成 UX-03、COMPOSITION-04、IMPORT-02 全部切片，三个工作包均为 DONE。[交付及发版后发现](draft-history-and-reuse.zh-CN.md)。v3.12.0 的来源／命令／包管理交付及下列早期事实保留为历史。
-
-更新：**2026-10-30**（Asia/Shanghai）· 产品基线：**v3.16.0** · 原始规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
-
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。M1–M12、十八个选定后续工作包及其全部切片均已交付。SHOWCASE-01 现已基于既有 v3.16.0 包完成双语使用演示及文档整理，见其[分开验收与交付记录](showcase.zh-CN.md#delivery)。下表保留工作包身份与依赖；未选定想法仍在候选池。
-
-本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
-
-[I18N-02](development-plan.zh-CN.md#i18n-02) 已随 v3.15.0 达到 DONE。[实现记录](i18n-02-delivery.zh-CN.md)记录兼容准备、增量维护、严格六语发布就绪、全部公开渠道及本机验证。未新增语言；I18N-01 保持已交付。
-
-**导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
-
-
-TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-command-package-management.zh-CN.md)已完成 UPDATE-02 剩余切片及 #173 修复。[早期交付记录](task-version-review.zh-CN.md)。
+**导航：** [规划基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
 
 <a id="baseline"></a>
 
-## 当前基线与产品方向
+<a id="当前基线与产品方向"></a>
+
+## 规划基线与产品方向
+
+下表记录以 v3.16.0 为基线时用于规划的能力。现行操作见[使用指南](../USER_GUIDE.zh-CN.md)，基线之后的变化见[变更日志](../../CHANGELOG.zh-CN.md)。
 
 | 方面 | 已交付能力 | 后续规划依据 |
 | --- | --- | --- |
@@ -41,7 +30,7 @@ TASK-02 和 UPDATE-02 第一片已随 v3.11.0 交付；[v3.12.0 交付](source-c
 | 接口 | 显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.16.0 交付](language-expansion.zh-CN.md#final-release)、[v3.15.0 交付](i18n-02-delivery.zh-CN.md#final-release)、[v3.14.0 交付](adaptive-row-scenarios.zh-CN.md)、[v3.13.0 交付](draft-history-and-reuse.zh-CN.md)、[v3.12.0 交付](source-command-package-management.zh-CN.md)、[v3.11.0 交付](task-version-review.zh-CN.md)、[v3.10.0 交付](appearance-preview-diagnosis.zh-CN.md)、[v3.9.2 发布记录](../releases/v3.9.2.md)、[正确性修复交付](correctness-maintenance.zh-CN.md)、[v3.9.1 发布记录](../releases/v3.9.1.md)、[Native 容量与交付](native-capacity.zh-CN.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认与拟新增能力。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史；发布身份和实际验证范围继续由交付记录维护。
+[审查基线](development-plan.zh-CN.md#review-baseline)区分隔离复现、源码确认和拟新增能力。上一份规划快照为 `f68d26eeddda98ab4041d2b9e873ade556fa1909`。相关定义与证据见[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[架构](architecture.zh-CN.md)和[交付索引](history/README.zh-CN.md#delivery-records)。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
@@ -199,29 +188,9 @@ Native 改动分别保留 props、Pane 与 Client 树检查、有界可见页、
 
 ## 已交付工作与历史证据
 
-| 版本 | 工作包 | 状态 | 实现与交付记录 |
-| --- | --- | --- | --- |
-| v3.2.0 | UX-01、UX-02、EXPLAIN-01 | DONE | [配置体验](configuration-experience.zh-CN.md) |
-| v3.3.0 | DIAG-01、INPUT-01 | DONE | [真实输入诊断](real-input-diagnostics.zh-CN.md) |
-| v3.4.0 | PROFILE-01、PROJECT-01、TASK-01 | DONE | [方案、项目与任务详情](profiles-projects-tasks.zh-CN.md) |
-| v3.5.0 | SETUP-01、APPEARANCE-01、APPEARANCE-02 | DONE | [首次设置与完整外观](setup-appearance.zh-CN.md) |
-| v3.6.0 | EXTENSIONS-01、LINKS-01、WORKFLOW-01、COMMAND-01、CAPABILITIES-01 | DONE | [扩展与工作流](extensions.zh-CN.md) |
-| v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](m4-m7-delivery.zh-CN.md) |
-| v3.8.0 | GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 | DONE | [Git、终端与 M8–M9](m8-m9-delivery.zh-CN.md) |
-| v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](m10-m12-delivery.zh-CN.md) |
-| v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量与交付](native-capacity.zh-CN.md) |
-| v3.9.2 | FIX-01～FIX-04、I18N-01：草稿、进度条、刷新消费者、历史诊断及任务语言 | DONE | [正确性修复与发布](correctness-maintenance.zh-CN.md) |
-| v3.10.0 | APPEARANCE-05、PREVIEW-01、EXPLAIN-02：主题、可视选色、样例场景及文件诊断 | DONE | [外观、预览与诊断交付](appearance-preview-diagnosis.zh-CN.md) |
-| v3.11.0 | TASK-02、UPDATE-02 第一片 | DONE | [任务浏览与版本审核](task-version-review.zh-CN.md) |
-| v3.12.0 | SOURCES-01、COMMAND-02、UPDATE-02 第二／三片；#173 | DONE | [v3.12.0 交付](source-command-package-management.zh-CN.md) |
-| v3.13.0 | UX-03、COMPOSITION-04、IMPORT-02 全部切片 | DONE | [草稿历史、修复与复用交付](draft-history-and-reuse.zh-CN.md) |
-| v3.14.0 | APPEARANCE-07、APPEARANCE-06、PROFILE-02；#178／#180 | DONE | [自适应、连续背景与场景交付](adaptive-row-scenarios.zh-CN.md) |
-| v3.15.0 | I18N-02 三个切片；六语言增量维护 | DONE | [增量语言工作流交付](i18n-02-delivery.zh-CN.md#final-release) |
-| v3.16.0 | 新增六种界面／状态栏语言；编辑器协议 31 | DONE | [十二语言交付](language-expansion.zh-CN.md#final-release) |
+[版本与工作包对照](history/README.zh-CN.md#delivery-by-version)记录规划基线及之前的版本与工作包关系。[专题索引](history/README.zh-CN.md#delivery-records)涵盖后续交付和迁移证据。[变更日志](../../CHANGELOG.zh-CN.md)链接面向用户的各版说明。
 
-链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
-
-CI-01 已作为仓库维护完成，本次没有新产品版本；[验证与更新方法](ci-maintenance.zh-CN.md)记录最终 PR／main 矩阵、手动工作流检查及保留的失败历史。
+[CI-01 验证与更新方法](ci-maintenance.zh-CN.md)保留该次仓库维护的最终 PR／main 矩阵、手动工作流检查和原始失败记录。
 
 <a id="maintenance"></a>
 
@@ -229,7 +198,7 @@ CI-01 已作为仓库维护完成，本次没有新产品版本；[验证与更�
 
 本路线图和[开发计划](development-plan.zh-CN.md)均维护英文与简体中文版本。本页更新阶段及状态，开发计划更新范围及验收，相关交付记录保存实际实现／发布证据。状态使用 `NOT_STARTED` → `IN_PROGRESS` → `VALIDATING` → `DONE`；文档修改不推进功能状态。
 
-未来规划与稳定版使用说明分别维护。同步更新双语文档，保留工作包 ID 和章节锚点，说明范围或依赖的变化。新增对贡献者有用的记录时，在开发指南中补充入口。
+未来规划与稳定版使用说明分别维护。同步更新双语文档，保留工作包 ID 和章节锚点，说明范围或依赖的变化。在[交付索引](history/README.zh-CN.md#delivery-records)补充新交付证据的入口。
 
 执行 `npm run docs:check` 与 `git diff --check`，核对双语 ID、依赖、状态及已交付事实，并在仅含已提交文件的检出目录验证链接。本机规划归档与原始验收记录继续保留在本地，不作为公开文档的依赖。
 

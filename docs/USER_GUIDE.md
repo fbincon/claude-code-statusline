@@ -91,19 +91,20 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-For the reproducible examples in this guide, use `@3.16.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
+To install an exact stable version from npm, append `@VERSION` to the package name, using the release tag without the leading `v`. Package installation and Claude integration are separate steps. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd` and `.ps1`. Claude integration binds the absolute Node executable and JavaScript entry.
 
 ### Offline installation
 
-Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.0). Verify all listed hashes before installing:
+Choose the exact stable tag from the release list. Download the four attachments for that tag into one directory. These are `fbincon-claude-code-statusline-VERSION.tgz`, the rebuildable `claude-code-statusline-VERSION-source.tar.gz`, `build-manifest.json` and `SHA256SUMS`. Verify the three files listed in `SHA256SUMS` before installing. [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee Releases](https://gitee.com/fbincon/claude-code-statusline/releases)
+
+In the Linux or WSL example, replace `VERSION` with the version from the selected tag.
 
 ```bash
-# Linux / WSL; on macOS use shasum -a 256 -c SHA256SUMS
-sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.16.0.tgz
+sha256sum -c SHA256SUMS &&
+  npm install --global --offline --ignore-scripts "./fbincon-claude-code-statusline-VERSION.tgz"
 ```
 
-In PowerShell use `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` and compare each result with `SHA256SUMS`, then install the local tgz using the same npm options. Automatic GitHub/Gitee source ZIPs are not the rebuildable source asset. See the [development guide](development/README.md#build-and-install-from-source) for source builds.
+On macOS, use `shasum -a 256 -c SHA256SUMS` for the checksum step. In PowerShell, use `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` for each listed file and compare the hashes with `SHA256SUMS`. Once they match, run the same npm command for the verified local tgz. For source builds, use the attached rebuildable archive. [Build from source](development/README.md#build-and-install-from-source)
 
 ### Integrate with Claude Code
 
@@ -116,7 +117,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows uses `claude-statusline.cmd` or the explicit Node/JavaScript entry. Restart Claude Code in a trusted terminal to load the installed plugins and commands.
+Windows uses `claude-statusline.cmd` or the explicit Node/JavaScript entry. Restart Claude Code in a trusted terminal to load the installed plugins and commands. For a guided display preview and integration review, use [first-use setup](SETUP.md).
 
 ### What `install` does
 
@@ -138,7 +139,7 @@ To preserve a third-party subagent renderer, run `claude-statusline config set s
 
 macOS uses the same npm package and installation flow, with Intel and Apple Silicon native dependencies bundled. Terminal.app is the supported desktop external launcher; tmux popup is preferred when available. SSH and sessions without a graphical desktop should use the standalone editor or CLI.
 
-Current examples are in the [showcase](SHOWCASE.md); the [image index](images/README.md) identifies each current or historical capture by package and platform. The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
+For a reproducible workflow and versioned captures, see the [showcase](SHOWCASE.md) and [image index](images/README.md). For the known macOS Client input limitation, see the [focus checks](#macos-mouse-reporting-and-client-focus).
 
 ## Choose a configuration entry point
 
@@ -215,9 +216,7 @@ This applies to the main line and all custom subagent rows. Translate built-in p
 
 `statusline_language` lives in display schema v17 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
 
-Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 17 and interface preferences schema 1 evolve independently; editor protocol 31 rejects older frontend/backend pairs.
-
-Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v8 draft to an older backend. See [backups](#backups-and-rollback).
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Then follow the steps for compatible configuration and matching native resources. [Version compatibility](#version-compatibility) · [Backups](#backups-and-rollback)
 
 ## Native configuration editor
 
@@ -339,7 +338,7 @@ Each page retains its draft, selection, search, and scroll during page changes a
 
 Content and `Preview (sample data)` are separate regions: frames at 64×20 and above, compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`; settings and forms show `OPTION`, `VALUE`.
 
-Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colors, subagent visibility, and presets/portable files. Layout groups mode, row boundaries, and item fitting. Group titles are not selectable. The fixed-sample preview uses production rendering and does not inspect live Git or transcripts. [Current page screenshots](images/README.md#current-images).
+Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colors, subagent visibility, and presets/portable files. Layout groups mode, row boundaries, and item fitting. Group titles are not selectable. The fixed-sample preview uses production rendering and does not inspect live Git or transcripts. [TypeScript editor captures from v3.16.0](images/typescript/v3.16.0/README.md).
 
 The footer follows the current input context. Category selection shows arrows and Home/End; numeric editing shows Digits and Backspace, while Ctrl+U belongs to search/text input. Main/Subagents show Enter/Ctrl+S for saving, and hide ordering while filtered. Add/copy/remove hints use compact labels when space is limited. Inherited values are localized; literal labels, icons, text and Git references retain their exact spelling. The title marks changed configuration text before confirmation; opening an edit or changing a file path alone does not mark the configuration modified.
 
@@ -366,11 +365,13 @@ claude-statusline install --no-experimental-slash-tui
 
 These are alternative commands. Omitting both flags preserves the saved preference; a missing preference defaults on. Restart Claude Code after integration changes.
 
-Save, cancellation, and errors return a short result to the original conversation. The launched TUI cancels without saving after 570 seconds; standalone `configure` has no automatic timeout. `help`, `-h`, and `--help` return usage; other arguments are rejected. If launchers are unavailable, use standalone `configure` or the wizard. [Launcher implementation](development/README.md#external-launchers-and-result-bridging).
+Save, cancellation and errors return a short result to the original conversation. The launched TUI cancels without saving after 570 seconds. Standalone `configure` has no automatic timeout. `help`, `-h`, and `--help` return usage. The launcher rejects other arguments. If launchers are unavailable, use standalone `configure` or the wizard. [TypeScript launcher and result contract](development/contracts.md#typescript-backend-binding)
 
 ## `/statusline-config` wizard
 
 Run `/statusline-config` without arguments to answer questions about main/subagent items and display options. The wizard uses Claude model turns, preserves the relative order of retained items, appends newly enabled items, and submits one atomic `config apply` after all questions are complete. Cancelling midway does not save settings.
+
+Paging and the save-time reread described below are available from package v3.16.3. After upgrading, rerun `claude-statusline install` and restart Claude Code to load the matching skill. [v3.16.3 release notes](releases/v3.16.3.md)
 
 The wizard edits the user-default configuration in the selected Claude configuration directory. Projects bound to named profiles keep their own display; host settings remain shared within that directory. Use an editor's target selector or terminal `config profile` / `config project` commands to manage profiles and bindings. The wizard reads saved interface language, current settings and both catalogs first. It starts from the current values, splits larger choices into bounded question pages and preserves answers across pages. A page's “None” choice clears only that page's items; explicit “Keep current” choices retain the saved value. Cancellation or an unresolved answer prevents the final save.
 
@@ -594,9 +595,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-The main catalog contains 65 metrics plus text and spacer types, ten metrics enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `task-timer`.
-
-Common optional items are grouped below; enable them by ID or select them in an editor.
+Select items in an editor or enable them by ID. These optional main items cover common needs.
 
 | Group | Optional IDs |
 | --- | --- |
@@ -605,13 +604,11 @@ Common optional items are grouped below; enable them by ID or select them in an 
 | Repository | `pr`, `repo`, `worktree` |
 | Context and usage | `context-used`, `cost`, `prompt-cache` |
 
-The subagent catalog contains 15 metrics plus text and spacer types, five metrics enabled by default: `status-elapsed`, `name`, `model-with-effort`, `context-remaining`, and `task`. Composite `status-elapsed` excludes separate `status`/`elapsed`. See [field reference](reference/cli.md#configurable-display-items) and [metric definitions](DISPLAY_ITEMS.md) for the full catalog and unavailable-data behavior.
+For defaults, host requirements and unavailable data, see the [main items](DISPLAY_ITEMS.md#main-items) and [subagent items](DISPLAY_ITEMS.md#subagent-items). For scripting, see [catalog commands](reference/cli.md#configurable-display-items).
 
 ## Main status line fields
 
-Git uses `↑N`/`↓N` for upstream divergence, `● N` (Linux/macOS) or `●N` (Windows/WSL) for staged files, `~N` for unstaged, `!N` for conflicts, and `?N` for untracked. `Git!` reports a failed Git query; non-Git directories omit the field.
-
-Tokens show session totals: `hit` is cache-read input, `miss` is ordinary input plus cache creation, and `out` is output. This includes discoverable subagent transcripts and is separate from context occupancy or rate limits.
+To interpret the main line, see [Git markers](DISPLAY_ITEMS.md#git-markers) and [token fields](DISPLAY_ITEMS.md#token-fields). To investigate `Git!`, use the [Git troubleshooting steps](#git-information-is-missing-or-shows-git).
 
 <a id="task-timing-preview"></a>
 <a id="task-timing"></a>
@@ -652,15 +649,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 
 ## Configuration files
 
-| File in `<CLAUDE_CONFIG_DIR>` | Purpose |
-| --- | --- |
-| `claude-statusline.json` | Display settings, item order, formats, layouts, subagent visibility |
-| `claude-statusline-features.json` | Independent external-editor preference |
-| `claude-statusline-native.json` | Independent in-session Client preference |
-| `claude-statusline-runtime.json` | Independent native timing and advanced collection preferences |
-| `settings.json` | Owned Claude commands, hooks, and host status-line settings |
-
-Use the CLI or editors to update these files. Display schema v17 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
+Use the CLI or an editor to change the active configuration. Display choices and the in-session Client preference use separate files, including `claude-statusline.json` and `claude-statusline-native.json`. For paths, schemas and the complete file list, use the [configuration reference](reference/cli.md#configuration-files). Before restoring an older file, check the [version compatibility steps](#version-compatibility).
 
 ## Custom configuration directory and environment variables
 
@@ -679,10 +668,11 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 
 ### Migrate from Python
 
-Stop active Claude sessions and back up the configuration directory before switching writers. Record the Python executable's absolute path and version; keep that environment for rollback. Install npm into a separate prefix if a Python command already owns the same PATH name:
+Stop active Claude sessions and back up the configuration directory before switching writers. Record the Python executable's absolute path and version and keep that environment for rollback. Choose an exact stable npm release and verify its attachments using the [offline installation steps](#offline-installation). From a directory you will keep, install the verified tgz into a separate prefix and use its Node entry even if the Python command is still on PATH. Replace `VERSION` with the verified version.
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.16.0
+npm install --prefix ./statusline-node --offline --ignore-scripts "./fbincon-claude-code-statusline-VERSION.tgz"
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js --version
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
@@ -694,15 +684,11 @@ For rollback, stop Claude, use the Node entry to run `install --no-native-timing
 
 ### Reviewed package changes
 
-Both editors offer a local **Version and installation** page with explicit metadata and dry-run reviews. To execute an upgrade, use `claude-statusline update --check`, then `claude-statusline update` for the persistent global installation. The review resolves an exact target, verifies compatibility and refreshes matching integration. `rollback` chooses the previous successful version; configuration restoration is separate. [Version management and recovery](PACKAGE_MANAGEMENT.md) describes precise scripting, the v3.7.0 boundary and retained recovery entries.
+Use **Settings → Version and installation** in either editor or start a CLI metadata review with `claude-statusline update --check`. Package rollback and configuration restoration have separate reviews. [Upgrade, rollback and recovery steps](PACKAGE_MANAGEMENT.md)
 
 ### Manual npm replacement
 
-```text
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-```
-
-Keep the same prefix when upgrading a prefix installation. Use a verified local tgz with `--offline --ignore-scripts` for offline upgrades.
+Repeat the [npm installation steps](#install-the-npm-package) or [offline installation steps](#offline-installation) for the desired version, using the same global or explicit prefix. Then synchronize the integration.
 
 ### Synchronize Claude Code integration
 
@@ -717,9 +703,7 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Display schema 17 stores instance IDs in ordering and rows. Reading v1–v16 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
-
-Current display schema v17, configuration protocol v31, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v16 files are read without rewriting; an actual save backs up the old bytes and migrates to v17. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Display schema 17 stores instance IDs in ordering and rows. Reads of supported older formats convert in memory. A save or installation that migrates the file first backs up the old bytes. Use matching editor resources and backend, and check the target package's format and item support before switching versions. [Configuration formats](reference/cli.md#configuration-files) · [Composition migration and recovery](COMPOSITION.md#migration-transfer-and-recovery)
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -815,7 +799,8 @@ Confirm that `/statusline-config skill` is OK in doctor. If installation happene
 1. Run `claude-statusline doctor` to check host 2.1.287+, resources and backend binding. Suspension on an older host is compatibility handling.
 2. Check recorded disablement, host plugin disablement, safe/bare mode and policy. If needed, run `install --native-editor` and restart Claude Code in a trusted terminal.
 3. Click the Client region once before keyboard use. On macOS, follow [mouse reporting and Client focus checks](#macos-mouse-reporting-and-client-focus); the latest reported macOS configuration remains unverified. Ctrl+G cancels input; Esc remains host-owned.
-4. Conflicts retain the draft; `R` explicitly discards/reloads. Use `K` to check unknown save outcomes and Retry/Close for failures. Reinstall the matching wheel/integration for version or resource mismatch; do not adopt foreign caches manually.
+4. For a save conflict, use `R` to discard the draft and reload when ready. Use `K` to check an unknown save outcome and Retry/Close for failures.
+5. For a version or resource mismatch, reinstall the matching npm package in the same prefix. Run `claude-statusline install` and `claude-statusline doctor` using that entry, then restart Claude Code. [Install a verified package](#offline-installation)
 
 ### `/statusline-configure` is missing or suspended
 
@@ -897,25 +882,15 @@ To preserve manual edits, restore from the latest backup or repair the JSON befo
 
 ### Git information is missing or shows `Git!`
 
-Linux / WSL / macOS:
+Check whether Git is on PATH with `command -v git` on Linux, WSL or macOS, or `Get-Command git` in PowerShell. Outside a repository the worktree status items are omitted. `Git!` indicates a failed worktree status observation, which can include a collection policy refusal. Run `claude-statusline doctor` from the project directory to inspect the filter policy. [Git collection policy](DIAGNOSTICS.md#git-collection-policy)
+
+To stop the renderer's built-in Git queries, disable the compound, its independent status items and the committed branch comparison. Use this command for a type-based user-default display.
 
 ```bash
-command -v git
-git -C /path/to/project status --porcelain=v2 --branch --ahead-behind
+claude-statusline config disable git git-branch git-changes git-ahead-behind branch-diff
 ```
 
-Windows PowerShell:
-
-```powershell
-Get-Command git
-git -C 'C:\Path With Spaces\project' status --porcelain=v2 --branch --ahead-behind
-```
-
-Omitting Git outside a repository is normal. `Git!` means the Git command is missing, timed out, or returned unparseable output. Disabling `git` stops renderer Git queries:
-
-```bash
-claude-statusline config disable git
-```
+If the project uses a named scheme or the display contains repeated instances, select the corresponding target in an editor and disable every enabled copy of those items.
 
 <a id="token-或计时器暂时不显示"></a>
 
