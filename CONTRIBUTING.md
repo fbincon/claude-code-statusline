@@ -42,7 +42,9 @@ CI combines checks for mixed maintenance and reserves the complete product matri
 
 Keep the change focused, explain its purpose and record what was actually tested. Use a conventional title such as `fix: ...`, `docs: ...` or `ci: ...`. DCO sign-off is not required.
 
-English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`, except the English-only root `AGENTS.md`. GitHub Issue forms and the single PR template contain both languages in one file. Keep links current and update the appropriate documentation indexes. See the [translation guide](docs/development/i18n.md) for interface translations.
+English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`, except the English-only root `AGENTS.md`. GitHub Issue forms and the single PR template contain both languages in one file. Release notes through v3.9.x retain both languages on one historical page. Starting with v3.10.0, release notes use separate English and Simplified Chinese pages. [Release notes index](docs/releases/README.md).
+
+Keep links current and update the appropriate documentation indexes. For interface translations, see the [translation guide](docs/development/i18n.md).
 
 Update documentation, screenshots, CHANGELOG and related Issue links when relevant; explicitly mark other template items not applicable. The project README introduces features and usage: release versions, delivery status and update narratives belong in the changelog, release notes or development records.
 

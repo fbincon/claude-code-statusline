@@ -8,7 +8,8 @@ Use this plan to define work-package scope, dependencies, implementation slices 
 
 ## Work package index
 
-[Unselected candidates and entry conditions](roadmap.md#candidates) · [Shared design](#design-rules) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff) · [Delivered designs](#completed-designs)
+- **Current planning** · [Unselected candidates and entry conditions](roadmap.md#candidates) · [Shared design rules](#design-rules) · [Acceptance matrix](#acceptance-matrix) · [Handoff](#handoff)
+- **Delivered work** · [Original designs](#completed-designs) · [Delivery and verification records](history/README.md#delivery-records)
 
 <a id="design-rules"></a>
 

@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-[v3.16.0 十二语言扩展](language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
+v3.16.0 语言扩展的源码和验收证据见[交付记录](language-expansion.zh-CN.md#final-release)。
 
 
 [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。

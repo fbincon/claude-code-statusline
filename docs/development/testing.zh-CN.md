@@ -142,4 +142,4 @@ TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分�
 - <a id="ts-03-e-渲染验收"></a>[TS-03 E 渲染验收](history/acceptance-records.zh-CN.md#ts-03-e-渲染验收)
 - <a id="ts-04-安装验收"></a>[TS-04 安装验收](history/acceptance-records.zh-CN.md#ts-04-安装验收)
 
-[来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。
+v3.12.0 来源与包执行检查涵盖命令独立许可、保留入口和受保护清理。参见[验收与交付](source-command-package-management.zh-CN.md#验收与交付)。

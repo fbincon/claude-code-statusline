@@ -144,4 +144,4 @@ The TUI package owns pure rendering/state regressions without importing the CLI.
 - <a id="ts-03-e-rendering-acceptance"></a>[TS-03 E rendering acceptance](history/acceptance-records.md#ts-03-e-rendering-acceptance)
 - <a id="ts-04-installed-acceptance"></a>[TS-04 installed acceptance](history/acceptance-records.md#ts-04-installed-acceptance)
 
-[Source and package execution boundaries and additional acceptance](source-command-package-management.md) document protocol 28, separate command approval, retained controls and protected cleanup.
+The v3.12.0 source and package checks cover independent command approval, retained controls and protected cleanup. [Acceptance and delivery](source-command-package-management.md#acceptance-and-delivery).

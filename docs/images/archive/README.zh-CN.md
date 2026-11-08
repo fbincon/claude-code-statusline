@@ -80,7 +80,7 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 ## v1.6.0 正式版验收
 
-2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+维护者确认及 Phase 5 证据范围见[历史验收记录](../../development/history/acceptance-records.zh-CN.md#v160-正式版验收)。
 
 ## 图库替换批次
 
