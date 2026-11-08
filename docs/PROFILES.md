@@ -95,6 +95,4 @@ Unselected settings and local source bindings are preserved. Imported scopes los
 
 ## Adaptive indicators and continuous backgrounds
 
-Use `config instance main set context-remaining presentation adaptive` to enable adaptive indicators and `config set powerline-row-background-gradient lagoon` to choose a continuous background; `off` disables it. Backgrounds apply only to colored Powerline output. Custom labels/icons remain whole; a numeric representation that cannot fit is omitted. Auto layout retains ordinary wrapping.
-
-New schemes are `powerline-daily`, `agent-workbench`, `quota-cost`, `narrow-terminal` and `light-readable`, compatible with v3.14.0 onward (display schema 17/protocol 30). Use existing preset/profile selection and import/export. Schemes cannot authorize sources. See [implementation and scenarios](development/adaptive-row-scenarios.md).
+For fitting rules, Powerline backgrounds and compatible schemes, see the [composition guide](COMPOSITION.md#adaptive-indicators-and-continuous-backgrounds).

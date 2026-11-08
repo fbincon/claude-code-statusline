@@ -13,7 +13,7 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 1. 确认发布范围、渠道及[应用版本](../packages/core/src/release.ts)。使用固定开发工具链，按贡献指南的命名约定从当前 `main` 创建分支。更新双语变更记录和版本说明。规范源变化时重新生成对应资源。参见[贡献指南](../CONTRIBUTING.zh-CN.md)和[开发指南](development/README.zh-CN.md)。
 2. 正式版发布需新增维护者决定 JSON，并登记版本、路径和准确批准日期。校验器从不可变源码归档读取这两份文件。决定仅适用于该版本与六项既有未验证缺口，所有必需的自动化门禁均须通过。参见[审批登记表](releases/approvals/registry.json)和[发布数据规则](development/ci-maintenance.zh-CN.md#发布数据与验收策略)。
 3. 执行影响计划选中的检查。最终审核的 PR head 须通过 **Complete candidate evidence**，合并后等待主分支验证通过。预览版和正式版公开发布均要求 A/B 语言完整就绪。参见[按影响检查](development/impact-checks.zh-CN.md)和[语言发布流程](development/i18n-workflow.zh-CN.md)。
-4. 将双语版本说明存入 `docs/releases/<tag>.md` 及其中文配对页。Release 标题使用英文，公开正文包含两种语言。记录用户可见改动、支持的平台及运行时、兼容性、安装方式和已知限制，并与该版本证据及[运行要求](USER_GUIDE.zh-CN.md#运行要求)核对。
+4. 将双语版本说明存入 `docs/releases/<tag>.md` 及其中文配对页。Release 标题使用英文，公开正文包含两种语言。记录用户可见改动、支持的平台及运行时、兼容性、安装方式和已知限制，并与该版本证据及[运行要求](USER_GUIDE.zh-CN.md#运行要求)核对。将新版本加入中英两版[发布说明索引](releases/README.zh-CN.md)。
 
 例行仓库维护走专项检查和已验证主分支同步。产品发布由维护者单独决定。
 

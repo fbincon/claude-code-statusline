@@ -27,7 +27,7 @@
 | 设置与配置 | [首次设置／完整方案](../setup-appearance.zh-CN.md) · [配置体验](../configuration-experience.zh-CN.md) · [方案／项目／任务](../profiles-projects-tasks.zh-CN.md) · [真实输入诊断](../real-input-diagnostics.zh-CN.md) |
 | 早期里程碑及修复 | [M4–M7](../m4-m7-delivery.zh-CN.md) · [M8–M9](../m8-m9-delivery.zh-CN.md) · [M10–M12](../m10-m12-delivery.zh-CN.md) · [正确性维护](../correctness-maintenance.zh-CN.md) |
 | 迁移后审查 | [问题盘点](../post-migration-review.zh-CN.md) · [修复](../post-migration-fixes.zh-CN.md) · [外部 TUI 一致性](../external-tui-parity.zh-CN.md) · [外部 TUI 回归](../external-tui-regressions.zh-CN.md) |
-| 性能 | [已完成 PERF-01](../performance/perf-01.zh-CN.md) · [v2.0.0](../performance-v2.0.0.zh-CN.md) · [v1.13.0](../performance-v1.13.0.zh-CN.md) · [v1.12.0](../performance-v1.12.0.zh-CN.md) · [v1.11.0](../performance-v1.11.0.zh-CN.md) |
+| 性能 | [按版本查找报告](#performance-reports) |
 | 展示交付 | [SHOWCASE-01](../showcase.zh-CN.md#delivery) |
 
 <a id="delivery-by-version"></a>
@@ -66,6 +66,18 @@
 ## TypeScript 迁移阶段
 
 [TypeScript 迁移计划](../typescript-migration.zh-CN.md)链接已完成阶段：[TS-01 参考](../typescript-migration/ts-01/README.zh-CN.md)、[TS-02 探针](../typescript-migration/ts-02/README.zh-CN.md)、[TS-03 核心／后端](../typescript-migration/ts-03/README.zh-CN.md)、[TS-04 编辑器／恢复](../typescript-migration/ts-04/README.zh-CN.md)、[TS-05 候选](../typescript-migration/ts-05/README.zh-CN.md)、[TS-06 发布](../typescript-migration/ts-06/README.zh-CN.md)。原 [TS-04 候选](../typescript-migration/ts-04/candidate.zh-CN.md)、[恢复](../typescript-migration/ts-04/recovery.zh-CN.md)和 [Linux 实机／延期验收](../typescript-migration/ts-02/LINUX-20261014.zh-CN.md)保留为历史证据。
+
+<a id="performance-reports"></a>
+
+## 按版本查找性能报告
+
+| 版本 | 实现 | 报告 |
+| --- | --- | --- |
+| v3.1.4 | TypeScript | [PERF-01 迁移后性能](../performance/perf-01.zh-CN.md) |
+| v2.0.0 | Python | [组件实例渲染](../performance-v2.0.0.zh-CN.md) |
+| v1.13.0 | Python | [多语言与搜索性能](../performance-v1.13.0.zh-CN.md) |
+| v1.12.0 | Python | [渲染与可选功能开销](../performance-v1.12.0.zh-CN.md) |
+| v1.11.0 | Python | [渲染性能对照](../performance-v1.11.0.zh-CN.md) |
 
 ## 历史流程与证据
 

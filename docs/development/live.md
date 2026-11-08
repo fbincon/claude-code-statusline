@@ -90,7 +90,7 @@ Official user_prompt telemetry links prompt.id to message.uuid explicitly; diffe
 
 ## v1.6.0 stable acceptance
 
-On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
+See the [historical acceptance record](history/acceptance-records.md#v160-stable-acceptance) for the runtime protocol and live collection defaults of that release.
 
 ## Task timing integration
 

@@ -1,4 +1,6 @@
-# Draft history, structural review and reuse
+<a id="draft-history-structural-review-and-reuse"></a>
+
+# Delivery record for draft history, structural review and reuse
 
 **English** | [简体中文](draft-history-and-reuse.zh-CN.md)
 

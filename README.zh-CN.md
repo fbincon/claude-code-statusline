@@ -176,7 +176,7 @@ TypeScript workspace 分为纯规则（`packages/core`）、平台副作用（`p
 | 理解数据 | [指标定义](docs/DISPLAY_ITEMS.zh-CN.md) · [任务详情](docs/TASK_DETAILS.zh-CN.md) · [扩展](docs/EXTENSIONS.zh-CN.md) |
 | 排错或自动化 | [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [输入诊断](docs/DIAGNOSTICS.zh-CN.md) · [CLI 参考](docs/reference/cli.zh-CN.md) |
 | 开发或核对证据 | [开发指南](docs/development/README.zh-CN.md) · [图片来源](docs/images/README.zh-CN.md) |
-| 跟进计划或发布 | [路线图](docs/development/roadmap.zh-CN.md) · [开发计划](docs/development/development-plan.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) |
+| 跟进计划或发布 | [路线图](docs/development/roadmap.zh-CN.md) · [开发计划](docs/development/development-plan.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [发布说明](docs/releases/README.zh-CN.md) |
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)接受可复现缺陷、问题及功能建议。请提供版本、步骤和相关诊断，并移除私人路径及会话内容。
 

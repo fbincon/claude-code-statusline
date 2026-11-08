@@ -190,7 +190,7 @@ The TypeScript workspace separates pure rules (`packages/core`), platform effect
 | Understand data | [Metric definitions](docs/DISPLAY_ITEMS.md) · [Task details](docs/TASK_DETAILS.md) · [Extensions](docs/EXTENSIONS.md) |
 | Diagnose or automate | [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Input diagnosis](docs/DIAGNOSTICS.md) · [CLI reference](docs/reference/cli.md) |
 | Develop or review evidence | [Development guide](docs/development/README.md) · [Image provenance](docs/images/README.md) |
-| Follow plans or releases | [Roadmap](docs/development/roadmap.md) · [Development plan](docs/development/development-plan.md) · [Changelog](CHANGELOG.md) |
+| Follow plans or releases | [Roadmap](docs/development/roadmap.md) · [Development plan](docs/development/development-plan.md) · [Changelog](CHANGELOG.md) · [Release notes](docs/releases/README.md) |
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues) accepts reproducible bugs, questions and feature ideas. Include versions, steps and relevant diagnostics; remove private paths and session content.
 

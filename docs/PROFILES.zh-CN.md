@@ -95,6 +95,4 @@ claude-statusline config profile import scheme.json --select subagent,statusline
 
 ## 自适应指标与连续背景
 
-可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
-
-五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。
+宽度适配规则、Powerline 背景及兼容方案参见[布局指南](COMPOSITION.zh-CN.md#自适应指标与连续背景)。

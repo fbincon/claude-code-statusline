@@ -8,7 +8,8 @@
 
 ## 工作包索引
 
-[未选候选与进入条件](roadmap.zh-CN.md#candidates) · [共同设计](#design-rules) · [验收](#acceptance-matrix) · [交接](#handoff) · [已交付设计](#completed-designs)
+- **现行规划** · [未选候选与进入条件](roadmap.zh-CN.md#candidates) · [共同设计约定](#design-rules) · [验收矩阵](#acceptance-matrix) · [交接](#handoff)
+- **已交付工作** · [原始设计](#completed-designs) · [交付与验证记录](history/README.zh-CN.md#delivery-records)
 
 <a id="design-rules"></a>
 

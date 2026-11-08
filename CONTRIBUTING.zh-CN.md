@@ -42,7 +42,9 @@ CI 对混合维护取检查并集，仅核心行为执行完整产品矩阵；�
 
 保持变更集中，解释目的，并记录实际验证结果。标题采用 `fix: ...`、`docs: ...`、`ci: ...` 等 conventional 风格。不要求 DCO sign-off。
 
-英文 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。保持链接有效，并更新相应文档索引。界面翻译贡献参见[翻译指南](docs/development/i18n.zh-CN.md)。
+英文 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。v3.9.x 及更早版本的中英发布说明保留在同一历史页面中，自 v3.10.0 起分别维护中英页面。参见[发布说明索引](docs/releases/README.zh-CN.md)。
+
+保持链接有效，并更新相应文档索引。界面翻译贡献参见[翻译指南](docs/development/i18n.zh-CN.md)。
 
 按需更新文档、截图、CHANGELOG 和关联 Issue；模板中其他项目明确填写“不适用”。项目 README 用于功能介绍和使用说明，发布版本、交付状态和更新叙述放在变更日志、发布说明或开发记录中。
 

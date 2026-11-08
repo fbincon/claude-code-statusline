@@ -27,7 +27,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 | Setup and configuration | [Setup/complete schemes](../setup-appearance.md) · [Configuration experience](../configuration-experience.md) · [Profiles/projects/tasks](../profiles-projects-tasks.md) · [Real-input diagnosis](../real-input-diagnostics.md) |
 | Earlier milestones and repairs | [M4–M7](../m4-m7-delivery.md) · [M8–M9](../m8-m9-delivery.md) · [M10–M12](../m10-m12-delivery.md) · [Correctness maintenance](../correctness-maintenance.md) |
 | Post-migration review | [Findings](../post-migration-review.md) · [Repairs](../post-migration-fixes.md) · [External TUI parity](../external-tui-parity.md) · [External TUI regressions](../external-tui-regressions.md) |
-| Performance | [Completed PERF-01](../performance/perf-01.md) · [v2.0.0](../performance-v2.0.0.md) · [v1.13.0](../performance-v1.13.0.md) · [v1.12.0](../performance-v1.12.0.md) · [v1.11.0](../performance-v1.11.0.md) |
+| Performance | [Reports by version](#performance-reports) |
 | Demonstration delivery | [SHOWCASE-01](../showcase.md#delivery) |
 
 <a id="delivery-by-version"></a>
@@ -66,6 +66,18 @@ Some pages keep current rules alongside versioned evidence. For current work, go
 ## TypeScript migration stages
 
 The [TypeScript migration plan](../typescript-migration.md) links the completed stages: [TS-01 reference](../typescript-migration/ts-01/README.md), [TS-02 probes](../typescript-migration/ts-02/README.md), [TS-03 core/backend](../typescript-migration/ts-03/README.md), [TS-04 editors/recovery](../typescript-migration/ts-04/README.md), [TS-05 candidates](../typescript-migration/ts-05/README.md) and [TS-06 publication](../typescript-migration/ts-06/README.md). Original [TS-04 candidate](../typescript-migration/ts-04/candidate.md), [recovery](../typescript-migration/ts-04/recovery.md) and [Linux physical/deferred acceptance](../typescript-migration/ts-02/LINUX-20261014.md) remain historical evidence.
+
+<a id="performance-reports"></a>
+
+## Performance reports by version
+
+| Version | Implementation | Report |
+| --- | --- | --- |
+| v3.1.4 | TypeScript | [PERF-01 post-migration performance](../performance/perf-01.md) |
+| v2.0.0 | Python | [Component-instance rendering](../performance-v2.0.0.md) |
+| v1.13.0 | Python | [Language and search performance](../performance-v1.13.0.md) |
+| v1.12.0 | Python | [Rendering and opt-in feature costs](../performance-v1.12.0.md) |
+| v1.11.0 | Python | [Rendering performance comparison](../performance-v1.11.0.md) |
 
 ## Historical procedures and evidence
 

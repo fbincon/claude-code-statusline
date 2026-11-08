@@ -82,7 +82,7 @@ The internal usage/transcript JSON path preserves numeric lexemes and falls back
 
 `cli/recovery` owns versioned file and official-operation journals. Configuration and installation services publish immutable before-images before mutations; incomplete journals block configuration writes until explicit recovery. Plugin refresh intent preserves manual disablement across uninstall/reinstall. Doctor only inspects. See [candidate recovery](typescript-migration/ts-04/recovery.md).
 
-[Source and package execution boundaries and additional acceptance](source-command-package-management.md) document protocol 28, separate command approval, retained controls and protected cleanup.
+The source and package design covers [source lifecycle and references](source-command-package-management.md#source-lifecycle-and-references) and [safe package handoff](source-command-package-management.md#safe-package-handoff).
 
 ## Historical Python architecture
 

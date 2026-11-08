@@ -78,7 +78,7 @@ tools/migration/ts-04/
 
 `cli/recovery` 维护带版本的文件与官方操作日志。配置和安装服务先发布不可覆盖的原始快照，再进行写入；未完成日志阻止配置写入，直到显式恢复。插件刷新意图跨卸载／重装保留手动禁用；doctor 仅检查。详见[候选实现恢复](typescript-migration/ts-04/recovery.zh-CN.md)。
 
-[来源与包执行边界及新增验收](source-command-package-management.zh-CN.md)记录协议 28、命令独立许可、保留入口和受保护清理。
+来源与包执行的设计见[来源生命周期与引用](source-command-package-management.zh-CN.md#来源生命周期与引用)及[安全包交接](source-command-package-management.zh-CN.md#安全包交接)。
 
 ## 历史 Python 架构
 

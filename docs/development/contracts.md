@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-The [v3.16.0 twelve-language expansion](language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
+For the v3.16.0 language expansion source and acceptance evidence, see the [delivery record](language-expansion.md#final-release).
 
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.
