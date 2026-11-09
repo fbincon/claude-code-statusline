@@ -1,6 +1,6 @@
 # Development guide
 
-**English** | [简体中文](README.zh-CN.md)
+**English** | [简体中文](README.zh-CN.md) · [Documentation index](../README.md)
 
 Start here to set up the TypeScript workspace, select checks and build an installed candidate. Daily use is covered by the [user guide](../USER_GUIDE.md), [CLI reference](../reference/cli.md) and [usage demonstrations](../SHOWCASE.md).
 

@@ -1,16 +1,19 @@
 # Claude Code Statusline 使用指南
 
-[English](USER_GUIDE.md) | **简体中文**
+[English](USER_GUIDE.md) | **简体中文** · [文档中心](README.zh-CN.md)
 
 本指南说明安装、编辑器操作、日常配置、可选实时指标及恢复。完整操作流程从[使用演示](SHOWCASE.zh-CN.md)开始；准确命令语法与文件格式查阅 [CLI 参考](reference/cli.zh-CN.md)。
 
 | 任务 | 专题指南 |
 | --- | --- |
-| 首次安装或选择易读的起点 | [首次设置](SETUP.zh-CN.md) · [完整方案](SCHEMES.zh-CN.md) |
+| 安装并接入 Claude Code | [安装与接入](#安装与接入) · [首次设置](SETUP.zh-CN.md) |
+| 选择配置方式 | [编辑器、向导与 CLI](#选择配置入口) |
+| 从方案或配方开始 | [完整方案](SCHEMES.zh-CN.md) · [常用配置配方](#常用配置配方) |
 | 布局、颜色与草稿复用 | [组件与布局](COMPOSITION.zh-CN.md) · [外观](APPEARANCE.zh-CN.md) · [草稿历史与复用](DRAFT_HISTORY.zh-CN.md) |
 | 跨项目分享设置 | [方案与项目绑定](PROFILES.zh-CN.md) |
 | 理解任务和测量值 | [任务详情](TASK_DETAILS.zh-CN.md) · [指标定义](DISPLAY_ITEMS.zh-CN.md) |
-| 添加或诊断来源 | [扩展](EXTENSIONS.zh-CN.md) · [输入诊断](DIAGNOSTICS.zh-CN.md) |
+| 添加来源 | [扩展](EXTENSIONS.zh-CN.md) |
+| 诊断接入或输出问题 | [故障排查](#故障排查) · [输入诊断](DIAGNOSTICS.zh-CN.md) |
 | 升级、回退或恢复 | [版本管理](PACKAGE_MANAGEMENT.zh-CN.md) |
 
 配置保存在当前用户目录，项目绑定可选择命名显示方案。渲染读取 Claude 输入、本地 Git、transcript 和状态，不发网络请求或使用模型 token；明确的来源刷新单独执行。问答向导使用模型回合。
@@ -145,11 +148,11 @@ macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon
 
 | 入口 | 适用场景 |
 | --- | --- |
-| `/statusline-configure-native` | 在当前 Claude 会话内配置 |
-| `/statusline-configure` | 从 Claude 启动受支持的外部终端 |
-| `claude-statusline configure` | 直接在当前终端配置，包括 SSH |
-| `/statusline-config` | 使用 Claude 模型回合进行问答配置 |
-| `claude-statusline config ...` | 精确设置、自动化与脚本 |
+| `/statusline-configure-native` | [在当前 Claude 会话内配置](#原生配置编辑器) |
+| `/statusline-configure` | [从 Claude 启动受支持的外部终端](#外部终端入口-statusline-configure) |
+| `claude-statusline configure` | [直接在当前终端配置，包括 SSH](#独立交互式-tui) |
+| `/statusline-config` | [使用 Claude 模型回合进行问答配置](#statusline-config-问答向导) |
+| `claude-statusline config ...` | [精确设置或自动化配置](reference/cli.zh-CN.md#配置命令详解) |
 
 各入口共享用户配置。两个编辑器同时打开时分别保留草稿，旧草稿无法覆盖已保存的新 revision。
 

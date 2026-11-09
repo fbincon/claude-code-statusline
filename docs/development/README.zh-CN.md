@@ -1,6 +1,6 @@
 # 开发指南
 
-[English](README.md) | **简体中文**
+[English](README.md) | **简体中文** · [文档中心](../README.zh-CN.md)
 
 本页说明 TypeScript 工作区准备、检查选择与安装候选构建。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)、[CLI 参考](../reference/cli.zh-CN.md)和[操作演示](../SHOWCASE.zh-CN.md)。
 

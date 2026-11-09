@@ -2,6 +2,8 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
+> **Historical archive.** This page records the completed Python-to-TypeScript migration and its original acceptance decisions. For current procedures, see the [development guide](README.md) and [testing and acceptance](testing.md).
+
 Updated: **2026-10-19** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.

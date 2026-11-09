@@ -2,7 +2,9 @@
 
 **English** | [简体中文](PREVIEW.zh-CN.md)
 
-This is the **historical v3.0.0-beta.1 trial and recovery procedure**. For the current product, use the [installation guide](USER_GUIDE.md#installation-and-integration) or [usage demonstrations](SHOWCASE.md). Stable v3.0.0 superseded this preview; its [delivery record](development/typescript-migration/ts-06/stable-release.md) and [release-specific decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) preserve the accepted gaps without marking them passed.
+> **Historical archive.** This page records the v3.0.0-beta.1 trial and recovery procedure. For current use, see the [installation guide](USER_GUIDE.md#installation-and-integration) and [usage demonstrations](SHOWCASE.md).
+
+Stable v3.0.0 superseded this preview. Its delivery and release decision record which gaps were accepted and remained unverified. [Stable delivery record](development/typescript-migration/ts-06/stable-release.md) · [Release-specific decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18).
 
 The preview was distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. [Original release notes](releases/v3.0.0-beta.1.md) · [Platform validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 

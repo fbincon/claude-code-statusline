@@ -2,6 +2,8 @@
 
 [English](typescript-migration.md) | **简体中文**
 
+> **历史档案。** 本页记录已完成的 Python 到 TypeScript 迁移及当时的验收决定。现行流程见[开发指南](README.zh-CN.md)和[测试与验收](testing.zh-CN.md)。
+
 更新日期：**2026-10-19**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。

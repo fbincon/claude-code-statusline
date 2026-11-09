@@ -19,11 +19,11 @@ claude-statusline --version
 claude-statusline doctor
 ```
 
-The first entry reviews the persistent npm prefix and exact package before asking for `yes`. npm may separately ask to download the npx entry. A matching persistent installation is reused. For an already installed package, run `claude-statusline setup --dry-run`, then `claude-statusline setup`.
+Review the npm prefix and exact package before confirming installation. If the matching package is already installed, run `claude-statusline setup --dry-run`, then `claude-statusline setup`. [First entry and persistent installation](SETUP.md#first-entry-and-persistent-npm-installation).
 
-In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. Arrow keys select; Enter continues; Backspace returns; Escape cancels. The external editor needs at least 64 columns × 18 rows. These demonstrations use classic separators; keep Powerline off when adjusting appearance.
+In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. Use an external terminal of at least 64 columns × 18 rows. Keep Powerline off to reproduce the classic separators in these demonstrations. [Setup controls](SETUP.md).
 
-Restart Claude after successful integration and inspect its actual statusline. Package installation, display Save and host integration are separate stages: cancelling setup can leave an already completed npm install, and an integration failure can leave a successfully saved display. Read the reported stage and backup paths, run `doctor`, and inspect `recover --dry-run` before retrying. A UI-language choice saved with L is independent of display cancellation. See [setup and recovery](SETUP.md).
+Restart Claude after successful integration and inspect its statusline. If setup reports partial completion, use the reported stage to choose the recovery steps. [Apply and recovery](SETUP.md#apply-and-recovery).
 
 <a id="scenes"></a>
 
