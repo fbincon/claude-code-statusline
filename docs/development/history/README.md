@@ -8,7 +8,7 @@ Find original designs, versioned delivery records, migration stages and validati
 
 ## Delivered work package designs
 
-The [development plan](../development-plan.md#completed-designs) preserves the original scope, slices and acceptance criteria. The [delivered milestones](../roadmap.md#milestones) record package status and dependencies. Use the records below for the corresponding implementation and verification results.
+The [work package design archive](work-package-designs.md#completed-designs) preserves the original scope, slices and acceptance criteria. The [delivered milestones](../roadmap.md#milestones) record package status and dependencies. Use the records below for the corresponding implementation and verification results.
 
 <a id="delivery-records"></a>
 
@@ -25,7 +25,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 | Appearance, drafts and reuse | [Adaptive rows and scenes](../adaptive-row-scenarios.md) · [Draft history and reuse](../draft-history-and-reuse.md) · [Appearance/previews/diagnosis](../appearance-preview-diagnosis.md) |
 | Tasks, sources and packages | [Task/version review](../task-version-review.md) · [Source/command/package execution](../source-command-package-management.md) · [Extensions delivery](../extensions.md#completed-validation-and-delivery) |
 | Setup and configuration | [Setup/complete schemes](../setup-appearance.md) · [Configuration experience](../configuration-experience.md) · [Profiles/projects/tasks](../profiles-projects-tasks.md) · [Real-input diagnosis](../real-input-diagnostics.md) |
-| Earlier milestones and repairs | [M4–M7](../m4-m7-delivery.md) · [M8–M9](../m8-m9-delivery.md) · [M10–M12](../m10-m12-delivery.md) · [Correctness maintenance](../correctness-maintenance.md) |
+| Earlier milestones and repairs | [M4–M7](deliveries/m4-m7-delivery.md) · [M8–M9](deliveries/m8-m9-delivery.md) · [M10–M12](deliveries/m10-m12-delivery.md) · [Correctness maintenance](../correctness-maintenance.md) |
 | Post-migration review | [Findings](../post-migration-review.md) · [Repairs](../post-migration-fixes.md) · [External TUI parity](../external-tui-parity.md) · [External TUI regressions](../external-tui-regressions.md) |
 | Performance | [Reports by version](#performance-reports) |
 | Demonstration delivery | [SHOWCASE-01](../showcase.md#delivery) |
@@ -44,9 +44,9 @@ Each record preserves the feature-introduction version, source identity, checks 
 | v3.4.0 | PROFILE-01, PROJECT-01, TASK-01 | DONE | [Profiles, projects and task details](../profiles-projects-tasks.md) |
 | v3.5.0 | SETUP-01, APPEARANCE-01, APPEARANCE-02 | DONE | [Setup and complete appearances](../setup-appearance.md) |
 | v3.6.0 | EXTENSIONS-01, LINKS-01, WORKFLOW-01, COMMAND-01, CAPABILITIES-01 | DONE | [Extensions and workflows](../extensions.md) |
-| v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](../m4-m7-delivery.md) |
-| v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](../m8-m9-delivery.md) |
-| v3.9.0 | IMPORT-01, APPEARANCE-04, COMPOSITION-03 | DONE | [Selective import, gradients and alignment](../m10-m12-delivery.md) |
+| v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](deliveries/m4-m7-delivery.md) |
+| v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](deliveries/m8-m9-delivery.md) |
+| v3.9.0 | IMPORT-01, APPEARANCE-04, COMPOSITION-03 | DONE | [Selective import, gradients and alignment](deliveries/m10-m12-delivery.md) |
 | v3.9.1 | #154 transport capacity, #155 render-tree capacity and save-result recovery | DONE | [Native capacity delivery](../native-capacity.md#final-stable-delivery) |
 | v3.9.2 | FIX-01–FIX-04, I18N-01: drafts, indicators, refresh consumers, historical diagnosis and task language | DONE | [Correctness delivery and publication](../correctness-maintenance.md) |
 | v3.10.0 | APPEARANCE-05, PREVIEW-01, EXPLAIN-02: themes, color editing, sample scenarios and file diagnosis | DONE | [Appearance, previews and diagnosis delivery](../appearance-preview-diagnosis.md) |

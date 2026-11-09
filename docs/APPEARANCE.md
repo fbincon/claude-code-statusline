@@ -117,7 +117,7 @@ claude-statusline config instance main set context-remaining bar-style ascii
 
 Use an existing instance ID from `config instance main list`; the same options work with `subagent`. Supported types are `context-used`, `context-remaining`, and main-only `five-hour-limit`, `weekly-limit`, `spend-limit`. Quotas follow the instance's used/remaining selection. The bar retains its direction and percentage even when ordinary labels are hidden. It is an observed level, not elapsed time or a prediction. Missing/invalid/expired input produces no fabricated zero. Only fill is bounded to 100%; valid over-limit quota text remains visible. Width fitting can shorten or omit the complete representation.
 
-Copies, profiles and portable exports retain these display options without enabling any collector or source. Save/reopen persists them; cancel retains the opening configuration. See [delivery and compatibility](development/m4-m7-delivery.md).
+Copies, profiles and portable exports retain these display options without enabling any collector or source. Save/reopen persists them; cancel retains the opening configuration. See [delivery and compatibility](development/history/deliveries/m4-m7-delivery.md).
 
 ## Static component gradients
 

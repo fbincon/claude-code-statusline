@@ -82,4 +82,4 @@ Restoration validates snapshot hashes, rechecks current revisions under the conf
 
 Versions before v3.7.0 need manual recovery. Stop Claude, export current display choices if useful, retain the working Node/package entry and a compatible pre-change configuration backup, then deliberately install the exact older package into the selected prefix with npm. Restore only applicable product configuration, retain unrelated settings and current opt-outs, run that version's `install` and `doctor`, and restart Claude. Python-era recovery remains documented in the [user guide](USER_GUIDE.md#upgrading). An npm failure with unknown results must be inspected before another install.
 
-See the [CLI reference](reference/cli.md), [npm installation rules](https://docs.npmjs.com/cli/v11/commands/npm-install/), and [implementation/acceptance record](development/m8-m9-delivery.md).
+See the [CLI reference](reference/cli.md), [npm installation rules](https://docs.npmjs.com/cli/v11/commands/npm-install/), and [implementation/acceptance record](development/history/deliveries/m8-m9-delivery.md).

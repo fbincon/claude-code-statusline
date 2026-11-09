@@ -78,7 +78,7 @@ claude-statusline config enable cache-miss-reason
 
 从项目目录运行 `claude-statusline doctor` 检查当前 Git 策略。四个状态项共用工作树观测，已提交分支差异 `branch-diff` 单独查询。[Git 条目和标记](DISPLAY_ITEMS.zh-CN.md#git-markers)
 
-`Git!` 及缓存中的 `git_policy.filter_blocked`／`git_policy.policy_unavailable` 表示无法安全保留过滤器语义，不表示工作区干净。`doctor` 检查当前目录的过滤器定义，不运行这些命令。详见[兼容表](development/m8-m9-delivery.zh-CN.md#git-调用策略)。请在自己的 Git 工作流中明确修改配置；本产品不会改写配置，缓存诊断也不会重试 Git。
+`Git!` 及缓存中的 `git_policy.filter_blocked`／`git_policy.policy_unavailable` 表示无法安全保留过滤器语义，不表示工作区干净。`doctor` 检查当前目录的过滤器定义，不运行这些命令。详见[兼容表](development/history/deliveries/m8-m9-delivery.zh-CN.md#git-调用策略)。请在自己的 Git 工作流中明确修改配置；本产品不会改写配置，缓存诊断也不会重试 Git。
 
 ## 包操作诊断
 

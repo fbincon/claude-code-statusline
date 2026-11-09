@@ -226,7 +226,7 @@ The versions below identify each feature’s introduction. The current protocol 
 
 ### Indicator contract
 
-Display schema 11 / editor protocol 18 adds optional `presentation`, `bar_width`, and `bar_style` on eligible instances. Omission means numeric, 8 cells and auto. Backend and both editors share eligibility and validation; unsupported types reject these fields. Versions 1–10 read without rewriting files; the next save uses the existing backup/revision transaction. Runtime 2, lifecycle 4, portable 1 and source registry/observations 1 are unchanged. [Delivery record](m4-m7-delivery.md).
+Display schema 11 / editor protocol 18 adds optional `presentation`, `bar_width`, and `bar_style` on eligible instances. Omission means numeric, 8 cells and auto. Backend and both editors share eligibility and validation; unsupported types reject these fields. Versions 1–10 read without rewriting files; the next save uses the existing backup/revision transaction. Runtime 2, lifecycle 4, portable 1 and source registry/observations 1 are unchanged. [Delivery record](history/deliveries/m4-m7-delivery.md).
 
 ### Group contract
 

@@ -24,7 +24,7 @@ Use the [development plan](development-plan.md#work-index) for shared design rul
 
 ### Migration and delivery records
 
-The [development history index](history/README.md) collects [delivered designs](history/README.md#completed-work-designs), versioned delivery records, migration stages, performance reports and historical validation procedures.
+The [development history index](history/README.md) links the [work package design archive](history/work-package-designs.md#completed-designs), versioned delivery records, migration stages, performance reports and historical validation procedures.
 
 ## Contents
 

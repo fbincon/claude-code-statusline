@@ -174,7 +174,7 @@ claude-statusline config group main move cost-block --before OTHER_ID
 claude-statusline config group main ungroup cost-block
 ```
 
-Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/m4-m7-delivery.md).
+Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/history/deliveries/m4-m7-delivery.md).
 
 ## Align corresponding columns across main rows
 

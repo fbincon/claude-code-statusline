@@ -12,7 +12,7 @@ M1–M12 and the eighteen selected follow-up packages are delivered. [SHOWCASE-0
 
 ## Candidate pool and entry conditions
 
-The [delivered mainline](#milestones) covers the previously selected improvements, including automatic command refresh under [COMMAND-02](development-plan.md#command-02). Existing IMPORT-01, APPEARANCE-04 and COMPOSITION-03 remain delivered. The pool below contains only unselected directions.
+The [delivered mainline](#milestones) covers the previously selected improvements, including automatic command refresh under [COMMAND-02](history/work-package-designs.md#command-02). Existing IMPORT-01, APPEARANCE-04 and COMPOSITION-03 remain delivered. The pool below contains only unselected directions.
 
 ### Functional candidates
 
@@ -72,7 +72,7 @@ The table describes the capabilities used to plan from v3.16.0. See the [user gu
 | Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-The [review baseline](development-plan.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot is `f68d26eeddda98ab4041d2b9e873ade556fa1909`. See the [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [architecture](architecture.md) and [delivery index](history/README.md#delivery-records) for the corresponding definitions and evidence.
+The [review baseline](history/work-package-designs.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot is `f68d26eeddda98ab4041d2b9e873ade556fa1909`. See the [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [architecture](architecture.md) and [delivery index](history/README.md#delivery-records) for the corresponding definitions and evidence.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
@@ -115,26 +115,26 @@ These records preserve the status, original dependencies and scheduling of deliv
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Language workflow | [I18N-02](development-plan.md#i18n-02) | Current-source language fallback during development and complete six-language releases | All three slices, compatible PR/main/tag verification and public delivery; [v3.15.0 evidence](i18n-02-delivery.md#final-release) | DONE |
-| 1 Correctness | [FIX-01](development-plan.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
-| 1 Correctness | [FIX-02](development-plan.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
-| 1 Correctness | [FIX-03](development-plan.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
-| 1 Maintenance | [FIX-04](development-plan.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | DONE |
-| 1 Maintenance | [I18N-01](development-plan.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | DONE |
-| 2 Appearance | [APPEARANCE-05](development-plan.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | DONE |
-| 2 Understanding | [PREVIEW-01](development-plan.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | DONE |
-| 2 Understanding | [EXPLAIN-02](development-plan.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | DONE |
-| 3 Task entry | [TASK-02](development-plan.md#task-02) | External read-only task browsing, then shared reading controls | Existing task model/service and I18N-01 language handling | DONE |
-| 3/4/later Versions | [UPDATE-02](development-plan.md#update-02) | Status/review, execution/recovery and protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | DONE |
-| 4 Source operations | [SOURCES-01](development-plan.md#sources-01) | Readable state, saved GitHub check pages, compatible binding reuse and protected cleanup | Existing source services; FIX-03 lifecycle rules | DONE |
-| 4 Scheduling | [COMMAND-02](development-plan.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | DONE |
-| 5 Continuous color | [APPEARANCE-06](development-plan.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | DONE |
-| Later, interleavable | [APPEARANCE-07](development-plan.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | DONE |
-| Later, interleavable | [UX-03](development-plan.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | DONE |
-| Later, interleavable | [IMPORT-02](development-plan.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | DONE |
-| Later, interleavable | [COMPOSITION-04](development-plan.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | DONE |
-| Later, interleavable | [PROFILE-02](development-plan.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | DONE |
-| Final demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | The original eighteen follow-up packages and every slice accepted; matching installed artifacts | DONE |
+| Language workflow | [I18N-02](history/work-package-designs.md#i18n-02) | Current-source language fallback during development and complete six-language releases | All three slices, compatible PR/main/tag verification and public delivery; [v3.15.0 evidence](i18n-02-delivery.md#final-release) | DONE |
+| 1 Correctness | [FIX-01](history/work-package-designs.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
+| 1 Correctness | [FIX-02](history/work-package-designs.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
+| 1 Correctness | [FIX-03](history/work-package-designs.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
+| 1 Maintenance | [FIX-04](history/work-package-designs.md#fix-04) | Time-applicable extension diagnosis with evidence for every agent | Existing diagnosis and source observation contracts | DONE |
+| 1 Maintenance | [I18N-01](history/work-package-designs.md#i18n-01) | Correct task-detail language on first open, failure and retry | Existing UI preferences and task pane | DONE |
+| 2 Appearance | [APPEARANCE-05](history/work-package-designs.md#appearance-05) | More themes/gradient presets, visible color selection and gradient edits | Existing appearance rules; shared theme registration | DONE |
+| 2 Understanding | [PREVIEW-01](history/work-package-designs.md#preview-01) | Selectable sample states for appearance and layout review | Production renderer with injected observations | DONE |
+| 2 Understanding | [EXPLAIN-02](history/work-package-designs.md#explain-02) | Explain inactive styles/sources and explicitly diagnose an input file | Existing explanation/diagnosis; FIX-04 for trustworthy extension evidence | DONE |
+| 3 Task entry | [TASK-02](history/work-package-designs.md#task-02) | External read-only task browsing, then shared reading controls | Existing task model/service and I18N-01 language handling | DONE |
+| 3/4/later Versions | [UPDATE-02](history/work-package-designs.md#update-02) | Status/review, execution/recovery and protected history cleanup | Existing UPDATE-01; execution follows review and safe draft/process handoff | DONE |
+| 4 Source operations | [SOURCES-01](history/work-package-designs.md#sources-01) | Readable state, saved GitHub check pages, compatible binding reuse and protected cleanup | Existing source services; FIX-03 lifecycle rules | DONE |
+| 4 Scheduling | [COMMAND-02](history/work-package-designs.md#command-02) | Separately approved periodic commands during applicable active sessions | FIX-03; existing command execution and active-session leases | DONE |
+| 5 Continuous color | [APPEARANCE-06](history/work-package-designs.md#appearance-06) | Continuous backgrounds across adjacent blocks of one displayed row | Existing fitting, groups, alignment and Powerline edge colors | DONE |
+| Later, interleavable | [APPEARANCE-07](history/work-package-designs.md#appearance-07) | Optional narrow-row bars that retain numeric meaning | FIX-02 and existing fitting/priorities | DONE |
+| Later, interleavable | [UX-03](history/work-package-designs.md#ux-03) | Shared undo/redo, change review and external conflict recovery | FIX-01 and existing revision-bound save/reload/export | DONE |
+| Later, interleavable | [IMPORT-02](history/work-package-designs.md#import-02) | Style copying, whole-group reuse and explicit local-source rebinding | Existing IMPORT-01 and reference validation | DONE |
+| Later, interleavable | [COMPOSITION-04](history/work-package-designs.md#composition-04) | Review and atomically adjust affected alignment references | Existing group/alignment invariants and shared edits | DONE |
+| Later, interleavable | [PROFILE-02](history/work-package-designs.md#profile-02) | Scenario schemes that demonstrate delivered new capabilities | Only the appearance/composition capabilities each scheme uses | DONE |
+| Final demonstration | [SHOWCASE-01](history/work-package-designs.md#showcase-01) | Bilingual demonstrations, configurations and reproducible journeys | The original eighteen follow-up packages and every slice accepted; matching installed artifacts | DONE |
 
 Batches express delivery preference, not extra technical dependencies. Themes, task browsing and version review can progress independently after their own prerequisites. UPDATE-02 and SOURCES-01 retain one package identity across their separately deliverable slices; a package completes only when all its slices are accepted. Later improvements can be interleaved under their own dependencies, preserving the delivered binding and history protections.
 
@@ -142,7 +142,7 @@ SHOWCASE-01 retains its historical ID. Its earlier M13 placement is superseded b
 
 SHOWCASE-01 is delivered using the published v3.16.0 package with non-Powerline demonstrations. [Prerequisites, collection and separate acceptance records](showcase.md) retain the original product/evidence identities; [the user walkthrough](../SHOWCASE.md) owns reproducible usage.
 
-GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcomes and the shared Git policy from [M8–M9 delivery](m8-m9-delivery.md), and preserve the native boundaries established by [v3.9.1](native-capacity.md). Current validation routes remain defined in [CI maintenance](ci-maintenance.md).
+GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcomes and the shared Git policy from [M8–M9 delivery](history/deliveries/m8-m9-delivery.md), and preserve the native boundaries established by [v3.9.1](native-capacity.md). Current validation routes remain defined in [CI maintenance](ci-maintenance.md).
 
 </details>
 
@@ -153,26 +153,26 @@ GIT-01 and TERMINAL-01 remain delivered. Reuse applicable Windows preview outcom
 
 | Stage | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| M1 First use | [SETUP-01](development-plan.md#setup-01) | A connected flow from checks to configuration, integration and next steps | Existing installation transactions and Quick setup | DONE |
-| M2 Appearance | [APPEARANCE-01](development-plan.md#appearance-01) | Three complete schemes for daily development, multi-agent work and quota monitoring | Existing presets and profile management | DONE |
-| M2 Appearance | [APPEARANCE-02](development-plan.md#appearance-02) | Configurable padding, separators and end decorations | Concrete APPEARANCE-01 scenarios | DONE |
-| M3 Extensions | [EXTENSIONS-01](development-plan.md#extensions-01) | Opt-in local JSON data components and a source contract | Existing diagnosis and component instances | DONE |
-| M3 Extensions | [LINKS-01](development-plan.md#links-01) | Clickable PR/directory text with plain-text fallback | Existing text and layout rules | DONE |
-| M3 Extensions | [WORKFLOW-01](development-plan.md#workflow-01) | Optional GitHub PR lookup and CI status | EXTENSIONS-01; LINKS-01 is optional | DONE |
-| M3 Extensions | [COMMAND-01](development-plan.md#command-01) | Explicitly configured external command components | EXTENSIONS-01 | DONE |
-| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | DONE |
-| M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | DONE |
-| M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | DONE |
-| M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | DONE |
-| Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | DONE |
-| Independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
-| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
-| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
-| M10 Configuration reuse | [IMPORT-01](development-plan.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | DONE |
-| M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | DONE |
-| M12 Cross-line alignment | [COMPOSITION-03](development-plan.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | DONE |
-| Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
-| Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
+| M1 First use | [SETUP-01](history/work-package-designs.md#setup-01) | A connected flow from checks to configuration, integration and next steps | Existing installation transactions and Quick setup | DONE |
+| M2 Appearance | [APPEARANCE-01](history/work-package-designs.md#appearance-01) | Three complete schemes for daily development, multi-agent work and quota monitoring | Existing presets and profile management | DONE |
+| M2 Appearance | [APPEARANCE-02](history/work-package-designs.md#appearance-02) | Configurable padding, separators and end decorations | Concrete APPEARANCE-01 scenarios | DONE |
+| M3 Extensions | [EXTENSIONS-01](history/work-package-designs.md#extensions-01) | Opt-in local JSON data components and a source contract | Existing diagnosis and component instances | DONE |
+| M3 Extensions | [LINKS-01](history/work-package-designs.md#links-01) | Clickable PR/directory text with plain-text fallback | Existing text and layout rules | DONE |
+| M3 Extensions | [WORKFLOW-01](history/work-package-designs.md#workflow-01) | Optional GitHub PR lookup and CI status | EXTENSIONS-01; LINKS-01 is optional | DONE |
+| M3 Extensions | [COMMAND-01](history/work-package-designs.md#command-01) | Explicitly configured external command components | EXTENSIONS-01 | DONE |
+| M4 Graphical indicators | [APPEARANCE-03](history/work-package-designs.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | DONE |
+| M5 Component groups | [COMPOSITION-02](history/work-package-designs.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | DONE |
+| M6 GitHub refresh | [WORKFLOW-02](history/work-package-designs.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | DONE |
+| M7 Derived metrics | [METRICS-01](history/work-package-designs.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | DONE |
+| Independent maintenance | [GIT-01](history/work-package-designs.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | DONE |
+| Independent maintenance | [TERMINAL-01](history/work-package-designs.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
+| M8 First entry | [SETUP-02](history/work-package-designs.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
+| M9 Version management | [UPDATE-01](history/work-package-designs.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
+| M10 Configuration reuse | [IMPORT-01](history/work-package-designs.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | DONE |
+| M11 Gradients | [APPEARANCE-04](history/work-package-designs.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | DONE |
+| M12 Cross-line alignment | [COMPOSITION-03](history/work-package-designs.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | DONE |
+| Engineering as needed | [CAPABILITIES-01](history/work-package-designs.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
+| Independent maintenance | [CI-01](history/work-package-designs.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
 M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2, then M8 and M13; its final prerequisites are in the delivered mainline. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
 
@@ -218,4 +218,4 @@ Keep future plans separate from stable usage instructions. Update both languages
 
 Run `npm run docs:check` and `git diff --check`. Compare bilingual IDs, dependencies, statuses and delivered facts, and verify links from a checkout containing only committed files. Local planning archives and raw validation records remain private and are not dependencies of these public documents.
 
-The [stage tables](#milestones) record completed work-package status. See the [delivered designs](development-plan.md#completed-designs) for original scope, slices and acceptance.
+The [stage tables](#milestones) record completed work-package status. See the [delivered designs](history/work-package-designs.md#completed-designs) for original scope, slices and acceptance.

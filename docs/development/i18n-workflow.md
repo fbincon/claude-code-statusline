@@ -1,6 +1,6 @@
 # Multilingual development and release workflow
 
-**English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](development-plan.md#i18n-02) · [Roadmap](roadmap.md#milestones)
+**English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](history/work-package-designs.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
 The [v3.16.0 twelve-language expansion](language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
 
