@@ -6,8 +6,6 @@ The [v3.16.0 twelve-language expansion](history/deliveries/language-expansion.md
 
 **I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](history/deliveries/i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
 
-The original design was reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs had 2,311 keys. The [generator](../../tools/generation/resources.ts) required complete packs, rejected unknown keys and mismatched placeholders, and emitted Node and Native resources. Its coverage report measured key completeness; neither the report nor runtime English fallback tracked changed source meaning or translation acceptance. These gaps are addressed by the implementation below.
-
 Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current authoring commands and validation instructions are maintained in the translation guide.
 
 <a id="support-policy"></a>
@@ -45,7 +43,7 @@ Each acceptance record binds a stable key, source signature, translation hash an
 
 Use versioned, deterministic encoding and ordering for signatures. Do not trim or normalize away meaningful changes. Timestamps and execution references may document review, but the clock, network and iteration order must not change generated runtime resources. A translation edit invalidates its old acceptance even when the English is unchanged.
 
-Handle all four source changes in the first functional delivery:
+Apply the following rules to source changes.
 
 | Change | Required handling |
 | --- | --- |
@@ -74,7 +72,7 @@ The [packer](../../tools/build/pack.ts) currently copies workspace `resources` r
 
 Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Statusline rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
 
-The translation guide maintains the implemented developer commands. Metadata and reports have internal versioned interfaces; display schema 17 and editor protocol 30 remain unchanged. Implement compatibility where data actually crosses an interface; adding policy does not by itself require a user-configuration migration. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities; new inputs need explicit binding and compatible readers.
+The [translation guide](i18n.md#incremental-authoring) maintains developer commands. See the [shared contracts](contracts.md) for current product interfaces. Metadata and reports have internal versioned interfaces. Handle compatibility where data crosses an interface. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities. Bind new inputs explicitly and provide compatible readers.
 
 <a id="working-flow"></a>
 
@@ -135,41 +133,17 @@ Ready product PRs run the required complete acceptance once for the final source
 
 Complete-source tags reuse verified original bytes and evidence. Maintenance-source tags build their own package, source archive, manifest and checksums, retain independent/source rebuilds, accepted-code comparison, three-platform installation smoke and source-bound release checks, and explicitly link original product coverage. Verify current language readiness through matching reports or a lightweight check of their deterministic inputs; do not repeat the full product or language matrix on main/tag. Original report source/execution identities remain unchanged and are linked to the new promotion/release identity.
 
-Retain latest-applicable-run and newest-artifact selection, expiry and corruption checks. Missing, expired, failed or incompatible evidence blocks; an older green result or manual diagnostic is not a substitute. Repair or refresh only what is required through existing routes. Preserve current logical platform/runtime/host and six-language coverage, including the 36 UI/output combinations, without multiplying every language by every host, platform and viewport. Do not add redundant dependency installation, generation, builds or per-language jobs. Ordinary documentation maintenance does not require downloading an old product candidate.
+Retain latest-applicable-run and newest-artifact selection, expiry and corruption checks. Missing, expired, failed or incompatible evidence blocks; an older green result or manual diagnostic is not a substitute. Repair or refresh only what is required through existing routes. Preserve current logical platform, runtime and host coverage and the [registered UI/output language combinations](i18n.md#validate-a-change), without multiplying every language by every host, platform and viewport. Do not add redundant dependency installation, generation, builds or per-language jobs. Ordinary documentation maintenance does not require downloading an old product candidate.
 
-<a id="delivery-slices"></a>
+## Current language validation
 
-## Delivery boundaries
+Follow the [translation guide](i18n.md#validate-a-change) for changes to registered languages. For a new language, verify structure, templates, safety, generation, UI, output, search and applicable layouts. Cover UI/output language independence where affected. Define quantity expressions, short labels, plurals and bidirectional behavior for the selected language as applicable and verify them on relevant hosts.
 
-The following preserves the original I18N-02 slices and six-language baseline. The later twelve-language expansion does not relabel those original results.
+Use [testing and acceptance](testing.md) to record automated checks, actual hosts, PTY reconstructions and human or physical results separately. Preserve logical coverage, evidence identities and recorded limits.
 
-| Slice | Deliverable and completion condition |
-| --- | --- |
-| 1. Baseline and compatibility | Record the implementation's starting source, existing six-language evidence and its limits. Define build-only inputs, ownership, archive/package boundaries, report binding and compatible verification. Reuse valid prior results; establish current records only where needed. No active input remains unclassified. |
-| 2. Minimum complete workflow | Deliver signatures, acceptance invalidation, all states and four source-change cases, historical isolation, common effective resources and basic reporting. Enable A development and A/B release gates with the PR/main/tag verification paths in the same delivery boundary. Establish the six-language baseline without claiming unperformed review. Safe B fallback cannot ship ahead of its release guard. |
-| 3. Maintenance tools and expansion entry | Add incremental/freeze lists, batch validation/record updates and applicable terminology/context support. Define C disclosure and future-language entry criteria without selecting a new language. All reports remain reproducible from their declared inputs and translation maintenance follows actual impact. |
+## Historical I18N-02 design and acceptance
 
-These are dependency and acceptance boundaries, not mandatory separate PRs or repeated full matrices. Necessary compatibility work must precede activation; compatible preparation and functional work can share a delivery where the existing verifier can independently validate it. Implementation records exact interfaces and migration decisions at that point, without adding a separate design approval step.
+The [original v3.14.0 design baseline](history/deliveries/i18n-02-delivery.md#original-design-baseline) records the six-language starting point. The links below open the original design and acceptance sections.
 
-Future languages use complete structural/template/safety/generation checks plus their UI, output, search and relevant layout cases. Add representative cross-language independence cases when affected. Number/quantity expression, short labels, complex plurals and RTL/bidirectional text need explicit behavior and host coverage when a selected language requires them; filled strings alone do not establish layout support. No new format framework or selectable test language is required by this package.
-
-<a id="acceptance"></a>
-
-## Functional acceptance and evidence limits
-
-The following preserves I18N-02 implementation requirements and its original six-language acceptance scope; actual results remain in the [delivery record](history/deliveries/i18n-02-delivery.md). Current changes follow the registered-language policy above and the [translation guide](i18n.md), using existing suites and isolated fixtures.
-
-| Area | Required scenarios |
-| --- | --- |
-| Source lifecycle | Add key, change English meaning, change context with unchanged English, change placeholders, delete key; verify state, current fallback and affected acceptance invalidation |
-| Translation lifecycle | Translation edit invalidates its hash; missing/pending entries fail the appropriate gate; legitimate identical-to-English terms can be accepted; retired keys leave the denominator |
-| Invalid and historical input | Reject duplicates, invalid types, unsafe text, new template errors and unexplained keys; accept only verifiable historical isolation without depending on Git history/network |
-| Generation and packaging | Same inputs yield identical effective Node/Native messages and dev/release bytes; generated copies match; build-only inputs stay out of the runtime package but inside reproducible source/report identity |
-| Cross-frontend behavior | Consistent CLI/TUI/Native output and fallback; truthful search origin/highlighting; six-language UI/output independence, switch/failure/save/cancel/reopen, import/export and upgrade preservation |
-| Native presentation | Long/mixed/wide text, narrow/tall/resize views, separate props/Pane/Client budgets, actual mounting, retained drafts and saved/pending/unknown recovery outcomes |
-| Release readiness | B missing/stale/pending entries may pass development rules but fail publication; A omissions and invalid content fail; C limitations are disclosed; complete-source and maintenance-source routes both enforce the gate |
-| Evidence reuse | Reject wrong source/policy/generator/acceptance inputs, expired/corrupt reports, failed latest runs, wrong merge relations and incompatible readers; preserve original identities through valid reuse |
-
-Retain existing logical obligations when sharing identical executions. Record automated checks, actual-host results, PTY reconstruction, agent inspection and physical acceptance distinctly. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new failures. Paid checks retain their existing explicit scope and budget requirements.
-
-Documentation completion means paired files, accurate current/future boundaries, consistent work-package navigation and necessary documentation checks. I18N-02 completion is established by the linked implementation, protected gates, publication and actual-machine evidence, rather than documentation checks alone. Follow the [work-package handoff rules](development-plan.md#handoff) for subsequent maintenance and publication records.
+- <a id="delivery-boundaries"></a><a id="delivery-slices"></a>[Delivery boundaries](history/deliveries/i18n-02-delivery.md#delivery-boundaries)
+- <a id="functional-acceptance-and-evidence-limits"></a><a id="acceptance"></a>[Functional acceptance and evidence limits](history/deliveries/i18n-02-delivery.md#functional-acceptance-and-evidence-limits)

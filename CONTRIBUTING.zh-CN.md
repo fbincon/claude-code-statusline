@@ -44,9 +44,9 @@ CI 对混合维护取检查并集，仅核心行为执行完整产品矩阵；�
 
 英文 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。v3.9.x 及更早版本的中英发布说明保留在同一历史页面中，自 v3.10.0 起分别维护中英页面。参见[发布说明索引](docs/releases/README.zh-CN.md)。
 
-新增或重组指南时，保持链接有效并更新相应索引。[文档中心](docs/README.zh-CN.md) · [界面翻译指南](docs/development/i18n.zh-CN.md)。
+在功能 PR 中同步更新受影响的中英文用户指南和技术指南。按[文档更新责任](docs/development/README.zh-CN.md#documentation-ownership)选择维护位置。新增或重组页面时同步更新相应索引和链接。
 
-标明历史文档记录的版本或阶段，并纳入开发历史索引。迁移页面或章节时，在原路径保留章节锚点和指向新位置的链接。[开发历史](docs/development/history/README.zh-CN.md)。
+交付时在[开发历史](docs/development/history/README.zh-CN.md#delivery-records)记录版本或阶段、源码身份、实际检查、结果和限制。迁移页面或章节时保留原路径、原锚点及指向新位置的链接。
 
 按需更新文档、截图、CHANGELOG 和关联 Issue；模板中其他项目明确填写“不适用”。项目 README 用于功能介绍和使用说明，发布版本、交付状态和更新叙述放在变更日志、发布说明或开发记录中。
 

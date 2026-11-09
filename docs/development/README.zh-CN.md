@@ -22,6 +22,22 @@
 
 共同设计约定、验收和交接见[开发计划](development-plan.zh-CN.md#work-index)。[路线图](roadmap.zh-CN.md)维护优先级和工作包状态，其中[候选池](roadmap.zh-CN.md#candidates)记录未选定的方向及进入条件。
 
+<a id="documentation-ownership"></a>
+
+### 文档更新责任
+
+| 信息 | 维护位置 |
+| --- | --- |
+| 如何安装、配置和排障 | [使用指南](../USER_GUIDE.zh-CN.md)维护入口与常用操作，[专题指南](../README.zh-CN.md#配置与排障)维护详细流程，[CLI 参考](../reference/cli.zh-CN.md)维护命令语法 |
+| 当前实现、接口与验证规则 | [架构](architecture.zh-CN.md)、[共享契约](contracts.zh-CN.md)及上方对应技术指南。验证方法见[测试与验收](testing.zh-CN.md)和[影响检查](impact-checks.zh-CN.md)。 |
+| 优先级、候选方向、阶段依赖和工作包状态 | [路线图](roadmap.zh-CN.md) |
+| 工作包范围、实施切片与验收要求 | [开发计划](development-plan.zh-CN.md#work-index) |
+| 原始设计、源码身份、交付结果及证据限制 | [开发历史](history/README.zh-CN.md)。面向用户的版本变更见[变更日志](../../CHANGELOG.zh-CN.md)和[发布说明](../releases/README.zh-CN.md)。 |
+
+在功能 PR 中同步更新受影响的中英文现行页面。详细步骤和规则由对应指南维护，摘要链接到该指南。交付时在开发历史记录版本或阶段、源码及适用产物身份、实际检查、结果和限制，并登记到[交付索引](history/README.zh-CN.md#delivery-records)。
+
+归档时保留原始证据、命令和结果。更新导航，为移走的每个章节保留原路径、原锚点及指向新位置的链接。用 `npm run docs:check` 和 `git diff --check` 检查双语页面以及新旧链接。
+
 ### 迁移与交付记录
 
 [开发历史索引](history/README.zh-CN.md)汇集[工作包设计档案](history/work-package-designs.zh-CN.md#completed-designs)、各版交付记录、迁移阶段、性能报告和历史验证流程。

@@ -2,7 +2,21 @@
 
 **English** | [简体中文](SCHEMES.zh-CN.md)
 
-Open Quick setup in either editor (Ctrl+P), or run [first-use setup](SETUP.md). Choose a scheme, inspect its source requirements, preview main/subagent rows, and adjust appearance. Review offers continuing to edit, saving the current target, or saving a named copy. Saving a copy retains the existing unsaved draft; saving a shared profile shows its bound-project count and paths.
+<a id="editor-quick-setup"></a>
+
+## Quick setup in either editor
+
+In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample. Use the arrow keys and Enter to select, Left/Right to adjust appearance, Tab to switch main and subagent samples, and PgUp/PgDn to scroll source requirements. Use the separate [first-use setup](SETUP.md) wizard to review and install Claude integration.
+
+On the review page, choose an action.
+
+- **Continue editing this draft** accepts the candidate as the current draft.
+- **Save this draft** saves to the current target with the revision check, backup and transaction. Review of a shared profile shows the count and paths of bound projects.
+- **Save as a named copy** keeps the original unsaved draft and saves a separate profile.
+
+Backspace returns one step. Ctrl+G cancels and keeps the draft from before Quick setup. Esc also cancels in the external editor. Choosing a preset or scheme preserves existing collector preferences and disabled subagent rows. An explicit interface language change saves immediately, output language saves with the display draft, and Claude preferences use their separate Apply action.
+
+## Built-in schemes
 
 The eight complete schemes below expand into ordinary editable instances, layouts and appearance settings. The [usage demonstrations](SHOWCASE.md) provide ready-to-follow workflows and non-Powerline variants; selecting a built-in scheme uses its defaults shown here.
 

@@ -399,9 +399,7 @@ Use this tool's configuration commands; Claude's built-in `/statusline` may repl
 
 ## Quick setup, text editing and explanation
 
-In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample from the [complete schemes and original presets](SCHEMES.md). Select with arrows and Enter; adjust appearance with Left/Right. Tab switches main/agent samples; PgUp/PgDn scrolls requirement details.
-
-**Continue editing** accepts the candidate as the current draft. **Save** uses the existing revision check, backup and transaction. Backspace returns one step; Ctrl+G cancels the flow, as does Esc in the external editor. Cancellation preserves the previously pending draft. Presets do not install integrations or enable collectors, and preserve existing agent-row disablement. Interface language saves immediately; output language saves with display settings; Claude preferences retain separate Apply.
+In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. The [scheme guide](SCHEMES.md#editor-quick-setup) covers choosing, previewing, saving and cancelling a candidate.
 
 Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. `▏` marks the caret. Grapheme deletion preserves combining sequences and complete emoji. Ctrl+U clears, Enter accepts, Ctrl+G cancels; native Esc returns focus to the host. Text/search allow 256 codepoints, paths 4096 and numeric edit buffers 32. Oversized or control-containing insertions are rejected with a message rather than truncating the original value.
 

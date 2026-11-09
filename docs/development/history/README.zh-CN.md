@@ -8,7 +8,7 @@
 
 ## 已交付工作包设计
 
-[工作包设计档案](work-package-designs.zh-CN.md#completed-designs)保留原始范围、切片及验收要求。[已交付阶段](../roadmap.zh-CN.md#milestones)记录工作包状态和依赖。对应实现与验证结果见下方交付记录。
+[工作包设计档案](work-package-designs.zh-CN.md#completed-designs)保留原始范围、切片及验收要求。[已交付阶段](roadmap-milestones.zh-CN.md#milestones)记录工作包状态和依赖。对应实现与验证结果见下方交付记录。
 
 <a id="delivery-records"></a>
 
@@ -22,6 +22,7 @@
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
 | v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](deliveries/runtime-source-save-fixes.zh-CN.md#final-release) |
 | 语言 | [十二语言扩展](deliveries/language-expansion.zh-CN.md) · [I18N-02 生命周期](deliveries/i18n-02-delivery.zh-CN.md) · [Node 与地区语言](../node-regional-languages.zh-CN.md) |
+| CI 维护 | [Issue #157 实测](deliveries/ci-maintenance-delivery.zh-CN.md#ci-rollout) · [CI-01 固定 Actions](deliveries/ci-maintenance-delivery.zh-CN.md#ci-01) |
 | 外观、草稿与复用 | [自适应行与场景](../adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](../draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](../appearance-preview-diagnosis.zh-CN.md) |
 | 任务、来源与软件包 | [任务／版本审阅](../task-version-review.zh-CN.md) · [来源／命令／包执行](../source-command-package-management.zh-CN.md) · [扩展交付](../extensions.zh-CN.md#已完成的验收与交付) |
 | 设置与配置 | [首次设置／完整方案](../setup-appearance.zh-CN.md) · [配置体验](../configuration-experience.zh-CN.md) · [方案／项目／任务](../profiles-projects-tasks.zh-CN.md) · [真实输入诊断](../real-input-diagnostics.zh-CN.md) |
@@ -47,7 +48,7 @@
 | v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](deliveries/m4-m7-delivery.zh-CN.md) |
 | v3.8.0 | GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 | DONE | [Git、终端与 M8–M9](deliveries/m8-m9-delivery.zh-CN.md) |
 | v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](deliveries/m10-m12-delivery.zh-CN.md) |
-| v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量交付](../native-capacity.zh-CN.md#最终稳定版交付) |
+| v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量交付](deliveries/native-capacity-v3.9.1.zh-CN.md#最终稳定版交付) |
 | v3.9.2 | FIX-01～FIX-04、I18N-01：草稿、进度条、刷新消费者、历史诊断及任务语言 | DONE | [正确性修复与发布](../correctness-maintenance.zh-CN.md) |
 | v3.10.0 | APPEARANCE-05、PREVIEW-01、EXPLAIN-02：主题、可视选色、样例场景及文件诊断 | DONE | [外观、预览与诊断交付](../appearance-preview-diagnosis.zh-CN.md) |
 | v3.11.0 | TASK-02、UPDATE-02 第一片 | DONE | [任务浏览与版本审核](../task-version-review.zh-CN.md) |
@@ -59,9 +60,11 @@
 
 </details>
 
-## 附有交付记录的技术参考
+<a id="附有交付记录的技术参考"></a>
 
-部分专题同时收录现行规则和各版证据。维护相关实现时，可直接查阅 [Native 容量与恢复边界](../native-capacity.zh-CN.md#展示边界)及[扩展职责与契约](../extensions.zh-CN.md#职责与契约)。其他现行技术参考见[开发指南](../README.zh-CN.md)。
+## 现行技术参考
+
+[开发指南](../README.zh-CN.md)列出现行技术入口，包括[原生容量与恢复](../native-capacity.zh-CN.md#展示边界)、[CI 维护](../ci-maintenance.zh-CN.md)及[扩展职责与契约](../extensions.zh-CN.md#职责与契约)。
 
 ## TypeScript 迁移阶段
 

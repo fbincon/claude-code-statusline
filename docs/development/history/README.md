@@ -8,7 +8,7 @@ Find original designs, versioned delivery records, migration stages and validati
 
 ## Delivered work package designs
 
-The [work package design archive](work-package-designs.md#completed-designs) preserves the original scope, slices and acceptance criteria. The [delivered milestones](../roadmap.md#milestones) record package status and dependencies. Use the records below for the corresponding implementation and verification results.
+The [work package design archive](work-package-designs.md#completed-designs) preserves the original scope, slices and acceptance criteria. The [delivered milestones](roadmap-milestones.md#milestones) record package status and dependencies. Use the records below for the corresponding implementation and verification results.
 
 <a id="delivery-records"></a>
 
@@ -22,6 +22,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |
 | Languages | [Twelve-language expansion](deliveries/language-expansion.md) · [I18N-02 lifecycle](deliveries/i18n-02-delivery.md) · [Node and regional languages](../node-regional-languages.md) |
+| CI maintenance | [Issue #157 measurements](deliveries/ci-maintenance-delivery.md#ci-rollout) · [CI-01 Action pinning](deliveries/ci-maintenance-delivery.md#ci-01) |
 | Appearance, drafts and reuse | [Adaptive rows and scenes](../adaptive-row-scenarios.md) · [Draft history and reuse](../draft-history-and-reuse.md) · [Appearance/previews/diagnosis](../appearance-preview-diagnosis.md) |
 | Tasks, sources and packages | [Task/version review](../task-version-review.md) · [Source/command/package execution](../source-command-package-management.md) · [Extensions delivery](../extensions.md#completed-validation-and-delivery) |
 | Setup and configuration | [Setup/complete schemes](../setup-appearance.md) · [Configuration experience](../configuration-experience.md) · [Profiles/projects/tasks](../profiles-projects-tasks.md) · [Real-input diagnosis](../real-input-diagnostics.md) |
@@ -47,7 +48,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 | v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](deliveries/m4-m7-delivery.md) |
 | v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](deliveries/m8-m9-delivery.md) |
 | v3.9.0 | IMPORT-01, APPEARANCE-04, COMPOSITION-03 | DONE | [Selective import, gradients and alignment](deliveries/m10-m12-delivery.md) |
-| v3.9.1 | #154 transport capacity, #155 render-tree capacity and save-result recovery | DONE | [Native capacity delivery](../native-capacity.md#final-stable-delivery) |
+| v3.9.1 | #154 transport capacity, #155 render-tree capacity and save-result recovery | DONE | [Native capacity delivery](deliveries/native-capacity-v3.9.1.md#final-stable-delivery) |
 | v3.9.2 | FIX-01–FIX-04, I18N-01: drafts, indicators, refresh consumers, historical diagnosis and task language | DONE | [Correctness delivery and publication](../correctness-maintenance.md) |
 | v3.10.0 | APPEARANCE-05, PREVIEW-01, EXPLAIN-02: themes, color editing, sample scenarios and file diagnosis | DONE | [Appearance, previews and diagnosis delivery](../appearance-preview-diagnosis.md) |
 | v3.11.0 | TASK-02, UPDATE-02 slice 1 | DONE | [Task browsing and version review](../task-version-review.md) |
@@ -59,9 +60,11 @@ Each record preserves the feature-introduction version, source identity, checks 
 
 </details>
 
-## Technical references with delivery records
+<a id="technical-references-with-delivery-records"></a>
 
-Some pages keep current rules alongside versioned evidence. For current work, go directly to the [Native capacity and recovery boundaries](../native-capacity.md#presentation-boundary) or the [extension responsibilities and contracts](../extensions.md#responsibilities-and-contracts). The [development guide](../README.md) links the other current technical references.
+## Current technical references
+
+The [development guide](../README.md) indexes current references, including [Native capacity and recovery](../native-capacity.md#presentation-boundary), [CI maintenance](../ci-maintenance.md) and [extension responsibilities and contracts](../extensions.md#responsibilities-and-contracts).
 
 ## TypeScript migration stages
 

@@ -403,9 +403,7 @@ claude-statusline install --no-experimental-slash-tui
 
 ## 快速配置、文本编辑与说明
 
-在 `/statusline-configure-native` 或 `claude-statusline configure` 中，按 **Ctrl+P**，也可以在设置页选择“快速配置”。从[完整方案与原有预设](SCHEMES.zh-CN.md)中依次选择用途、外观和示例。用上下键选择，Enter 确认；外观选项用左右键调整。Tab 切换主行和子代理示例，PgUp/PgDn 滚动要求说明。
-
-“继续微调”接受候选为当前草稿；“保存”使用原有版本检查、备份和事务。Backspace 返回上一步，Ctrl+G 取消整个流程，外部编辑器也可用 Esc。取消保留进入前未保存的草稿。选择预设不会安装集成或开启采集，已有子代理关闭选择也保留。界面语言立即保存，输出语言随显示配置保存；Claude 偏好仍单独 Apply。
+在 `/statusline-configure-native` 或 `claude-statusline configure` 中按 **Ctrl+P**，或在设置页选择“快速配置”。选择、预览、保存或取消候选的步骤见[方案指南](SCHEMES.zh-CN.md#editor-quick-setup)。
 
 文本、搜索、数值和文件路径支持 ←/→、Home/End、光标处插入、Backspace 和 Delete，长内容随光标水平滚动。`▏` 标识光标，字素删除保留组合字符及完整 emoji。Ctrl+U 清空、Enter 确认、Ctrl+G 取消；原生编辑器的 Esc 由宿主用于交还焦点。文本/搜索最多 256 个码点，路径最多 4096，数值编辑缓冲最多 32；超限或含控制字符的插入整体拒绝并提示，不截断原文。
 
