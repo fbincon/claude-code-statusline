@@ -19,14 +19,14 @@ Each record preserves the feature-introduction version, source identity, checks 
 | Area | Delivery records |
 | --- | --- |
 | v3.16.3 configuration skills | [Question paging, scope and fallback workflows](../skill-workflows.md#final-release) |
-| v3.16.2 editor controls | [Keyboard, draft protection and release verification](../editor-input-delivery.md#final-release) |
-| v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](../runtime-source-save-fixes.md#final-release) |
-| Languages | [Twelve-language expansion](../language-expansion.md) · [I18N-02 lifecycle](../i18n-02-delivery.md) · [Node and regional languages](../node-regional-languages.md) |
+| v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
+| v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |
+| Languages | [Twelve-language expansion](deliveries/language-expansion.md) · [I18N-02 lifecycle](deliveries/i18n-02-delivery.md) · [Node and regional languages](../node-regional-languages.md) |
 | Appearance, drafts and reuse | [Adaptive rows and scenes](../adaptive-row-scenarios.md) · [Draft history and reuse](../draft-history-and-reuse.md) · [Appearance/previews/diagnosis](../appearance-preview-diagnosis.md) |
 | Tasks, sources and packages | [Task/version review](../task-version-review.md) · [Source/command/package execution](../source-command-package-management.md) · [Extensions delivery](../extensions.md#completed-validation-and-delivery) |
 | Setup and configuration | [Setup/complete schemes](../setup-appearance.md) · [Configuration experience](../configuration-experience.md) · [Profiles/projects/tasks](../profiles-projects-tasks.md) · [Real-input diagnosis](../real-input-diagnostics.md) |
 | Earlier milestones and repairs | [M4–M7](deliveries/m4-m7-delivery.md) · [M8–M9](deliveries/m8-m9-delivery.md) · [M10–M12](deliveries/m10-m12-delivery.md) · [Correctness maintenance](../correctness-maintenance.md) |
-| Post-migration review | [Findings](../post-migration-review.md) · [Repairs](../post-migration-fixes.md) · [External TUI parity](../external-tui-parity.md) · [External TUI regressions](../external-tui-regressions.md) |
+| Post-migration review | [Findings](migration/post-migration-review.md) · [Repairs](migration/post-migration-fixes.md) · [External TUI parity](../external-tui-parity.md) · [External TUI regressions](../external-tui-regressions.md) |
 | Performance | [Reports by version](#performance-reports) |
 | Demonstration delivery | [SHOWCASE-01](../showcase.md#delivery) |
 
@@ -54,8 +54,8 @@ Each record preserves the feature-introduction version, source identity, checks 
 | v3.12.0 | SOURCES-01, COMMAND-02, UPDATE-02 slices 2/3; #173 | DONE | [v3.12.0 delivery](../source-command-package-management.md) |
 | v3.13.0 | All UX-03, COMPOSITION-04 and IMPORT-02 slices | DONE | [Draft history, repairs and reuse delivery](../draft-history-and-reuse.md) |
 | v3.14.0 | APPEARANCE-07, APPEARANCE-06, PROFILE-02; #178/#180 | DONE | [Adaptive appearance and scenario delivery](../adaptive-row-scenarios.md) |
-| v3.15.0 | All I18N-02 slices; incremental six-language maintenance | DONE | [Incremental language workflow delivery](../i18n-02-delivery.md#final-release) |
-| v3.16.0 | Six additional UI/statusline languages; editor protocol 31 | DONE | [Twelve-language delivery](../language-expansion.md#final-release) |
+| v3.15.0 | All I18N-02 slices; incremental six-language maintenance | DONE | [Incremental language workflow delivery](deliveries/i18n-02-delivery.md#final-release) |
+| v3.16.0 | Six additional UI/statusline languages; editor protocol 31 | DONE | [Twelve-language delivery](deliveries/language-expansion.md#final-release) |
 
 </details>
 
@@ -73,11 +73,11 @@ The [TypeScript migration plan](../typescript-migration.md) links the completed 
 
 | Version | Implementation | Report |
 | --- | --- | --- |
-| v3.1.4 | TypeScript | [PERF-01 post-migration performance](../performance/perf-01.md) |
-| v2.0.0 | Python | [Component-instance rendering](../performance-v2.0.0.md) |
-| v1.13.0 | Python | [Language and search performance](../performance-v1.13.0.md) |
-| v1.12.0 | Python | [Rendering and opt-in feature costs](../performance-v1.12.0.md) |
-| v1.11.0 | Python | [Rendering performance comparison](../performance-v1.11.0.md) |
+| v3.1.4 | TypeScript | [PERF-01 post-migration performance](performance/perf-01.md) |
+| v2.0.0 | Python | [Component-instance rendering](performance/performance-v2.0.0.md) |
+| v1.13.0 | Python | [Language and search performance](performance/performance-v1.13.0.md) |
+| v1.12.0 | Python | [Rendering and opt-in feature costs](performance/performance-v1.12.0.md) |
+| v1.11.0 | Python | [Rendering performance comparison](performance/performance-v1.11.0.md) |
 
 ## Historical procedures and evidence
 

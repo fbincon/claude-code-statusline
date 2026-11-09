@@ -2,7 +2,7 @@
 
 [English](live.md) | **简体中文**
 
-当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。
+当前计时证据、精确重放去重及缓存兼容见[迁移后修复](history/migration/post-migration-fixes.zh-CN.md)。
 
 随包 `statusline-runtime` Mod 支持已核验的 Claude Code 2.1.289+ 宿主。原生任务计时与高级实时指标均需显式启用；偏好与编辑器及显示项选择独立。
 

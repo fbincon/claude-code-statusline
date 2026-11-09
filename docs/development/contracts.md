@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-For the v3.16.0 language expansion source and acceptance evidence, see the [delivery record](language-expansion.md#final-release).
+For the v3.16.0 language expansion source and acceptance evidence, see the [delivery record](history/deliveries/language-expansion.md#final-release).
 
 
 [Draft history, structural review and reuse](draft-history-and-reuse.md) documents UX-03, COMPOSITION-04 and IMPORT-02, editor protocol 29 and their acceptance.

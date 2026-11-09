@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-v3.16.0 语言扩展的源码和验收证据见[交付记录](language-expansion.zh-CN.md#final-release)。
+v3.16.0 语言扩展的源码和验收证据见[交付记录](history/deliveries/language-expansion.zh-CN.md#final-release)。
 
 
 [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) 记录 UX-03、COMPOSITION-04、IMPORT-02、编辑器协议 29 及其验收。

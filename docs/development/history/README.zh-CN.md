@@ -19,14 +19,14 @@
 | 领域 | 交付记录 |
 | --- | --- |
 | v3.16.3 配置技能 | [问答分页、范围与回退流程](../skill-workflows.zh-CN.md#final-release) |
-| v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](../editor-input-delivery.zh-CN.md#final-release) |
-| v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](../runtime-source-save-fixes.zh-CN.md#final-release) |
-| 语言 | [十二语言扩展](../language-expansion.zh-CN.md) · [I18N-02 生命周期](../i18n-02-delivery.zh-CN.md) · [Node 与地区语言](../node-regional-languages.zh-CN.md) |
+| v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
+| v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](deliveries/runtime-source-save-fixes.zh-CN.md#final-release) |
+| 语言 | [十二语言扩展](deliveries/language-expansion.zh-CN.md) · [I18N-02 生命周期](deliveries/i18n-02-delivery.zh-CN.md) · [Node 与地区语言](../node-regional-languages.zh-CN.md) |
 | 外观、草稿与复用 | [自适应行与场景](../adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](../draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](../appearance-preview-diagnosis.zh-CN.md) |
 | 任务、来源与软件包 | [任务／版本审阅](../task-version-review.zh-CN.md) · [来源／命令／包执行](../source-command-package-management.zh-CN.md) · [扩展交付](../extensions.zh-CN.md#已完成的验收与交付) |
 | 设置与配置 | [首次设置／完整方案](../setup-appearance.zh-CN.md) · [配置体验](../configuration-experience.zh-CN.md) · [方案／项目／任务](../profiles-projects-tasks.zh-CN.md) · [真实输入诊断](../real-input-diagnostics.zh-CN.md) |
 | 早期里程碑及修复 | [M4–M7](deliveries/m4-m7-delivery.zh-CN.md) · [M8–M9](deliveries/m8-m9-delivery.zh-CN.md) · [M10–M12](deliveries/m10-m12-delivery.zh-CN.md) · [正确性维护](../correctness-maintenance.zh-CN.md) |
-| 迁移后审查 | [问题盘点](../post-migration-review.zh-CN.md) · [修复](../post-migration-fixes.zh-CN.md) · [外部 TUI 一致性](../external-tui-parity.zh-CN.md) · [外部 TUI 回归](../external-tui-regressions.zh-CN.md) |
+| 迁移后审查 | [问题盘点](migration/post-migration-review.zh-CN.md) · [修复](migration/post-migration-fixes.zh-CN.md) · [外部 TUI 一致性](../external-tui-parity.zh-CN.md) · [外部 TUI 回归](../external-tui-regressions.zh-CN.md) |
 | 性能 | [按版本查找报告](#performance-reports) |
 | 展示交付 | [SHOWCASE-01](../showcase.zh-CN.md#delivery) |
 
@@ -54,8 +54,8 @@
 | v3.12.0 | SOURCES-01、COMMAND-02、UPDATE-02 第二／三片；#173 | DONE | [v3.12.0 交付](../source-command-package-management.zh-CN.md) |
 | v3.13.0 | UX-03、COMPOSITION-04、IMPORT-02 全部切片 | DONE | [草稿历史、修复与复用交付](../draft-history-and-reuse.zh-CN.md) |
 | v3.14.0 | APPEARANCE-07、APPEARANCE-06、PROFILE-02；#178／#180 | DONE | [自适应、连续背景与场景交付](../adaptive-row-scenarios.zh-CN.md) |
-| v3.15.0 | I18N-02 三个切片；六语言增量维护 | DONE | [增量语言工作流交付](../i18n-02-delivery.zh-CN.md#final-release) |
-| v3.16.0 | 新增六种界面／状态栏语言；编辑器协议 31 | DONE | [十二语言交付](../language-expansion.zh-CN.md#final-release) |
+| v3.15.0 | I18N-02 三个切片；六语言增量维护 | DONE | [增量语言工作流交付](deliveries/i18n-02-delivery.zh-CN.md#final-release) |
+| v3.16.0 | 新增六种界面／状态栏语言；编辑器协议 31 | DONE | [十二语言交付](deliveries/language-expansion.zh-CN.md#final-release) |
 
 </details>
 
@@ -73,11 +73,11 @@
 
 | 版本 | 实现 | 报告 |
 | --- | --- | --- |
-| v3.1.4 | TypeScript | [PERF-01 迁移后性能](../performance/perf-01.zh-CN.md) |
-| v2.0.0 | Python | [组件实例渲染](../performance-v2.0.0.zh-CN.md) |
-| v1.13.0 | Python | [多语言与搜索性能](../performance-v1.13.0.zh-CN.md) |
-| v1.12.0 | Python | [渲染与可选功能开销](../performance-v1.12.0.zh-CN.md) |
-| v1.11.0 | Python | [渲染性能对照](../performance-v1.11.0.zh-CN.md) |
+| v3.1.4 | TypeScript | [PERF-01 迁移后性能](performance/perf-01.zh-CN.md) |
+| v2.0.0 | Python | [组件实例渲染](performance/performance-v2.0.0.zh-CN.md) |
+| v1.13.0 | Python | [多语言与搜索性能](performance/performance-v1.13.0.zh-CN.md) |
+| v1.12.0 | Python | [渲染与可选功能开销](performance/performance-v1.12.0.zh-CN.md) |
+| v1.11.0 | Python | [渲染性能对照](performance/performance-v1.11.0.zh-CN.md) |
 
 ## 历史流程与证据
 

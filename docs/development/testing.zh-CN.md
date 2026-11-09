@@ -99,7 +99,7 @@ npm run test:mods -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT" \
 
 ## 安装包性能尝试
 
-[PERF-01](performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。
+[PERF-01](history/performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。
 使用安装包模式的 `benchmark`／`benchmark:compare`；旧工作区 worker 仅为描述性诊断，
 不能作为安装命令耗时。采集次数与计时分离；冷读／追加准备恢复完整用量索引。
 Linux GNU time 记录新子进程峰值 RSS。功能正确是硬门槛，该记录不以最低提速或通过 Python 预算为结论条件。

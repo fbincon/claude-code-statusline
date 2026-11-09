@@ -15,7 +15,7 @@ For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIA
 
 Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
 
-Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](post-migration-fixes.md).
+The [v3.1.3 repair record](history/migration/post-migration-fixes.md) documents the original changes to timing provenance, exact replay deduplication and cache compatibility.
 
 The production package is TypeScript, retaining the existing CLI, configuration formats and storage locations. Implementation separates pure rules, platform effects, application services and terminal UI.
 
@@ -37,7 +37,7 @@ management storage, display rules or UI locale data. Usage indexing retains an
 at-most-32-MiB serialized overlay within one cache lock. Final pages are durably
 published before the manifest and atomic state; overflow flushes use the same
 publication adapter. Cleanup remains after the successful state commit. Persisted
-formats and exact replay accounting are unchanged. See [PERF-01](performance/perf-01.md).
+formats and exact replay accounting are unchanged. See [PERF-01](history/performance/perf-01.md).
 
 ```text
 packages/

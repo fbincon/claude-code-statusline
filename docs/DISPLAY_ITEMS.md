@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/post-migration-fixes.md).
+Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/history/migration/post-migration-fixes.md).
 
 The catalog contains 65 main metrics and 15 subagent metrics. The tables list defaults and common definitions. Use `config list-items --json` and `config subagents list-items --json` for all IDs. `prompt-timer` is a compatibility alias for `task-timer`. Main compounds can coexist with independent items. Subagent `status-elapsed` excludes `status` and `elapsed`. [Configure display items](USER_GUIDE.md#configurable-display-items)
 

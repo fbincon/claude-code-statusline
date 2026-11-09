@@ -17,7 +17,7 @@ The initial delivery below remains historical evidence for PRs #192/#193 and mai
 | Product | `@fbincon/claude-code-statusline` 3.16.0 |
 | Product source | `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0` |
 | Public package SHA256 | `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a` |
-| Existing publication evidence | [v3.16.0 delivery](language-expansion.md#final-release) |
+| Existing publication evidence | [v3.16.0 delivery](history/deliveries/language-expansion.md#final-release) |
 | Formats | Display schema 17; editor protocol 31; single-profile format 1 |
 | Initial machine | Linux / Node 24.21.0 / npm 11.19.0 / Claude Code 2.1.314; actual capture metadata records the complete environment |
 

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](live.zh-CN.md)
 
-Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](post-migration-fixes.md).
+Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](history/migration/post-migration-fixes.md).
 
 The bundled `statusline-runtime` Mod supports verified Claude Code 2.1.289+ hosts. Native task timing and advanced live metrics both require explicit opt-in. These preferences are independent of the editor and of the visible item selection.
 

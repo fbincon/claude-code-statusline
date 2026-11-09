@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
+当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/history/migration/post-migration-fixes.zh-CN.md)。
 
 目录包含 65 个主栏指标和 15 个子 Agent 指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子 Agent 的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
