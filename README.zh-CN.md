@@ -28,23 +28,13 @@
 
 ## 界面预览
 
-[完整使用演示](docs/SHOWCASE.zh-CN.md)将场景配置与设置、编辑、任务、来源及版本审阅步骤配对。视觉基线使用经典分隔符和柔和明亮的前景渐变，不使用 Powerline。同一组件在主栏和子代理行保持相同配色；浅色场景采用同色相的深色版本。每份素材的软件包、输入和捕获类型见[演示图片索引](docs/images/showcase/README.zh-CN.md)，固定样例与已记录任务观测分别标明。
+日常开发场景使用经典分隔符与不同的前景渐变。[复现使用演示](docs/SHOWCASE.zh-CN.md) · [素材来源](docs/images/showcase/README.zh-CN.md)。
 
 ![使用经典分隔符和不同前景渐变的日常开发状态栏](docs/images/showcase/zh-CN/daily.png)
 
 ![包含彩色状态栏预览与变更审阅的配置流程](docs/images/showcase/zh-CN/configure.gif)
 
-动图先复制一个指标，再演示撤销、重做、保存和重新打开。重复项仅用于这段练习，完成后恢复原始日常场景。
-
-### 会话内 TUI
-
-在 Claude Code 中运行 `/statusline-configure-native`，先单击 Client 区域再使用键盘。[编辑流程](docs/USER_GUIDE.zh-CN.md#原生配置编辑器)。
-
-### 外部 TUI
-
-在终端运行 `claude-statusline configure`，或在 Claude Code 中运行 `/statusline-configure` 打开受支持的外部终端。[终端流程](docs/USER_GUIDE.zh-CN.md#独立交互式-tui)。
-
-[当前与历史图片](docs/images/README.zh-CN.md)保留各自原始来源。历史跨平台截图不代表较新软件包已经验收；[issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)原有六项缺口仍未验证。
+动图先复制一个指标，再演示撤销、重做、保存和重新打开编辑器。
 
 ## 支持范围
 
@@ -89,48 +79,44 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScri
 
 ## 常用配置
 
-| 入口 | 用途 |
-| --- | --- |
-| `/statusline-configure-native` | 在当前 Claude 会话内编辑 |
-| `/statusline-configure` | 在受支持的外部终端启动编辑器 |
-| `claude-statusline configure` | 在当前终端编辑，包括 SSH |
-| `/statusline-config` | Claude 问答向导；受支持的带参数命令在本地执行 |
-| `claude-statusline config ...` | 检查设置或通过脚本指定准确值 |
-
-在任一编辑器按 **Ctrl+P** 打开快速配置，选择方案、检查要求并预览草稿。保存应用到当前显示的用户／方案／项目目标；取消放弃待保存的显示修改。[操作演示与可复用场景](docs/SHOWCASE.zh-CN.md) · [全部方案](docs/SCHEMES.zh-CN.md)。
-
 <a id="v130a2外部-tui-与会话内-client"></a>
 
-### 界面语言
+| 入口 | 用途 | 指南 |
+| --- | --- | --- |
+| <a id="会话内-tui"></a><a id="原生配置编辑器"></a>`/statusline-configure-native` | 在当前 Claude 会话内编辑 | [会话内编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
+| <a id="外部-tui"></a>`/statusline-configure` | 从 Claude Code 启动受支持的外部终端 | [外部终端入口](docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
+| <a id="外部与独立终端-tui"></a>`claude-statusline configure` | 在当前终端编辑，包括 SSH | [独立终端编辑器](docs/USER_GUIDE.zh-CN.md#独立交互式-tui) |
+| `/statusline-config` | 使用 Claude 问答向导，或在本地执行受支持的带参数命令 | [问答向导](docs/USER_GUIDE.zh-CN.md#statusline-config-问答向导) |
+| `claude-statusline config ...` | 检查设置或通过脚本指定准确值 | [CLI 配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方) |
 
-设置共享界面偏好，或仅覆盖本次调用：
+在会话内编辑器使用键盘前，先单击 Client 区域。在任一编辑器按 **Ctrl+P** 打开快速配置，选择方案并预览草稿。保存会将草稿应用到当前显示的用户、方案或项目。[快速配置](docs/USER_GUIDE.zh-CN.md#快速配置文本编辑与说明) · [全部方案](docs/SCHEMES.zh-CN.md)。
+
+### 语言设置
+
+<a id="界面语言"></a>
+
+设置共享界面偏好，或使用 `--language` 覆盖单次调用。
 
 ```text
 claude-statusline config language set zh-CN
 claude-statusline --language en configure
 ```
 
-界面语言立即保存，取消显示修改后仍保留。[语言选项](docs/USER_GUIDE.zh-CN.md#界面语言)。
+界面偏好即时保存，取消显示修改后仍保留。[界面语言](docs/USER_GUIDE.zh-CN.md#界面语言)。
 
-### 状态栏语言
+<a id="状态栏语言"></a>
 
-单独设置输出语言：
+单独设置状态栏输出语言。
 
 ```text
 claude-statusline config set statusline-language zh-CN
 ```
 
-在编辑器中，该选择先影响预览，保存显示后才影响实际主栏／子代理输出。技术 ID、路径及自定义文本保留原值。[输出语言](docs/USER_GUIDE.zh-CN.md#状态栏语言)。
+编辑器使用草稿中的语言预览。保存显示草稿后，该语言才会应用到主栏和子代理行。[状态栏语言](docs/USER_GUIDE.zh-CN.md#状态栏语言)。
 
-### 原生配置编辑器
+### 从内置方案开始
 
-先单击 Client 区域。Tab 切页，Space 启停，Ctrl+E 打开组件详情，`/` 搜索，Ctrl+F 切换分类。`S` 保存并停留，`F` 保存并关闭，`Q` 放弃草稿；Ctrl+G 取消字段输入。[操作与恢复](docs/USER_GUIDE.zh-CN.md#原生配置编辑器)。
-
-### 外部与独立终端 TUI
-
-Tab 切页，Space 启停，完成字段输入后用 Ctrl+S 保存。Esc 先取消字段输入，再取消编辑器；Ctrl+C 中断且不保存。最小尺寸为 64×18。[操作与终端启动器](docs/USER_GUIDE.zh-CN.md#独立交互式-tui)。
-
-从内置方案开始，使用经典分隔符：
+使用日常开发方案和经典分隔符。
 
 ```text
 claude-statusline config preset daily-development --dry-run
@@ -138,7 +124,7 @@ claude-statusline config preset daily-development
 claude-statusline config set separator-style classic
 ```
 
-应用前先审阅：预设会替换显示选择与布局。[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方) · [CLI 参考](docs/reference/cli.zh-CN.md)。
+先运行预演，查看应用预设会替换哪些显示选择和布局。
 
 <a id="升级到-v161"></a>
 
@@ -168,15 +154,7 @@ TypeScript workspace 分为纯规则（`packages/core`）、平台副作用（`p
 
 ## 文档与帮助
 
-| 目标 | 入口 |
-| --- | --- |
-| 体验完整流程 | [使用演示](docs/SHOWCASE.zh-CN.md) · [首次设置](docs/SETUP.zh-CN.md) |
-| 配置显示 | [使用指南](docs/USER_GUIDE.zh-CN.md) · [完整方案](docs/SCHEMES.zh-CN.md) · [外观](docs/APPEARANCE.zh-CN.md) · [布局](docs/COMPOSITION.zh-CN.md) |
-| 复用设置 | [方案与项目](docs/PROFILES.zh-CN.md) · [草稿历史与复用](docs/DRAFT_HISTORY.zh-CN.md) |
-| 理解数据 | [指标定义](docs/DISPLAY_ITEMS.zh-CN.md) · [任务详情](docs/TASK_DETAILS.zh-CN.md) · [扩展](docs/EXTENSIONS.zh-CN.md) |
-| 排错或自动化 | [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [输入诊断](docs/DIAGNOSTICS.zh-CN.md) · [CLI 参考](docs/reference/cli.zh-CN.md) |
-| 开发或核对证据 | [开发指南](docs/development/README.zh-CN.md) · [图片来源](docs/images/README.zh-CN.md) |
-| 跟进计划或发布 | [路线图](docs/development/roadmap.zh-CN.md) · [开发计划](docs/development/development-plan.zh-CN.md) · [更新日志](CHANGELOG.zh-CN.md) · [发布说明](docs/releases/README.zh-CN.md) |
+[文档中心](docs/README.zh-CN.md) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [开发指南](docs/development/README.zh-CN.md) · [发布说明](docs/releases/README.zh-CN.md)
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)接受可复现缺陷、问题及功能建议。请提供版本、步骤和相关诊断，并移除私人路径及会话内容。
 

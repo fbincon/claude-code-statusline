@@ -44,7 +44,9 @@ Keep the change focused, explain its purpose and record what was actually tested
 
 English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`, except the English-only root `AGENTS.md`. GitHub Issue forms and the single PR template contain both languages in one file. Release notes through v3.9.x retain both languages on one historical page. Starting with v3.10.0, release notes use separate English and Simplified Chinese pages. [Release notes index](docs/releases/README.md).
 
-Keep links current and update the appropriate documentation indexes. For interface translations, see the [translation guide](docs/development/i18n.md).
+Keep links current and update the appropriate index when adding or reorganizing a guide. [Documentation index](docs/README.md) · [Interface translation guide](docs/development/i18n.md).
+
+Identify historical documents by the version or stage they record and add them to the development history index. When moving a page or section, keep the original path and section anchors as links to their new destinations. [Development history](docs/development/history/README.md).
 
 Update documentation, screenshots, CHANGELOG and related Issue links when relevant; explicitly mark other template items not applicable. The project README introduces features and usage: release versions, delivery status and update narratives belong in the changelog, release notes or development records.
 

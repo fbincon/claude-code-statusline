@@ -117,7 +117,7 @@ claude-statusline config instance main set context-remaining bar-style ascii
 
 使用 `config instance main list` 查询已有实例 ID；`subagent` 同样支持这些选项。适用类型为 `context-used`、`context-remaining`，以及仅主行支持的 `five-hour-limit`、`weekly-limit`、`spend-limit`。额度遵循实例的已用/剩余选项。隐藏普通标签时仍保留方向和百分比；短条表示观测水平，不表示经过时间或预测。缺失、无效或过期输入不会伪造为零；仅填充限制在 100%，有效超限额度保留数值。宽度适配可能裁剪或省略整个表示。
 
-复制、配置方案和导入导出保留显示选项，不启用任何采集或来源。保存并重开后恢复选项，取消保留原配置。参阅[交付与兼容记录](development/m4-m7-delivery.zh-CN.md)。
+复制、配置方案和导入导出保留显示选项，不启用任何采集或来源。保存并重开后恢复选项，取消保留原配置。参阅[交付与兼容记录](development/history/deliveries/m4-m7-delivery.zh-CN.md)。
 
 ## 静态组件渐变
 

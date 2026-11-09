@@ -137,7 +137,7 @@ claude-statusline config group main move cost-block --before OTHER_ID
 claude-statusline config group main ungroup cost-block
 ```
 
-将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/m4-m7-delivery.zh-CN.md)。
+将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/history/deliveries/m4-m7-delivery.zh-CN.md)。
 
 ## 显式主行的对应列对齐
 

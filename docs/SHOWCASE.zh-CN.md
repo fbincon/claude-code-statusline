@@ -19,11 +19,11 @@ claude-statusline --version
 claude-statusline doctor
 ```
 
-首次入口先审查持久 npm 前缀和精确版本，再要求输入 `yes`。npm 下载 npx 入口可能另有确认。已有匹配的持久安装会被复用。已经安装时，可运行 `claude-statusline setup --dry-run`，再运行 `claude-statusline setup`。
+确认安装前先检查 npm 前缀和精确版本。如果已安装匹配的软件包，先运行 `claude-statusline setup --dry-run`，再运行 `claude-statusline setup`。[首次入口与持久安装](SETUP.zh-CN.md#首次入口与-npm-持久安装)。
 
-在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。方向键选择，Enter 继续，Backspace 返回，Escape 取消。外部编辑器至少需要 64 列 × 18 行。本组演示使用经典分隔符；调整外观时保持 Powerline 关闭。
+在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。外部终端至少需要 64 列 × 18 行。关闭 Powerline 以复现本组演示的经典分隔符。[设置操作](SETUP.zh-CN.md)。
 
-集成成功后重启 Claude，并查看真实状态栏。安装包、显示保存和宿主集成是独立阶段：取消 setup 可能保留已完成的 npm 安装，集成失败也可能保留已保存的显示。阅读阶段结果及备份路径，运行 `doctor`，并先用 `recover --dry-run` 检查再重试。按 L 明确保存的界面语言不随显示取消撤销。详见[首次配置与恢复](SETUP.zh-CN.md)。
+集成成功后重启 Claude，并查看状态栏。如果设置只完成了一部分，根据报告中的阶段选择恢复步骤。[应用与恢复](SETUP.zh-CN.md#应用与恢复)。
 
 <a id="scenes"></a>
 

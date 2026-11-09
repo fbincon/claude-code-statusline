@@ -2,7 +2,9 @@
 
 [English](PREVIEW.md) | **简体中文**
 
-本页保留**历史 v3.0.0-beta.1 试用与恢复流程**。当前产品请使用[安装指南](USER_GUIDE.zh-CN.md#安装与接入)或[使用演示](SHOWCASE.zh-CN.md)。正式版 v3.0.0 已接替该预览；其[交付记录](development/typescript-migration/ts-06/stable-release.zh-CN.md)与[版本专属决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)保留已接受缺口，不将未验证项标为通过。
+> **历史档案。** 本页记录 v3.0.0-beta.1 的试用与恢复流程。当前产品的操作见[安装指南](USER_GUIDE.zh-CN.md#安装与接入)和[使用演示](SHOWCASE.zh-CN.md)。
+
+正式版 v3.0.0 已接替该预览。交付记录和发布决定列明了当时接受且仍未验证的缺口。[正式版交付记录](development/typescript-migration/ts-06/stable-release.zh-CN.md) · [版本专属决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)。
 
 预览当时通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发。[原发布说明](releases/v3.0.0-beta.1.md) · [平台验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 

@@ -1,6 +1,6 @@
 # 开发指南
 
-[English](README.md) | **简体中文**
+[English](README.md) | **简体中文** · [文档中心](../README.zh-CN.md)
 
 本页说明 TypeScript 工作区准备、检查选择与安装候选构建。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)、[CLI 参考](../reference/cli.zh-CN.md)和[操作演示](../SHOWCASE.zh-CN.md)。
 
@@ -24,7 +24,7 @@
 
 ### 迁移与交付记录
 
-[开发历史索引](history/README.zh-CN.md)汇集[已交付设计](history/README.zh-CN.md#completed-work-designs)、各版交付记录、迁移阶段、性能报告和历史验证流程。
+[开发历史索引](history/README.zh-CN.md)汇集[工作包设计档案](history/work-package-designs.zh-CN.md#completed-designs)、各版交付记录、迁移阶段、性能报告和历史验证流程。
 
 ## 文档导航
 

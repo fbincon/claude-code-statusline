@@ -8,7 +8,7 @@
 
 ## 已交付工作包设计
 
-[开发计划](../development-plan.zh-CN.md#completed-designs)保留原始范围、切片及验收要求，[已交付阶段](../roadmap.zh-CN.md#milestones)记录工作包状态和依赖。对应实现与验证结果见下方交付记录。
+[工作包设计档案](work-package-designs.zh-CN.md#completed-designs)保留原始范围、切片及验收要求。[已交付阶段](../roadmap.zh-CN.md#milestones)记录工作包状态和依赖。对应实现与验证结果见下方交付记录。
 
 <a id="delivery-records"></a>
 
@@ -25,7 +25,7 @@
 | 外观、草稿与复用 | [自适应行与场景](../adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](../draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](../appearance-preview-diagnosis.zh-CN.md) |
 | 任务、来源与软件包 | [任务／版本审阅](../task-version-review.zh-CN.md) · [来源／命令／包执行](../source-command-package-management.zh-CN.md) · [扩展交付](../extensions.zh-CN.md#已完成的验收与交付) |
 | 设置与配置 | [首次设置／完整方案](../setup-appearance.zh-CN.md) · [配置体验](../configuration-experience.zh-CN.md) · [方案／项目／任务](../profiles-projects-tasks.zh-CN.md) · [真实输入诊断](../real-input-diagnostics.zh-CN.md) |
-| 早期里程碑及修复 | [M4–M7](../m4-m7-delivery.zh-CN.md) · [M8–M9](../m8-m9-delivery.zh-CN.md) · [M10–M12](../m10-m12-delivery.zh-CN.md) · [正确性维护](../correctness-maintenance.zh-CN.md) |
+| 早期里程碑及修复 | [M4–M7](deliveries/m4-m7-delivery.zh-CN.md) · [M8–M9](deliveries/m8-m9-delivery.zh-CN.md) · [M10–M12](deliveries/m10-m12-delivery.zh-CN.md) · [正确性维护](../correctness-maintenance.zh-CN.md) |
 | 迁移后审查 | [问题盘点](../post-migration-review.zh-CN.md) · [修复](../post-migration-fixes.zh-CN.md) · [外部 TUI 一致性](../external-tui-parity.zh-CN.md) · [外部 TUI 回归](../external-tui-regressions.zh-CN.md) |
 | 性能 | [按版本查找报告](#performance-reports) |
 | 展示交付 | [SHOWCASE-01](../showcase.zh-CN.md#delivery) |
@@ -44,9 +44,9 @@
 | v3.4.0 | PROFILE-01、PROJECT-01、TASK-01 | DONE | [方案、项目与任务详情](../profiles-projects-tasks.zh-CN.md) |
 | v3.5.0 | SETUP-01、APPEARANCE-01、APPEARANCE-02 | DONE | [首次设置与完整外观](../setup-appearance.zh-CN.md) |
 | v3.6.0 | EXTENSIONS-01、LINKS-01、WORKFLOW-01、COMMAND-01、CAPABILITIES-01 | DONE | [扩展与工作流](../extensions.zh-CN.md) |
-| v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](../m4-m7-delivery.zh-CN.md) |
-| v3.8.0 | GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 | DONE | [Git、终端与 M8–M9](../m8-m9-delivery.zh-CN.md) |
-| v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](../m10-m12-delivery.zh-CN.md) |
+| v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](deliveries/m4-m7-delivery.zh-CN.md) |
+| v3.8.0 | GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 | DONE | [Git、终端与 M8–M9](deliveries/m8-m9-delivery.zh-CN.md) |
+| v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](deliveries/m10-m12-delivery.zh-CN.md) |
 | v3.9.1 | #154 传输容量、#155 绘制树容量及保存结果恢复 | DONE | [Native 容量交付](../native-capacity.zh-CN.md#最终稳定版交付) |
 | v3.9.2 | FIX-01～FIX-04、I18N-01：草稿、进度条、刷新消费者、历史诊断及任务语言 | DONE | [正确性修复与发布](../correctness-maintenance.zh-CN.md) |
 | v3.10.0 | APPEARANCE-05、PREVIEW-01、EXPLAIN-02：主题、可视选色、样例场景及文件诊断 | DONE | [外观、预览与诊断交付](../appearance-preview-diagnosis.zh-CN.md) |

@@ -1,6 +1,6 @@
 # Development guide
 
-**English** | [简体中文](README.zh-CN.md)
+**English** | [简体中文](README.zh-CN.md) · [Documentation index](../README.md)
 
 Start here to set up the TypeScript workspace, select checks and build an installed candidate. Daily use is covered by the [user guide](../USER_GUIDE.md), [CLI reference](../reference/cli.md) and [usage demonstrations](../SHOWCASE.md).
 
@@ -24,7 +24,7 @@ Use the [development plan](development-plan.md#work-index) for shared design rul
 
 ### Migration and delivery records
 
-The [development history index](history/README.md) collects [delivered designs](history/README.md#completed-work-designs), versioned delivery records, migration stages, performance reports and historical validation procedures.
+The [development history index](history/README.md) links the [work package design archive](history/work-package-designs.md#completed-designs), versioned delivery records, migration stages, performance reports and historical validation procedures.
 
 ## Contents
 

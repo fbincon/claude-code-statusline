@@ -1,6 +1,6 @@
 # 多语言开发与发布工作流
 
-[English](i18n-workflow.md) | **简体中文** · [当前翻译指南](i18n.zh-CN.md) · [工作包](development-plan.zh-CN.md#i18n-02) · [路线图](roadmap.zh-CN.md#milestones)
+[English](i18n-workflow.md) | **简体中文** · [当前翻译指南](i18n.zh-CN.md) · [工作包](history/work-package-designs.zh-CN.md#i18n-02) · [路线图](roadmap.zh-CN.md#milestones)
 
 [v3.16.0 十二语言扩展](language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
 

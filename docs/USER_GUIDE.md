@@ -1,16 +1,19 @@
 # Claude Code Statusline User Guide
 
-**English** | [简体中文](USER_GUIDE.zh-CN.md)
+**English** | [简体中文](USER_GUIDE.zh-CN.md) · [Documentation index](README.md)
 
 This guide covers installation, editor use, everyday configuration, optional live metrics and recovery. Start with the [usage demonstrations](SHOWCASE.md) for a complete workflow; use the [CLI reference](reference/cli.md) for exact syntax and file formats.
 
 | Task | Detailed guide |
 | --- | --- |
-| First installation or a readable starting point | [Setup](SETUP.md) · [Complete schemes](SCHEMES.md) |
+| Install and connect Claude Code | [Installation and integration](#installation-and-integration) · [First-use setup](SETUP.md) |
+| Choose a configuration method | [Editors, wizard and CLI](#choose-a-configuration-entry-point) |
+| Start with a scheme or recipe | [Complete schemes](SCHEMES.md) · [Configuration recipes](#configuration-recipes) |
 | Layout, colors and reusable drafts | [Composition](COMPOSITION.md) · [Appearance](APPEARANCE.md) · [Draft history and reuse](DRAFT_HISTORY.md) |
 | Share settings across projects | [Profiles and project bindings](PROFILES.md) |
 | Understand tasks and measurements | [Task details](TASK_DETAILS.md) · [Metric definitions](DISPLAY_ITEMS.md) |
-| Add or diagnose sources | [Extensions](EXTENSIONS.md) · [Input diagnosis](DIAGNOSTICS.md) |
+| Add sources | [Extensions](EXTENSIONS.md) |
+| Diagnose setup or output | [Troubleshooting](#troubleshooting) · [Input diagnosis](DIAGNOSTICS.md) |
 | Upgrade, roll back or recover | [Package management](PACKAGE_MANAGEMENT.md) |
 
 Configuration is stored for the current user; project bindings can select named display schemes. Rendering reads Claude input, local Git, transcripts and state without network requests or model tokens. Explicit source refresh is separate. The question-and-answer wizard uses model turns.
@@ -145,11 +148,11 @@ For a reproducible workflow and versioned captures, see the [showcase](SHOWCASE.
 
 | Entry | Best suited to |
 | --- | --- |
-| `/statusline-configure-native` | Configuring inside the current Claude session |
-| `/statusline-configure` | A separate supported terminal, launched from Claude |
-| `claude-statusline configure` | Configuring directly in the current terminal, including SSH |
-| `/statusline-config` | Guided questions using Claude model turns |
-| `claude-statusline config ...` | Exact settings, automation, and scripts |
+| `/statusline-configure-native` | [Configure inside the current Claude session](#native-configuration-editor) |
+| `/statusline-configure` | [Launch a separate supported terminal from Claude](#external-terminal-statusline-configure) |
+| `claude-statusline configure` | [Configure in the current terminal, including SSH](#standalone-interactive-tui) |
+| `/statusline-config` | [Answer guided questions using Claude model turns](#statusline-config-wizard) |
+| `claude-statusline config ...` | [Set exact values or automate configuration](reference/cli.md#configuration-command-reference) |
 
 All entries share user settings. Two open editors keep separate drafts; a stale draft cannot overwrite a newer saved revision.
 

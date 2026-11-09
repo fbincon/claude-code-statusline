@@ -82,4 +82,4 @@ claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix
 
 v3.7.0 之前的版本需手动恢复：停止 Claude，按需导出当前显示方案，保留可用的 Node／包入口及兼容的变更前配置备份，再用 npm 将精确旧版本安装到选定 prefix。只恢复适用产品配置，保留无关设置和当前关闭选项，运行该版本的 `install` 与 `doctor` 后重启 Claude。Python 时代的恢复见[用户指南](USER_GUIDE.zh-CN.md#升级)。npm 失败且结果不明时，先检查实际状态再安装。
 
-参阅 [CLI 参考](reference/cli.zh-CN.md)、[npm 安装规则](https://docs.npmjs.com/cli/v11/commands/npm-install/)及[实现／验收记录](development/m8-m9-delivery.zh-CN.md)。
+参阅 [CLI 参考](reference/cli.zh-CN.md)、[npm 安装规则](https://docs.npmjs.com/cli/v11/commands/npm-install/)及[实现／验收记录](development/history/deliveries/m8-m9-delivery.zh-CN.md)。

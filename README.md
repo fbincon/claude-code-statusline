@@ -30,23 +30,13 @@ Rendering reads Claude Code input and local state without network requests or mo
 
 ## Screenshots
 
-The [complete demonstrations](docs/SHOWCASE.md) pair scene configurations with reproducible steps for setup, editing, tasks, sources and version review. The visual baseline uses classic separators and soft, bright foreground gradients without Powerline. A component keeps its colors across main and subagent rows; the light scene uses darker shades of the same hues. Each asset's package, input and capture type is recorded in the [showcase image index](docs/images/showcase/README.md); fixed samples are identified separately from recorded task observations.
+The daily development scene uses classic separators and distinct foreground gradients. [Reproduce the demonstrations](docs/SHOWCASE.md) · [Capture sources](docs/images/showcase/README.md).
 
 ![Daily development statusline with classic separators and distinct foreground gradients](docs/images/showcase/en/daily.png)
 
 ![Configuration workflow with a colored statusline preview and reviewed changes](docs/images/showcase/en/configure.gif)
 
-The clip copies one metric, then demonstrates Undo, Redo, Save and reopening. The duplicate belongs only to this exercise; the original daily scene is restored afterward.
-
-### In-session TUI
-
-Run `/statusline-configure-native` inside Claude Code and click the Client region once before using the keyboard. [Editor workflow](docs/USER_GUIDE.md#native-configuration-editor).
-
-### External TUI
-
-Run `claude-statusline configure` in a terminal, or `/statusline-configure` from Claude Code to open a supported external terminal. [Terminal workflow](docs/USER_GUIDE.md#standalone-interactive-tui).
-
-[All current and historical images](docs/images/README.md) retain their original provenance. Historical cross-platform screenshots do not establish acceptance of a newer package; the six existing [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified.
+The clip copies a metric, then shows Undo, Redo, Save and reopening the editor.
 
 <a id="支持范围"></a>
 
@@ -100,48 +90,44 @@ Both editors default on for compatible hosts and preserve saved choices. Native 
 
 ## Common configuration
 
-| Entry point | Use |
-| --- | --- |
-| `/statusline-configure-native` | Edit in the current Claude session |
-| `/statusline-configure` | Launch an editor in a supported external terminal |
-| `claude-statusline configure` | Edit in the current terminal, including SSH |
-| `/statusline-config` | Claude question-and-answer wizard; supported argument commands run locally |
-| `claude-statusline config ...` | Inspect settings or set exact values from scripts |
-
-In either editor, **Ctrl+P** opens Quick setup to select a scheme, inspect requirements and preview the draft. Save applies it to the displayed user/profile/project target; cancel discards pending display changes. [Walkthroughs and reusable scenes](docs/SHOWCASE.md) · [All schemes](docs/SCHEMES.md).
-
 <a id="v130a2-external-tui-and-in-session-client"></a>
 
-### Interface language
+| Entry point | Use | Guide |
+| --- | --- | --- |
+| <a id="in-session-tui"></a><a id="native-configuration-editor"></a>`/statusline-configure-native` | Edit in the current Claude session | [In-session editor](docs/USER_GUIDE.md#native-configuration-editor) |
+| <a id="external-tui"></a>`/statusline-configure` | Launch a supported external terminal from Claude Code | [External launcher](docs/USER_GUIDE.md#external-terminal-statusline-configure) |
+| <a id="external-and-standalone-terminal-tui"></a>`claude-statusline configure` | Edit in the current terminal, including SSH | [Standalone editor](docs/USER_GUIDE.md#standalone-interactive-tui) |
+| `/statusline-config` | Use the Claude wizard or run supported argument commands locally | [Question-and-answer wizard](docs/USER_GUIDE.md#statusline-config-wizard) |
+| `claude-statusline config ...` | Inspect settings or set exact values from scripts | [CLI configuration recipes](docs/USER_GUIDE.md#configuration-recipes) |
 
-Set the shared interface preference, or override it for one invocation:
+Click the Client region once before using the keyboard in the in-session editor. In either editor, **Ctrl+P** opens Quick setup to select a scheme and preview the draft. Save applies the draft to the displayed user, profile or project. [Quick setup](docs/USER_GUIDE.md#quick-setup-text-editing-and-explanation) · [All schemes](docs/SCHEMES.md).
+
+### Language settings
+
+<a id="interface-language"></a>
+
+Set the shared interface preference or use `--language` for one invocation.
 
 ```text
 claude-statusline config language set zh-CN
 claude-statusline --language en configure
 ```
 
-An interface-language change saves immediately and survives cancellation of display edits. [Language choices](docs/USER_GUIDE.md#interface-language).
+The interface preference saves immediately and survives cancellation of display edits. [Interface language](docs/USER_GUIDE.md#interface-language).
 
-### Statusline language
+<a id="statusline-language"></a>
 
-Set output language independently:
+Set the statusline output language independently.
 
 ```text
 claude-statusline config set statusline-language zh-CN
 ```
 
-In an editor, this choice changes the preview and takes effect in the actual main/subagent output only after display Save. Technical IDs, paths and custom text retain their values. [Output language](docs/USER_GUIDE.md#statusline-language).
+In an editor, preview uses the draft language. Save the display draft to apply the language to the main line and subagent rows. [Statusline language](docs/USER_GUIDE.md#statusline-language).
 
-### Native configuration editor
+### Start from a scheme
 
-Click the Client region once. Tab changes pages, Space toggles, Ctrl+E opens item details, `/` searches and Ctrl+F filters categories. `S` saves and stays, `F` saves and closes, and `Q` discards the draft. Ctrl+G cancels field input. [Controls and recovery](docs/USER_GUIDE.md#native-configuration-editor).
-
-### External and standalone terminal TUI
-
-Tab changes pages, Space toggles, and Ctrl+S saves after field input is finished. Esc cancels a field first, then the editor; Ctrl+C interrupts without saving. The minimum size is 64×18. [Controls and terminal launchers](docs/USER_GUIDE.md#standalone-interactive-tui).
-
-To start from a built-in scheme with classic separators:
+Use the daily development scheme with classic separators.
 
 ```text
 claude-statusline config preset daily-development --dry-run
@@ -149,7 +135,7 @@ claude-statusline config preset daily-development
 claude-statusline config set separator-style classic
 ```
 
-Review before applying: a preset replaces display selections and layout. [Recipes](docs/USER_GUIDE.md#configuration-recipes) · [CLI reference](docs/reference/cli.md).
+Use the dry run to review the display selections and layout that the preset replaces.
 
 <a id="升级与卸载"></a>
 <a id="upgrade-to-v161"></a>
@@ -182,15 +168,7 @@ The TypeScript workspace separates pure rules (`packages/core`), platform effect
 
 ## Documentation and help
 
-| Goal | Start here |
-| --- | --- |
-| Try a complete workflow | [Demonstrations](docs/SHOWCASE.md) · [First-use setup](docs/SETUP.md) |
-| Configure a display | [User guide](docs/USER_GUIDE.md) · [Schemes](docs/SCHEMES.md) · [Appearance](docs/APPEARANCE.md) · [Composition](docs/COMPOSITION.md) |
-| Reuse settings | [Profiles and projects](docs/PROFILES.md) · [Draft history and reuse](docs/DRAFT_HISTORY.md) |
-| Understand data | [Metric definitions](docs/DISPLAY_ITEMS.md) · [Task details](docs/TASK_DETAILS.md) · [Extensions](docs/EXTENSIONS.md) |
-| Diagnose or automate | [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Input diagnosis](docs/DIAGNOSTICS.md) · [CLI reference](docs/reference/cli.md) |
-| Develop or review evidence | [Development guide](docs/development/README.md) · [Image provenance](docs/images/README.md) |
-| Follow plans or releases | [Roadmap](docs/development/roadmap.md) · [Development plan](docs/development/development-plan.md) · [Changelog](CHANGELOG.md) · [Release notes](docs/releases/README.md) |
+[Documentation index](docs/README.md) · [User guide](docs/USER_GUIDE.md) · [Development guide](docs/development/README.md) · [Release notes](docs/releases/README.md)
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues) accepts reproducible bugs, questions and feature ideas. Include versions, steps and relevant diagnostics; remove private paths and session content.
 
