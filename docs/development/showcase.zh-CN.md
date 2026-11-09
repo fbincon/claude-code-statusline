@@ -17,7 +17,7 @@
 | 产品 | `@fbincon/claude-code-statusline` 3.16.0 |
 | 产品源码 | `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0` |
 | 公开安装包 SHA256 | `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a` |
-| 既有发布证据 | [v3.16.0 交付](language-expansion.zh-CN.md#final-release) |
+| 既有发布证据 | [v3.16.0 交付](history/deliveries/language-expansion.zh-CN.md#final-release) |
 | 格式 | 显示 schema 17；编辑器协议 31；单方案格式 1 |
 | 起始机器 | Linux／Node 24.21.0／npm 11.19.0／Claude Code 2.1.314；实际素材元数据记录完整环境 |
 

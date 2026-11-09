@@ -2,9 +2,9 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](history/work-package-designs.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-The [v3.16.0 twelve-language expansion](language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
+The [v3.16.0 twelve-language expansion](history/deliveries/language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
 
-**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
+**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](history/deliveries/i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
 
 The original design was reviewed on **2026-10-30** (Asia/Shanghai) against `0d6bd307aa8ab29f3c49793efc0445189c82fb76`, product v3.14.0. At that source, each of the six packs had 2,311 keys. The [generator](../../tools/generation/resources.ts) required complete packs, rejected unknown keys and mismatched placeholders, and emitted Node and Native resources. Its coverage report measured key completeness; neither the report nor runtime English fallback tracked changed source meaning or translation acceptance. These gaps are addressed by the implementation below.
 
@@ -157,7 +157,7 @@ Future languages use complete structural/template/safety/generation checks plus 
 
 ## Functional acceptance and evidence limits
 
-The following preserves I18N-02 implementation requirements and its original six-language acceptance scope; actual results remain in the [delivery record](i18n-02-delivery.md). Current changes follow the registered-language policy above and the [translation guide](i18n.md), using existing suites and isolated fixtures.
+The following preserves I18N-02 implementation requirements and its original six-language acceptance scope; actual results remain in the [delivery record](history/deliveries/i18n-02-delivery.md). Current changes follow the registered-language policy above and the [translation guide](i18n.md), using existing suites and isolated fixtures.
 
 | Area | Required scenarios |
 | --- | --- |

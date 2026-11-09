@@ -2,9 +2,9 @@
 
 [English](i18n-workflow.md) | **简体中文** · [当前翻译指南](i18n.zh-CN.md) · [工作包](history/work-package-designs.zh-CN.md#i18n-02) · [路线图](roadmap.zh-CN.md#milestones)
 
-[v3.16.0 十二语言扩展](language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
+[v3.16.0 十二语言扩展](history/deliveries/language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
 
-**I18N-02 已随 v3.15.0 交付。** 已接受的兼容基础先于增量生成及严格发布就绪启用。路线图统一维护完成状态；见[实现及实际证据](i18n-02-delivery.zh-CN.md#final-release)与[维护命令](i18n.zh-CN.md#增量维护)。I18N-02 本身未新增语言，v3.16.0 随后扩展了注册表。
+**I18N-02 已随 v3.15.0 交付。** 已接受的兼容基础先于增量生成及严格发布就绪启用。路线图统一维护完成状态；见[实现及实际证据](history/deliveries/i18n-02-delivery.zh-CN.md#final-release)与[维护命令](i18n.zh-CN.md#增量维护)。I18N-02 本身未新增语言，v3.16.0 随后扩展了注册表。
 
 原设计于 **2026-10-30**（Asia/Shanghai）对照 `0d6bd307aa8ab29f3c49793efc0445189c82fb76`、产品 v3.14.0 核验。该源码的六个语言包各有 2,311 个键。当时的[生成器](../../tools/generation/resources.ts)要求语言包完整，拒绝未知键和占位符不匹配，并生成 Node 与 Native 资源。覆盖报告仅衡量键完整性；报告和运行时英语回退均未跟踪原文改义或译文接受状态。这些能力已由下述实现补齐。
 
@@ -157,7 +157,7 @@ Ready 产品 PR 对最终源码执行一次所需完整验收，包含受影响�
 
 ## 功能验收与证据边界
 
-下表保留 I18N-02 实现要求及原始六语验收范围，实际结果仍见[交付记录](i18n-02-delivery.zh-CN.md)。当前变更遵循上方已注册语言政策和[翻译指南](i18n.zh-CN.md)，复用既有套件及隔离夹具。
+下表保留 I18N-02 实现要求及原始六语验收范围，实际结果仍见[交付记录](history/deliveries/i18n-02-delivery.zh-CN.md)。当前变更遵循上方已注册语言政策和[翻译指南](i18n.zh-CN.md)，复用既有套件及隔离夹具。
 
 | 领域 | 必需场景 |
 | --- | --- |

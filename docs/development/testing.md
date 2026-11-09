@@ -99,7 +99,7 @@ Use a clean checkout per fixed host when running official Mod diagnostics locall
 
 ## Installed performance experiments
 
-[PERF-01](performance/perf-01.md) owns the separately identified installed TS-to-TS
+[PERF-01](history/performance/perf-01.md) owns the separately identified installed TS-to-TS
 method. Use artifact-mode `benchmark`/`benchmark:compare`; the legacy workspace
 worker remains descriptive and is not installed-command timing. Counters run
 separately from timed samples; cold/append preparation restores the whole usage

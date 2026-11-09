@@ -54,7 +54,7 @@ M1–M12 和选定的十八个后续工作包均已交付。[SHOWCASE-01](showca
 
 ## 规划基线与产品方向
 
-**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](language-expansion.zh-CN.md#final-release) 作为产品基线，原始规划源码为 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`。
+**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](history/deliveries/language-expansion.zh-CN.md#final-release) 作为产品基线，原始规划源码为 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`。
 
 下表记录以 v3.16.0 为基线时用于规划的能力。现行操作见[使用指南](../USER_GUIDE.zh-CN.md)，基线之后的变化见[变更日志](../../CHANGELOG.zh-CN.md)。
 
@@ -115,7 +115,7 @@ M1–M12 和选定的十八个后续工作包均已交付。[SHOWCASE-01](showca
 
 | 批次 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| 语言工作流 | [I18N-02](history/work-package-designs.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 三个切片、兼容 PR／main／tag 核验及公开交付均完成；[v3.15.0 证据](i18n-02-delivery.zh-CN.md#final-release) | DONE |
+| 语言工作流 | [I18N-02](history/work-package-designs.zh-CN.md#i18n-02) | 开发使用当前源语言回退，发布保证六语完整 | 三个切片、兼容 PR／main／tag 核验及公开交付均完成；[v3.15.0 证据](history/deliveries/i18n-02-delivery.zh-CN.md#final-release) | DONE |
 | 1 正确性 | [FIX-01](history/work-package-designs.zh-CN.md#fix-01) | 保存结果未知时保护全部显示草稿修改 | 既有保存／核对状态与共享编辑动作 | DONE |
 | 1 正确性 | [FIX-02](history/work-package-designs.zh-CN.md#fix-02) | 进度条与隐藏、短、自定义标签一致 | 共享图形指标及文字修饰规则 | DONE |
 | 1 正确性 | [FIX-03](history/work-package-designs.zh-CN.md#fix-03) | 离开一个刷新入口不影响其他使用者 | 共享来源任务、编辑器关闭与 CLI 取消 | DONE |

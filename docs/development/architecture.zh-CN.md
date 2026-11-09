@@ -15,7 +15,7 @@
 
 共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
 
-当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。
+[v3.1.3 修复记录](history/migration/post-migration-fixes.zh-CN.md)保留了计时证据、精确重放去重及缓存兼容的原始改动。
 
 当前生产包使用 TypeScript，保留已有 CLI、配置格式及存储位置；纯规则、平台副作用、应用服务和终端界面分层。
 
@@ -35,7 +35,7 @@ TypeScript 结构将复用规则、系统操作及应用编排分开：
 常见 runtime 协议分发通过只读偏好适配器，避免加载管理存储、显示规则和界面语言数据。
 用量索引在一次缓存锁内保留最多 32 MiB 序列化暂存，先持久化最终页，再发布 manifest
 及原子状态；超出上限仍使用相同持久化适配器，清理仍在状态提交成功后进行。
-磁盘格式及精确重放统计不变，见 [PERF-01](performance/perf-01.zh-CN.md)。
+磁盘格式及精确重放统计不变，见 [PERF-01](history/performance/perf-01.zh-CN.md)。
 
 ```text
 packages/

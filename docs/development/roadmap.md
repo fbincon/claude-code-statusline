@@ -54,7 +54,7 @@ Candidates have no assigned version or date. Listing one does not start developm
 
 ## Planning baseline and product direction
 
-The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`.
+The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](history/deliveries/language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`.
 
 The table describes the capabilities used to plan from v3.16.0. See the [user guide](../USER_GUIDE.md) for current procedures and the [changelog](../../CHANGELOG.md) for changes since that baseline.
 
@@ -115,7 +115,7 @@ These records preserve the status, original dependencies and scheduling of deliv
 
 | Batch | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Language workflow | [I18N-02](history/work-package-designs.md#i18n-02) | Current-source language fallback during development and complete six-language releases | All three slices, compatible PR/main/tag verification and public delivery; [v3.15.0 evidence](i18n-02-delivery.md#final-release) | DONE |
+| Language workflow | [I18N-02](history/work-package-designs.md#i18n-02) | Current-source language fallback during development and complete six-language releases | All three slices, compatible PR/main/tag verification and public delivery; [v3.15.0 evidence](history/deliveries/i18n-02-delivery.md#final-release) | DONE |
 | 1 Correctness | [FIX-01](history/work-package-designs.md#fix-01) | Protect every display-draft edit while a save outcome is unknown | Existing save/reconciliation state and shared editor actions | DONE |
 | 1 Correctness | [FIX-02](history/work-package-designs.md#fix-02) | Consistent hidden, short and custom labels with percentage bars | Shared indicator and decoration rules | DONE |
 | 1 Correctness | [FIX-03](history/work-package-designs.md#fix-03) | Leaving one refresh consumer preserves other consumers' work | Shared source jobs, editor close and CLI cancellation | DONE |
