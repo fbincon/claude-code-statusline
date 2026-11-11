@@ -8,16 +8,20 @@ With no subcommand, an interactive invocation opens the reviewed [persistent-ins
 
 ## Contents
 
-| Area | Reference |
-| --- | --- |
-| Commands and language | [Overview](#cli-overview) · [Interface language](#interface-language) · [Output language](#statusline-language) · [Slash support](#slash-command-support) |
-| Installation and versions | [Installation/diagnostics](#installation-and-diagnostics) · [Setup](#first-use-setup-and-complete-schemes) · [Package management and recovery](../PACKAGE_MANAGEMENT.md) |
-| Display configuration | [Configuration commands](#configuration-command-reference) · [Instances](#instance-management) · [Groups](#group-operations) · [Alignment](#main-row-alignment) |
-| Appearance and reuse | [Display/host options](#display-and-host-options) · [Visibility/colors](#conditional-visibility-and-appearance) · [Indicators](#graphical-indicators) · [Adaptive backgrounds](#adaptive-indicators-and-continuous-backgrounds) · [Selective reuse](#selective-display-reuse) |
-| Profiles and drafts | [Profiles/projects](../PROFILES.md) · [Schemes](../SCHEMES.md) · [History and structural review](../DRAFT_HISTORY.md) |
-| Sources and tasks | [Source management](#source-management) · [Binding maintenance](#source-binding-maintenance) · [Task viewer](#interactive-task-viewer) · [Supplied-input diagnosis](../DIAGNOSTICS.md) |
-| Field meanings | [Catalog](#configurable-display-items) · [Main fields](#main-status-line-fields) · [Subagent scopes](#subagent-rows-and-the-three-scopes) · [Metric definitions](../DISPLAY_ITEMS.md) |
-| Files and automation | [Configuration files](#configuration-files) · [Paths/environment](#custom-configuration-directory-and-environment-variables) · [Exit codes](#exit-codes) |
+- [CLI overview](#cli-overview)
+- [Languages](#languages)
+- [Installation and diagnostics](#installation-and-diagnostics)
+- [Configuration command reference](#configuration-command-reference)
+- [Appearance and display options](#appearance-and-display-options)
+- [Import, export and reuse](#import-export-and-reuse)
+- [Source management](#source-management)
+- [Interactive task viewer](#interactive-task-viewer)
+- [Display items and scopes](#display-items-and-scopes)
+- [Configuration files](#configuration-files)
+- [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
+- [Exit codes](#exit-codes)
+
+[Profiles and projects](../PROFILES.md) · [Complete schemes](../SCHEMES.md) · [Draft history and structural review](../DRAFT_HISTORY.md) · [Input diagnosis](../DIAGNOSTICS.md) · [Package management and recovery](../PACKAGE_MANAGEMENT.md)
 
 <a id="cli-总览"></a>
 
@@ -100,7 +104,9 @@ claude-statusline configure --config-dir /path/to/claude-config
 claude-statusline doctor --config-dir /path/to/claude-config
 ```
 
-## Interface language
+## Languages
+
+### Interface language
 
 The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
 
@@ -108,7 +114,7 @@ The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument
 
 Help text/groups, argument errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
 
-## Statusline language
+### Statusline language
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
@@ -136,7 +142,11 @@ All commands accept `--config-dir PATH` after the command name. The four indepen
 
 Each pair is mutually exclusive. Explicit flags override saved values, which override defaults. Editors default on; native timing and advanced live metrics default off. `--no-live-metrics` retains the legacy choice to disable both timing and advanced collection; an explicit timing flag in the same command controls timing separately. Incompatible or unknown hosts suspend requested integration without discarding its preference. Host-disabled plugins remain disabled. Restart Claude Code after changing integration. See [installation](../USER_GUIDE.md#installation-and-integration), [backups](../USER_GUIDE.md#backups-and-rollback), and [uninstalling](../USER_GUIDE.md#uninstalling).
 
-## Slash-command support
+### First-use setup and complete schemes
+
+`setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). Eight complete schemes define global appearance as well as layout; the six original presets preserve their existing global appearance behavior. See [scheme files and sharing](../SCHEMES.md).
+
+### Slash-command support
 
 The `/statusline-config` argument parser delegates to the shared configuration parser and supports these 19 top-level actions:
 
@@ -321,6 +331,34 @@ With no enabled subagent instances, `render-subagents` still emits valid NDJSON 
 
 `status-elapsed` is mutually exclusive with `status` and `elapsed`. Invalid combinations in `set-items`/`enable`/`apply` fail directly: for example, `enable status-elapsed` fails on an old configuration with `status` enabled; run `disable status elapsed` first. The type-based wizard resolves mutually exclusive choices; the instance editors reject conflicting edits and preserve the draft.
 
+### Instance management
+
+`config instance main|subagent` supports `list [--json]`, `add TYPE_ID [--after ID] [--text TEXT]`, `copy ID`, `remove ID`, `enable ID`, `disable ID`, `move ID --before|--after ANCHOR`, and `set ID OPTION VALUE`. Add/copy return the new ID. `config layout --by-instance explicit ROW...` uses comma-separated instance IDs, including all configured disabled instances, in exactly the configured order.
+
+Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.
+
+When a unique metric is toggled in an explicit layout or a composition, its position and spacer side are retained. Historical append-on-enable order applies to simple automatic type selections. Use `config instance ... enable|disable` to preserve positions consistently.
+
+### Group operations
+
+`config group main|subagent list|create|set|copy|move|ungroup` manages continuous instance groups. Create requires `ID --members ID,ID --primary ID`; optional `--linked on|off` and `--powerline on|off` select presentation. Move requires one of `--before ID` or `--after ID`. [Examples and invariants](../COMPOSITION.md#component-groups).
+
+### `config layout auto|explicit [ROW...]`
+
+Automatic mode wraps as before. Explicit mode accepts comma-separated rows whose flattened IDs must exactly equal configured instance order, including disabled instances; omitted rows put all instances into one explicit row.
+
+```text
+claude-statusline config set-items model current-dir context-used
+claude-statusline config layout explicit model,current-dir context-used
+claude-statusline config layout auto
+```
+
+Explicit layout truncates to maximum item widths, then hides lower-priority items (rightmost first on ties); it adds no continuation rows. Changing item order maintains the partition.
+
+### Main-row alignment
+
+`config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Invalid structural changes fail before writing. [Guide](../COMPOSITION.md#align-corresponding-columns-across-main-rows).
+
 ### `config set OPTION VALUE`
 
 Change a single display or Claude Code host option:
@@ -343,6 +381,21 @@ Display options can be configured before installing the status line. Host option
 `subagent-statusline` saves the desired enabled state. Disabling an owned renderer immediately returns empty content; rerunning `install` also removes the owned `subagentStatusLine`. Enabling restores it on compatible versions. This separation lets `config set subagent-statusline off` resolve an installation conflict without touching third-party settings.
 
 See [display and host options](#display-and-host-options) for all valid `set` values.
+
+### `config item main|subagent ID OPTION VALUE`
+
+Edit one known scoped item, including a currently disabled item:
+
+```text
+claude-statusline config item main model label Model
+claude-statusline config item main model priority 100
+claude-statusline config item main current-dir max-width 32
+claude-statusline config item subagent task max-width none
+```
+
+`label`/`icon` accept text up to 256 code points without control characters; `inherit` clears an override and an empty string suppresses the label/icon. `priority` accepts 0–100 (default 50); `max-width` accepts 2–10000 or `none`. The seven formatting choices in [display options](#display-and-host-options) accept a value or `inherit` to remove the per-item override. Width counts terminal columns, including CJK and combining characters.
+
+`foreground`/`background` accept `inherit`, `default`, `ansi:0`–`ansi:255`, or quoted `#RRGGBB`. `visibility` accepts `always` plus the rule supported by that scoped item; `visibility-threshold` is an integer 0–100 (default 70) and applies only to usage rules. Conditions use raw used percentages independently of warning colors. See [supported rules and color precedence](../APPEARANCE.md).
 
 ### `config apply`
 
@@ -388,33 +441,6 @@ claude-statusline.cmd config apply `
 
 Because `apply` includes host settings, run `claude-statusline install` first.
 
-### `config layout auto|explicit [ROW...]`
-
-Automatic mode wraps as before. Explicit mode accepts comma-separated rows whose flattened IDs must exactly equal configured instance order, including disabled instances; omitted rows put all instances into one explicit row.
-
-```text
-claude-statusline config set-items model current-dir context-used
-claude-statusline config layout explicit model,current-dir context-used
-claude-statusline config layout auto
-```
-
-Explicit layout truncates to maximum item widths, then hides lower-priority items (rightmost first on ties); it adds no continuation rows. Changing item order maintains the partition.
-
-### `config item main|subagent ID OPTION VALUE`
-
-Edit one known scoped item, including a currently disabled item:
-
-```text
-claude-statusline config item main model label Model
-claude-statusline config item main model priority 100
-claude-statusline config item main current-dir max-width 32
-claude-statusline config item subagent task max-width none
-```
-
-`label`/`icon` accept text up to 256 code points without control characters; `inherit` clears an override and an empty string suppresses the label/icon. `priority` accepts 0–100 (default 50); `max-width` accepts 2–10000 or `none`. The seven formatting choices in [display options](#display-and-host-options) accept a value or `inherit` to remove the per-item override. Width counts terminal columns, including CJK and combining characters.
-
-`foreground`/`background` accept `inherit`, `default`, `ansi:0`–`ansi:255`, or quoted `#RRGGBB`. `visibility` accepts `always` plus the rule supported by that scoped item; `visibility-threshold` is an integer 0–100 (default 70) and applies only to usage rules. Conditions use raw used percentages independently of warning colors. See [supported rules and color precedence](../APPEARANCE.md).
-
 ### `config preset NAME [--dry-run]`
 
 The six original presets are `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right`, and `repeated-metrics`. These presets replace the selected items, layout, subagent item defaults and item overrides, set short model/compact number formats, and assign descending item priorities. They preserve colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
@@ -427,22 +453,6 @@ claude-statusline config preset developer
 The same command accepts the eight [complete schemes](../SCHEMES.md), which also set global appearance. All choices retain output language and independent collector/source permissions.
 
 `--dry-run` validates and prints a draft without saving. Actual preset application includes host settings, so requires the current CLI to own installation.
-
-<a id="portable-import-export"></a>
-
-### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
-
-```text
-claude-statusline config export ./statusline.json
-claude-statusline config import ./statusline.json --dry-run
-claude-statusline config import ./statusline.json
-```
-
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
-
-Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
-
-Exporting to a protected configuration path is rejected with a configuration error and exit code 2, leaving the protected file unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
 
 ### `config reset`
 
@@ -460,57 +470,11 @@ This command:
 
 `reset` also handles corrupted `claude-statusline.json`, making it the simplest recovery when configuration JSON cannot be parsed.
 
-<a id="可配置显示项"></a>
-
-## Configurable display items
-
-Use `config list-items --json` and `config subagents list-items --json` for the full catalog in each scope. Use `config enable` for main IDs and `config subagents enable` for subagent IDs.
-
-```bash
-claude-statusline config enable project-name hostname context-used
-```
-
-See [metric definitions](../DISPLAY_ITEMS.md) for defaults, host requirements and unavailable values.
-
-<a id="主状态栏显示含义"></a>
-
-## Main status line fields
-
-<a id="git-标记"></a>
-
-### Git markers
-
-See [Git markers and collection scope](../DISPLAY_ITEMS.md#git-markers) for the displayed fields.
-
-<a id="token-含义"></a>
-
-### Token fields
-
-See [token fields and scope](../DISPLAY_ITEMS.md#token-fields) for definitions.
-
-<a id="prompt-计时标记"></a>
-
-<a id="prompt-timer-markers"></a>
-
-<a id="prompt-timing-markers"></a>
-
-### Task timing markers
-
-See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clocks and their output markers, and the [user guide](../USER_GUIDE.md#task-total-and-execution-time) for enablement.
-
-## Subagent rows and the three scopes
-
-On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state.
-
-The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
-
-Basic fitting shortens task text, then omits optional fields in the order `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task`. It prioritizes enabled status fields, and very narrow widths may reduce `status-elapsed` to its icon. Groups, adaptive indicators, Powerline and custom priorities use their respective fitting rules. Each path fits a single row by visible terminal cells.
-
-See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meanings, defaults and data scopes.
+## Appearance and display options
 
 <a id="显示与宿主选项"></a>
 
-## Display and host options
+### Display and host options
 
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
@@ -544,7 +508,7 @@ See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meani
 
 <a id="颜色"></a>
 
-### Colors
+#### Colors
 
 - `colors off` disables all ANSI color codes output by this tool.
 - `palette` is saved even with colors off, but affects output only after colors are reenabled.
@@ -552,7 +516,7 @@ See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meani
 
 <a id="目录格式"></a>
 
-### Directory formats
+#### Directory formats
 
 Assume the user's home is `/home/user`, the project root is `/home/user/code/repo`, and the current directory is `/home/user/code/repo/src/api`:
 
@@ -569,7 +533,7 @@ Windows drive paths, paths with spaces or Chinese characters, UNC paths, and cas
 
 <a id="分隔符和语义分组"></a>
 
-### Separators and semantic groups
+#### Separators and semantic groups
 
 `classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items. `powerline` treats every visible item as a separate block; padding and boundaries count toward width. See [Powerline behavior](../APPEARANCE.md#basic-powerline).
 
@@ -586,7 +550,7 @@ With the ordinary separators, adjacent items in the following semantic groups jo
 
 <a id="刷新间隔"></a>
 
-### Refresh interval
+#### Refresh interval
 
 Claude Code reruns the status line on relevant UI or session events. `refresh-interval N` adds refreshes every N seconds, useful for continuously updating `task-timer` or observing background changes while the main session is idle.
 
@@ -602,6 +566,147 @@ claude-statusline config set refresh-interval event
 ```
 
 With `event`, an active `task-timer` does not advance visibly every second; it updates only on the next status event.
+
+### Conditional visibility and appearance
+
+Use `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
+
+`config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart` use shared validation. These affect Powerline blocks, independently of host padding. [Appearance controls](../APPEARANCE.md).
+
+### Graphical indicators
+
+Use `config instance main|subagent set ID presentation numeric|bar|adaptive`, `bar-width 4..20`, and `bar-style auto|unicode|ascii` for eligible instances. [Guide](../APPEARANCE.md#graphical-indicators).
+
+### Gradients
+
+`config instance main|subagent set ID foreground-gradient|background-gradient VALUE` accepts `off`, all eleven presets (`ocean`, `sunset`, `aurora`, `glacier`, `lagoon`, `flame`, `copper`, `steel`, `sage`, `petal`, `twilight`), or 2–5 comma-separated `#RRGGBB` colors. Presets expand into colors before saving. [Static gradients](../APPEARANCE.md#static-component-gradients).
+
+### Adaptive indicators and continuous backgrounds
+
+```text
+claude-statusline config instance main set context-remaining presentation adaptive
+claude-statusline config set powerline-row-background-gradient lagoon
+claude-statusline config set powerline-row-background-gradient off
+```
+
+See the [composition guide](../COMPOSITION.md#adaptive-indicators-and-continuous-backgrounds) for rendering rules and compatible schemes.
+
+### Session cost rate
+
+The optional `session-cost-rate` component accepts `config instance main set INSTANCE cost-rate-basis session|api`. Omission selects session duration; either basis requires at least one minute. See [cost rate definitions](../DISPLAY_ITEMS.md#session-cost-rate).
+
+## Import, export and reuse
+
+<a id="portable-import-export"></a>
+
+### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
+
+```text
+claude-statusline config export ./statusline.json
+claude-statusline config import ./statusline.json --dry-run
+claude-statusline config import ./statusline.json
+```
+
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+
+Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
+
+Exporting to a protected configuration path is rejected with a configuration error and exit code 2, leaving the protected file unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
+
+### Selective display reuse
+
+`config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
+
+## Source management
+
+See the [extensions guide](../EXTENSIONS.md) for complete examples.
+
+```text
+claude-statusline source [--config-dir PATH] list [--json]
+claude-statusline source add|edit ID --file DEFINITION.json [--json]
+claude-statusline source review ID [--json]
+claude-statusline source enable ID --review REVIEW_REVISION [--json]
+claude-statusline source disable|remove ID [--json]
+claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
+claude-statusline source auto-off ID [--json]
+claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
+claude-statusline source unbind ID --binding BINDING_ID [--json]
+claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
+claude-statusline source status|cancel JOB_ID [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline config instance main set INSTANCE link off|auto|on
+```
+Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
+
+Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
+
+### Source binding maintenance
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
+
+## Interactive task viewer
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+
+## Display items and scopes
+
+<a id="可配置显示项"></a>
+
+### Configurable display items
+
+Use `config list-items --json` and `config subagents list-items --json` for the full catalog in each scope. Use `config enable` for main IDs and `config subagents enable` for subagent IDs.
+
+```bash
+claude-statusline config enable project-name hostname context-used
+```
+
+See [metric definitions](../DISPLAY_ITEMS.md) for defaults, host requirements and unavailable values.
+
+<a id="主状态栏显示含义"></a>
+
+### Main status line fields
+
+<a id="git-标记"></a>
+
+#### Git markers
+
+See [Git markers and collection scope](../DISPLAY_ITEMS.md#git-markers) for the displayed fields.
+
+<a id="token-含义"></a>
+
+#### Token fields
+
+See [token fields and scope](../DISPLAY_ITEMS.md#token-fields) for definitions.
+
+<a id="prompt-计时标记"></a>
+
+<a id="prompt-timer-markers"></a>
+
+<a id="prompt-timing-markers"></a>
+
+#### Task timing markers
+
+See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clocks and their output markers, and the [user guide](../USER_GUIDE.md#task-total-and-execution-time) for enablement.
+
+### Subagent rows and the three scopes
+
+On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state.
+
+The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
+
+Basic fitting shortens task text, then omits optional fields in the order `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task`. It prioritizes enabled status fields, and very narrow widths may reduce `status-elapsed` to its icon. Groups, adaptive indicators, Powerline and custom priorities use their respective fitting rules. Each path fits a single row by visible terminal cells.
+
+See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meanings, defaults and data scopes.
 
 <a id="配置文件"></a>
 
@@ -827,92 +932,3 @@ Management commands follow these conventions:
 - `128 + signal`: interactive TUI received a termination signal available on the current platform; the terminal is restored and configuration is not saved.
 
 Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook` silently tolerate corrupted or unrelated input to avoid blocking Claude Code with their own errors.
-
-## Conditional visibility and appearance
-
-Use `config set theme classic|dark|light|terminal|ocean|ember|slate|blossom`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
-
-## Instance management
-
-`config instance main|subagent` supports `list [--json]`, `add TYPE_ID [--after ID] [--text TEXT]`, `copy ID`, `remove ID`, `enable ID`, `disable ID`, `move ID --before|--after ANCHOR`, and `set ID OPTION VALUE`. Add/copy return the new ID. `config layout --by-instance explicit ROW...` uses comma-separated instance IDs, including all configured disabled instances, in exactly the configured order.
-
-Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.
-
-When a unique metric is toggled in an explicit layout or a composition, its position and spacer side are retained. Historical append-on-enable order applies to simple automatic type selections. Use `config instance ... enable|disable` to preserve positions consistently.
-
-## First-use setup and complete schemes
-
-`setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). Eight complete schemes define global appearance as well as layout; the six original presets preserve their existing global appearance behavior. See [scheme files and sharing](../SCHEMES.md).
-
-`config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart` use shared validation. These affect Powerline blocks, independently of host padding. [Appearance controls](../APPEARANCE.md).
-
-## Source management
-
-See the [extensions guide](../EXTENSIONS.md) for complete examples.
-
-```text
-claude-statusline source [--config-dir PATH] list [--json]
-claude-statusline source add|edit ID --file DEFINITION.json [--json]
-claude-statusline source review ID [--json]
-claude-statusline source enable ID --review REVIEW_REVISION [--json]
-claude-statusline source disable|remove ID [--json]
-claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
-claude-statusline source auto-off ID [--json]
-claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
-claude-statusline source unbind ID --binding BINDING_ID [--json]
-claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
-claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
-claude-statusline config instance main set INSTANCE link off|auto|on
-```
-Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
-
-Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
-
-## Graphical indicators
-
-Use `config instance main|subagent set ID presentation numeric|bar`, `bar-width 4..20`, and `bar-style auto|unicode|ascii` for eligible instances. [Guide](../APPEARANCE.md#graphical-indicators).
-
-## Group operations
-
-`config group main|subagent list|create|set|copy|move|ungroup` manages continuous instance groups. Create requires `ID --members ID,ID --primary ID`; optional `--linked on|off` and `--powerline on|off` select presentation. Move requires one of `--before ID` or `--after ID`. [Examples and invariants](../COMPOSITION.md#component-groups).
-
-The optional `session-cost-rate` component accepts `config instance main set INSTANCE cost-rate-basis session|api`. Omission selects session duration; either basis requires at least one minute. See [cost rate definitions](../DISPLAY_ITEMS.md#session-cost-rate).
-
-## Selective display reuse
-
-`config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
-
-`config instance main|subagent set ID foreground-gradient|background-gradient VALUE` accepts `off`, `ocean`, `sunset`, `aurora`, or 2–5 comma-separated RGB colors. See [static gradients](../APPEARANCE.md#static-component-gradients).
-
-## Main-row alignment
-
-`config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Invalid structural changes fail before writing. [Guide](../COMPOSITION.md#align-corresponding-columns-across-main-rows).
-
-## Interactive task viewer
-
-```sh
-claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
-```
-
-Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
-
-## Source binding maintenance
-
-```text
-claude-statusline source bindings [--offset N] [--json]
-claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
-claude-statusline source release-draft OWNER [--json]
-```
-
-`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
-
-## Adaptive indicators and continuous backgrounds
-
-```text
-claude-statusline config instance main set context-remaining presentation adaptive
-claude-statusline config set powerline-row-background-gradient lagoon
-claude-statusline config set powerline-row-background-gradient off
-```
-
-See the [composition guide](../COMPOSITION.md#adaptive-indicators-and-continuous-backgrounds) for rendering rules and compatible schemes.

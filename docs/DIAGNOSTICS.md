@@ -2,15 +2,7 @@
 
 **English** | [简体中文](DIAGNOSTICS.zh-CN.md)
 
-For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
-
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).
-
 `doctor` checks installation. `diagnose` explains a statusline JSON object that you explicitly supply, using your saved display configuration and, by default, matching existing local observations. It prints a report and does not save or collect anything. The editors' Explain panels continue to explain **samples**, not a live session.
-
-Historical extension diagnosis filters current and last-good observations before selection and evaluates expiration at input time. Later or untimestamped values and auxiliary PR/check fields do not enter historical output; missing times stay unknown. Live rendering is unchanged. Evidence retains every agent for each component instance. Diagnosis does not execute Git to infer an old input identity; unavailable associations remain unavailable.
-
-In either editor, open the input-file diagnosis and press Enter on the path field. The caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
 
 ## Run a diagnosis
 
@@ -38,13 +30,27 @@ The file must contain one JSON object, not an editor draft, diagnostic report or
 
 Exit code `0` means a report was produced, including reports with unavailable or stale evidence. Invalid arguments/input and unreadable files return `2`. A successful report does not certify a healthy installation or complete live observation.
 
+## Diagnose a file from either editor
+
+Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter a path, select main/subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses only the supplied input; matching existing local observations can be explicitly included. The current unsaved display draft and its editing target remain in use. The existing CLI command keeps its documented default.
+
+The result identifies the actual file, scope, input/diagnosis times and evidence range. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
+
+Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).
+
+In either editor, open the input-file diagnosis and press Enter on the path field. The caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
+
 ## Read the report
 
 The report separates configuration, supplied fields, local observations and layout outcomes. Every instance keeps its own ID, so repeated metrics can have different conditions, priorities and widths. Results distinguish configured-off, hidden rows/conditions, missing/invalid fields, unavailable sources, identity mismatch, zero, partial coverage, stale data, unknown freshness, clipping and width omission.
 
 `output` is the fitted output from **this input and available evidence**, not a recording of what a live terminal displayed. JSON results use `sample:false`; sample-only `explain` results continue to use `sample:true`. The input's `version` supplies host capability evidence. Installation and collector settings describe this local configuration independently.
 
+## Time and historical evidence
+
 Input capture time, diagnosis time and each source's known observation time are separate. Without capture time, freshness of supplied fields is unknown. A timestamp alone does not establish a freshness rule. Runtime and Git caches retain their existing freshness rules; terminal task evidence can describe history. Observations newer than a supplied capture time are excluded. The tool does not reconstruct an earlier state from newer stores.
+
+Historical extension diagnosis filters current and last-good observations before selection and evaluates expiration at input time. Later or untimestamped values and auxiliary PR/check fields do not enter historical output; missing times stay unknown. Live rendering is unchanged. Evidence retains every agent for each component instance. Diagnosis does not execute Git to infer an old input identity; unavailable associations remain unavailable.
 
 ## Existing local observations
 
@@ -84,10 +90,8 @@ Run `claude-statusline doctor` from the project directory to inspect the active 
 
 `update --check --json` reports metadata compatibility; `update --dry-run` additionally verifies the archive. `recover --package --dry-run --prefix PATH --config-dir PATH` inspects a retained package transaction. Keep `recover --restore-config BACKUP_ID` separate from package repair. See [version management](PACKAGE_MANAGEMENT.md) for exact-version scripting and recovery entries.
 
-## Diagnose a file from either editor
+## Related guides
 
-Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter a path, select main/subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses only the supplied input; matching existing local observations can be explicitly included. The current unsaved display draft and its editing target remain in use. The existing CLI command keeps its documented default.
+For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
 
-The result identifies the actual file, scope, input/diagnosis times and evidence range. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
-
-Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).
+For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).

@@ -2,19 +2,20 @@
 
 **English** | [简体中文](TASK_DETAILS.zh-CN.md)
 
-Open `/statusline-task` in a supported Claude Code terminal with the native editor installed. When the pane has focus, press **Enter** or **G** to search, **F** to filter status, **E** to show evidence and **S** to edit the session or task identity. **N/P** select the next/previous row, **J/K** page down/up, **Z** expands or collapses the selected agent, **R** rereads published state and **Q** closes the pane. Refresh is manual.
+Inspect existing task timing, checklists, agents and source evidence. Choose the Native pane, standalone terminal viewer or noninteractive CLI; none starts collection.
 
-You can start with the keyboard. If the prompt still has focus, use **Ctrl+X then Tab** to move focus to the pane or click a control. Click anywhere in the report body to use the arrow keys, Page Up/Down, Home/End, Enter and `/` there. If a native field opens while the prompt holds a draft, click the field or press Ctrl+X then Tab. When the ⏎ submit hint appears, type or paste the complete value including spaces. **Enter** confirms the field. Use **Tab** to reach **Cancel**, then **Enter** to restore the previous value. Esc returns focus to Claude.
+## Open a task report
 
-The standalone terminal viewer works without the native pane or an installed editor:
+With the native editor installed, run `/statusline-task` in a supported Claude Code terminal. If the conversation input still has focus, use **Ctrl+X then Tab** to focus the pane or click a control. Click the report body to use report-reading keys.
+
+The standalone terminal viewer needs neither the Native pane nor an installed configuration editor:
 
 ```sh
 claude-statusline task view --session-id SESSION_ID
 claude-statusline --language zh-CN task view --session-id SESSION_ID --prompt-id PROMPT_ID --config-dir "/path/to/config"
 ```
 
-The external configuration editor's Settings page also offers **Task details**. Enter the session ID and optionally a prompt ID, use Tab to switch fields, then Enter to read. Returning preserves the display draft, editing target and unresolved save state. The independent `task view` command requires a TTY; use the existing noninteractive command for text/JSON:
-
+The external configuration editor also offers **Task details** in Settings. Enter the session ID and optional prompt ID, switch fields with Tab, then press Enter to read. Returning preserves the display draft, editing target and unresolved save state. Standalone `task view` requires a TTY; for noninteractive text/JSON, use:
 
 ```sh
 claude-statusline task show --session-id SESSION_ID
@@ -28,9 +29,23 @@ Command descriptions and initial titles use the loaded interface language. Task-
 
 ## Reading controls
 
-Use arrows to select a row, Page Up/Down to page, `/` to search names/IDs, `F` to cycle observed agent statuses, left/right or Enter to collapse/expand a selected agent, and `E` to show/hide evidence. `S` edits session/task identity; an empty prompt selects the published current-task pointer. Search is case-insensitive, and matching children retain their parents as context. Summary and all statuses are the default. Native host-only names remain unavailable to the external viewer.
+| Action | Native pane controls | Report body / standalone terminal viewer |
+| --- | --- | --- |
+| Search names/IDs | G, or Enter when the default Search button has focus | `/` |
+| Filter observed statuses | F | F |
+| Show/hide evidence | E | E |
+| Edit session/prompt identity | S | S; Tab switches fields |
+| Select previous/next row | P/N | ↑/↓; Home/End select first/last row |
+| Page up/down | K/J | Page Up/Down or K/J |
+| Expand/collapse an agent | Z | ←/→ or Enter |
+| Reread published state | R | R |
+| Close | Q; Esc returns focus to Claude | Q; Esc or Ctrl+G cancels a field |
 
-Short native panes reserve space for the selected report row and use the visible body height for paging. Open **S** to inspect the full identity when its heading is compact. Refresh and resizing keep the selected row when it still exists. Selecting another task resets task-specific reading state. Failed refreshes retain the previous report and its capture time. In the external viewer, Q closes the reading view and Esc or Ctrl+G cancels a field.
+Native letter controls need pane focus; report-reading keys need body focus. After opening a native field, click it or press Ctrl+X then Tab. When the ⏎ submit hint appears, type or paste the complete value, including spaces, and press Enter. Tab to **Cancel**, then Enter, restores the previous value. Active fields handle their own input keys.
+
+Refresh is manual. An empty prompt field selects the published current-task pointer. Summary and all statuses are the default. Search is case-insensitive, and matching children retain their parents as context. The external viewer does not infer host-only agent names.
+
+Short panes reserve space for the selected report row and page by the actual body height; use S to inspect identities when the heading is compact. Refresh and resizing retain a selected row that still exists. Selecting another task resets task-specific reading state. Failed refreshes keep the previous report and its capture time.
 
 ## Read the evidence
 

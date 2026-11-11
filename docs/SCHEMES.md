@@ -2,6 +2,18 @@
 
 **English** | [简体中文](SCHEMES.zh-CN.md)
 
+## Schemes, presets and profiles
+
+| Concept | Purpose and relationship |
+| --- | --- |
+| Built-in complete scheme | One of eight starting points that set layout and global appearance, expanding into editable display configuration |
+| Original preset | One of six compatible starting points that preserve the current global theme and separator |
+| Named profile | Your saved, named display configuration; it can start from either kind and then be shared or bound to projects |
+| User default | An independently saved display snapshot used when no project binding matches; later profile edits do not automatically update it |
+| Project binding | A user-side association from a project root to a profile, rather than another display copy or a source permission grant |
+
+Selecting a scheme or preset produces a candidate. Accept it in the editor, then save to the current target. [Editing targets, default activation and project resolution](PROFILES.md#choose-an-editing-target).
+
 <a id="editor-quick-setup"></a>
 
 ## Quick setup in either editor
@@ -35,7 +47,7 @@ Compact numbers, stable instance IDs, priorities and width limits are included. 
 
 Powerline is a display choice, not a requirement. To keep a selected scheme's items and colors with compact separators, set `separator-style compact` before saving. Powerline backgrounds then have no effect; ordinary foreground colors and eligible foreground gradients still apply. The terminal background and font remain independently controlled. [Appearance controls](APPEARANCE.md).
 
-The six original preset IDs also remain available: `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right` and `repeated-metrics`. Unlike complete schemes, those presets preserve the selected global theme and separator. A **profile** is your named saved display configuration; it can start from either kind and later be shared or bound to a project. [Profile behavior](PROFILES.md).
+The six original preset IDs also remain available: `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right` and `repeated-metrics`. Unlike complete schemes, those presets preserve the selected global theme and separator.
 
 ## CLI and sharing
 

@@ -2,6 +2,18 @@
 
 [English](SCHEMES.md) | **简体中文**
 
+## 区分方案、预设与 Profile
+
+| 概念 | 用途与关系 |
+| --- | --- |
+| 内置完整方案 | 同时设置布局和全局外观的八套起点；展开为可编辑显示配置 |
+| 原始预设 | 六种兼容起点；保留当前全局主题与分隔样式 |
+| 命名显示方案（Profile） | 你保存的具名显示配置，可从上述任一起点建立，再用于分享或项目绑定 |
+| 用户默认配置 | 独立保存的默认显示快照，项目没有匹配绑定时使用；Profile 后续编辑不会自动修改它 |
+| 项目绑定 | 用户侧项目根目录到 Profile 的关联；不是另一份显示配置，也不授予来源权限 |
+
+选择内置方案或预设生成候选；在编辑器中接受后，再对当前目标保存。[编辑目标、默认激活和项目匹配规则](PROFILES.zh-CN.md#选择编辑目标)。
+
 <a id="editor-quick-setup"></a>
 
 ## 在编辑器中使用快速配置
@@ -35,7 +47,7 @@ Backspace 返回上一步。Ctrl+G 取消并保留进入快速配置前的草稿
 
 Powerline 是显示选项，不是必要条件。希望保留所选方案的组件和颜色而使用紧凑分隔时，可在保存前设置 `separator-style compact`；此时 Powerline 背景不生效，普通前景色及适用的前景渐变仍生效。终端背景和字体独立控制。[外观设置](APPEARANCE.zh-CN.md)。
 
-六种原有预设也继续可用：`minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。它们与完整方案的区别是保留已选择的全局主题及分隔符。**命名方案（profile）**是用户保存的显示配置，可从任一类型开始，再分享或绑定项目。[方案行为](PROFILES.zh-CN.md)。
+六种原有预设也继续可用：`minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。它们保留已选择的全局主题及分隔符，与上方概念表一致。
 
 ## CLI 与分享
 

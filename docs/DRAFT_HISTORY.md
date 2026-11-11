@@ -48,8 +48,6 @@ Replace `TARGET_REV` and `table` with the revision and exact affected relationsh
 
 Open a destination component's details and choose **Copy / paste visual style**. Select the current draft, a portable file, a profile export or a saved profile as the source, then select a source component and the visual fields to copy. Incompatible fields are visible and cannot be selected.
 
-The Simplified Chinese Native caption was untranslated in v3.13.0 ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)); [v3.14.0 corrected it and verified the actual style/group/history entries](development/adaptive-row-scenarios.md). The historical capture retains its original package identity.
-
 The whitelist includes foreground/background colors, both gradients, label, icon and supported formatting overrides. Inherited values restore inheritance. Metric type, source binding, literal text, order, priority, width and visibility stay with the destination. Review the selected differences and accept with **A**, then save separately.
 
 ```bash
@@ -74,3 +72,7 @@ claude-statusline config import source.json --groups main:group-id \
 Apply using the returned target and source revisions as above. Cross-configuration imports clear local source bindings and list unresolved references. After accepting, **B** opens the existing source manager to explicitly choose compatible local source types and scopes. Sources can remain unbound. Binding does not enable a source, approve automatic execution or refresh it. Same-draft ordinary group copies retain their existing local binding behavior.
 
 See [composition](COMPOSITION.md), [appearance](APPEARANCE.md), [sources](EXTENSIONS.md), the [CLI reference](reference/cli.md) and [terminal examples with provenance](images/draft-history-reuse/README.md).
+
+## Historical capture notes
+
+The Simplified Chinese Native caption was untranslated in v3.13.0 ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)); [v3.14.0 corrected it and verified the actual style/group/history entries](development/adaptive-row-scenarios.md). The historical capture retains its original package identity.
