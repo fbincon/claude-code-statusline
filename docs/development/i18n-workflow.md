@@ -2,9 +2,7 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](history/work-package-designs.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-The [v3.16.0 twelve-language expansion](history/deliveries/language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
-
-**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](history/deliveries/i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
+This page defines current language support, translation state, effective resources and development/release validation. The [translation guide](i18n.md#incremental-authoring) maintains concrete commands and lifecycle inputs.
 
 Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current authoring commands and validation instructions are maintained in the translation guide.
 
@@ -12,7 +10,7 @@ Follow the [Shared design rules](development-plan.md#design-rules), [Native capa
 
 ## Support policy
 
-English remains the source and fallback language. All included languages ship in the same npm package and work offline. Documentation remains English/Simplified Chinese. This work introduces no language downloader, translation service, marketplace or separate language packages.
+English remains the source and fallback language. All included languages ship in the same npm package and work offline. Documentation remains English/Simplified Chinese. No language downloader, translation service, marketplace or separate language package is used.
 
 | Level | Languages | During development | Before a public release |
 | --- | --- | --- | --- |
@@ -20,7 +18,7 @@ English remains the source and fallback language. All included languages ship in
 | B: official complete | `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, `id` | Missing, stale or pending entries may use current English | Every required entry is accepted; no missing/stale/pending entries or missing-translation fallback |
 | C: community/preview | Future explicitly identified languages only | Safe English fallback is allowed | Disclose acceptance coverage, pending/stale entries and fallback; all effective messages remain safe |
 
-Registered B languages cannot silently become C languages to unblock a release. Support level is separate from the number of populated keys. The original I18N-02 scope selected no new language or writing system; subsequent additions require a defined maintenance scope and relevant functional acceptance.
+Registered B languages cannot silently become C languages to unblock a release. Support level is separate from the number of populated keys. Adding a language or writing system requires a defined maintenance scope and relevant functional acceptance.
 
 The workflow completes translation, contextual review, applicable checks and record updates within the authorized task. Validation produces a read-only receipt; explicit `accept` updates the matching acceptance record. This introduces no new reviewer role, signature or separate approval step. Report actual validation scope, including terminology and semantic review where applicable. Structural checks alone do not establish linguistic quality. Give destructive-action, recovery, authorization and numerical-meaning messages particular contextual attention; ordinary copy can be reviewed in batches.
 
@@ -64,11 +62,11 @@ Reports distinguish raw presence, current valid translation, accepted translatio
 | --- | --- |
 | `packages/core/resources/i18n/languages.json` | Canonical ordered codes and autonyms; its current schema accepts only `code` and `name` |
 | `packages/core/resources/i18n/locales/*.json` | Real raw translations; no acceptance records or artificial English filling |
-| Build-only policy, context, terminology and per-language acceptance inputs | Separate from locale discovery and automatically packaged workspace resources; register ownership and validation inputs before activating their behavior |
+| `tools/generation/i18n/data/` policy, context, terminology and per-language acceptance inputs | Build-only lifecycle data, separate from locale discovery and automatically packaged workspace resources |
 | `tools/generation/resources.ts` | Analyze source state once, derive deterministic effective resources and reports, and check the appropriate gate |
 | Shared core messages, search and rendering; generated Node/Native copies | Consume the same effective messages and necessary origin information; runtime code does not read acceptance history |
 
-The [packer](../../tools/build/pack.ts) currently copies workspace `resources` recursively. Build-only metadata therefore needs a deliberately excluded location or explicit packaging rules, with package verification that it is absent. It must still be included in the reproducible source archive and the applicable source/report input identity. Do not place metadata JSON in `locales/`, where it would be discovered as a language pack.
+Build-only lifecycle inputs live under `tools/generation/i18n/data/`: policy, context, terminology, `accepted/`, history, provenance and verified baselines. This keeps them outside the workspace `resources` recursively copied by the [packer](../../tools/build/pack.ts). They belong in the reproducible source archive and applicable input identity, not the npm runtime package; package verification checks this boundary. Do not place metadata JSON in `locales/`, where it would be discovered as a language pack.
 
 Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Statusline rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
 
@@ -142,6 +140,10 @@ Follow the [translation guide](i18n.md#validate-a-change) for changes to registe
 Use [testing and acceptance](testing.md) to record automated checks, actual hosts, PTY reconstructions and human or physical results separately. Preserve logical coverage, evidence identities and recorded limits.
 
 ## Historical I18N-02 design and acceptance
+
+The [v3.16.0 twelve-language expansion](history/deliveries/language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
+
+**I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](history/deliveries/i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
 
 The [original v3.14.0 design baseline](history/deliveries/i18n-02-delivery.md#original-design-baseline) records the six-language starting point. The links below open the original design and acceptance sections.
 

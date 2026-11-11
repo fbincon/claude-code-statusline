@@ -73,84 +73,61 @@
 
 原始设计、排期和验收要求收录于[工作包设计档案](history/work-package-designs.zh-CN.md#completed-designs)。下方链接直达各节。
 
-<a id="review-baseline"></a>
+| 原章节 | 原始设计 |
+| --- | --- |
+| <a id="review-baseline"></a><a id="审查基线与证据边界"></a>审查基线与证据边界 | [归档章节](history/work-package-designs.zh-CN.md#review-baseline) |
+| <a id="原工作包排期"></a>原工作包排期 | [归档章节](history/work-package-designs.zh-CN.md#原工作包排期) |
+| <a id="candidate-boundaries"></a><a id="候选边界"></a>候选边界 | [归档章节](history/work-package-designs.zh-CN.md#candidate-boundaries) |
+| <a id="future-work"></a><a id="主线产品与维护工作包"></a><a id="已交付后续工作包"></a>已交付后续工作包 | [归档章节](history/work-package-designs.zh-CN.md#主线产品与维护工作包) |
+| <a id="delivered-mainline"></a><a id="已交付主线设计"></a>已交付主线设计 | [归档章节](history/work-package-designs.zh-CN.md#delivered-mainline) |
+| <a id="delivered-designs"></a><a id="既有设计与保留的演示工作包"></a>既有设计与保留的演示工作包 | [归档章节](history/work-package-designs.zh-CN.md#delivered-designs) |
 
-### 审查基线与证据边界
+<details>
+<summary>展开兼容旧链接的工作包索引</summary>
 
-[查看本节原文](history/work-package-designs.zh-CN.md#review-baseline)
+| 工作包／入口 | 归档 |
+| --- | --- |
+| <a id="后续工作"></a><a id="后续工作包排期"></a>后续工作包排期 | [原始设计](history/work-package-designs.zh-CN.md#后续工作) |
+| <a id="已交付工作"></a><a id="早期里程碑和维护排期"></a>早期里程碑和维护排期 | [原始设计](history/work-package-designs.zh-CN.md#已交付工作) |
+| <a id="i18n-02"></a><a id="i18n-02-增量多语言开发与发布就绪"></a>I18N-02 增量多语言开发与发布就绪 | [原始设计](history/work-package-designs.zh-CN.md#i18n-02) |
+| <a id="fix-01"></a><a id="fix-01-保存未知态的草稿保护"></a>FIX-01 | [原始设计](history/work-package-designs.zh-CN.md#fix-01) |
+| <a id="fix-02"></a><a id="fix-02-进度条与标签统一组合"></a>FIX-02 | [原始设计](history/work-package-designs.zh-CN.md#fix-02) |
+| <a id="fix-03"></a><a id="fix-03-刷新执行与等待使用者分离"></a>FIX-03 | [原始设计](history/work-package-designs.zh-CN.md#fix-03) |
+| <a id="fix-04"></a><a id="fix-04-扩展诊断的时间与代理适用性"></a>FIX-04 | [原始设计](history/work-package-designs.zh-CN.md#fix-04) |
+| <a id="i18n-01"></a><a id="i18n-01-独立初始化任务详情语言"></a>I18N-01 独立初始化任务详情语言 | [原始设计](history/work-package-designs.zh-CN.md#i18n-01) |
+| <a id="appearance-05"></a><a id="appearance-05-扩充主题与渐变选择"></a>APPEARANCE-05 | [原始设计](history/work-package-designs.zh-CN.md#appearance-05) |
+| <a id="preview-01"></a><a id="preview-01-可选择的样例场景"></a>PREVIEW-01 | [原始设计](history/work-package-designs.zh-CN.md#preview-01) |
+| <a id="explain-02"></a><a id="explain-02-解释未生效配置与显式输入"></a>EXPLAIN-02 | [原始设计](history/work-package-designs.zh-CN.md#explain-02) |
+| <a id="task-02"></a><a id="task-02-外部只读交互任务详情"></a>TASK-02 | [原始设计](history/work-package-designs.zh-CN.md#task-02) |
+| <a id="update-02"></a><a id="update-02-版本审核执行与受保护历史"></a>UPDATE-02 | [原始设计](history/work-package-designs.zh-CN.md#update-02) |
+| <a id="sources-01"></a><a id="sources-01-可读来源操作与绑定维护"></a>SOURCES-01 | [原始设计](history/work-package-designs.zh-CN.md#sources-01) |
+| <a id="command-02"></a><a id="command-02-活跃会话内的命令定时执行"></a>COMMAND-02 | [原始设计](history/work-package-designs.zh-CN.md#command-02) |
+| <a id="appearance-06"></a><a id="appearance-06-行内跨色块连续背景"></a>APPEARANCE-06 | [原始设计](history/work-package-designs.zh-CN.md#appearance-06) |
+| <a id="appearance-07"></a><a id="appearance-07-保留数字含义的自适应进度条"></a>APPEARANCE-07 | [原始设计](history/work-package-designs.zh-CN.md#appearance-07) |
+| <a id="ux-03"></a><a id="ux-03-共享草稿历史与外部恢复"></a>UX-03 | [原始设计](history/work-package-designs.zh-CN.md#ux-03) |
+| <a id="import-02"></a><a id="import-02-样式与完整组复用"></a>IMPORT-02 | [原始设计](history/work-package-designs.zh-CN.md#import-02) |
+| <a id="composition-04"></a><a id="composition-04-审阅结构编辑中的对齐调整"></a>COMPOSITION-04 | [原始设计](history/work-package-designs.zh-CN.md#composition-04) |
+| <a id="profile-02"></a><a id="profile-02-使用已交付能力的场景方案"></a>PROFILE-02 | [原始设计](history/work-package-designs.zh-CN.md#profile-02) |
+| <a id="git-01"></a><a id="git-01-git-调用核查与必要防护"></a>GIT-01 | [原始设计](history/work-package-designs.zh-CN.md#git-01) |
+| <a id="terminal-01"></a><a id="terminal-01-windows-预览一致性"></a>TERMINAL-01 | [原始设计](history/work-package-designs.zh-CN.md#terminal-01) |
+| <a id="setup-02"></a><a id="setup-02-首次入口与持久安装"></a>SETUP-02 | [原始设计](history/work-package-designs.zh-CN.md#setup-02) |
+| <a id="update-01"></a><a id="update-01-显式升级与回滚"></a>UPDATE-01 | [原始设计](history/work-package-designs.zh-CN.md#update-01) |
+| <a id="import-01"></a><a id="import-01-选择性配置复用"></a>IMPORT-01 | [原始设计](history/work-package-designs.zh-CN.md#import-01) |
+| <a id="appearance-04"></a><a id="appearance-04-静态前景与-powerline-背景渐变"></a>APPEARANCE-04 | [原始设计](history/work-package-designs.zh-CN.md#appearance-04) |
+| <a id="composition-03"></a><a id="composition-03-主栏显式多行对齐"></a>COMPOSITION-03 | [原始设计](history/work-package-designs.zh-CN.md#composition-03) |
+| <a id="appearance-03"></a><a id="appearance-03-上下文与额度图形指标"></a>APPEARANCE-03 | [原始设计](history/work-package-designs.zh-CN.md#appearance-03) |
+| <a id="composition-02"></a><a id="composition-02-组件分组与联动隐藏"></a>COMPOSITION-02 | [原始设计](history/work-package-designs.zh-CN.md#composition-02) |
+| <a id="workflow-02"></a><a id="workflow-02-可选-github-prci-自动刷新"></a>WORKFLOW-02 | [原始设计](history/work-package-designs.zh-CN.md#workflow-02) |
+| <a id="metrics-01"></a><a id="metrics-01-会话费用速率"></a>METRICS-01 | [原始设计](history/work-package-designs.zh-CN.md#metrics-01) |
+| <a id="setup-01"></a><a id="setup-01-首次使用与配置入口"></a>SETUP-01 | [原始设计](history/work-package-designs.zh-CN.md#setup-01) |
+| <a id="appearance-01"></a><a id="appearance-01-成套显示方案"></a>APPEARANCE-01 | [原始设计](history/work-package-designs.zh-CN.md#appearance-01) |
+| <a id="appearance-02"></a><a id="appearance-02-外观控制与边界处理"></a>APPEARANCE-02 | [原始设计](history/work-package-designs.zh-CN.md#appearance-02) |
+| <a id="showcase-01"></a><a id="showcase-01-首页与使用演示"></a>SHOWCASE-01 | [原始设计](history/work-package-designs.zh-CN.md#showcase-01) |
+| <a id="extensions-01"></a><a id="extensions-01-本地-json-数据基础"></a>EXTENSIONS-01 | [原始设计](history/work-package-designs.zh-CN.md#extensions-01) |
+| <a id="links-01"></a><a id="links-01-可点击文本"></a>LINKS-01 | [原始设计](history/work-package-designs.zh-CN.md#links-01) |
+| <a id="workflow-01"></a><a id="workflow-01-可选-github-pr-与-ci-查询"></a>WORKFLOW-01 | [原始设计](history/work-package-designs.zh-CN.md#workflow-01) |
+| <a id="command-01"></a><a id="command-01-用户显式配置的命令组件"></a>COMMAND-01 | [原始设计](history/work-package-designs.zh-CN.md#command-01) |
+| <a id="capabilities-01"></a><a id="capabilities-01-组件能力说明"></a>CAPABILITIES-01 | [原始设计](history/work-package-designs.zh-CN.md#capabilities-01) |
+| <a id="ci-01"></a><a id="ci-01-actions-引用固定"></a>CI-01 | [原始设计](history/work-package-designs.zh-CN.md#ci-01) |
 
-### 原工作包排期
-
-[查看本节原文](history/work-package-designs.zh-CN.md#原工作包排期)
-
-- <a id="后续工作"></a><a id="后续工作包排期"></a>[后续工作包排期](history/work-package-designs.zh-CN.md#后续工作)
-- <a id="已交付工作"></a><a id="早期里程碑和维护排期"></a>[早期里程碑和维护排期](history/work-package-designs.zh-CN.md#已交付工作)
-
-<a id="candidate-boundaries"></a>
-
-### 候选边界
-
-[查看本节原文](history/work-package-designs.zh-CN.md#candidate-boundaries)
-
-<a id="future-work"></a>
-
-<a id="主线产品与维护工作包"></a>
-
-### 已交付后续工作包
-
-[查看本节原文](history/work-package-designs.zh-CN.md#主线产品与维护工作包)
-
-- <a id="i18n-02"></a><a id="i18n-02-增量多语言开发与发布就绪"></a>[I18N-02 增量多语言开发与发布就绪](history/work-package-designs.zh-CN.md#i18n-02)
-- <a id="fix-01"></a><a id="fix-01-保存未知态的草稿保护"></a>[FIX-01 保存未知态的草稿保护](history/work-package-designs.zh-CN.md#fix-01)
-- <a id="fix-02"></a><a id="fix-02-进度条与标签统一组合"></a>[FIX-02 进度条与标签统一组合](history/work-package-designs.zh-CN.md#fix-02)
-- <a id="fix-03"></a><a id="fix-03-刷新执行与等待使用者分离"></a>[FIX-03 刷新执行与等待使用者分离](history/work-package-designs.zh-CN.md#fix-03)
-- <a id="fix-04"></a><a id="fix-04-扩展诊断的时间与代理适用性"></a>[FIX-04 扩展诊断的时间与代理适用性](history/work-package-designs.zh-CN.md#fix-04)
-- <a id="i18n-01"></a><a id="i18n-01-独立初始化任务详情语言"></a>[I18N-01 独立初始化任务详情语言](history/work-package-designs.zh-CN.md#i18n-01)
-- <a id="appearance-05"></a><a id="appearance-05-扩充主题与渐变选择"></a>[APPEARANCE-05 扩充主题与渐变选择](history/work-package-designs.zh-CN.md#appearance-05)
-- <a id="preview-01"></a><a id="preview-01-可选择的样例场景"></a>[PREVIEW-01 可选择的样例场景](history/work-package-designs.zh-CN.md#preview-01)
-- <a id="explain-02"></a><a id="explain-02-解释未生效配置与显式输入"></a>[EXPLAIN-02 解释未生效配置与显式输入](history/work-package-designs.zh-CN.md#explain-02)
-- <a id="task-02"></a><a id="task-02-外部只读交互任务详情"></a>[TASK-02 外部只读交互任务详情](history/work-package-designs.zh-CN.md#task-02)
-- <a id="update-02"></a><a id="update-02-版本审核执行与受保护历史"></a>[UPDATE-02 版本审核、执行与受保护历史](history/work-package-designs.zh-CN.md#update-02)
-- <a id="sources-01"></a><a id="sources-01-可读来源操作与绑定维护"></a>[SOURCES-01 可读来源操作与绑定维护](history/work-package-designs.zh-CN.md#sources-01)
-- <a id="command-02"></a><a id="command-02-活跃会话内的命令定时执行"></a>[COMMAND-02 活跃会话内的命令定时执行](history/work-package-designs.zh-CN.md#command-02)
-- <a id="appearance-06"></a><a id="appearance-06-行内跨色块连续背景"></a>[APPEARANCE-06 行内跨色块连续背景](history/work-package-designs.zh-CN.md#appearance-06)
-- <a id="appearance-07"></a><a id="appearance-07-保留数字含义的自适应进度条"></a>[APPEARANCE-07 保留数字含义的自适应进度条](history/work-package-designs.zh-CN.md#appearance-07)
-- <a id="ux-03"></a><a id="ux-03-共享草稿历史与外部恢复"></a>[UX-03 共享草稿历史与外部恢复](history/work-package-designs.zh-CN.md#ux-03)
-- <a id="import-02"></a><a id="import-02-样式与完整组复用"></a>[IMPORT-02 样式与完整组复用](history/work-package-designs.zh-CN.md#import-02)
-- <a id="composition-04"></a><a id="composition-04-审阅结构编辑中的对齐调整"></a>[COMPOSITION-04 审阅结构编辑中的对齐调整](history/work-package-designs.zh-CN.md#composition-04)
-- <a id="profile-02"></a><a id="profile-02-使用已交付能力的场景方案"></a>[PROFILE-02 使用已交付能力的场景方案](history/work-package-designs.zh-CN.md#profile-02)
-
-<a id="delivered-mainline"></a>
-
-### 已交付主线设计
-
-[查看本节原文](history/work-package-designs.zh-CN.md#delivered-mainline)
-
-- <a id="git-01"></a><a id="git-01-git-调用核查与必要防护"></a>[GIT-01 Git 调用核查与必要防护](history/work-package-designs.zh-CN.md#git-01)
-- <a id="terminal-01"></a><a id="terminal-01-windows-预览一致性"></a>[TERMINAL-01 Windows 预览一致性](history/work-package-designs.zh-CN.md#terminal-01)
-- <a id="setup-02"></a><a id="setup-02-首次入口与持久安装"></a>[SETUP-02 首次入口与持久安装](history/work-package-designs.zh-CN.md#setup-02)
-- <a id="update-01"></a><a id="update-01-显式升级与回滚"></a>[UPDATE-01 显式升级与回滚](history/work-package-designs.zh-CN.md#update-01)
-- <a id="import-01"></a><a id="import-01-选择性配置复用"></a>[IMPORT-01 选择性配置复用](history/work-package-designs.zh-CN.md#import-01)
-- <a id="appearance-04"></a><a id="appearance-04-静态前景与-powerline-背景渐变"></a>[APPEARANCE-04 静态前景与 Powerline 背景渐变](history/work-package-designs.zh-CN.md#appearance-04)
-- <a id="composition-03"></a><a id="composition-03-主栏显式多行对齐"></a>[COMPOSITION-03 主栏显式多行对齐](history/work-package-designs.zh-CN.md#composition-03)
-- <a id="appearance-03"></a><a id="appearance-03-上下文与额度图形指标"></a>[APPEARANCE-03 上下文与额度图形指标](history/work-package-designs.zh-CN.md#appearance-03)
-- <a id="composition-02"></a><a id="composition-02-组件分组与联动隐藏"></a>[COMPOSITION-02 组件分组与联动隐藏](history/work-package-designs.zh-CN.md#composition-02)
-- <a id="workflow-02"></a><a id="workflow-02-可选-github-prci-自动刷新"></a>[WORKFLOW-02 可选 GitHub PR／CI 自动刷新](history/work-package-designs.zh-CN.md#workflow-02)
-- <a id="metrics-01"></a><a id="metrics-01-会话费用速率"></a>[METRICS-01 会话费用速率](history/work-package-designs.zh-CN.md#metrics-01)
-
-<a id="delivered-designs"></a>
-
-### 既有设计与保留的演示工作包
-
-[查看本节原文](history/work-package-designs.zh-CN.md#delivered-designs)
-
-- <a id="setup-01"></a><a id="setup-01-首次使用与配置入口"></a>[SETUP-01 首次使用与配置入口](history/work-package-designs.zh-CN.md#setup-01)
-- <a id="appearance-01"></a><a id="appearance-01-成套显示方案"></a>[APPEARANCE-01 成套显示方案](history/work-package-designs.zh-CN.md#appearance-01)
-- <a id="appearance-02"></a><a id="appearance-02-外观控制与边界处理"></a>[APPEARANCE-02 外观控制与边界处理](history/work-package-designs.zh-CN.md#appearance-02)
-- <a id="showcase-01"></a><a id="showcase-01-首页与使用演示"></a>[SHOWCASE-01 首页与使用演示](history/work-package-designs.zh-CN.md#showcase-01)
-- <a id="extensions-01"></a><a id="extensions-01-本地-json-数据基础"></a>[EXTENSIONS-01 本地 JSON 数据基础](history/work-package-designs.zh-CN.md#extensions-01)
-- <a id="links-01"></a><a id="links-01-可点击文本"></a>[LINKS-01 可点击文本](history/work-package-designs.zh-CN.md#links-01)
-- <a id="workflow-01"></a><a id="workflow-01-可选-github-pr-与-ci-查询"></a>[WORKFLOW-01 可选 GitHub PR 与 CI 查询](history/work-package-designs.zh-CN.md#workflow-01)
-- <a id="command-01"></a><a id="command-01-用户显式配置的命令组件"></a>[COMMAND-01 用户显式配置的命令组件](history/work-package-designs.zh-CN.md#command-01)
-- <a id="capabilities-01"></a><a id="capabilities-01-组件能力说明"></a>[CAPABILITIES-01 组件能力说明](history/work-package-designs.zh-CN.md#capabilities-01)
-- <a id="ci-01"></a><a id="ci-01-actions-引用固定"></a>[CI-01 Actions 引用固定](history/work-package-designs.zh-CN.md#ci-01)
+</details>
