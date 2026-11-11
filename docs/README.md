@@ -15,6 +15,7 @@
 | Goal | Guide |
 | --- | --- |
 | Choose an editor, wizard or CLI | [Configuration entry points](USER_GUIDE.md#choose-a-configuration-entry-point) · [CLI reference](reference/cli.md) |
+| Choose interface or output language | [Language and save behavior](USER_GUIDE.md#language-and-save-behavior) |
 | Build a display | [Recipes](USER_GUIDE.md#configuration-recipes) · [Complete schemes](SCHEMES.md) · [Appearance](APPEARANCE.md) · [Components and layout](COMPOSITION.md) |
 | Reuse settings across projects | [Profiles and project bindings](PROFILES.md) · [Draft history and reuse](DRAFT_HISTORY.md) |
 | Understand metrics, tasks and optional data | [Metric definitions](DISPLAY_ITEMS.md) · [Task details](TASK_DETAILS.md) · [Extensions](EXTENSIONS.md) |

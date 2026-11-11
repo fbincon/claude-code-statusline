@@ -16,7 +16,7 @@ source. External values do not contribute to task, token or cost totals.
 | Refresh manually | Explicitly start or join one bounded job |
 | Review an automatic policy | Separately permit interval-based refresh for eligible active sessions, independently of display Save |
 
-Scheme imports and project bindings cannot grant these permissions. External values do not enter official task, token or cost totals.
+Scheme imports and project bindings cannot grant these permissions.
 
 ## Configure with either editor
 

@@ -38,7 +38,7 @@ The result identifies the actual file, scope, input/diagnosis times and evidence
 
 Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).
 
-In either editor, open the input-file diagnosis and press Enter on the path field. The caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
+Press Enter on the path field to edit it; the caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
 
 ## Read the report
 

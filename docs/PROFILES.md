@@ -6,7 +6,7 @@ For external source registration, authorization, refresh, diagnosis and sharing 
 
 Save a named collection of complete display settings and reuse it across projects. Open either configuration editor and choose **Settings → Display schemes and projects**, or press **Ctrl+O**. The sample preview never changes saved settings.
 
-A named **profile** stores your display configuration. Built-in complete schemes and original presets provide starting points, the user default is a separate snapshot, and project bindings select profiles. [Concept comparison](SCHEMES.md#schemes-presets-and-profiles).
+This named configuration is a **profile**. Built-in complete schemes and original presets provide starting points, the user default is a separate snapshot, and project bindings select profiles. [Concept comparison](SCHEMES.md#schemes-presets-and-profiles).
 
 ## Choose an editing target
 

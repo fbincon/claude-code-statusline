@@ -46,7 +46,7 @@ claude-statusline diagnose --input subagent-input.json --scope subagent --width 
 
 Esc 返回表单，再返回保留的草稿。失败保留表单供修正，上次成功报告仍可查看。报告分页，完整输入／报告不发送给原生 Client。文件诊断不保存、不采集、不修复、不执行来源。参见[实施说明](development/appearance-preview-diagnosis.zh-CN.md)。
 
-在任一编辑器中打开输入文件诊断，在路径字段按 Enter 编辑。较矮终端中，输入文字和光标会一起保持可见。阅读报告时按 End 跳至末页，↑ 上移一行，Page Up 上移一个可见页，Ctrl+G 返回。
+在路径字段按 Enter 编辑；较矮终端中，输入文字和光标会一起保持可见。阅读报告时按 End 跳至末页，↑ 上移一行，Page Up 上移一个可见页，Ctrl+G 返回。
 
 ## 阅读报告
 
