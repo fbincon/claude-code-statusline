@@ -62,6 +62,49 @@
 子代理模板对每个 Agent 独立生效。模板实例 ID 与宿主协议中的 Agent ID 相互独立。
 重复组件共享原始观测、分别格式化，因此复制不会重复扫描会话、执行 Git 或累计用量。
 
+## 组件分组
+
+在任一编辑器的设置中打开**组件分组**，或按 **Ctrl+B**。选择主行或子代理模板，设置首个、末尾成员及主指标。方向键选择和调整，在**应用到草稿**上按 Enter 预览；关闭面板后使用原有显示保存操作。取消表单保留之前的草稿。
+
+分组至少包含同一作用域、同一显式行内的两个连续实例，不能重叠、嵌套或包含 spacer。装饰默认跟随主指标的最终可见性（含布局省略）；其他指标保留自身条件。关闭联动后装饰独立显示。自动布局将组保留在同一行，先缩减装饰和次要指标再处理主指标。整组的省略优先级取自主指标。
+
+共享 Powerline 使用主指标背景形成一个色块，各成员前景和阈值色保留。成员背景配置继续保存，关闭共享后恢复。普通分组成员之间以空格连接。操作包括编辑、整组移动、分配新 ID 的整组复制及解组。删除主指标会解组并保留其他实例，但仍被对齐关系引用时会拒绝删除；单项复制在原组之后插入独立副本。非法移动保留草稿。
+
+```bash
+claude-statusline config group main list --json
+claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
+claude-statusline config group main set cost-block linked on
+claude-statusline config group main copy cost-block
+claude-statusline config group main move cost-block --before OTHER_ID
+claude-statusline config group main ungroup cost-block
+```
+
+将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/history/deliveries/m4-m7-delivery.zh-CN.md)。
+
+## 显式主行的对应列对齐
+
+在 **Layout（布局）→ 对齐显式主行** 中创建关系，为每列选择各参与行中的一个组件或整个组。左右键选择，使用“添加列”增加下一列，“应用到草稿”接受关系，再用原有保存操作持久化。取消不改变已有草稿。选项显示稳定 ID，因此重复组件类型仍可独立选择。
+
+每列至少包含两个不同的显式主行，每行至多一个单位，各行列顺序必须一致。组成员只能以整组参与，单位不能重复用于其他列。一个关系占用参与行对应的左侧或右侧，同一侧不允许多个关系重叠。自动换行、子代理模板及跨作用域关系不参与对齐。
+
+先按可见性和组件最大宽度测量，再使用每列可见成员的最大宽度。其他可见行仍需要该列时，隐藏成员保留列位；整列隐藏时收起，整行隐藏时不输出。spacer 两侧独立计算，剩余宽度交给 spacer，右侧列保持靠右。Powerline 单位保留完整色块与端帽，单位之间使用终端默认背景留白，隐藏项不留下孤立分隔符或端帽。
+
+若新增留白使任一参与行超宽，该帧的关联行取消对齐留白，再执行原有优先级、装饰收缩及完整字素裁剪。结构中的 spacer 被禁用时也采用此回退。解释／诊断会报告 `alignment_collapsed`，宽度足够时报告 `alignment_active`。共享同一物理行的关系共同使用宽度预算，也共同回退。
+
+```sh
+claude-statusline config alignment list
+claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
+claude-statusline config alignment remove summary
+```
+
+将大写占位符替换为实际单位 ID。逗号连接同列成员，分号分隔各列。普通组件／组复制不自动加入对齐；完整方案复制和主区导入保持引用与单位一致。删除、移动、解组或调整行／布局模式导致关系失效时，保存前拒绝修改并指出关系 ID，请先修改或移除该关系。默认布局不启用对齐；`quota-cost` 等完整方案包含显式对齐关系，应用前应审阅候选。
+
+## 自适应指标与连续背景
+
+自适应指标在保持自定义标签、图标及百分比含义的同时参与宽度适配；自动布局保留正常换行。连续背景仅用于启用颜色的 Powerline，spacer 和显式背景打断渐变区间，对齐留白保持无色。完整选项和绘制规则见[外观指南](APPEARANCE.zh-CN.md#自适应指标)及[连续行背景](APPEARANCE.zh-CN.md#连续行背景)。
+
+使用[完整方案](SCHEMES.zh-CN.md)选择布局示例并审阅候选。方案不授予来源权限；原始 v3.14.0 场景及其兼容性证据见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。
+
 ## CLI
 
 命令使用与编辑器相同的配置校验与事务。`main`、`subagent` 表示作用域。
@@ -119,46 +162,3 @@ Portable／方案外层格式和界面偏好仍为 v1，runtime 观测协议仍�
 降级前使用 `recover --restore-config TRANSACTION_ID` 显式恢复兼容配置备份。版本管理器拒绝新 schema，
 并在交接已校验的 Mod 资源及绑定后运行旧版安装器。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
 请勿手改 schema 数字。具体步骤见[升级指南](USER_GUIDE.zh-CN.md#升级)。
-
-## 组件分组
-
-在任一编辑器的设置中打开**组件分组**，或按 **Ctrl+B**。选择主行或子代理模板，设置首个、末尾成员及主指标。方向键选择和调整，在**应用到草稿**上按 Enter 预览；关闭面板后使用原有显示保存操作。取消表单保留之前的草稿。
-
-分组至少包含同一作用域、同一显式行内的两个连续实例，不能重叠、嵌套或包含 spacer。装饰默认跟随主指标的最终可见性（含布局省略）；其他指标保留自身条件。关闭联动后装饰独立显示。自动布局将组保留在同一行，先缩减装饰和次要指标再处理主指标。整组的省略优先级取自主指标。
-
-共享 Powerline 使用主指标背景形成一个色块，各成员前景和阈值色保留。成员背景配置继续保存，关闭共享后恢复。普通分组成员之间以空格连接。操作包括编辑、整组移动、分配新 ID 的整组复制及解组。删除主指标会解组并保留其他实例，但仍被对齐关系引用时会拒绝删除；单项复制在原组之后插入独立副本。非法移动保留草稿。
-
-```bash
-claude-statusline config group main list --json
-claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
-claude-statusline config group main set cost-block linked on
-claude-statusline config group main copy cost-block
-claude-statusline config group main move cost-block --before OTHER_ID
-claude-statusline config group main ungroup cost-block
-```
-
-将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/history/deliveries/m4-m7-delivery.zh-CN.md)。
-
-## 显式主行的对应列对齐
-
-在 **Layout（布局）→ 对齐显式主行** 中创建关系，为每列选择各参与行中的一个组件或整个组。左右键选择，使用“添加列”增加下一列，“应用到草稿”接受关系，再用原有保存操作持久化。取消不改变已有草稿。选项显示稳定 ID，因此重复组件类型仍可独立选择。
-
-每列至少包含两个不同的显式主行，每行至多一个单位，各行列顺序必须一致。组成员只能以整组参与，单位不能重复用于其他列。一个关系占用参与行对应的左侧或右侧，同一侧不允许多个关系重叠。自动换行、子代理模板及跨作用域关系不参与对齐。
-
-先按可见性和组件最大宽度测量，再使用每列可见成员的最大宽度。其他可见行仍需要该列时，隐藏成员保留列位；整列隐藏时收起，整行隐藏时不输出。spacer 两侧独立计算，剩余宽度交给 spacer，右侧列保持靠右。Powerline 单位保留完整色块与端帽，单位之间使用终端默认背景留白，隐藏项不留下孤立分隔符或端帽。
-
-若新增留白使任一参与行超宽，该帧的关联行取消对齐留白，再执行原有优先级、装饰收缩及完整字素裁剪。结构中的 spacer 被禁用时也采用此回退。解释／诊断会报告 `alignment_collapsed`，宽度足够时报告 `alignment_active`。共享同一物理行的关系共同使用宽度预算，也共同回退。
-
-```sh
-claude-statusline config alignment list
-claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
-claude-statusline config alignment remove summary
-```
-
-将大写占位符替换为实际单位 ID。逗号连接同列成员，分号分隔各列。普通组件／组复制不自动加入对齐；完整方案复制和主区导入保持引用与单位一致。删除、移动、解组或调整行／布局模式导致关系失效时，保存前拒绝修改并指出关系 ID，请先修改或移除该关系。默认布局不启用对齐；`quota-cost` 等完整方案包含显式对齐关系，应用前应审阅候选。
-
-## 自适应指标与连续背景
-
-可使用 `config instance main set context-remaining presentation adaptive` 开启自适应指标，使用 `config set powerline-row-background-gradient lagoon` 选择连续背景；`off` 关闭背景。背景仅在启用颜色的 Powerline 中生效。自定义标签和图标保持完整；数字表示仍放不下时省略。自动布局保留正常换行。
-
-五个新方案为 `powerline-daily`、`agent-workbench`、`quota-cost`、`narrow-terminal`、`light-readable`，兼容 v3.14.0 及以上（显示 schema 17／协议 30），支持现有预设／方案选择和导入导出。方案不授权来源。详见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。

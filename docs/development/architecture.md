@@ -2,87 +2,93 @@
 
 **English** | [简体中文](architecture.zh-CN.md)
 
-Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+The product is a TypeScript/Node application. Pure rules live in core, OS effects in platform, application orchestration in CLI, and external terminal interaction in TUI. Native and runtime Mods adapt the official host and call the backend through separate JSON protocols.
 
+## Architecture overview
 
-[Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
+Solid arrows show workspace dependencies; dashed arrows show backend process calls. TUI receives an injected backend rather than importing CLI services. Mods also contain generated copies of supported pure core modules, with host effects in their own entries.
 
-[Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
-
-For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
-
-For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIAGNOSTICS.md) and [implementation and acceptance](real-input-diagnostics.md).
-
-Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
-
-The [v3.1.3 repair record](history/migration/post-migration-fixes.md) documents the original changes to timing provenance, exact replay deduplication and cache compatibility.
-
-The production package is TypeScript, retaining the existing CLI, configuration formats and storage locations. Implementation separates pure rules, platform effects, application services and terminal UI.
+```mermaid
+flowchart TD
+    Native[Native editor Mod] -. UI protocol .-> CLI[CLI application services]
+    Runtime[Runtime Mod] -. Runtime protocol .-> CLI
+    CLI --> TUI[External TUI]
+    CLI --> Platform[Platform adapters]
+    CLI --> Core[Core rules]
+    TUI --> Platform
+    TUI --> Core
+    Platform --> Core
+```
 
 <a id="typescript-migration-workspace"></a>
 
 ## Current TypeScript workspace
 
-TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode, rendering and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). TS-04 adds `packages/tui`, installed integration and durable recovery. The workspaces are private implementation packages bundled into the public npm product.
-
-The canonical catalog is TypeScript data. Item IDs and preset descriptions are derived rather than separately edited in frontend contracts. Canonical languages live under `packages/core/resources/i18n`; the TypeScript generator emits Node and Mod resources, without regenerating the Python archive. Mod copies contain only supported pure modules, with host effects in their existing entries. See [TS-03 implementation and acceptance](typescript-migration/ts-03/README.md).
-
-The migrated runtime uses `core/runtime/{tasks,live}`, `core/timing` and pure usage/Git parsers, coordinated by `cli/runtime`. Explicit `RuntimeContext`, `RuntimeIO` and `CommandRunner` boundaries supply clocks, process identity, private file publication and Git argv execution. Task history remains lifecycle schema 4 with its schema-1 compatibility mirror. Live writers acquire live then task locks; usage writers acquire cache then task locks. Task writers never acquire live/cache locks. Complete UTF-8 byte cursors, bounded histories and immutable frozen results survive mixed-version disk access. The development `runtime`/`hook` entry points do not switch installed commands or Mod bindings.
-
-The TypeScript layout separates reusable rules, OS effects and application work:
-
-
-Bare runtime protocol dispatch uses a read-only preference adapter without loading
-management storage, display rules or UI locale data. Usage indexing retains an
-at-most-32-MiB serialized overlay within one cache lock. Final pages are durably
-published before the manifest and atomic state; overflow flushes use the same
-publication adapter. Cleanup remains after the successful state commit. Persisted
-formats and exact replay accounting are unchanged. See [PERF-01](history/performance/perf-01.md).
+The private workspaces are bundled into the public npm product. Their layout separates reusable rules, OS effects and application work:
 
 ```text
 packages/
-  core/
-    src/editor/                    Shared drafts, forms, search and response rules
-    src/integration/               Pure executable/argv binding
-    resources/i18n/                Canonical translations
-  platform/
-    src/terminal/                  Raw mode, VT input/output, launchers and bridge
-    src/plugin-host.ts             Bounded official CLI transport
-  cli/
-    src/config/                    Configuration and UI protocol services
-    src/integration/               Ownership, resources, installation and doctor
-    src/recovery/                  Journals, file restore and official reconciliation
-    resources/                     Canonical skill templates
-  tui/
-    src/                           External editor state, layout, drawing and session
-    src/drawing/                   Bounded canvas/ANSI, presentation, shortcuts and pages
-    test/                          Pure external-editor product regressions
-tools/migration/ts-04/
-  package.ts                       Private installed acceptance archive
-  installed.ts                     Eight-target installed entry/editor/recovery gate
-  official-installed.ts            Fixed-host installation gate
-  host-smoke.ts                     Local real-host editor/runtime interaction
-  test/                            Named responsibility and process/terminal tests
+  core/src/                       Configuration, contracts, editor, rendering and runtime rules
+  core/resources/i18n/            Canonical translations
+  platform/src/                   Files, processes, locking, host transport and terminals
+  cli/src/                        Commands and application services
+  cli/resources/                  Canonical skill templates
+  tui/src/                        External editor state, layout, drawing and session
+mods/
+  statusline-native/              Official-host editor and generated pure resources
+  statusline-runtime/             Official-host observations and lifecycle integration
+tools/
+  generation/                    Resource generation
+  acceptance/                    Installed, terminal and host validation
+  migration/                     Migration and historical comparison tooling
+archive/python/                  Frozen implementation and comparison evidence
 ```
 
-File publication records immutable before-images and durable checkpoints before
-mutation. The shared installation lock protects file commits; an administration
-lock serializes official integration phases. Explicit recovery verifies all
-recorded states, reconciles uncertain host outcomes and preserves plugin opt-outs.
-See [recovery](typescript-migration/ts-04/recovery.md) and
-[installed acceptance](typescript-migration/ts-04/candidate.md).
+The canonical catalog is TypeScript data. Item IDs and preset descriptions are derived rather than separately edited in frontend contracts. Canonical languages live under `packages/core/resources/i18n`; the TypeScript generator emits Node and Mod resources without regenerating the Python archive.
 
-## Current application services
+<a id="current-application-services"></a>
 
-The development CLI binds filesystem transactions and host identity through `ConfigurationService`/`Storage`. Its private ESM entry is `packages/cli/src/entry.ts`; configuration and protocol code reside under `config/` and `ui/`. The `render`, `render-subagents`, `hook` and `slash-hook` fast dispatches precede management-resource imports. Explicit `LaunchSpec` prefixes distinguish the TypeScript development backend from installed renderers.
+## Runtime and data flow
 
-`core/rendering` owns main/subagent composition, formatting, styles, Powerline and deterministic previews. `RenderEnvironment` supplies selected-language presentation and synchronous observation interfaces; `cli/rendering/environment.ts` imports selected collectors and connects runtime services. A frame caches each source and raw task snapshot before independently formatting repeated instances. `platform/presentation.ts` supplies lexical paths, local/UTC dates and hostname. Preview adapters substitute every observation; they do not collect or write runtime evidence. `packages/tui` implements the external editor over the shared editor core and an injected protocol backend. `platform/terminal` owns raw mode, incremental UTF-8/VT input, bounded output, launcher selection and private request/result files; `cli/integration` connects these adapters and rechecks request revocation under the configuration lock. See [TS-04](typescript-migration/ts-04/README.md).
+### Command dispatch and rendering
 
-The internal usage/transcript JSON path preserves numeric lexemes and falls back to the exact parser for ordered numeric keys and legacy constants. Mutable ID dictionaries keep Python insertion order with bounded deletion cost; native cache serialization retains Python spacing, ASCII escapes and numeric spellings. Public configuration/protocol parsing remains strict. These optimizations change no disk schema.
+The private ESM entry is `packages/cli/src/entry.ts`. Configuration and protocol services reside under `config/` and `ui/`. The `render`, `render-subagents`, `hook` and `slash-hook` fast dispatches precede management-resource imports. Bare runtime protocol dispatch uses a read-only preference adapter without loading management storage, display rules or UI locale data. Explicit `LaunchSpec` prefixes distinguish the development backend from installed renderers.
 
-`cli/recovery` owns versioned file and official-operation journals. Configuration and installation services publish immutable before-images before mutations; incomplete journals block configuration writes until explicit recovery. Plugin refresh intent preserves manual disablement across uninstall/reinstall. Doctor only inspects. See [candidate recovery](typescript-migration/ts-04/recovery.md).
+`core/rendering` owns main/subagent composition, formatting, styles, Powerline and deterministic previews. `RenderEnvironment` supplies selected-language presentation and synchronous observation interfaces; `cli/rendering/environment.ts` imports selected collectors and connects runtime services. A frame caches each source and raw task snapshot before independently formatting repeated instances. `platform/presentation.ts` supplies lexical paths, local/UTC dates and hostname. Preview adapters substitute every observation; they do not collect or write runtime evidence.
 
-The source and package design covers [source lifecycle and references](source-command-package-management.md#source-lifecycle-and-references) and [safe package handoff](source-command-package-management.md#safe-package-handoff).
+### Collection, timing and usage
+
+`core/runtime/{tasks,live}`, `core/timing` and pure usage/Git parsers are coordinated by `cli/runtime`. Explicit `RuntimeContext`, `RuntimeIO` and `CommandRunner` boundaries supply clocks, process identity, private file publication and Git argv execution. Task history uses lifecycle schema 4 with its schema-1 compatibility mirror. Live writers acquire live then task locks; usage writers acquire cache then task locks. Task writers never acquire live/cache locks. Complete UTF-8 byte cursors, bounded histories and immutable frozen results survive mixed-version disk access. Development `runtime`/`hook` entry points do not switch installed commands or Mod bindings.
+
+Usage indexing retains an at-most-32-MiB serialized overlay within one cache lock. Final pages are durably published before the manifest and atomic state; overflow flushes use the same publication adapter. Cleanup follows the successful state commit. The internal usage/transcript JSON path preserves numeric lexemes and falls back to the exact parser for ordered numeric keys and legacy constants. Mutable ID dictionaries keep Python insertion order with bounded deletion cost; native cache serialization retains Python spacing, ASCII escapes and numeric spellings. Public configuration/protocol parsing remains strict. These optimizations change no disk schema; the original performance evidence is in [PERF-01](history/performance/perf-01.md).
+
+## Interfaces and persistence
+
+`ConfigurationService`/`Storage` binds filesystem transactions and host identity. The editor UI protocol and runtime observation protocol evolve independently; [shared contracts](contracts.md) owns their current versions, operations and error behavior.
+
+File publication records immutable before-images and durable checkpoints before mutation. The shared installation lock protects file commits; an administration lock serializes official integration phases. `cli/recovery` owns versioned file and official-operation journals. Incomplete journals block configuration writes until explicit recovery. Recovery verifies recorded states, reconciles uncertain host outcomes and preserves plugin opt-outs. Durable refresh intent retains manual disablement across uninstall/reinstall. Doctor only inspects. See [recovery](typescript-migration/ts-04/recovery.md) and [installed acceptance](typescript-migration/ts-04/candidate.md).
+
+## Platform and host integration
+
+`packages/tui` implements the external editor over the shared editor core and an injected protocol backend. `platform/terminal` owns raw mode, incremental UTF-8/VT input, bounded output, launcher selection and private request/result files. `cli/integration` connects these adapters and rechecks request revocation under the configuration lock.
+
+The Native editor uses bounded visible frames and capacity/recovery handling for official-host panes. Runtime collection is independent of editor enablement. Host-specific capability and acceptance limits belong to the linked technical guides, rather than being inferred from workspace support.
+
+## Implementation references
+
+| Topic | Guide |
+| --- | --- |
+| Native editor and bounded presentation | [Native integration](native.md) · [Capacity and recovery](native-capacity.md) |
+| Rendering, task timing and live collection | [Rendering](rendering.md) · [Timer](timer.md) · [Live metrics](live.md) |
+| Sources, commands and links | [Extension implementation and validation](extensions.md) · [Source lifecycle and references](source-command-package-management.md#source-lifecycle-and-references) |
+| Package execution and recovery | [Safe package handoff](source-command-package-management.md#safe-package-handoff) |
+| Setup, editing and explanation | [Setup and complete appearance](setup-appearance.md) · [Configuration experience](configuration-experience.md) |
+| Profiles, projects and tasks | [Implementation](profiles-projects-tasks.md) · [Profile guide](../PROFILES.md) · [Task details](../TASK_DETAILS.md) |
+| Supplied-input diagnosis | [User guide](../DIAGNOSTICS.md) · [Implementation and acceptance](real-input-diagnostics.md) |
+
+## Migration references
+
+TS-03 introduced core, platform and CLI; TS-04 added TUI, installed integration and durable recovery. Their original implementation, acceptance entry points under `tools/migration/ts-04/`, and evidence remain in [TS-03](typescript-migration/ts-03/README.md) and [TS-04](typescript-migration/ts-04/README.md). The setup guide records the original schema 9/protocol 16 delivery, rather than the current interface versions. The [v3.1.3 repair record](history/migration/post-migration-fixes.md) preserves timing provenance, exact replay deduplication and cache compatibility changes.
 
 ## Historical Python architecture
 
