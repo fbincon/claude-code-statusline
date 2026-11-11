@@ -73,82 +73,61 @@ For documentation acceptance, compare IDs, order, dependencies, roadmap-owned st
 
 The [work package design archive](history/work-package-designs.md#completed-designs) holds the original designs, schedules and acceptance criteria. The links below open individual sections.
 
-<a id="review-baseline"></a>
+| Former section | Original design |
+| --- | --- |
+| <a id="review-baseline"></a><a id="review-baseline-and-evidence-limits"></a>Review baseline and evidence limits | [Archived section](history/work-package-designs.md#review-baseline) |
+| <a id="original-work-package-schedules"></a>Original work package schedules | [Archived section](history/work-package-designs.md#original-work-package-schedules) |
+| <a id="candidate-boundaries"></a>Candidate boundaries | [Archived section](history/work-package-designs.md#candidate-boundaries) |
+| <a id="future-work"></a><a id="mainline-product-and-maintenance-packages"></a><a id="delivered-follow-up-packages"></a>Delivered follow-up packages | [Archived section](history/work-package-designs.md#mainline-product-and-maintenance-packages) |
+| <a id="delivered-mainline"></a><a id="delivered-mainline-designs"></a>Delivered mainline designs | [Archived section](history/work-package-designs.md#delivered-mainline) |
+| <a id="delivered-designs"></a><a id="delivered-designs-and-retained-demonstration-package"></a>Delivered designs and retained demonstration package | [Archived section](history/work-package-designs.md#delivered-designs) |
 
-### Review baseline and evidence limits
+<details>
+<summary>Expand the work-package index retained for older links</summary>
 
-[Read this section in the archive](history/work-package-designs.md#review-baseline)
+| Work package / entry | Archive |
+| --- | --- |
+| <a id="planned-work"></a><a id="follow-up-schedule"></a>Follow-up schedule | [Original design](history/work-package-designs.md#planned-work) |
+| <a id="delivered-work"></a><a id="earlier-milestones-and-maintenance-schedule"></a>Earlier milestones and maintenance schedule | [Original design](history/work-package-designs.md#delivered-work) |
+| <a id="i18n-02"></a><a id="i18n-02-incremental-multilingual-development-and-release-readiness"></a>I18N-02 Incremental multilingual development and release readiness | [Original design](history/work-package-designs.md#i18n-02) |
+| <a id="fix-01"></a><a id="fix-01-protect-drafts-while-save-results-are-unknown"></a>FIX-01 | [Original design](history/work-package-designs.md#fix-01) |
+| <a id="fix-02"></a><a id="fix-02-compose-bars-and-labels-consistently"></a>FIX-02 | [Original design](history/work-package-designs.md#fix-02) |
+| <a id="fix-03"></a><a id="fix-03-separate-refresh-execution-from-waiting-consumers"></a>FIX-03 | [Original design](history/work-package-designs.md#fix-03) |
+| <a id="fix-04"></a><a id="fix-04-make-extension-diagnosis-time--and-agent-applicable"></a>FIX-04 | [Original design](history/work-package-designs.md#fix-04) |
+| <a id="i18n-01"></a><a id="i18n-01-initialize-task-detail-language-independently"></a>I18N-01 Initialize task-detail language independently | [Original design](history/work-package-designs.md#i18n-01) |
+| <a id="appearance-05"></a><a id="appearance-05-expand-themes-and-gradient-selection"></a>APPEARANCE-05 | [Original design](history/work-package-designs.md#appearance-05) |
+| <a id="preview-01"></a><a id="preview-01-select-sample-scenarios"></a>PREVIEW-01 | [Original design](history/work-package-designs.md#preview-01) |
+| <a id="explain-02"></a><a id="explain-02-explain-inactive-configuration-and-explicit-input"></a>EXPLAIN-02 | [Original design](history/work-package-designs.md#explain-02) |
+| <a id="task-02"></a><a id="task-02-external-read-only-task-details"></a>TASK-02 | [Original design](history/work-package-designs.md#task-02) |
+| <a id="update-02"></a><a id="update-02-version-review-execution-and-protected-history"></a>UPDATE-02 | [Original design](history/work-package-designs.md#update-02) |
+| <a id="sources-01"></a><a id="sources-01-readable-source-operations-and-binding-maintenance"></a>SOURCES-01 | [Original design](history/work-package-designs.md#sources-01) |
+| <a id="command-02"></a><a id="command-02-commands-scheduled-by-active-sessions"></a>COMMAND-02 | [Original design](history/work-package-designs.md#command-02) |
+| <a id="appearance-06"></a><a id="appearance-06-continuous-backgrounds-within-a-row"></a>APPEARANCE-06 | [Original design](history/work-package-designs.md#appearance-06) |
+| <a id="appearance-07"></a><a id="appearance-07-adaptive-bars-that-preserve-numeric-meaning"></a>APPEARANCE-07 | [Original design](history/work-package-designs.md#appearance-07) |
+| <a id="ux-03"></a><a id="ux-03-shared-draft-history-and-external-recovery"></a>UX-03 | [Original design](history/work-package-designs.md#ux-03) |
+| <a id="import-02"></a><a id="import-02-reuse-styles-and-complete-groups"></a>IMPORT-02 | [Original design](history/work-package-designs.md#import-02) |
+| <a id="composition-04"></a><a id="composition-04-review-alignment-repairs-with-structural-edits"></a>COMPOSITION-04 | [Original design](history/work-package-designs.md#composition-04) |
+| <a id="profile-02"></a><a id="profile-02-scenario-schemes-using-delivered-capabilities"></a>PROFILE-02 | [Original design](history/work-package-designs.md#profile-02) |
+| <a id="git-01"></a><a id="git-01-git-invocation-review-and-necessary-protections"></a>GIT-01 | [Original design](history/work-package-designs.md#git-01) |
+| <a id="terminal-01"></a><a id="terminal-01-windows-preview-consistency"></a>TERMINAL-01 | [Original design](history/work-package-designs.md#terminal-01) |
+| <a id="setup-02"></a><a id="setup-02-first-entry-and-durable-installation"></a>SETUP-02 | [Original design](history/work-package-designs.md#setup-02) |
+| <a id="update-01"></a><a id="update-01-explicit-upgrades-and-rollback"></a>UPDATE-01 | [Original design](history/work-package-designs.md#update-01) |
+| <a id="import-01"></a><a id="import-01-selective-configuration-reuse"></a>IMPORT-01 | [Original design](history/work-package-designs.md#import-01) |
+| <a id="appearance-04"></a><a id="appearance-04-static-foreground-and-powerline-background-gradients"></a>APPEARANCE-04 | [Original design](history/work-package-designs.md#appearance-04) |
+| <a id="composition-03"></a><a id="composition-03-alignment-across-explicit-main-rows"></a>COMPOSITION-03 | [Original design](history/work-package-designs.md#composition-03) |
+| <a id="appearance-03"></a><a id="appearance-03-graphical-context-and-quota-indicators"></a>APPEARANCE-03 | [Original design](history/work-package-designs.md#appearance-03) |
+| <a id="composition-02"></a><a id="composition-02-component-groups-and-linked-visibility"></a>COMPOSITION-02 | [Original design](history/work-package-designs.md#composition-02) |
+| <a id="workflow-02"></a><a id="workflow-02-opt-in-automatic-github-prci-refresh"></a>WORKFLOW-02 | [Original design](history/work-package-designs.md#workflow-02) |
+| <a id="metrics-01"></a><a id="metrics-01-session-cost-rate"></a>METRICS-01 | [Original design](history/work-package-designs.md#metrics-01) |
+| <a id="setup-01"></a><a id="setup-01-first-use-and-configuration-entry"></a>SETUP-01 | [Original design](history/work-package-designs.md#setup-01) |
+| <a id="appearance-01"></a><a id="appearance-01-complete-display-schemes"></a>APPEARANCE-01 | [Original design](history/work-package-designs.md#appearance-01) |
+| <a id="appearance-02"></a><a id="appearance-02-appearance-controls-and-boundaries"></a>APPEARANCE-02 | [Original design](history/work-package-designs.md#appearance-02) |
+| <a id="showcase-01"></a><a id="showcase-01-homepage-and-usage-demonstrations"></a>SHOWCASE-01 | [Original design](history/work-package-designs.md#showcase-01) |
+| <a id="extensions-01"></a><a id="extensions-01-local-json-data-foundation"></a>EXTENSIONS-01 | [Original design](history/work-package-designs.md#extensions-01) |
+| <a id="links-01"></a><a id="links-01-clickable-text"></a>LINKS-01 | [Original design](history/work-package-designs.md#links-01) |
+| <a id="workflow-01"></a><a id="workflow-01-optional-github-pr-and-ci-lookup"></a>WORKFLOW-01 | [Original design](history/work-package-designs.md#workflow-01) |
+| <a id="command-01"></a><a id="command-01-explicit-user-command-components"></a>COMMAND-01 | [Original design](history/work-package-designs.md#command-01) |
+| <a id="capabilities-01"></a><a id="capabilities-01-component-capability-descriptions"></a>CAPABILITIES-01 | [Original design](history/work-package-designs.md#capabilities-01) |
+| <a id="ci-01"></a><a id="ci-01-pin-actions-references"></a>CI-01 | [Original design](history/work-package-designs.md#ci-01) |
 
-### Original work package schedules
-
-[Read this section in the archive](history/work-package-designs.md#original-work-package-schedules)
-
-- <a id="planned-work"></a><a id="follow-up-schedule"></a>[Follow-up schedule](history/work-package-designs.md#planned-work)
-- <a id="delivered-work"></a><a id="earlier-milestones-and-maintenance-schedule"></a>[Earlier milestones and maintenance schedule](history/work-package-designs.md#delivered-work)
-
-### Candidate boundaries
-
-[Read this section in the archive](history/work-package-designs.md#candidate-boundaries)
-
-<a id="future-work"></a>
-
-<a id="mainline-product-and-maintenance-packages"></a>
-
-### Delivered follow-up packages
-
-[Read this section in the archive](history/work-package-designs.md#mainline-product-and-maintenance-packages)
-
-- <a id="i18n-02"></a><a id="i18n-02-incremental-multilingual-development-and-release-readiness"></a>[I18N-02 Incremental multilingual development and release readiness](history/work-package-designs.md#i18n-02)
-- <a id="fix-01"></a><a id="fix-01-protect-drafts-while-save-results-are-unknown"></a>[FIX-01 Protect drafts while save results are unknown](history/work-package-designs.md#fix-01)
-- <a id="fix-02"></a><a id="fix-02-compose-bars-and-labels-consistently"></a>[FIX-02 Compose bars and labels consistently](history/work-package-designs.md#fix-02)
-- <a id="fix-03"></a><a id="fix-03-separate-refresh-execution-from-waiting-consumers"></a>[FIX-03 Separate refresh execution from waiting consumers](history/work-package-designs.md#fix-03)
-- <a id="fix-04"></a><a id="fix-04-make-extension-diagnosis-time--and-agent-applicable"></a>[FIX-04 Make extension diagnosis time- and agent-applicable](history/work-package-designs.md#fix-04)
-- <a id="i18n-01"></a><a id="i18n-01-initialize-task-detail-language-independently"></a>[I18N-01 Initialize task-detail language independently](history/work-package-designs.md#i18n-01)
-- <a id="appearance-05"></a><a id="appearance-05-expand-themes-and-gradient-selection"></a>[APPEARANCE-05 Expand themes and gradient selection](history/work-package-designs.md#appearance-05)
-- <a id="preview-01"></a><a id="preview-01-select-sample-scenarios"></a>[PREVIEW-01 Select sample scenarios](history/work-package-designs.md#preview-01)
-- <a id="explain-02"></a><a id="explain-02-explain-inactive-configuration-and-explicit-input"></a>[EXPLAIN-02 Explain inactive configuration and explicit input](history/work-package-designs.md#explain-02)
-- <a id="task-02"></a><a id="task-02-external-read-only-task-details"></a>[TASK-02 External read-only task details](history/work-package-designs.md#task-02)
-- <a id="update-02"></a><a id="update-02-version-review-execution-and-protected-history"></a>[UPDATE-02 Version review, execution and protected history](history/work-package-designs.md#update-02)
-- <a id="sources-01"></a><a id="sources-01-readable-source-operations-and-binding-maintenance"></a>[SOURCES-01 Readable source operations and binding maintenance](history/work-package-designs.md#sources-01)
-- <a id="command-02"></a><a id="command-02-commands-scheduled-by-active-sessions"></a>[COMMAND-02 Commands scheduled by active sessions](history/work-package-designs.md#command-02)
-- <a id="appearance-06"></a><a id="appearance-06-continuous-backgrounds-within-a-row"></a>[APPEARANCE-06 Continuous backgrounds within a row](history/work-package-designs.md#appearance-06)
-- <a id="appearance-07"></a><a id="appearance-07-adaptive-bars-that-preserve-numeric-meaning"></a>[APPEARANCE-07 Adaptive bars that preserve numeric meaning](history/work-package-designs.md#appearance-07)
-- <a id="ux-03"></a><a id="ux-03-shared-draft-history-and-external-recovery"></a>[UX-03 Shared draft history and external recovery](history/work-package-designs.md#ux-03)
-- <a id="import-02"></a><a id="import-02-reuse-styles-and-complete-groups"></a>[IMPORT-02 Reuse styles and complete groups](history/work-package-designs.md#import-02)
-- <a id="composition-04"></a><a id="composition-04-review-alignment-repairs-with-structural-edits"></a>[COMPOSITION-04 Review alignment repairs with structural edits](history/work-package-designs.md#composition-04)
-- <a id="profile-02"></a><a id="profile-02-scenario-schemes-using-delivered-capabilities"></a>[PROFILE-02 Scenario schemes using delivered capabilities](history/work-package-designs.md#profile-02)
-
-<a id="delivered-mainline"></a>
-
-### Delivered mainline designs
-
-[Read this section in the archive](history/work-package-designs.md#delivered-mainline)
-
-- <a id="git-01"></a><a id="git-01-git-invocation-review-and-necessary-protections"></a>[GIT-01 Git invocation review and necessary protections](history/work-package-designs.md#git-01)
-- <a id="terminal-01"></a><a id="terminal-01-windows-preview-consistency"></a>[TERMINAL-01 Windows preview consistency](history/work-package-designs.md#terminal-01)
-- <a id="setup-02"></a><a id="setup-02-first-entry-and-durable-installation"></a>[SETUP-02 First entry and durable installation](history/work-package-designs.md#setup-02)
-- <a id="update-01"></a><a id="update-01-explicit-upgrades-and-rollback"></a>[UPDATE-01 Explicit upgrades and rollback](history/work-package-designs.md#update-01)
-- <a id="import-01"></a><a id="import-01-selective-configuration-reuse"></a>[IMPORT-01 Selective configuration reuse](history/work-package-designs.md#import-01)
-- <a id="appearance-04"></a><a id="appearance-04-static-foreground-and-powerline-background-gradients"></a>[APPEARANCE-04 Static foreground and Powerline-background gradients](history/work-package-designs.md#appearance-04)
-- <a id="composition-03"></a><a id="composition-03-alignment-across-explicit-main-rows"></a>[COMPOSITION-03 Alignment across explicit main rows](history/work-package-designs.md#composition-03)
-- <a id="appearance-03"></a><a id="appearance-03-graphical-context-and-quota-indicators"></a>[APPEARANCE-03 Graphical context and quota indicators](history/work-package-designs.md#appearance-03)
-- <a id="composition-02"></a><a id="composition-02-component-groups-and-linked-visibility"></a>[COMPOSITION-02 Component groups and linked visibility](history/work-package-designs.md#composition-02)
-- <a id="workflow-02"></a><a id="workflow-02-opt-in-automatic-github-prci-refresh"></a>[WORKFLOW-02 Opt-in automatic GitHub PR/CI refresh](history/work-package-designs.md#workflow-02)
-- <a id="metrics-01"></a><a id="metrics-01-session-cost-rate"></a>[METRICS-01 Session cost rate](history/work-package-designs.md#metrics-01)
-
-<a id="delivered-designs"></a>
-
-### Delivered designs and retained demonstration package
-
-[Read this section in the archive](history/work-package-designs.md#delivered-designs)
-
-- <a id="setup-01"></a><a id="setup-01-first-use-and-configuration-entry"></a>[SETUP-01 First use and configuration entry](history/work-package-designs.md#setup-01)
-- <a id="appearance-01"></a><a id="appearance-01-complete-display-schemes"></a>[APPEARANCE-01 Complete display schemes](history/work-package-designs.md#appearance-01)
-- <a id="appearance-02"></a><a id="appearance-02-appearance-controls-and-boundaries"></a>[APPEARANCE-02 Appearance controls and boundaries](history/work-package-designs.md#appearance-02)
-- <a id="showcase-01"></a><a id="showcase-01-homepage-and-usage-demonstrations"></a>[SHOWCASE-01 Homepage and usage demonstrations](history/work-package-designs.md#showcase-01)
-- <a id="extensions-01"></a><a id="extensions-01-local-json-data-foundation"></a>[EXTENSIONS-01 Local JSON data foundation](history/work-package-designs.md#extensions-01)
-- <a id="links-01"></a><a id="links-01-clickable-text"></a>[LINKS-01 Clickable text](history/work-package-designs.md#links-01)
-- <a id="workflow-01"></a><a id="workflow-01-optional-github-pr-and-ci-lookup"></a>[WORKFLOW-01 Optional GitHub PR and CI lookup](history/work-package-designs.md#workflow-01)
-- <a id="command-01"></a><a id="command-01-explicit-user-command-components"></a>[COMMAND-01 Explicit user command components](history/work-package-designs.md#command-01)
-- <a id="capabilities-01"></a><a id="capabilities-01-component-capability-descriptions"></a>[CAPABILITIES-01 Component capability descriptions](history/work-package-designs.md#capabilities-01)
-- <a id="ci-01"></a><a id="ci-01-pin-actions-references"></a>[CI-01 Pin Actions references](history/work-package-designs.md#ci-01)
+</details>

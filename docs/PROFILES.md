@@ -6,6 +6,8 @@ For external source registration, authorization, refresh, diagnosis and sharing 
 
 Save a named collection of complete display settings and reuse it across projects. Open either configuration editor and choose **Settings → Display schemes and projects**, or press **Ctrl+O**. The sample preview never changes saved settings.
 
+This named configuration is a **profile**. Built-in complete schemes and original presets provide starting points, the user default is a separate snapshot, and project bindings select profiles. [Concept comparison](SCHEMES.md#schemes-presets-and-profiles).
+
 ## Choose an editing target
 
 The editor opens the scheme selected for its working directory, or the user default when no binding matches. Its header identifies the editing target, matching root and number of shared project bindings. The target stays fixed during editing; switching a dirty draft offers Save, Discard and Cancel.

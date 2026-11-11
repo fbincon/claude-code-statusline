@@ -81,6 +81,77 @@ IDs are separate from the Agent IDs in the host protocol. Both scopes share raw
 observations for repeated components and format each instance separately, so
 copying a component does not duplicate transcript scans, Git calls or usage totals.
 
+## Component groups
+
+Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
+
+Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
+
+Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances, unless an alignment relationship still references that group. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
+
+```bash
+claude-statusline config group main list --json
+claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
+claude-statusline config group main set cost-block linked on
+claude-statusline config group main copy cost-block
+claude-statusline config group main move cost-block --before OTHER_ID
+claude-statusline config group main ungroup cost-block
+```
+
+Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/history/deliveries/m4-m7-delivery.md).
+
+## Align corresponding columns across main rows
+
+In **Layout → Align explicit main rows**, create a relationship, then select one
+component or whole group per participating row for each column. Use Left/Right
+to choose, **Add column** for another column and **Apply to draft** to accept the
+relationship. The usual Save persists it. Cancel leaves the previous draft
+unchanged. The selectors show stable IDs so repeated component types remain
+independent.
+
+Each column requires at least two distinct explicit main rows. A row contributes
+at most one unit to a column, and columns follow the same physical order in each
+row. A grouped member must be selected as its whole group. Units cannot be reused
+by another column. A relationship owns the participating left or right side of a
+row; overlapping relationships on that same side are rejected. Auto-wrapped rows,
+subagent templates and relationships across scopes are excluded.
+
+Widths are measured after visibility and per-component maximum-width rules.
+Each column uses the widest visible member. Hidden members retain that column's
+slot when other visible rows need it; a wholly hidden column collapses and an
+empty row emits no output. Both sides of a spacer are measured independently;
+the spacer receives remaining width and right-side columns retain their right
+anchor. Powerline units retain complete blocks and caps, with default-background
+spacing between them. No isolated separator or cap represents a hidden member.
+
+If the added alignment spaces would make any participating row too wide, its
+related rows render without those spaces for that frame, using the existing
+priority, decoration and whole-grapheme fitting rules. A disabled structural
+spacer also causes this fallback. Explain/diagnose reports `alignment_collapsed`;
+wide frames report `alignment_active`. Relationships sharing a physical row
+share its width budget and fall back together.
+
+```sh
+claude-statusline config alignment list
+claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
+claude-statusline config alignment remove summary
+```
+
+Replace the uppercase IDs with your configured units. Commas join members of one
+column; semicolons separate columns. Ordinary instance/group copies do not join
+existing relationships. Complete scheme copies and main-section transfers retain
+all referenced units together. Deletion, movement, ungrouping or row/mode changes
+that invalidate relationships are rejected before saving, with the affected
+relationship IDs. Remove or edit those relationships first. The default layout does not enable alignment. Some complete schemes, such as
+`quota-cost`, include explicit alignment relationships; review the candidate
+before applying it.
+
+## Adaptive indicators and continuous backgrounds
+
+Adaptive indicators take part in width fitting while retaining custom labels, icons and percentage meaning; automatic layout retains normal wrapping. Continuous backgrounds apply only to colored Powerline output. Spacers and explicit backgrounds break gradient runs, while alignment padding stays uncolored. See [appearance controls](APPEARANCE.md#adaptive-indicators) and [continuous row backgrounds](APPEARANCE.md#continuous-row-backgrounds) for the complete options and paint rules.
+
+Choose a layout example from the [complete schemes](SCHEMES.md) and review its candidate. Schemes grant no source permissions. The original v3.14.0 scenarios and compatibility evidence remain in [implementation and scenarios](development/adaptive-row-scenarios.md).
+
 ## CLI
 
 Commands use the same validated configuration transaction as the editors.
@@ -156,74 +227,3 @@ bindings before installing an older backend. Preserve the current
 configuration separately if you intend to upgrade again. Repeated instances and
 flexible layouts cannot be converted losslessly to an older schema; changing the
 schema number by hand is not a migration. See the [upgrade guide](USER_GUIDE.md#upgrading).
-
-## Component groups
-
-Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
-
-Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
-
-Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances, unless an alignment relationship still references that group. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
-
-```bash
-claude-statusline config group main list --json
-claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
-claude-statusline config group main set cost-block linked on
-claude-statusline config group main copy cost-block
-claude-statusline config group main move cost-block --before OTHER_ID
-claude-statusline config group main ungroup cost-block
-```
-
-Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/history/deliveries/m4-m7-delivery.md).
-
-## Align corresponding columns across main rows
-
-In **Layout → Align explicit main rows**, create a relationship, then select one
-component or whole group per participating row for each column. Use Left/Right
-to choose, **Add column** for another column and **Apply to draft** to accept the
-relationship. The usual Save persists it. Cancel leaves the previous draft
-unchanged. The selectors show stable IDs so repeated component types remain
-independent.
-
-Each column requires at least two distinct explicit main rows. A row contributes
-at most one unit to a column, and columns follow the same physical order in each
-row. A grouped member must be selected as its whole group. Units cannot be reused
-by another column. A relationship owns the participating left or right side of a
-row; overlapping relationships on that same side are rejected. Auto-wrapped rows,
-subagent templates and relationships across scopes are excluded.
-
-Widths are measured after visibility and per-component maximum-width rules.
-Each column uses the widest visible member. Hidden members retain that column's
-slot when other visible rows need it; a wholly hidden column collapses and an
-empty row emits no output. Both sides of a spacer are measured independently;
-the spacer receives remaining width and right-side columns retain their right
-anchor. Powerline units retain complete blocks and caps, with default-background
-spacing between them. No isolated separator or cap represents a hidden member.
-
-If the added alignment spaces would make any participating row too wide, its
-related rows render without those spaces for that frame, using the existing
-priority, decoration and whole-grapheme fitting rules. A disabled structural
-spacer also causes this fallback. Explain/diagnose reports `alignment_collapsed`;
-wide frames report `alignment_active`. Relationships sharing a physical row
-share its width budget and fall back together.
-
-```sh
-claude-statusline config alignment list
-claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
-claude-statusline config alignment remove summary
-```
-
-Replace the uppercase IDs with your configured units. Commas join members of one
-column; semicolons separate columns. Ordinary instance/group copies do not join
-existing relationships. Complete scheme copies and main-section transfers retain
-all referenced units together. Deletion, movement, ungrouping or row/mode changes
-that invalidate relationships are rejected before saving, with the affected
-relationship IDs. Remove or edit those relationships first. The default layout does not enable alignment. Some complete schemes, such as
-`quota-cost`, include explicit alignment relationships; review the candidate
-before applying it.
-
-## Adaptive indicators and continuous backgrounds
-
-Use `config instance main set context-remaining presentation adaptive` to enable adaptive indicators and `config set powerline-row-background-gradient lagoon` to choose a continuous background; `off` disables it. Backgrounds apply only to colored Powerline output. Custom labels/icons remain whole; a numeric representation that cannot fit is omitted. Auto layout retains ordinary wrapping.
-
-New schemes are `powerline-daily`, `agent-workbench`, `quota-cost`, `narrow-terminal` and `light-readable`, compatible with v3.14.0 onward (display schema 17/protocol 30). Use existing preset/profile selection and import/export. Schemes cannot authorize sources. See [implementation and scenarios](development/adaptive-row-scenarios.md).

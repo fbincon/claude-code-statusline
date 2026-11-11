@@ -28,10 +28,9 @@
 - [运行要求](#运行要求)
 - [安装与接入](#安装与接入)
 - [选择配置入口](#选择配置入口)
-- [界面语言](#界面语言)
+- [语言与保存行为](#语言与保存行为)
 - [查找显示项与审阅导入](#查找显示项与审阅导入)
 - [组件组合](#组件组合)
-- [状态栏语言](#状态栏语言)
 - [原生配置编辑器](#原生配置编辑器)
 - [独立交互式 TUI](#独立交互式-tui)
 - [外部终端入口 `/statusline-configure`](#外部终端入口-statusline-configure)
@@ -40,13 +39,8 @@
 - [常用配置配方](#常用配置配方)
 - [格式、布局与预设](#格式布局与预设)
 - [Unicode 文本与终端列宽](#unicode-文本与终端列宽)
-- [可选实时状态](#可选实时状态)
-- [可配置显示项](#可配置显示项)
-- [主状态栏显示含义](#主状态栏显示含义)
-- [子 Agent 行与三种作用域](#子-agent-行与三种作用域)
-- [显示与宿主选项](#显示与宿主选项)
-- [配置文件](#配置文件)
-- [自定义配置目录与环境变量](#自定义配置目录与环境变量)
+- [理解显示数据](#理解显示数据)
+- [设置与配置文件](#设置与配置文件)
 - [升级](#升级)
 - [卸载](#卸载)
 - [备份与回滚](#备份与回滚)
@@ -156,13 +150,21 @@ macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon
 
 各入口共享用户配置。两个编辑器同时打开时分别保留草稿，旧草稿无法覆盖已保存的新 revision。
 
+## 语言与保存行为
+
+| 设置 | 影响范围 | 保存时机 | 随显示草稿取消？ |
+| --- | --- | --- | --- |
+| 界面语言 | CLI、编辑器和向导提示 | 设置中立即保存；`--language` 仅覆盖当前调用 | 否 |
+| 状态栏语言 | 内置输出标签、已知状态和样例 | 编辑器随显示保存；CLI 明确写入 | 是，仅限尚未保存的显示修改 |
+| Claude 宿主偏好 | Claude 自身外观与行为 | 单独 Apply | 否 |
+
 <a id="native-editor-preview"></a>
 
 <a id="原生编辑器预览"></a>
 
 <a id="v130a2外部-tui-与会话内-client"></a>
 
-## 界面语言
+### 界面语言
 
 语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-TW`（繁体中文，台湾）、`zh-HK`（繁体中文，香港）、`ja`（日语）、`ko`（韩语）、`es`（西班牙语）、`fr`（法语）、`de`（德语）、`pt-BR`（巴西葡萄牙语）、`ru`（俄语）、`id`（印度尼西亚语）。语言由用户明确选择，不跟随系统区域设置；代码区分大小写，支持 `pt-BR`，`pt` 和 `pt-br` 不是别名；左右方向键按此顺序循环切换。旧 `zh-Hant` 参数及配置继续接受并映射到台湾；读取不改写文件，显式保存与导出使用 `zh-TW`。
 
@@ -187,6 +189,26 @@ claude-statusline --language en config --help
 
 界面语言不改变实际状态栏样例／输出。模型名称、路径、分支、命令、ID、配置值和自定义标签保留原值。模型问答向导每次读取界面偏好，并使用 CLI 提供的翻译说明；机器可读目录保留英文基准元数据及稳定 ID。
 
+### 状态栏语言
+
+独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
+
+例如，界面使用西班牙语、输出使用巴西葡萄牙语。以下显式 CLI 写入分别保存两个设置：
+
+```text
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
+claude-statusline config show --json
+```
+
+同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
+
+`statusline_language` 属于显示 schema v17，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，完整导入采用文件语言；选择性导入仅在勾选显示语言时修改它，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+
+降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v8 草稿。见[备份与回滚](#备份与回滚)。
+
+降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 17 与界面偏好 schema 1 独立演进；编辑器协议 31 会拒绝新旧前后端混用。
+
 <a id="item-discovery-import-review"></a>
 
 <a id="查找项目与审阅导入"></a>
@@ -207,69 +229,9 @@ Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部�
 
 Main 和 Subagents 显示已配置实例；原生 A／外部 Ctrl+A 打开组件目录，原生 D／外部 Ctrl+D 复制，原生 X／外部 Ctrl+X 移除。每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
 
-## 状态栏语言
-
-独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
-
-例如，界面使用西班牙语、输出使用巴西葡萄牙语。以下显式 CLI 写入分别保存两个设置：
-
-```text
-claude-statusline config language set es
-claude-statusline config set statusline-language pt-BR
-claude-statusline config show --json
-```
-
-同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
-
-`statusline_language` 属于显示 schema v17，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，完整导入采用文件语言；选择性导入仅在勾选显示语言时修改它，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
-
-降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v8 草稿。见[备份与回滚](#备份与回滚)。
-
-降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 17 与界面偏好 schema 1 独立演进；编辑器协议 31 会拒绝新旧前后端混用。
-
 ## 原生配置编辑器
 
 `/statusline-configure-native` 在当前 Claude Code session 内打开 Client TUI，不另开终端。它与外部 `/statusline-configure` 共用配置、目录、catalog、互斥规则和原子保存服务，各自保留草稿。正式版默认启用两者；安装完成后在受信任终端重启 Claude Code。
-
-编辑器跟随 Claude 实际应用的主题，包括浅色／深色、色弱及宿主支持的 auto／自定义主题。在 Settings 将 **Preview background (UI only)** 设为 `light` 或 `dark`，匹配终端背景的深浅；该选择独立于 Claude 主题，立即记住，丢弃配置编辑也会保留。默认沿用原来的深色预览。两种标准底色为 `#ffffff` 与 `#17191e`，编辑器不查询终端背景的精确 RGB。无色文字使用终端默认前景。标题显示所选背景及 Palette 或 Colors: off；颜色难以辨认时，可比较 `default` 与 `ansi`。样例保留生产 RGB 和终端 ANSI 色槽，保存只把显示配置应用到实际状态栏。Claude 主题草稿仍通过独立 Apply 生效。
-
-### 页面层级与分页
-
-主题强调色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键使用当前主题的主要文字色并保持加粗，作用说明使用小写、主题辅助色和普通字重。按可读性验收，不限定具体颜色。字母快捷键显示大写，非输入编辑状态下大小写均有效。
-
-页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
-
-| 页面 | 底部展示顺序 |
-| --- | --- |
-| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
-| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
-| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
-| 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
-
-Settings 非编辑时显示 H，展开 Claude preferences 后才显示 A。`/ search` 保留在 Filter 旁，也在未编辑的条目页底部显示。编辑时改为接受／取消／清空／删除提示；Esc 仍表示宿主焦点操作。忙碌与保存结果不明时只显示对应控制。快捷键按完整的“按键＋说明”换行；32×12 下缩短说明、减少详情行，保留选中项、基本操作和样例预览，必要时省略预览／重载／焦点等次要提示。
-
-Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
-
-### 编辑器安装组合与兼容性
-
-没有已保存偏好时，`claude-statusline install` 默认启用两个入口。要明确选择组合：
-
-| 安装组合 | 命令 |
-| --- | --- |
-| 两个入口 | `claude-statusline install --native-editor --experimental-slash-tui` |
-| 仅会话内 Client | `claude-statusline install --native-editor --no-experimental-slash-tui` |
-| 仅外部 TUI | `claude-statusline install --no-native-editor --experimental-slash-tui` |
-| 基础接入，不安装两个 TUI 入口 | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
-
-Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。两组参数相互独立，`--experimental-slash-tui` 的历史名称继续保留。显式参数优先于已保存偏好，已保存偏好优先于默认值；用户在宿主中主动禁用的插件不会自动启用。
-
-| Claude Code 版本 | 外部 `/statusline-configure` | 会话内 `/statusline-configure-native` |
-| --- | --- | --- |
-| 2.1.287+ | 默认启用 | 默认启用 |
-| 2.1.258–2.1.286 | 默认启用 | 暂挂 |
-| 更低或版本无法识别 | 暂挂 | 暂挂 |
-
-表中默认仅适用于未明确关闭的入口。不兼容的入口不阻止基础安装或另一入口，显式启用也保留偏好并暂挂。升级或降级宿主后重新运行 `install` 和 `doctor`；支持恢复后按偏好重新接入，只有工具记录的暂挂才自动恢复。暂挂期间使用 `claude-statusline configure`、`claude-statusline config ...` 或 `/statusline-config` 向导；向导使用模型回合。
 
 ### 打开、导航与编辑
 
@@ -295,6 +257,54 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 
 
 Settings 区分外观、刷新与显示行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设／可移植文件和 Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
 
+### 保存、冲突与恢复
+
+两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`R` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `K` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
+
+Claude 高级偏好独立 Apply；保存或 Finish 不隐式应用这些偏好。退出后继续原 session。完整开发与验收记录见[原生编辑器](development/native.zh-CN.md)。
+
+### 页面层级与分页
+
+主题强调色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键使用当前主题的主要文字色并保持加粗，作用说明使用小写、主题辅助色和普通字重。按可读性验收，不限定具体颜色。字母快捷键显示大写，非输入编辑状态下大小写均有效。
+
+页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
+
+| 页面 | 底部展示顺序 |
+| --- | --- |
+| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings 非编辑时显示 H，展开 Claude preferences 后才显示 A。`/ search` 保留在 Filter 旁，也在未编辑的条目页底部显示。编辑时改为接受／取消／清空／删除提示；Esc 仍表示宿主焦点操作。忙碌与保存结果不明时只显示对应控制。快捷键按完整的“按键＋说明”换行；32×12 下缩短说明、减少详情行，保留选中项、基本操作和样例预览，必要时省略预览／重载／焦点等次要提示。
+
+Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
+
+### 预览背景与颜色
+
+编辑器跟随 Claude 实际应用的主题，包括浅色／深色、色弱及宿主支持的 auto／自定义主题。在 Settings 将 **Preview background (UI only)** 设为 `light` 或 `dark`，匹配终端背景的深浅；该选择独立于 Claude 主题，立即记住，丢弃配置编辑也会保留。默认沿用原来的深色预览。两种标准底色为 `#ffffff` 与 `#17191e`，编辑器不查询终端背景的精确 RGB。无色文字使用终端默认前景。标题显示所选背景及 Palette 或 Colors: off；颜色难以辨认时，可比较 `default` 与 `ansi`。样例保留生产 RGB 和终端 ANSI 色槽，保存只把显示配置应用到实际状态栏。Claude 主题草稿仍通过独立 Apply 生效。
+
+### 编辑器安装组合与兼容性
+
+没有已保存偏好时，`claude-statusline install` 默认启用两个入口。要明确选择组合：
+
+| 安装组合 | 命令 |
+| --- | --- |
+| 两个入口 | `claude-statusline install --native-editor --experimental-slash-tui` |
+| 仅会话内 Client | `claude-statusline install --native-editor --no-experimental-slash-tui` |
+| 仅外部 TUI | `claude-statusline install --no-native-editor --experimental-slash-tui` |
+| 基础接入，不安装两个 TUI 入口 | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
+
+Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。两组参数相互独立，`--experimental-slash-tui` 的历史名称继续保留。显式参数优先于已保存偏好，已保存偏好优先于默认值；用户在宿主中主动禁用的插件不会自动启用。
+
+| Claude Code 版本 | 外部 `/statusline-configure` | 会话内 `/statusline-configure-native` |
+| --- | --- | --- |
+| 2.1.287+ | 默认启用 | 默认启用 |
+| 2.1.258–2.1.286 | 默认启用 | 暂挂 |
+| 更低或版本无法识别 | 暂挂 | 暂挂 |
+
+表中默认仅适用于未明确关闭的入口。不兼容的入口不阻止基础安装或另一入口，显式启用也保留偏好并暂挂。升级或降级宿主后重新运行 `install` 和 `doctor`；支持恢复后按偏好重新接入，只有工具记录的暂挂才自动恢复。暂挂期间使用 `claude-statusline configure`、`claude-statusline config ...` 或 `/statusline-config` 向导；向导使用模型回合。
+
 ### macOS 鼠标报告与 Client 焦点
 
 2026-10-04 维护者提供了显示 Claude Code 2.1.289 的截图，并反馈 Linux、Windows 会话内 Client 可以正常操作；macOS 面板可以打开，但交互不正常，尚未找到并验证有效的鼠标配置。本次反馈针对 `/statusline-configure-native`；主状态栏与独立配置入口仍可使用。见[截图说明](images/archive/README.zh-CN.md#会话内-client-截图)与[验收记录](development/native.zh-CN.md#claude-code-21289-交互反馈)。
@@ -308,12 +318,6 @@ Terminal.app 用户可按以下步骤检查：
 **以上是检查建议，尚未在维护者反馈的 macOS 环境验证有效。** Apple 说明“允许鼠标报告”只允许事件传递给应用，应用本身还须启用鼠标报告；仅勾选菜单不能启用应用的鼠标报告行为，也不保证 Client 获得焦点。Apple 还列出 Command+R 为[切换此选项的快捷键](https://support.apple.com/zh-cn/guide/terminal/trmlshtcts/mac)，使用后应确认菜单实际状态。
 
 若使用 **iTerm2**，检查 **Settings → Profiles → Terminal → Enable mouse reporting** 和 **Report mouse clicks & drags**；后者需允许点击传递给应用，才能检查点击聚焦。按住 Option 会临时绕过鼠标报告，测试时应直接点击。见 [iTerm2 官方终端配置说明](https://iterm2.com/documentation-preferences-profiles-terminal.html)。这些 iTerm2 检查项同样尚未针对维护者反馈的问题验证。
-
-### 保存、冲突与恢复
-
-两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`R` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `K` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
-
-Claude 高级偏好独立 Apply；保存或 Finish 不隐式应用这些偏好。退出后继续原 session。完整开发与验收记录见[原生编辑器](development/native.zh-CN.md)。
 
 ## 独立交互式 TUI
 
@@ -484,6 +488,8 @@ claude-statusline config set number-format grouped
 claude-statusline config set threshold-colors on
 ```
 
+风险颜色默认关闭，警告 70%、严重 90%，始终按实际使用比例判断，包括显示剩余额度时。缺失观测保持不可用，零值保留，过期额度／重置数据隐藏。预设展开为普通可编辑配置，保留颜色、调色板、目录／分隔符风格、刷新选项及当前子 Agent 启用状态。
+
 ### 显式布局与子 Agent 显示条件
 
 `config layout auto` 保留原有折行。显式逗号分隔行必须按顺序展平为当前启用项目。`config item main|subagent ID OPTION VALUE` 修改标签、图标、优先级（0–100）、max-width（2–10000 或 none）或格式选项；inherit 清除文本／格式覆盖。显式布局先截短宽度，再隐藏低优先级项目；同级从右向左精简，不增加续行。
@@ -502,14 +508,16 @@ subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复
 
 ### 预设与可移植配置
 
-| 预设 | 适用场景 |
-| --- | --- |
-| minimal | 精简日常视图：模型、目录、上下文与任务时间。 |
-| developer | 仓库开发：Git、累计 token、任务时间和会话费用。 |
-| monitoring | 检查额度／重置窗口、缓存和会话统计；可选来源字段可能仍不可用。 |
-| multi-agent | 多代理协作：限制代理行与任务标签宽度，隐藏已完成行并保留失败。 |
-| left-right | 一行：模型／effort、Git、留白、剩余上下文 | status、name、留白、elapsed |
-| repeated-metrics | 同一输入 token 指标的完整／紧凑两份实例 | 默认五项 |
+| 预设 | 适用场景 | 主栏布局 | 子 Agent 默认 |
+| --- | --- | --- | --- |
+| `minimal` | 精简日常视图 | 自动：模型／effort、目录、上下文剩余、任务计时 | 原有五项 |
+| `developer` | Git、累计用量和会话费用 | 两行：模型／目录／Git；上下文剩余／tokens／计时／费用 | 原有五项 |
+| `monitoring` | 检查额度、重置、缓存和会话统计 | 三行：上下文／额度；重置／缓存／TTL；费用／时长／API 时长／请求／缓存未命中 | 原有五项 |
+| `multi-agent` | 有界代理行及任务标签 | 两行：模型／目录／Git；上下文剩余／tokens／计时 | 原有五项，隐藏 completed，最多六行，任务宽度 48 |
+| `left-right` | 左右分区 | 一行：模型／effort、Git、spacer、上下文剩余 | status、name、spacer、elapsed |
+| `repeated-metrics` | 比较同一指标的两种格式 | 两份输入 token 实例，分别为完整／紧凑格式 | 原有五项 |
+
+这些是六种原始预设；另有同时设置全局外观的[八套完整方案](SCHEMES.zh-CN.md)。展开后都可继续编辑，可选数据仍可能不可用。
 
 预设改变显示草稿，不开启采集；保留输出／界面语言和宿主设置，重建逐项覆盖，保存前可继续编辑。
 
@@ -537,15 +545,6 @@ Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操�
 
 Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。外部编辑器用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；padding／refresh 数字编辑用 Backspace 删除、Esc 恢复。在顶层按 Esc 时，有未保存的修改会显示确认页。选中**放弃更改并关闭**并按 Enter 即可退出。字段／路径输入期间 s/f/q 等普通字符只作为文本。
 
-| 预设 | 主状态栏布局 | 子 Agent 默认 |
-| --- | --- | --- |
-| minimal | 自动：模型／effort、目录、上下文剩余、任务计时 | 原有五项 |
-| developer | 两行：模型／目录／Git；上下文剩余／tokens／计时／会话费用 | 原有五项 |
-| monitoring | 三行：上下文／三种额度；两种重置／缓存状态／TTL；会话费用／时长／API 时长／请求／缓存未命中 | 原有五项 |
-| multi-agent | 两行：模型／目录／Git；上下文剩余／tokens／计时 | 原有五项，隐藏 completed，最多六个宿主行，任务宽度 48 |
-
-风险颜色默认关闭，警告 70%、严重 90%，始终按实际使用比例判断，包括显示剩余额度时。缺失观测保持不可用，零值保留，过期额度／重置数据隐藏。预设展开为普通可编辑配置，保留颜色、调色板、目录／分隔符风格、刷新选项及当前子 Agent 启用状态。
-
 ### Claude 宿主偏好独立应用
 
 在 Client Settings 按 `H`（Claude preferences）展开／收起 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
@@ -561,23 +560,9 @@ Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。外部
 
 外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。
 
-## 可选实时状态
+## 理解显示数据
 
-采集与显示选择是两个步骤。先启用独立采集器，再选择需要的字段：
-
-```text
-claude-statusline install --live-metrics
-claude-statusline config enable run-state permission-mode active-agents task-progress last-tool
-claude-statusline doctor
-```
-
-重启 Claude Code 加载采集器。其他采集条目为 `ttft`、`output-rate`、`prompt-input-tokens`、`prompt-output-tokens`、`prompt-cost`，通过任一编辑器或 `config enable` 选择。它们都不在默认启用集合中，实时采集需 Claude Code 2.1.289+，只启用编辑器不会开启采集。
-
-`claude-statusline install --no-live-metrics` 保留原先同时关闭计时和高级采集的选择；加上 `--native-timing` 可保留计时元数据。普通重装保留已保存选择。缺失实时观测显示 `—`，有限覆盖或最近观测可附 `*`。采集口径和请求覆盖见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)，采集问题见[运行诊断](development/live.zh-CN.md)。
-
-`branch-diff` 是独立的默认未选中项，数据来自本地 Git，无需原生采集器。使用 `claude-statusline config enable branch-diff` 选择，再通过 `claude-statusline config set branch-diff-base auto` 或安全的本地 Git ref 设置已提交分支比较。它不包含未提交工作树修改，也不 fetch 远程，详见[分支与已结束代理定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
-
-## 可配置显示项
+### 可配置显示项
 
 查询受支持的 ID 和当前启用状态：
 
@@ -597,7 +582,7 @@ claude-statusline config subagents list-items
 
 默认选择、宿主要求和缺值处理见[主栏显示项](DISPLAY_ITEMS.zh-CN.md#主栏显示项)和[子 Agent 显示项](DISPLAY_ITEMS.zh-CN.md#子-agent-显示项)。脚本查询见[目录命令](reference/cli.zh-CN.md#可配置显示项)。
 
-## 主状态栏显示含义
+### 主状态栏显示含义
 
 [Git 标记](DISPLAY_ITEMS.zh-CN.md#git-markers)与 [Token 字段](DISPLAY_ITEMS.zh-CN.md#token-fields)解释主栏各项含义。排查 `Git!` 时，见 [Git 故障排查](#git-信息缺失或显示-git)。
 
@@ -605,7 +590,7 @@ claude-statusline config subagents list-items
 <a id="任务计时"></a>
 <a id="prompt-计时标记"></a>
 
-### 任务总耗时与执行耗时
+#### 任务总耗时与执行耗时
 
 `task-timer` 显示任务总耗时，`task-active-timer` 显示执行耗时。详见[计时定义、标记与可用性](DISPLAY_ITEMS.zh-CN.md#timer-definitions)。
 
@@ -619,21 +604,39 @@ claude-statusline doctor
 
 改变采集器接入后重启 Claude Code。执行耗时仍未显示时，先检查 `doctor` 的接入结果，再按[执行耗时的观测要求](DISPLAY_ITEMS.zh-CN.md#timer-definitions)核对覆盖情况。
 
-## 子 Agent 行与三种作用域
+### 子 Agent 行与三种作用域
 
 子 Agent 行显示单个任务。理解主栏和代理行上的同名字段时，见[显示作用域](DISPLAY_ITEMS.zh-CN.md#display-scopes)。行缺失或被第三方接管时，见[子 Agent 行排查](#子-agent-行不显示或发生所有权冲突)。
 
-## 显示与宿主选项
+### 可选实时状态
+
+采集与显示选择是两个步骤。先启用独立采集器，再选择需要的字段：
+
+```text
+claude-statusline install --live-metrics
+claude-statusline config enable run-state permission-mode active-agents task-progress last-tool
+claude-statusline doctor
+```
+
+重启 Claude Code 加载采集器。其他采集条目为 `ttft`、`output-rate`、`prompt-input-tokens`、`prompt-output-tokens`、`prompt-cost`，通过任一编辑器或 `config enable` 选择。它们都不在默认启用集合中，实时采集需 Claude Code 2.1.289+，只启用编辑器不会开启采集。
+
+`claude-statusline install --no-live-metrics` 保留原先同时关闭计时和高级采集的选择；加上 `--native-timing` 可保留计时元数据。普通重装保留已保存选择。缺失实时观测显示 `—`，有限覆盖或最近观测可附 `*`。采集口径和请求覆盖见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)，采集问题见[运行诊断](development/live.zh-CN.md)。
+
+`branch-diff` 是独立的默认未选中项，数据来自本地 Git，无需原生采集器。使用 `claude-statusline config enable branch-diff` 选择，再通过 `claude-statusline config set branch-diff-base auto` 或安全的本地 Git ref 设置已提交分支比较。它不包含未提交工作树修改，也不 fetch 远程，详见[分支与已结束代理定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
+
+## 设置与配置文件
+
+### 显示与宿主选项
 
 通过 Settings 或 `config set OPTION VALUE` 调整外观、目录、分隔符、作用域标签、刷新和子 Agent 可见性。宿主选项 `padding`、`refresh-interval`、`hide-vim-mode-indicator` 要求当前接入归属本工具。完整值域与默认值见[选项参考](reference/cli.zh-CN.md#显示与宿主选项)。
 
 `refresh-interval event` 只随 Claude 事件刷新，运行中的计时器不会逐秒变化。使用 `claude-statusline config set refresh-interval 1` 恢复持续刷新。
 
-## 配置文件
+### 配置文件
 
 使用 CLI 或编辑器修改当前配置。显示设置和会话内 Client 偏好分别存放在 `claude-statusline.json` 和 `claude-statusline-native.json` 等文件。路径、格式及完整文件清单见[配置参考](reference/cli.zh-CN.md#配置文件)。恢复旧文件前查看[版本兼容步骤](#版本兼容)。
 
-## 自定义配置目录与环境变量
+### 自定义配置目录与环境变量
 
 管理命令使用 `--config-dir`；对于 `config`，该参数位于操作前：
 

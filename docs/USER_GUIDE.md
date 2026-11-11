@@ -28,10 +28,9 @@ The current distribution is the TypeScript npm package. Python installations can
 - [Requirements](#requirements)
 - [Installation and integration](#installation-and-integration)
 - [Choose a configuration entry point](#choose-a-configuration-entry-point)
-- [Interface language](#interface-language)
+- [Language and save behavior](#language-and-save-behavior)
 - [Find items and review imports](#find-items-and-review-imports)
 - [Component composition](#component-composition)
-- [Statusline language](#statusline-language)
 - [Native configuration editor](#native-configuration-editor)
 - [Standalone interactive TUI](#standalone-interactive-tui)
 - [External terminal `/statusline-configure`](#external-terminal-statusline-configure)
@@ -40,13 +39,8 @@ The current distribution is the TypeScript npm package. Python installations can
 - [Configuration recipes](#configuration-recipes)
 - [Formatting, layouts and presets](#formatting-layouts-and-presets)
 - [Unicode text and terminal widths](#unicode-text-and-terminal-widths)
-- [Opt-in live state](#opt-in-live-state)
-- [Configurable display items](#configurable-display-items)
-- [Main status line fields](#main-status-line-fields)
-- [Subagent rows and the three scopes](#subagent-rows-and-the-three-scopes)
-- [Display and host options](#display-and-host-options)
-- [Configuration files](#configuration-files)
-- [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
+- [Understand displayed data](#understand-displayed-data)
+- [Settings and configuration files](#settings-and-configuration-files)
 - [Upgrading](#upgrading)
 - [Uninstalling](#uninstalling)
 - [Backups and rollback](#backups-and-rollback)
@@ -156,11 +150,19 @@ For a reproducible workflow and versioned captures, see the [showcase](SHOWCASE.
 
 All entries share user settings. Two open editors keep separate drafts; a stale draft cannot overwrite a newer saved revision.
 
+## Language and save behavior
+
+| Setting | Affects | When saved | Cancelled with the display draft? |
+| --- | --- | --- | --- |
+| Interface language | CLI, editor and wizard messages | Immediately in Settings; `--language` overrides one invocation | No |
+| Statusline language | Built-in output labels, known states and samples | With display Save in an editor; explicit writes in CLI | Yes, for unsaved display changes |
+| Claude host preferences | Claude's own appearance and behavior | Separate Apply | No |
+
 <a id="native-editor-preview"></a>
 
 <a id="v130a2-external-tui-and-in-session-client"></a>
 
-## Interface language
+### Interface language
 
 Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-TW` (Traditional Chinese, Taiwan), `zh-HK` (Traditional Chinese, Hong Kong), `ja` (Japanese), `ko` (Korean), `es` (Spanish), `fr` (French), `de` (German), `pt-BR` (Brazilian Portuguese), `ru` (Russian), and `id` (Indonesian). Selection is explicit; system locale settings do not change it. Codes are case-sensitive; `pt-BR` is supported, while `pt` and `pt-br` are not aliases. Use Left/Right to cycle through this order. Existing `zh-Hant` arguments and saved preferences remain accepted as Taiwan. Reads leave files untouched; explicit saves and exports write `zh-TW`.
 
@@ -185,6 +187,24 @@ The preference is `<CLAUDE_CONFIG_DIR>/statusline-ui.json`, schema v1. Missing o
 
 Interface language does not change actual statusline samples/output. Model names, paths, branches, commands, IDs, configuration values and custom labels retain their identity. The model-based wizard reads the interface preference on each invocation and uses localized CLI descriptions; JSON catalogs retain English metadata and stable IDs.
 
+### Statusline language
+
+The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
+
+For example, keep the interface in Spanish and use Brazilian Portuguese for output. These explicit CLI writes save each setting independently:
+
+```text
+claude-statusline config language set es
+claude-statusline config set statusline-language pt-BR
+claude-statusline config show --json
+```
+
+This applies to the main line and all custom subagent rows. Translate built-in phrases and known lifecycle/permission/effort/cache/review values; preserve unknown values, user labels/icons, model names, paths, branches and task/tool names. Keep numbers, currency, `K/M`, `d/h/m/s`, `tok/s`, Git, PR and other technical units. A null label inherits a localized default; an empty label suppresses it; custom labels take precedence.
+
+`statusline_language` lives in display schema v17 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
+
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Then follow the steps for compatible configuration and matching native resources. [Version compatibility](#version-compatibility) · [Backups](#backups-and-rollback)
+
 <a id="item-discovery-import-review"></a>
 
 ## Find items and review imports
@@ -203,67 +223,9 @@ Interface language, collector switches and independent Claude preferences stay o
 
 Main and Subagents show configured instances. Native A (external Ctrl+A) opens the type picker, native D (external Ctrl+D) copies, and native X (external Ctrl+X) removes. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
 
-## Statusline language
-
-The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어 / Español / Français / Deutsch / Português (Brasil) / Русский / Bahasa Indonesia**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
-
-For example, keep the interface in Spanish and use Brazilian Portuguese for output. These explicit CLI writes save each setting independently:
-
-```text
-claude-statusline config language set es
-claude-statusline config set statusline-language pt-BR
-claude-statusline config show --json
-```
-
-This applies to the main line and all custom subagent rows. Translate built-in phrases and known lifecycle/permission/effort/cache/review values; preserve unknown values, user labels/icons, model names, paths, branches and task/tool names. Keep numbers, currency, `K/M`, `d/h/m/s`, `tok/s`, Git, PR and other technical units. A null label inherits a localized default; an empty label suppresses it; custom labels take precedence.
-
-`statusline_language` lives in display schema v17 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language. Full imports use the file's language; selective imports change it only when the display-language option is selected. Display reset restores English. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
-
-Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Then follow the steps for compatible configuration and matching native resources. [Version compatibility](#version-compatibility) · [Backups](#backups-and-rollback)
-
 ## Native configuration editor
 
 `/statusline-configure-native` opens Client inside the current Claude Code session without another terminal. It shares configuration, directory, catalog, exclusion rules and atomic saves with external `/statusline-configure`, while each editor keeps its draft. Stable defaults both entries on; restart Claude Code in a trusted terminal after installation.
-
-The editor follows Claude’s applied theme, including light/dark variants, color-blind themes and host-supported auto/custom themes. In Settings, set **Preview background (UI only)** to `light` or `dark` to match your terminal’s background type; this choice is independent of the Claude theme and is remembered immediately, even when you discard configuration edits. It defaults to the previous dark surface. The presets are `#ffffff` and `#17191e`; the editor does not query the terminal’s exact RGB background. Uncolored text uses the terminal foreground. The title shows the selected background and Palette or Colors: off. Compare `default` and `ansi` if a color is hard to read: production RGB colors and terminal ANSI slots are preserved, and saving applies only the selected display configuration to the actual status line. Theme edits in Claude preferences still use the separate Apply action.
-
-### Page hierarchy and pagination
-
-The theme-accent **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys use the current theme’s primary text color and bold weight; action descriptions are lowercase, use the theme’s inactive color and regular weight. Keys are judged by readability, not a fixed color. Letter shortcuts display uppercase and accept either case outside input editing.
-
-Page shortcuts appear in the footer, following the separate save/finish/close/preview group. Every page starts with `Tab page`:
-
-| Page | Footer order |
-| --- | --- |
-| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
-| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
-| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
-| Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
-
-Settings offers H outside editing and A only while Claude preferences are expanded. `/ search` remains beside Filter and also appears in the footer on idle item pages. Editing replaces ordinary shortcuts with accept/cancel/clear/delete; Esc remains a host focus action. Busy operations and unknown saves show their applicable controls. Complete hints wrap without splitting a key from its description. At 32×12, compact descriptions and fewer detail rows preserve selection, basic controls and a sample preview; secondary preview/reload/focus hints may be omitted.
-
-Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
-
-### Editor installation combinations and compatibility
-
-Without recorded preferences, `claude-statusline install` defaults both entries on. Choose an explicit combination:
-
-| Combination | Command |
-| --- | --- |
-| Both entries | `claude-statusline install --native-editor --experimental-slash-tui` |
-| In-session Client only | `claude-statusline install --native-editor --no-experimental-slash-tui` |
-| External TUI only | `claude-statusline install --no-native-editor --experimental-slash-tui` |
-| Basic integration without either TUI entry | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
-
-On Windows use `claude-statusline.cmd`. The two flag pairs are independent; the historical `--experimental-slash-tui` name remains. Explicit flags override recorded preferences, which override defaults. Plugins explicitly disabled through the host remain disabled.
-
-| Claude Code version | External `/statusline-configure` | In-session `/statusline-configure-native` |
-| --- | --- | --- |
-| 2.1.287+ | Default on | Default on |
-| 2.1.258–2.1.286 | Default on | Suspended |
-| Older or unrecognized | Suspended | Suspended |
-
-Defaults apply only to entries without recorded disablement. Unsupported entries do not block basic integration or the other entry; explicit enabling also retains the preference and suspends the affected entry. Rerun `install` and `doctor` after host upgrades/downgrades. Support restores the entry according to preference; only tool-recorded suspension is automatically reenabled. Meanwhile use `claude-statusline configure`, `claude-statusline config ...` or the `/statusline-config` wizard, which uses model turns.
 
 ### Opening, navigation and editing
 
@@ -289,6 +251,54 @@ During search or field editing printable characters are input and character shor
 
 Settings groups appearance, refresh/display behavior, Git metrics, formatting, risk colors, subagent visibility, presets/portable files and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
 
+### Saving, conflicts and recovery
+
+Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `R` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `K` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
+
+Advanced Claude preferences have separate Apply; Save/Finish does not implicitly apply them. Closing returns to the original session. See [native development and acceptance](development/native.md).
+
+### Page hierarchy and pagination
+
+The theme-accent **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys use the current theme’s primary text color and bold weight; action descriptions are lowercase, use the theme’s inactive color and regular weight. Keys are judged by readability, not a fixed color. Letter shortcuts display uppercase and accept either case outside input editing.
+
+Page shortcuts appear in the footer, following the separate save/finish/close/preview group. Every page starts with `Tab page`:
+
+| Page | Footer order |
+| --- | --- |
+| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings offers H outside editing and A only while Claude preferences are expanded. `/ search` remains beside Filter and also appears in the footer on idle item pages. Editing replaces ordinary shortcuts with accept/cancel/clear/delete; Esc remains a host focus action. Busy operations and unknown saves show their applicable controls. Complete hints wrap without splitting a key from its description. At 32×12, compact descriptions and fewer detail rows preserve selection, basic controls and a sample preview; secondary preview/reload/focus hints may be omitted.
+
+Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
+
+### Preview background and colors
+
+The editor follows Claude’s applied theme, including light/dark variants, color-blind themes and host-supported auto/custom themes. In Settings, set **Preview background (UI only)** to `light` or `dark` to match your terminal’s background type; this choice is independent of the Claude theme and is remembered immediately, even when you discard configuration edits. It defaults to the previous dark surface. The presets are `#ffffff` and `#17191e`; the editor does not query the terminal’s exact RGB background. Uncolored text uses the terminal foreground. The title shows the selected background and Palette or Colors: off. Compare `default` and `ansi` if a color is hard to read: production RGB colors and terminal ANSI slots are preserved, and saving applies only the selected display configuration to the actual status line. Theme edits in Claude preferences still use the separate Apply action.
+
+### Editor installation combinations and compatibility
+
+Without recorded preferences, `claude-statusline install` defaults both entries on. Choose an explicit combination:
+
+| Combination | Command |
+| --- | --- |
+| Both entries | `claude-statusline install --native-editor --experimental-slash-tui` |
+| In-session Client only | `claude-statusline install --native-editor --no-experimental-slash-tui` |
+| External TUI only | `claude-statusline install --no-native-editor --experimental-slash-tui` |
+| Basic integration without either TUI entry | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
+
+On Windows use `claude-statusline.cmd`. The two flag pairs are independent; the historical `--experimental-slash-tui` name remains. Explicit flags override recorded preferences, which override defaults. Plugins explicitly disabled through the host remain disabled.
+
+| Claude Code version | External `/statusline-configure` | In-session `/statusline-configure-native` |
+| --- | --- | --- |
+| 2.1.287+ | Default on | Default on |
+| 2.1.258–2.1.286 | Default on | Suspended |
+| Older or unrecognized | Suspended | Suspended |
+
+Defaults apply only to entries without recorded disablement. Unsupported entries do not block basic integration or the other entry; explicit enabling also retains the preference and suspends the affected entry. Rerun `install` and `doctor` after host upgrades/downgrades. Support restores the entry according to preference; only tool-recorded suspension is automatically reenabled. Meanwhile use `claude-statusline configure`, `claude-statusline config ...` or the `/statusline-config` wizard, which uses model turns.
+
 ### macOS mouse reporting and Client focus
 
 On 2026-10-04 the maintainer supplied screenshots showing Claude Code 2.1.289 and reported normal in-session Client interaction on Linux and Windows. On macOS the pane opens but interaction does not work correctly; a working mouse configuration has not been verified. This feedback concerns `/statusline-configure-native`. The main status line and standalone configuration entries remain available. See the [screenshots](images/archive/README.md#in-session-client-screenshots) and [acceptance record](development/native.md#claude-code-21289-interaction-report).
@@ -302,12 +312,6 @@ For Terminal.app, try these checks:
 **These are suggested checks, not a verified fix for the reported macOS environment.** Apple explains that Allow Mouse Reporting permits events to reach an application; the application must also enable mouse reporting. The menu setting alone does not activate that behavior or guarantee Client focus. Apple also lists Command+R as a [toggle for this setting](https://support.apple.com/guide/terminal/keyboard-shortcuts-trmlshtcts/mac); check the menu state after using it.
 
 If using **iTerm2**, check **Settings → Profiles → Terminal → Enable mouse reporting** and **Report mouse clicks & drags**. The latter must permit clicks to reach applications for a click-based focus check. Holding Option temporarily bypasses mouse reporting, so test with a plain click. See [iTerm2's official terminal profile documentation](https://iterm2.com/documentation-preferences-profiles-terminal.html). These iTerm2 checks have not been validated against the maintainer's reported problem.
-
-### Saving, conflicts and recovery
-
-Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `R` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `K` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
-
-Advanced Claude preferences have separate Apply; Save/Finish does not implicitly apply them. Closing returns to the original session. See [native development and acceptance](development/native.md).
 
 ## Standalone interactive TUI
 
@@ -494,6 +498,8 @@ claude-statusline config set number-format grouped
 claude-statusline config set threshold-colors on
 ```
 
+Risk colors default off, with warning 70% and critical 90%. Colors use actual utilization even when an allowance displays remaining balance. Missing observations stay unavailable, zero remains zero, and expired allowance/reset data is suppressed. Preset fields become normal editable configuration; colors, palette, directory/separator style, refresh and current subagent enablement are retained.
+
 ### Explicit layout and subagent visibility
 
 `config layout auto` retains legacy wrapping. Explicit comma-separated rows must flatten to the current item selection in order. `config item main|subagent ID OPTION VALUE` changes label, icon, priority (0–100), max-width (2–10000 or none), or a formatting choice; inherit clears a text/format override. Explicit rows truncate item widths before dropping low priorities, rightmost first on ties, and never add continuation rows.
@@ -512,14 +518,16 @@ subagent-visibility accepts all/running. Row/task limits accept none to restore 
 
 ### Presets and portable configuration
 
-| Preset | Intended use |
-| --- | --- |
-| minimal | A compact everyday view with model, directory, context and task time. |
-| developer | Repository work with Git, cumulative tokens, task time and session cost. |
-| monitoring | Inspect quota/reset windows, cache state and session accounting; optional source fields may remain unavailable. |
-| multi-agent | Multi-agent work with bounded agent rows and task labels; hide completed rows while retaining failures. |
-| left-right | One row: model/effort, Git, spacer, context remaining | status, name, spacer, elapsed |
-| repeated-metrics | Two instances of input tokens, full and compact | Existing five items |
+| Preset | Choose it for | Main layout | Subagent defaults |
+| --- | --- | --- | --- |
+| `minimal` | A compact everyday view | Auto: model/effort, directory, context remaining, task timer | Existing five items |
+| `developer` | Git, cumulative usage and session cost | Two rows: model/directory/Git; context remaining/tokens/timer/cost | Existing five items |
+| `monitoring` | Quotas, resets, cache and session accounting | Three rows: context/allowances; resets/cache/TTL; cost/duration/API duration/requests/cache misses | Existing five items |
+| `multi-agent` | Bounded agent rows and task labels | Two rows: model/directory/Git; context remaining/tokens/timer | Existing five items, hide completed, up to six rows, task width 48 |
+| `left-right` | Left/right placement | One row: model/effort, Git, spacer, context remaining | status, name, spacer, elapsed |
+| `repeated-metrics` | Comparing two formats of one metric | Two input-token instances, full and compact | Existing five items |
+
+These are the six original presets. The [eight complete schemes](SCHEMES.md) also set global appearance. Both expand into editable configuration; optional data may remain unavailable.
 
 Presets change display drafts, not collector enablement. They preserve output/interface language and host settings, rebuild item overrides, and remain editable before saving.
 
@@ -547,15 +555,6 @@ While a save is pending or unknown, both editors block display-draft mutations, 
 
 Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In the external editor, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Backspace edits padding/refresh numbers and Esc restores the previous value. At the top level, Esc asks before discarding unsaved changes. Select **Discard changes and close** and press Enter to leave. During field/path editing ordinary characters, including s/f/q, remain input.
 
-| Preset | Main layout | Subagent defaults |
-| --- | --- | --- |
-| minimal | Auto: model/effort, directory, context remaining, task timer | Existing five items |
-| developer | Two rows: model/directory/Git; context remaining/tokens/timer/session cost | Existing five items |
-| monitoring | Three rows: context/three allowances; two resets/cache state/TTL; session cost/duration/API duration/requests/cache misses | Existing five items |
-| multi-agent | Two rows: model/directory/Git; context remaining/tokens/timer | Existing five items, hide completed, up to six host rows, task width 48 |
-
-Risk colors default off, with warning 70% and critical 90%. Colors use actual utilization even when an allowance displays remaining balance. Missing observations stay unavailable, zero remains zero, and expired allowance/reset data is suppressed. Preset fields become normal editable configuration; colors, palette, directory/separator style, refresh and current subagent enablement are retained.
-
 ### Claude preferences apply separately
 
 In Client Settings press `H` (Claude preferences) to show or hide Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
@@ -571,23 +570,9 @@ Wrapping, truncation and editor previews keep extended grapheme clusters togethe
 
 On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.
 
-## Opt-in live state
+## Understand displayed data
 
-Collection and display selection are separate steps. Enable the independent collector, then select the fields you want:
-
-```text
-claude-statusline install --live-metrics
-claude-statusline config enable run-state permission-mode active-agents task-progress last-tool
-claude-statusline doctor
-```
-
-Restart Claude Code to load collection. Additional collected items are `ttft`, `output-rate`, `prompt-input-tokens`, `prompt-output-tokens`, and `prompt-cost`. Use either editor or `config enable` to select them. They are all off in the default item selection; live collection requires Claude Code 2.1.289+ and does not turn on with an editor alone.
-
-`claude-statusline install --no-live-metrics` preserves the legacy choice to disable both timing and advanced collection. Add `--native-timing` to retain timing metadata. Ordinary reinstall preserves saved choices. Missing live observations show `—`; limited coverage or recent observations can carry `*`. [Metric definitions](DISPLAY_ITEMS.md#live-state-items) explain per-field collection and request coverage; [runtime diagnostics](development/live.md) cover collection problems.
-
-`branch-diff` is a separate default-off item backed by local Git and works without the native collector. Select it with `claude-statusline config enable branch-diff`, and configure committed branch comparison with `claude-statusline config set branch-diff-base auto` or a safe local Git ref. It excludes uncommitted worktree edits and does not fetch remotes. [Branch and ended-agent definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
-
-## Configurable display items
+### Configurable display items
 
 Use the catalog to inspect supported IDs and current enablement:
 
@@ -607,7 +592,7 @@ Select items in an editor or enable them by ID. These optional main items cover 
 
 For defaults, host requirements and unavailable data, see the [main items](DISPLAY_ITEMS.md#main-items) and [subagent items](DISPLAY_ITEMS.md#subagent-items). For scripting, see [catalog commands](reference/cli.md#configurable-display-items).
 
-## Main status line fields
+### Main status line fields
 
 To interpret the main line, see [Git markers](DISPLAY_ITEMS.md#git-markers) and [token fields](DISPLAY_ITEMS.md#token-fields). To investigate `Git!`, use the [Git troubleshooting steps](#git-information-is-missing-or-shows-git).
 
@@ -616,7 +601,7 @@ To interpret the main line, see [Git markers](DISPLAY_ITEMS.md#git-markers) and 
 <a id="prompt-timing-markers"></a>
 <a id="prompt-计时标记"></a>
 
-### Task total and execution time
+#### Task total and execution time
 
 Use `task-timer` for total task time and `task-active-timer` for execution time. See the [clock definitions, markers and availability](DISPLAY_ITEMS.md#timer-definitions).
 
@@ -632,21 +617,39 @@ Restart Claude Code after changing collector integration. If execution time is s
 
 <a id="子-agent-行与三种作用域"></a>
 
-## Subagent rows and the three scopes
+### Subagent rows and the three scopes
 
 Each subagent row shows one task. See [display scopes](DISPLAY_ITEMS.md#display-scopes) for how fields with the same name differ between the main line and subagent rows. For missing rows or a third-party override, see [subagent troubleshooting](#subagent-rows-are-missing-or-ownership-conflicts-occur).
 
-## Display and host options
+### Opt-in live state
+
+Collection and display selection are separate steps. Enable the independent collector, then select the fields you want:
+
+```text
+claude-statusline install --live-metrics
+claude-statusline config enable run-state permission-mode active-agents task-progress last-tool
+claude-statusline doctor
+```
+
+Restart Claude Code to load collection. Additional collected items are `ttft`, `output-rate`, `prompt-input-tokens`, `prompt-output-tokens`, and `prompt-cost`. Use either editor or `config enable` to select them. They are all off in the default item selection; live collection requires Claude Code 2.1.289+ and does not turn on with an editor alone.
+
+`claude-statusline install --no-live-metrics` preserves the legacy choice to disable both timing and advanced collection. Add `--native-timing` to retain timing metadata. Ordinary reinstall preserves saved choices. Missing live observations show `—`; limited coverage or recent observations can carry `*`. [Metric definitions](DISPLAY_ITEMS.md#live-state-items) explain per-field collection and request coverage; [runtime diagnostics](development/live.md) cover collection problems.
+
+`branch-diff` is a separate default-off item backed by local Git and works without the native collector. Select it with `claude-statusline config enable branch-diff`, and configure committed branch comparison with `claude-statusline config set branch-diff-base auto` or a safe local Git ref. It excludes uncommitted worktree edits and does not fetch remotes. [Branch and ended-agent definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
+
+## Settings and configuration files
+
+### Display and host options
 
 Use Settings or `config set OPTION VALUE` for appearance, directory styles, separators, scope labels, refresh, and subagent visibility. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` require installation ownership. Full values and defaults are in the [option reference](reference/cli.md#display-and-host-options).
 
 `refresh-interval event` refreshes only on Claude events; a running timer will not change each second. Restore continuous updates with `claude-statusline config set refresh-interval 1`.
 
-## Configuration files
+### Configuration files
 
 Use the CLI or an editor to change the active configuration. Display choices and the in-session Client preference use separate files, including `claude-statusline.json` and `claude-statusline-native.json`. For paths, schemas and the complete file list, use the [configuration reference](reference/cli.md#configuration-files). Before restoring an older file, check the [version compatibility steps](#version-compatibility).
 
-## Custom configuration directory and environment variables
+### Custom configuration directory and environment variables
 
 For management commands use `--config-dir`; with `config`, put it before the action:
 

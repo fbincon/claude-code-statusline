@@ -2,11 +2,59 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/history/migration/post-migration-fixes.md).
-
 The catalog contains 65 main metrics and 15 subagent metrics. The tables list defaults and common definitions. Use `config list-items --json` and `config subagents list-items --json` for all IDs. `prompt-timer` is a compatibility alias for `task-timer`. Main compounds can coexist with independent items. Subagent `status-elapsed` excludes `status` and `elapsed`. [Configure display items](USER_GUIDE.md#configurable-display-items)
 
 Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
+
+## Contents
+
+- [Main, session and subagent scope](#main-session-and-subagent-scope)
+- [Availability and freshness](#availability-and-freshness)
+- [Main items](#main-items)
+- [Subagent items](#subagent-items)
+- [Composition components](#composition-components)
+- [Optional external components](#optional-external-components)
+- [Git markers](#git-markers)
+- [Committed branch comparison](#committed-branch-comparison)
+- [Token fields](#token-fields)
+- [Quotas, resets and cache](#quotas-resets-and-cache)
+- [Task clocks and markers](#task-clocks-and-markers)
+- [Session cost rate](#session-cost-rate)
+- [Live state items](#live-state-items)
+- [Request coverage and SDK fallback](#request-coverage-and-sdk-fallback)
+- [Configuration and downgrade](#configuration-and-downgrade)
+- [Definition and history references](#definition-and-history-references)
+
+<a id="display-scopes"></a>
+
+## Main, session and subagent scope
+
+A default subagent row looks like this.
+
+```text
+⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
+```
+
+| Scope | Data shown |
+| --- | --- |
+| Main line | The global bottom line keeps the main session scope. With `scope-labels=when-subagents`, it displays a scope label such as `Main/Session` or `主会话` after the task is observed to have launched subagents. |
+| Session usage | Main-line `tokens` reports cumulative API usage for the session, including discoverable main and subagent transcripts. |
+| Individual subagent | Host fields come from the corresponding task in `tasks[]`. The row's `tokens` uses that task's `tokenCount` and describes its current context occupancy. |
+
+When you view a subagent transcript, the host payload omits `focused_agent` and `viewing_task_id`. Rendering uses the supplied session and task identities. See [subagent items](#subagent-items) for field defaults and [ended agents](#branch-base-and-ended-agents) for frozen durations.
+
+<a id="clocks-availability-and-scope"></a>
+
+## Availability and freshness
+
+- Missing, malformed, negative and non-finite values are unavailable, not zero.
+  Observed zero cost, duration or line counts render explicitly. New token counts
+  require nonnegative integers and window capacities must be positive.
+
+- Text is sanitized before terminal rendering. Existing palettes, separators,
+  scope labels and width handling apply to the new items and deterministic previews.
+
+Observed zero, missing data, partial coverage, stale data and errors are distinct states. Per-metric sections explain their markers and collection requirements.
 
 ## Main items
 
@@ -115,6 +163,28 @@ Subagent rows require Claude Code 2.1.205+. Each field uses the current task's d
 | `context-tokens` | Off | `tasks.tokenCount` versus `tasks.contextWindowSize`. |
 | `context-window-size` | Off | Resolved `tasks.contextWindowSize`. |
 
+### Ended-agent durations
+
+Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
+
+## Composition components
+
+Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
+These two composition types bring the catalog to 67 main and 17 subagent types;
+the 65 main and 15 subagent observation types and existing defaults are retained.
+Add them with the instance controls or `config instance main add text --text "Project"`.
+Main spacers require explicit rows; each main row and subagent template accepts one spacer.
+
+## Optional external components
+
+Register and enable sources locally using the [extensions guide](EXTENSIONS.md). None is selected by default.
+
+| ID | Scope | Meaning |
+| --- | --- | --- |
+| `external-value` | Main / subagent | Scalar from an explicitly bound JSON or command source, with freshness and failure markers. |
+| `github-pr` | Main | Explicitly refreshed GitHub PR; separate from host `pr`. |
+| `github-ci` | Main | GitHub check summary; no checks or unknown results do not mean success. |
+
 ## Git markers
 
 The `git` item uses these compact markers:
@@ -134,6 +204,14 @@ A clean repository synchronized with upstream shows only its branch name. Detach
 
 The `git` compound and `git-branch`, `git-changes` and `git-ahead-behind` share a worktree observation. `branch-diff` queries committed branch differences separately. Inspect `doctor` for the filter-policy result when collection is blocked. [Git collection policy](DIAGNOSTICS.md#git-collection-policy)
 
+<a id="branch-base-and-ended-agents"></a>
+
+## Committed branch comparison
+
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`. Both editors expose the same nullable Metrics field. Missing refs or merge-bases, unavailable shallow history and timeouts display `Diff —`.
+
+For frozen completed-agent times, see [ended-agent durations](#ended-agent-durations).
+
 ## Token fields
 
 `tokens` breaks cumulative API usage in the [session scope](#display-scopes) into three counts.
@@ -146,23 +224,27 @@ Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. Separate items 
 
 The host payload's `prompt-cache` hit ratio and write count describe the main conversation.
 
-<a id="display-scopes"></a>
+Cumulative input/output use the existing cost-state snapshot plus transcript deltas, message-ID deduplication and main/nested-agent scope. They sum integers before abbreviation; current-context fields are not cumulative counters. No valid recorded usage means unavailable; an observed all-zero response shows zero. The formatted collector interface remains unchanged; raw snapshots require no additional I/O.
 
-## Main, session and subagent scope
+Input and output availability are independent: an output-only observation does not imply zero input. Partial cumulative snapshots retain the other counter's known total and apply each counter's subsequent main/subagent delta from its own snapshot. Older cached sessions recover availability once from available transcripts without recounting message IDs.
 
-A default subagent row looks like this.
+## Quotas, resets and cache
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
+### Quota and reset windows
 
-| Scope | Data shown |
-| --- | --- |
-| Main line | The global bottom line keeps the main session scope. With `scope-labels=when-subagents`, it displays a scope label such as `Main/Session` or `主会话` after the task is observed to have launched subagents. |
-| Session usage | Main-line `tokens` reports cumulative API usage for the session, including discoverable main and subagent transcripts. |
-| Individual subagent | Host fields come from the corresponding task in `tasks[]`. The row's `tokens` uses that task's `tokenCount` and describes its current context occupancy. |
+Gateway dollar/period fields require both Claude Code and gateway 2.1.284+. They can be absent, including when nonessential traffic is disabled. Amounts are estimates collected separately, potentially about five minutes behind percentage updates; never derive one from the other. Expired windows hide all their fields.
 
-When you view a subagent transcript, the host payload omits `focused_agent` and `viewing_task_id`. Rendering uses the supplied session and task identities. See [subagent items](#subagent-items) for field defaults and [ended agents](#branch-base-and-ended-agents) for frozen durations.
+- Reset timestamps are Unix epoch **seconds**. A refresh captures one clock for
+  all countdowns. Future fractions round up to a second; displays use seconds,
+  minutes/seconds, hours/minutes or days/hours. At expiry the old allowance and
+  its countdown disappear. Legacy percentage payloads without timestamps remain readable.
+
+- Countdown updates follow the host's existing refresh interval. `event` refresh
+  updates on events rather than continuously; enabling an item does not change that setting.
+
+### Cache observations
+
+Main-conversation cache statistics include requests and misses. Cache warmth describes the local TTL observation. The server determines whether the next request hits. Hosts from 2.1.260 can provide detailed miss reasons.
 
 <a id="timer-definitions"></a>
 
@@ -206,76 +288,6 @@ Execution time is omitted when task or wait observations are incomplete, wait bo
 
 Background-agent reports can have different host prompt IDs; explicit ownership retains the original human task. Local shortcuts such as `/statusline-config show` do not start a new timed task. Hiding `tokens` still permits task timing.
 
-## Clocks, availability and scope
-
-Gateway dollar/period fields require both Claude Code and gateway 2.1.284+. They can be absent, including when nonessential traffic is disabled. Amounts are estimates collected separately, potentially about five minutes behind percentage updates; never derive one from the other. Expired windows hide all their fields.
-
-Cumulative input/output use the existing cost-state snapshot plus transcript deltas, message-ID deduplication and main/nested-agent scope. They sum integers before abbreviation; current-context fields are not cumulative counters. No valid recorded usage means unavailable; an observed all-zero response shows zero. The formatted collector interface remains unchanged; raw snapshots require no additional I/O.
-
-Input and output availability are independent: an output-only observation does not imply zero input. Partial cumulative snapshots retain the other counter's known total and apply each counter's subsequent main/subagent delta from its own snapshot. Older cached sessions recover availability once from available transcripts without recounting message IDs.
-
-Main-conversation cache statistics include requests and misses. Cache warmth describes the local TTL observation. The server determines whether the next request hits. Hosts from 2.1.260 can provide detailed miss reasons.
-
-- Reset timestamps are Unix epoch **seconds**. A refresh captures one clock for
-  all countdowns. Future fractions round up to a second; displays use seconds,
-  minutes/seconds, hours/minutes or days/hours. At expiry the old allowance and
-  its countdown disappear. Legacy percentage payloads without timestamps remain readable.
-- Countdown updates follow the host's existing refresh interval. `event` refresh
-  updates on events rather than continuously; enabling an item does not change that setting.
-- Missing, malformed, negative and non-finite values are unavailable, not zero.
-  Observed zero cost, duration or line counts render explicitly. New token counts
-  require nonnegative integers and window capacities must be positive.
-- Text is sanitized before terminal rendering. Existing palettes, separators,
-  scope labels and width handling apply to the new items and deterministic previews.
-
-Definitions follow the [official Claude Code statusline fields](https://code.claude.com/docs/en/statusline).
-Independent and compound model selections also follow the useful selection pattern
-documented in [Codex's status-line picker](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline).
-
-## Configuration and downgrade
-
-For example, replace the main selection with independent metrics:
-
-```text
-claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
-```
-
-CLI listings and JSON `describe` return the shared catalog. Minimum-version metadata records verified host boundaries. Field availability also depends on the payload. Before downgrading, check the target package's item and format support and prepare a compatible backup. [Configuration formats](reference/cli.md#configuration-files) · [Version compatibility](USER_GUIDE.md#version-compatibility)
-
-## Live state items
-
-The five Phase 5 items default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. Queued prompts, old epochs and agent events do not overwrite a new main task; terminal history is retained separately from heartbeat freshness. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).
-
-## Branch base and ended agents
-
-Use `config set branch-diff-base auto` or `config set branch-diff-base REF`. Both editors expose the same nullable Metrics field. Missing refs or merge-bases, unavailable shallow history and timeouts display `Diff —`.
-
-Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
-
-## Request coverage and SDK fallback
-
-All request items default unselected. Missing observations render `—`; exact zero remains visible and incomplete task coverage adds `*`. A native ref-bearing content block supplies TTFT. Successful requests require official stop usage; synthesized chunks without engine references cannot supply counters. Running totals are partial until completion, sequence coverage and each turn reconciliation agree.
-
-Claude Code 2.1.289 headless paths may omit prompt identity events. Only one completed existing lifecycle interval containing a main turn start can bind it; overlapping or unfinished windows remain unowned. Spawn identities then resolve nested loops, without writing timer state or matching prompt text. SDK live state may stay unavailable until this evidence arrives. Without existing collector telemetry, prompt-cost remains unavailable; no model-price or session-cost delta fallback is used.
-
-## Composition components
-
-Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
-These two composition types bring the catalog to 67 main and 17 subagent types;
-the 65 main and 15 subagent observation types and existing defaults are retained.
-Add them with the instance controls or `config instance main add text --text "Project"`.
-Main spacers require explicit rows; each main row and subagent template accepts one spacer.
-
-## Optional external components
-
-Register and enable sources locally using the [extensions guide](EXTENSIONS.md). None is selected by default.
-
-| ID | Scope | Meaning |
-| --- | --- | --- |
-| `external-value` | Main / subagent | Scalar from an explicitly bound JSON or command source, with freshness and failure markers. |
-| `github-pr` | Main | Explicitly refreshed GitHub PR; separate from host `pr`. |
-| `github-ci` | Main | GitHub check summary; no checks or unknown results do not mean success. |
-
 ## Session cost rate
 
 `session-cost-rate` is optional and unselected by default. Choose its **Cost rate denominator** in either editor: session time (default) or cumulative API time. The CLI uses:
@@ -288,3 +300,31 @@ claude-statusline config instance main set session-cost-rate cost-rate-basis api
 For an instance created with Add/Copy, substitute its returned instance ID. Each copy retains its own denominator. The formula is `total_cost_usd / (duration_ms / 3600000)`, using `cost.total_duration_ms` or `cost.total_api_duration_ms`. The chosen duration must be at least 60,000 ms. Missing, negative, nonfinite values, zero duration and shorter windows hide the rate; zero observed cost over sufficient time displays zero. Only the chosen duration is required.
 
 For $2 over one session hour or ten API minutes, the respective estimates are `~$2.00/h (session)` and `~$12.00/h (API)`. The estimate marker and denominator remain in the value when labels are disabled. API time is cumulative request duration, independent of `task-active-timer`. This is a derived session estimate, not an invoice or prediction. It needs no additional collector, price table or network source. Preview uses fixed observations; saves, copies, profiles and portable exports retain the selected basis.
+
+## Live state items
+
+`run-state`, `permission-mode`, `active-agents`, `task-progress` and `last-tool` default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. Queued prompts, old epochs and agent events do not overwrite a new main task; terminal history is retained separately from heartbeat freshness. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).
+
+## Request coverage and SDK fallback
+
+All request items default unselected. Missing observations render `—`; exact zero remains visible and incomplete task coverage adds `*`. A native ref-bearing content block supplies TTFT. Successful requests require official stop usage; synthesized chunks without engine references cannot supply counters. Running totals are partial until completion, sequence coverage and each turn reconciliation agree.
+
+Claude Code 2.1.289 headless paths may omit prompt identity events. Only one completed existing lifecycle interval containing a main turn start can bind it; overlapping or unfinished windows remain unowned. Spawn identities then resolve nested loops, without writing timer state or matching prompt text. SDK live state may stay unavailable until this evidence arrives. Without existing collector telemetry, prompt-cost remains unavailable; no model-price or session-cost delta fallback is used.
+
+## Configuration and downgrade
+
+For example, replace the main selection with independent metrics:
+
+```text
+claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
+```
+
+CLI listings and JSON `describe` return the shared catalog. Minimum-version metadata records verified host boundaries. Field availability also depends on the payload. Before downgrading, check the target package's item and format support and prepare a compatible backup. [Configuration formats](reference/cli.md#configuration-files) · [Version compatibility](USER_GUIDE.md#version-compatibility)
+
+## Definition and history references
+
+Definitions follow the [official Claude Code statusline fields](https://code.claude.com/docs/en/statusline).
+Independent and compound model selections also follow the useful selection pattern
+documented in [Codex's status-line picker](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline).
+
+Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/history/migration/post-migration-fixes.md).

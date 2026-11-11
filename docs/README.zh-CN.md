@@ -15,6 +15,7 @@
 | 目标 | 指南 |
 | --- | --- |
 | 选择编辑器、问答向导或 CLI | [配置入口](USER_GUIDE.zh-CN.md#选择配置入口) · [CLI 参考](reference/cli.zh-CN.md) |
+| 选择界面或输出语言 | [语言与保存行为](USER_GUIDE.zh-CN.md#语言与保存行为) |
 | 编排状态栏 | [配置配方](USER_GUIDE.zh-CN.md#常用配置配方) · [完整方案](SCHEMES.zh-CN.md) · [外观](APPEARANCE.zh-CN.md) · [组件与布局](COMPOSITION.zh-CN.md) |
 | 跨项目复用设置 | [方案与项目绑定](PROFILES.zh-CN.md) · [草稿历史与复用](DRAFT_HISTORY.zh-CN.md) |
 | 理解指标、任务和可选数据 | [指标定义](DISPLAY_ITEMS.zh-CN.md) · [任务详情](TASK_DETAILS.zh-CN.md) · [扩展](EXTENSIONS.zh-CN.md) |

@@ -6,6 +6,18 @@ Extensions are optional. A display component refers to a locally registered sour
 adding a component, importing a scheme or selecting a project never enables a
 source. External values do not contribute to task, token or cost totals.
 
+## Registration, enablement, binding and execution
+
+| Action | Effect |
+| --- | --- |
+| Register/edit | Save a disabled local definition for review |
+| Review and enable | Authorize the exact source revision; this alone starts no command or GitHub request |
+| Bind a component | Associate a compatible display instance; editor bindings follow display-draft Save |
+| Refresh manually | Explicitly start or join one bounded job |
+| Review an automatic policy | Separately permit interval-based refresh for eligible active sessions, independently of display Save |
+
+Scheme imports and project bindings cannot grant these permissions.
+
 ## Configure with either editor
 
 Open **Settings → Data sources**, or press **Ctrl+Y** outside a text field. Choose
@@ -201,7 +213,15 @@ separate, and obsolete source revisions or context identities cannot publish res
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
 `source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest through completion or publication of the original deadline's timeout result. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
 
-## Freshness, sharing and links
+## Automatic command execution
+
+Enable and review the exact command first, then separately review automatic execution with the same `auto-on` entry shown above. Automatic command permission defaults off. Its initial interval is **300 seconds**, adjustable from 60 through 86400 seconds, independently of `ttl_seconds`. Source edits revoke both old execution and automatic permission; reading an old registry never grants permission.
+
+The runtime Mod renews five-second leases expiring after fifteen seconds. Confirmed projects, sessions and local agents supply only the reviewed input mappings; unknown agent/project ownership waits instead of guessing. No daemon is installed. Each command source runs serially. Identical actual inputs share a job; distinct contexts rotate fairly and keep independent results. Busy ticks are skipped rather than queued for catch-up. Temporary failures back off exponentially; missing executables, malformed output and configuration/identity failures pause until successful manual retry or renewed review. Late results cannot publish into an edited source.
+
+<a id="freshness-sharing-and-links"></a>
+
+## Freshness and sharing
 
 Expiration defaults to 300 seconds and can be configured from 1 to 86400 seconds.
 Old values may remain visible after expiration or failure, with a leading status
@@ -217,6 +237,8 @@ under the selected Claude configuration directory; private observation/job files
 are under `statusline_runtime/sources`. Normal configuration recovery also covers
 the source registry. Do not place credentials in source definitions.
 
+## Links
+
 In supported component details, **Links** offers `off` (default), `auto` and `on`.
 Current directory, project name, host PR, GitHub PR/CI and subagent directory can
 link to validated HTTP(S) URLs or local files. Missing targets retain plain text.
@@ -229,13 +251,6 @@ labels when its host does not expose hyperlink rendering. Actual click behavior
 also depends on Claude Code and the terminal, as explained in the
 [official status-line documentation](https://code.claude.com/docs/en/statusline#osc-8-links-not-clickable).
 
-The current interfaces are display schema 17, editor protocol 31, source registry
-3, source jobs 4 and source observations 1. Older display configurations remain
-readable without automatic rewriting; saving uses the current schema. Older jobs
-1–3 remain readable, with absent execution diagnostics treated as unknown.
-Reinstall integration when frontend/backend versions differ. Runtime, task
-lifecycle, portable envelope and profile collection versions evolve independently.
-
 ## Readable operations and saved check details
 
 **Inspect source and observations** and `source diagnose ID` share a readable summary: enablement, automatic policy, waiting/running/backoff/pause, current observation failure and freshness, last success, next attempt and context ownership. The newest bounded job summaries include exit status, duration and sanitized output; missing old-record information remains unknown. `--json` and the advanced JSON action expose structured details. A recent successful value can remain within TTL after a failed attempt; the failure remains visible independently of freshness.
@@ -243,12 +258,6 @@ lifecycle, portable envelope and profile collection versions evolve independentl
 GitHub check details retain observed names, state and validated HTTP(S) links, repository, branch, HEAD and capture time. Arrow keys paginate saved observations in groups of sixteen. Opening a page never queries GitHub. Unknown, missing, cancelled, skipped and expired checks keep their meanings; retained details from an earlier success retain their original time.
 
 **Cancel running refresh** cancels the current job. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
-
-## Automatic command execution
-
-Enable and review the exact command first, then separately review automatic execution with the same `auto-on` entry shown above. Automatic command permission defaults off. Its initial interval is **300 seconds**, adjustable from 60 through 86400 seconds, independently of `ttl_seconds`. Source edits revoke both old execution and automatic permission; reading an old registry never grants permission.
-
-The runtime Mod renews five-second leases expiring after fifteen seconds. Confirmed projects, sessions and local agents supply only the reviewed input mappings; unknown agent/project ownership waits instead of guessing. No daemon is installed. Each command source runs serially. Identical actual inputs share a job; distinct contexts rotate fairly and keep independent results. Busy ticks are skipped rather than queued for catch-up. Temporary failures back off exponentially; missing executables, malformed output and configuration/identity failures pause until successful manual retry or renewed review. Late results cannot publish into an edited source.
 
 ## Binding inventory and cleanup
 
@@ -265,3 +274,12 @@ Use the inventory's current revision and inspect references first. A crashed edi
 The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all references under lock and refuses used/uncertain records. Clear component references in the editor, then prefer the reviewed binding-cleanup flow.
 
 [Installed source-page captures](images/source-command-package/README.md) illustrate the separate state and approval controls.
+
+## Interface compatibility
+
+The current interfaces are display schema 17, editor protocol 31, source registry
+3, source jobs 4 and source observations 1. Older display configurations remain
+readable without automatic rewriting; saving uses the current schema. Older jobs
+1–3 remain readable, with absent execution diagnostics treated as unknown.
+Reinstall integration when frontend/backend versions differ. Runtime, task
+lifecycle, portable envelope and profile collection versions evolve independently.

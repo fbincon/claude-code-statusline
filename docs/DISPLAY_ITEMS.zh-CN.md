@@ -2,11 +2,57 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/history/migration/post-migration-fixes.zh-CN.md)。
-
 目录包含 65 个主栏指标和 15 个子 Agent 指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子 Agent 的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
+
+## 文档导航
+
+- [主栏、会话和子 Agent 的作用域](#主栏会话和子-agent-的作用域)
+- [可用性与新鲜度](#可用性与新鲜度)
+- [主栏显示项](#主栏显示项)
+- [子 Agent 显示项](#子-agent-显示项)
+- [布局组件](#布局组件)
+- [可选外部组件](#可选外部组件)
+- [Git 标记](#git-标记)
+- [已提交分支比较](#已提交分支比较)
+- [Token 含义](#token-含义)
+- [额度、重置与缓存](#额度重置与缓存)
+- [任务时钟与标记](#任务时钟与标记)
+- [会话费用速率](#会话费用速率)
+- [实时状态项](#实时状态项)
+- [请求覆盖与 SDK 回退](#请求覆盖与-sdk-回退)
+- [配置与降级](#配置与降级)
+- [定义与历史参考](#定义与历史参考)
+
+<a id="display-scopes"></a>
+
+## 主栏、会话和子 Agent 的作用域
+
+默认子 Agent 行示例。
+
+```text
+⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
+```
+
+| 作用域 | 数据含义 |
+| --- | --- |
+| 主栏 | 全局底栏保留主会话作用域。设置 `scope-labels=when-subagents` 时，已观测到任务启动过子 Agent 后会显示作用域标签，例如 `Main/Session` 或 `主会话`。 |
+| 会话用量 | 主栏 `tokens` 为当前会话累计 API 用量，包含可发现的主和子 Agent transcript。 |
+| 单个子 Agent | 该行的宿主字段来自 `tasks[]` 中对应的任务。`tokens` 取该任务的 `tokenCount`，表示当前上下文占用。 |
+
+查看子 Agent transcript 时，宿主 payload 缺少 `focused_agent` 和 `viewing_task_id`。渲染使用已提供的会话与任务身份。各字段和默认状态见[子 Agent 显示项](#子-agent-显示项)，终态耗时见[已结束代理](#分支基准与已结束代理)。
+
+<a id="时钟可用性与作用域"></a>
+
+## 可用性与新鲜度
+
+- 缺失、异常类型、负数和非有限数值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
+  新 token 数需为非负整数，窗口容量需大于零。
+
+- 文本先净化再渲染。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
+
+已观测零值、缺失、部分覆盖、过期和错误是不同状态，不能相互替代。具体标记及采集要求见各类指标说明。
 
 ## 主栏显示项
 
@@ -115,6 +161,27 @@
 | `context-tokens` | 关 | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
 | `context-window-size` | 关 | 已解析的 `tasks.contextWindowSize`。 |
 
+### 已结束代理的时长
+
+运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；任务计时完成证据见[计时契约](development/timer.zh-CN.md)。
+
+## 布局组件
+
+两个作用域均新增 `text`（用户原文）和 `spacer`（填充剩余行宽），目录因此包含
+67 种主状态栏类型和 17 种子代理类型；65／15 种指标及默认展示保持不变。
+可在实例编辑器中添加，或执行 `config instance main add text --text "项目"`。
+主状态栏留白需要显式分行；每个主行和子代理模板最多一个留白。
+
+## 可选外部组件
+
+按照[扩展指南](EXTENSIONS.zh-CN.md)在本机注册并启用数据源。新增项默认不选中。
+
+| ID | 范围 | 含义 |
+| --- | --- | --- |
+| `external-value` | 主状态栏 / 子代理 | 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
+| `github-pr` | 主状态栏 | 显式刷新的 GitHub PR，与宿主 `pr` 分开。 |
+| `github-ci` | 主状态栏 | GitHub 检查摘要；无检查或结果未知不表示通过。 |
+
 <a id="git-markers"></a>
 
 ## Git 标记
@@ -136,6 +203,14 @@
 
 组合项 `git` 与 `git-branch`、`git-changes`、`git-ahead-behind` 共用工作树观测。`branch-diff` 单独查询已提交分支差异。排查策略拒绝时查看 `doctor` 的过滤器说明。[Git 采集策略](DIAGNOSTICS.zh-CN.md#git-采集策略)
 
+<a id="分支基准与已结束代理"></a>
+
+## 已提交分支比较
+
+使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`。两个编辑器都提供可留空的 Metrics 字段。ref 或 merge-base 缺失、浅克隆缺少历史以及超时时显示 `Diff —`。
+
+已结束代理的冻结时长见[子代理时长](#已结束代理的时长)。
+
 <a id="token-fields"></a>
 
 ## Token 含义
@@ -150,23 +225,24 @@
 
 `prompt-cache` 的命中率和写入量来自宿主提供的主对话 payload。
 
-<a id="display-scopes"></a>
+累计输入／输出复用现有 cost-state 快照及 transcript 增量、消息 ID 去重、主与嵌套子 Agent 作用域；先相加整数再缩写，当前上下文字段不充当累计计数器。没有有效 usage 记录时不可用；已观测的全零响应显示零。原有格式化采集接口不变，原始整数快照不增加 I/O。
 
-## 主栏、会话和子 Agent 的作用域
+输入与输出的可用性独立判断：只观测到输出时，不推定输入为零。不完整的累计快照保留另一项的已知总量，各计数器从自己的快照位置继续叠加主／子 Agent 增量。旧会话缓存仅从可用 transcript 恢复一次可用性，不重复累计消息 ID。
 
-默认子 Agent 行示例。
+## 额度、重置与缓存
 
-```text
-⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
-```
+### 额度与重置窗口
 
-| 作用域 | 数据含义 |
-| --- | --- |
-| 主栏 | 全局底栏保留主会话作用域。设置 `scope-labels=when-subagents` 时，已观测到任务启动过子 Agent 后会显示作用域标签，例如 `Main/Session` 或 `主会话`。 |
-| 会话用量 | 主栏 `tokens` 为当前会话累计 API 用量，包含可发现的主和子 Agent transcript。 |
-| 单个子 Agent | 该行的宿主字段来自 `tasks[]` 中对应的任务。`tokens` 取该任务的 `tokenCount`，表示当前上下文占用。 |
+网关金额／周期字段要求 Claude Code 和网关同时为 2.1.284+；这些字段可缺失，关闭非必要流量时也可能没有。金额是独立采集的估算值，可能比比例晚约五分钟更新，不相互推算；窗口过期后隐藏全部所属字段。
 
-查看子 Agent transcript 时，宿主 payload 缺少 `focused_agent` 和 `viewing_task_id`。渲染使用已提供的会话与任务身份。各字段和默认状态见[子 Agent 显示项](#子-agent-显示项)，终态耗时见[已结束代理](#分支基准与已结束代理)。
+- 重置时间戳为 Unix **秒**。每次刷新共用一个时钟；不足一秒的未来期限向上取整，依次使用秒、
+  分钟／秒、小时／分钟、天／小时显示。过期时旧额度及倒计时同时隐藏；没有时间戳的旧比例输入仍可读取。
+
+- 倒计时遵循现有宿主刷新间隔；`event` 只在事件触发时更新，启用显示项不会修改刷新设置。
+
+### 缓存观测
+
+主对话缓存统计包含请求次数和 miss。warm 描述本地 TTL 观测，下一次请求是否命中由服务端决定。宿主从 2.1.260 起可提供详细 miss 原因。
 
 <a id="timer-definitions"></a>
 
@@ -210,69 +286,6 @@
 
 后台代理报告可能具有不同宿主 prompt ID，明确所属关系使其继续属于原人类任务。本地 `/statusline-config show` 等快捷命令不启动新计时任务；隐藏 `tokens` 后仍可保留任务计时。
 
-## 时钟、可用性与作用域
-
-网关金额／周期字段要求 Claude Code 和网关同时为 2.1.284+；这些字段可缺失，关闭非必要流量时也可能没有。金额是独立采集的估算值，可能比比例晚约五分钟更新，不相互推算；窗口过期后隐藏全部所属字段。
-
-累计输入／输出复用现有 cost-state 快照及 transcript 增量、消息 ID 去重、主与嵌套子 Agent 作用域；先相加整数再缩写，当前上下文字段不充当累计计数器。没有有效 usage 记录时不可用；已观测的全零响应显示零。原有格式化采集接口不变，原始整数快照不增加 I/O。
-
-输入与输出的可用性独立判断：只观测到输出时，不推定输入为零。不完整的累计快照保留另一项的已知总量，各计数器从自己的快照位置继续叠加主／子 Agent 增量。旧会话缓存仅从可用 transcript 恢复一次可用性，不重复累计消息 ID。
-
-主对话缓存统计包含请求次数和 miss。warm 描述本地 TTL 观测，下一次请求是否命中由服务端决定。宿主从 2.1.260 起可提供详细 miss 原因。
-
-- 重置时间戳为 Unix **秒**。每次刷新共用一个时钟；不足一秒的未来期限向上取整，依次使用秒、
-  分钟／秒、小时／分钟、天／小时显示。过期时旧额度及倒计时同时隐藏；没有时间戳的旧比例输入仍可读取。
-- 倒计时遵循现有宿主刷新间隔；`event` 只在事件触发时更新，启用显示项不会修改刷新设置。
-- 缺失、异常类型、负数和非有限数值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
-  新 token 数需为非负整数，窗口容量需大于零。
-- 文本先净化再渲染。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
-
-字段定义依据 [Claude Code 官方状态栏说明](https://code.claude.com/docs/en/statusline)。
-独立模型项与组合项的选择方式也参考 [Codex 官方状态栏配置](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline)。
-
-## 配置与降级
-
-使用独立指标替换主栏选择的示例：
-
-```text
-claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
-```
-
-CLI 列表和 JSON `describe` 返回共享目录。最低版本描述已验证的宿主门槛，字段可用性取决于实际输入。降级前检查目标包的显示项和格式支持，并准备兼容备份。[配置文件格式](reference/cli.zh-CN.md#配置文件) · [版本兼容](USER_GUIDE.zh-CN.md#版本兼容)
-
-## 实时状态项
-
-以上五项默认不选中，采集使用独立的 `install --live-metrics` 开关，支持已验证的 Claude Code 2.1.289。缺少观测显示 `—`，真实零值显示 `0`，有限覆盖附 `*`。运行协议 `read` 返回来源、时间和具体原因。排队 prompt、旧 epoch 和代理事件不会覆盖新任务；终止历史独立于心跳保存。预览使用确定性样例，不读取实时状态。参见[运行契约](development/live.zh-CN.md)。
-
-## 分支基准与已结束代理
-
-使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`。两个编辑器都提供可留空的 Metrics 字段。ref 或 merge-base 缺失、浅克隆缺少历史以及超时时显示 `Diff —`。
-
-运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；任务计时完成证据见[计时契约](development/timer.zh-CN.md)。
-
-## 请求覆盖与 SDK 回退
-
-请求项默认不选中。无观测显示 `—`，真实零值可见，不完整任务覆盖附 `*`。带宿主 ref 的真实内容块提供 TTFT，成功请求须具有官方 stop 用量；无宿主引用的合成流不能提供计数器。只有任务结束、序列覆盖及每个 turn 总量核对都成立时才去除部分标记。
-
-Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯一已完成的已有生命周期区间包含主 turn 起点时才关联；重叠或未结束区间保持无归属。再通过启动身份解析嵌套 loop，不写计时状态、不匹配 prompt 文本。SDK 实时状态可能在证据到达前不可用。没有已有 collector 遥测时，prompt-cost 保持不可用；不使用模型价格或会话费用差值兜底。
-
-## 布局组件
-
-两个作用域均新增 `text`（用户原文）和 `spacer`（填充剩余行宽），目录因此包含
-67 种主状态栏类型和 17 种子代理类型；65／15 种指标及默认展示保持不变。
-可在实例编辑器中添加，或执行 `config instance main add text --text "项目"`。
-主状态栏留白需要显式分行；每个主行和子代理模板最多一个留白。
-
-## 可选外部组件
-
-按照[扩展指南](EXTENSIONS.zh-CN.md)在本机注册并启用数据源。新增项默认不选中。
-
-| ID | 范围 | 含义 |
-| --- | --- | --- |
-| `external-value` | 主状态栏 / 子代理 | 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
-| `github-pr` | 主状态栏 | 显式刷新的 GitHub PR，与宿主 `pr` 分开。 |
-| `github-ci` | 主状态栏 | GitHub 检查摘要；无检查或结果未知不表示通过。 |
-
 ## 会话费用速率
 
 `session-cost-rate` 默认不选中。在任一编辑器的详情中选择“费用速率分母”：会话时长（默认）或累计 API 时长。CLI 示例：
@@ -285,3 +298,30 @@ claude-statusline config instance main set session-cost-rate cost-rate-basis api
 通过新增／复制创建的实例使用实际返回的实例 ID；每个副本独立保存分母。公式为 `total_cost_usd / (duration_ms / 3600000)`，时长分别取 `cost.total_duration_ms` 或 `cost.total_api_duration_ms`。所选时长至少达到 60,000 ms 才显示。缺失、负数、非有限值、零时长或不足一分钟均隐藏速率；足够时长内已观测的零费用显示零，另一种时长无需存在。
 
 费用 $2、会话一小时、API 十分钟，分别得到 `~$2.00/会话小时` 和 `~$12.00/API 小时`。关闭标签后，估算标记与分母仍保留在值中。API 时长为累计请求耗时，与 `task-active-timer` 独立。这是由会话字段推导的估算值，不是账单或未来消费预测，无需新增采集器、价目表或网络来源。预览使用固定样例；保存、复制、方案及便携导出均保留所选分母。
+
+## 实时状态项
+
+`run-state`、`permission-mode`、`active-agents`、`task-progress` 和 `last-tool` 默认不选中，采集使用独立的 `install --live-metrics` 开关，支持已验证的 Claude Code 2.1.289。缺少观测显示 `—`，真实零值显示 `0`，有限覆盖附 `*`。运行协议 `read` 返回来源、时间和具体原因。排队 prompt、旧 epoch 和代理事件不会覆盖新任务；终止历史独立于心跳保存。预览使用确定性样例，不读取实时状态。参见[运行契约](development/live.zh-CN.md)。
+
+## 请求覆盖与 SDK 回退
+
+请求项默认不选中。无观测显示 `—`，真实零值可见，不完整任务覆盖附 `*`。带宿主 ref 的真实内容块提供 TTFT，成功请求须具有官方 stop 用量；无宿主引用的合成流不能提供计数器。只有任务结束、序列覆盖及每个 turn 总量核对都成立时才去除部分标记。
+
+Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯一已完成的已有生命周期区间包含主 turn 起点时才关联；重叠或未结束区间保持无归属。再通过启动身份解析嵌套 loop，不写计时状态、不匹配 prompt 文本。SDK 实时状态可能在证据到达前不可用。没有已有 collector 遥测时，prompt-cost 保持不可用；不使用模型价格或会话费用差值兜底。
+
+## 配置与降级
+
+使用独立指标替换主栏选择的示例：
+
+```text
+claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
+```
+
+CLI 列表和 JSON `describe` 返回共享目录。最低版本描述已验证的宿主门槛，字段可用性取决于实际输入。降级前检查目标包的显示项和格式支持，并准备兼容备份。[配置文件格式](reference/cli.zh-CN.md#配置文件) · [版本兼容](USER_GUIDE.zh-CN.md#版本兼容)
+
+## 定义与历史参考
+
+字段定义依据 [Claude Code 官方状态栏说明](https://code.claude.com/docs/en/statusline)。
+独立模型项与组合项的选择方式也参考 [Codex 官方状态栏配置](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline)。
+
+当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/history/migration/post-migration-fixes.zh-CN.md)。

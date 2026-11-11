@@ -18,6 +18,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 
 | Area | Delivery records |
 | --- | --- |
+| Documentation maintenance | [Reader-oriented content organization and bilingual checks](deliveries/documentation-content-organization.md) |
 | v3.16.3 configuration skills | [Question paging, scope and fallback workflows](../skill-workflows.md#final-release) |
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |
