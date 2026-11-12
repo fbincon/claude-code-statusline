@@ -625,7 +625,7 @@ Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、�
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
 
-已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v17`。有效旧文件改为提示，例如：
+已有显示配置文件时，schema 检查报告程序支持的版本，例如 `[OK] display config schema: v17`。有效旧文件改为提示，例如：
 
 ```text
 [WARN] display config schema v4 is valid and will migrate to v17 on the next configuration save

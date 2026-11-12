@@ -628,7 +628,7 @@ Doctor checks platform/Node, PATH, configuration validity, command ownership, ho
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
 
-For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v17`. A valid older file instead reports, for example:
+For an existing display configuration file, the schema check reports the supported version, for example `[OK] display config schema: v17`. A valid older file instead reports, for example:
 
 ```text
 [WARN] display config schema v4 is valid and will migrate to v17 on the next configuration save

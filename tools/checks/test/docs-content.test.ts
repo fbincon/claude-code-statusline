@@ -54,6 +54,15 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             changed.set(path, original.replace(link, suffix ? 'reference/cli.zh-CN.md' : 'reference/cli.md'));
             assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Missing centralized version link')), path);
         }
+        for (const [path, before, replacement] of [
+            [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, suffix ? '显示 schema' : 'display schema'],
+            [`docs/reference/cli${suffix}.md`, (suffix ? '编辑器协议 ' : 'editor protocol ') + PROTOCOL_VERSION, suffix ? '编辑器协议' : 'editor protocol'],
+        ] as const) {
+            const original = pages.get(path)!, changed = new Map(pages);
+            assert(original.includes(before), path);
+            changed.set(path, original.replace(before, replacement));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Missing centralized current interface versions')), path);
+        }
         const gateRows = suffix
             ? [
                 '| 子代理行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |',

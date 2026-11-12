@@ -1106,7 +1106,7 @@ Compatible versions also receive an independent `subagentStatusLine` in `setting
 
 ## Protocol and schema versions
 
-This chapter is the current source of truth for interface and stored-format versions. Other current pages link here instead of restating numbers; historical introduction versions remain in [protocol and schema history](../development/contracts.md#protocol-and-schema-history). Package versions, tags and release artifacts are separate from these interface versions.
+This chapter is the current source of truth for interface and stored-format versions. Root feature guides link here instead of restating current numbers; development documentation keeps behavior-specific detail and links here for the registry. Historical introduction versions remain in [protocol and schema history](../development/contracts.md#protocol-and-schema-history). Package versions, tags and release artifacts are separate from these interface versions.
 
 ### Current interface versions
 

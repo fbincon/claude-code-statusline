@@ -23,11 +23,11 @@ The baseline is `607841a2`. The implementation commits are:
 | Reorganize the extensions guide | `db775e22` |
 | Centralize interface versions | `e4ae1031` |
 
-The delivery commit adds this record and the history index entry.
+The delivery commit adds this record, the history index entry and the review corrections.
 
 | Check | Actual result |
 | --- | --- |
-| `npm run docs:check` after the final implementation commit | 6,109 local links, 0 errors |
+| `npm run docs:check` at the final head | 6,116 local links, 0 errors |
 | `git diff --check` | Passed |
 | Build and documentation tests | `docs-content.test.js` and `docs-examples.test.js`: 28/28 passed |
 | Bilingual heading levels | DISPLAY_ITEMS, EXTENSIONS and reference/cli pairs match |

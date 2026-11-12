@@ -23,11 +23,11 @@
 | 重排扩展指南 | `db775e22` |
 | 集中接口版本 | `e4ae1031` |
 
-交付提交加入本记录和历史索引项。
+交付提交加入本记录、历史索引项和评审修正。
 
 | 检查 | 实际结果 |
 | --- | --- |
-| 最终实现提交后的 `npm run docs:check` | 6,109 个本地链接，0 错误 |
+| 最终 head 的 `npm run docs:check` | 6,116 个本地链接，0 错误 |
 | `git diff --check` | 通过 |
 | 构建与文档测试 | `docs-content.test.js` 与 `docs-examples.test.js`：28/28 通过 |
 | 双语标题层级 | DISPLAY_ITEMS、EXTENSIONS 和 reference/cli 三对一致 |

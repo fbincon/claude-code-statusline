@@ -311,7 +311,7 @@ The runtime Mod renews the shared leases described below. Confirmed projects, se
 
 ### Shared leases and failure handling
 
-The runtime Mod renews a five-second lease for each eligible active session; a lease expires after fifteen seconds without a heartbeat. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service or daemon is installed. Multiple sessions and manual consumers retain independent interest in the same source and identity: closing one session/editor, or turning automatic refresh off, preserves other applicable consumers; an explicit cancellation still stops the whole job.
+The runtime Mod renews the lease for each eligible active session every five seconds; the lease expires after fifteen seconds without a heartbeat. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service or daemon is installed. Multiple sessions and manual consumers retain independent interest in the same source and identity: closing one session/editor, or turning automatic refresh off, preserves other applicable consumers; an explicit cancellation still stops the whole job.
 
 Failed requests back off exponentially up to one day. Missing executables, malformed output, authentication, permission, account, identity and configuration failures pause automatic attempts until a successful manual retry or renewed review. Reading an old registry never grants permission, and an edited source revokes both old execution and automatic review.
 
@@ -385,9 +385,9 @@ GitHub check details retain observed names, state and validated HTTP(S) links, r
 | Symptom | Meaning and next step |
 | --- | --- |
 | `not_refreshed` | No successful observation exists yet. Review the source, run an explicit refresh, then inspect diagnosis. |
-| `waiting` / `no_session` | No eligible active session holds a lease, or runtime integration is missing. Install and restart the runtime Mod, then check project/session scope. |
+| `waiting` (`scheduled` / `no_session`) | `scheduled` means the next automatic attempt is pending and is normal; `no_session` means no eligible active session holds a lease or runtime integration is missing. For `no_session`, install and restart the runtime Mod, then check project/session scope. |
 | `backoff` / `paused` | A temporary failure is retrying with backoff, or an authentication/identity failure paused automatic work. Retry manually or renew the automatic review. |
-| Stale or hidden value | Expiration, an error marker or an identity mismatch is suppressing the old value. Check freshness and context identity in diagnosis. |
+| Stale or hidden value | An expired value is marked stale, an error marker retains the last value with an error, and an identity mismatch suppresses the old value. Check freshness and context identity in diagnosis. |
 | Command timeout, nonzero exit or invalid output | The job failed rather than producing zero. Inspect the bounded job summary and the published error observation. |
 | `no_pr` / `no_checks` | The query succeeded but found no matching PR or checks; neither means passing CI. Check the branch/HEAD, `pr` selection and repository. |
 | Windows path or `.cmd` failure | Use `claude-statusline.cmd`, UTF-8 JSON and escaped backslashes; keep `settings.executable` separate from the CLI wrapper. |
