@@ -138,7 +138,7 @@ claude-statusline config instance main remove INSTANCE_ID --expected-revision TA
 
 自适应指标在保持自定义标签、图标及百分比含义的同时参与宽度适配；自动布局保留正常换行。连续背景仅用于启用颜色的 Powerline，spacer 和显式背景打断渐变区间，对齐留白保持无色。完整选项和绘制规则见[外观指南](APPEARANCE.zh-CN.md#自适应指标)及[连续行背景](APPEARANCE.zh-CN.md#连续行背景)。
 
-使用[完整方案](SCHEMES.zh-CN.md)选择布局示例并审阅候选。方案不授予来源权限；原始 v3.14.0 场景及其兼容性证据见[实现与场景说明](development/adaptive-row-scenarios.zh-CN.md)。
+使用[完整方案](SCHEMES.zh-CN.md)选择布局示例并审阅候选。方案不授予来源权限；当前规则见上方及[外观控制](APPEARANCE.zh-CN.md#自适应指标)；原始 v3.14.0 场景及其兼容性证据见[历史实现与场景记录](development/history/deliveries/adaptive-row-scenarios.zh-CN.md)。
 
 ## CLI
 

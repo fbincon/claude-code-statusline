@@ -39,6 +39,13 @@ mods/
   statusline-runtime/             Official-host observations and lifecycle integration
 tools/
   generation/                    Resource generation
+  checks/                        Repository, documentation and CI policy checks
+  build/                         Candidate packaging, bundling and verification
+  release/                       Release preparation, approval and publication
+  benchmarks/                    Performance benchmarks
+  testing/                       Shared test harness and oracle
+  typescript/                    TypeScript build, clean and test scripts
+  unicode/                       Unicode data, grapheme and width fixtures
   acceptance/                    Installed, terminal and host validation
   migration/                     Migration and historical comparison tooling
 archive/python/                  Frozen implementation and comparison evidence
@@ -84,7 +91,7 @@ The Native editor uses bounded visible frames and capacity/recovery handling for
 | Package execution and recovery | [Safe package handoff](source-command-package-management.md#safe-package-handoff) |
 | Setup, editing and explanation | [Setup and complete appearance](setup-appearance.md) · [Configuration experience](configuration-experience.md) |
 | Profiles, projects and tasks | [Implementation](profiles-projects-tasks.md) · [Profile guide](../PROFILES.md) · [Task details](../TASK_DETAILS.md) |
-| Supplied-input diagnosis | [User guide](../DIAGNOSTICS.md) · [Implementation and acceptance](real-input-diagnostics.md) |
+| Supplied-input diagnosis | [User guide](../DIAGNOSTICS.md) · [Diagnosis contracts](contracts.md#configuration-and-sample-explanation-protocol) · [Historical implementation and acceptance](history/deliveries/real-input-diagnostics.md) |
 
 ## Migration references
 

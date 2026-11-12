@@ -77,4 +77,4 @@ See [composition](COMPOSITION.md), [appearance](APPEARANCE.md), [sources](EXTENS
 
 ## Historical capture notes
 
-The Simplified Chinese Native caption was untranslated in v3.13.0 ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)); [v3.14.0 corrected it and verified the actual style/group/history entries](development/adaptive-row-scenarios.md). The historical capture retains its original package identity.
+The Simplified Chinese Native caption was untranslated in v3.13.0 ([#180](https://github.com/fbincon/claude-code-statusline/issues/180)); [v3.14.0 corrected it and verified the actual style/group/history entries](development/history/deliveries/draft-history-and-reuse.md). The historical capture retains its original package identity.

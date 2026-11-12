@@ -2,10 +2,10 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Historical stage record (frozen at TS-04 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+> **Historical stage record (frozen at TS-04 delivery).** Current status and interface versions are in the [migration plan](../../history/migration/typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
 State: **DONE**, 2026-10-15 (Asia/Shanghai). Worker: Codex.
-The [migration plan](../../typescript-migration.md) owns stage status.
+The [migration plan](../../history/migration/typescript-migration.md) owns stage status.
 The approved execution plan uses isolated packages/configuration only and retains
 the maintainer's installed Python product. Recovery is an explicit command;
 doctor remains read-only. No release version or tag is assigned here.
@@ -160,7 +160,7 @@ records the final documentation head, merge and GitHub/Gitee synchronization;
 documentation-only closure must retain the same reviewed source hashes.
 
 TS-04/04-A–04-E are complete. At this closure, TS-05/TS-06 and PERF-01 were
-NOT_STARTED; see the [stage table](../../typescript-migration.md#stages-and-progress). The
+NOT_STARTED; see the [stage table](../../history/migration/typescript-migration.md#stages-and-progress). The
 existing Python installation was not switched, and this stage created no release.
 Previously approved physical/desktop checks were still due before release at that point. Historical
 D06 FAIL is preserved; timeout, resource-bound and stability contracts still

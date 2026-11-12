@@ -38,8 +38,7 @@
 
 每个会话使用 `statusline_runtime/live` 下的哈希文件名；设置
 `CLAUDE_STATUSLINE_RUNTIME_DIR` 后改用其下的 `live`。固定会话锁覆盖读取、归并与原子
-发布；POSIX 文件使用私有权限。最多保留 100 个会话、32 个 epoch、32 个 prompt 和
-256 个代理。每个 epoch 保留 4096 个序号的去重窗口，拒绝窗口下界以前的序号。
+发布；POSIX 文件使用私有权限。最多保留 100 个会话、32 个 epoch、32 个 prompt、256 个代理、256 个 turn、1,024 个工具、1,000 个任务和 2,048 个请求（依次为 `MAX_TURNS`、`MAX_TOOLS`、`MAX_TASKS`、`MAX_REQUESTS` 上限）。每个 epoch 保留 4096 个序号的去重窗口，拒绝窗口下界以前的序号。
 序号缺口标记覆盖不完整；缺失或含糊归属不会自动附加给当前 prompt。
 
 native 心跳建立 epoch，每 5 秒更新，超过 15 秒失效，时钟倒退保持不可用。新的加载

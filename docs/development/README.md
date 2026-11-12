@@ -16,7 +16,8 @@ Development and builds use the Node version in [`.node-version`](../../.node-ver
 | Understand the implementation | [Architecture](architecture.md) · [Shared contracts](contracts.md) · [Rendering and Unicode](rendering.md) |
 | Select validation and CI evidence | [Testing and acceptance](testing.md) · [Impact checks](impact-checks.md) · [CI maintenance/promotion](ci-maintenance.md) · [Measured CI costs](ci-efficiency.md) |
 | Work on host integrations | [Native editor](native.md) · [Capacity/recovery](native-capacity.md) · [Task timing](timer.md) · [Live metrics](live.md) |
-| Maintain languages | [Translation guide](i18n.md) · [Multilingual workflow](i18n-workflow.md) |
+| Configure displays, tasks and sources | [Extensions](extensions.md#responsibilities-and-contracts) · [Setup and appearance](setup-appearance.md) · [Profiles, projects and tasks](profiles-projects-tasks.md) · [Source/command/package management](source-command-package-management.md) · [Configuration experience](configuration-experience.md) · [Adaptive rows](adaptive-row-scenarios.md) · [Appearance/preview diagnosis](appearance-preview-diagnosis.md) · [Real-input diagnostics](real-input-diagnostics.md) · [Task and version review](task-version-review.md) · [Bundled skill workflows](skill-workflows.md) |
+| Maintain languages | [Translation guide](i18n.md) · [Multilingual workflow](i18n-workflow.md) · [Node and regional languages](node-regional-languages.md) |
 | Produce and verify media | [Image index](../images/README.md) · [SHOWCASE-01 capture procedure](showcase.md#collection) |
 | Prepare a publication | [Release process](../RELEASING.md#current-typescript-publication) |
 
@@ -45,9 +46,11 @@ The [development history index](history/README.md) links the [work package desig
 
 ## Contents
 
+- [Technical documentation](#technical-documentation)
 - [Development and testing](#development-and-testing)
 - [Internal commands](#internal-commands)
 - [Implementation notes](#implementation-notes)
+- [Public package delivery](#public-package-delivery)
 
 <a id="appendix-development-and-testing"></a>
 <a id="附录开发与测试"></a>
@@ -83,7 +86,7 @@ Use immutable commits and new report paths as described in [impact checks](impac
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and responsibility ledgers. `tools/generation/` owns current language/Mod outputs and never regenerates the Python archive; it does not own skill outputs. The statusline skill resources are canonical in `packages/cli/resources/statusline-config/SKILL.md` and `packages/cli/resources/statusline-configure/SKILL.md`; they are maintained separately. After building, `npm run test:runtime` tests compiled products under a supported Node without rebuilding.
 
-Complete product acceptance includes eight installed targets, 32 Node cases, sixteen fixed host combinations and applicable native-capacity cases consuming matching artifacts. Missing 2.1.296 declarations remain explicit. Execution sharing, draft checks and diagnostics retain separate meanings; see [testing and acceptance](testing.md).
+Complete product acceptance obligations are owned by [testing and acceptance](testing.md#current-typescript-checks); missing 2.1.296 declarations remain explicit. Execution sharing, draft checks and diagnostics retain separate meanings.
 
 <a id="documentation-content-checks"></a>
 

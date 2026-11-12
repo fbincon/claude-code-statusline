@@ -2,10 +2,10 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Historical stage record (frozen at TS-05 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+> **Historical stage record (frozen at TS-05 delivery).** Current status and interface versions are in the [migration plan](../../history/migration/typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
 State: **DONE**, 2026-10-16 (Asia/Shanghai). Worker: Codex.
-Completion branch: `fbincon/ts-05-closure`. The [migration plan](../../typescript-migration.md)
+Completion branch: `fbincon/ts-05-closure`. The [migration plan](../../history/migration/typescript-migration.md)
 owns stage status. The approved deliverable is one universal offline engineering
 candidate, verified CI artifacts and an isolated in-repository Python archive.
 Public tags, preview/stable publication and the remaining physical/desktop gates
@@ -72,7 +72,7 @@ The [candidate guide](candidate.md) contains rebuild/install commands and the
 [TS-06 handoff](TS06-HANDOFF.md) lists release prerequisites. No public tag, preview,
 Release, registry publication, paid model call, physical acceptance or installed
 Python cutover occurred. D06 remains FAIL in the historical record; PERF-01 and TS-06 were
-NOT_STARTED at this closure, and later completion is recorded in the [stage table](../../typescript-migration.md#stages-and-progress).
+NOT_STARTED at this closure, and later completion is recorded in the [stage table](../../history/migration/typescript-migration.md#stages-and-progress).
 The following batch notes preserve their original checkpoint states and counts.
 
 ## Batches

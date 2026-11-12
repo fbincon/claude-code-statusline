@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-06 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-06 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 状态：依据下述限定版本决定，**DONE**。**v3.0.0 已在 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式版发布并通过下载核验**。[正式版身份、摘要及 CI 证据](stable-release.zh-CN.md)。保留 [beta.1 交付记录](preview-release.zh-CN.md)、npm `beta` 和不可变附件。[用户指南](../../../USER_GUIDE.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 

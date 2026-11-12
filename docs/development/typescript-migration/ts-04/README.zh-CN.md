@@ -2,10 +2,10 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-04 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-04 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 状态：**DONE**，2026-10-15（Asia/Shanghai）；执行者：Codex。
-[迁移总计划](../../typescript-migration.zh-CN.md)维护阶段状态。
+[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)维护阶段状态。
 已批准的执行计划只使用隔离包与配置，保留维护者现用 Python 安装；恢复使用显式命令，
 doctor 保持只读。本阶段不分配发行版本或标签。
 
@@ -126,7 +126,7 @@ macOS 诊断回执确认插件已安装／启用，但配置输入全部为空�
 具体源码、摘要及结果。[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)
 记录最终文档 head、合并及 GitHub／Gitee 同步；文档收口后的源码必须继续匹配上述哈希。
 
-TS-04／04-A～04-E 已完成。本次关闭时 TS-05／TS-06 和 PERF-01 为 NOT_STARTED，后续见[阶段表](../../typescript-migration.zh-CN.md#阶段与进度)。现用 Python
+TS-04／04-A～04-E 已完成。本次关闭时 TS-05／TS-06 和 PERF-01 为 NOT_STARTED，后续见[阶段表](../../history/migration/typescript-migration.zh-CN.md#阶段与进度)。现用 Python
 安装当时未切换，本阶段未发布。已批准延至发布前的实体／桌面验收当时仍待完成。历史 D06
 FAIL 保留；超时、资源上限和稳定性契约仍为必需。原始证据置于忽略目录
 `dist/validation/typescript-migration/ts-04/`。

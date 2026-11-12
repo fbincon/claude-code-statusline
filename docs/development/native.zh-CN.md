@@ -12,7 +12,7 @@
 
 `mods/statusline-native` 是唯一 Mod 源码，安装身份仍为 `statusline-native@claude-statusline-local`。`hooks/register.ts` 负责宿主 API、命令、后端请求、保存生命周期与输入批次串行处理；`lib/editor/` 负责草稿、排序及数值规则；`lib/client/` 负责消息校验、按键和设置；`lib/session.ts` 生成独立的有界可见帧。`ui/client/` 负责 Client 输入和绘制，`ui/components/` 提供共享板块，`ui/layout.ts` 计算单元格预算。测试对应 backend、client、editor、integration、UI。外部 TypeScript 界面位于 `packages/tui`，平台启动器独立维护，双编辑器共用 CLI 配置服务。
 
-`ui/client/help.ts` 根据状态选择底部快捷键并计算换行预算，绘制与键盘分页共同使用 `editorLayout`；完整提示组换行放在 `ui/components/shortcuts.ts`。大标题 **Configure Status Line** 使用宿主主题强调色。所有非编辑页面提示以 Tab 开头；Main/Subagents 顺序为 Tab、Space、选择方向键、排序方向键、Ctrl+E、搜索。Settings 用 H 展开／收起偏好，展开后才显示 A；逐项格式显示 Ctrl+G 返回。Filter 保留搜索入口。编辑时显示接受／取消／清空／删除；普通字母快捷键仅在非编辑且无 Ctrl/Meta 时兼容 ASCII 大小写。Esc 仍由宿主管理。
+`ui/client/help.ts` 根据状态选择底部快捷键并计算换行预算，绘制与键盘分页共同使用 `editorLayout`；完整提示组换行放在 `ui/components/shortcuts.ts`。大标题 **Configure Status Line** 使用宿主主题强调色。所有非编辑页面提示以 Tab 开头；Main/Subagents 顺序为 Tab、A/D/X（添加／复制／删除）、Space、选择方向键、排序方向键、Ctrl+E、搜索。Settings 用 H 展开／收起偏好，展开后才显示 A；逐项格式显示 Ctrl+G 返回。Filter 保留搜索入口。编辑时显示接受／取消／清空／删除；普通字母快捷键仅在非编辑且无 Ctrl/Meta 时兼容 ASCII 大小写。Esc 仍由宿主管理。
 
 32×12 下先缩短说明，再省略 V/R/Esc 等次要提示；详情／计数行让出空间，保留当前操作、选中项及一行实际样例预览。缩放保留状态，绘制与导航使用同一预算重新计算。本次展示改动不改变协议或配置 schema。
 
@@ -67,6 +67,16 @@ Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使
 ## 终端编辑器的区域与底部提示
 
 用户操作说明迁至[配置编辑器：终端页面区域与底部提示](../EDITORS.zh-CN.md#terminal-page-regions-and-footer)。外部实现仍位于 `packages/tui`，现行测试入口见[测试与验收](testing.zh-CN.md)；[v3.16.0 采集](../images/typescript/v3.16.0/README.zh-CN.md)保留原始版本身份。
+
+## 外部 TUI
+
+`packages/tui` 在共享纯编辑规则及注入后端之上实现外部终端编辑器。`session.ts` 打开会话、读取描述／配置／界面偏好并运行事件循环；`state.ts` 保存编辑器状态，并把文档操作交给共享 core 管理器；`drawing.ts` 与 `drawing/` 绘制带颜色的单元格帧；`layout.ts` 计算尺寸与分页预算；`navigation.ts` 为长表单分页；`setup.ts` 运行持久安装设置流程；`task-viewer.ts` 提供只读任务页面；`theme.ts` 映射编辑器调色板。该包只依赖 `@fbincon/statusline-core` 与 `@fbincon/statusline-platform`，不导入 CLI 服务。
+
+`claude-statusline configure [--config-dir PATH] [--user|--profile NAME_OR_ID|--project PATH]` 是直接启动入口。`/statusline-configure` 斜杠入口要求 schema v1 的 `experimental_slash_tui` 偏好及已核验的 Claude Code 2.1.258+ 宿主，随后使用平台启动器；`install --experimental-slash-tui` / `--no-experimental-slash-tui` 持久化该入口。启动器选择终端适配器，并传递私有请求／结果目录、nonce、截止时间及后端 `LaunchSpec`；配置锁内会再次复核撤销。
+
+编辑器通过注入的 `Backend.request` 边界调用当前 UI 协议操作，仅通过 `Backend.control` 执行包管理进程操作。它以 `read` 的 revision 打开，并使用该 revision 提交 `apply`；冲突保留草稿。已安装前端与后端资源必须匹配。当前版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)，封装与保存规则见[共享契约](contracts.zh-CN.md#传输与操作)及[修订与事务](contracts.zh-CN.md#revision-与事务)。
+
+用户操作见[配置编辑器：终端页面区域与底部提示](../EDITORS.zh-CN.md#terminal-page-regions-and-footer)。历史对等与回归证据保留在[外部 TUI 对等记录](history/migration/external-tui-parity.zh-CN.md)和[外部 TUI 回归记录](history/migration/external-tui-regressions.zh-CN.md)；终端单元格重建不代表人工桌面验收。
 
 ## 持久安装与恢复
 

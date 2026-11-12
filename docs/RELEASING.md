@@ -106,7 +106,7 @@ npm run release:gitee-notes -- \
   --output "$RELEASE_ROOT/gitee-notes.md"
 ```
 
-The renderer resolves relative links from `docs/releases/<tag>.md` and uses the actual attachment URLs. Review its output against the published GitHub body. Update the Gitee body through the official MCP/API, supplying the original required metadata fields. Read it back to verify the new body and the intended tag, target, prerelease state and attachment identities. Keep credentials in the maintainer's SSH and keyring setup. Use the [renderer contract](../tools/release/gitee-notes.ts) and [historical wheel synchronization](development/history/release-procedures.md#gitee-synchronization-for-python-releases) for their respective package formats.
+The renderer resolves relative links from `docs/releases/<tag>.md` and uses the actual attachment URLs. Review its output against the published GitHub body. Update the Gitee body through the official MCP/API, supplying the original required metadata fields. Updates must carry the original `tag_name`, `name` and `body`; a body-only PATCH is insufficient. Read it back to verify the new body and the intended tag, target, prerelease state and attachment identities. Keep credentials in the maintainer's SSH and keyring setup. Use the [renderer contract](../tools/release/gitee-notes.ts) and [historical wheel synchronization](development/history/release-procedures.md#gitee-synchronization-for-python-releases) for their respective package formats.
 
 ## Record delivery
 

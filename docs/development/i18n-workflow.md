@@ -2,7 +2,7 @@
 
 **English** | [简体中文](i18n-workflow.zh-CN.md) · [Current translation guide](i18n.md) · [Work package](history/work-package-designs.md#i18n-02) · [Roadmap](roadmap.md#milestones)
 
-This page defines current language support, translation state, effective resources and development/release validation. The [translation guide](i18n.md#incremental-authoring) maintains concrete commands and lifecycle inputs.
+This page owns language support policy, lifecycle states, CI and release. The [translation guide](i18n.md) owns resources, authoring, terminology and validation, including concrete commands and lifecycle inputs.
 
 Follow the [Shared design rules](development-plan.md#design-rules), [Native capacity and recovery](native-capacity.md), [impact checks](impact-checks.md) and [source-bound promotion](../RELEASING.md#source-bound-ci-evidence-promotion). Current authoring commands and validation instructions are maintained in the translation guide.
 
@@ -58,17 +58,9 @@ Reports distinguish raw presence, current valid translation, accepted translatio
 
 ## Resource ownership and interfaces
 
-| Input or consumer | Responsibility |
-| --- | --- |
-| `packages/core/resources/i18n/languages.json` | Canonical ordered codes and autonyms; its current schema accepts only `code` and `name` |
-| `packages/core/resources/i18n/locales/*.json` | Real raw translations; no acceptance records or artificial English filling |
-| `tools/generation/i18n/data/` policy, context, terminology and per-language acceptance inputs | Build-only lifecycle data, separate from locale discovery and automatically packaged workspace resources |
-| `tools/generation/resources.ts` | Analyze source state once, derive deterministic effective resources and reports, and check the appropriate gate |
-| Shared core messages, search and rendering; generated Node/Native copies | Consume the same effective messages and necessary origin information; runtime code does not read acceptance history |
+Canonical resource locations, build-only inputs and authoring ownership are maintained in the [translation guide's resource ownership](i18n.md#resource-ownership) and [incremental authoring](i18n.md#incremental-authoring) sections.
 
-Build-only lifecycle inputs live under `tools/generation/i18n/data/`: policy, context, terminology, `accepted/`, history, provenance and verified baselines. This keeps them outside the workspace `resources` recursively copied by the [packer](../../tools/build/pack.ts). They belong in the reproducible source archive and applicable input identity, not the npm runtime package; package verification checks this boundary. Do not place metadata JSON in `locales/`, where it would be discovered as a language pack.
-
-Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Statusline rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
+Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Status line rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
 
 The [translation guide](i18n.md#incremental-authoring) maintains developer commands. Current interface versions are in the [CLI reference](../reference/cli.md#protocol-and-schema-versions); see the [shared contracts](contracts.md) for operations and compatibility behavior. Metadata and reports have internal versioned interfaces. Handle compatibility where data crosses an interface. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities. Bind new inputs explicitly and provide compatible readers.
 
@@ -83,14 +75,7 @@ The [translation guide](i18n.md#incremental-authoring) maintains developer comma
 
 Development and release share one generation rule. Do not emit different bytes for identical inputs through environment variables or a release generation mode. A development candidate may have valid B-language fallback without being linguistically release-ready; passing its product or maintenance acceptance must not bypass the release language gate on any publication route.
 
-| Capability | Integration with existing tooling |
-| --- | --- |
-| Development check | Extend existing generation/check tasks with A completeness, state, safety and effective-resource checks |
-| Report | Extend the meaning of coverage to distinguish raw, accepted and fallback states; derive machine-readable and readable reports from the same analysis |
-| Freeze/incremental task list | Read fixed inputs and emit an identity/task list; do not mutate translations or acceptance, access the network or start a full build/test run |
-| Release gate | Integrate A/B readiness and C disclosure with existing candidate/release verification and verified report reuse |
-
-These capabilities are implemented through `generate`, `generate:check`, `languages:coverage`, `check` and the developer-only `languages` subcommands documented in the [translation guide](i18n.md#incremental-authoring). `docs:check` remains documentation validation. Reports are read-only with respect to source and acceptance; record updates are an explicit operation within the workflow. Share analysis and existing artifacts rather than adding four duplicate CI executions. Freeze, review and record completion are work steps, not additional permission requests.
+The development check, report, freeze/incremental task list and release gate map to the `generate`, `generate:check`, `languages:coverage`, `check` and developer-only `languages` subcommands documented in the [translation guide](i18n.md#incremental-authoring). `docs:check` remains documentation validation. Reports are read-only with respect to source and acceptance; record updates are an explicit operation within the workflow. Share analysis and existing artifacts rather than adding four duplicate CI executions. Freeze, review and record completion are work steps, not additional permission requests.
 
 <a id="frontend-contracts"></a>
 
@@ -135,7 +120,7 @@ Retain latest-applicable-run and newest-artifact selection, expiry and corruptio
 
 ## Current language validation
 
-Follow the [translation guide](i18n.md#validate-a-change) for changes to registered languages. For a new language, verify structure, templates, safety, generation, UI, output, search and applicable layouts. Cover UI/output language independence where affected. Define quantity expressions, short labels, plurals and bidirectional behavior for the selected language as applicable and verify them on relevant hosts.
+Follow the [translation guide's validation steps](i18n.md#validate-a-change) for registered languages and for new-language structure, templates, safety, generation, UI, output, search, layout, quantity expressions, short labels, plurals and bidirectional behavior.
 
 Use [testing and acceptance](testing.md) to record automated checks, actual hosts, PTY reconstructions and human or physical results separately. Preserve logical coverage, evidence identities and recorded limits.
 

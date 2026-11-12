@@ -2,9 +2,9 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-03 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-03 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
-[总体迁移计划](../../typescript-migration.zh-CN.md)负责阶段状态。自 2026-10-15 起，TS-03／03-F
+[总体迁移计划](../../history/migration/typescript-migration.zh-CN.md)负责阶段状态。自 2026-10-15 起，TS-03／03-F
 按修订后的非性能标准为 **DONE**。实现从 `9b121e0` 开始，各批通过独立 PR 检查后合并并同步
 Gitee。本次关闭记录不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
 

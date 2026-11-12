@@ -9,3 +9,6 @@ The full [report](history/deliveries/i18n-02-delivery.md#incremental-language-wo
 - <a id="validation-and-delivery-status"></a>[Validation and delivery status](history/deliveries/i18n-02-delivery.md#validation-and-delivery-status)
 - <a id="final-source-and-publication"></a><a id="final-release"></a>[Final source and publication](history/deliveries/i18n-02-delivery.md#final-source-and-publication)
 - <a id="actual-machine-and-remaining-limits"></a>[Actual machine and remaining limits](history/deliveries/i18n-02-delivery.md#actual-machine-and-remaining-limits)
+- <a id="original-design-baseline"></a>[Original v3.14.0 design baseline](history/deliveries/i18n-02-delivery.md#original-design-baseline)
+- <a id="delivery-boundaries"></a><a id="delivery-slices"></a>[Delivery boundaries](history/deliveries/i18n-02-delivery.md#delivery-slices)
+- <a id="acceptance"></a>[Functional acceptance and evidence limits](history/deliveries/i18n-02-delivery.md#acceptance)

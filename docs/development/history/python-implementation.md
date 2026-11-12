@@ -317,9 +317,4 @@ The final Python release used display schema v8 and configuration protocol v11 t
 
 ### Component instances and layout in the Python architecture
 
-<details>
-<summary>View Component instances and layout</summary>
-
-`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; TypeScript generates the shared protocol. See [composition](../../COMPOSITION.md) and [shared contracts](../contracts.md).
-
-</details>
+This architecture topic is documented once under [Component instances and layout](#component-instances-and-layout).

@@ -73,4 +73,4 @@ claude-statusline config import source.json --groups main:group-id \
 
 ## 历史截图说明
 
-v3.13.0 Native 简中界面的此入口曾未翻译（[#180](https://github.com/fbincon/claude-code-statusline/issues/180)）；[v3.14.0 已修复并验证实际样式／分组／历史入口](development/adaptive-row-scenarios.zh-CN.md)。历史截图保留原软件包身份。
+v3.13.0 Native 简中界面的此入口曾未翻译（[#180](https://github.com/fbincon/claude-code-statusline/issues/180)）；[v3.14.0 已修复并验证实际样式／分组／历史入口](development/history/deliveries/draft-history-and-reuse.zh-CN.md)。历史截图保留原软件包身份。

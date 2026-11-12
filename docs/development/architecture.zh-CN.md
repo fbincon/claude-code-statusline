@@ -39,6 +39,13 @@ mods/
   statusline-runtime/             官方宿主观测及生命周期集成
 tools/
   generation/                    资源生成
+  checks/                        仓库、文档及 CI 策略检查
+  build/                         候选包打包、生成与校验
+  release/                       发布准备、批准与公开
+  benchmarks/                    性能基准
+  testing/                       共享测试装置与 oracle
+  typescript/                    TypeScript 构建、清理与测试脚本
+  unicode/                       Unicode 数据、字素与宽度夹具
   acceptance/                    安装、终端及宿主验收
   migration/                     迁移及历史比较工具
 archive/python/                  冻结实现及比较证据
@@ -84,7 +91,7 @@ Native 编辑器为官方宿主窗格提供有界可见帧及容量／恢复处�
 | 包执行与恢复 | [安全包交接](source-command-package-management.zh-CN.md#安全包交接) |
 | 设置、编辑与解释 | [首次设置与完整外观](setup-appearance.zh-CN.md) · [配置体验](configuration-experience.zh-CN.md) |
 | 方案、项目与任务 | [实现说明](profiles-projects-tasks.zh-CN.md) · [方案指南](../PROFILES.zh-CN.md) · [任务详情](../TASK_DETAILS.zh-CN.md) |
-| 显式输入诊断 | [使用指南](../DIAGNOSTICS.zh-CN.md) · [实现与验收](real-input-diagnostics.zh-CN.md) |
+| 显式输入诊断 | [使用指南](../DIAGNOSTICS.zh-CN.md) · [诊断契约](contracts.zh-CN.md#配置与示例解释协议) · [历史实现与验收](history/deliveries/real-input-diagnostics.zh-CN.md) |
 
 ## 迁移参考
 

@@ -60,7 +60,7 @@
 
 ## 阶段路线与依赖
 
-以下记录已交付阶段的状态、原始依赖和排期依据。版本与证据见[交付历史](../roadmap.zh-CN.md#delivery-history)。
+以下记录已交付阶段的状态、原始依赖和排期依据。版本与证据见[按版本工作包](README.zh-CN.md#delivery-by-version)与[交付记录](README.zh-CN.md#delivery-records)。
 
 <a id="后续主线"></a>
 

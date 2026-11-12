@@ -78,7 +78,7 @@ The source is the [official statusline contract](https://code.claude.com/docs/en
 
 Current interface versions and read ranges are in the [CLI reference](reference/cli.md#protocol-and-schema-versions). Use matching backend and editor resources. Before downgrading, restore a configuration backup compatible with the selected older package; removing one component does not make a newer schema compatible. No automatic migration or configuration rewrite occurs during diagnosis.
 
-See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_ITEMS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
+See [backend contracts](development/contracts.md#configuration-and-sample-explanation-protocol), [metric definitions](DISPLAY_ITEMS.md), this page's [report rules](#read-the-report) and the [historical implementation and acceptance record](development/history/deliveries/real-input-diagnostics.md).
 
 ## Git collection policy
 
