@@ -12,7 +12,9 @@
 | 核心行为／运行依赖 | 完整产品检查及适用安装／运行时／宿主矩阵 |
 | 终端、实机或付费工作 | 范围明确的采集、源码绑定报告及实际限制；付费调用需要获批预算和共用账本 |
 
-普通测试使用隔离的配置和安装目录。[候选包验收](#candidate-build-and-isolated-installation)介绍安装与宿主检查，交互终端、实机和付费场景有独立入口。分别记录 PTY 重建、操作者观察和实机结果。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)的六项既有缺口继续标为未验证。
+<a id="known-validation-gaps"></a>
+
+普通测试使用隔离的配置和安装目录。[候选包验收](#candidate-build-and-isolated-installation)介绍安装与宿主检查，交互终端、实机和付费场景有独立入口。分别记录 PTY 重建、操作者观察和实机结果。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)的六项既有缺口继续标为未验证。包括 [v3.1.0](../releases/approvals/v3.1.0.json) 在内的历史发布决定保留原有范围，不代表新包验收通过，也不豁免新增失败。
 
 当前 Native 容量规则与适用宿主检查见[容量与恢复](native-capacity.zh-CN.md)。[交付索引](history/README.zh-CN.md#delivery-records)链接各功能证据；历史记录中的数量描述其指定版本，不代表对当前 main 新执行了一轮检查。
 

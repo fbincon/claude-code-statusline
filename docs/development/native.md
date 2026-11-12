@@ -32,7 +32,7 @@ For a source backend, first run `npm run build`. Set plugin `backendExecutable` 
 
 `ui/theme.ts` centralizes host color roles. Normal text and bold keys use `text`; titles and active tabs use `suggestion`; regular descriptions and borders use `inactive`; errors use `error`. The main surface pairs `text` with `inverseText`, and selection reverses that pair explicitly. Avoid combining inactive colors with terminal dimming. The host resolves these tokens for its applied standard, daltonized, ANSI, auto and custom themes; editing a theme preference alone does not apply it. Recovery buttons use the supported primary variant and remain outside Client.
 
-`ui/components/preview.ts` draws production foreground spans and cell-width padding on the UI-only `light` (`#ffffff`) or `dark` (`#17191e`) background, including loading/error, empty and overflow rows. RGB spans keep their values; ANSI spans use `ansi256(0..15)` so named-color remapping cannot change terminal slots. Plain spans use terminal foreground. Chrome backgrounds are scoped to header, content, footer and frame edges. The host paints a docked Pane’s default Client cells with its own sidebar background, so transparent/default props do not reproduce the terminal background there. The supported solution keeps the preview in the pane and offers **Preview background (UI only)** separately from Palette. Host hooks read/write the plugin-scoped `preview-background` store key; changes remember immediately, failed writes restore the previous choice, and invalid/missing values default to dark. This setting is outside display drafts, portable files and backend protocols. Titles show both choices, shortened below 64 columns.
+`ui/components/preview.ts` draws production foreground spans and cell-width padding on the UI-only `light` (`#ffffff`) or `dark` (`#17191e`) background, including loading/error, empty and overflow rows. RGB spans keep their values; ANSI spans use `ansi256(0..15)` so named-color remapping cannot change terminal slots. Plain spans use terminal foreground. Chrome backgrounds are scoped to header, content, footer and frame edges. The host paints a docked Pane’s default Client cells with its own sidebar background, so transparent/default props do not reproduce the terminal background there. The supported solution keeps the preview in the pane and offers **Preview background (UI only)** separately from Palette. Host hooks read/write the plugin-scoped `preview-background` store key; changes remember immediately, failed writes restore the previous choice, and invalid/missing values default to dark. This setting is outside display drafts, portable files and backend protocols. Titles show both choices, shortened below 64 columns. The editor does not query the terminal's exact RGB background; compare `default` and `ansi` when needed.
 
 [Linux light/dark capture provenance](../images/README.md#theme-terminal-captures). These are cropped reconstructions of real terminal cells, not OS screenshots or new human acceptance.
 
@@ -66,6 +66,35 @@ Sample preview uses fixed data and production formatting, with at most three row
 Reexecuting the native command focuses the existing pane and keeps its draft. External TUI and Client may be open concurrently. Both save through the same short-lived file lock and opening revision: the first commit wins; a stale draft gets a conflict instead of overwriting. Client retains its draft on conflict; r explicitly discards/reloads. Unknown results require k, which reads without resubmitting or automatically closing.
 
 Claude appearance, time/title and model/effort/thinking/fast behavior use actual `$.config.list()` rows. Apply rechecks locks/current values per row, reports partial results, and is separate from tool configuration. Finish does not silently discard pending preferences. On Client failure, received host-side drafts remain available. Retry/Close buttons remain outside Client so load failures can be recovered. Builds 2.1.287/2.1.288 retain preflight, caught drawing errors and native recovery buttons. On newer hosts the compatible observer also handles `ui.fault` and renders a host-only recovery view.
+
+<a id="client-page-hierarchy-footer-and-pagination"></a>
+
+## Client page hierarchy, footer and pagination
+
+The Client follows the host theme roles described in [Theme rendering](#theme-rendering). The theme-accent **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys use the theme's primary text color and bold weight; action descriptions are lowercase, use the theme's inactive color and regular weight. Keys are judged by readability, not a fixed color. Letter shortcuts display uppercase and accept either case outside input editing.
+
+Page shortcuts appear in the footer after the separate save/finish/close/preview group. Every page starts with `Tab page`:
+
+| Page | Footer order |
+| --- | --- |
+| Main / Subagents | `Tab page · A/D/X add/copy/remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings offers H outside editing and A only while Claude preferences are expanded. `/ search` remains beside Filter and also appears in the footer on idle item pages. Editing replaces ordinary shortcuts with accept/cancel/clear/delete; Esc remains a host focus action. Busy operations and unknown saves show their applicable controls. Complete hints wrap without splitting a key from its description. At 32×12, compact descriptions and fewer detail rows preserve selection, basic controls and a sample preview; secondary preview/reload/focus hints may be omitted.
+
+Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
+
+<a id="external-terminal-editor-page-regions-and-footer"></a>
+
+## External terminal editor page regions and footer
+
+Content and `Preview (sample data)` are separate regions: frames at 64×20 and above, compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`; settings and forms show `OPTION`, `VALUE`.
+
+Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colors, subagent visibility, and presets/portable files. Layout groups mode, row boundaries, and item fitting. Group titles are not selectable. The fixed-sample preview uses production rendering and does not inspect live Git or transcripts. [TypeScript editor captures from v3.16.0](../images/typescript/v3.16.0/README.md).
+
+The footer follows the current input context. Category selection shows arrows and Home/End; numeric editing shows `←→ Home/End` and `Backspace/Delete`, while Ctrl+U belongs to search/text input. Main/Subagents show Enter/Ctrl+S for saving, and hide ordering while filtered. Add/copy/remove hints use compact labels when space is limited. Inherited values are localized; literal labels, icons, text and Git references retain their exact spelling. The title marks changed configuration text before confirmation; opening an edit or changing a file path alone does not mark the configuration modified.
 
 ## Persistent installation and recovery
 

@@ -49,6 +49,14 @@ Types with exclusions remain exclusive: for example, disable `status-elapsed`
 before enabling a separate `status` or `elapsed`. A conflicting addition or copy
 leaves the draft unchanged and explains the conflict.
 
+<a id="unicode-text-and-terminal-widths"></a>
+
+## Unicode text and terminal widths
+
+Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across supported runtimes and editors. Actual glyph appearance still depends on your terminal and fonts.
+
+Truncation ends at a complete grapheme boundary and appends `…`; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes belong to the display draft; the native light/dark preview background remains an independent UI preference.
+
 ## Static text and flexible space
 
 `text` displays up to 256 Unicode code points of literal text. It supports labels,

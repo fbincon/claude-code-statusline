@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
-import { SCHEMA_VERSION, isSchema, validateDisplay } from '@fbincon/statusline-core/config/display';
+import { SCHEMA_VERSION, defaultDisplay, isSchema, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { COMPLETE_SCHEMES, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { definition } from '@fbincon/statusline-core/extensions/model';
@@ -61,10 +61,12 @@ export function contentErrors(pages: Documents): string[] {
         try { verify(page(path)); } catch (error) { errors.push(path + ': ' + (error instanceof Error ? error.message : String(error))); }
     };
     const metricCounts = ['main', 'subagent'].map(scope => ITEMS.filter(item => item.scope === scope && !(NODE_TYPES as readonly string[]).includes(item.id)).length);
+    const defaults = defaultDisplay();
+    const defaultCounts = [defaults.instances, defaults.subagents.instances].map(instances => instances.filter(item => item.enabled && !(NODE_TYPES as readonly string[]).includes(item.type_id)).length);
     const originals = PRESET_PRESENTATION.filter(preset => !(COMPLETE_SCHEMES as readonly string[]).includes(preset.id));
     for (const suffix of ['', '.zh-CN']) {
         const readme = `README${suffix}.md`, metrics = `docs/DISPLAY_ITEMS${suffix}.md`, guide = `docs/USER_GUIDE${suffix}.md`, schemes = `docs/SCHEMES${suffix}.md`;
-        for (const path of [readme, metrics]) check(path, body => {
+        for (const path of [readme, metrics, guide]) check(path, body => {
             const counts = body.match(/(\d+)\s*(?:main metrics|个主栏指标)[^\n.。]*?(\d+)\s*(?:subagent metrics|个子(?:代理| Agent )指标)/u);
             assert(counts, 'Missing metric counts');
             assert.deepEqual(counts.slice(1).map(Number), metricCounts, 'Metric counts differ from the catalog');
@@ -87,6 +89,31 @@ export function contentErrors(pages: Documents): string[] {
             const declaration = body.match(/^(?:Supported codes are|语言代码为) (.+)$/mu)?.[1]?.split(/[.。]/u)[0];
             assert(declaration, 'Missing supported language declaration');
             assert.deepEqual([...declaration.matchAll(/`([^`]+)`/gu)].map(match => match[1]), [...LANGUAGES], 'Supported language codes differ from registry');
+            const defaultMatches = body.match(/Defaults enable (\w+) main items and (\w+) subagent items|默认启用 ([0-9]+|[零一二三四五六七八九十]+) 个主栏条目和 ([0-9]+|[零一二三四五六七八九十]+) 个子代理条目/u);
+            assert(defaultMatches, 'Missing default item counts');
+            assert.deepEqual(defaultMatches.slice(1).filter((value): value is string => value !== undefined).map(count), defaultCounts, 'Default item counts differ from production defaults');
+            const presetMatches = body.match(/(\w+) complete display schemes and (\w+) original presets|([0-9]+|[零一二三四五六七八九十]+)套完整显示方案与([0-9]+|[零一二三四五六七八九十]+)种原有预设/u);
+            assert(presetMatches, 'Missing scheme/preset counts');
+            assert.deepEqual(presetMatches.slice(1).filter((value): value is string => value !== undefined).map(count), [COMPLETE_SCHEMES.length, originals.length], 'Scheme/preset counts differ from the catalog');
+            const requiredRows = suffix
+                ? [
+                    '| 子代理行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |',
+                    '| 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |',
+                    '| 会话内 Client 编辑器 | 2.1.287+ |',
+                    '| 原生计时及高级实时指标采集 | 2.1.289+ |',
+                ]
+                : [
+                    '| Subagent rows and lifecycle hooks | 2.1.205+; per-task effort 2.1.214+ |',
+                    '| Local argument-based slash commands, external entry | 2.1.258+ |',
+                    '| In-session Client editor | 2.1.287+ |',
+                    '| Native timing and advanced live-metrics collection | 2.1.289+ |',
+                ];
+            for (const row of requiredRows) assert(body.includes(row), 'Missing requirements row: ' + row);
+            assert(body.includes('^22.0.0 || ^24.0.0'), 'Missing runtime Node range');
+            assert(body.includes('complete `config apply`') || body.includes('完整 `config apply`'), 'Missing complete apply guidance');
+            assert(body.includes('config language reset') && body.includes('config set statusline-language en'), 'Missing language downgrade guidance');
+            assert(/claude-statusline setup --dry-run/u.test(body), 'Missing setup dry-run command');
+            assert(/claude-statusline setup(?![ \t]+--dry-run)/u.test(body), 'Missing setup command');
         });
         check(schemes, body => {
             const counts = body.match(suffix ? /下方([^\s]+?)套完整方案/u : /The (\w+) complete schemes below/u);

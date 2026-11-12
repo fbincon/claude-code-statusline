@@ -23,7 +23,19 @@ claude-statusline config item main model background inherit
 
 颜色支持 `inherit`、`default`、`ansi:N`（0–255）和六位 `#RRGGBB`；在 shell 中为十六进制颜色加引号。`inherit` 继承显示项的主题／语义色，`default` 明确恢复终端前景／背景，包括 Powerline 色块内部。JSON 用 `null` 保存继承，其余值为字符串；RGB 文本统一转成小写。
 
-启用阈值变色时，警告／危险前景色覆盖逐项前景色，逐项背景保持。沿用 `threshold-colors`、`warning-threshold` 和 `critical-threshold` 控制这一行为。关闭颜色会同时关闭前景与背景；`palette ansi` 将自定义 RGB／扩展色量化为基础 ANSI 色槽，实际色槽颜色由终端决定。外部编辑器按终端报告的颜色能力适配预览。
+启用阈值变色时，警告／危险前景色覆盖逐项前景色，逐项背景保持。沿用 `threshold-colors`、`warning-threshold` 和 `critical-threshold` 控制这一行为。关闭颜色会同时关闭前景与背景；`palette ansi` 将自定义 RGB／扩展色量化为基础 ANSI 色槽，实际色槽颜色由终端决定。终端编辑器按终端报告的颜色能力适配预览。
+
+<a id="terminal-color-capability"></a>
+
+## 终端颜色能力
+
+setup、独立 `configure` 和 slash 打开的 TUI 使用同一能力策略，在打开输出终端后判断一次。`NO_COLOR` 和单色 `TERM` 优先，显式 `TERM`／`COLORTERM` 设置继续生效。没有显式选择时，已确认 VT 输出模式的 Windows TTY 使用 256 色序列；仅继承 `WT_SESSION`／`WT_PROFILE_ID` 不足以证明能力。未知能力回退到 16 色，非 TTY 输出无色；退出时恢复原始控制台模式。`doctor` 报告当前输出能力及原因。
+
+以上描述发送的调色板，不保证每个控制台呈现 256 种不同颜色。原生编辑器主题和生产状态栏 RGB 输出保持不变。
+
+终端编辑器使用终端默认前景与背景，页面、面板及分组标题使用终端 ANSI 青色加粗，快捷键加粗，说明保持普通字重。活动页签及选中行反转默认颜色，并保留选择标记。界面随浅色／深色终端配置显示，独立于 Claude 实际应用的主题。分组文字及左右横线整行使用相同颜色与粗体；通知和行内快捷键保持加粗，无颜色输出省略颜色控制序列，8 色终端的亮色样例保留加粗强度。
+
+样例预览使用当前终端背景和所选 `Palette`，标题显示当前选择。无色文字、颜色重置、空行和行尾空格使用终端默认色。渲染器按终端能力量化 RGB 样例，ANSI 样例使用终端配置的 ANSI 颜色。浅色终端中若 `Palette: default` 显得过淡，可在 Settings 比较 `Palette: ansi`；修改立即更新预览，保存后应用到实际状态栏。预览保留原有配色，使比较反映终端实际显示效果。默认色不支持、无色终端以及样例颜色不受支持时回退到默认文字。
 
 ## 条件显示
 

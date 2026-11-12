@@ -28,11 +28,13 @@ npm run --prefix mods/statusline-native typecheck
 
 Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部编辑器启动器属于独立接入。依赖、宿主生成声明和原始验证记录不进入运行资源；普通检查不调用模型。
 
+<a id="theme-rendering"></a>
+
 ## 主题绘制
 
 `ui/theme.ts` 集中维护宿主颜色职责：正文及粗体快捷键使用 `text`，标题和活动页签使用 `suggestion`，普通说明和边框使用 `inactive`，错误使用 `error`。主界面使用 `text`／`inverseText` 明确配对，选中行交换这组前景和背景。辅助色避免再叠加终端淡化。宿主按实际应用的普通、色弱、ANSI、auto 或自定义主题解析这些颜色；仅编辑主题偏好不会应用。恢复按钮使用受支持的 primary 样式，并保留在 Client 外部。
 
-`ui/components/preview.ts` 在仅用于界面的 `light`（`#ffffff`）或 `dark`（`#17191e`）底色上绘制生产前景 span 及按单元格宽度填充的空格，包括加载／错误、空白和溢出行。RGB 保留原值；ANSI 使用 `ansi256(0..15)`，避免命名颜色映射改变终端色槽。无色 span 使用终端默认前景。主界面背景限定在标题、正文、页脚和框线。宿主会把停靠 Pane 中 Client 的默认背景单元格重绘为侧边栏底色，因此透明／default 属性无法在该位置还原终端背景。实现保留框内预览，并提供独立于 Palette 的 **Preview background (UI only)**。宿主 hooks 读写插件范围内的 `preview-background` 存储键；选择立即记住，写入失败恢复原选择，缺失／无效值默认深色。该偏好不进入显示草稿、可移植文件或后端协议。标题显示两项选择，64 列以下使用短标题。
+`ui/components/preview.ts` 在仅用于界面的 `light`（`#ffffff`）或 `dark`（`#17191e`）底色上绘制生产前景 span 及按单元格宽度填充的空格，包括加载／错误、空白和溢出行。RGB 保留原值；ANSI 使用 `ansi256(0..15)`，避免命名颜色映射改变终端色槽。无色 span 使用终端默认前景。主界面背景限定在标题、正文、页脚和框线。宿主会把停靠 Pane 中 Client 的默认背景单元格重绘为侧边栏底色，因此透明／default 属性无法在该位置还原终端背景。实现保留框内预览，并提供独立于 Palette 的 **Preview background (UI only)**。宿主 hooks 读写插件范围内的 `preview-background` 存储键；选择立即记住，写入失败恢复原选择，缺失／无效值默认深色。该偏好不进入显示草稿、可移植文件或后端协议。标题显示两项选择，64 列以下使用短标题。编辑器不查询终端背景的精确 RGB；需要时比较 `default` 与 `ansi`。
 
 [Linux 浅色／深色捕获来源](../images/README.zh-CN.md#主题终端捕获)。图片是实际终端单元格的裁剪重建，与系统截图及真人验收分别记录。
 
@@ -66,6 +68,35 @@ Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部
 重复执行原生命令会聚焦现有面板并保留草稿。外部 TUI 和 Client 可同时打开；保存共用短期文件锁和打开时版本，先保存者生效，旧草稿提示冲突且不覆盖新配置。Client 冲突时保留草稿，r 明确丢弃重载。结果不明须先 k 只读核对，不重新提交或自动退出。
 
 Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使用 `$.config.list()` 的真实行。Apply 逐项重查锁定及当前值，报告部分成功，与工具配置保存分开。Finish 不默默丢弃待应用偏好。Client 故障保留宿主已接收草稿；Client 外始终保留 Retry/Close 按钮供加载失败时恢复。2.1.287/2.1.288 保留预检查、内部绘制异常处理和原生恢复按钮；较新宿主还通过兼容观察器处理 `ui.fault`，显示独立宿主恢复页。
+
+<a id="client-page-hierarchy-footer-and-pagination"></a>
+
+## Client 页面层级、底部提示与分页
+
+Client 跟随[主题绘制](#theme-rendering)中的宿主主题角色。主题强调色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键使用当前主题的主要文字色并保持加粗，作用说明使用小写、主题辅助色和普通字重。按可读性验收，不限定具体颜色。字母快捷键显示大写，非输入编辑状态下大小写均有效。
+
+页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
+
+| 页面 | 底部展示顺序 |
+| --- | --- |
+| Main / Subagents | `Tab page · A/D/X add/copy/remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings 非编辑时显示 H，展开 Claude preferences 后才显示 A。`/ search` 保留在 Filter 旁，也在未编辑的条目页底部显示。编辑时改为接受／取消／清空／删除提示；Esc 仍表示宿主焦点操作。忙碌与保存结果不明时只显示对应控制。快捷键按完整的“按键＋说明”换行；32×12 下缩短说明、减少详情行，保留选中项、基本操作和样例预览，必要时省略预览／重载／焦点等次要提示。
+
+Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
+
+<a id="external-terminal-editor-page-regions-and-footer"></a>
+
+## 终端编辑器的区域与底部提示
+
+内容和 `Preview (sample data)` 使用独立区域：64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。
+
+Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子代理可见性、预设与文件操作分组。Layout 按模式、行边界、逐项适配分组，标题不可选中。固定样例预览复用生产渲染，不读取实时 Git 或 transcript。[v3.16.0 TypeScript 编辑器采集](../images/typescript/v3.16.0/README.zh-CN.md)。
+
+底部提示随当前输入状态变化：分类选择显示方向键和 Home/End；数字输入显示 `←→ Home/End` 和 `Backspace/Delete`，Ctrl+U 属于搜索／文本输入。主状态栏与子代理页显示 Enter/Ctrl+S 保存，筛选时隐藏排序提示；空间不足时添加／复制／移除采用短文案。继承值按界面语言翻译，用户标签、图标、文本和 Git 引用保持原样。配置文本实际改变后，标题在确认输入前即显示修改标记；仅打开编辑或修改文件路径不会标记配置已改动。
 
 ## 持久安装与恢复
 
