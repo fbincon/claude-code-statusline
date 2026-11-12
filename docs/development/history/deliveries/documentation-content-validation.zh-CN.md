@@ -37,6 +37,8 @@ CLI 流程使用含空格和中文的隔离目录，执行文档中的注册、�
 
 记录提交增加本双语页面及索引链接；后续兼容修正保留既有逐文件分类说明，因为已接受第一父提交的校验器会精确比较该内容。最终 head 所选检查和 PR 的 **Complete candidate evidence** 是独立证据；本地回执没有 Actions 执行身份，不能替代该门禁或 main 晋级核验。
 
+中间的 [PR 运行 983](https://github.com/fbincon/claude-code-statusline/actions/runs/43165119798)通过 Linux／macOS，但 Windows 测试构造的 CRLF 样本失败：对已是 CRLF 的检出文件再次转换，插入了重复回车符。原始文本校验及十项 Windows CLI 流程全部通过。测试现从规范化输入构造 LF／CRLF 变体；此为测试样本更正，该失败运行不能作为最终验收。
+
 ## 边界
 
 本次不代表真实 GitHub 认证／网络成功、交互式 PowerShell 会话、安装／实体编辑器验收、付费模型验收或对全部说明文字的穷尽验证。既有 issue #96 缺口仍未验证。所覆盖问题仅需文档及检查工具变更；不创建产品版本、标签、Release 或 npm 发布。

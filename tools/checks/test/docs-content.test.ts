@@ -9,7 +9,11 @@ import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registr
 const pages = contentDocuments(process.cwd());
 test('current bilingual documentation facts and JSON examples agree with production definitions', () => {
     assert.deepEqual(contentErrors(pages), []);
-    assert.deepEqual(contentErrors(new Map([...pages].map(([path, text]) => [path, text.replaceAll('\n', '\r\n')]))), []);
+    // Checkout may already use CRLF. Build each valid variant from LF rather
+    // than doubling its CR, which would test malformed text on Windows only.
+    const lf = new Map([...pages].map(([path, text]) => [path, text.replaceAll('\r\n', '\n')]));
+    for (const ending of ['\n', '\r\n'])
+        assert.deepEqual(contentErrors(new Map([...lf].map(([path, text]) => [path, text.replaceAll('\n', ending)]))), []);
 });
 test('documentation checks reject changed counts, missing IDs/languages/presets and stale contracts', () => {
     for (const suffix of ['', '.zh-CN']) {

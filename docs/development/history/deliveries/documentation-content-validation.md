@@ -37,6 +37,8 @@ The baseline is `fa3f66eadbd2994db6b533a228886e5536e8c363`; the implementation c
 
 The record commit adds this bilingual page and index links. A subsequent compatibility correction retains the existing per-file classification reason, which the accepted first parent's verifier compares exactly. The selected final-head checks and the PR's **Complete candidate evidence** remain separate evidence; local receipts have no Actions execution identity and cannot substitute for that gate or main promotion.
 
+Intermediate [PR run 983](https://github.com/fbincon/claude-code-statusline/actions/runs/43165119798) passed Linux/macOS but failed the Windows test's synthetic CRLF variant: converting an already-CRLF checkout inserted duplicate carriage returns. The original-text validation and all ten Windows CLI journeys passed. The test now constructs LF/CRLF variants from normalized input; this is a test-fixture correction, and the failed run cannot supply final acceptance.
+
 ## Limits
 
 The work does not establish live GitHub authentication/network success, an interactive PowerShell session, installed/physical editor acceptance, paid-model acceptance or exhaustive prose correctness. Existing issue #96 gaps remain unverified. The covered findings required documentation and check-tool changes only. There is no product version, tag, Release or npm publication.
