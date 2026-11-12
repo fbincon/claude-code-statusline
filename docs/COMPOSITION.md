@@ -2,6 +2,8 @@
 
 **English** | [简体中文](COMPOSITION.zh-CN.md)
 
+See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations.
+
 Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
 
 A component type describes a value, such as a model or token count. An instance

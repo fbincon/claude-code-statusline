@@ -2,6 +2,8 @@
 
 **English** | [简体中文](SETUP.zh-CN.md)
 
+See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations.
+
 After [installing the npm package](USER_GUIDE.md#installation-and-integration), use setup to preview the display and review Claude integration. The [usage demonstrations](SHOWCASE.md) show the full workflow.
 
 ```sh

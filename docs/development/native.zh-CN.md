@@ -2,6 +2,8 @@
 
 **简体中文** | [English](native.md)
 
+日常操作见[配置编辑器](../EDITORS.zh-CN.md)，本页维护实现与验收说明。
+
 当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
 
 从 v1.3.0 起提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 通过平台启动器打开外部 TypeScript TUI。正式版默认启用两者，按偏好及宿主版本分别降级。
@@ -44,24 +46,9 @@ Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部
 
 ## 编辑器行为
 
-打开后先点击 Client 区域一次，再用键盘。Linux 2.1.288 实测中 `focus: true` 未让 Client 自动收键。Esc 不传给 Client：第一次归还输入焦点，之后可关闭面板。取消字段编辑使用 Ctrl+G。保存中或结果不明时阻止普通关闭。
+打开、键位、草稿操作及窗口适配见[配置编辑器](../EDITORS.zh-CN.md)。Linux 2.1.288 的既有观察中，`focus: true` 未让 Client 自动收键；Esc 不传给 Client，仍由宿主管理焦点与关闭。
 
-| 按键 | 操作 |
-| --- | --- |
-| Tab / Shift+Tab；1/2/3/4 | 切换 Main、Subagents、Settings、Layout |
-| Ctrl+E / Ctrl+G | 打开逐项格式／返回项目列表 |
-| 上下；PgUp/PgDn；Home/End | 选择、翻页、首尾 |
-| 左右 | 条目排序；调整设置值 |
-| Space / Enter | 勾选条目；操作设置或进入/确认数值编辑 |
-| / | 进入列表搜索；Enter 结束搜索输入 |
-| Ctrl+U / Ctrl+G | 清空输入 / 恢复搜索或数值的编辑前状态 |
-| S / F / Q | 保存继续 / 保存成功后退出 / 丢弃未保存修改并退出 |
-| H / A | 折叠或展开 Claude 偏好 / 单独应用 |
-| R / K / V | 丢弃重载 / 核对结果不明的保存 / 重试样例预览 |
-
-搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；搜索或分类筛选生效时禁止排序，清除筛选后恢复。启用和禁用实例均保留已保存位置，仅启用实例参与渲染。子 Agent 互斥规则来自共享 catalog。
-
-请求面板正文 72 列×24 行，实际空间和位置由宿主决定；最小正文为 32×12。≥64×20 时内容及预览使用分组边框；紧凑空间用带标题分隔线。导航、选择、说明、样例预览和操作提示区域分明。Settings 分为 Appearance、Refresh / behavior、Git metrics、Formatting、Risk colors、Subagent visibility、Presets / portable files 和默认折叠的 Claude preferences。空间不足保留草稿并提示调整尺寸或关闭；内嵌布局可能需要增加终端高度或使用宿主调整面板的快捷键。
+面板请求正文 72×24，实际空间与位置由宿主决定；最小可用正文为 32×12。绘制与导航共用布局预算，缩放后保留草稿及选中字段。启用与禁用实例均保留位置，仅启用项渲染；互斥规则来自共享 catalog。
 
 预览使用固定样例及生产格式，最多显示三行并报告溢出行数。草稿或宽度变化重新请求，导航及高度变化复用缓存。Client 输入采用累积有序批次、确认及去重；宿主会冻结端口对象，所以只传递独立可见帧，完整草稿保留在宿主。旧 props、旧 epoch 和迟到预览不能替换当前状态。
 
@@ -73,30 +60,13 @@ Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使
 
 ## Client 页面层级、底部提示与分页
 
-Client 跟随[主题绘制](#theme-rendering)中的宿主主题角色。主题强调色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键使用当前主题的主要文字色并保持加粗，作用说明使用小写、主题辅助色和普通字重。按可读性验收，不限定具体颜色。字母快捷键显示大写，非输入编辑状态下大小写均有效。
-
-页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
-
-| 页面 | 底部展示顺序 |
-| --- | --- |
-| Main / Subagents | `Tab page · A/D/X add/copy/remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
-| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
-| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
-| 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
-
-Settings 非编辑时显示 H，展开 Claude preferences 后才显示 A。`/ search` 保留在 Filter 旁，也在未编辑的条目页底部显示。编辑时改为接受／取消／清空／删除提示；Esc 仍表示宿主焦点操作。忙碌与保存结果不明时只显示对应控制。快捷键按完整的“按键＋说明”换行；32×12 下缩短说明、减少详情行，保留选中项、基本操作和样例预览，必要时省略预览／重载／焦点等次要提示。
-
-Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
+用户操作说明迁至[配置编辑器：Client 分页与底部提示](../EDITORS.zh-CN.md#client-pagination-and-footer)。布局预算、宿主颜色角色及可见帧实现见上方[源码结构与检查](#源码结构与检查)、[主题绘制](#theme-rendering)及[编辑器行为](#编辑器行为)。
 
 <a id="external-terminal-editor-page-regions-and-footer"></a>
 
 ## 终端编辑器的区域与底部提示
 
-内容和 `Preview (sample data)` 使用独立区域：64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。
-
-Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子代理可见性、预设与文件操作分组。Layout 按模式、行边界、逐项适配分组，标题不可选中。固定样例预览复用生产渲染，不读取实时 Git 或 transcript。[v3.16.0 TypeScript 编辑器采集](../images/typescript/v3.16.0/README.zh-CN.md)。
-
-底部提示随当前输入状态变化：分类选择显示方向键和 Home/End；数字输入显示 `←→ Home/End` 和 `Backspace/Delete`，Ctrl+U 属于搜索／文本输入。主状态栏与子代理页显示 Enter/Ctrl+S 保存，筛选时隐藏排序提示；空间不足时添加／复制／移除采用短文案。继承值按界面语言翻译，用户标签、图标、文本和 Git 引用保持原样。配置文本实际改变后，标题在确认输入前即显示修改标记；仅打开编辑或修改文件路径不会标记配置已改动。
+用户操作说明迁至[配置编辑器：终端页面区域与底部提示](../EDITORS.zh-CN.md#terminal-page-regions-and-footer)。外部实现仍位于 `packages/tui`，现行测试入口见[测试与验收](testing.zh-CN.md)；[v3.16.0 采集](../images/typescript/v3.16.0/README.zh-CN.md)保留原始版本身份。
 
 ## 持久安装与恢复
 

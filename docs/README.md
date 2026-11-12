@@ -6,7 +6,7 @@
 
 | Goal | Guide |
 | --- | --- |
-| Install the package and connect it to Claude Code | [Installation and integration](USER_GUIDE.md#installation-and-integration) |
+| Install and connect Claude Code for the first time | [Quick start](USER_GUIDE.md#quick-start) · [Detailed installation](USER_GUIDE.md#installation-and-integration) |
 | Preview a display and apply the first setup | [First-use setup](SETUP.md) |
 | Follow a complete workflow with example scenes | [Usage demonstrations](SHOWCASE.md) |
 
@@ -15,6 +15,7 @@
 | Goal | Guide |
 | --- | --- |
 | Choose an editor, wizard or CLI | [Configuration entry points](USER_GUIDE.md#choose-a-configuration-entry-point) · [CLI reference](reference/cli.md) |
+| Configure a display in an editor | [Configuration editors](EDITORS.md) |
 | Choose interface or output language | [Language and save behavior](USER_GUIDE.md#language-and-save-behavior) |
 | Build a display | [Recipes](USER_GUIDE.md#configuration-recipes) · [Complete schemes](SCHEMES.md) · [Appearance](APPEARANCE.md) · [Components and layout](COMPOSITION.md) |
 | Reuse settings across projects | [Profiles and project bindings](PROFILES.md) · [Draft history and reuse](DRAFT_HISTORY.md) |

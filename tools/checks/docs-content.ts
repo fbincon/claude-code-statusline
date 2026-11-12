@@ -11,6 +11,8 @@ import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registr
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.js';
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
+import { NATIVE } from '@fbincon/statusline-cli/integration/model';
+import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 
 export type Documents = ReadonlyMap<string, string>;
 export function contentDocuments(root: string): Documents {
@@ -114,6 +116,15 @@ export function contentErrors(pages: Documents): string[] {
             assert(body.includes('config language reset') && body.includes('config set statusline-language en'), 'Missing language downgrade guidance');
             assert(/claude-statusline setup --dry-run/u.test(body), 'Missing setup dry-run command');
             assert(/claude-statusline setup(?![ \t]+--dry-run)/u.test(body), 'Missing setup command');
+        });
+        check(`docs/EDITORS${suffix}.md`, body => {
+            const rows = body.split(/\r?\n/u);
+            const terminal = rows.find(row => row.startsWith('| `claude-statusline configure` |'));
+            const dimensions = terminal?.match(/(\d+)×(\d+)/u);
+            assert(dimensions, 'Missing terminal editor minimum size');
+            assert.deepEqual(dimensions.slice(1).map(Number), [MIN_COLUMNS, MIN_ROWS], 'Terminal editor minimum size differs from production layout');
+            const client = rows.find(row => row.startsWith('| `/statusline-configure-native` |'));
+            assert.equal(client?.match(/(\d+\.\d+\.\d+)\+/u)?.[1], NATIVE.minimum.join('.'), 'Client minimum host differs from integration');
         });
         check(schemes, body => {
             const counts = body.match(suffix ? /下方([^\s]+?)套完整方案/u : /The (\w+) complete schemes below/u);

@@ -104,6 +104,40 @@ test('USER_GUIDE preserves legacy section anchors after reorganization', () => {
             assert.equal(nextHeading(text, id), heading, file + ': ' + id + ' should precede ' + heading);
     }
 });
+test('onboarding comes first and moved editor sections keep useful bilingual destinations', () => {
+    for (const suffix of ['', '.zh-CN']) {
+        const read = (path: string) => readFileSync(join(process.cwd(), path + suffix + '.md'), 'utf8').replaceAll('\r\n', '\n');
+        const guide = read('docs/USER_GUIDE'), editors = read('docs/EDITORS'), native = read('docs/development/native');
+        const quick = suffix ? '## 快速开始' : '## Quick start';
+        const contents = suffix ? '## 文档导航' : '## Contents';
+        assert.equal(guide.slice(guide.indexOf(contents) + contents.length).match(/^## .+$/mu)?.[0], quick);
+        for (const source of [read('docs/README'), guide])
+            assert(source.includes(`](EDITORS${suffix}.md)`), 'Editor operations must be reachable from both entry pages');
+        const headingBody = (body: string, heading: string) => {
+            const start = body.indexOf(heading + '\n');
+            assert(start >= 0, heading);
+            return body.slice(start + heading.length).split(/\n#{1,6} /u)[0]!;
+        };
+        for (const [heading, target] of [
+            [suffix ? '### 终端编辑器的分组与页面层级' : '### Terminal editor sections and page hierarchy', 'terminal-page-regions-and-footer'],
+            [suffix ? '### 页面层级与分页' : '### Page hierarchy and pagination', 'client-pagination-and-footer'],
+            [suffix ? '### 预览背景与颜色' : '### Preview background and colors', 'client-preview-background'],
+            [suffix ? '### 文本输入' : '### Text input', 'text-input'],
+        ]) {
+            assert(headingBody(guide, heading!).includes(`](EDITORS${suffix}.md#${target})`), heading);
+            assert(anchors(editors).has(target!), target);
+        }
+        for (const [anchor, target] of [
+            ['client-page-hierarchy-footer-and-pagination', 'client-pagination-and-footer'],
+            ['external-terminal-editor-page-regions-and-footer', 'terminal-page-regions-and-footer'],
+        ]) {
+            const heading = nextHeading(native, anchor!);
+            assert(heading, anchor);
+            assert(headingBody(native, heading).includes(`](../EDITORS${suffix}.md#${target})`), anchor);
+            assert(anchors(editors).has(target!), target);
+        }
+    }
+});
 test('README configuration checks preserve the same section under Windows CRLF and POSIX LF', () => {
     for (const heading of ['Common configuration', '常用配置']) {
         const text = `# Project\n\n## ${heading}\n\n/statusline-configure-native\n\n### Child\n\nclaude-statusline config\n\n## Following\n\nwrong section\n`;

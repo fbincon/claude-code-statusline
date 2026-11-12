@@ -2,6 +2,8 @@
 
 [English](APPEARANCE.md) | **简体中文**
 
+编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。
+
 共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
 
 ## 配置外观

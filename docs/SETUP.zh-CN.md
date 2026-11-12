@@ -2,6 +2,8 @@
 
 [English](SETUP.md) | **简体中文**
 
+编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。
+
 [安装 npm 软件包](USER_GUIDE.zh-CN.md#安装与接入)后运行设置向导，预览显示并审核 Claude 接入。[使用演示](SHOWCASE.zh-CN.md)展示完整流程。
 
 ```sh
