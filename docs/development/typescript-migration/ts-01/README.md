@@ -2,9 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Historical stage record (frozen at TS-01 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+> **Historical stage record (frozen at TS-01 delivery).** Current status and interface versions are in the [migration plan](../../history/migration/typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
-The [migration plan](../../typescript-migration.md) owns stage status. This record
+The [migration plan](../../history/migration/typescript-migration.md) owns stage status. This record
 explains the frozen reference, portable cases, verification and evidence. TS-01
 does not implement a TypeScript backend or decide D01–D06.
 

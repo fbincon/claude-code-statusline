@@ -2,14 +2,14 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-02 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-02 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 2026-10-14: [Linux 整合、实体机验收及已批准的发布前补验](LINUX-20261014.zh-CN.md).
 
-更新：**2026-10-15**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)统一维护。
+更新：**2026-10-15**（Asia/Shanghai）。阶段状态由[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)统一维护。
 TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已[按修订后的非性能标准关闭](../ts-03/README.zh-CN.md#closure-2026-10-15)。
 [D06 适用范围修订](D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作归入 TS-06 之后的
-[PERF-01](../../performance/perf-01.zh-CN.md)。该次交接时 TS-04～TS-06 和 PERF-01 为 NOT_STARTED，后续完成情况见[阶段表](../../typescript-migration.zh-CN.md#阶段与进度)。
+[PERF-01](../../performance/perf-01.zh-CN.md)。该次交接时 TS-04～TS-06 和 PERF-01 为 NOT_STARTED，后续完成情况见[阶段表](../../history/migration/typescript-migration.zh-CN.md#阶段与进度)。
 整合 CI 和本 Linux 实体机电源／桌面验收已通过。维护者明确将无法补齐的外部实体机／桌面检查
 延后到[发布前补验](LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，仍记为未验证，平台支持承诺不变。
 

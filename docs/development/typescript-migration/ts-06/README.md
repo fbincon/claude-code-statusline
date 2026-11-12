@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Historical stage record (frozen at TS-06 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+> **Historical stage record (frozen at TS-06 delivery).** Current status and interface versions are in the [migration plan](../../history/migration/typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
 Status: **DONE** under the version-limited decision below. **v3.0.0 is published and download-verified** on npm `latest`, GitHub stable/Latest and Gitee stable. [Stable identity, checksums and CI evidence](stable-release.md). The [beta.1 delivery record](preview-release.md), npm `beta` and its immutable artifacts are preserved. [User guide](../../../USER_GUIDE.md) · [Feedback and platform tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 

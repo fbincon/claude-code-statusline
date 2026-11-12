@@ -2,10 +2,10 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-05 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-05 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 状态：**DONE**，2026-10-16（Asia/Shanghai）。执行者：Codex。
-收尾分支：`fbincon/ts-05-closure`。[迁移总计划](../../typescript-migration.zh-CN.md)
+收尾分支：`fbincon/ts-05-closure`。[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)
 维护阶段状态。已批准交付通用离线工程候选包、验证后的 CI 制品和仓库内隔离的 Python 归档。
 公开标签、预览/正式发布及剩余实机/桌面验收属于 TS-06。保留已安装的 Python 产品。
 
@@ -57,7 +57,7 @@ x64 的 PowerShell 主/子 Agent 渲染为 **2998 / 466 ms**；ARM 主机使用 
 
 [候选指南](candidate.zh-CN.md)提供重建和安装命令，[TS-06 交接](TS06-HANDOFF.zh-CN.md)
 列出发布前条件。本轮没有公开标签、预览、Release、注册表发布、新增付费调用、实机验收或
-现用 Python 切换。D06 保持 FAIL；本次关闭时 PERF-01 和 TS-06 为 NOT_STARTED，后续完成情况见[阶段表](../../typescript-migration.zh-CN.md#阶段与进度)。
+现用 Python 切换。D06 保持 FAIL；本次关闭时 PERF-01 和 TS-06 为 NOT_STARTED，后续完成情况见[阶段表](../../history/migration/typescript-migration.zh-CN.md#阶段与进度)。
 下文各批次记录保留当时的检查点状态和数量。
 
 ## 实施批次

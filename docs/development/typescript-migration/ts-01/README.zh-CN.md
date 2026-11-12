@@ -2,9 +2,9 @@
 
 [English](README.md) | **简体中文**
 
-> **历史阶段记录（冻结于 TS-01 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+> **历史阶段记录（冻结于 TS-01 交付时）。** 当前状态与接口版本见[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
-[迁移总计划](../../typescript-migration.zh-CN.md)统一记录阶段状态。本文说明固定参考、
+[迁移总计划](../../history/migration/typescript-migration.zh-CN.md)统一记录阶段状态。本文说明固定参考、
 可移植样例、核验方式和证据。TS-01 不实现 TypeScript 后端，也不决定 D01–D06。
 
 ## 参考实现与覆盖范围

@@ -2,9 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Historical stage record (frozen at TS-03 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+> **Historical stage record (frozen at TS-03 delivery).** Current status and interface versions are in the [migration plan](../../history/migration/typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
-The [migration plan](../../typescript-migration.md) owns stage status. TS-03 and
+The [migration plan](../../history/migration/typescript-migration.md) owns stage status. TS-03 and
 03-F are **DONE under the revised non-performance criteria**, effective 2026-10-15.
 The implementation started at `9b121e0` and completed through separately checked
 PRs synchronized to Gitee. This closure creates no version, release, installed
