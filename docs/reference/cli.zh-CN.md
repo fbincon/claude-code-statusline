@@ -2,7 +2,7 @@
 
 [English](cli.md) | **简体中文**
 
-本页说明命令语法、选项、显示字段及配置格式。操作流程见[使用指南](../USER_GUIDE.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)。下列值域描述当前软件包，历史交付记录保留原始版本。
+本页说明命令语法、选项、显示字段、配置格式及当前接口版本。操作流程见[使用指南](../USER_GUIDE.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)。下列值域描述当前软件包，历史交付记录保留原始版本。
 
 无子命令的交互调用打开经审阅的[持久安装流程](../SETUP.zh-CN.md#首次入口与-npm-持久安装)，支持 `--prefix`、`--config-dir`、`--dry-run`；普通非 TTY 入口不进行变更。
 
@@ -19,6 +19,7 @@
 - [外观与显示选项](#外观与显示选项)
 - [显示项与数据作用域](#显示项与数据作用域)
 - [配置文件](#配置文件)
+- [协议与 schema 版本](#协议与-schema-版本)
 - [自定义配置目录与环境变量](#自定义配置目录与环境变量)
 - [退出码](#退出码)
 
@@ -99,7 +100,7 @@ claude-statusline configure --config-dir "/path/to/claude config" --user
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
-显示 schema v17 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
+当前显示 schema 必须包含 `statusline_language`；当前版本与读取范围见[协议与 schema 版本](#协议与-schema-版本)。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -561,7 +562,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v17 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+可移植格式恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受当前显示读取范围内的仅显示文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
@@ -674,7 +675,7 @@ claude-statusline diagnose --input input.json --input-only --json
 
 ### `task show`
 
-使用实际会话 ID，省略 `--prompt-id` 时仅采用已发布的当前任务指针。读取已有有界证据，不扫描 transcript、不猜测其他会话、不采集、不初始化安装。JSON 为版本 1 任务详情模型，缺失证据表示不可用。有效报告退出 0；无效身份／参数或已处理失败退出 2，`--json` 下提供 `error` 对象。
+使用实际会话 ID，省略 `--prompt-id` 时仅采用已发布的当前任务指针。读取已有有界证据，不扫描 transcript、不猜测其他会话、不采集、不初始化安装。JSON 为任务详情读取模型，缺失证据表示不可用。有效报告退出 0；无效身份／参数或已处理失败退出 2，`--json` 下提供 `error` 对象。
 
 ```text
 claude-statusline task show --session-id SESSION_ID [--prompt-id PROMPT_ID] [--config-dir PATH] [--json]
@@ -885,13 +886,15 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 
 | 文件 | 职责及修改入口 |
 | --- | --- |
-| `claude-statusline.json` | schema 17 用户默认显示；普通显示命令 |
-| `claude-statusline-profiles.json` | 版本 1 Profile 库及项目绑定；`config profile/project` |
-| `claude-statusline-sources.json` | 版本 2 本机来源定义、许可及绑定；`source` |
-| `statusline-ui.json` | schema 1 界面语言；`config language` |
-| `claude-statusline-features.json / claude-statusline-native.json` | schema 1 编辑器偏好；显式安装参数 |
-| `claude-statusline-runtime.json` | schema 2 采集偏好；显式安装参数 |
+| `claude-statusline.json` | 当前显示 schema 的用户默认显示；普通显示命令 |
+| `claude-statusline-profiles.json` | 当前格式的 Profile 库及项目绑定；`config profile/project` |
+| `claude-statusline-sources.json` | 当前格式的本机来源定义、许可及绑定；`source` |
+| `statusline-ui.json` | 当前偏好 schema 的界面语言；`config language` |
+| `claude-statusline-features.json / claude-statusline-native.json` | 当前偏好 schema 的编辑器偏好；显式安装参数 |
+| `claude-statusline-runtime.json` | 当前偏好 schema 的采集偏好；显式安装参数 |
 | `settings.json` | Claude 设置及合并的接入／宿主选项；安装、卸载及有归属的宿主写入 |
+
+当前版本数字与包读取范围见[协议与 schema 版本](#协议与-schema-版本)。
 
 Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突与恢复)，本机来源记录及观测缓存见[扩展指南](../EXTENSIONS.zh-CN.md)。普通重置／卸载保留 Profile 库及来源注册。
 
@@ -903,7 +906,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 17 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
+以下为使用当前显示 schema、只保留一个主栏模型实例和一个子代理名称实例的完整示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 <!-- docs-example: display-config -->
 ```json
@@ -1001,7 +1004,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[当前架构](../development/architecture.zh-CN.md#当前-typescript-workspace)。
 
-当前显示 schema 为 v17；历史 v1–v16 可读取，首次实际配置保存时备份并写为 v17。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前与历史显示 schema 及读取范围见[协议与 schema 版本](#协议与-schema-版本)。历史文件可读取，首次实际配置保存时备份并写为当前 schema。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -1015,7 +1018,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 ### 共享界面偏好
 
-`<CLAUDE_CONFIG_DIR>/statusline-ui.json` 使用独立 schema v1：
+`<CLAUDE_CONFIG_DIR>/statusline-ui.json` 使用独立 schema，示例如下：
 
 ```json
 {"schema_version": 1, "ui_language": "zh-CN"}
@@ -1025,7 +1028,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 ### 编辑器启用偏好
 
-两个独立文件均使用 schema v1：
+两个独立文件均使用相同的偏好 schema：
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline-features.json
@@ -1046,7 +1049,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 ### 实时采集偏好
 
-`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` 使用独立 schema v2：
+`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` 使用独立 schema，示例如下：
 
 ```json
 {"schema_version": 2, "native_timing": false, "live_metrics": false}
@@ -1066,6 +1069,63 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 其中 `command` 由安装器管理；后三项可以使用 `config set` 或向导修改。设置为默认行为时，某些字段会从 JSON 中省略，例如 `padding 0`、`refresh-interval event` 和 `hide-vim-mode-indicator off`。
 
 兼容版本还会在 `settings.json` 写入独立的 `subagentStatusLine`，严格只含 `type: "command"` 和指向 `render-subagents` 的 `command`；Claude 的该 schema 不接受 `refreshInterval`，本工具不会写入。`subagents.enabled=false` 时重跑 `install` 只移除本工具拥有的这一设置，第三方设置不受影响；两个子 Agent 生命周期 hooks 仍保留用于端到端计时。
+
+## 协议与 schema 版本
+
+本章是接口与存储格式当前版本的唯一来源；其他现行文档链接到本章，不再重复数字。历史引入版本保留在[协议与格式演进索引](../development/contracts.zh-CN.md#协议与格式演进索引)。软件包版本、tag 和发布产物与这些接口版本相互独立。
+
+### 当前接口版本
+
+| 接口或格式 | 当前版本 | 读取与保存兼容性 | 规范 |
+| --- | --- | --- | --- |
+| 编辑器 UI 协议 | `编辑器协议 31` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
+| 显示配置 | `显示 schema 17` | 读取 1–16 时在内存中迁移，不改写文件；显式保存先备份旧字节，再写当前 schema。 | `packages/core/src/config/display.ts`；[显示配置](#显示配置) |
+| 运行时观测协议 | 3 | 保留 v1/v2 `observe`/`read`；`source_lifecycle` 要求版本 3。 | [实时采集](../development/live.zh-CN.md)；`packages/core/src/contracts/runtime.ts` |
+| 任务生命周期 | 4 | 保留 schema-1 兼容镜像。 | `packages/core/src/runtime/tasks/model.ts`；[计时契约](../development/timer.zh-CN.md) |
+| 任务详情读取模型 | 1 | `task_details` 响应；缺失证据表示为不可用，不推测。 | [共享契约](../development/contracts.zh-CN.md#操作清单) |
+| 可移植配置外层 | 1 | 导入也接受当前显示读取范围内的仅显示文件。 | `packages/core/src/config/transfer.ts`；[导入、导出与复用](#导入导出与复用) |
+| Profile 集合与单方案导出 | 各 1 | 集合与导出独立演进。 | `packages/core/src/config/profiles.ts`；[方案与项目](../PROFILES.zh-CN.md#文件冲突与恢复) |
+| UI 偏好 | 1 | 未来 schema 拒绝覆盖。 | [共享界面偏好](#共享界面偏好) |
+| 原生与外部编辑器偏好 | 各 1 | 独立文件；不支持的宿主暂停但不改写。 | [编辑器启用偏好](#编辑器启用偏好) |
+| 运行时偏好 | 2 | 文件缺失时原生计时和实时指标均关闭。 | [实时采集偏好](#实时采集偏好) |
+| 数据源注册表 | 2；存在命令源自动策略时为 3 | 读取 1–3；旧注册表只读，不授予新权限。 | `packages/core/src/extensions/model.ts`；[数据源管理](#数据源管理) |
+| 数据源任务 | 4 | 读取 1–3；缺失执行诊断视为未知。 | [数据源管理](#数据源管理) |
+| 数据源观测 | 1 | 可选 checks 与 execution 字段。 | [扩展指南](../EXTENSIONS.zh-CN.md#新鲜度分享与链接) |
+| 命令源输出协议 | 1 | JSON 对象，状态为 `valid`、`missing`、`partial`、`error` 或 `unsupported`。 | [命令数据源](../EXTENSIONS.zh-CN.md#命令数据源) |
+| 包审核任务 | 1 | 资源匹配；取消绑定 owner。 | [版本管理](../PACKAGE_MANAGEMENT.zh-CN.md) |
+| 包执行记录 | 1 | 与显示、UI 和运行时 wire schema 独立。 | [版本管理](../PACKAGE_MANAGEMENT.zh-CN.md) |
+| 包兼容记录 | 1 | 声明读取范围及要求的编辑器／运行时协议。 | `packages/core/src/management/compatibility.ts`；[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断) |
+
+### 读取范围与包兼容记录
+
+`statuslineCompatibility` 记录 schema 1 声明以下配置读取范围：
+
+| 配置格式 | `read` 范围 |
+| --- | --- |
+| 显示配置（`display`） | `[1, 17]` |
+| Profile 集合（`profiles`） | `[1, 1]` |
+| 数据源注册表（`sources`） | `[1, 3]` |
+| 运行时偏好（`runtime_preferences`） | `[1, 2]` |
+| 原生偏好（`native_preferences`） | `[1, 1]` |
+| 外部偏好（`external_preferences`） | `[1, 1]` |
+| UI 偏好（`ui_preferences`） | `[1, 1]` |
+
+该记录还声明 `editor_protocol` 31、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
+
+### 未版本化与宿主所有的接口
+
+| 接口 | 归属与契约 |
+| --- | --- |
+| 状态栏输入 payload（`statusLine`） | schema 由 Claude Code 拥有；本包读取提供的字段，不为 payload 定义版本。 |
+| 子代理状态栏输入与 NDJSON 输出 | 输入由 Claude Code 拥有；本包为每个有效非空 ID 输出一行 `{"id","content"}`，不定义 NDJSON 版本。 |
+| Hook payload | 由 Claude Code 拥有；hook 处理器防御性读取已观测字段，不写入版本化 hook 契约。 |
+| `settings.json` 宿主配置 | Claude 拥有的 schema；本包只编辑自有字段并合并无关设置。 |
+| CLI 人类可读输出与退出码 | 软件包行为，不是版本化 wire 协议；各命令的 JSON 结构随命令文档记录。 |
+| 私有运行时缓存（usage、Git） | 实现细节；不是兼容契约，可在不迁移的情况下变化。 |
+
+### 规范来源
+
+权威类型与校验位于上表链接的源文件。封装、操作、事务与错误行为见[共享契约](../development/contracts.zh-CN.md)；字段语义见[指标定义](../DISPLAY_ITEMS.zh-CN.md)、[组合](../COMPOSITION.zh-CN.md)和[外观](../APPEARANCE.zh-CN.md)。本章拥有版本数字；功能指南链接到本章，不再重复。
 
 ## 自定义配置目录与环境变量
 

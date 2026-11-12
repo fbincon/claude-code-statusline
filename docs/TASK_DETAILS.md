@@ -59,7 +59,7 @@ The native pane may read current agent names from the host on demand. Those name
 
 Heartbeats are labelled with session scope. Agent and checklist evidence retain their own timestamps and ages; future checklist counts are unavailable. Future native prompt or turn observations cannot supply current status or refresh task timing. Independently valid frozen history remains available. An observed terminal lifecycle event takes precedence over agent-list snapshots.
 
-The response is a version-1 read model over existing task and live stores. Source files are independent snapshots, so this is neither an atomic cross-file snapshot nor a complete task history. Data pruned from the existing bounded stores cannot be reconstructed here.
+The response is a read model over existing task and live stores; current versions are in [protocol and schema versions](reference/cli.md#protocol-and-schema-versions). Source files are independent snapshots, so this is neither an atomic cross-file snapshot nor a complete task history. Data pruned from the existing bounded stores cannot be reconstructed here.
 
 ## Boundaries and troubleshooting
 

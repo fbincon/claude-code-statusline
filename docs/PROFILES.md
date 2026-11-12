@@ -65,9 +65,9 @@ Moving a project does not rewrite bindings: unbind the old path and bind the new
 
 ## Files, conflicts and recovery
 
-The version-1 `claude-statusline-profiles.json` file under the Claude user configuration directory contains the collection and bindings. It is created only by a save or binding operation. The existing `claude-statusline.json` remains the user default with display schema 17. Collection limits are 128 schemes, 512 bindings and 32 MiB.
+The current-format `claude-statusline-profiles.json` file under the Claude user configuration directory contains the collection and bindings. It is created only by a save or binding operation. The existing `claude-statusline.json` remains the user default with the current display schema. Current versions and read ranges are in [protocol and schema versions](reference/cli.md#protocol-and-schema-versions). Collection limits are 128 schemes, 512 bindings and 32 MiB.
 
-A single exported scheme has format `claude-code-statusline-profile`, version 1, name and display. It contains no project roots or internal scheme ID, removes local source bindings (`source.binding`) while retaining only hints, and has a 1 MiB transfer limit. This is distinct from the existing `claude-code-statusline` portable envelope, which also carries tool host settings. Use the corresponding import command for each format.
+A single exported scheme has format `claude-code-statusline-profile` with the current single-profile version, name and display. It contains no project roots or internal scheme ID, removes local source bindings (`source.binding`) while retaining only hints, and has a 1 MiB transfer limit. This is distinct from the existing `claude-code-statusline` portable envelope, which also carries tool host settings. Use the corresponding import command for each format.
 
 Writes use the shared installation lock, revision checks, immutable backups and recovery journal. A concurrent edit is refused; reload and review instead of forcing an old draft over it. If a save response is lost, refresh saved state before another write. Corrupt collections are retained and reported, while rendering falls back safely.
 

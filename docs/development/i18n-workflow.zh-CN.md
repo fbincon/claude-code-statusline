@@ -70,7 +70,7 @@
 
 core 保持纯消息、搜索、Unicode 与渲染规则；platform 负责文件／进程／终端效果；CLI 编排服务；TUI 和 Native 适配交互。保留按语言拆分的状态栏模块及 Native 导入模块边界；状态栏渲染不得新增对 UI 词典或接受历史的依赖。不重新生成 Python 归档。
 
-开发命令见[翻译指南](i18n.zh-CN.md#增量维护)，当前产品接口见[共享契约](contracts.zh-CN.md)。元数据与报告采用内部版本化接口。只在数据跨越接口时处理兼容。保留历史 `sourceHashes()`、`policyDigest()` 的含义与回执身份，新输入须显式绑定并具有兼容读取器。
+开发命令见[翻译指南](i18n.zh-CN.md#增量维护)，当前接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)，操作与兼容行为见[共享契约](contracts.zh-CN.md)。元数据与报告采用内部版本化接口。只在数据跨越接口时处理兼容。保留历史 `sourceHashes()`、`policyDigest()` 的含义与回执身份，新输入须显式绑定并具有兼容读取器。
 
 <a id="working-flow"></a>
 

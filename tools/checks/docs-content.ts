@@ -142,7 +142,11 @@ export function contentErrors(pages: Documents): string[] {
             // A compatibility range such as v1–v17 is not a current-version claim.
             const schemas = [...body.matchAll(/(?:display schema|显示 schema)\s*v?(\d+)(?![\d–-])/giu)];
             const protocols = [...body.matchAll(/(?:editor protocol|编辑器协议)\s*(\d+)/giu)];
-            if (['docs/COMPOSITION', 'docs/EXTENSIONS'].includes(base)) assert(schemas.length && protocols.length, 'Missing current interface versions');
+            if (base === 'docs/reference/cli') assert(schemas.length && protocols.length, 'Missing centralized current interface versions');
+            if (['docs/COMPOSITION', 'docs/EXTENSIONS'].includes(base)) {
+                const link = suffix ? 'reference/cli.zh-CN.md#协议与-schema-版本' : 'reference/cli.md#protocol-and-schema-versions';
+                assert(body.includes(link), 'Missing centralized version link');
+            }
             for (const match of schemas) assert.equal(Number(match[1]), SCHEMA_VERSION, 'Display schema differs from core');
             for (const match of protocols) assert.equal(Number(match[1]), PROTOCOL_VERSION, 'Editor protocol differs from core');
         });

@@ -89,7 +89,7 @@ claude-statusline config profile activate daily-development
 claude-statusline config profile export daily-development my-scheme.json
 ```
 
-当前生成文件使用单方案格式 1 和显示 schema 17，不包含项目绑定、采集开关、宿主偏好或外部能力授权。导入保存为命名方案；激活与项目绑定仍需明确执行。旧捕获方案文件的格式及产物身份保留在[首次设置图库](images/setup-appearance/README.zh-CN.md)和[自适应场景图库](images/adaptive-row-scenarios/README.zh-CN.md)。
+当前生成文件使用当前单方案格式与显示 schema，不包含项目绑定、采集开关、宿主偏好或外部能力授权。当前版本见[协议与 schema 版本](reference/cli.zh-CN.md#协议与-schema-版本)。导入保存为命名方案；激活与项目绑定仍需明确执行。旧捕获方案文件的格式及产物身份保留在[首次设置图库](images/setup-appearance/README.zh-CN.md)和[自适应场景图库](images/adaptive-row-scenarios/README.zh-CN.md)。
 
 ## 相关指南
 

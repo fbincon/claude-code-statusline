@@ -30,6 +30,7 @@
 | --- | --- |
 | 如何安装、配置和排障 | [使用指南](../USER_GUIDE.zh-CN.md)维护入口与常用操作，[专题指南](../README.zh-CN.md#配置与排障)维护详细流程，[CLI 参考](../reference/cli.zh-CN.md)维护命令语法 |
 | 当前实现、接口与验证规则 | [架构](architecture.zh-CN.md)、[共享契约](contracts.zh-CN.md)及上方对应技术指南。验证方法见[测试与验收](testing.zh-CN.md)和[影响检查](impact-checks.zh-CN.md)。 |
+| 当前接口与格式版本 | [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)维护版本数字与读取范围；[共享契约](contracts.zh-CN.md)维护操作与兼容行为 |
 | 优先级、候选方向、阶段依赖和工作包状态 | [路线图](roadmap.zh-CN.md) |
 | 工作包范围、实施切片与验收要求 | [开发计划](development-plan.zh-CN.md#work-index) |
 | 原始设计、源码身份、交付结果及证据限制 | [开发历史](history/README.zh-CN.md)。面向用户的版本变更见[变更日志](../../CHANGELOG.zh-CN.md)和[发布说明](../releases/README.zh-CN.md)。 |

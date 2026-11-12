@@ -411,12 +411,7 @@ The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all re
 
 ## Interface compatibility
 
-The current interfaces are display schema 17, editor protocol 31, source registry
-2 (command-source automatic policies use 3), source jobs 4 and source observations 1. Older display configurations remain
-readable without automatic rewriting; saving uses the current schema. Older jobs
-1–3 remain readable, with absent execution diagnostics treated as unknown.
-Reinstall integration when frontend/backend versions differ. Runtime, task
-lifecycle, portable envelope and profile collection versions evolve independently.
+The interfaces and stored formats in this guide are versioned independently. Current versions and read ranges are in the [CLI reference](reference/cli.md#protocol-and-schema-versions). Older display configurations remain readable without automatic rewriting; saving uses the current schema. Older jobs remain readable, with absent execution diagnostics treated as unknown. Reinstall integration when frontend/backend versions differ. Runtime, task lifecycle, portable envelope and profile collection versions evolve independently.
 
 ## Related guides
 
