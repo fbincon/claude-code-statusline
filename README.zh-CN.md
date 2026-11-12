@@ -26,6 +26,8 @@
 
 渲染读取 Claude Code 输入和本地状态，不发网络请求或使用模型 token。可选来源刷新单独执行；问答向导使用 Claude 模型回合。缺失观测不会被当作零。
 
+组件可选不代表数据一定可用。宿主字段取决于 Claude Code 提供的输入；Git 指标需要本地 Git 和有效仓库；子代理行需要兼容宿主及任务数据。原生计时／实时指标需要兼容且明确启用的采集。GitHub 和命令值需要注册、审阅、启用并绑定来源，再成功刷新。[可用性与新鲜度](docs/DISPLAY_ITEMS.zh-CN.md#可用性与新鲜度) · [来源配置](docs/EXTENSIONS.zh-CN.md)。
+
 ## 界面预览
 
 日常开发场景使用经典分隔符与不同的前景渐变。[复现使用演示](docs/SHOWCASE.zh-CN.md) · [素材来源](docs/images/showcase/README.zh-CN.md)。
@@ -34,7 +36,7 @@
 
 ![包含彩色状态栏预览与变更审阅的配置流程](docs/images/showcase/zh-CN/configure.gif)
 
-动图先复制一个指标，再演示撤销、重做、保存和重新打开编辑器。
+动图先复制一个指标，再演示撤销、重做、保存和重新打开编辑器。这组演示基于 v3.16.0；后续版本可能调整交互细节，当前控件以[使用指南](docs/USER_GUIDE.zh-CN.md)为准。
 
 ## 支持范围
 

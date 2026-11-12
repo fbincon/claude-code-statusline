@@ -30,15 +30,14 @@ instances of the same type; it follows their current order.
 | Move the selected instance | Left / Right |
 | Search / choose category | `/` / Ctrl+F |
 
-The picker searches names, descriptions and categories in all supported
-languages. Enter adds the selected type after the previously selected instance;
-In the add picker, Ctrl+E opens the read-only sources and requirements for the catalog type. This works for a new type and for a type with existing instances. In the configured list, Ctrl+E edits the selected instance. Ctrl+G returns from the
-guidance or cancels the picker. Accepting an addition clears the old list filter
-so the new instance is visible. Reordering requires an unfiltered list.
+The add picker searches names, descriptions and categories in all supported languages.
+
+- **In the add picker:** Enter adds the selected type after the previously selected instance. Ctrl+E opens the type's read-only sources and requirements, whether or not it already has instances. Ctrl+G returns from guidance or cancels the picker.
+- **In the configured list:** Ctrl+E edits the selected instance. A successful addition clears this list's filter so the new instance is visible. Clear the filter before reordering.
 
 Copying retains all options and creates a new identity. Disabling keeps the row
-position. Removing a component updates its row references and removes empty rows, unless
-an alignment relationship would become invalid; adjust that relationship first.
+position. Removing a component updates its row references and removes empty rows.
+An invalidated alignment can open the [structural review](DRAFT_HISTORY.md#structural-edits-and-alignment) before the draft changes.
 All these operations edit the draft. Native S / F or external Ctrl+S saves; the
 existing close/cancel controls discard unsaved edits. Claude host preferences
 still have their own Apply action. Resize, language changes and save conflicts
@@ -87,7 +86,7 @@ Open **Component groups** in Settings or press **Ctrl+B** in either editor. Sele
 
 Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
 
-Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances, unless an alignment relationship still references that group. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
+Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances; affected alignments require structural review. Copying an individual member inserts a standalone copy after its group. Operations without a valid candidate retain the draft.
 
 ```bash
 claude-statusline config group main list --json
@@ -140,9 +139,19 @@ claude-statusline config alignment remove summary
 Replace the uppercase IDs with your configured units. Commas join members of one
 column; semicolons separate columns. Ordinary instance/group copies do not join
 existing relationships. Complete scheme copies and main-section transfers retain
-all referenced units together. Deletion, movement, ungrouping or row/mode changes
-that invalidate relationships are rejected before saving, with the affected
-relationship IDs. Remove or edit those relationships first. The default layout does not enable alignment. Some complete schemes, such as
+all referenced units together.
+
+Deletion, movement, ungrouping or row/mode changes can invalidate relationships. The editor can show a complete valid candidate and affected relationship IDs in structural review: **A** accepts the action and repairs as one undoable edit; **Q** or Escape cancels without changing the draft. An intervening draft change invalidates the proposal. CLI commands refuse unapproved repairs; review and explicitly accept them:
+
+<!-- docs-example: alignment-review -->
+```text
+claude-statusline config instance main remove INSTANCE_ID --dry-run
+claude-statusline config instance main remove INSTANCE_ID --expected-revision TARGET_REV --accept-alignments ALIGNMENT_IDS
+```
+
+Replace `INSTANCE_ID` with the selected instance; use the returned `expected_revision` and exact comma-separated repair IDs for the other placeholders. `config group` and `config layout` support the same review flags. An invalid candidate, changed revision or mismatched repair list is refused without changing the saved configuration. You can instead edit/remove the relationship yourself. [Structural review details](DRAFT_HISTORY.md#structural-edits-and-alignment).
+
+The default layout does not enable alignment. Some complete schemes, such as
 `quota-cost`, include explicit alignment relationships; review the candidate
 before applying it.
 

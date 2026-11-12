@@ -36,13 +36,13 @@ Deleting a referenced component, dissolving a group, grouping aligned instances 
 
 **A** accepts the structural action and its reference repairs together as one undoable step. **Q** or Escape cancels. A changed draft invalidates the proposal. CLI structural commands retain their default refusal and expose explicit review:
 
-```bash
-claude-statusline config instance main remove b --dry-run
-claude-statusline config instance main remove b \
-  --expected-revision TARGET_REV --accept-alignments table
+<!-- docs-example: alignment-review -->
+```text
+claude-statusline config instance main remove INSTANCE_ID --dry-run
+claude-statusline config instance main remove INSTANCE_ID --expected-revision TARGET_REV --accept-alignments ALIGNMENT_IDS
 ```
 
-Replace `TARGET_REV` and `table` with the revision and exact affected relationship IDs returned by review. `config group` and `config layout` support the same controls. The final revision check occurs inside the configuration lock.
+Replace `INSTANCE_ID` with the selected instance, and use the returned `expected_revision` and exact comma-separated repair IDs for `TARGET_REV` and `ALIGNMENT_IDS`. `config group` and `config layout` support the same controls. The final revision check occurs inside the configuration lock. A candidate that cannot satisfy the structural rules, a changed revision or a mismatched repair list leaves the saved configuration unchanged. Cancelling editor review leaves the draft unchanged.
 
 ## Copy visual styles
 

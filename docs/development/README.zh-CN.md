@@ -79,6 +79,21 @@ npm ci --ignore-scripts --no-audit --no-fund
 
 完整产品验收包含八个安装目标、32 个 Node 用例、十六个固定宿主组合及适用的 Native 容量案例，使用匹配产物。2.1.296 类型声明缺口单独保留；执行共享、草稿检查和诊断的含义不同，见[测试与验收](testing.zh-CN.md)。
 
+<a id="documentation-content-checks"></a>
+
+### 检查文档内容
+
+`docs:check` 继续提供轻量的链接、锚点及双语／模板检查。对已登记的现行指南，另运行依照源码的内容与示例测试：
+
+```bash
+npm run build
+node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescript/tools/checks/test/docs-examples.test.js
+```
+
+测试读取实际 Markdown 中带 `docs-example` 标记的代码块，用生产解析器验证 JSON，对照 core 检查目录／语言／预设／接口事实，并在临时目录中运行选定 CLI 流程。仅替换文档声明的路径／修订／实例占位符；命令示例实际运行 Node 输出 `42`，GitHub 使用注入的离线 runner。这不代表真实 GitHub、交互式 PowerShell 或实体编辑器验收，也不验证全部说明文字。
+
+[登记页面清单](../../tools/checks/impact-documentation.ts)使相关页面变更（含删除／重命名）在 `docs` 之外选择现有 `checks` 测试族，后者保留 Linux、Windows、macOS 执行。移动现行页面时同步维护登记和示例标记；早于此测试的历史源码保留原有义务。清单进入不可变影响政策摘要。已提交验收仍使用所选 `ci:plan`／`ci:check` 任务。
+
 ### 清理编译输出
 
 删除或移动源码后，可以先预览，再清理旧编译文件并重新构建：

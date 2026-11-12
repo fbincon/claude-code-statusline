@@ -26,6 +26,8 @@ A configurable Claude Code status line for Linux, WSL, Windows and macOS. See mo
 
 Rendering reads Claude Code input and local state without network requests or model tokens. Optional source refresh is separate; the question-and-answer wizard uses Claude model turns. Missing observations remain distinguishable from zero.
 
+Available components do not guarantee available data. Host fields depend on Claude Code's payload; Git metrics need local Git and a repository; subagent rows need a compatible host and task data. Native timing/live metrics require compatible, explicitly enabled collection. GitHub and command values need a registered, reviewed, enabled and bound source, followed by a successful refresh. [Availability and freshness](docs/DISPLAY_ITEMS.md#availability-and-freshness) · [Source setup](docs/EXTENSIONS.md).
+
 <a id="界面预览"></a>
 
 ## Screenshots
@@ -36,7 +38,7 @@ The daily development scene uses classic separators and distinct foreground grad
 
 ![Configuration workflow with a colored statusline preview and reviewed changes](docs/images/showcase/en/configure.gif)
 
-The clip copies a metric, then shows Undo, Redo, Save and reopening the editor.
+The clip copies a metric, then shows Undo, Redo, Save and reopening the editor. These demonstrations use v3.16.0; later versions can adjust interaction details. Follow the [current user guide](docs/USER_GUIDE.md) for current controls.
 
 <a id="支持范围"></a>
 

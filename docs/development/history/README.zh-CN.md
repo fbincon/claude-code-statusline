@@ -18,7 +18,7 @@
 
 | 领域 | 交付记录 |
 | --- | --- |
-| 文档维护 | [按阅读顺序整理内容及双语核对](deliveries/documentation-content-organization.zh-CN.md) |
+| 文档维护 | [按阅读顺序整理内容及双语核对](deliveries/documentation-content-organization.zh-CN.md) · [内容更正、完整来源流程及定向回归检查](deliveries/documentation-content-validation.zh-CN.md) |
 | v3.16.3 配置技能 | [问答分页、范围与回退流程](../skill-workflows.zh-CN.md#final-release) |
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
 | v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](deliveries/runtime-source-save-fixes.zh-CN.md#final-release) |
