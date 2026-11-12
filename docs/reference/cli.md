@@ -2,7 +2,7 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
-Use this page for command syntax, options, display fields and configuration formats. Step-by-step workflows are in the [user guide](../USER_GUIDE.md) and [usage demonstrations](../SHOWCASE.md). Values below describe the current package; historical delivery records retain their original versions.
+Use this page for command syntax, options, display fields, configuration formats and current interface versions. Step-by-step workflows are in the [user guide](../USER_GUIDE.md) and [usage demonstrations](../SHOWCASE.md). Values below describe the current package; historical delivery records retain their original versions.
 
 With no subcommand, an interactive invocation opens the reviewed [persistent-installation flow](../SETUP.md#first-entry-and-persistent-npm-installation). It accepts `--prefix`, `--config-dir` and `--dry-run`; ordinary non-TTY entry exits without mutation.
 
@@ -19,6 +19,7 @@ With no subcommand, an interactive invocation opens the reviewed [persistent-ins
 - [Appearance and display options](#appearance-and-display-options)
 - [Display items and scopes](#display-items-and-scopes)
 - [Configuration files](#configuration-files)
+- [Protocol and schema versions](#protocol-and-schema-versions)
 - [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
 - [Exit codes](#exit-codes)
 
@@ -101,7 +102,7 @@ Help text/groups, argument errors and administrative output use the selected lan
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
-Display schema v17 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
+The current display schema includes required `statusline_language`; current versions and read ranges are in [protocol and schema versions](#protocol-and-schema-versions). Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -565,7 +566,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+The portable envelope contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept display-only files within the current display read range, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -678,7 +679,7 @@ claude-statusline diagnose --input input.json --input-only --json
 
 ### `task show`
 
-Supply the actual session ID; omitting `--prompt-id` uses only the published current-task pointer. This reads existing bounded evidence without scanning transcripts, guessing another session, collection or installation initialization. JSON contains the version-1 task detail model; absent evidence is represented as unavailable. A valid report exits 0; invalid identities/arguments or handled failures exit 2, with an `error` object under `--json`.
+Supply the actual session ID; omitting `--prompt-id` uses only the published current-task pointer. This reads existing bounded evidence without scanning transcripts, guessing another session, collection or installation initialization. JSON contains the task detail read model; absent evidence is represented as unavailable. A valid report exits 0; invalid identities/arguments or handled failures exit 2, with an `error` object under `--json`.
 
 ```text
 claude-statusline task show --session-id SESSION_ID [--prompt-id PROMPT_ID] [--config-dir PATH] [--json]
@@ -913,13 +914,15 @@ All files below are relative to the selected Claude configuration directory. JSO
 
 | File | Role and write entry |
 | --- | --- |
-| `claude-statusline.json` | Schema-17 user-default display; ordinary display commands |
-| `claude-statusline-profiles.json` | Version-1 Profile library and project bindings; `config profile/project` |
-| `claude-statusline-sources.json` | Version-2 local source definitions, permissions and bindings; `source` |
-| `statusline-ui.json` | Schema-1 UI language; `config language` |
-| `claude-statusline-features.json / claude-statusline-native.json` | Schema-1 editor preferences; explicit install flags |
-| `claude-statusline-runtime.json` | Schema-2 collector preferences; explicit install flags |
+| `claude-statusline.json` | User-default display in the current display schema; ordinary display commands |
+| `claude-statusline-profiles.json` | Profile library and project bindings in the current profile format; `config profile/project` |
+| `claude-statusline-sources.json` | Local source definitions, permissions and bindings in the current source-registry format; `source` |
+| `statusline-ui.json` | UI language in the current preferences schema; `config language` |
+| `claude-statusline-features.json / claude-statusline-native.json` | Editor preferences in the current preferences schema; explicit install flags |
+| `claude-statusline-runtime.json` | Collector preferences in the current preferences schema; explicit install flags |
 | `settings.json` | Claude-owned settings with merged integration and host options; install/uninstall and owned host writes |
+
+Current version numbers and package read ranges are in [protocol and schema versions](#protocol-and-schema-versions).
 
 Profile storage limits and recovery are in [Profiles](../PROFILES.md#files-conflicts-and-recovery); local source records and observation caches are in [Extensions](../EXTENSIONS.md). Ordinary reset/uninstall preserve the Profile library and source registry.
 
@@ -933,7 +936,7 @@ Display items and styles are saved in:
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-This complete schema-17 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
+This complete example uses the current display schema and keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
 
 <!-- docs-example: display-config -->
 ```json
@@ -1031,7 +1034,7 @@ The catalog is a list of types; `instances` stores configured placements. Disabl
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [current architecture](../development/architecture.md#current-typescript-workspace).
 
-The current display schema is v17. Historical v1–v16 are readable and are backed up and written as v17 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+Current and historical display schemas and read ranges are in [protocol and schema versions](#protocol-and-schema-versions). Historical files are readable and are backed up and written with the current schema on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -1047,7 +1050,7 @@ If display configuration is corrupted:
 
 ### Shared interface preference
 
-`<CLAUDE_CONFIG_DIR>/statusline-ui.json` uses its own schema v1:
+`<CLAUDE_CONFIG_DIR>/statusline-ui.json` uses its own schema, shown in the example:
 
 ```json
 {"schema_version": 1, "ui_language": "zh-CN"}
@@ -1057,7 +1060,7 @@ Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`
 
 ### Editor enablement preferences
 
-Both independent files use schema v1:
+Both independent files use the same preferences schema:
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline-features.json
@@ -1078,7 +1081,7 @@ Fields, types, duplicate keys and schema are strictly validated; install/doctor 
 
 ### Live-collection preference
 
-`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema v2:
+`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema, shown in the example:
 
 ```json
 {"schema_version": 2, "native_timing": false, "live_metrics": false}
@@ -1100,6 +1103,63 @@ The following settings belong to the `statusLine` object in user-level `settings
 The installer manages `command`; the other three fields can be changed with `config set` or the wizard. Some fields are omitted from JSON when set to default behavior, such as `padding 0`, `refresh-interval event`, and `hide-vim-mode-indicator off`.
 
 Compatible versions also receive an independent `subagentStatusLine` in `settings.json`, containing strictly `type: "command"` and a `command` pointing to `render-subagents`. Claude's schema does not accept `refreshInterval`, so this tool does not write it. With `subagents.enabled=false`, rerunning `install` removes only the owned entry, preserving third-party settings. Both subagent lifecycle hooks remain for end-to-end timing.
+
+## Protocol and schema versions
+
+This chapter is the current source of truth for interface and stored-format versions. Root feature guides link here instead of restating current numbers; development documentation keeps behavior-specific detail and links here for the registry. Historical introduction versions remain in [protocol and schema history](../development/contracts.md#protocol-and-schema-history). Package versions, tags and release artifacts are separate from these interface versions.
+
+### Current interface versions
+
+| Interface or format | Current version | Read and save compatibility | Specification |
+| --- | --- | --- | --- |
+| Editor UI protocol | `editor protocol 31` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
+| Display configuration | `display schema 17` | Reads schemas 1–16 in memory without rewriting; an explicit save backs up the old bytes and writes the current schema. | `packages/core/src/config/display.ts`; [display configuration](#display-configuration) |
+| Runtime observation protocol | 3 | Retains v1/v2 `observe`/`read`; `source_lifecycle` requires version 3. | [Live collection](../development/live.md); `packages/core/src/contracts/runtime.ts` |
+| Task lifecycle | 4 | Retains the schema-1 compatibility mirror. | `packages/core/src/runtime/tasks/model.ts`; [timer contracts](../development/timer.md) |
+| Task detail read model | 1 | `task_details` response; missing evidence is unavailable rather than invented. | [Shared contracts](../development/contracts.md#operation-inventory) |
+| Portable configuration envelope | 1 | Import also accepts display-only files within the current display read range. | `packages/core/src/config/transfer.ts`; [import, export and reuse](#import-export-and-reuse) |
+| Profile collection and single-profile export | 1 each | Collection and export evolve independently. | `packages/core/src/config/profiles.ts`; [Profiles and projects](../PROFILES.md#files-conflicts-and-recovery) |
+| UI preferences | 1 | Future schemas refuse overwrite. | [Shared interface preference](#shared-interface-preference) |
+| Native and external editor preferences | 1 each | Separate files; unsupported hosts suspend without rewriting. | [Editor enablement preferences](#editor-enablement-preferences) |
+| Runtime preferences | 2 | Missing file defaults native timing and live metrics off. | [Live-collection preference](#live-collection-preference) |
+| Source registry | 2; 3 with command-source automatic policies | Reads registries 1–3; older registries are read-only and grant no new permission. | `packages/core/src/extensions/model.ts`; [source management](#source-management) |
+| Source jobs | 4 | Reads jobs 1–3; missing execution diagnostics are unknown. | [Source management](#source-management) |
+| Source observations | 1 | Optional checks and execution fields. | [Extensions](../EXTENSIONS.md#freshness-sharing-and-links) |
+| Command source output protocol | 1 | JSON object with `valid`, `missing`, `partial`, `error` or `unsupported` states. | [Command sources](../EXTENSIONS.md#command-sources) |
+| Package review jobs | 1 | Matching resources; owner-bound cancellation. | [Package management](../PACKAGE_MANAGEMENT.md) |
+| Package execution records | 1 | Independent of display, UI and runtime wire schemas. | [Package management](../PACKAGE_MANAGEMENT.md) |
+| Package compatibility record | 1 | Declares read ranges and required editor/runtime protocols. | `packages/core/src/management/compatibility.ts`; [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis) |
+
+### Read ranges and package compatibility
+
+The `statuslineCompatibility` record schema 1 declares these configuration read ranges:
+
+| Configuration format | `read` range |
+| --- | --- |
+| Display configuration (`display`) | `[1, 17]` |
+| Profile collection (`profiles`) | `[1, 1]` |
+| Source registry (`sources`) | `[1, 3]` |
+| Runtime preferences (`runtime_preferences`) | `[1, 2]` |
+| Native preferences (`native_preferences`) | `[1, 1]` |
+| External preferences (`external_preferences`) | `[1, 1]` |
+| UI preferences (`ui_preferences`) | `[1, 1]` |
+
+The record also declares `editor_protocol` 31, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
+
+### Unversioned and host-owned interfaces
+
+| Interface | Owner and contract |
+| --- | --- |
+| Statusline input payload (`statusLine`) | Claude Code owns the schema; this package reads supplied fields and does not version the payload. |
+| Subagent statusline input and NDJSON output | Claude Code owns the input; this package emits one `{"id","content"}` line per valid nonempty ID and defines no NDJSON version. |
+| Hook payloads | Claude Code owns the payload; hook handlers accept observed fields defensively and write no versioned hook contract. |
+| `settings.json` host configuration | Claude-owned schema; this package edits only owned fields and merges unrelated settings. |
+| CLI human output and exit codes | Package behavior, not a versioned wire protocol; command-specific JSON shapes remain documented with each command. |
+| Private runtime caches (usage, Git) | Implementation details; not compatibility contracts and may change without migration. |
+
+### Specification sources
+
+Canonical types and validation live in the linked source files. Envelope, operation, transaction and error behavior are in [shared contracts](../development/contracts.md); field semantics are in [metric definitions](../DISPLAY_ITEMS.md), [composition](../COMPOSITION.md) and [appearance](../APPEARANCE.md). This chapter owns the version numbers; feature guides link here instead of restating them.
 
 <a id="自定义配置目录与环境变量"></a>
 

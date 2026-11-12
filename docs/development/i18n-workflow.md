@@ -70,7 +70,7 @@ Build-only lifecycle inputs live under `tools/generation/i18n/data/`: policy, co
 
 Core retains pure message, search, Unicode and rendering rules; platform retains filesystem/process/terminal effects; CLI orchestrates services; TUI and Native adapt interaction. Preserve the per-language statusline modules and Native import-module boundary. Statusline rendering must not acquire the UI dictionary or acceptance history as a new dependency. Do not regenerate the Python archive.
 
-The [translation guide](i18n.md#incremental-authoring) maintains developer commands. See the [shared contracts](contracts.md) for current product interfaces. Metadata and reports have internal versioned interfaces. Handle compatibility where data crosses an interface. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities. Bind new inputs explicitly and provide compatible readers.
+The [translation guide](i18n.md#incremental-authoring) maintains developer commands. Current interface versions are in the [CLI reference](../reference/cli.md#protocol-and-schema-versions); see the [shared contracts](contracts.md) for operations and compatibility behavior. Metadata and reports have internal versioned interfaces. Handle compatibility where data crosses an interface. Preserve historical `sourceHashes()` and `policyDigest()` meanings and receipt identities. Bind new inputs explicitly and provide compatible readers.
 
 <a id="working-flow"></a>
 

@@ -52,7 +52,7 @@ claude-statusline rollback --version 3.7.0 --prefix /chosen/prefix --config-dir 
 
 非交互包变更必须同时指定精确 `--version`、明确 `--prefix` 和 `--yes`。`--config-dir` 可选，但隔离安装建议明确填写。使用带引号的本机路径；Windows 可运行 `claude-statusline.cmd`。普通交互变更展示审核并要求输入 `yes`，除非已经显式提供 `--yes`。两个编辑器提供相同的审核后执行规则。
 
-自动转换从真实已发布 v3.7.0 产物起验收。该历史兼容记录固定 SHA-256 `b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95`，registry 元数据不能替换成另一份旧包。新包提供版本化 `statuslineCompatibility` 声明；声明缺失／未知、运行时／宿主不支持或配置不可读时，阻止替换。
+自动转换从真实已发布 v3.7.0 产物起验收。该历史兼容记录固定 SHA-256 `b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95`，registry 元数据不能替换成另一份旧包。新包提供版本化 `statuslineCompatibility` 声明；当前版本与读取范围见 [CLI 参考](reference/cli.zh-CN.md#协议与-schema-版本)。声明缺失／未知、运行时／宿主不支持或配置不可读时，阻止替换。
 
 v3.7.0 本身没有包管理命令。从它升级时，可运行较新的公开管理器：`npx @fbincon/claude-code-statusline@3.8.0 update --version 3.8.0 --prefix PATH --config-dir PATH`，或使用之前事务输出的保留恢复入口。初次 npx 下载由 npm 控制；管理器另行审核持久安装变更。
 

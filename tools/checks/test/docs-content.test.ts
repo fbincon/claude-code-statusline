@@ -37,13 +37,31 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/EDITORS${suffix}.md`, '2.1.287+', '2.1.999+'],
             [`docs/SCHEMES${suffix}.md`, '`quota-cost`', '`wrong-scheme`'],
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
-            [`docs/COMPOSITION${suffix}.md`, 'schema ' + SCHEMA_VERSION, 'schema 999'],
-            [`docs/EXTENSIONS${suffix}.md`, (suffix ? '协议 ' : 'protocol ') + PROTOCOL_VERSION, suffix ? '协议 999' : 'protocol 999'],
+            [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, (suffix ? '显示 schema 999' : 'display schema 999')],
+            [`docs/reference/cli${suffix}.md`, (suffix ? '编辑器协议 ' : 'editor protocol ') + PROTOCOL_VERSION, (suffix ? '编辑器协议 999' : 'editor protocol 999')],
             [`docs/reference/cli${suffix}.md`, '"schema_version": ' + SCHEMA_VERSION, '"schema_version": ' + (SCHEMA_VERSION - 1)],
         ] as const) {
             const changed = new Map(pages), original = changed.get(path!)!;
             assert(original.includes(before!), path); changed.set(path!, original.replaceAll(before!, after!));
             assert(contentErrors(changed).some(error => error.startsWith(path! + ':')), path);
+        }
+        for (const [path, link] of [
+            [`docs/COMPOSITION${suffix}.md`, suffix ? 'reference/cli.zh-CN.md#协议与-schema-版本' : 'reference/cli.md#protocol-and-schema-versions'],
+            [`docs/EXTENSIONS${suffix}.md`, suffix ? 'reference/cli.zh-CN.md#协议与-schema-版本' : 'reference/cli.md#protocol-and-schema-versions'],
+        ] as const) {
+            const original = pages.get(path)!, changed = new Map(pages);
+            assert(original.includes(link), path);
+            changed.set(path, original.replace(link, suffix ? 'reference/cli.zh-CN.md' : 'reference/cli.md'));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Missing centralized version link')), path);
+        }
+        for (const [path, before, replacement] of [
+            [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, suffix ? '显示 schema' : 'display schema'],
+            [`docs/reference/cli${suffix}.md`, (suffix ? '编辑器协议 ' : 'editor protocol ') + PROTOCOL_VERSION, suffix ? '编辑器协议' : 'editor protocol'],
+        ] as const) {
+            const original = pages.get(path)!, changed = new Map(pages);
+            assert(original.includes(before), path);
+            changed.set(path, original.replace(before, replacement));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Missing centralized current interface versions')), path);
         }
         const gateRows = suffix
             ? [

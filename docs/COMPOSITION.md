@@ -238,10 +238,9 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 17 stores ordered instances, groups, optional explicit-row
-alignment and adaptive presentation; editor protocol 31 requires matching
-TypeScript and bundled native resources. Portable/profile envelopes and UI preferences remain version 1; the
-runtime observation protocol remains version 3.
+Current versions and read ranges are in [protocol and schema versions](reference/cli.md#protocol-and-schema-versions). The current display schema stores ordered instances, groups, optional explicit-row
+alignment and adaptive presentation; the current editor protocol requires matching
+TypeScript and bundled native resources. Portable/profile envelopes and UI preferences evolve independently from the runtime observation protocol.
 
 Supported older display schemas normalize in memory. The canonical type ID within
 each scope provides a deterministic migration identity. Enabled order, explicit

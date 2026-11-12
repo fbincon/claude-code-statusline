@@ -186,8 +186,8 @@ claude-statusline config layout --by-instance explicit model-with-effort,git,spa
 
 ## 迁移、导入导出与恢复
 
-显示 schema 17 保存有序实例、分组、可选显式行对齐及自适应呈现；编辑器协议 31 要求 TypeScript 后端与原生资源版本匹配。
-Portable／方案外层格式和界面偏好仍为 v1，runtime 观测协议仍为 v3。
+当前版本与读取范围见[协议与 schema 版本](reference/cli.zh-CN.md#协议与-schema-版本)。当前显示 schema 保存有序实例、分组、可选显式行对齐及自适应呈现；当前编辑器协议要求 TypeScript 后端与原生资源版本匹配。
+Portable／方案外层格式、界面偏好与 runtime 观测协议分别独立演进。
 
 旧显示 schema 在内存中规范化，每个作用域内的规范类型 ID 作为确定性迁移身份。
 启用顺序、显式行、语言和已禁用类型的自定义选项均保留。

@@ -76,7 +76,7 @@ claude-statusline config enable cache-miss-reason
 
 来源为[官方状态栏契约](https://code.claude.com/docs/en/statusline)，缓存原因需要 Claude Code 2.1.260+。既有 `prompt-cache` 保持官方主会话命中率：分母含全部输入 token，不含子代理流量；PR/MR 行为不变。
 
-当前显示 schema 为 17，编辑器协议为 31，后端与编辑器资源须匹配。降级前恢复与目标旧包兼容的配置备份；仅移除一个组件不能让较新 schema 兼容旧包。诊断不自动迁移或改写配置。
+当前接口版本与读取范围见 [CLI 参考](reference/cli.zh-CN.md#协议与-schema-版本)，后端与编辑器资源须匹配。降级前恢复与目标旧包兼容的配置备份；仅移除一个组件不能让较新 schema 兼容旧包。诊断不自动迁移或改写配置。
 
 另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
 

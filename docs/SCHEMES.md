@@ -89,7 +89,7 @@ claude-statusline config profile activate daily-development
 claude-statusline config profile export daily-development my-scheme.json
 ```
 
-The current generated files use single-profile format 1 and display schema 17. They contain no project bindings, collection switches, host preferences or external-capability grants. Import saves a named profile; activation and project binding remain explicit. Older captured scheme files retain their original format and artifact identities in the [setup gallery](images/setup-appearance/README.md) and [adaptive-scenario gallery](images/adaptive-row-scenarios/README.md).
+The current generated files use the current single-profile format and display schema; see [protocol and schema versions](reference/cli.md#protocol-and-schema-versions). They contain no project bindings, collection switches, host preferences or external-capability grants. Import saves a named profile; activation and project binding remain explicit. Older captured scheme files retain their original format and artifact identities in the [setup gallery](images/setup-appearance/README.md) and [adaptive-scenario gallery](images/adaptive-row-scenarios/README.md).
 
 ## Related guides
 

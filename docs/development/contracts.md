@@ -19,15 +19,7 @@ This page defines the current editor/backend interface and persistence boundarie
 
 ## Current versions
 
-| Interface or format | Current version and compatibility |
-| --- | --- |
-| Editor UI protocol | 31; frontend/backend resources must come from the same package |
-| Display configuration | Schema 17; schemas 1–16 migrate in memory on read |
-| Runtime observation protocol | 3; retains v1/v2 observe/read compatibility |
-| Task lifecycle | 4; retains the schema-1 compatibility mirror |
-| Portable, UI preferences, profile collection/single-profile export | Each is 1 and evolves independently |
-| Source registry/jobs/observations | 3/4/1; old registries and jobs remain read-only compatible without new grants |
-| Package review jobs/execution records, external command output | Each is independently versioned as 1 |
+Current interface and format versions, read ranges and package compatibility are maintained in the [CLI reference](../reference/cli.md#protocol-and-schema-versions). This page owns the envelope, operations, data model, transactions, feature contracts and error behavior.
 
 Protocol versions do not substitute for disk schemas. Compatibility and migration below distinguishes reads, saves and downgrades.
 

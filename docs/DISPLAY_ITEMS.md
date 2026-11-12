@@ -13,7 +13,11 @@ Examples below primarily use English output; Chinese phrases illustrate `statusl
 - [Main items](#main-items)
   - [Default main items](#default-main-items)
   - [Common optional main items](#common-optional-main-items)
-  - [Independent and live main items](#independent-and-live-main-items)
+  - [Model, context and allowance items](#model-context-and-allowance-items)
+  - [Session usage items](#session-usage-items)
+  - [Session identity and repository items](#session-identity-and-repository-items)
+  - [Live execution state items](#live-execution-state-items)
+  - [Request metrics](#request-metrics)
 - [Subagent items](#subagent-items)
 - [Composition components](#composition-components)
 - [Optional external components](#optional-external-components)
@@ -102,18 +106,31 @@ These items are optional. Select `context-used` and `context-remaining` independ
 | `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
 | `hostname` | `Host NAME` | Local Node `os.hostname()`; provided by the local runtime | Omitted if the local hostname lookup fails or returns an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
 
-### Independent and live main items
+<a id="independent-and-live-main-items"></a>
 
-This table combines optional snapshot fields, live runtime state and request-derived metrics; each row identifies its source.
+The remaining optional main items are grouped by catalog family. Each row identifies its source; the sections below explain timing, token, quota, Git, live-state and request behavior.
+
+### Model, context and allowance items
+
+Model identity, context usage and remaining allowances. Reset windows and cache observations are detailed in [quotas, resets and cache](#quotas-resets-and-cache).
 
 | ID | Example | Definition and source |
 | --- | --- | --- |
-| `task-active-timer` | `Active 1m 30s` | Optional execution time; hidden when native user-wait coverage is incomplete. |
 | `model` | `claude-opus` | `model.id`, falling back to `model.display_name`. |
 | `effort` | `high` | Live `effort.level`; no value when unsupported or absent. |
 | `context-tokens` | `Context 54K / 200K` | Current input plus cache creation/read tokens from `context_window.current_usage`, divided by window capacity. Output tokens are excluded. If the component object is absent, use the official `total_input_tokens`; an explicit null after compaction remains unavailable. |
 | `five-hour-reset` | `5h reset 2h 13m` | Countdown from `rate_limits.five_hour.resets_at`. |
 | `weekly-reset` | `weekly reset 6d 2h` | Countdown from `rate_limits.seven_day.resets_at`. |
+| `spend-amount` | `Spend $31.50 / $350.00` | Optional estimated gateway `used_usd` / `limit_usd`; both must be available. |
+| `spend-period` | `Spend monthly` | Optional gateway `period`: daily, weekly or monthly. |
+
+### Session usage items
+
+Session execution time, official cost fields, cache counters and cumulative token counters. See [task clocks and markers](#task-clocks-and-markers), [token fields](#token-fields), [session cost rate](#session-cost-rate) and [quotas, resets and cache](#quotas-resets-and-cache).
+
+| ID | Example | Definition and source |
+| --- | --- | --- |
+| `task-active-timer` | `Active 1m 30s` | Optional execution time; hidden when native user-wait coverage is incomplete. |
 | `session-cost-rate` | `Rate ~$0.58/h (session)` | Derived hourly estimate from official cost and selected session/API time; details below. |
 | `session-cost` | `Cost $0.12` | Official cumulative `cost.total_cost_usd`. |
 | `session-duration` | `Session 12m 30s` | Official `cost.total_duration_ms`, the cumulative session runtime. |
@@ -123,25 +140,44 @@ This table combines optional snapshot fields, live runtime state and request-der
 | `cache-expires` | `Cache TTL 4m 20s` | Remaining TTL only while the observed main cache is warm. Requires a valid future `expires_at`. |
 | `cache-misses` | `Cache miss 2` | Official `prompt_cache.misses`, excluding `expected_rebuilds` after compaction or clearing. |
 | `cache-miss-reason` | `Cache cause? tools changed` | Off by default. Host-reported likely causes of the latest main-conversation miss, from `prompt_cache.last_miss_cause.causes`; requires 2.1.260+. Unknown codes remain readable. Counts and timing are in [diagnosis](DIAGNOSTICS.md). |
-| `worktree` | `Worktree feature-x` or `Git worktree feature-x` | Prefers `worktree.name` for Claude worktree sessions, displayed as `Worktree feature-x`; otherwise `workspace.git_worktree` identifies the current linked Git worktree and displays `Git worktree feature-x`. |
 | `api-requests` | `API requests 14` | Official main-conversation `prompt_cache.requests`; excludes subagent calls. |
+| `input-tokens` | `in 1.29M` | Recorded cumulative uncached input + cache writes + cache reads, using raw integers from the same main/subagent session statistics as `tokens`. |
+| `output-tokens` | `out 22.4K` | Recorded cumulative output from the same all-session statistics. |
+
+### Session identity and repository items
+
+Session identity, output style and repository state. See [Git markers](#git-markers) and [committed branch comparison](#committed-branch-comparison).
+
+| ID | Example | Definition and source |
+| --- | --- | --- |
 | `session-name` | `Session demo-session` | Observed `session_name`, without an ID fallback. |
 | `session-id` | `ID demo-session` | Full observed `session_id`. |
 | `session-id-short` | `ID demo-ses` | First eight characters of `session_id`. Existing `session` still prefers the name, otherwise the short ID. |
 | `output-style` | `Style Default` | Official `output_style.name`. |
+| `worktree` | `Worktree feature-x` or `Git worktree feature-x` | Prefers `worktree.name` for Claude worktree sessions, displayed as `Worktree feature-x`; otherwise `workspace.git_worktree` identifies the current linked Git worktree and displays `Git worktree feature-x`. |
 | `git-branch` | `Git main` | Existing local Git branch collection, including `HEAD@<hash>` while detached. |
 | `git-changes` | `Git ~2 ?1` | Staged, unstaged, conflicted and untracked file counts; a known clean worktree shows `Git clean`. |
 | `git-ahead-behind` | `Git ↑1 ↓0` | Difference from configured upstream; synchronized upstream shows zeros, missing upstream hides the item and removed upstream shows `[gone]`. |
-| `spend-amount` | `Spend $31.50 / $350.00` | Optional estimated gateway `used_usd` / `limit_usd`; both must be available. |
-| `spend-period` | `Spend monthly` | Optional gateway `period`: daily, weekly or monthly. |
-| `input-tokens` | `in 1.29M` | Recorded cumulative uncached input + cache writes + cache reads, using raw integers from the same main/subagent session statistics as `tokens`. |
-| `output-tokens` | `out 22.4K` | Recorded cumulative output from the same all-session statistics. |
+| `branch-diff` | `Diff 3 files +42/-7` | Committed files/additions/deletions from `merge-base(base, HEAD)` to HEAD; binary files only increment files. Auto base: origin/HEAD, local main, then master. No fetch; 2-second total timeout and cache by repository/HEAD/base commit. |
+
+### Live execution state items
+
+Verified task and agent state for the current main execution. See [live state items](#live-state-items).
+
+| ID | Example | Definition and source |
+| --- | --- | --- |
 | `run-state` | `State waiting agents` | Verified main execution, queued, agent wait, wrap-up and terminal state of the user task. Reliable lifecycle evidence wins; expired or ambiguous sources render `—`. |
 | `permission-mode` | `Mode plan*` | Actual event mode. Hook snapshots are marked `*` as recent observations and expire after 15 seconds; settings defaults are never treated as live mode. |
 | `active-agents` | `Agents 2` | Verified active agents owned by this task, nested agents included and IDs deduplicated. Excludes background shells/servers/workflows. Uncertain ownership marks the known subtotal `*`. |
 | `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
 | `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. A started-but-unfinished tool renders `started`. |
-| `branch-diff` | `Diff 3 files +42/-7` | Committed files/additions/deletions from `merge-base(base, HEAD)` to HEAD; binary files only increment files. Auto base: origin/HEAD, local main, then master. No fetch; 2-second total timeout and cache by repository/HEAD/base commit. |
+
+### Request metrics
+
+Request-derived latency, throughput and attributed prompt totals. See [request coverage and SDK fallback](#request-coverage-and-sdk-fallback).
+
+| ID | Example | Definition and source |
+| --- | --- | --- |
 | `ttft` | `TTFT(host) 0.420s` | Latest main request: host observation from entry into turn.step to the first real text/thinking/tool block. Missing or synthetic streams and invalid clocks remain unavailable. |
 | `output-rate` | `Rate 36.5 tok/s` | Official output tokens / complete observed latest main request duration, including first-content wait. This is not a generation-only rate. |
 | `prompt-input-tokens` | `Prompt in 48K*` | Raw uncached input + cache creation + cache read from deduplicated requests owned by the human task, including verified nested agents and main wrap-up. |

@@ -65,9 +65,9 @@ claude-statusline config project unbind "/work/project"
 
 ## 文件、冲突与恢复
 
-Claude 用户配置目录中的版本 1 `claude-statusline-profiles.json` 保存方案集合和绑定，仅在保存或绑定时创建。现有 `claude-statusline.json` 继续保存显示 schema 17 的用户默认。集合限制为 128 个方案、512 个绑定和 32 MiB。
+Claude 用户配置目录中的当前格式 `claude-statusline-profiles.json` 保存方案集合和绑定，仅在保存或绑定时创建。现有 `claude-statusline.json` 继续保存当前显示 schema 的用户默认。当前版本与读取范围见[协议与 schema 版本](reference/cli.zh-CN.md#协议与-schema-版本)。集合限制为 128 个方案、512 个绑定和 32 MiB。
 
-单方案导出格式为 `claude-code-statusline-profile`、版本 1，包含名称和显示设置，不包含项目路径或内部方案 ID；导出会移除本机来源绑定（`source.binding`），仅保留 hint；传输大小上限为 1 MiB。它与现有还包含工具宿主设置的 `claude-code-statusline` portable 配置包不同，请使用对应导入命令。
+单方案导出格式为 `claude-code-statusline-profile`，采用当前单方案版本，包含名称和显示设置，不包含项目路径或内部方案 ID；导出会移除本机来源绑定（`source.binding`），仅保留 hint；传输大小上限为 1 MiB。它与现有还包含工具宿主设置的 `claude-code-statusline` portable 配置包不同，请使用对应导入命令。
 
 写入复用安装锁、revision 检查、不可变备份和恢复日志。并发修改会拒绝旧草稿，请重新读取并核对。保存响应丢失时，先刷新已保存状态，再进行下一次写入。损坏方案库保留原文件并明确报错，渲染则安全回退。
 

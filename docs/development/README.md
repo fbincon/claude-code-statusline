@@ -30,6 +30,7 @@ Use the [development plan](development-plan.md#work-index) for shared design rul
 | --- | --- |
 | How users install, configure and troubleshoot | [User guide](../USER_GUIDE.md) for entry points and common operations, [topic guides](../README.md#configure-and-troubleshoot) for detailed workflows and [CLI reference](../reference/cli.md) for command syntax |
 | Current implementation, interfaces and validation rules | [Architecture](architecture.md), [shared contracts](contracts.md) and the applicable technical guide above. [Testing and acceptance](testing.md) and [impact checks](impact-checks.md) describe how to verify changes. |
+| Current interface and format versions | [CLI reference](../reference/cli.md#protocol-and-schema-versions) for version numbers and read ranges; [shared contracts](contracts.md) for operations and compatibility behavior |
 | Priorities, candidates, dependencies between stages and work-package status | [Roadmap](roadmap.md) |
 | Work-package scope, implementation slices and required acceptance | [Development plan](development-plan.md#work-index) |
 | Original designs, source identities, delivery results and evidence limits | [Development history](history/README.md). Find user-facing changes by version in the [changelog](../../CHANGELOG.md) and [release notes](../releases/README.md). |

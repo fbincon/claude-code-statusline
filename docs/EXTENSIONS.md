@@ -8,21 +8,31 @@ source. External values do not contribute to task, token or cost totals.
 
 ## Contents
 
-- [Registration, enablement, binding and execution](#registration-enablement-binding-and-execution)
+- [Sources, components and permissions](#sources-components-and-permissions)
 - [Configure with either editor](#configure-with-either-editor)
-- [Local JSON](#local-json)
-- [GitHub PR and CI](#github-pr-and-ci)
-- [Automatic GitHub refresh](#automatic-github-refresh)
-- [Commands](#commands)
+- [Local JSON sources](#local-json-sources)
+- [GitHub PR and CI checks](#github-pr-and-ci-checks)
+- [Command sources](#command-sources)
+- [Automation: refresh and execution](#automation-refresh-and-execution)
+  - [Automatic GitHub refresh](#automatic-github-refresh)
+  - [Automatic command execution](#automatic-command-execution)
+  - [Shared leases and failure handling](#shared-leases-and-failure-handling)
 - [Windows paths and PowerShell](#windows-paths-and-powershell)
-- [Automatic command execution](#automatic-command-execution)
-- [Freshness and sharing](#freshness-and-sharing)
-- [Links](#links)
-- [Readable operations and saved check details](#readable-operations-and-saved-check-details)
-- [Binding inventory and cleanup](#binding-inventory-and-cleanup)
+- [Freshness, sharing and links](#freshness-sharing-and-links)
+  - [Expiration, stale values and sharing](#expiration-stale-values-and-sharing)
+  - [Validated links](#validated-links)
+- [Operations and troubleshooting](#operations-and-troubleshooting)
+  - [Readable operations and saved check details](#readable-operations-and-saved-check-details)
+  - [Troubleshooting](#troubleshooting)
+  - [Binding inventory and cleanup](#binding-inventory-and-cleanup)
 - [Interface compatibility](#interface-compatibility)
+- [Related guides](#related-guides)
 
-## Registration, enablement, binding and execution
+<a id="registration-enablement-binding-and-execution"></a>
+
+## Sources, components and permissions
+
+A **source definition** is a locally saved description of where an optional value comes from and which project, session or agent it applies to. Editing it creates a new **review revision**. **Enabling** authorizes that exact revision. A **binding** associates a compatible display instance with a source. A **job** is one bounded refresh; an **observation** is its cached result. **TTL** and **freshness** describe how long that result remains usable. An **automatic policy** separately permits interval-based refresh for eligible active sessions; a **lease** is a session's renewable claim that keeps automatic work running. **Identity/context** is the project, worktree, session, agent, branch and HEAD combination that scopes a source.
 
 | Action | Effect |
 | --- | --- |
@@ -54,9 +64,11 @@ unsaved and does not undo separately saved source changes.
 **Refresh now** starts one bounded job. **Refresh status**, **Cancel running
 refresh** and **Inspect source and observations** expose its result. Closing the
 editor releases only its refresh interest; other consumers or applicable automatic leases keep the job running. Explicit cancellation still stops the whole job. Enablement is independent of refresh: it
-never automatically launches a command or GitHub request.
+never automatically launches a command or GitHub request. Automatic policies are reviewed separately in [automation](#automation-refresh-and-execution).
 
-## Local JSON
+<a id="local-json"></a>
+
+## Local JSON sources
 
 Create a local data file, for example:
 
@@ -95,8 +107,7 @@ claude-statusline source bind queue --instance INSTANCE_ID --scope main --json
 Use the actual `review_revision` and instance ID returned by the preceding
 commands. `source bind` saves the selected display target; use `--profile NAME`
 or `--project PATH` to select another target. `--config-dir PATH` belongs directly
-after `source`. On Windows, escape backslashes in JSON paths, or use forward
-slashes. Spaces and Unicode are supported.
+after `source`. Paths support spaces and Unicode.
 
 JSON Pointer supports object keys and array indices, with `~0` for `~` and `~1`
 for `/`. It has no expressions or script execution. Values must be a string,
@@ -112,7 +123,9 @@ unknown freshness; file modification time is not substituted. Successful values
 are cached locally so a later read failure can retain the value with an explicit
 error marker. Disabling a source stops subsequent external reads.
 
-## GitHub PR and CI
+<a id="github-pr-and-ci"></a>
+
+## GitHub PR and CI checks
 
 Use an existing `gh` login for the repository's host; this feature neither logs in nor switches accounts. In your project/worktree, check the active account and branch:
 
@@ -179,28 +192,9 @@ requires at least one passing check and no failed, pending, cancelled or unknown
 checks; an all-skipped result remains skipped. This summarizes observed checks,
 not GitHub merge eligibility or branch protection.
 
-## Automatic GitHub refresh
+<a id="commands"></a>
 
-After **Review and enable**, select **Review automatic refresh** in either editor. Review the source identity and interval; ←/→ adjusts it by 60 seconds and Enter saves the local policy. Escape discards the pending choices. The default follows source expiration, clamped to 60–86400 seconds. CLI accepts any integer in that range:
-
-```bash
-claude-statusline source review forge --json
-claude-statusline source auto-on forge --review REVIEW_REVISION --interval 300 --json
-claude-statusline source diagnose forge --project /absolute/project --json
-claude-statusline source auto-off forge --json
-```
-
-Use the returned review revision. The policy is stored locally and is not exported; editing, disabling or deleting the source revokes it, as does explicit auto-off. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
-
-Supported active sessions renew a lease every five seconds; leases expire after 15 seconds without a heartbeat. Only matching project/session scope, branch and HEAD dispatch work. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service is installed. Multiple sessions share one job for the same source/identity. Manual consumers and automatic leases retain independent interest; closing one session/editor or turning automatic refresh off preserves other applicable consumers.
-
-Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
-
-An overdue read can provisionally account for a timeout while a worker waits for its final lock. A later confirmed success clears that provisional backoff and records the actual completion time; a final pause failure uses its actual cause without counting the same attempt twice. Worker settlement and subsequent lifecycle ticks converge on the same feedback. Orphaned jobs retain bounded retry/backoff, and an older job cannot revise newer feedback.
-
-Rendering, preview, imports and project bindings never dispatch refreshes. JSON sources remain outside automatic scheduling; separately reviewed commands use the scheduling rules below. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
-
-## Commands
+## Command sources
 
 This read-only example prints `42` using the installed Node runtime. Replace both project paths with an existing absolute directory and save this complete definition as `answer-source.json`:
 
@@ -246,8 +240,7 @@ Use the returned `review_revision` and instance ID, with the same owned installa
 
 The executable is resolved when saving. Execution uses literal arguments without
 a Shell. Unrecognized executable text fails instead of implicitly entering a Shell.
-For scripts, specify their interpreter explicitly; Windows `.cmd`/`.bat`
-files are not silently executed through `cmd.exe`. Review changes to executables,
+For scripts, specify their interpreter explicitly. Review changes to executables,
 arguments, paths or inputs before re-enabling.
 
 Input is a JSON object on stdin containing only selected mappings. Available
@@ -287,9 +280,46 @@ separate, and obsolete source revisions or context identities cannot publish res
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
 `source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest through completion or publication of the original deadline's timeout result. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
 
-### Windows paths and PowerShell
+## Automation: refresh and execution
 
-Use `claude-statusline.cmd` for CLI calls in PowerShell. Save the same definition files as UTF-8 JSON. For both GitHub `scope.project` and command `scope.project`/`settings.cwd`, `"C:\\Work\\Example Project"` and `"C:/Work/Example Project"` express the same Windows path. Set the JSON source's `settings.path` similarly. Backslashes in a PowerShell single-quoted argument stay literal; JSON requires each backslash doubled.
+Manual refresh is always explicit. Automatic refresh is reviewed separately for each source, defaults off, and requires the runtime integration described below. The source-specific subsections keep their own prerequisites and limits; [shared leases and failure handling](#shared-leases-and-failure-handling) applies to both.
+
+### Automatic GitHub refresh
+
+After **Review and enable**, select **Review automatic refresh** in either editor. Review the source identity and interval; ←/→ adjusts it by 60 seconds and Enter saves the local policy. Escape discards the pending choices. The default follows source expiration, clamped to 60–86400 seconds. CLI accepts any integer in that range:
+
+```bash
+claude-statusline source review forge --json
+claude-statusline source auto-on forge --review REVIEW_REVISION --interval 300 --json
+claude-statusline source diagnose forge --project /absolute/project --json
+claude-statusline source auto-off forge --json
+```
+
+Use the returned review revision. The policy is stored locally and is not exported; editing, disabling or deleting the source revokes it, as does explicit auto-off. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
+
+Only an active session whose project/session scope, branch and HEAD match the source dispatches work. Multiple sessions share one job for the same source and identity.
+
+Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
+
+Rendering, preview, imports and project bindings never dispatch refreshes. JSON sources remain outside automatic scheduling; separately reviewed commands use the [automatic command execution](#automatic-command-execution) rules. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
+
+### Automatic command execution
+
+Enable and review the exact command first, then separately review automatic execution with the same `auto-on` entry [shown above](#automatic-github-refresh). Automatic command permission defaults off. Its initial interval is **300 seconds**, adjustable from 60 through 86400 seconds, independently of `ttl_seconds`. Source edits revoke both old execution and automatic permission; reading an old registry never grants permission.
+
+The runtime Mod renews the shared leases described below. Confirmed projects, sessions and local agents supply only the reviewed input mappings; unknown agent/project ownership waits instead of guessing. No daemon is installed. Each command source runs serially. Identical actual inputs share a job; distinct contexts rotate fairly and keep independent results. Busy ticks are skipped rather than queued for catch-up.
+
+### Shared leases and failure handling
+
+The runtime Mod renews the lease for each eligible active session every five seconds; the lease expires after fifteen seconds without a heartbeat. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service or daemon is installed. Multiple sessions and manual consumers retain independent interest in the same source and identity: closing one session/editor, or turning automatic refresh off, preserves other applicable consumers; an explicit cancellation still stops the whole job.
+
+Failed requests back off exponentially up to one day. Missing executables, malformed output, authentication, permission, account, identity and configuration failures pause automatic attempts until a successful manual retry or renewed review. Reading an old registry never grants permission, and an edited source revokes both old execution and automatic review.
+
+An overdue read can provisionally account for a timeout while a worker waits for its final lock. A later confirmed success clears that provisional backoff and records the actual completion time; a final pause failure uses its actual cause without counting the same attempt twice. Worker settlement and subsequent lifecycle ticks converge on the same feedback. Orphaned jobs retain bounded retry/backoff, and an older job cannot revise newer feedback. Late results cannot publish into an edited source.
+
+## Windows paths and PowerShell
+
+Use `claude-statusline.cmd` for CLI calls in PowerShell. Save the same definition files as UTF-8 JSON. For the JSON source's `settings.path` and for GitHub and command `scope.project` (and command `settings.cwd`), `"C:\\Work\\Example Project"` and `"C:/Work/Example Project"` express the same Windows path. Backslashes in a PowerShell single-quoted argument stay literal; JSON requires each backslash doubled. Spaces and Unicode are supported.
 
 <!-- docs-example: source-powershell -->
 ```powershell
@@ -304,15 +334,11 @@ claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' diagn
 
 Replace the paths and returned placeholders, and set up that same configuration directory first. The GitHub workflow uses the same command-name/path substitutions. The CLI's npm `.cmd` wrapper is separate from the source's `settings.executable`: a command source runs a program with literal argv and does not implicitly run `.cmd`/`.bat` through `cmd.exe`. Use `node`/`node.exe` and a script path as a separate argument for Node scripts; do not put an entire shell command in `executable`.
 
-## Automatic command execution
+<a id="freshness-and-sharing"></a>
 
-Enable and review the exact command first, then separately review automatic execution with the same `auto-on` entry shown above. Automatic command permission defaults off. Its initial interval is **300 seconds**, adjustable from 60 through 86400 seconds, independently of `ttl_seconds`. Source edits revoke both old execution and automatic permission; reading an old registry never grants permission.
+## Freshness, sharing and links
 
-The runtime Mod renews five-second leases expiring after fifteen seconds. Confirmed projects, sessions and local agents supply only the reviewed input mappings; unknown agent/project ownership waits instead of guessing. No daemon is installed. Each command source runs serially. Identical actual inputs share a job; distinct contexts rotate fairly and keep independent results. Busy ticks are skipped rather than queued for catch-up. Temporary failures back off exponentially; missing executables, malformed output and configuration/identity failures pause until successful manual retry or renewed review. Late results cannot publish into an edited source.
-
-<a id="freshness-sharing-and-links"></a>
-
-## Freshness and sharing
+### Expiration, stale values and sharing
 
 Expiration defaults to 300 seconds and can be configured from 1 to 86400 seconds.
 Old values may remain visible after expiration or failure, with a leading status
@@ -328,7 +354,9 @@ under the selected Claude configuration directory; private observation/job files
 are under `statusline_runtime/sources`. Normal configuration recovery also covers
 the source registry. Do not place credentials in source definitions.
 
-## Links
+<a id="links"></a>
+
+### Validated links
 
 In supported component details, **Links** offers `off` (default), `auto` and `on`.
 Current directory, project name, host PR, GitHub PR/CI and subagent directory can
@@ -342,7 +370,9 @@ labels when its host does not expose hyperlink rendering. Actual click behavior
 also depends on Claude Code and the terminal, as explained in the
 [official status-line documentation](https://code.claude.com/docs/en/statusline#osc-8-links-not-clickable).
 
-## Readable operations and saved check details
+## Operations and troubleshooting
+
+### Readable operations and saved check details
 
 **Inspect source and observations** and `source diagnose ID` share a readable summary: enablement, automatic policy, waiting/running/backoff/pause, current observation failure and freshness, last success, next attempt and context ownership. The newest bounded job summaries include exit status, duration and sanitized output; missing old-record information remains unknown. `--json` and the advanced JSON action expose structured details. A recent successful value can remain within TTL after a failed attempt; the failure remains visible independently of freshness.
 
@@ -350,7 +380,20 @@ GitHub check details retain observed names, state and validated HTTP(S) links, r
 
 **Cancel running refresh** cancels the source's running refresh jobs. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
 
-## Binding inventory and cleanup
+### Troubleshooting
+
+| Symptom | Meaning and next step |
+| --- | --- |
+| `not_refreshed` | No successful observation exists yet. Review the source, run an explicit refresh, then inspect diagnosis. |
+| `waiting` (`scheduled` / `no_session`) | `scheduled` means the next automatic attempt is pending and is normal; `no_session` means no eligible active session holds a lease or runtime integration is missing. For `no_session`, install and restart the runtime Mod, then check project/session scope. |
+| `backoff` / `paused` | A temporary failure is retrying with backoff, or an authentication/identity failure paused automatic work. Retry manually or renew the automatic review. |
+| Stale or hidden value | An expired value is marked stale, an error marker retains the last value with an error, and an identity mismatch suppresses the old value. Check freshness and context identity in diagnosis. |
+| Command timeout, nonzero exit or invalid output | The job failed rather than producing zero. Inspect the bounded job summary and the published error observation. |
+| `no_pr` / `no_checks` | The query succeeded but found no matching PR or checks; neither means passing CI. Check the branch/HEAD, `pr` selection and repository. |
+| Windows path or `.cmd` failure | Use `claude-statusline.cmd`, UTF-8 JSON and escaped backslashes; keep `settings.executable` separate from the CLI wrapper. |
+| Version or resource mismatch | Reinstall integration so frontend and backend resources come from the same package; current versions are in the [CLI reference](reference/cli.md). |
+
+### Binding inventory and cleanup
 
 Binding prefers the component's current compatible binding, then reuses a compatible record for the same source. The source library's **Binding inventory** lists unused and duplicate records, with explicit cleanup review. Defaults, all named schemes/project associations, registered editor drafts and retained recovery transactions protect their references. A changed review or unreadable reference prevents deletion. Cleanup never changes source definitions or execution permission.
 
@@ -368,15 +411,12 @@ The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all re
 
 ## Interface compatibility
 
-The current interfaces are display schema 17, editor protocol 31, source registry
-2 (command-source automatic policies use 3), source jobs 4 and source observations 1. Older display configurations remain
-readable without automatic rewriting; saving uses the current schema. Older jobs
-1–3 remain readable, with absent execution diagnostics treated as unknown.
-Reinstall integration when frontend/backend versions differ. Runtime, task
-lifecycle, portable envelope and profile collection versions evolve independently.
+The interfaces and stored formats in this guide are versioned independently. Current versions and read ranges are in the [CLI reference](reference/cli.md#protocol-and-schema-versions). Older display configurations remain readable without automatic rewriting; saving uses the current schema. Older jobs remain readable, with absent execution diagnostics treated as unknown. Reinstall integration when frontend/backend versions differ. Runtime, task lifecycle, portable envelope and profile collection versions evolve independently.
 
 ## Related guides
 
 - [Profiles and project bindings](PROFILES.md)
 - [Input diagnosis](DIAGNOSTICS.md)
 - [Read-only task details](TASK_DETAILS.md)
+- [CLI reference](reference/cli.md)
+- [Troubleshooting](USER_GUIDE.md#troubleshooting)

@@ -64,7 +64,7 @@ Usage indexing retains an at-most-32-MiB serialized overlay within one cache loc
 
 ## Interfaces and persistence
 
-`ConfigurationService`/`Storage` binds filesystem transactions and host identity. The editor UI protocol and runtime observation protocol evolve independently; [shared contracts](contracts.md) owns their current versions, operations and error behavior.
+`ConfigurationService`/`Storage` binds filesystem transactions and host identity. The editor UI protocol and runtime observation protocol evolve independently; the [CLI reference](../reference/cli.md#protocol-and-schema-versions) owns current versions and read ranges, while [shared contracts](contracts.md) owns operations and error behavior.
 
 File publication records immutable before-images and durable checkpoints before mutation. The shared installation lock protects file commits; an administration lock serializes official integration phases. `cli/recovery` owns versioned file and official-operation journals. Incomplete journals block configuration writes until explicit recovery. Recovery verifies recorded states, reconciles uncertain host outcomes and preserves plugin opt-outs. Durable refresh intent retains manual disablement across uninstall/reinstall. Doctor only inspects. See [recovery](typescript-migration/ts-04/recovery.md) and [installed acceptance](typescript-migration/ts-04/candidate.md).
 
