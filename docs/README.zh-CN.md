@@ -6,8 +6,8 @@
 
 | 目标 | 指南 |
 | --- | --- |
-| 首次安装并接入 Claude Code | [快速开始](USER_GUIDE.zh-CN.md#快速开始) · [详细安装](USER_GUIDE.zh-CN.md#安装与接入) |
-| 预览显示效果并应用首次配置 | [首次设置](SETUP.zh-CN.md) |
+| 首次安装并接入 Claude Code | [用户指南](USER_GUIDE.zh-CN.md) · [快速开始](USER_GUIDE.zh-CN.md#快速开始) · [详细安装](USER_GUIDE.zh-CN.md#安装与接入) |
+| 预览显示效果并应用首次配置 | [引导式首次设置](SETUP.zh-CN.md) |
 | 按示例场景完成一次操作 | [使用演示](SHOWCASE.zh-CN.md) |
 
 ## 配置与排障
@@ -17,11 +17,11 @@
 | 选择编辑器、问答向导或 CLI | [配置入口](USER_GUIDE.zh-CN.md#选择配置入口) · [CLI 参考](reference/cli.zh-CN.md) |
 | 使用编辑器配置显示 | [配置编辑器](EDITORS.zh-CN.md) |
 | 选择界面或输出语言 | [语言与保存行为](USER_GUIDE.zh-CN.md#语言与保存行为) |
-| 编排状态栏 | [配置配方](USER_GUIDE.zh-CN.md#常用配置配方) · [完整方案](SCHEMES.zh-CN.md) · [外观](APPEARANCE.zh-CN.md) · [组件与布局](COMPOSITION.zh-CN.md) |
-| 跨项目复用设置 | [方案与项目绑定](PROFILES.zh-CN.md) · [草稿历史与复用](DRAFT_HISTORY.zh-CN.md) |
+| 编排状态栏 | [配置配方](USER_GUIDE.zh-CN.md#常用配置配方) · [内置显示方案](SCHEMES.zh-CN.md) · [外观](APPEARANCE.zh-CN.md) · [组件与布局](COMPOSITION.zh-CN.md) · [草稿历史与复用](DRAFT_HISTORY.zh-CN.md) |
+| 跨项目复用设置 | [命名方案与项目绑定](PROFILES.zh-CN.md) |
 | 理解指标、任务和可选数据 | [指标定义](DISPLAY_ITEMS.zh-CN.md) · [任务详情](TASK_DETAILS.zh-CN.md) · [扩展](EXTENSIONS.zh-CN.md) |
 | 诊断接入或输出问题 | [故障排查](USER_GUIDE.zh-CN.md#故障排查) · [输入诊断](DIAGNOSTICS.zh-CN.md) |
-| 升级、回退或恢复 | [版本管理](PACKAGE_MANAGEMENT.zh-CN.md) · [卸载](USER_GUIDE.zh-CN.md#卸载) |
+| 升级、回退或恢复 | [升级、回退与恢复](PACKAGE_MANAGEMENT.zh-CN.md) · [卸载](USER_GUIDE.zh-CN.md#卸载) |
 
 ## 开发与维护
 

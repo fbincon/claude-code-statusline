@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-目录包含 65 个主栏指标和 15 个子 Agent 指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子 Agent 的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
+目录包含 65 个主栏指标和 15 个子代理指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子代理的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
 下列样例以英文输出为主，中文短语展示 `statusline-language=zh-CN` 的本地化效果。反引号中的样例表示示意显示值；定义／来源和不可用行为列解释含义与前提，说明文字不代表原样输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -11,6 +11,9 @@
 - [主栏、会话和子 Agent 的作用域](#主栏会话和子-agent-的作用域)
 - [可用性与新鲜度](#可用性与新鲜度)
 - [主栏显示项](#主栏显示项)
+  - [默认主栏条目](#默认主栏条目)
+  - [常用可选主栏条目](#常用可选主栏条目)
+  - [独立指标与实时主栏条目](#独立指标与实时主栏条目)
 - [子 Agent 显示项](#子-agent-显示项)
 - [布局组件](#布局组件)
 - [可选外部组件](#可选外部组件)
@@ -29,7 +32,7 @@
 
 ## 主栏、会话和子 Agent 的作用域
 
-默认子 Agent 行示例。
+默认子代理行示例。
 
 ```text
 ⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
@@ -37,20 +40,20 @@
 
 | 作用域 | 数据含义 |
 | --- | --- |
-| 主栏 | 全局底栏保留主会话作用域。设置 `scope-labels=when-subagents` 时，已观测到任务启动过子 Agent 后会显示作用域标签，例如 `Main/Session` 或 `主会话`。 |
-| 会话用量 | 主栏 `tokens` 为当前会话累计 API 用量，包含可发现的主和子 Agent transcript。 |
-| 单个子 Agent | 该行的宿主字段来自 `tasks[]` 中对应的任务。`tokens` 取该任务的 `tokenCount`，表示当前上下文占用。 |
+| 主栏 | 全局底栏保留主会话作用域。设置 `scope-labels=when-subagents` 时，已观测到任务启动过子代理后会显示作用域标签，例如 `Main/Session` 或 `主会话`。 |
+| 会话用量 | 主栏 `tokens` 为当前会话累计 API 用量，包含可发现的主和子代理 transcript。 |
+| 单个子代理 | 该行的宿主字段来自 `tasks[]` 中对应的任务。`tokens` 取该任务的 `tokenCount`，表示当前上下文占用。 |
 
-查看子 Agent transcript 时，宿主 payload 缺少 `focused_agent` 和 `viewing_task_id`。渲染使用已提供的会话与任务身份。各字段和默认状态见[子 Agent 显示项](#子-agent-显示项)，终态耗时见[已结束代理](#分支基准与已结束代理)。
+查看子代理 transcript 时，宿主 payload 缺少 `focused_agent` 和 `viewing_task_id`。渲染使用已提供的会话与任务身份。各字段和默认状态见[子代理显示项](#子-agent-显示项)，终态耗时见[已结束代理](#分支基准与已结束代理)。
 
 <a id="时钟可用性与作用域"></a>
 
 ## 可用性与新鲜度
 
-- 缺失、异常类型、负数和非有限数值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
-  新 token 数需为非负整数，窗口容量需大于零。
+- 缺失或格式错误的值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
+  各数值项使用自己的范围校验：新 token 数需为非负整数，窗口容量需大于零。
 
-- 文本先净化再渲染。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
+- 文本按各显示项的渲染契约处理。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
 
 已观测零值、缺失、部分覆盖、过期和错误是不同状态，不能相互替代。具体标记及采集要求见各类指标说明。
 
@@ -58,14 +61,14 @@
 
 ### 默认主栏条目
 
-默认按下表顺序启用。额度由宿主的 `used_percentage` 换算为剩余百分比。可用窗口取决于宿主、账号和当次 payload。
+默认按下表顺序启用。额度由宿主的 `used_percentage` 换算为剩余百分比。可用窗口取决于宿主、账号和当次 payload。`spend-limit`、`prompt-cache`、`cache-state`、`cache-expires`、`cache-misses` 和 `api-requests` 需要 Claude Code 2.1.251+；`cache-miss-reason` 需要 2.1.260+。
 
 | ID | 显示内容 | 数据不可用时的行为 |
 | --- | --- | --- |
 | `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
 | `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
 | `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如原生 Linux/macOS 的 `Git main ↑1● 2` 或 Windows/WSL 的 `Git main ↑1●2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
-| `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略 |
+| `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略。宿主提供的有限数值按原值渲染；当前不对越界值做夹取。 |
 | `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
 | `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
 | `weekly-limit` | 7 天窗口的剩余百分比，显示为 `weekly` | 未提供该窗口时省略 |
@@ -98,6 +101,8 @@
 
 ### 独立指标与实时主栏条目
 
+本表同时包含可选快照字段、实时运行状态和请求派生指标；每行注明来源。
+
 | ID | 示例 | 定义与来源 |
 | --- | --- | --- |
 | `task-active-timer` | `Active 1m 30s` | 可选执行耗时；原生用户等待覆盖不完整时隐藏。 |
@@ -115,8 +120,8 @@
 | `cache-expires` | `Cache TTL 4m 20s` | 仅在已观测主对话缓存仍 warm 时显示 TTL，需有效的未来 `expires_at`。 |
 | `cache-misses` | `Cache miss 2` | 官方 `prompt_cache.misses`，不把压缩或清理后的 `expected_rebuilds` 当成 miss。 |
 | `cache-miss-reason` | `缓存可能原因 工具变化`（zh-CN） | 默认关闭；读取 `prompt_cache.last_miss_cause.causes`，表示宿主判断的最近一次主会话缓存未命中的可能原因。需要 2.1.260+；未知原因码安全保留，详细数量和时间见[诊断](DIAGNOSTICS.zh-CN.md)。 |
-| `worktree` | `Git 工作树 feature-x`（zh-CN） | 优先 `worktree.name`（Claude 工作树会话），缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
-| `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子 Agent 请求。 |
+| `worktree` | `工作树 feature-x`（存在 `worktree.name`）或 `Git 工作树 feature-x`（linked Git worktree） | 优先 `worktree.name`（Claude 工作树会话）；缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
+| `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子代理请求。 |
 | `session-name` | `Session demo-session` | 已观测的 `session_name`，不以 ID 兜底。 |
 | `session-id` | `ID demo-session` | 完整的 `session_id`。 |
 | `session-id-short` | `ID demo-ses` | `session_id` 前八位；原有 `session` 仍优先名称，否则显示短 ID。 |
@@ -126,13 +131,13 @@
 | `git-ahead-behind` | `Git ↑1 ↓0` | 相对已配置上游的提交差距；同步时显示零，无上游时隐藏，上游已移除时显示 `[gone]`。 |
 | `spend-amount` | `Spend $31.50 / $350.00` | 网关可选估算金额 `used_usd`／`limit_usd`，两者均须可用。 |
 | `spend-period` | `Spend monthly` | 网关可选 `period`：daily、weekly 或 monthly。 |
-| `input-tokens` | `in 1.29M` | 累计已记录的普通输入＋缓存写入＋缓存读取，从现有 `tokens` 同一主／子 Agent 会话统计读取原始整数。 |
+| `input-tokens` | `in 1.29M` | 累计已记录的普通输入＋缓存写入＋缓存读取，从现有 `tokens` 同一主／子代理会话统计读取原始整数。 |
 | `output-tokens` | `out 22.4K` | 同一完整会话统计中累计已记录的输出。 |
-| `run-state` | `State waiting agents` | 用户任务的主线程执行、等待代理、收尾及终止状态；来源失效或归属不明显示 `—`。 |
+| `run-state` | `State waiting agents` | 用户任务的主线程执行、排队、等待代理、收尾及终止状态；来源失效或归属不明显示 `—`。 |
 | `permission-mode` | `Mode plan*` | 事件实际观测的权限模式；hook 快照附 `*` 表示最近观测，15 秒后过期，不以设置默认值推断。 |
 | `active-agents` | `Agents 2` | 本任务已验证的活跃代理数，包含嵌套代理并按 ID 去重；不统计后台 shell/server/workflow，归属不确定时标记已知小计 `*`。 |
 | `task-progress` | `Tasks 3/5` | 成功的结构化 Task/Todo 操作维护的完成数/总数，完整快照优先；不是耗时百分比。有限覆盖附 `*`。 |
-| `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果。 |
+| `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果；已开始但未完成的工具显示 `started`。 |
 | `branch-diff` | `Diff 3 files +42/-7` | 从 `merge-base(base, HEAD)` 到 HEAD 的已提交文件数、增加行和删除行；二进制文件只计文件数。自动基准依次 origin/HEAD、本地 main、master。不 fetch；总超时 2 秒，缓存按仓库、HEAD 和基准提交隔离。 |
 | `ttft` | `TTFT(host) 0.420s` | 最新主线程请求，从进入 turn.step 到首个真实文本、思考或工具内容块的宿主观测时长。缺失或合成流、异常时钟保持不可用。 |
 | `output-rate` | `Rate 36.5 tok/s` | 官方输出 token 除以最新主请求的完整观测耗时，包含首内容等待；不是纯生成速率。 |
@@ -142,12 +147,12 @@
 
 ## 子 Agent 显示项
 
-子 Agent 独立行需 Claude Code 2.1.205+。每项使用当前任务的数据。绑定的外部值见下文。
+子代理独立行需 Claude Code 2.1.205+。每项使用当前任务的数据。绑定的外部值见下文。
 
 | ID | 默认 | 内容 |
 | --- | --- | --- |
 | `status-elapsed` | 开 | 状态图标 + 用时，如 `⏱ 1m 18s`；缺失或非法 `startTime` 时只显示图标。与 `status`、`elapsed` 互斥 |
-| `status` | 关 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
+| `status` | 关 | 状态图标：`…` 表示 pending、`⏱` running、`✓` completed、`✗` failed、`■` killed、`⏳` paused/waiting；未知状态为 `?` |
 | `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
 | `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
 | `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
@@ -156,7 +161,7 @@
 | `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
 | `tokens` | 关 | 当前 task 的紧凑 token 数 |
 | `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
-| `model` | 关 | 已解析的 `tasks.model`，沿用去除 `claude-` 前缀的子 Agent 格式。 |
+| `model` | 关 | 已解析的 `tasks.model`，沿用去除 `claude-` 前缀的子代理格式。 |
 | `effort` | 关 | 明确配置的 `tasks.effort`，支持数值预算；继承主会话 effort 时字段缺失。不受模型支持的配置等级可能与实际执行值不同。需 Claude Code 2.1.214+。 |
 | `context-tokens` | 关 | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
 | `context-window-size` | 关 | 已解析的 `tasks.contextWindowSize`。 |
@@ -178,7 +183,7 @@
 
 | ID | 范围 | 含义 |
 | --- | --- | --- |
-| `external-value` | 主状态栏 / 子代理 | 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
+| `external-value` | 主状态栏 / 子代理| 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
 | `github-pr` | 主状态栏 | 显式刷新的 GitHub PR，与宿主 `pr` 分开。 |
 | `github-ci` | 主状态栏 | GitHub 检查摘要；无检查或结果未知不表示通过。 |
 
@@ -225,9 +230,9 @@
 
 `prompt-cache` 的命中率和写入量来自宿主提供的主对话 payload。
 
-累计输入／输出复用现有 cost-state 快照及 transcript 增量、消息 ID 去重、主与嵌套子 Agent 作用域；先相加整数再缩写，当前上下文字段不充当累计计数器。没有有效 usage 记录时不可用；已观测的全零响应显示零。原有格式化采集接口不变，原始整数快照不增加 I/O。
+累计输入／输出复用现有 cost-state 快照及 transcript 增量、消息 ID 去重、主与嵌套子代理作用域；先相加整数再缩写，当前上下文字段不充当累计计数器。没有有效 usage 记录时不可用；已观测的全零响应显示零。原有格式化采集接口不变，原始整数快照不增加 I/O。
 
-输入与输出的可用性独立判断：只观测到输出时，不推定输入为零。不完整的累计快照保留另一项的已知总量，各计数器从自己的快照位置继续叠加主／子 Agent 增量。旧会话缓存仅从可用 transcript 恢复一次可用性，不重复累计消息 ID。
+输入与输出的可用性独立判断：只观测到输出时，不推定输入为零。不完整的累计快照保留另一项的已知总量，各计数器从自己的快照位置继续叠加主／子代理增量。旧会话缓存仅从可用 transcript 恢复一次可用性，不重复累计消息 ID。
 
 ## 额度、重置与缓存
 
@@ -325,3 +330,9 @@ CLI 列表和 JSON `describe` 返回共享目录。最低版本描述已验证�
 独立模型项与组合项的选择方式也参考 [Codex 官方状态栏配置](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline)。
 
 当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/history/migration/post-migration-fixes.zh-CN.md)。
+
+## 相关指南
+
+- [配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
+- [输入诊断](DIAGNOSTICS.zh-CN.md)
+- [本地数据源与 GitHub 检查](EXTENSIONS.zh-CN.md)

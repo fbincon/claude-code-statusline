@@ -2,11 +2,13 @@
 
 [English](DRAFT_HISTORY.md) | **简体中文**
 
-外部编辑器用 **Ctrl+Z** 撤销。在 `/statusline-configure-native` 中先点击编辑区正文。在 GNOME Terminal 中，**Ctrl+/** 和 **Ctrl+Shift+-** 都可撤销，**Ctrl+-** 会缩小终端。Native 也接受其他终端转发的 Ctrl+_。两端均用 **Ctrl+R** 重做上一次撤销的编辑，历史为空时界面会提示原因。
+安装后可使用任一编辑器或 CLI；历史属于当前编辑会话和编辑目标。
+
+编辑器相关的撤销／重做键与终端冲突见[键盘控制](EDITORS.zh-CN.md#键盘操作)。两种编辑器均用 **Ctrl+R** 重做上一次撤销的编辑，历史为空时界面会提示原因。
 
 在设置中选择**变更与历史**，或按 **Ctrl+T** 打开该页。在页内按普通 **U** 撤销、**R** 重做。编辑字段、使用选择器或管理器期间，由当前页面处理快捷键。返回主编辑区后可使用草稿历史。
 
-Claude 的 Unix 宿主会在 Native 收到 Ctrl+Z 前挂起整个进程；本机 2.1.312 已观察到这一行为，参见 [Claude 终端冲突说明](https://code.claude.com/docs/en/keybindings#terminal-conflicts)。Native 保留宿主能够转发时的 Ctrl+Z 处理；安装程序不会修改 Claude 的全局按键配置。
+Claude 的 Unix 宿主可能在编辑器收到 Ctrl+Z 前挂起整个进程；本机 2.1.312 已观察到这一行为，参见 [Claude 终端冲突说明](https://code.claude.com/docs/en/keybindings#terminal-conflicts)。安装程序不会修改 Claude 的全局按键配置；请使用编辑器指南中的宿主替代键。
 
 ## 历史与变更审阅
 

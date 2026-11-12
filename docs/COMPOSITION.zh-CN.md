@@ -2,7 +2,7 @@
 
 [English](COMPOSITION.md) | **简体中文**
 
-编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。
+编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。安装后，在任一编辑器中编排布局并保存显示草稿。
 
 共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
 
@@ -12,6 +12,17 @@
 
 升级和新安装均沿用现有默认展示。可选择“左右布局”或“重复指标”预设体验新布局；
 在编辑器中展开预设只替换草稿，保存后才生效。
+
+## 文档导航
+
+- [使用任一编辑器](#使用任一编辑器)
+- [Unicode 文本与终端列宽](#unicode-文本与终端列宽)
+- [静态文字与弹性留白](#静态文字与弹性留白)
+- [组件分组](#组件分组)
+- [显式主行的对应列对齐](#显式主行的对应列对齐)
+- [自适应指标与连续背景](#自适应指标与连续背景)
+- [CLI](#cli)
+- [迁移、导入导出与恢复](#迁移导入导出与恢复)
 
 ## 使用任一编辑器
 
@@ -78,7 +89,7 @@
 
 在任一编辑器的设置中打开**组件分组**，或按 **Ctrl+B**。选择主行或子代理模板，设置首个、末尾成员及主指标。方向键选择和调整，在**应用到草稿**上按 Enter 预览；关闭面板后使用原有显示保存操作。取消表单保留之前的草稿。
 
-分组至少包含同一作用域、同一显式行内的两个连续实例，不能重叠、嵌套或包含 spacer。装饰默认跟随主指标的最终可见性（含布局省略）；其他指标保留自身条件。关闭联动后装饰独立显示。自动布局将组保留在同一行，先缩减装饰和次要指标再处理主指标。整组的省略优先级取自主指标。
+分组至少包含同一作用域内的两个连续实例；显式布局要求整组位于同一显式行，不能重叠、嵌套或包含 spacer。装饰默认跟随主指标的最终可见性（含布局省略）；其他指标保留自身条件。关闭联动后装饰独立显示。自动布局将组保留在同一行，先缩减装饰和次要指标再处理主指标。整组的省略优先级取自主指标。
 
 共享 Powerline 使用主指标背景形成一个色块，各成员前景和阈值色保留。成员背景配置继续保存，关闭共享后恢复。普通分组成员之间以空格连接。操作包括编辑、整组移动、分配新 ID 的整组复制及解组。删除主指标会解组并保留其他实例，受影响的对齐关系需要结构审阅；单项复制在原组之后插入独立副本。无法生成有效候选的操作保留草稿。
 
@@ -140,11 +151,13 @@ claude-statusline config instance main list --json
 claude-statusline config instance main copy context-remaining
 ```
 
+实际执行 `config preset` 或实例写入要求本工具拥有已安装的状态栏；`--dry-run` 不要求。必要时先完成[首次设置](SETUP.zh-CN.md)。
+
 复制命令在保存结果后输出新 ID。将下列 `INSTANCE_ID` 替换为实际值：
 
 ```sh
 claude-statusline config instance main set INSTANCE_ID label 上下文
-claude-statusline config instance main set INSTANCE_ID number-format full
+claude-statusline config instance main set INSTANCE_ID max-width 24
 claude-statusline config instance main disable INSTANCE_ID
 claude-statusline config instance main enable INSTANCE_ID
 claude-statusline config instance main move INSTANCE_ID --before git
@@ -153,8 +166,8 @@ claude-statusline config instance main add text --text '项目 ◆'
 ```
 
 `add TYPE_ID [--after INSTANCE_ID] [--text TEXT]` 未指定参照时追加到末尾；
-`copy INSTANCE_ID` 紧接原实例插入；`move` 必须且只能指定 `--before` 或 `--after`。
-`set` 支持已有组件选项，以及文字组件的 `text` 内容。将作用域改为 `subagent` 即可编辑其单行模板。
+`copy INSTANCE_ID` 紧接原实例插入，源实例属于分组时插到整组之后；`move` 必须且只能指定 `--before` 或 `--after`。
+`set` 支持已有组件选项，包括 `tokens`、`context-window-size` 等支持的数值组件的 `number-format`，以及文字组件的 `text` 内容。将作用域改为 `subagent` 即可编辑其单行模板。
 
 主状态栏可使用 `config layout --by-instance explicit ROW...` 指定行，每个参数以逗号分隔 ID。
 全部已配置实例（包括禁用项）必须按实例顺序各出现一次。也可以在编辑器中调整行边界。
@@ -173,7 +186,7 @@ claude-statusline config layout --by-instance explicit model-with-effort,git,spa
 
 ## 迁移、导入导出与恢复
 
-显示 schema 17 保存有序实例、分组及可选显式行对齐；编辑器协议 31 要求 TypeScript 后端与原生资源版本匹配。
+显示 schema 17 保存有序实例、分组、可选显式行对齐及自适应呈现；编辑器协议 31 要求 TypeScript 后端与原生资源版本匹配。
 Portable／方案外层格式和界面偏好仍为 v1，runtime 观测协议仍为 v3。
 
 旧显示 schema 在内存中规范化，每个作用域内的规范类型 ID 作为确定性迁移身份。
@@ -183,6 +196,12 @@ Portable／方案外层格式和界面偏好仍为 v1，runtime 观测协议仍�
 导出保留 ID、选项和行引用。导入审阅区分新增、移除、启停、排序和选项变化；接受导入只替换
 草稿，保存仍检查最初读取的配置版本。其他编辑器已修改配置时，需先协调或重新加载。
 
-降级前使用 `recover --restore-config TRANSACTION_ID` 显式恢复兼容配置备份。版本管理器拒绝新 schema，
-并在交接已校验的 Mod 资源及绑定后运行旧版安装器。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
+降级前使用 `recover --restore-config BACKUP_ID` 显式恢复兼容配置备份。版本管理器拒绝新 schema，
+并在刷新已验证的 Mod 资源与绑定后运行旧版安装器。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
 请勿手改 schema 数字。具体步骤见[升级指南](USER_GUIDE.zh-CN.md#升级)。
+
+## 相关指南
+
+- [外观](APPEARANCE.zh-CN.md)
+- [内置显示方案](SCHEMES.zh-CN.md)
+- [草稿历史与复用](DRAFT_HISTORY.zh-CN.md)

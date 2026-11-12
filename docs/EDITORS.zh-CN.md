@@ -27,7 +27,7 @@
 | `/statusline-configure` | 从 Claude 启动的受支持终端 | Claude Code 2.1.258+ 且外部接入已启用；同样满足终端编辑器条件 |
 | `/statusline-configure-native` | 当前 Claude 会话内的 Client 面板 | Claude Code 2.1.287+、原生接入已启用且加载匹配资源；Client 正文最低 32×12 |
 
-Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台。没有受支持启动器时直接运行 `configure`。slash 启动的编辑器在 570 秒后取消且不保存，独立 `configure` 没有自动超时。保存、取消及错误返回原会话的简短结果；外部命令接受 `help`／`-h`／`--help`，拒绝其他参数。终端小于最低尺寸时等待放大，仍可取消。
+Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台。没有受支持启动器时直接运行 `configure`。slash 启动的编辑器在 570 秒后取消且不保存，独立 `configure` 没有自动超时。保存、取消及错误返回原会话的简短结果；slash 命令 `/statusline-configure` 接受 `help`／`-h`／`--help`，拒绝其他参数；独立命令 `claude-statusline configure` 不接受 `help`。终端小于最低尺寸时等待放大，仍可取消。
 
 接入变化后，在受信任终端重启 Claude Code。先点击 Client 正文再使用键盘；重复运行原生命令聚焦现有面板并保留草稿。Esc 由宿主管理焦点，之后可能关闭面板；取消 Client 输入用 Ctrl+G。macOS 会话内交互仍未验证，见[焦点检查与替代入口](USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
@@ -80,7 +80,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | Ctrl+F | 选择分类 |
 | Ctrl+E / Ctrl+G | 打开逐项详情／返回或取消输入 |
 | Ctrl+A / Ctrl+D / Ctrl+X | 在项目页添加／复制／移除组件 |
-| Enter | 项目及原有设置行保存；高级字段编辑或接受输入 |
+| Enter | 在 Main／Subagents 页及原有设置行保存；高级字段编辑或接受输入 |
 | Ctrl+S | 非输入状态下保存显示草稿 |
 | Ctrl+K | 保存结果不明时核对保存状态 |
 | Esc | 取消字段或子页面；顶层关闭干净草稿，有修改时确认是否放弃，默认继续编辑 |
@@ -108,7 +108,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | 操作 | 终端 / Client | 详细流程 |
 | --- | --- | --- |
 | 快速配置 | 两种编辑器在逐项详情外均用 Ctrl+P | [方案与预设](SCHEMES.zh-CN.md#editor-quick-setup) |
-| 撤销 | Ctrl+Z / Ctrl+/（宿主转发时也接受 Ctrl+_） | [历史与终端冲突](DRAFT_HISTORY.zh-CN.md) |
+| 撤销 | 终端编辑器：Ctrl+Z。Client：Ctrl+Z / Ctrl+/；宿主转发时也接受 Ctrl+_ | [历史与终端冲突](DRAFT_HISTORY.zh-CN.md) |
 | 重做；变更与历史 | Ctrl+R；Ctrl+T | [草稿历史与审阅](DRAFT_HISTORY.zh-CN.md#历史与变更审阅) |
 | 组件分组 | Ctrl+B | [组件组合](COMPOSITION.zh-CN.md#组件分组) |
 | 方案及项目目标 | 逐项详情外用 Ctrl+O | [方案](PROFILES.zh-CN.md) |
@@ -116,7 +116,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | 诊断输入文件 | Ctrl+L | [输入诊断](DIAGNOSTICS.zh-CN.md#在双编辑器中诊断文件) |
 | 样例场景／宽度／下一预览行 | Ctrl+V / Ctrl+W / Ctrl+N | [样例预览](#sample-preview-and-colors) |
 
-使用草稿历史前，先从管理器返回主编辑器。Unix 上 Claude 可能拦截 Ctrl+Z 并挂起进程，因此 Client 使用上表中的撤销键。GNOME Terminal 中 Ctrl+Shift+- 也发送撤销键，而 Ctrl+- 缩小字体。宿主限制详见历史指南。
+使用草稿历史前，先从管理器返回主编辑器。Unix 上 Claude 可能拦截 Ctrl+Z 并挂起进程，因此 Client 使用上表中的撤销键。在 GNOME Terminal 中使用 Client 时，Ctrl+Shift+- 也发送撤销键，而 Ctrl+- 缩小字体。宿主限制详见历史指南。
 
 <a id="text-input"></a>
 
@@ -184,7 +184,7 @@ Client 控件跟随 Claude 已应用主题。**Preview background (UI only)** �
 
 | 操作 | 终端编辑器 | Client |
 | --- | --- | --- |
-| 保存显示 | 非输入时 Ctrl+S；项目／原有设置行也可 Enter 保存 | S 保存继续；F 保存成功后关闭 |
+| 保存显示 | 非输入时 Ctrl+S；Main／Subagents 页及原有设置行也可 Enter 保存 | S 保存继续；F 保存成功后关闭。若 Claude 偏好仍有待应用修改，面板保留以单独 Apply |
 | 取消显示修改 | 顶层 Esc，有修改时确认**放弃更改并关闭** | Q 放弃未保存显示修改并关闭 |
 | 保存结果不明 | Ctrl+K 核对已提交快照 | K 核对已提交快照 |
 
@@ -201,3 +201,9 @@ Client 控件跟随 Claude 已应用主题。**Preview background (UI only)** �
 Client Settings 按 H 展开 **Claude preferences**。外观、时间／标题及行为行采用当前宿主实际提供的类型／选项；模型、effort、thinking、fast mode 与状态栏同名显示开关独立。缺失行显示适用的官方入口，如 `/config`、`/model`、`/effort`、`/fast`。
 
 编辑实际值后用 A 独立 Apply，逐行结果涵盖拒绝、锁定、外部修改及部分成功。Save/Finish 和可移植文件不应用这些偏好，显示撤销无法还原 Apply。Reload 明确放弃待处理编辑；恢复后继续用键盘前再次点击 Client。终端编辑器管理工具配置，不能调用 Claude 宿主偏好 API。
+
+## 相关指南
+
+- [草稿历史与复用](DRAFT_HISTORY.zh-CN.md)
+- [命名方案与项目绑定](PROFILES.zh-CN.md)
+- [输入诊断](DIAGNOSTICS.zh-CN.md)

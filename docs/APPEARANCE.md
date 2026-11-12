@@ -2,7 +2,7 @@
 
 **English** | [简体中文](APPEARANCE.zh-CN.md)
 
-See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations.
+See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations. These controls apply to the current display draft after installation and take effect when you save in either editor.
 
 Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
 
@@ -132,9 +132,9 @@ Padding, separators and both ends count toward width. Fitting first removes padd
 In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles the eleven presets and `off`; Enter opens visible swatches and candidate editing. The color page supports individual stops and custom 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
 
 ```sh
-claude-statusline config instance main set context-used foreground-gradient ocean
-claude-statusline config instance main set context-used background-gradient '#112233,#445566,#778899'
-claude-statusline config instance main set context-used foreground-gradient off
+claude-statusline config instance main set context-remaining foreground-gradient ocean
+claude-statusline config instance main set context-remaining background-gradient '#112233,#445566,#778899'
+claude-statusline config instance main set context-remaining foreground-gradient off
 ```
 
 The same fields work for subagent instances and literal text; spacers have no gradients. Background gradients appear with Powerline. They do not change collection or external-source permissions.
@@ -151,6 +151,8 @@ A continuous background paints one gradient across a colored Powerline row. It i
 claude-statusline config set powerline-row-background-gradient lagoon
 claude-statusline config set powerline-row-background-gradient off
 ```
+
+The option accepts a preset name or 2–5 comma-separated `#RRGGBB` stops.
 
 Painting follows visibility, fitting, grouping and wrapping. Shared-background groups form one block. Explicit component/primary backgrounds and independent background gradients override the row gradient and break its run. Spacers also break runs; alignment padding keeps the terminal default background and consumes no gradient cells. Separators and caps use final edge colors. Warning foregrounds and contrast protection still apply, with links and complete graphemes retained.
 
@@ -178,10 +180,16 @@ Item appearance belongs to an instance and can change independently after copyin
 
 ## Configuration compatibility and recovery
 
-Display schema **17** contains the Powerline block controls and optional continuous row background. Editor protocol **31** carries the complete draft; use resources from the same package. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
+Display schema **17** contains the Powerline block controls, optional continuous row background and adaptive presentation (`presentation: adaptive`). Editor protocol **31** carries the complete draft; use resources from the same package. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
 
 Schemas 1–16 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 17. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
 
-For downgrade, preserve/export the current configuration and use the current package's `recover --restore-config TRANSACTION_ID` to restore a compatible pre-upgrade display backup. Then follow the [version-management guide](PACKAGE_MANAGEMENT.md) to return to the older package and matching integration. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
+For downgrade, preserve/export the current configuration and use the current package's `recover --restore-config BACKUP_ID` to restore a compatible pre-upgrade display backup. Then follow the [version-management guide](PACKAGE_MANAGEMENT.md) to return to the older package and matching integration. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 
 Gradients were introduced in display schema 14 / editor protocol 23, and the additional themes in schema 16. The current display schema is 17 and editor protocol is 31; read-only migration from schemas 1–16 retains prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.
+
+## Related guides
+
+- [Components and layout](COMPOSITION.md)
+- [Built-in display schemes](SCHEMES.md)
+- [Configuration editors](EDITORS.md)

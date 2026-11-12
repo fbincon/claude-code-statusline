@@ -16,7 +16,7 @@ claude-statusline --language zh-CN diagnose --input statusline-input.json
 claude-statusline diagnose --input subagent-input.json --scope subagent --width 40
 ```
 
-The file must contain one JSON object, not an editor draft, diagnostic report or runtime event envelope. For subagent diagnosis, supply the host's object containing `tasks`. UTF-8 and a leading BOM are supported. Duplicate keys, non-finite JSON constants, non-object roots and inputs over 32 MiB are refused. Unknown host fields are allowed; missing fields remain unknown and invalid known fields are identified in the report.
+The file must contain one JSON object. Only the root object shape is validated; an editor draft, diagnostic report or runtime event envelope can still produce a report. For subagent diagnosis, supply the host's object containing `tasks`. UTF-8 and a leading BOM are supported. Duplicate keys, non-finite JSON constants, non-object roots and inputs over 32 MiB are refused. Unknown host fields are allowed; missing fields remain unknown and invalid known fields are identified in the report.
 
 | Option | Meaning |
 | --- | --- |
@@ -34,7 +34,7 @@ Exit code `0` means a report was produced, including reports with unavailable or
 
 Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter a path, select main/subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses only the supplied input; matching existing local observations can be explicitly included. The current unsaved display draft and its editing target remain in use. The existing CLI command keeps its documented default.
 
-The result identifies the actual file, scope, input/diagnosis times and evidence range. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
+The JSON result identifies the actual file, scope, input/diagnosis times and evidence range; text reports identify scope in individual evidence rows. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
 
 Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).
 
@@ -86,12 +86,10 @@ Run `claude-statusline doctor` from the project directory to inspect the active 
 
 `Git!` with cached `git_policy.filter_blocked` or `git_policy.policy_unavailable` means collection could not safely preserve filter semantics; it never means a clean worktree. `doctor` inspects filter definitions in the current directory without running their commands. See the [compatibility table](development/history/deliveries/m8-m9-delivery.md#git-invocation-policy). Deliberately correct configuration in your own Git workflow; this product never rewrites it. Cached diagnosis never retries Git.
 
-## Package operation diagnosis
-
-`update --check --json` reports metadata compatibility; `update --dry-run` additionally verifies the archive. `recover --package --dry-run --prefix PATH --config-dir PATH` inspects a retained package transaction. Keep `recover --restore-config BACKUP_ID` separate from package repair. See [version management](PACKAGE_MANAGEMENT.md) for exact-version scripting and recovery entries.
-
 ## Related guides
 
 For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
+
+For package operation diagnosis, see [version management](PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).

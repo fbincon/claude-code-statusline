@@ -2,9 +2,19 @@
 
 [English](SHOWCASE.md) | **简体中文**
 
-本指南使用已发布的 **v3.16.0** 安装包和普通公开命令。[图库](images/showcase/README.zh-CN.md) 标明每件素材的配置、输入和采集方式；[开发记录](development/showcase.zh-CN.md) 保存安装包身份、验证结果及限制。样本预览不是你的账户测量结果，也不证明真实会话已成功加载安装。
+本指南使用已发布的 **v3.16.0** 安装包和普通公开命令。录制基线固定为 v3.16.0；当前文档对应产品为 3.16.3，下文的精确版本命令仍按该基线执行。[图库](images/showcase/README.zh-CN.md) 标明每件素材的配置、输入和采集方式；[开发记录](development/showcase.zh-CN.md) 保存安装包身份、验证结果及限制。样本预览不是你的账户测量结果，也不证明真实会话已成功加载安装。
 
 **入口：**[安装](#install) · [选择场景](#scenes) · [编辑与复用](#edit) · [查看任务](#tasks) · [管理来源](#sources) · [审查版本](#versions) · [排障](#troubleshooting)
+
+| 场景 | 权威指南 |
+| --- | --- |
+| 安装与首次设置 | [首次设置](SETUP.zh-CN.md) |
+| 外观与布局 | [外观](APPEARANCE.zh-CN.md) · [组件与布局](COMPOSITION.zh-CN.md) · [内置显示方案](SCHEMES.zh-CN.md) |
+| 编辑器、草稿与复用 | [配置编辑器](EDITORS.zh-CN.md) · [草稿历史](DRAFT_HISTORY.zh-CN.md) |
+| 任务 | [只读任务详情](TASK_DETAILS.zh-CN.md) |
+| 数据源 | [本地数据源与 GitHub 检查](EXTENSIONS.zh-CN.md) |
+| 版本与恢复 | [包升级、回退与恢复](PACKAGE_MANAGEMENT.zh-CN.md) |
+| 排障 | [输入诊断](DIAGNOSTICS.zh-CN.md) · [用户指南故障排查](USER_GUIDE.zh-CN.md#故障排查) |
 
 <a id="install"></a>
 
@@ -21,7 +31,7 @@ claude-statusline doctor
 
 确认安装前先检查 npm 前缀和精确版本。如果已安装匹配的软件包，先运行 `claude-statusline setup --dry-run`，再运行 `claude-statusline setup`。[首次入口与持久安装](SETUP.zh-CN.md#首次入口与-npm-持久安装)。
 
-在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。外部终端至少需要 64 列 × 18 行。关闭 Powerline 以复现本组演示的经典分隔符。[设置操作](SETUP.zh-CN.md)。
+在 setup 中查看检查结果，保留当前显示或选择完整方案，检查预览，最后选择**保存显示并集成**或**仅保存显示**。完整走编辑器和来源绑定场景需要选择**保存显示并集成**；选择**仅保存显示**后，需先运行 `claude-statusline install` 或重新 setup 再继续。外部终端至少需要 64 列 × 18 行。关闭 Powerline 以复现本组演示的经典分隔符。[设置操作](SETUP.zh-CN.md)。
 
 集成成功后重启 Claude，并查看状态栏。如果设置只完成了一部分，根据报告中的阶段选择恢复步骤。[应用与恢复](SETUP.zh-CN.md#应用与恢复)。
 
@@ -75,7 +85,7 @@ claude-statusline configure --user
 
 1. 确认页首编辑目标。在设置中选择样本场景和预览宽度，检查主状态栏和子代理预览。这些预览控制只属于当前编辑会话。
 2. 打开组件，修改普通前景色或前景渐变。先取消一次表单，确认保留原草稿，再接受修改。
-3. 按 Ctrl+T 打开**变更与历史**，在其中用 U 撤销、R 重做。在管理页之外，外部编辑器撤销为 Ctrl+Z，Native 撤销为 Ctrl+_，因为 Unix Claude 可能截获 Ctrl+Z；重做为 Ctrl+R。
+3. 按 Ctrl+T 打开**变更与历史**，在其中用 U 撤销、R 重做。在管理页之外，终端编辑器撤销为 Ctrl+Z；Client 撤销为 Ctrl+Z / Ctrl+/（宿主转发时也接受 Ctrl+_），因为 Unix Claude 可能截获 Ctrl+Z；重做为 Ctrl+R。详见[编辑器键盘控制](EDITORS.zh-CN.md#键盘操作)。
 4. 用**显示方案与项目**（Ctrl+O）将单方案文件的选定设置导入当前草稿。只选择需要的部分，审查差异并接受，再另行保存。
 5. 打开目标组件的**复制／粘贴视觉样式**，选择来源及兼容的视觉字段。目标指标、本地绑定、位置和可见性保持原样。
 6. 用设置中的**复用完整组**导入整组，审查依赖及需要的自动转显式布局。导入的本地来源绑定保持未解析，直到另行绑定；导入不会启用来源。
@@ -117,11 +127,13 @@ claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id SESSION_ID
 ```
 
+`task view` 需要 TTY；非交互的文本或 JSON 场景请使用上面的 `task show`。
+
 将 `SESSION_ID` 替换为自己的会话 ID。图库中记录的演示标识属于此前受控演示，不要将它们粘贴为自己的 ID。加上 `--prompt-id PROMPT_ID` 可选择已知历史任务。`/` 搜索名称／ID，F 筛选已观察到的状态，Enter 展开选中代理，E 查看证据，R 手动刷新，Q 关闭。设置中的**任务详情**会返回原配置草稿。
 
 检查任务总时间与代理经过时间的作用域差异，完成时长是否冻结，以及不可用的活跃时间是否仍标为不可用。外部查看器可能显示 ID，而 Native 能从宿主取得名称。刷新失败会保留上一次报告及其采集时间。两个查看器都不扫描转录、不启动采集、不查询 GitHub，也不调用模型。详见[任务详情](TASK_DETAILS.zh-CN.md)。
 
-图库任务动图先通过已安装渲染器回放已记录的完成观察值，再展示离线任务查看器读取这些状态，并非原 statusline 回调录屏。英中主任务／代理结束时长都保持 14 秒和 5／7 秒；面板标明未知或不完整的活跃计时覆盖仍然如此。会话记录费用 0.00199048 美元，在生产显示中四舍五入为 `$0.00`，不代表免费。选取的关键帧各停留 1.4 秒，因此动图不是实时录像或响应速度基准。
+图库任务动图先通过已安装渲染器回放已记录的完成观察值，再展示离线任务查看器读取这些存储，并非原 statusline 回调录屏。英中主任务／代理结束时长都保持 14 秒和 5／7 秒；面板标明未知或不完整的活跃计时覆盖仍然如此。会话记录费用 0.00199048 美元，在生产显示中四舍五入为 `$0.00`，不代表免费。选取的关键帧各停留 1.4 秒，因此动图不是实时录像或响应速度基准。
 
 本次视觉修订复用这些保留的观察值，不计划新增付费任务。原始两项顶层任务按 CLI 报告合计 0.00224378 美元。重新配色或打开查看器不会形成新任务观察，也不会改变原始证据。
 
@@ -189,7 +201,7 @@ claude-statusline source auto-off SOURCE_ID --json
 claude-statusline source disable SOURCE_ID --json
 ```
 
-第一项明确取消整个刷新作业；第二项关闭该来源的自动策略，保留启用状态及其他消费者；第三项禁用来源，停止后续读取／执行。关闭一个编辑器只释放它自己的兴趣。本指南不要求启用自动刷新；若选择启用，需要另行审查。结束后禁用演示来源；删除仍被引用的记录前先解除绑定。详见[来源操作与清理](EXTENSIONS.zh-CN.md)。
+第一项明确取消整个刷新作业；第二项关闭该来源的自动策略，保留启用状态及其他消费者；第三项禁用来源，停止后续读取／执行。关闭一个编辑器只解除该编辑器自身的租约/消费关系。本指南不要求启用自动刷新；若选择启用，需要另行审查。结束后禁用演示来源；删除仍被引用的记录前先解除绑定。详见[来源操作与清理](EXTENSIONS.zh-CN.md)。
 
 <a id="versions"></a>
 
@@ -201,6 +213,8 @@ claude-statusline source disable SOURCE_ID --json
 claude-statusline update --version 3.16.0 --prefix /actual/prefix --check --json
 claude-statusline update --version 3.16.0 --prefix /actual/prefix --dry-run
 ```
+
+这些命令使用 v3.16.0 录制基线。在更新版本的安装上，`update --version 3.16.0` 属于降级并会被拒绝；升级检查请使用实际安装的精确版本。
 
 将 `/actual/prefix` 替换为版本页显示的真实安装包前缀。只有当前 npm 默认前缀指向同一安装时才省略它。自定义安装可以正常运行，但 npm 当前默认值可能指向别处；另一个前缀的 `not_installed` 不代表应该重装正常产品。配置目录非默认时，也应传入实际 `--config-dir PATH`。
 

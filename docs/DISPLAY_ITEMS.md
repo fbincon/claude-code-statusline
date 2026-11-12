@@ -11,6 +11,9 @@ Examples below primarily use English output; Chinese phrases illustrate `statusl
 - [Main, session and subagent scope](#main-session-and-subagent-scope)
 - [Availability and freshness](#availability-and-freshness)
 - [Main items](#main-items)
+  - [Default main items](#default-main-items)
+  - [Common optional main items](#common-optional-main-items)
+  - [Independent and live main items](#independent-and-live-main-items)
 - [Subagent items](#subagent-items)
 - [Composition components](#composition-components)
 - [Optional external components](#optional-external-components)
@@ -47,11 +50,12 @@ When you view a subagent transcript, the host payload omits `focused_agent` and 
 
 ## Availability and freshness
 
-- Missing, malformed, negative and non-finite values are unavailable, not zero.
-  Observed zero cost, duration or line counts render explicitly. New token counts
-  require nonnegative integers and window capacities must be positive.
+- Missing or malformed values are unavailable, not zero. Observed zero cost,
+  duration or line counts render explicitly. Numeric items apply their own range
+  validation: new token counts require nonnegative integers and window capacities
+  must be positive.
 
-- Text is sanitized before terminal rendering. Existing palettes, separators,
+- Text follows each item's rendering contract. Existing palettes, separators,
   scope labels and width handling apply to the new items and deterministic previews.
 
 Observed zero, missing data, partial coverage, stale data and errors are distinct states. Per-metric sections explain their markers and collection requirements.
@@ -60,14 +64,14 @@ Observed zero, missing data, partial coverage, stale data and errors are distinc
 
 ### Default main items
 
-Enabled in the order shown. Remaining limits are calculated from the host's `used_percentage`. Available windows depend on the host, account and current payload.
+Enabled in the order shown. Remaining limits are calculated from the host's `used_percentage`. Available windows depend on the host, account and current payload. `spend-limit`, `prompt-cache`, `cache-state`, `cache-expires`, `cache-misses` and `api-requests` require Claude Code 2.1.251+; `cache-miss-reason` requires 2.1.260+.
 
 | ID | Display | Behavior when data is unavailable |
 | --- | --- | --- |
 | `model-with-effort` | Current model ID, falling back to display name; appends effort level when present | Omitted without model fields |
 | `current-dir` | Claude Code's current working directory | Omitted without a directory field |
 | `git` | `Git ` plus branch, upstream differences, and working-tree changes, such as `Git main ↑1● 2` on native Linux/macOS or `Git main ↑1●2` on Windows/WSL | Omitted outside Git repositories; displays `Git!` on query errors |
-| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage |
+| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage. A finite supplied percentage is rendered as provided; out-of-range values are not currently clamped. |
 | `context-window-size` | Total context window, such as `1M window` | Omitted when Claude Code provides no window size |
 | `five-hour-limit` | Remaining percentage of the 5-hour window | Omitted without this window |
 | `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |
@@ -100,6 +104,8 @@ These items are optional. Select `context-used` and `context-remaining` independ
 
 ### Independent and live main items
 
+This table combines optional snapshot fields, live runtime state and request-derived metrics; each row identifies its source.
+
 | ID | Example | Definition and source |
 | --- | --- | --- |
 | `task-active-timer` | `Active 1m 30s` | Optional execution time; hidden when native user-wait coverage is incomplete. |
@@ -117,7 +123,7 @@ These items are optional. Select `context-used` and `context-remaining` independ
 | `cache-expires` | `Cache TTL 4m 20s` | Remaining TTL only while the observed main cache is warm. Requires a valid future `expires_at`. |
 | `cache-misses` | `Cache miss 2` | Official `prompt_cache.misses`, excluding `expected_rebuilds` after compaction or clearing. |
 | `cache-miss-reason` | `Cache cause? tools changed` | Off by default. Host-reported likely causes of the latest main-conversation miss, from `prompt_cache.last_miss_cause.causes`; requires 2.1.260+. Unknown codes remain readable. Counts and timing are in [diagnosis](DIAGNOSTICS.md). |
-| `worktree` | `Git worktree feature-x` | Prefers `worktree.name` for Claude worktree sessions; otherwise `workspace.git_worktree` identifies the current linked Git worktree. |
+| `worktree` | `Worktree feature-x` or `Git worktree feature-x` | Prefers `worktree.name` for Claude worktree sessions, displayed as `Worktree feature-x`; otherwise `workspace.git_worktree` identifies the current linked Git worktree and displays `Git worktree feature-x`. |
 | `api-requests` | `API requests 14` | Official main-conversation `prompt_cache.requests`; excludes subagent calls. |
 | `session-name` | `Session demo-session` | Observed `session_name`, without an ID fallback. |
 | `session-id` | `ID demo-session` | Full observed `session_id`. |
@@ -130,11 +136,11 @@ These items are optional. Select `context-used` and `context-remaining` independ
 | `spend-period` | `Spend monthly` | Optional gateway `period`: daily, weekly or monthly. |
 | `input-tokens` | `in 1.29M` | Recorded cumulative uncached input + cache writes + cache reads, using raw integers from the same main/subagent session statistics as `tokens`. |
 | `output-tokens` | `out 22.4K` | Recorded cumulative output from the same all-session statistics. |
-| `run-state` | `State waiting agents` | Verified main execution, agent wait, wrap-up and terminal state of the user task. Reliable lifecycle evidence wins; expired or ambiguous sources render `—`. |
+| `run-state` | `State waiting agents` | Verified main execution, queued, agent wait, wrap-up and terminal state of the user task. Reliable lifecycle evidence wins; expired or ambiguous sources render `—`. |
 | `permission-mode` | `Mode plan*` | Actual event mode. Hook snapshots are marked `*` as recent observations and expire after 15 seconds; settings defaults are never treated as live mode. |
 | `active-agents` | `Agents 2` | Verified active agents owned by this task, nested agents included and IDs deduplicated. Excludes background shells/servers/workflows. Uncertain ownership marks the known subtotal `*`. |
 | `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
-| `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. |
+| `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. A started-but-unfinished tool renders `started`. |
 | `branch-diff` | `Diff 3 files +42/-7` | Committed files/additions/deletions from `merge-base(base, HEAD)` to HEAD; binary files only increment files. Auto base: origin/HEAD, local main, then master. No fetch; 2-second total timeout and cache by repository/HEAD/base commit. |
 | `ttft` | `TTFT(host) 0.420s` | Latest main request: host observation from entry into turn.step to the first real text/thinking/tool block. Missing or synthetic streams and invalid clocks remain unavailable. |
 | `output-rate` | `Rate 36.5 tok/s` | Official output tokens / complete observed latest main request duration, including first-content wait. This is not a generation-only rate. |
@@ -149,7 +155,7 @@ Subagent rows require Claude Code 2.1.205+. Each field uses the current task's d
 | ID | Default | Content |
 | --- | --- | --- |
 | `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`; only the icon when `startTime` is missing or invalid. Mutually exclusive with `status` and `elapsed` |
-| `status` | Off | `pending …`, `running ⏱`, `completed ✓`, `failed ✗`, `killed ■`, `paused/waiting ⏳`; unknown status uses `?` |
+| `status` | Off | Status icon: `…` pending, `⏱` running, `✓` completed, `✗` failed, `■` killed, `⏳` paused/waiting; unknown status uses `?` |
 | `name` | On | `name`, otherwise normalized `type`, otherwise `Agent` |
 | `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` when available |
 | `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
@@ -328,3 +334,9 @@ Independent and compound model selections also follow the useful selection patte
 documented in [Codex's status-line picker](https://learn.chatgpt.com/docs/developer-commands?surface=cli#configure-footer-items-with-statusline).
 
 Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/history/migration/post-migration-fixes.md).
+
+## Related guides
+
+- [Configure display items](USER_GUIDE.md#configurable-display-items)
+- [Input diagnosis](DIAGNOSTICS.md)
+- [Local sources and GitHub checks](EXTENSIONS.md)

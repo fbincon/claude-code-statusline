@@ -2,11 +2,13 @@
 
 **English** | [简体中文](DRAFT_HISTORY.zh-CN.md)
 
-In the external editor, use **Ctrl+Z** to undo. In `/statusline-configure-native`, click the editor body first. **Ctrl+/** and **Ctrl+Shift+-** undo in GNOME Terminal. **Ctrl+-** zooms out there. The Native editor also accepts Ctrl+_ when a terminal forwards it. Both editors use **Ctrl+R** to redo an undone edit. An empty history displays a message.
+After installation, open either editor or use the CLI. History belongs to the current editor session and editing target.
+
+Editor-specific undo/redo keys and terminal conflicts are in [keyboard controls](EDITORS.md#keyboard-controls). Both editors use **Ctrl+R** to redo an undone edit. An empty history displays a message.
 
 Open **Changes and history** from Settings or with **Ctrl+T**. Within that page, ordinary **U** and **R** undo and redo. A text field, picker or manager handles its own keys while active. Return to the main editor to use draft history.
 
-Claude's Unix host intercepts Ctrl+Z to suspend the entire process before Native receives it, as observed on 2.1.312 and described in [Claude's terminal conflicts](https://code.claude.com/docs/en/keybindings#terminal-conflicts). Native retains Ctrl+Z handling for hosts that forward it; the installer does not modify Claude's global keybindings.
+Claude's Unix host can intercept Ctrl+Z to suspend the entire process before the editor receives it, as observed on 2.1.312 and described in [Claude's terminal conflicts](https://code.claude.com/docs/en/keybindings#terminal-conflicts). The installer does not modify Claude's global keybindings; use the host-specific alternatives in the editor guide.
 
 ## History and change review
 

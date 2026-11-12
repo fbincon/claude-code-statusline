@@ -4,16 +4,16 @@
 
 See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations.
 
-After [installing the npm package](USER_GUIDE.md#installation-and-integration), use setup to preview the display and review Claude integration. The [usage demonstrations](SHOWCASE.md) show the full workflow.
+The guided flow requires Node 22/24, npm and an interactive terminal. The package can already be installed, or the [first-entry flow](#first-entry-and-persistent-npm-installation) can install it. Use this guide for the guided first-use setup; manual installation details remain in the [user guide](USER_GUIDE.md#installation-and-integration). The [usage demonstrations](SHOWCASE.md) show the full workflow.
 
 ```sh
 claude-statusline setup --dry-run
 claude-statusline setup
 ```
 
-The wizard checks the environment, lets you keep the current display or select a [complete scheme](SCHEMES.md), previews the candidate, and reviews changes before saving. Existing installations initially select **Keep**. New installations recommend **Daily development**. Arrow keys select, Enter continues, Backspace returns, Page Up/Down scroll details, Tab switches Quick setup's main/subagent preview, and Esc cancels. The external terminal must be at least 64 columns by 18 rows; resizing retains the draft.
+The wizard checks the environment, lets you keep the current display or select one of the fourteen starting points (eight [complete schemes](SCHEMES.md) and six original presets), previews the candidate, and reviews changes before saving. Existing installations initially select **Keep**. New installations recommend **Daily development**. Arrow keys select, Enter continues, Backspace returns, Page Up/Down scroll details, Tab switches Quick setup's main/subagent preview, and Esc cancels. The external terminal must be at least 64 columns by 18 rows; resizing retains the draft.
 
-Use `claude-statusline --language zh-CN setup` for an invocation language override. Pressing L inside the wizard explicitly changes and immediately saves the UI language. Display language remains part of the display draft. All twelve supported languages are available; see [language choices](USER_GUIDE.md#interface-language).
+Use `claude-statusline --language zh-CN setup` for an invocation language override. Pressing L inside the wizard explicitly changes and immediately saves the UI language. Statusline output language remains part of the display draft. All twelve supported languages are available; see [language choices](USER_GUIDE.md#interface-language).
 
 ## First entry and persistent npm installation
 
@@ -27,7 +27,7 @@ No-argument non-TTY entry exits 2 without installation or configuration changes.
 
 ## Checks and targets
 
-`setup --dry-run` works without a TTY. It checks Node, the detected Claude version, configuration readability/permissions, resource ownership and pending recovery, then prints the steps. It does not choose a scheme, create configuration directories or locks, run a write probe, install plugins, or recover transactions. Ordinary non-TTY `setup` exits 2 and prints the existing commands. Dry-run exits 0 when integration is eligible and 1 when checks block it.
+`setup --dry-run` works without a TTY. It checks Node, the detected Claude version, configuration readability/permissions, resource ownership and pending recovery, then prints the steps. It does not choose a scheme, create configuration directories or locks, run a write probe, install plugins, or recover transactions. Ordinary non-TTY `setup` exits 2 and prints the existing commands. Dry-run exits 0 when integration is eligible and 1 when checks block integration; a blocked integration review may still permit **Save display only**.
 
 ```sh
 claude-statusline setup --config-dir '/path with spaces/claude'
@@ -43,7 +43,7 @@ claude-statusline.cmd setup --config-dir 'C:\Users\Example\Claude Config'
 
 Replace the example path with your intended Claude configuration directory. `--config-dir` overrides `CLAUDE_CONFIG_DIR`; omit it to use the normal directory.
 
-The target is always the **user default**. The wizard reports saved profiles, project bindings and the current project's bound scheme; it does not replace those bindings. Use `configure --profile NAME`, `configure --project PATH` or the editor's scheme manager to edit those targets afterward.
+The target is always the **user default**. The wizard reports the count of saved profiles and bindings plus the current project's binding name; it does not replace those bindings. Use `configure --profile NAME`, `configure --project PATH` or the editor's scheme manager to edit those targets afterward.
 
 Integration requires a detected Claude version of at least 2.1.205. This is the wizard's basic integration boundary, not a claim that every optional field or editor works on that host. Existing capability checks continue to suspend unsupported features. Missing/unknown/older Claude or a third-party integration can still permit **Save display only**. Damaged display/settings/profile files or pending transactions block saving. Inspect the reported file or run `claude-statusline recover --dry-run` before an explicit recovery; the wizard does not reset damaged files or force ownership.
 
@@ -62,3 +62,9 @@ Successful checks confirm written resources. Restart Claude and inspect the actu
 `install`, `doctor`, `configure`, and configuration CLI commands remain available. Setup does not download/upgrade the package, install fonts, log in to an account, or change independent Claude preferences. See [installation and rollback](USER_GUIDE.md) and [appearance compatibility](APPEARANCE.md#configuration-compatibility-and-recovery).
 
 For existing packages, use [version management and package recovery](PACKAGE_MANAGEMENT.md); `setup` itself continues to manage display and integration.
+
+## Related guides
+
+- [User guide](USER_GUIDE.md)
+- [Configuration editors](EDITORS.md)
+- [Package upgrades, rollback and recovery](PACKAGE_MANAGEMENT.md)

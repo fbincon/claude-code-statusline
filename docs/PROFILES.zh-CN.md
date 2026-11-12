@@ -1,4 +1,6 @@
-# 显示方案与项目绑定
+<a id="显示方案与项目绑定"></a>
+
+# 命名方案（Profile）与项目绑定
 
 [English](PROFILES.md) | **简体中文**
 
@@ -65,7 +67,7 @@ claude-statusline config project unbind "/work/project"
 
 Claude 用户配置目录中的版本 1 `claude-statusline-profiles.json` 保存方案集合和绑定，仅在保存或绑定时创建。现有 `claude-statusline.json` 继续保存显示 schema 17 的用户默认。集合限制为 128 个方案、512 个绑定和 32 MiB。
 
-单方案导出格式为 `claude-code-statusline-profile`、版本 1，包含名称和显示设置，不包含项目路径或内部方案 ID；传输大小上限为 1 MiB。它与现有还包含工具宿主设置的 `claude-code-statusline` portable 配置包不同，请使用对应导入命令。
+单方案导出格式为 `claude-code-statusline-profile`、版本 1，包含名称和显示设置，不包含项目路径或内部方案 ID；导出会移除本机来源绑定（`source.binding`），仅保留 hint；传输大小上限为 1 MiB。它与现有还包含工具宿主设置的 `claude-code-statusline` portable 配置包不同，请使用对应导入命令。
 
 写入复用安装锁、revision 检查、不可变备份和恢复日志。并发修改会拒绝旧草稿，请重新读取并核对。保存响应丢失时，先刷新已保存状态，再进行下一次写入。损坏方案库保留原文件并明确报错，渲染则安全回退。
 
@@ -83,11 +85,11 @@ claude-statusline config import display.json --select main --profile Work
 claude-statusline config profile import scheme.json --select subagent,statusline_language --project /path/to/project --dry-run
 ```
 
-`--select` 使用逗号分隔的精确键：`main`、`subagent`、`use_colors`、`palette`、`theme`、`directory_style`、`separator_style`、`scope_labels`、`powerline_glyph`、`powerline.padding`、`powerline.separator`、`powerline.start_cap`、`powerline.end_cap`、`powerline.color_mode`、`statusline_language`、`formatting.model_name`、`formatting.number_format`、`formatting.labels`、`formatting.icons`、`formatting.allowance`、`formatting.reset_format`、`formatting.reset_timezone`、`formatting.thresholds`。阈值作为完整一组选取，新增字段不会自动扩大此清单。
+`--select` 使用逗号分隔的精确键：`main`、`subagent`、`use_colors`、`palette`、`theme`、`directory_style`、`separator_style`、`scope_labels`、`powerline.row_background_gradient`、`powerline_glyph`、`powerline.padding`、`powerline.separator`、`powerline.start_cap`、`powerline.end_cap`、`powerline.color_mode`、`statusline_language`、`formatting.model_name`、`formatting.number_format`、`formatting.labels`、`formatting.icons`、`formatting.allowance`、`formatting.reset_format`、`formatting.reset_timezone`、`formatting.thresholds`。阈值作为完整一组选取，新增字段不会自动扩大此清单。
 
 主区选择完整替换实例、组、布局及指标设置；子代理选择完整替换模板和显示控制。ID 按作用域隔离：主区和子代理同名合法，整体替换作用域会保留内部引用，不与保留的另一作用域冲突。源文件中的重复 ID 和缺失引用在选择前即被拒绝，即使其所在部分未被选中。
 
-`--user`、`--profile NAME_OR_ID`、`--project PATH` 最多指定一个；省略时使用用户默认。项目目标沿用现有解析规则，包括回退到用户默认。命名目标保留名称、ID 与绑定，JSON 结果说明目标及共享项目。选择性方案导入更新该目标，不能与 `--name` 或 `--overwrite` 混用；原有完整方案导入仍创建命名副本。
+实际应用选择性导入会写入目标，并要求本工具拥有已安装的状态栏；`--dry-run` 不要求。`--user`、`--profile NAME_OR_ID`、`--project PATH` 最多指定一个；省略时使用用户默认。项目目标沿用现有解析规则，包括回退到用户默认。命名目标保留名称、ID 与绑定，JSON 结果说明目标及共享项目。选择性方案导入更新该目标，不能与 `--name` 或 `--overwrite` 混用；原有完整方案导入仍创建命名副本。
 
 未选择设置及其本地来源绑定保留；导入区域清除本地绑定，来源注册和权限始终不导入。选择性导入保留 host 设置、界面语言和告警阈值，只有显式选择显示阈值才会修改后者。预览、取消和无效输入不写入；并发保存导致旧版本事务被拒绝。
 
@@ -98,3 +100,9 @@ claude-statusline config profile import scheme.json --select subagent,statusline
 ## 自适应指标与连续背景
 
 宽度适配规则、Powerline 背景及兼容方案参见[布局指南](COMPOSITION.zh-CN.md#自适应指标与连续背景)。
+
+## 相关指南
+
+- [内置显示方案](SCHEMES.zh-CN.md)
+- [配置编辑器](EDITORS.zh-CN.md)
+- [草稿历史与复用](DRAFT_HISTORY.zh-CN.md)

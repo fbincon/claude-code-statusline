@@ -2,7 +2,7 @@
 
 **English** | [简体中文](COMPOSITION.zh-CN.md)
 
-See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations.
+See [configuration editors](EDITORS.md) for full keyboard controls, preview and save operations. After installation, build or adjust the layout in either editor and save the display draft.
 
 Shared undo/redo, current-file comparison, reviewed alignment repairs and selected style/whole-group reuse are described in [draft history and reuse](DRAFT_HISTORY.md).
 
@@ -14,6 +14,17 @@ own settings and identity when you save, reopen or export it.
 Existing installations and new defaults keep their familiar display. Choose the
 **Left and right** or **Repeated metrics** preset to try composition; a preset
 replaces the display draft in an editor and takes effect when you save.
+
+## Contents
+
+- [Use either editor](#use-either-editor)
+- [Unicode text and terminal widths](#unicode-text-and-terminal-widths)
+- [Static text and flexible space](#static-text-and-flexible-space)
+- [Component groups](#component-groups)
+- [Align corresponding columns across main rows](#align-corresponding-columns-across-main-rows)
+- [Adaptive indicators and continuous backgrounds](#adaptive-indicators-and-continuous-backgrounds)
+- [CLI](#cli)
+- [Migration, transfer and recovery](#migration-transfer-and-recovery)
 
 ## Use either editor
 
@@ -94,7 +105,7 @@ copying a component does not duplicate transcript scans, Git calls or usage tota
 
 Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
 
-Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
+Groups contain at least two consecutive instances in one scope; explicit layouts must place the whole group on one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
 
 Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances; affected alignments require structural review. Copying an individual member inserts a standalone copy after its group. Operations without a valid candidate retain the draft.
 
@@ -183,12 +194,14 @@ claude-statusline config instance main list --json
 claude-statusline config instance main copy context-remaining
 ```
 
+A real `config preset` or instance write requires this tool to own the installed status line; `--dry-run` does not. Complete [setup](SETUP.md) first when necessary.
+
 The copy command prints the new ID after the save result. Use that ID in these
 commands, replacing `INSTANCE_ID` with the value from your configuration:
 
 ```sh
 claude-statusline config instance main set INSTANCE_ID label Context
-claude-statusline config instance main set INSTANCE_ID number-format full
+claude-statusline config instance main set INSTANCE_ID max-width 24
 claude-statusline config instance main disable INSTANCE_ID
 claude-statusline config instance main enable INSTANCE_ID
 claude-statusline config instance main move INSTANCE_ID --before git
@@ -197,10 +210,12 @@ claude-statusline config instance main add text --text 'Project ◆'
 ```
 
 `add TYPE_ID [--after INSTANCE_ID] [--text TEXT]` appends when no anchor is given.
-`copy INSTANCE_ID` inserts immediately after its source. `move` requires exactly
-one `--before` or `--after` anchor. `set` accepts existing item options and `text`
-for literal-text components. Use the corresponding `subagent` scope for its
-single-row template.
+`copy INSTANCE_ID` inserts immediately after its source; when the source belongs
+to a group, the copy is inserted after the whole group. `move` requires exactly
+one `--before` or `--after` anchor. `set` accepts existing item options, including
+`number-format` for supported numeric components such as `tokens` and
+`context-window-size`, and `text` for literal-text components. Use the
+corresponding `subagent` scope for its single-row template.
 
 To specify main rows by instance identity, use
 `config layout --by-instance explicit ROW...`, with comma-separated IDs in each
@@ -223,9 +238,9 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 17 stores ordered instances, groups and optional explicit-row
-alignment; editor protocol 31 requires matching TypeScript and bundled native
-resources. Portable/profile envelopes and UI preferences remain version 1; the
+Display schema 17 stores ordered instances, groups, optional explicit-row
+alignment and adaptive presentation; editor protocol 31 requires matching
+TypeScript and bundled native resources. Portable/profile envelopes and UI preferences remain version 1; the
 runtime observation protocol remains version 3.
 
 Supported older display schemas normalize in memory. The canonical type ID within
@@ -240,9 +255,15 @@ only replaces the draft; saving still checks the original revision. If another
 editor changed the configuration, reconcile or reload before saving.
 
 Before a downgrade, restore the compatible pre-upgrade configuration backup
-with `recover --restore-config TRANSACTION_ID`. The version manager refuses
+with `recover --restore-config BACKUP_ID`. The version manager refuses
 incompatible display schemas and refreshes verified owned Mod resources and
 bindings before installing an older backend. Preserve the current
 configuration separately if you intend to upgrade again. Repeated instances and
 flexible layouts cannot be converted losslessly to an older schema; changing the
 schema number by hand is not a migration. See the [upgrade guide](USER_GUIDE.md#upgrading).
+
+## Related guides
+
+- [Appearance](APPEARANCE.md)
+- [Built-in display schemes](SCHEMES.md)
+- [Draft history and reuse](DRAFT_HISTORY.md)

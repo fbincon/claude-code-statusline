@@ -468,16 +468,7 @@ subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复
 
 ### 预设与可移植配置
 
-| 预设 | 适用场景 | 主栏布局 | 子代理默认 |
-| --- | --- | --- | --- |
-| `minimal` | 精简日常视图 | 自动：模型／effort、目录、上下文剩余、任务计时 | 原有五项 |
-| `developer` | Git、累计用量和会话费用 | 两行：模型／目录／Git；上下文剩余／tokens／计时／费用 | 原有五项 |
-| `monitoring` | 检查额度、重置、缓存和会话统计 | 三行：上下文／额度；重置／缓存／TTL；费用／时长／API 时长／请求／缓存未命中 | 原有五项 |
-| `multi-agent` | 有界代理行及任务标签 | 两行：模型／目录／Git；上下文剩余／tokens／计时 | 原有五项，隐藏 completed，最多六行，任务宽度 48 |
-| `left-right` | 左右分区 | 一行：模型／effort、Git、spacer、上下文剩余 | status、name、spacer、elapsed |
-| `repeated-metrics` | 比较同一指标的两种格式 | 两份输入 token 实例，分别为完整／紧凑格式 | 原有五项 |
-
-这些是六种原始预设；另有同时设置全局外观的[八套完整方案](SCHEMES.zh-CN.md)。展开后都可继续编辑，可选数据仍可能不可用。
+六种原始预设及其布局汇总见[原有预设](SCHEMES.zh-CN.md#原有预设)。另有同时设置全局外观的[八套完整方案](SCHEMES.zh-CN.md)。展开后都可继续编辑，可选数据仍可能不可用。
 
 预设改变显示草稿，不开启采集；保留输出／界面语言和宿主设置，重建逐项覆盖，保存前可继续编辑。
 
@@ -578,7 +569,7 @@ claude-statusline config subagents list-items
 | 仓库 | `pr`、`repo`、`worktree` |
 | 上下文与用量 | `context-used`、`cost`、`prompt-cache` |
 
-默认选择、宿主要求和缺值处理见[主栏显示项](DISPLAY_ITEMS.zh-CN.md#主栏显示项)和[子代理显示项](DISPLAY_ITEMS.zh-CN.md#子-agent-显示项)。脚本查询见[目录命令](reference/cli.zh-CN.md#可配置显示项)。
+完整目录、宿主要求和缺值处理见[常用可选主栏条目](DISPLAY_ITEMS.zh-CN.md#常用可选主栏条目)、[主栏显示项](DISPLAY_ITEMS.zh-CN.md#主栏显示项)和[子代理显示项](DISPLAY_ITEMS.zh-CN.md#子-agent-显示项)。脚本查询见[目录命令](reference/cli.zh-CN.md#可配置显示项)。
 
 ### 主状态栏显示含义
 

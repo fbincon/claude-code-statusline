@@ -2,9 +2,19 @@
 
 **English** | [简体中文](SHOWCASE.zh-CN.md)
 
-These walkthroughs use the published **v3.16.0** package and ordinary public commands. The [gallery](images/showcase/README.md) identifies each image's configuration, input and capture method; the [development record](development/showcase.md) records package identities, verification and remaining limits. A sample preview is not a measurement of your account or a successful live installation.
+These walkthroughs use the published **v3.16.0** package and ordinary public commands. The recording baseline is fixed at v3.16.0; the current documented product is 3.16.3, and exact-version commands below still follow that baseline. The [gallery](images/showcase/README.md) identifies each image's configuration, input and capture method; the [development record](development/showcase.md) records package identities, verification and remaining limits. A sample preview is not a measurement of your account or a successful live installation.
 
 **Start with:** [Install](#install) · [Choose a scene](#scenes) · [Edit and reuse](#edit) · [Inspect tasks](#tasks) · [Manage sources](#sources) · [Review versions](#versions) · [Troubleshoot](#troubleshooting)
+
+| Scene | Authoritative guide |
+| --- | --- |
+| Install and first-use setup | [First-use setup](SETUP.md) |
+| Appearance and layout | [Appearance](APPEARANCE.md) · [Components and layout](COMPOSITION.md) · [Built-in display schemes](SCHEMES.md) |
+| Editors, drafts and reuse | [Configuration editors](EDITORS.md) · [Draft history](DRAFT_HISTORY.md) |
+| Tasks | [Read-only task details](TASK_DETAILS.md) |
+| Sources | [Local sources and GitHub checks](EXTENSIONS.md) |
+| Versions and recovery | [Package upgrades, rollback and recovery](PACKAGE_MANAGEMENT.md) |
+| Troubleshooting | [Input diagnosis](DIAGNOSTICS.md) · [User guide troubleshooting](USER_GUIDE.md#troubleshooting) |
 
 <a id="install"></a>
 
@@ -21,7 +31,7 @@ claude-statusline doctor
 
 Review the npm prefix and exact package before confirming installation. If the matching package is already installed, run `claude-statusline setup --dry-run`, then `claude-statusline setup`. [First entry and persistent installation](SETUP.md#first-entry-and-persistent-npm-installation).
 
-In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. Use an external terminal of at least 64 columns × 18 rows. Keep Powerline off to reproduce the classic separators in these demonstrations. [Setup controls](SETUP.md).
+In setup, review the checks, retain the existing display or select a complete scheme, inspect the preview, then choose **Save display and integrate** or **Save display only**. A full walkthrough of the editor and source-binding scenes requires **Save display and integrate**; after **Save display only**, run `claude-statusline install` or rerun setup before those steps. Use an external terminal of at least 64 columns × 18 rows. Keep Powerline off to reproduce the classic separators in these demonstrations. [Setup controls](SETUP.md).
 
 Restart Claude after successful integration and inspect its statusline. If setup reports partial completion, use the reported stage to choose the recovery steps. [Apply and recovery](SETUP.md#apply-and-recovery).
 
@@ -75,7 +85,7 @@ Open the external editor with `claude-statusline configure --user`, or use `/sta
 
 1. Confirm the editing target in the header. Use Settings to select sample scenario and preview width, then inspect Main and Subagents. These preview controls are session-only.
 2. Open a component and change its ordinary foreground or foreground gradient. Cancel the form once to confirm the draft is retained, then accept a change.
-3. Open **Changes and history** with Ctrl+T. Use U to undo and R to redo there. Outside managers, external Undo is Ctrl+Z; Native Undo is Ctrl+_ because Unix Claude may intercept Ctrl+Z. Redo is Ctrl+R.
+3. Open **Changes and history** with Ctrl+T. Use U to undo and R to redo there. Outside managers, terminal-editor undo is Ctrl+Z; Client undo is Ctrl+Z / Ctrl+/ (Ctrl+_ when forwarded), because Unix Claude may intercept Ctrl+Z. Redo is Ctrl+R. See [editor keyboard controls](EDITORS.md#keyboard-controls).
 4. Use **Display schemes and projects** (Ctrl+O) to import selected settings from a profile into the current draft. Select only the intended sections, review the differences and accept. Save separately.
 5. Open a destination component's **Copy / paste visual style** to select a source and compatible visual fields. Its metric, local binding, position and visibility stay with the destination.
 6. Use Settings → **Reuse complete groups** for an entire group. Review dependencies and any automatic-to-explicit layout conversion. Imported local bindings remain unresolved until separately bound; importing never enables their source.
@@ -116,6 +126,8 @@ Open `/statusline-task`, or obtain the exact session ID from your own session me
 claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id SESSION_ID
 ```
+
+`task view` requires a TTY; for noninteractive text or JSON, use `task show` as shown above.
 
 Replace `SESSION_ID` with your own session ID. The gallery's recorded demonstration identifiers belong to the earlier controlled demonstration; do not paste them as your own IDs. Add `--prompt-id PROMPT_ID` to select a known historical task. Use `/` to search names/IDs, F to filter observed statuses, Enter to expand a selected agent, E to inspect evidence and R to refresh manually. Q closes the viewer. Settings → **Task details** returns to the existing configuration draft.
 
@@ -201,6 +213,8 @@ Open Settings → **Version and installation** in either editor. Initial entry r
 claude-statusline update --version 3.16.0 --prefix /actual/prefix --check --json
 claude-statusline update --version 3.16.0 --prefix /actual/prefix --dry-run
 ```
+
+These commands use the v3.16.0 recording baseline. On a newer installation, `update --version 3.16.0` is a downgrade and is refused; use the installed exact version for upgrade checks.
 
 Replace `/actual/prefix` with the prefix that owns the installed package, as shown on the version page. Omit it only when the effective npm default selects that same installation. A custom installation can run correctly while npm's current default points elsewhere; `not_installed` at that other prefix is not a reason to reinstall the working package. Also pass the actual `--config-dir PATH` when it is nondefault.
 

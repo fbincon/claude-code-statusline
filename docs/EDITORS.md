@@ -27,7 +27,7 @@ Use the terminal editor or in-session Client to edit the same display configurat
 | `/statusline-configure` | Supported terminal launched from Claude | Claude Code 2.1.258+ and enabled external integration; same terminal editor conditions |
 | `/statusline-configure-native` | Client pane inside the current Claude session | Claude Code 2.1.287+, enabled native integration and loaded matching resources; minimum Client body 32×12 |
 
-On Windows, run `claude-statusline.cmd configure` in a terminal. The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a new system console on Windows. When no supported launcher is available, run `configure` directly. The slash-launched editor cancels without saving after 570 seconds; standalone `configure` has no automatic timeout. Save, cancellation and errors return a short result to the original conversation. The external command accepts `help`, `-h` and `--help`, rejecting other arguments. A terminal below the minimum size waits for resizing and still permits cancellation.
+On Windows, run `claude-statusline.cmd configure` in a terminal. The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a new system console on Windows. When no supported launcher is available, run `configure` directly. The slash-launched editor cancels without saving after 570 seconds; standalone `configure` has no automatic timeout. Save, cancellation and errors return a short result to the original conversation. The slash command `/statusline-configure` accepts `help`, `-h` and `--help`, rejecting other arguments; the standalone `claude-statusline configure` command does not accept `help`. A terminal below the minimum size waits for resizing and still permits cancellation.
 
 After integration changes, restart Claude Code in a trusted terminal. Click inside Client before using the keyboard; running the native command again focuses its existing pane and keeps its draft. Esc is a host focus action and may then close the pane; Ctrl+G cancels Client input. On macOS, Client interaction remains unverified; use the [focus checks and alternatives](USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
 
@@ -80,7 +80,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Ctrl+F | Choose a category |
 | Ctrl+E / Ctrl+G | Open item details / return or cancel input |
 | Ctrl+A / Ctrl+D / Ctrl+X | Add / copy / remove a component on an item page |
-| Enter | Save on item/original settings rows; edit or accept advanced fields |
+| Enter | Save on Main/Subagents pages and original settings rows; edit or accept advanced fields |
 | Ctrl+S | Save the display draft outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
 | Esc | Cancel a field or subview; at the top level close a clean draft or confirm discarding changes, defaulting to keep editing |
@@ -108,7 +108,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Operation | Terminal / Client | Detailed workflow |
 | --- | --- | --- |
 | Quick setup | Ctrl+P in either editor outside item details | [Schemes and presets](SCHEMES.md#editor-quick-setup) |
-| Undo | Ctrl+Z / Ctrl+/ (Ctrl+_ also accepted when forwarded) | [History and terminal conflicts](DRAFT_HISTORY.md) |
+| Undo | Terminal editor: Ctrl+Z. Client: Ctrl+Z / Ctrl+/; Ctrl+_ is also accepted when forwarded | [History and terminal conflicts](DRAFT_HISTORY.md) |
 | Redo; changes and history | Ctrl+R; Ctrl+T | [Draft history and review](DRAFT_HISTORY.md#history-and-change-review) |
 | Component groups | Ctrl+B | [Composition](COMPOSITION.md#component-groups) |
 | Profiles and project targets | Ctrl+O outside item details | [Profiles](PROFILES.md) |
@@ -116,7 +116,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Diagnose an input file | Ctrl+L | [Input diagnosis](DIAGNOSTICS.md#diagnose-a-file-from-either-editor) |
 | Sample scenario / width / next preview row | Ctrl+V / Ctrl+W / Ctrl+N | [Sample preview](#sample-preview-and-colors) |
 
-Return from a manager to the main editor to use draft history. On Unix, Claude may intercept Ctrl+Z to suspend the process; use the Client undo keys above. In GNOME Terminal, Ctrl+Shift+- also sends the undo key, while Ctrl+- zooms out. See the history guide for host limitations.
+Return from a manager to the main editor to use draft history. On Unix, Claude may intercept Ctrl+Z to suspend the process; use the Client undo keys above. For the Client in GNOME Terminal, Ctrl+Shift+- also sends the undo key, while Ctrl+- zooms out. See the history guide for host limitations.
 
 <a id="text-input"></a>
 
@@ -184,7 +184,7 @@ Client controls follow Claude's applied theme. **Preview background (UI only)** 
 
 | Operation | Terminal editor | Client |
 | --- | --- | --- |
-| Save display | Ctrl+S outside input editing; Enter also saves on item/original settings rows | S saves and continues; F saves successfully before closing |
+| Save display | Ctrl+S outside input editing; Enter also saves on Main/Subagents pages and original settings rows | S saves and continues; F saves successfully before closing. If Claude preferences have pending changes, the panel remains for a separate Apply |
 | Cancel display edits | Top-level Esc; confirm **Discard changes and close** if modified | Q discards unsaved display edits and closes |
 | Unknown save outcome | Ctrl+K checks the submitted snapshot | K checks the submitted snapshot |
 
@@ -201,3 +201,9 @@ While a save is pending or unknown, display/history mutations and ordinary closu
 In Client Settings, press H to expand **Claude preferences**. Appearance, time/title and behavior rows use the types/options the current host actually supplies. Model, effort, thinking and fast mode are independent of their statusline display switches. Unavailable rows show the applicable official entry such as `/config`, `/model`, `/effort` or `/fast`.
 
 Edit the supplied values, then press A to Apply separately. Per-row results cover refusal, locks, external changes and partial success. Save/Finish and portable files do not apply these preferences; display undo cannot reverse Apply. Reload explicitly discards pending edits. After recovery, click Client again before keyboard use. The terminal editor manages tool configuration and cannot call Claude's host preference API.
+
+## Related guides
+
+- [Draft history and reuse](DRAFT_HISTORY.md)
+- [Profiles and project bindings](PROFILES.md)
+- [Input diagnosis](DIAGNOSTICS.md)
