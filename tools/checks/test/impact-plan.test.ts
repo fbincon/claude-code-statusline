@@ -34,6 +34,10 @@ test('source-backed documentation selects its consuming checks on additions, del
         const base = git('rev-parse', 'HEAD'); write(path, '# Current guide');
         const plan = createImpactPlan(base, commit());
         assert.equal(plan.route, 'maintenance'); assert.deepEqual(plan.checks, ['actions', 'checks', 'docs']);
+        // The accepted first parent's verifier compares per-file reasons exactly.
+        // The introduction PR already selects checks through its tool changes;
+        // preserve its existing documentation reason for independent promotion.
+        assert.deepEqual(plan.changes, [{ path, category: 'documentation', reason: 'Maintained documentation or community template' }]);
         assert.deepEqual(plan.tasks.map(task => [task.id, task.checks]), [
             ['linux', ['actions', 'checks', 'docs']], ['windows', ['checks']], ['macos', ['checks']],
         ]);

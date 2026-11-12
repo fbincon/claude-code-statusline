@@ -61,7 +61,7 @@ function classify(path: string, before: Blob | undefined, after: Blob | undefine
     if (/^tests\//u.test(path)) return result('tests', ['core', 'platform', 'cli', 'tui', 'migration', 'archive'], 'Shared fixtures require all consuming source families');
     if (path.endsWith('.md') && /^(?:[^/]+\.md|docs\/|mods\/[^/]+\/README|packages\/[^/]+\/README|tools\/[^/]+\/README|archive\/)/u.test(path) || /^\.github\/(?:pull_request_template\.md|ISSUE_TEMPLATE\/(?:bug_report|config|preview-feedback)\.yml)$/u.test(path))
         return result('documentation', contentChecks && DOCUMENT_CONTENT_PATHS.includes(path) ? ['docs', 'checks'] : ['docs'],
-            contentChecks && DOCUMENT_CONTENT_PATHS.includes(path) ? 'Current documentation with source-backed content/examples' : 'Maintained documentation or community template');
+            'Maintained documentation or community template');
     if (extra === 'assets') return result('documentation', ['docs', 'assets'], 'Documentation asset or recorded evidence');
     if (/^archive\//u.test(path)) return result('tools', ['archive'], 'Frozen archive integrity, never regenerated');
     if (path === 'package-lock.json') return equal(runtimeLock) ? result('build', ['packaging', 'build'], 'Runtime dependency closure unchanged; compare built payload') : result('product', [], 'Runtime dependency closure changed');

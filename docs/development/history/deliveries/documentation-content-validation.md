@@ -35,7 +35,7 @@ The baseline is `fa3f66eadbd2994db6b533a228886e5536e8c363`; the implementation c
 | Immutable impact plan | `maintenance`; Linux: `actions`, `checks`, `docs`; Windows/macOS: `checks`; no unknown ownership or package comparison |
 | Local Linux scoped receipt | Pass for the implementation commit; all 23 compiled check-family files pass, supervised in 75,978 ms |
 
-The delivery commit adds this bilingual record and index links. Its selected checks and the PR's final-head **Complete candidate evidence** remain separate evidence; local receipts have no Actions execution identity and cannot substitute for that gate or main promotion.
+The record commit adds this bilingual page and index links. A subsequent compatibility correction retains the existing per-file classification reason, which the accepted first parent's verifier compares exactly. The selected final-head checks and the PR's **Complete candidate evidence** remain separate evidence; local receipts have no Actions execution identity and cannot substitute for that gate or main promotion.
 
 ## Limits
 

@@ -35,7 +35,7 @@ CLI 流程使用含空格和中文的隔离目录，执行文档中的注册、�
 | 不可变影响计划 | `maintenance`；Linux：`actions`、`checks`、`docs`；Windows／macOS：`checks`；无未知归属或包内容比较 |
 | 本地 Linux 范围回执 | 实现提交通过，23 个编译后的检查测试族文件全部通过，监督执行耗时 75,978 毫秒 |
 
-交付提交增加本双语记录及索引链接。该提交所选检查和 PR 最终 head 的 **Complete candidate evidence** 是独立证据；本地回执没有 Actions 执行身份，不能替代该门禁或 main 晋级核验。
+记录提交增加本双语页面及索引链接；后续兼容修正保留既有逐文件分类说明，因为已接受第一父提交的校验器会精确比较该内容。最终 head 所选检查和 PR 的 **Complete candidate evidence** 是独立证据；本地回执没有 Actions 执行身份，不能替代该门禁或 main 晋级核验。
 
 ## 边界
 
