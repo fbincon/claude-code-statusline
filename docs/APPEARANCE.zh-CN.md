@@ -2,7 +2,7 @@
 
 [English](APPEARANCE.md) | **简体中文**
 
-编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。
+编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。安装后，这些控件作用于当前显示草稿，并在任一编辑器保存后生效。
 
 共享撤销／重做、当前文件比较、对齐修复审阅及样式／整组复用见[草稿历史与复用](DRAFT_HISTORY.zh-CN.md)。
 
@@ -132,9 +132,9 @@ claude-statusline config set powerline-color-mode continuous
 在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换十一种预设与 `off`；Enter 打开可视色带及候选编辑页，支持逐色标修改，也可输入 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
 
 ```sh
-claude-statusline config instance main set context-used foreground-gradient ocean
-claude-statusline config instance main set context-used background-gradient '#112233,#445566,#778899'
-claude-statusline config instance main set context-used foreground-gradient off
+claude-statusline config instance main set context-remaining foreground-gradient ocean
+claude-statusline config instance main set context-remaining background-gradient '#112233,#445566,#778899'
+claude-statusline config instance main set context-remaining foreground-gradient off
 ```
 
 子代理实例与固定文本使用相同字段；spacer 不支持渐变。背景渐变在 Powerline 模式生效，不改变采集或外部来源权限。
@@ -153,6 +153,8 @@ claude-statusline config instance main set context-used foreground-gradient off
 claude-statusline config set powerline-row-background-gradient lagoon
 claude-statusline config set powerline-row-background-gradient off
 ```
+
+该选项接受预设名称，或 2–5 个逗号分隔的 `#RRGGBB` 色标。
 
 背景在可见性、宽度适配、分组和换行之后绘制。共享背景组作为一个色块；显式组件／主实例背景及独立背景渐变覆盖行渐变并打断连续区间。spacer 同样打断区间，对齐留白保持终端默认背景且不占渐变单元格。分隔符和端饰使用最终边缘颜色，告警前景与对比度保护继续有效。链接与完整字素保留。
 
@@ -180,10 +182,16 @@ claude-statusline config set powerline-row-background-gradient off
 
 ## 配置兼容与恢复
 
-显示 schema **17** 包含 Powerline 色块控制及可选的连续行背景。编辑器协议 **31** 传输完整草稿，须使用同一软件包的资源；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
+显示 schema **17** 包含 Powerline 色块控制、可选的连续行背景及自适应呈现（`presentation: adaptive`）。编辑器协议 **31** 传输完整草稿，须使用同一软件包的资源；运行协议 **3**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
 
-schema 1–16 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 17。缺失的 Powerline 控制默认为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
+schema 1–16 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 17。缺失的 Powerline 控制默认为两侧留白、箭头分隔、不启用起始端帽、有尾端帽和语义配色，保留原有 Powerline 输出。既有值保持原样，省略的渐变与对齐保持关闭。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
 
-降级前保存／导出当前配置，使用当前软件包的 `recover --restore-config TRANSACTION_ID` 显式恢复升级前的兼容显示备份，再按[版本管理指南](PACKAGE_MANAGEMENT.zh-CN.md)退回旧包并刷新匹配的接入资源。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md)。
+降级前保存／导出当前配置，使用当前软件包的 `recover --restore-config BACKUP_ID` 显式恢复升级前的兼容显示备份，再按[版本管理指南](PACKAGE_MANAGEMENT.zh-CN.md)退回旧包并刷新匹配的接入资源。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md#备份与回滚)。
 
 渐变从显示 schema 14／编辑器协议 23 引入，新增主题从 schema 16 引入。当前显示 schema 为 17，编辑器协议为 31；schema 1～16 的只读迁移保留既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。
+
+## 相关指南
+
+- [组件与布局](COMPOSITION.zh-CN.md)
+- [内置显示方案](SCHEMES.zh-CN.md)
+- [配置编辑器](EDITORS.zh-CN.md)

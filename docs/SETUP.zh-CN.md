@@ -4,16 +4,16 @@
 
 编辑器完整键位、预览与保存操作见[配置编辑器](EDITORS.zh-CN.md)。
 
-[安装 npm 软件包](USER_GUIDE.zh-CN.md#安装与接入)后运行设置向导，预览显示并审核 Claude 接入。[使用演示](SHOWCASE.zh-CN.md)展示完整流程。
+引导流程需要 Node 22/24、npm 和交互式终端。软件包可以已经安装，也可以由[首次入口流程](#首次入口与-npm-持久安装)安装。手动安装细节见[用户指南](USER_GUIDE.zh-CN.md#安装与接入)；本页负责引导式首次设置。[使用演示](SHOWCASE.zh-CN.md)展示完整流程。
 
 ```sh
 claude-statusline setup --dry-run
 claude-statusline setup
 ```
 
-向导检查环境，允许保留当前显示或选择[完整方案](SCHEMES.zh-CN.md)，预览候选配置，并在保存前审阅变更。已有配置默认选中**保留**；首次安装推荐**日常开发**。方向键选择、Enter 继续、退格返回、Page Up/Down 滚动详情、Tab 切换快速配置中的主栏／子代理预览、Esc 取消。终端至少需要 64 列 × 18 行，调整窗口尺寸保留草稿。
+向导检查环境，允许保留当前显示或从十四个起点（八套[完整方案](SCHEMES.zh-CN.md)和六种原有预设）中选择，预览候选配置，并在保存前审阅变更。已有配置默认选中**保留**；首次安装推荐**日常开发**。方向键选择、Enter 继续、退格返回、Page Up/Down 滚动详情、Tab 切换快速配置中的主栏／子代理预览、Esc 取消。终端至少需要 64 列 × 18 行，调整窗口尺寸保留草稿。
 
-可用 `claude-statusline --language zh-CN setup` 临时指定界面语言；向导中的 L 键会明确切换并立即保存界面语言。显示语言仍随显示草稿保存。全部十二种语言均可使用，见[语言选项](USER_GUIDE.zh-CN.md#界面语言)。
+可用 `claude-statusline --language zh-CN setup` 临时指定界面语言；向导中的 L 键会明确切换并立即保存界面语言。状态栏输出语言仍随显示草稿保存。全部十二种语言均可使用，见[语言选项](USER_GUIDE.zh-CN.md#界面语言)。
 
 ## 首次入口与 npm 持久安装
 
@@ -27,7 +27,7 @@ claude-statusline setup
 
 ## 检查与编辑目标
 
-`setup --dry-run` 无需 TTY。它检查 Node、检测到的 Claude 版本、配置可读性／权限、资源归属与待恢复事务，然后打印步骤。它不会选择方案、创建配置目录或锁文件、写入探针、安装插件或恢复事务。普通非 TTY `setup` 以退出码 2 结束，并打印现有分步命令；dry-run 可接入时退出码为 0，检查阻止接入时为 1。
+`setup --dry-run` 无需 TTY。它检查 Node、检测到的 Claude 版本、配置可读性／权限、资源归属与待恢复事务，然后打印步骤。它不会选择方案、创建配置目录或锁文件、写入探针、安装插件或恢复事务。普通非 TTY `setup` 以退出码 2 结束，并打印现有分步命令；dry-run 可接入时退出码为 0，检查阻止接入时为 1；接入被阻止时，审阅仍可能允许**仅保存显示**。
 
 ```sh
 claude-statusline setup --config-dir '/包含空格的路径/claude'
@@ -43,7 +43,7 @@ claude-statusline.cmd setup --config-dir 'C:\Users\Example\Claude Config'
 
 将示例路径替换为目标 Claude 配置目录。`--config-dir` 优先于 `CLAUDE_CONFIG_DIR`；省略则使用通常目录。
 
-编辑目标固定为**用户默认**。向导显示已有方案、项目绑定及当前项目绑定的方案，不替换绑定。之后可用 `configure --profile NAME`、`configure --project PATH` 或编辑器中的方案管理修改这些目标。
+编辑目标固定为**用户默认**。向导显示已有方案和绑定的数量，以及当前项目绑定的名称；不替换绑定。之后可用 `configure --profile NAME`、`configure --project PATH` 或编辑器中的方案管理修改这些目标。
 
 向导接入需要检测到至少 2.1.205 的 Claude。这是基础接入门槛，不表示该宿主支持所有可选字段或编辑器；既有能力检查仍会暂停不支持的功能。缺少／未知／过旧的 Claude 或第三方接入冲突时，仍可能允许**仅保存显示**。显示、设置或方案文件损坏，以及存在待恢复事务时，会阻止保存。请检查报告的文件，或先运行 `claude-statusline recover --dry-run` 再明确执行恢复；向导不重置损坏文件、不强制接管资源。
 
@@ -62,3 +62,9 @@ claude-statusline.cmd setup --config-dir 'C:\Users\Example\Claude Config'
 `install`、`doctor`、`configure` 和配置 CLI 保持可用。向导不下载／升级包、不安装字体、不登录账号、不改变独立的 Claude 偏好。参见[安装与回退](USER_GUIDE.zh-CN.md)及[外观兼容说明](APPEARANCE.zh-CN.md#配置兼容与恢复)。
 
 既有安装使用[版本管理与包恢复](PACKAGE_MANAGEMENT.zh-CN.md)；显式 `setup` 继续负责显示配置与集成。
+
+## 相关指南
+
+- [用户指南](USER_GUIDE.zh-CN.md)
+- [配置编辑器](EDITORS.zh-CN.md)
+- [包升级、回退与恢复](PACKAGE_MANAGEMENT.zh-CN.md)

@@ -2,17 +2,9 @@
 
 [English](DIAGNOSTICS.md) | **简体中文**
 
-`doctor` 检查安装，`diagnose` 解释你显式提供的状态栏 JSON，使用已保存的显示配置，并默认补充匹配的已有本地观测。命令只输出报告，不保存或采集数据。两个编辑器的 Explain 面板仍解释**示例**，不代表实时会话。
+`doctor` 检查安装，`diagnose` 解释你显式提供的状态栏 JSON，使用已保存的显示配置，并默认补充匹配的已有本地观测。命令只输出报告，不保存或采集数据。两个编辑器的“配置与示例说明”面板仍解释**示例**，不代表实时会话。
 
 ## 运行诊断
-
-```bash
-claude-statusline diagnose --input statusline-input.json
-claude-statusline diagnose --input statusline-input.json --width 80 --json
-cat statusline-input.json | claude-statusline diagnose --input - --input-only
-claude-statusline --language zh-CN diagnose --input statusline-input.json
-claude-statusline diagnose --input subagent-input.json --scope subagent --width 40
-```
 
 使用你已经从 Claude Code 状态栏 stdin 捕获的 JSON：
 
@@ -24,7 +16,7 @@ claude-statusline --language zh-CN diagnose --input statusline-input.json
 claude-statusline diagnose --input subagent-input.json --scope subagent --width 40
 ```
 
-文件必须包含一个 JSON 对象，不是编辑器草稿、诊断报告或运行时事件封装。子代理诊断使用宿主包含 `tasks` 的输入对象。支持 UTF-8 和开头的 BOM；拒绝重复键、非有限 JSON 常量、非对象根节点及超过 32 MiB 的输入。未知宿主字段允许存在；缺失字段保持未知，无效的已知字段在报告中标出。
+文件必须包含一个 JSON 对象。命令只校验根节点为对象；编辑器草稿、诊断报告或运行时事件封装仍可能生成报告。子代理诊断使用宿主包含 `tasks` 的输入对象。支持 UTF-8 和开头的 BOM；拒绝重复键、非有限 JSON 常量、非对象根节点及超过 32 MiB 的输入。未知宿主字段允许存在；缺失字段保持未知，无效的已知字段在报告中标出。
 
 | 参数 | 含义 |
 | --- | --- |
@@ -40,9 +32,9 @@ claude-statusline diagnose --input subagent-input.json --scope subagent --width 
 
 ## 在双编辑器中诊断文件
 
-从设置页或组件表单打开“诊断输入文件”，或按 Ctrl+L，填写路径、选择主行／子代理作用域，可选填写含时区的 ISO 采集时间，然后选择“读取并诊断文件”。默认仅使用输入；可明确开启匹配的已有本地观测。始终使用当前未保存的显示草稿及其编辑目标。现有 CLI 命令保留原默认行为。
+从设置页或组件表单打开“诊断输入文件”，或按 Ctrl+L，填写路径、选择主栏／子代理作用域，可选填写含时区的 ISO 采集时间，然后选择“读取并诊断文件”。默认仅使用输入；可明确开启匹配的已有本地观测。始终使用当前未保存的显示草稿及其编辑目标。现有 CLI 命令保留原默认行为。
 
-结果显示实际文件、作用域、输入／诊断时间及证据范围。缺少时间保持未知。样式原因说明颜色关闭、非 Powerline 背景渐变、组主实例背景、阈值覆盖、ANSI 转换及对比度保护，并与每个实例／代理行的布局结果关联。
+JSON 结果显示实际文件、作用域、输入／诊断时间及证据范围；文本报告在各项证据行中标明作用域。缺少时间保持未知。样式原因说明颜色关闭、非 Powerline 背景渐变、共享块主实例背景、阈值覆盖、ANSI 转换及对比度保护，并与每个实例／代理行的布局结果关联。
 
 Esc 返回表单，再返回保留的草稿。失败保留表单供修正，上次成功报告仍可查看。报告分页，完整输入／报告不发送给原生 Client。文件诊断不保存、不采集、不修复、不执行来源。参见[实施说明](development/appearance-preview-diagnosis.zh-CN.md)。
 
@@ -94,12 +86,10 @@ claude-statusline config enable cache-miss-reason
 
 `Git!` 及缓存中的 `git_policy.filter_blocked`／`git_policy.policy_unavailable` 表示无法安全保留过滤器语义，不表示工作区干净。`doctor` 检查当前目录的过滤器定义，不运行这些命令。详见[兼容表](development/history/deliveries/m8-m9-delivery.zh-CN.md#git-调用策略)。请在自己的 Git 工作流中明确修改配置；本产品不会改写配置，缓存诊断也不会重试 Git。
 
-## 包操作诊断
-
-`update --check --json` 报告元数据兼容性，`update --dry-run` 进一步验证包产物。`recover --package --dry-run --prefix PATH --config-dir PATH` 检查保留的包事务。`recover --restore-config 备份ID` 单独处理配置恢复。精确版本脚本及恢复入口见[版本管理](PACKAGE_MANAGEMENT.zh-CN.md)。
-
 ## 相关指南
 
 外部数据源的注册、授权、刷新、诊断及分享边界见[扩展指南](EXTENSIONS.zh-CN.md)。
+
+包操作诊断见[版本管理](PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](PROFILES.zh-CN.md)和[任务详情](TASK_DETAILS.zh-CN.md)。

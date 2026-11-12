@@ -6,6 +6,22 @@ Extensions are optional. A display component refers to a locally registered sour
 adding a component, importing a scheme or selecting a project never enables a
 source. External values do not contribute to task, token or cost totals.
 
+## Contents
+
+- [Registration, enablement, binding and execution](#registration-enablement-binding-and-execution)
+- [Configure with either editor](#configure-with-either-editor)
+- [Local JSON](#local-json)
+- [GitHub PR and CI](#github-pr-and-ci)
+- [Automatic GitHub refresh](#automatic-github-refresh)
+- [Commands](#commands)
+- [Windows paths and PowerShell](#windows-paths-and-powershell)
+- [Automatic command execution](#automatic-command-execution)
+- [Freshness and sharing](#freshness-and-sharing)
+- [Links](#links)
+- [Readable operations and saved check details](#readable-operations-and-saved-check-details)
+- [Binding inventory and cleanup](#binding-inventory-and-cleanup)
+- [Interface compatibility](#interface-compatibility)
+
 ## Registration, enablement, binding and execution
 
 | Action | Effect |
@@ -145,11 +161,11 @@ claude-statusline source refresh forge --project '/absolute/project' --json
 claude-statusline source diagnose forge --project '/absolute/project' --json
 ```
 
-Replace `REVIEW_REVISION`, `PR_INSTANCE_ID` and `CI_INSTANCE_ID` with actual command results. These config/bind commands save the user default and require owned installation; complete [setup](SETUP.md) first. Use the same configuration directory throughout. `source --config-dir PATH ...` and `config --config-dir PATH ...` select it explicitly.
+Replace `REVIEW_REVISION`, `PR_INSTANCE_ID` and `CI_INSTANCE_ID` with actual command results. These commands save the user default. Final `source bind` and display-target writes require owned installation; some `config` writes can complete before installation. Complete [setup](SETUP.md) first when binding. Use the same configuration directory throughout. `source --config-dir PATH ...` and `config --config-dir PATH ...` select it explicitly.
 
 If the project is already bound to a named profile, edit and bind that target instead of the independent user default; see [editing targets](PROFILES.md#choose-an-editing-target).
 
-Before refresh, diagnosis reports `not_refreshed`. After a successful refresh, inspect the observation and check summary in diagnosis, then view the statusline in that project: bound components read the cached PR/check result. A successful query can report `no_pr` or `no_checks`; neither means passing CI. The source queries only the specified host/repository/branch. Set `pr` to an explicit number if several open PRs match. Non-repositories, detached HEAD, mismatched local/remote HEAD, authentication failure and denied access have distinct reasons; an identity mismatch suppresses old values. Existing host `pr` remains unchanged; `github-pr` and `github-ci` are separate main-line components.
+Before refresh, diagnosis reports `not_refreshed`. After a successful refresh, inspect the observation and check summary in diagnosis, then view the statusline in that project: bound components read the cached PR/check result. A successful query can report `no_pr` or `no_checks`; neither means passing CI. The source queries only the specified host/repository/branch. Set `pr` to an explicit number if several open PRs match. Non-repositories, detached HEAD, a PR head that differs from the context branch/HEAD, authentication failure and denied access have distinct reasons; an identity mismatch suppresses old values. The check compares the PR head ref and commit with the context branch and HEAD; it does not inspect a remote-tracking HEAD. Existing host `pr` remains unchanged; `github-pr` and `github-ci` are separate main-line components.
 
 Refresh is manual by default and has a 30-second total deadline. Rendering consumes cached
 observations without running `gh`. Cache identity includes project/worktree,
@@ -174,7 +190,7 @@ claude-statusline source diagnose forge --project /absolute/project --json
 claude-statusline source auto-off forge --json
 ```
 
-Use the returned review revision. The policy remains on locally until explicitly disabled. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
+Use the returned review revision. The policy is stored locally and is not exported; editing, disabling or deleting the source revokes it, as does explicit auto-off. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
 
 Supported active sessions renew a lease every five seconds; leases expire after 15 seconds without a heartbeat. Only matching project/session scope, branch and HEAD dispatch work. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service is installed. Multiple sessions share one job for the same source/identity. Manual consumers and automatic leases retain independent interest; closing one session/editor or turning automatic refresh off preserves other applicable consumers.
 
@@ -332,7 +348,7 @@ also depends on Claude Code and the terminal, as explained in the
 
 GitHub check details retain observed names, state and validated HTTP(S) links, repository, branch, HEAD and capture time. Arrow keys paginate saved observations in groups of sixteen. Opening a page never queries GitHub. Unknown, missing, cancelled, skipped and expired checks keep their meanings; retained details from an earlier success retain their original time.
 
-**Cancel running refresh** cancels the current job. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
+**Cancel running refresh** cancels the source's running refresh jobs. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
 
 ## Binding inventory and cleanup
 
@@ -353,8 +369,14 @@ The legacy `source unbind ID --binding BINDING_ID` deletion also rechecks all re
 ## Interface compatibility
 
 The current interfaces are display schema 17, editor protocol 31, source registry
-3, source jobs 4 and source observations 1. Older display configurations remain
+2 (command-source automatic policies use 3), source jobs 4 and source observations 1. Older display configurations remain
 readable without automatic rewriting; saving uses the current schema. Older jobs
 1–3 remain readable, with absent execution diagnostics treated as unknown.
 Reinstall integration when frontend/backend versions differ. Runtime, task
 lifecycle, portable envelope and profile collection versions evolve independently.
+
+## Related guides
+
+- [Profiles and project bindings](PROFILES.md)
+- [Input diagnosis](DIAGNOSTICS.md)
+- [Read-only task details](TASK_DETAILS.md)

@@ -23,9 +23,9 @@ claude-statusline task show --session-id SESSION_ID --prompt-id PROMPT_ID --json
 claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/config"
 ```
 
-会话和 prompt ID 来自你提供的状态栏输入或已有会话元数据。CLI 不搜索其他会话来猜测身份。省略 `--prompt-id` 时，只使用既有状态中的明确当前任务指针；指针冲突、任务缺失和别名归属不明确时保持不可用。
+会话和 prompt ID 来自你提供的状态栏输入或已有会话元数据。请显式传入 `--session-id`；CLI 不读取状态栏 stdin，也不搜索其他会话来猜测身份。省略 `--prompt-id` 时，只使用既有状态中的明确当前任务指针；指针冲突、任务缺失和别名归属不明确时保持不可用。
 
-命令描述与首次标题使用已读取的界面语言，任务读取失败仍保持该语言。刷新／重开重新读取偏好；偏好不可读时提示并回退英文，不阻止任务读取。高窗格会缩小可见页以满足宿主容量，完整报告仍可翻页。
+命令描述与首次标题使用已读取的界面语言，任务读取失败仍保持该语言。刷新／重开重新读取偏好；原生窗格和交互式 `task view` 在偏好不可读时提示并回退英文，`task show` 则直接返回英文且不提示。两种情况都不阻止任务读取。高窗格会缩小可见页以满足宿主容量，完整报告仍可翻页。
 
 <a id="外部任务查看器与阅读控件"></a>
 
@@ -41,7 +41,7 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 | 向上／下翻页 | K／J | Page Up／Down 或 K／J |
 | 展开／折叠代理 | Z | ←／→ 或 Enter |
 | 重读已发布状态 | R | R |
-| 关闭 | Q；Esc 将焦点交还 Claude | Q；字段中 Esc 或 Ctrl+G 取消输入 |
+| 关闭 | Q；Esc 将焦点交还 Claude | Q；非编辑状态按 Esc 或 Ctrl+G 关闭，编辑字段时按 Esc 或 Ctrl+G 取消输入 |
 
 原生字母控件需要窗格焦点；报告阅读键需要正文焦点。打开原生文本框后，点击字段或按 Ctrl+X 再按 Tab；看到 ⏎ 提交提示后输入或粘贴完整值，包括空格，按 Enter 确认。Tab 移到“取消”按钮后按 Enter 可恢复原值。字段输入期间快捷键由字段处理。
 
@@ -69,4 +69,4 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 
 升级后重新安装以注册新增原生命令。原生编辑器已关闭或宿主无法显示窗格时，请使用 CLI。原生界面按固定终端宿主分别验证，不据此宣称 web、移动端或其他 Claude 客户端受支持。
 
-渲染可见性及输入关联问题请使用[真实输入诊断](DIAGNOSTICS.zh-CN.md)；显示方案及项目选择请参阅[方案管理](PROFILES.zh-CN.md)。
+渲染可见性及输入关联问题请使用[真实输入诊断](DIAGNOSTICS.zh-CN.md)；`task show` 的状态与原因码见[CLI 任务输出](reference/cli.zh-CN.md#task-show)及[实时状态视图](development/live.zh-CN.md#状态视图)；显示方案及项目选择请参阅[方案管理](PROFILES.zh-CN.md)。

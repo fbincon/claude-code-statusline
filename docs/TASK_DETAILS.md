@@ -23,9 +23,9 @@ claude-statusline task show --session-id SESSION_ID --prompt-id PROMPT_ID --json
 claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/config"
 ```
 
-Session and prompt IDs come from your supplied statusline input or existing session metadata. The CLI does not search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
+Session and prompt IDs come from your supplied statusline input or existing session metadata. Pass `--session-id` explicitly; the CLI does not read statusline stdin or search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
 
-Command descriptions and initial titles use the loaded interface language. Task-read failures retain that language; refresh/reopen reload preferences. Unreadable preferences fall back to English with guidance without blocking task reads. Tall panes reduce the visible page to fit host capacity while retaining the complete report for paging.
+Command descriptions and initial titles use the loaded interface language. Task-read failures retain that language; refresh/reopen reload preferences. The native pane and interactive `task view` show guidance and fall back to English when preferences are unreadable; `task show` returns English without a warning. Neither case blocks task reads. Tall panes reduce the visible page to fit host capacity while retaining the complete report for paging.
 
 ## Reading controls
 
@@ -39,7 +39,7 @@ Command descriptions and initial titles use the loaded interface language. Task-
 | Page up/down | K/J | Page Up/Down or K/J |
 | Expand/collapse an agent | Z | ←/→ or Enter |
 | Reread published state | R | R |
-| Close | Q; Esc returns focus to Claude | Q; Esc or Ctrl+G cancels a field |
+| Close | Q; Esc returns focus to Claude | Q; outside field editing, Esc or Ctrl+G closes; while editing a field, Esc or Ctrl+G cancels the field |
 
 Native letter controls need pane focus; report-reading keys need body focus. After opening a native field, click it or press Ctrl+X then Tab. When the ⏎ submit hint appears, type or paste the complete value, including spaces, and press Enter. Tab to **Cancel**, then Enter, restores the previous value. Active fields handle their own input keys.
 
@@ -67,4 +67,4 @@ Inspection reads bounded known files. It does not scan transcripts, reconcile or
 
 Reinstall after upgrading to register the additional native command. If the native editor is disabled or the host cannot place the pane, use the CLI. Native UI support is validated per fixed terminal host; it is not inferred for web, mobile or other Claude clients.
 
-For renderer visibility or supplied-input association, use [input diagnosis](DIAGNOSTICS.md). For display schemes and project selection, see [profiles](PROFILES.md).
+For renderer visibility or supplied-input association, use [input diagnosis](DIAGNOSTICS.md). For status and reason codes in `task show`, see the [CLI task output](reference/cli.md#task-show) and [live-state views](development/live.md#state-views). For display schemes and project selection, see [profiles](PROFILES.md).

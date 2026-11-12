@@ -1,6 +1,10 @@
-# 完整显示方案
+<a id="完整显示方案"></a>
+
+# 内置显示方案
 
 [English](SCHEMES.md) | **简体中文**
+
+安装后可在任一编辑器或 CLI 中选择方案或预设；候选配置在保存显示草稿后生效。
 
 ## 区分方案、预设与 Profile
 
@@ -26,7 +30,7 @@
 - **保存候选配置**对当前目标执行版本检查、备份和事务保存。审阅共享方案时会显示绑定项目的数量和路径。
 - **另存为命名方案**单独保存方案，并保留原有未保存草稿。
 
-Backspace 返回上一步。Ctrl+G 取消并保留进入快速配置前的草稿，外部编辑器也可按 Esc 取消。选择预设或方案时保留已有采集偏好与子代理行的关闭状态。显式切换界面语言会立即保存，输出语言随显示草稿保存，Claude 偏好通过独立的 Apply 生效。
+Backspace 返回上一步。Ctrl+G 取消并保留进入快速配置前的草稿，外部编辑器也可按 Esc 取消。选择预设或方案时保留已有采集偏好与子代理启用开关；子代理行内容按所选预设或方案重建。显式切换界面语言会立即保存，输出语言随显示草稿保存，Claude 偏好通过独立的 Apply 生效。
 
 ## 内置方案
 
@@ -48,6 +52,21 @@ Backspace 返回上一步。Ctrl+G 取消并保留进入快速配置前的草稿
 Powerline 是显示选项，不是必要条件。希望保留所选方案的组件和颜色而使用紧凑分隔时，可在保存前设置 `separator-style compact`；此时 Powerline 背景不生效，普通前景色及适用的前景渐变仍生效。终端背景和字体独立控制。[外观设置](APPEARANCE.zh-CN.md)。
 
 六种原有预设也继续可用：`minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。它们保留已选择的全局主题及分隔符，与上方概念表一致。
+
+<a id="原有预设"></a>
+
+### 原有预设
+
+| 预设 | 适用场景 | 主栏布局 | 子代理默认 |
+| --- | --- | --- | --- |
+| `minimal` | 精简日常视图 | 自动：模型／effort、目录、上下文剩余、任务计时 | 原有五项 |
+| `developer` | Git、累计用量和会话费用 | 两行：模型／目录／Git；上下文剩余／tokens／计时／费用 | 原有五项 |
+| `monitoring` | 检查额度、重置、缓存和会话统计 | 三行：上下文／额度；重置／缓存／TTL；费用／时长／API 时长／请求／缓存未命中 | 原有五项 |
+| `multi-agent` | 有界代理行及任务标签 | 两行：模型／目录／Git；上下文剩余／tokens／计时 | 原有五项，隐藏 completed，最多六行，任务宽度 48 |
+| `left-right` | 左右分区 | 一行：模型／effort、Git、spacer、上下文剩余 | status、name、spacer、elapsed |
+| `repeated-metrics` | 比较同一指标的两种格式 | 两份输入 token 实例，分别为完整／紧凑格式 | 原有五项 |
+
+这些预设保留已选择的全局主题及分隔符，并按默认值重建子代理行。预设与完整方案都会展开为可编辑配置；可选数据仍可能不可用。
 
 ## CLI 与分享
 
@@ -71,3 +90,9 @@ claude-statusline config profile export daily-development my-scheme.json
 ```
 
 当前生成文件使用单方案格式 1 和显示 schema 17，不包含项目绑定、采集开关、宿主偏好或外部能力授权。导入保存为命名方案；激活与项目绑定仍需明确执行。旧捕获方案文件的格式及产物身份保留在[首次设置图库](images/setup-appearance/README.zh-CN.md)和[自适应场景图库](images/adaptive-row-scenarios/README.zh-CN.md)。
+
+## 相关指南
+
+- [命名方案与项目绑定](PROFILES.zh-CN.md)
+- [外观](APPEARANCE.zh-CN.md)
+- [配置编辑器](EDITORS.zh-CN.md)

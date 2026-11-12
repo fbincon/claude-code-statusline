@@ -10,19 +10,9 @@ The Settings page offers **Version and installation**. Opening it reads local pa
 
 Select **Check version metadata** to contact the configured npm registry. This result explicitly says the artifact is unverified. **Download and verify upgrade review**, package rollback and unfinished-package recovery reviews use the existing dry-run service and temporary staging, with scripts disabled. Select a verified backup to review configuration restoration separately. These review actions do not change the installation. A compatible verified review enables a separate execution confirmation.
 
-Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. Execution and history cleanup each require their own explicit review; the product never elevates privileges.
+Enter edits the prefix/target or selects an action; the channel defaults to the recorded installation rules. `R` reads job progress, `L` reloads local status, `C` cancels this view's review before execution starts, and `Q`/Escape returns. A verified review is bound to the selected installation, saved configuration revision and exact target/integrity; changes invalidate it. Closing cancels only this view's temporary job. Reviews use saved configuration and preserve unsaved display drafts and source authorization. Execution and history cleanup each require their own explicit review; the product never elevates privileges.
 
 Ordinary npm manifest modes `0600`, `0644` and `0664` are supported. Recovery journals and snapshots still require private permissions. The v3.11.0 false warning is fixed by [#173](https://github.com/fbincon/claude-code-statusline/issues/173).
-
-## Execute, detach and reconnect
-
-After a verified review, choose execution and handle the current draft explicitly: save successfully and review again, export to a new file, discard explicitly, or cancel and retain the draft. Export does not mark it saved. Unknown save outcomes require read-only reconciliation; any saved configuration change requires a fresh package review. Execution rechecks installation identity, configuration revision, exact target and integrity before mutation.
-
-The handoff returns a durable execution ID and an independent Node/JS control entry outside the replaced package. The old editor becomes read-only. `R` reads stages and separate package/integration/configuration outcomes; closing only detaches. Reopen while unfinished to inspect or review recovery. Keep the returned control entry to inspect progress even after downgrading to an older editor protocol. After completion reopen the external editor or restart Claude. A successful package replacement with failed integration remains incomplete and recoverable.
-
-## Protected history cleanup
-
-History is paginated for the selected installation prefix. Explicit cleanup accepts only selected, completed and unreferenced owned records, rechecking the review under installation/configuration locks. Running or unverifiable executors, unfinished transactions, attached control entries, current/previous rollback material and necessary snapshots are protected. Unreadable ownership or references block deletion. Configuration restoration stays a separate review and never silently restores source permission.
 
 ## Check and review
 
@@ -35,11 +25,25 @@ claude-statusline rollback
 
 Checks query the configured scoped npm registry, or its default registry. Stable installs default to `latest`; a recorded channel remains selected. A prerelease without a recorded channel needs `--version EXACT` or `--channel latest|beta`. Channels resolve to an exact version before review. `update --version` refuses downgrades; use `rollback`. Rollback without a version selects the previous successful artifact for this prefix and configuration directory, checking the recorded integrity or inventory identity.
 
-The review identifies the current and target package, registry, prefix, absolute Node/JS entry, Node/host compatibility, configuration formats, and artifact integrity. `--check` reports metadata compatibility without downloading the archive; its JSON explicitly reports `artifact_verified: false`. `--dry-run` also verifies a downloaded archive in a temporary staging prefix. Neither writes the target installation or configuration. Temporary files and ordinary npm cache activity are separate from the target.
+The review identifies the current and target package, registry, prefix, absolute Node/JS entry, Node/host compatibility, configuration formats, and artifact integrity. `--check` reports metadata compatibility without downloading the archive; its JSON explicitly reports `artifact_verified: false`. `--dry-run` also verifies a downloaded archive in a temporary staging prefix; when the installation is already current, it can instead return `unchanged: true` and `artifact_verified: false` without downloading. Neither writes the target installation or configuration. Temporary files and ordinary npm cache activity are separate from the target.
 
 Pass `--prefix PATH` when multiple installations exist, and use the same `--config-dir PATH` that owns the integration. The target must be outside the npm cache. Permission failures require choosing or repairing a writable prefix; the product never invokes sudo or an elevation prompt. An installation without Claude integration stays package-only. An integrated installation requires a recognized compatible host and refreshes its owned resources.
 
+<a id="package-operation-diagnosis"></a>
+
+## Package operation diagnosis
+
+`update --check --json` reports metadata compatibility; `update --dry-run` additionally verifies the archive. `recover --package --dry-run --prefix PATH --config-dir PATH` inspects a retained package transaction. Keep `recover --restore-config BACKUP_ID` separate from package repair. See [scripted changes](#scripted-changes) and [package transaction recovery](#package-transaction-recovery) for exact commands.
+
+## Execute, detach and reconnect
+
+After a verified review, choose execution and handle the current draft explicitly: save successfully and review again, export to a new file, discard explicitly, or cancel and retain the draft. Export does not mark it saved. Unknown save outcomes require read-only reconciliation; any saved configuration change requires a fresh package review. Execution rechecks installation identity, configuration revision, exact target and integrity before mutation.
+
+The handoff returns a durable execution ID and an independent Node/JS control entry outside the replaced package. The old editor becomes read-only. `R` reads stages and separate package/integration/configuration outcomes; closing only detaches. Reopen while unfinished to inspect or review recovery. Keep the returned control entry to inspect progress even after downgrading to an older editor protocol. After completion reopen the external editor or restart Claude. A successful package replacement with failed integration remains incomplete and recoverable.
+
 ## Scripted changes
+
+The following is the historical v3.7.0 → v3.8.0 migration example; the current documented version is 3.16.3. On a newer installation, `update --version 3.8.0` is a downgrade and is refused, and older packages have their own configuration-compatibility limits.
 
 ```text
 claude-statusline update --version 3.8.0 --prefix /chosen/prefix --config-dir /chosen/claude --yes
@@ -67,6 +71,10 @@ Recovery first inspects the actual package on disk. A valid target is verified a
 
 Package replacement and integration are separate durable stages. A successful npm exit is not an upgrade-complete result. Failed integration, interruption or a configuration edit during npm leaves an incomplete record; review the actual state before resuming. The flow does not promise atomicity across npm and configuration. Completed transitions preserve schemes, project bindings, execution authorization and independent disabled options. Restart Claude after the verified integration to load matching resources.
 
+## Protected history cleanup
+
+History is paginated for the selected installation prefix. Explicit cleanup accepts only selected, completed and unreferenced owned records, rechecking the review under installation/configuration locks. Running or unverifiable executors, unfinished transactions, attached control entries, current/previous rollback material and necessary snapshots are protected. Unreadable ownership or references block deletion. Configuration restoration stays a separate review and never silently restores source permission.
+
 ## Separate configuration restoration
 
 ```text
@@ -83,3 +91,9 @@ Restoration validates snapshot hashes, rechecks current revisions under the conf
 Versions before v3.7.0 need manual recovery. Stop Claude, export current display choices if useful, retain the working Node/package entry and a compatible pre-change configuration backup, then deliberately install the exact older package into the selected prefix with npm. Restore only applicable product configuration, retain unrelated settings and current opt-outs, run that version's `install` and `doctor`, and restart Claude. Python-era recovery remains documented in the [user guide](USER_GUIDE.md#upgrading). An npm failure with unknown results must be inspected before another install.
 
 See the [CLI reference](reference/cli.md), [npm installation rules](https://docs.npmjs.com/cli/v11/commands/npm-install/), and [implementation/acceptance record](development/history/deliveries/m8-m9-delivery.md).
+
+## Related guides
+
+- [First-use setup](SETUP.md)
+- [User guide](USER_GUIDE.md)
+- [Input diagnosis](DIAGNOSTICS.md)

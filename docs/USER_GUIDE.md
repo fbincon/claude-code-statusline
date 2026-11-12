@@ -472,16 +472,7 @@ subagent-visibility accepts all/running. Row/task limits accept none to restore 
 
 ### Presets and portable configuration
 
-| Preset | Choose it for | Main layout | Subagent defaults |
-| --- | --- | --- | --- |
-| `minimal` | A compact everyday view | Auto: model/effort, directory, context remaining, task timer | Existing five items |
-| `developer` | Git, cumulative usage and session cost | Two rows: model/directory/Git; context remaining/tokens/timer/cost | Existing five items |
-| `monitoring` | Quotas, resets, cache and session accounting | Three rows: context/allowances; resets/cache/TTL; cost/duration/API duration/requests/cache misses | Existing five items |
-| `multi-agent` | Bounded agent rows and task labels | Two rows: model/directory/Git; context remaining/tokens/timer | Existing five items, hide completed, up to six rows, task width 48 |
-| `left-right` | Left/right placement | One row: model/effort, Git, spacer, context remaining | status, name, spacer, elapsed |
-| `repeated-metrics` | Comparing two formats of one metric | Two input-token instances, full and compact | Existing five items |
-
-These are the six original presets. The [eight complete schemes](SCHEMES.md) also set global appearance. Both expand into editable configuration; optional data may remain unavailable.
+The six original presets and their layouts are summarized in [original presets](SCHEMES.md#original-presets). The [eight complete schemes](SCHEMES.md) also set global appearance. Both expand into editable configuration; optional data may remain unavailable.
 
 Presets change display drafts, not collector enablement. They preserve output/interface language and host settings, rebuild item overrides, and remain editable before saving.
 
@@ -580,7 +571,7 @@ Select items in an editor or enable them by ID. These optional main items cover 
 | Repository | `pr`, `repo`, `worktree` |
 | Context and usage | `context-used`, `cost`, `prompt-cache` |
 
-For defaults, host requirements and unavailable data, see the [main items](DISPLAY_ITEMS.md#main-items) and [subagent items](DISPLAY_ITEMS.md#subagent-items). For scripting, see [catalog commands](reference/cli.md#configurable-display-items).
+For the full catalog, host requirements and unavailable-data behavior, see [common optional main items](DISPLAY_ITEMS.md#common-optional-main-items), [main items](DISPLAY_ITEMS.md#main-items) and [subagent items](DISPLAY_ITEMS.md#subagent-items). For scripting, see [catalog commands](reference/cli.md#configurable-display-items).
 
 ### Main status line fields
 

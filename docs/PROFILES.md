@@ -1,4 +1,6 @@
-# Display schemes and project bindings
+<a id="display-schemes-and-project-bindings"></a>
+
+# Profiles and project bindings
 
 **English** | [简体中文](PROFILES.zh-CN.md)
 
@@ -65,7 +67,7 @@ Moving a project does not rewrite bindings: unbind the old path and bind the new
 
 The version-1 `claude-statusline-profiles.json` file under the Claude user configuration directory contains the collection and bindings. It is created only by a save or binding operation. The existing `claude-statusline.json` remains the user default with display schema 17. Collection limits are 128 schemes, 512 bindings and 32 MiB.
 
-A single exported scheme has format `claude-code-statusline-profile`, version 1, name and display. It contains no project roots or internal scheme ID and has a 1 MiB transfer limit. This is distinct from the existing `claude-code-statusline` portable envelope, which also carries tool host settings. Use the corresponding import command for each format.
+A single exported scheme has format `claude-code-statusline-profile`, version 1, name and display. It contains no project roots or internal scheme ID, removes local source bindings (`source.binding`) while retaining only hints, and has a 1 MiB transfer limit. This is distinct from the existing `claude-code-statusline` portable envelope, which also carries tool host settings. Use the corresponding import command for each format.
 
 Writes use the shared installation lock, revision checks, immutable backups and recovery journal. A concurrent edit is refused; reload and review instead of forcing an old draft over it. If a save response is lost, refresh saved state before another write. Corrupt collections are retained and reported, while rendering falls back safely.
 
@@ -83,11 +85,11 @@ claude-statusline config import display.json --select main --profile Work
 claude-statusline config profile import scheme.json --select subagent,statusline_language --project /path/to/project --dry-run
 ```
 
-`--select` accepts comma-separated exact keys: `main`, `subagent`, `use_colors`, `palette`, `theme`, `directory_style`, `separator_style`, `scope_labels`, `powerline_glyph`, `powerline.padding`, `powerline.separator`, `powerline.start_cap`, `powerline.end_cap`, `powerline.color_mode`, `statusline_language`, `formatting.model_name`, `formatting.number_format`, `formatting.labels`, `formatting.icons`, `formatting.allowance`, `formatting.reset_format`, `formatting.reset_timezone`, and `formatting.thresholds`. Thresholds are selected as one complete group. New fields do not automatically expand this list.
+`--select` accepts comma-separated exact keys: `main`, `subagent`, `use_colors`, `palette`, `theme`, `directory_style`, `separator_style`, `scope_labels`, `powerline.row_background_gradient`, `powerline_glyph`, `powerline.padding`, `powerline.separator`, `powerline.start_cap`, `powerline.end_cap`, `powerline.color_mode`, `statusline_language`, `formatting.model_name`, `formatting.number_format`, `formatting.labels`, `formatting.icons`, `formatting.allowance`, `formatting.reset_format`, `formatting.reset_timezone`, and `formatting.thresholds`. Thresholds are selected as one complete group. New fields do not automatically expand this list.
 
 Main selection replaces its complete instances, groups, layout and metric settings. Subagent selection replaces its complete template and display controls. IDs are scoped: the same ID in main and subagents is legal; replacing a whole scope preserves its internal references without colliding with the retained scope. Duplicate IDs and incomplete references in the input are rejected before selection, even when their section is unselected.
 
-Choose at most one of `--user`, `--profile NAME_OR_ID`, or `--project PATH`; omission means the user default. Project targets follow existing project resolution, including the user-default fallback. Named targets retain their name, ID and bindings; JSON results identify the target and affected shared projects. A selective profile import updates that target and cannot be combined with `--name` or `--overwrite`. The original full-profile import still creates a named copy.
+Applying a selective import writes the target and requires this tool to own the installed status line; `--dry-run` does not. Choose at most one of `--user`, `--profile NAME_OR_ID`, or `--project PATH`; omission means the user default. Project targets follow existing project resolution, including the user-default fallback. Named targets retain their name, ID and bindings; JSON results identify the target and affected shared projects. A selective profile import updates that target and cannot be combined with `--name` or `--overwrite`. The original full-profile import still creates a named copy.
 
 Unselected settings and local source bindings are preserved. Imported scopes lose local bindings; source registrations and permissions are never imported. Selective import preserves host settings, UI language and warning thresholds unless the display thresholds are explicitly selected. Dry runs, review cancellation and invalid inputs write nothing. Concurrent saved edits refuse the old revision.
 
@@ -98,3 +100,9 @@ Unselected settings and local source bindings are preserved. Imported scopes los
 ## Adaptive indicators and continuous backgrounds
 
 For fitting rules, Powerline backgrounds and compatible schemes, see the [composition guide](COMPOSITION.md#adaptive-indicators-and-continuous-backgrounds).
+
+## Related guides
+
+- [Built-in display schemes](SCHEMES.md)
+- [Configuration editors](EDITORS.md)
+- [Draft history and reuse](DRAFT_HISTORY.md)

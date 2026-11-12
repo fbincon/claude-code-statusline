@@ -1,6 +1,10 @@
-# Complete display schemes
+<a id="complete-display-schemes"></a>
+
+# Built-in display schemes
 
 **English** | [简体中文](SCHEMES.zh-CN.md)
+
+After installation, choose a scheme or preset in either editor or from the CLI. A candidate takes effect when you save the display draft.
 
 ## Schemes, presets and profiles
 
@@ -26,7 +30,7 @@ On the review page, choose an action.
 - **Save this draft** saves to the current target with the revision check, backup and transaction. Review of a shared profile shows the count and paths of bound projects.
 - **Save as a named copy** keeps the original unsaved draft and saves a separate profile.
 
-Backspace returns one step. Ctrl+G cancels and keeps the draft from before Quick setup. Esc also cancels in the external editor. Choosing a preset or scheme preserves existing collector preferences and disabled subagent rows. An explicit interface language change saves immediately, output language saves with the display draft, and Claude preferences use their separate Apply action.
+Backspace returns one step. Ctrl+G cancels and keeps the draft from before Quick setup. Esc also cancels in the external editor. Choosing a preset or scheme preserves existing collector preferences and the subagent enablement switch; subagent row contents are rebuilt from the selected preset or scheme. An explicit interface language change saves immediately, output language saves with the display draft, and Claude preferences use their separate Apply action.
 
 ## Built-in schemes
 
@@ -48,6 +52,21 @@ Compact numbers, stable instance IDs, priorities and width limits are included. 
 Powerline is a display choice, not a requirement. To keep a selected scheme's items and colors with compact separators, set `separator-style compact` before saving. Powerline backgrounds then have no effect; ordinary foreground colors and eligible foreground gradients still apply. The terminal background and font remain independently controlled. [Appearance controls](APPEARANCE.md).
 
 The six original preset IDs also remain available: `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right` and `repeated-metrics`. Unlike complete schemes, those presets preserve the selected global theme and separator.
+
+<a id="original-presets"></a>
+
+### Original presets
+
+| Preset | Choose it for | Main layout | Subagent defaults |
+| --- | --- | --- | --- |
+| `minimal` | A compact everyday view | Auto: model/effort, directory, context remaining, task timer | Existing five items |
+| `developer` | Git, cumulative usage and session cost | Two rows: model/directory/Git; context remaining/tokens/timer/cost | Existing five items |
+| `monitoring` | Quotas, resets, cache and session accounting | Three rows: context/allowances; resets/cache/TTL; cost/duration/API duration/requests/cache misses | Existing five items |
+| `multi-agent` | Bounded agent rows and task labels | Two rows: model/directory/Git; context remaining/tokens/timer | Existing five items, hide completed, up to six rows, task width 48 |
+| `left-right` | Left/right placement | One row: model/effort, Git, spacer, context remaining | status, name, spacer, elapsed |
+| `repeated-metrics` | Comparing two formats of one metric | Two input-token instances, full and compact | Existing five items |
+
+These presets preserve the selected global theme and separator and rebuild subagent rows from their defaults. Both presets and complete schemes expand into editable configuration; optional data may remain unavailable.
 
 ## CLI and sharing
 
@@ -71,3 +90,9 @@ claude-statusline config profile export daily-development my-scheme.json
 ```
 
 The current generated files use single-profile format 1 and display schema 17. They contain no project bindings, collection switches, host preferences or external-capability grants. Import saves a named profile; activation and project binding remain explicit. Older captured scheme files retain their original format and artifact identities in the [setup gallery](images/setup-appearance/README.md) and [adaptive-scenario gallery](images/adaptive-row-scenarios/README.md).
+
+## Related guides
+
+- [Profiles and project bindings](PROFILES.md)
+- [Appearance](APPEARANCE.md)
+- [Configuration editors](EDITORS.md)
