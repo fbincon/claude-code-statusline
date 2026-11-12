@@ -5,7 +5,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { createImpactPlan, tasksFor, assertPlan } from '../impact-plan.js';
+import { createImpactPlan, tasksFor, assertPlan, impactPolicy } from '../impact-plan.js';
+import { DOCUMENT_CONTENT_PATHS } from '../impact-documentation.js';
 import { emitted, productInputs, runtimeLock, canonical, hash } from '../impact-content.js';
 import { checkAssets, pngDimensions } from '../impact-assets.js';
 import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
@@ -26,6 +27,27 @@ function repository(t: any) {
     t.after(() => { process.chdir(previous); removeTree(root); assert(!fs.existsSync(root)); });
     return { root, git, write, commit };
 }
+test('source-backed documentation selects its consuming checks on additions, deletions and renames', t => {
+    const { git, write, commit } = repository(t);
+    write('tools/checks/impact-documentation.ts', '// Source-backed documentation suite registration\n'); commit();
+    for (const path of DOCUMENT_CONTENT_PATHS) {
+        const base = git('rev-parse', 'HEAD'); write(path, '# Current guide');
+        const plan = createImpactPlan(base, commit());
+        assert.equal(plan.route, 'maintenance'); assert.deepEqual(plan.checks, ['actions', 'checks', 'docs']);
+        assert.deepEqual(plan.tasks.map(task => [task.id, task.checks]), [
+            ['linux', ['actions', 'checks', 'docs']], ['windows', ['checks']], ['macos', ['checks']],
+        ]);
+    }
+    let base = git('rev-parse', 'HEAD');
+    git('mv', 'docs/EXTENSIONS.md', 'docs/moved.md');
+    assert.deepEqual(createImpactPlan(base, commit()).checks, ['actions', 'checks', 'docs']);
+    base = git('rev-parse', 'HEAD'); git('rm', 'docs/EXTENSIONS.zh-CN.md');
+    assert.deepEqual(createImpactPlan(base, commit()).checks, ['actions', 'checks', 'docs']);
+    base = git('rev-parse', 'HEAD'); write('docs/development/history/unrelated.md', '# Historical record');
+    assert.deepEqual(createImpactPlan(base, commit()).checks, ['actions', 'docs']);
+    base = git('rev-parse', 'HEAD'); write('tools/checks/impact-documentation.ts', 'export const DOCUMENT_CONTENT_PATHS = [];');
+    const head = commit(); assert.notEqual(impactPolicy(base), impactPolicy(head), 'Consumed page registration is a policy input');
+});
 test('a product and screenshot change must execute assets on the actual immutable bytes', t => {
     const png = fs.readFileSync('docs/images/draft-history-reuse/native-draft-history.png');
     const another = fs.readFileSync('docs/images/typescript/v3.16.0/native/fr/settings.png');

@@ -32,13 +32,13 @@ Claude 的 Unix 宿主会在 Native 收到 Ctrl+Z 前挂起整个进程；本机
 
 **A** 将结构操作及引用修复一起接受为一次可撤销操作，**Q** 或 Escape 取消。草稿变化后提案失效。CLI 结构命令保留默认拒绝行为，提供明确审阅：
 
-```bash
-claude-statusline config instance main remove b --dry-run
-claude-statusline config instance main remove b \
-  --expected-revision TARGET_REV --accept-alignments table
+<!-- docs-example: alignment-review -->
+```text
+claude-statusline config instance main remove INSTANCE_ID --dry-run
+claude-statusline config instance main remove INSTANCE_ID --expected-revision TARGET_REV --accept-alignments ALIGNMENT_IDS
 ```
 
-把 `TARGET_REV` 与 `table` 替换为审阅返回的修订及精确受影响关系 ID。`config group`、`config layout` 提供相同控制，最终修订检查在配置锁内执行。
+将 `INSTANCE_ID` 替换为所选实例，`TARGET_REV` 与 `ALIGNMENT_IDS` 使用返回的 `expected_revision` 和准确的逗号分隔修复关系 ID。`config group`、`config layout` 提供相同控制，最终修订检查在配置锁内执行。候选无法满足结构规则、修订变化或修复列表不匹配时，保留已保存配置；取消编辑器审阅则保留原草稿。
 
 ## 复制视觉样式
 

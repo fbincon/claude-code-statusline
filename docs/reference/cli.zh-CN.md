@@ -341,7 +341,7 @@ claude-statusline config subagents order status-elapsed name model-with-effort c
 
 ### `config layout auto|explicit [ROW...]`
 
-自动模式沿用折行。显式模式使用逗号分隔行，按顺序展平后必须恰好等于已启用的主栏项；省略行参数时将全部启用项放入同一显式行。
+自动模式沿用折行。显式模式使用逗号分隔行，按顺序展平后必须恰好等于全部已配置主栏项，包括禁用项；省略行参数时将全部已配置实例放入同一显式行。
 
 ```text
 claude-statusline config set-items model current-dir context-used
@@ -353,7 +353,7 @@ claude-statusline config layout auto
 
 ### 主行对应列对齐
 
-使用 `config alignment list`、`config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'` 和 `config alignment remove ID` 管理稳定引用。逗号连接同列成员，分号分隔列；使引用失效的结构修改在写入前拒绝。[使用规则](../COMPOSITION.zh-CN.md#显式主行的对应列对齐)。
+使用 `config alignment list`、`config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'` 和 `config alignment remove ID` 管理稳定引用。逗号连接同列成员，分号分隔列。实例／分组／布局结构命令默认拒绝未经接受的对齐修复。先使用 `--dry-run` 审阅有效候选，再携带其 `--expected-revision` 和准确的逗号分隔 `--accept-alignments` ID 重复操作。候选无效、修订变化或接受列表不匹配时，保留已保存配置。[示例](../COMPOSITION.zh-CN.md#显式主行的对应列对齐) · [编辑器审阅与取消](../DRAFT_HISTORY.zh-CN.md#结构调整与对齐)。
 
 ### `config set OPTION VALUE`
 
@@ -694,6 +694,7 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 
 以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 17 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
+<!-- docs-example: display-config -->
 ```json
 {
   "schema_version": 17,

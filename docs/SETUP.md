@@ -31,6 +31,16 @@ No-argument non-TTY entry exits 2 without installation or configuration changes.
 claude-statusline setup --config-dir '/path with spaces/claude'
 ```
 
+Windows PowerShell uses the npm `.cmd` entry. Quote a custom directory containing spaces or Unicode, and use the same directory for preview and setup:
+
+<!-- docs-example: setup-powershell -->
+```powershell
+claude-statusline.cmd setup --dry-run --config-dir 'C:\Users\Example\Claude Config'
+claude-statusline.cmd setup --config-dir 'C:\Users\Example\Claude Config'
+```
+
+Replace the example path with your intended Claude configuration directory. `--config-dir` overrides `CLAUDE_CONFIG_DIR`; omit it to use the normal directory.
+
 The target is always the **user default**. The wizard reports saved profiles, project bindings and the current project's bound scheme; it does not replace those bindings. Use `configure --profile NAME`, `configure --project PATH` or the editor's scheme manager to edit those targets afterward.
 
 Integration requires a detected Claude version of at least 2.1.205. This is the wizard's basic integration boundary, not a claim that every optional field or editor works on that host. Existing capability checks continue to suspend unsupported features. Missing/unknown/older Claude or a third-party integration can still permit **Save display only**. Damaged display/settings/profile files or pending transactions block saving. Inspect the reported file or run `claude-statusline recover --dry-run` before an explicit recovery; the wizard does not reset damaged files or force ownership.

@@ -34,8 +34,9 @@
 {"value":0,"observed_at":"2026-10-23T08:00:00Z"}
 ```
 
-数据源定义文件示例，将路径替换为实际绝对路径：
+将以下定义保存为 `queue-source.json`，路径替换为实际绝对路径：
 
+<!-- docs-example: local-source -->
 ```json
 {
   "kind": "json",
@@ -71,24 +72,58 @@ JSON Pointer 支持对象键和数组索引；`~0` 代表 `~`，`~1` 代表 `/`�
 
 ## GitHub PR 与 CI
 
-沿用现有 `gh` 认证。设置 `kind: "github"`、明确的项目或 worktree 范围，以及如下设置：
+沿用仓库主机上已有的 `gh` 登录；此功能不登录或切换账号。在项目／worktree 中检查当前账号及分支：
 
+```sh
+gh auth status --hostname github.com
+git rev-parse --show-toplevel
+git branch --show-current
+git rev-parse HEAD
+```
+
+使用已推送到所选仓库的分支，本地 HEAD 必须与 PR head 一致。将下方 `/absolute/project`、`owner/repository`、`feature/example` 和 `your-gh-login` 替换为该项目绝对根目录、仓库、分支及已认证账号，将完整定义保存为 `forge-source.json`：
+
+<!-- docs-example: github-source -->
 ```json
 {
-  "host": "github.com",
-  "repository": "owner/repository",
-  "branch": "feature/example",
-  "account": "your-gh-login",
-  "pr": null
+  "kind": "github",
+  "name": "项目检查",
+  "scope": {
+    "project": "/absolute/project",
+    "session": null,
+    "agent": null
+  },
+  "ttl_seconds": 300,
+  "settings": {
+    "host": "github.com",
+    "repository": "owner/repository",
+    "branch": "feature/example",
+    "account": "your-gh-login",
+    "pr": null
+  }
 }
 ```
 
-仅查询指定主机、仓库和分支，不切换账号，不猜测其他托管平台。多个开放 PR 匹配时，使用 `pr` 明确选择编号。非仓库、detached HEAD、本地与远端 HEAD 不符、认证失败、权限拒绝及检查不可用均有独立结果。已有宿主 `pr` 保持原义；`github-pr` 和 `github-ci` 是独立的主状态栏组件。
+注册后审阅返回的定义，使用准确的 `review_revision` 启用。添加两个主栏组件，分别用返回的实例 ID 绑定：
 
-```bash
-claude-statusline source refresh forge --project /absolute/project --json
-claude-statusline source diagnose forge --project /absolute/project --json
+<!-- docs-example: github-workflow -->
+```text
+claude-statusline source add forge --file forge-source.json --json
+claude-statusline source review forge --json
+claude-statusline source enable forge --review REVIEW_REVISION --json
+claude-statusline config instance main add github-pr
+claude-statusline source bind forge --instance PR_INSTANCE_ID --scope main --json
+claude-statusline config instance main add github-ci
+claude-statusline source bind forge --instance CI_INSTANCE_ID --scope main --json
+claude-statusline source refresh forge --project '/absolute/project' --json
+claude-statusline source diagnose forge --project '/absolute/project' --json
 ```
+
+将 `REVIEW_REVISION`、`PR_INSTANCE_ID` 和 `CI_INSTANCE_ID` 替换为实际命令结果。这些 config／bind 命令保存用户默认，要求归属本工具的安装；先完成[设置](SETUP.zh-CN.md)。全程使用同一配置目录，可通过 `source --config-dir PATH ...` 和 `config --config-dir PATH ...` 明确指定。
+
+若项目已绑定命名方案，请编辑并绑定该目标，而不是独立的用户默认；参见[编辑目标](PROFILES.zh-CN.md#选择编辑目标)。
+
+刷新前诊断显示 `not_refreshed`。刷新成功后检查诊断中的观测及检查汇总，再在该项目观察状态栏：已绑定组件读取缓存的 PR／检查结果。查询成功也可能返回 `no_pr` 或 `no_checks`，两者均不代表 CI 通过。仅查询指定主机、仓库和分支；多个开放 PR 匹配时，使用 `pr` 明确选择编号。非仓库、detached HEAD、本地与远端 HEAD 不符、认证失败及权限拒绝均有独立原因；身份不匹配时隐藏旧值。已有宿主 `pr` 保持原义；`github-pr` 和 `github-ci` 是独立的主状态栏组件。
 
 默认手动刷新，总时限为 30 秒；渲染读取已发布观测，不运行 `gh`。缓存身份包含项目/worktree、账号、主机、仓库、分支、HEAD 和本地认证上下文。身份变化会使旧结果失效。凭据留在 `gh` 的认证机制中，不写入源配置、导出或诊断。
 
@@ -117,18 +152,47 @@ worker 等待最终锁时，过期读取可以先按超时暂记反馈。后续�
 
 ## 命令
 
-设置 `kind: "command"`，例如：
+此只读示例使用已安装的 Node 输出 `42`。将两处项目路径替换为实际存在的绝对目录，将完整定义保存为 `answer-source.json`：
 
+<!-- docs-example: command-source -->
 ```json
 {
-  "executable": "node",
-  "args": ["-p", "String(42)"],
-  "cwd": "/absolute/project",
-  "input": {},
-  "output": "text",
-  "timeout_ms": 5000
+  "kind": "command",
+  "name": "示例答案",
+  "scope": {
+    "project": "/absolute/project",
+    "session": null,
+    "agent": null
+  },
+  "ttl_seconds": 300,
+  "settings": {
+    "executable": "node",
+    "args": [
+      "-p",
+      "String(42)"
+    ],
+    "cwd": "/absolute/project",
+    "input": {},
+    "output": "text",
+    "timeout_ms": 5000
+  }
 }
 ```
+
+启用前审阅解析后的程序路径和参数，再绑定 `external-value` 实例并明确执行：
+
+<!-- docs-example: command-workflow -->
+```text
+claude-statusline source add answer --file answer-source.json --json
+claude-statusline source review answer --json
+claude-statusline source enable answer --review REVIEW_REVISION --json
+claude-statusline config instance main add external-value
+claude-statusline source bind answer --instance INSTANCE_ID --scope main --json
+claude-statusline source refresh answer --project '/absolute/project' --json
+claude-statusline source diagnose answer --project '/absolute/project' --json
+```
+
+使用返回的 `review_revision` 和实例 ID，沿用上文同一归属安装及配置目录。启用／绑定不会执行命令。刷新前结果为 `not_refreshed`；刷新成功后任务完成，诊断显示有效文本值 `42`，已绑定组件在匹配项目中显示该值。失败时检查任务／观测原因，不把缺失输出视为零。手动检查成功后，自动执行仍需另行审阅才会开启。
 
 保存时解析可执行程序位置，执行时使用字面参数，不经过 Shell。无法识别可执行格式的文本会失败，不会隐式转入 Shell。脚本需明确指定解释器；Windows `.cmd`/`.bat` 不会自动经 `cmd.exe` 执行。更改程序、参数、路径或输入后必须重新审查启用。
 
@@ -153,6 +217,23 @@ stdin 是仅包含选定映射的 JSON 对象。可用字段为 `project`、`ses
 手动调用方仍保留需求时达到执行时限，任务记录为失败、原因 `timeout`，保留实际可用的执行诊断，并发布可供 `source diagnose` 检查的错误观测。仅仅达到 deadline 不表示调用方取消。明确取消或释放全部适用消费者仍独立处理，过时的来源修订或上下文身份不能发布结果。
 
 `source refresh ID` 等待完成；`--no-wait` 返回任务 ID，供 `source status JOB_ID` 和 `source cancel JOB_ID` 使用。中断等待中的 CLI 仅释放自身消费者；`--no-wait` 返回后仍保留需求至完成或原 deadline 的超时结果发布。命令源同一时间只运行一个刷新。GitHub 按来源修订和上下文身份合并刷新；手动刷新登记独立消费者，不改写自动任务的初始身份。停用、删除、编辑会取消旧任务，配置修订与上下文检查会拒绝迟到结果。
+
+### Windows 路径与 PowerShell
+
+PowerShell 中使用 `claude-statusline.cmd` 调用 CLI，将相同定义保存为 UTF-8 JSON。GitHub 的 `scope.project` 及命令的 `scope.project`／`settings.cwd` 都可使用 `"C:\\Work\\Example Project"` 或 `"C:/Work/Example Project"` 表示同一路径；JSON 来源的 `settings.path` 同理。PowerShell 单引号参数中的反斜杠按原样保留，JSON 则需要将每个反斜杠写两次。
+
+<!-- docs-example: source-powershell -->
+```powershell
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' add answer --file 'C:\Work\Example Project\answer-source.json' --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' review answer --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' enable answer --review REVIEW_REVISION --json
+claude-statusline.cmd config --config-dir 'C:\Users\Example\Claude Config' instance main add external-value
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' bind answer --instance INSTANCE_ID --scope main --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' refresh answer --project 'C:\Work\Example Project' --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' diagnose answer --project 'C:\Work\Example Project' --json
+```
+
+替换路径和返回值占位符，先对同一配置目录完成设置。GitHub 流程采用相同命令名／路径替换。CLI 的 npm `.cmd` 包装入口与来源的 `settings.executable` 相互独立：命令来源按字面 argv 运行程序，不会隐式通过 `cmd.exe` 执行 `.cmd`／`.bat`。Node 脚本使用 `node`／`node.exe`，脚本路径作为独立参数；不要将整条 Shell 命令填入 `executable`。
 
 ## 命令自动执行
 

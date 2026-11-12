@@ -48,8 +48,9 @@ Create a local data file, for example:
 {"value":0,"observed_at":"2026-10-23T08:00:00Z"}
 ```
 
-Create a source definition file, replacing the path with your own absolute path:
+Save this definition as `queue-source.json`, replacing the path with your own absolute path:
 
+<!-- docs-example: local-source -->
 ```json
 {
   "kind": "json",
@@ -97,30 +98,58 @@ error marker. Disabling a source stops subsequent external reads.
 
 ## GitHub PR and CI
 
-Use existing `gh` authentication. Configure `kind: "github"`, an explicit project
-or worktree scope, and settings such as:
+Use an existing `gh` login for the repository's host; this feature neither logs in nor switches accounts. In your project/worktree, check the active account and branch:
 
+```sh
+gh auth status --hostname github.com
+git rev-parse --show-toplevel
+git branch --show-current
+git rev-parse HEAD
+```
+
+Use a branch pushed to the chosen repository. Its local HEAD must match the PR head. Replace `/absolute/project`, `owner/repository`, `feature/example` and `your-gh-login` below with that project's absolute root, repository, branch and authenticated login. Save the complete definition as `forge-source.json`:
+
+<!-- docs-example: github-source -->
 ```json
 {
-  "host": "github.com",
-  "repository": "owner/repository",
-  "branch": "feature/example",
-  "account": "your-gh-login",
-  "pr": null
+  "kind": "github",
+  "name": "Project checks",
+  "scope": {
+    "project": "/absolute/project",
+    "session": null,
+    "agent": null
+  },
+  "ttl_seconds": 300,
+  "settings": {
+    "host": "github.com",
+    "repository": "owner/repository",
+    "branch": "feature/example",
+    "account": "your-gh-login",
+    "pr": null
+  }
 }
 ```
 
-The source queries only this host/repository/branch. It never switches accounts
-or discovers a different forge. Set `pr` to an explicit number if several open
-PRs match. Non-repositories, detached HEAD, mismatched local/remote HEAD,
-authentication failures, denied access and unavailable checks have distinct
-results. Existing host `pr` remains unchanged; `github-pr` and `github-ci` are
-separate main-line components.
+Register, inspect the returned definition and enable its exact `review_revision`. Add both main-line components and use each returned instance ID for its binding:
 
-```bash
-claude-statusline source refresh forge --project /absolute/project --json
-claude-statusline source diagnose forge --project /absolute/project --json
+<!-- docs-example: github-workflow -->
+```text
+claude-statusline source add forge --file forge-source.json --json
+claude-statusline source review forge --json
+claude-statusline source enable forge --review REVIEW_REVISION --json
+claude-statusline config instance main add github-pr
+claude-statusline source bind forge --instance PR_INSTANCE_ID --scope main --json
+claude-statusline config instance main add github-ci
+claude-statusline source bind forge --instance CI_INSTANCE_ID --scope main --json
+claude-statusline source refresh forge --project '/absolute/project' --json
+claude-statusline source diagnose forge --project '/absolute/project' --json
 ```
+
+Replace `REVIEW_REVISION`, `PR_INSTANCE_ID` and `CI_INSTANCE_ID` with actual command results. These config/bind commands save the user default and require owned installation; complete [setup](SETUP.md) first. Use the same configuration directory throughout. `source --config-dir PATH ...` and `config --config-dir PATH ...` select it explicitly.
+
+If the project is already bound to a named profile, edit and bind that target instead of the independent user default; see [editing targets](PROFILES.md#choose-an-editing-target).
+
+Before refresh, diagnosis reports `not_refreshed`. After a successful refresh, inspect the observation and check summary in diagnosis, then view the statusline in that project: bound components read the cached PR/check result. A successful query can report `no_pr` or `no_checks`; neither means passing CI. The source queries only the specified host/repository/branch. Set `pr` to an explicit number if several open PRs match. Non-repositories, detached HEAD, mismatched local/remote HEAD, authentication failure and denied access have distinct reasons; an identity mismatch suppresses old values. Existing host `pr` remains unchanged; `github-pr` and `github-ci` are separate main-line components.
 
 Refresh is manual by default and has a 30-second total deadline. Rendering consumes cached
 observations without running `gh`. Cache identity includes project/worktree,
@@ -157,18 +186,47 @@ Rendering, preview, imports and project bindings never dispatch refreshes. JSON 
 
 ## Commands
 
-Use `kind: "command"` with settings such as:
+This read-only example prints `42` using the installed Node runtime. Replace both project paths with an existing absolute directory and save this complete definition as `answer-source.json`:
 
+<!-- docs-example: command-source -->
 ```json
 {
-  "executable": "node",
-  "args": ["-p", "String(42)"],
-  "cwd": "/absolute/project",
-  "input": {},
-  "output": "text",
-  "timeout_ms": 5000
+  "kind": "command",
+  "name": "Example answer",
+  "scope": {
+    "project": "/absolute/project",
+    "session": null,
+    "agent": null
+  },
+  "ttl_seconds": 300,
+  "settings": {
+    "executable": "node",
+    "args": [
+      "-p",
+      "String(42)"
+    ],
+    "cwd": "/absolute/project",
+    "input": {},
+    "output": "text",
+    "timeout_ms": 5000
+  }
 }
 ```
+
+Review the resolved executable and arguments before enabling, then bind an `external-value` instance and execute explicitly:
+
+<!-- docs-example: command-workflow -->
+```text
+claude-statusline source add answer --file answer-source.json --json
+claude-statusline source review answer --json
+claude-statusline source enable answer --review REVIEW_REVISION --json
+claude-statusline config instance main add external-value
+claude-statusline source bind answer --instance INSTANCE_ID --scope main --json
+claude-statusline source refresh answer --project '/absolute/project' --json
+claude-statusline source diagnose answer --project '/absolute/project' --json
+```
+
+Use the returned `review_revision` and instance ID, with the same owned installation and configuration directory as above. Enable/bind do not execute the command. Before refresh the result is `not_refreshed`; a successful refresh completes the job and diagnosis shows a valid text value `42`. The bound component displays that value in the matching project. On failure, inspect the job/observation reason rather than treating missing output as zero. Automatic execution remains off unless separately reviewed after this manual check.
 
 The executable is resolved when saving. Execution uses literal arguments without
 a Shell. Unrecognized executable text fails instead of implicitly entering a Shell.
@@ -212,6 +270,23 @@ separate, and obsolete source revisions or context identities cannot publish res
 
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
 `source status JOB_ID` and `source cancel JOB_ID`. Interrupting a waiting CLI releases only its consumer; `--no-wait` retains interest through completion or publication of the original deadline's timeout result. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh joins as an independent consumer without changing the origin. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
+
+### Windows paths and PowerShell
+
+Use `claude-statusline.cmd` for CLI calls in PowerShell. Save the same definition files as UTF-8 JSON. For both GitHub `scope.project` and command `scope.project`/`settings.cwd`, `"C:\\Work\\Example Project"` and `"C:/Work/Example Project"` express the same Windows path. Set the JSON source's `settings.path` similarly. Backslashes in a PowerShell single-quoted argument stay literal; JSON requires each backslash doubled.
+
+<!-- docs-example: source-powershell -->
+```powershell
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' add answer --file 'C:\Work\Example Project\answer-source.json' --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' review answer --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' enable answer --review REVIEW_REVISION --json
+claude-statusline.cmd config --config-dir 'C:\Users\Example\Claude Config' instance main add external-value
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' bind answer --instance INSTANCE_ID --scope main --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' refresh answer --project 'C:\Work\Example Project' --json
+claude-statusline.cmd source --config-dir 'C:\Users\Example\Claude Config' diagnose answer --project 'C:\Work\Example Project' --json
+```
+
+Replace the paths and returned placeholders, and set up that same configuration directory first. The GitHub workflow uses the same command-name/path substitutions. The CLI's npm `.cmd` wrapper is separate from the source's `settings.executable`: a command source runs a program with literal argv and does not implicitly run `.cmd`/`.bat` through `cmd.exe`. Use `node`/`node.exe` and a script path as a separate argument for Node scripts; do not put an entire shell command in `executable`.
 
 ## Automatic command execution
 

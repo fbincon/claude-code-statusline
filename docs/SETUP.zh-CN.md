@@ -31,6 +31,16 @@ claude-statusline setup
 claude-statusline setup --config-dir '/包含空格的路径/claude'
 ```
 
+Windows PowerShell 使用 npm 的 `.cmd` 入口。含空格或中文的自定义目录需要引号，预演与设置使用同一目录：
+
+<!-- docs-example: setup-powershell -->
+```powershell
+claude-statusline.cmd setup --dry-run --config-dir 'C:\Users\Example\Claude Config'
+claude-statusline.cmd setup --config-dir 'C:\Users\Example\Claude Config'
+```
+
+将示例路径替换为目标 Claude 配置目录。`--config-dir` 优先于 `CLAUDE_CONFIG_DIR`；省略则使用通常目录。
+
 编辑目标固定为**用户默认**。向导显示已有方案、项目绑定及当前项目绑定的方案，不替换绑定。之后可用 `configure --profile NAME`、`configure --project PATH` 或编辑器中的方案管理修改这些目标。
 
 向导接入需要检测到至少 2.1.205 的 Claude。这是基础接入门槛，不表示该宿主支持所有可选字段或编辑器；既有能力检查仍会暂停不支持的功能。缺少／未知／过旧的 Claude 或第三方接入冲突时，仍可能允许**仅保存显示**。显示、设置或方案文件损坏，以及存在待恢复事务时，会阻止保存。请检查报告的文件，或先运行 `claude-statusline recover --dry-run` 再明确执行恢复；向导不重置损坏文件、不强制接管资源。

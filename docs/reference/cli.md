@@ -357,7 +357,7 @@ Explicit layout truncates to maximum item widths, then hides lower-priority item
 
 ### Main-row alignment
 
-`config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Invalid structural changes fail before writing. [Guide](../COMPOSITION.md#align-corresponding-columns-across-main-rows).
+`config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Structural instance/group/layout commands refuse unapproved alignment repairs. Run `--dry-run`, inspect the valid candidate, then repeat with its `--expected-revision` and exact comma-separated `--accept-alignments` IDs. Invalid candidates, changed revisions and mismatched approvals leave saved configuration unchanged. [Example](../COMPOSITION.md#align-corresponding-columns-across-main-rows) · [Editor review and cancellation](../DRAFT_HISTORY.md#structural-edits-and-alignment).
 
 ### `config set OPTION VALUE`
 
@@ -724,6 +724,7 @@ Display items and styles are saved in:
 
 This complete schema-17 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
 
+<!-- docs-example: display-config -->
 ```json
 {
   "schema_version": 17,

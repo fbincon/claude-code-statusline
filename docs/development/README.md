@@ -84,6 +84,21 @@ Use immutable commits and new report paths as described in [impact checks](impac
 
 Complete product acceptance includes eight installed targets, 32 Node cases, sixteen fixed host combinations and applicable native-capacity cases consuming matching artifacts. Missing 2.1.296 declarations remain explicit. Execution sharing, draft checks and diagnostics retain separate meanings; see [testing and acceptance](testing.md).
 
+<a id="documentation-content-checks"></a>
+
+### Check documentation content
+
+`docs:check` remains a lightweight link, anchor and bilingual/template check. For the registered current guides, also run the source-backed content and example tests:
+
+```bash
+npm run build
+node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescript/tools/checks/test/docs-examples.test.js
+```
+
+The tests read the marked `docs-example` fences in the actual Markdown, validate JSON with production parsers, compare catalog/language/preset/interface facts with core, and run selected CLI workflows in temporary directories. Only documented path/revision/instance placeholders are substituted. The command example runs Node to print `42`; GitHub uses an injected offline runner. This does not establish live GitHub, interactive PowerShell or physical editor acceptance, or validate every prose statement.
+
+The [registered page list](../../tools/checks/impact-documentation.ts) selects the existing `checks` family alongside `docs` when those pages change, including deletion/rename. `checks` retains Linux, Windows and macOS execution. Keep registration and example markers with a moved current page; historical sources predating the suite retain their original obligations. The list is part of the immutable impact-policy digest. Use the selected `ci:plan`/`ci:check` tasks for committed acceptance.
+
 ### Clean compiled outputs
 
 After deleting or moving source files, preview the cleanup, remove stale compiled files and rebuild:

@@ -4,7 +4,7 @@
 
 目录包含 65 个主栏指标和 15 个子 Agent 指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子 Agent 的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
-下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
+下列样例以英文输出为主，中文短语展示 `statusline-language=zh-CN` 的本地化效果。反引号中的样例表示示意显示值；定义／来源和不可用行为列解释含义与前提，说明文字不代表原样输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 文档导航
 
@@ -106,7 +106,7 @@
 | `context-tokens` | `Context 54K / 200K` | `context_window.current_usage` 中普通输入、缓存写入和缓存读取之和／窗口容量，不含输出。若分项对象不存在，可用官方 `total_input_tokens`；压缩后明确为 null 时仍视为不可用。 |
 | `five-hour-reset` | `5h reset 2h 13m` | 按 `rate_limits.five_hour.resets_at` 倒计时。 |
 | `weekly-reset` | `weekly reset 6d 2h` | 按 `rate_limits.seven_day.resets_at` 倒计时。 |
-| `session-cost-rate` | `费用速率 ~$0.58/会话小时` | 官方费用与所选会话／API 时长推导的每小时估算速率，详见下文。 |
+| `session-cost-rate` | `费用速率 ~$0.58/会话小时`（zh-CN） | 官方费用与所选会话／API 时长推导的每小时估算速率，详见下文。 |
 | `session-cost` | `Cost $0.12` | 官方会话累计费用 `cost.total_cost_usd`。 |
 | `session-duration` | `Session 12m 30s` | 官方会话累计运行时间 `cost.total_duration_ms`。 |
 | `api-duration` | `API 1m 15s` | 官方累计 API 请求耗时 `cost.total_api_duration_ms`。 |
@@ -114,8 +114,8 @@
 | `cache-state` | `Cache warm` | 主对话官方 `prompt_cache.warm`、`caching_observed`、`expires_at`：只有期限内显示 warm，过期为 cold，未观测缓存单独表示。 |
 | `cache-expires` | `Cache TTL 4m 20s` | 仅在已观测主对话缓存仍 warm 时显示 TTL，需有效的未来 `expires_at`。 |
 | `cache-misses` | `Cache miss 2` | 官方 `prompt_cache.misses`，不把压缩或清理后的 `expected_rebuilds` 当成 miss。 |
-| `cache-miss-reason` | `缓存可能原因 工具变化` | 默认关闭；读取 `prompt_cache.last_miss_cause.causes`，表示宿主判断的最近一次主会话缓存未命中的可能原因。需要 2.1.260+；未知原因码安全保留，详细数量和时间见[诊断](DIAGNOSTICS.zh-CN.md)。 |
-| `worktree` | `Git 工作树 feature-x` | 优先 `worktree.name`（Claude 工作树会话），缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
+| `cache-miss-reason` | `缓存可能原因 工具变化`（zh-CN） | 默认关闭；读取 `prompt_cache.last_miss_cause.causes`，表示宿主判断的最近一次主会话缓存未命中的可能原因。需要 2.1.260+；未知原因码安全保留，详细数量和时间见[诊断](DIAGNOSTICS.zh-CN.md)。 |
+| `worktree` | `Git 工作树 feature-x`（zh-CN） | 优先 `worktree.name`（Claude 工作树会话），缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
 | `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子 Agent 请求。 |
 | `session-name` | `Session demo-session` | 已观测的 `session_name`，不以 ID 兜底。 |
 | `session-id` | `ID demo-session` | 完整的 `session_id`。 |

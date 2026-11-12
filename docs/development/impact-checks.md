@@ -14,7 +14,7 @@ The classifier reads both immutable Git trees, including additions, deletions, m
 
 | Responsibility | Required checks |
 | --- | --- |
-| Maintained documentation and community templates | Links, anchors, bilingual counterparts, template structure and whitespace |
+| Maintained documentation and community templates | Links, anchors, bilingual counterparts, template structure and whitespace; registered current guides also select source-backed content/example tests |
 | Documentation media and JSON records | Referenced files, media framing, PNG CRC/decompression/dimensions and inspectable capture hashes |
 | Translation values, human-help value slots and registered theme colors | Message keys/placeholders, exact resource generation, relevant core/CLI/TUI tests, applicable Native host tests and package/installation checks |
 | Tests and shared fixtures | Registered consuming test families and applicable platform/host combinations |
