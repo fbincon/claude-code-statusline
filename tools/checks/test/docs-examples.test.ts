@@ -251,6 +251,11 @@ for (const suffix of ['', '.zh-CN']) {
         const before = snapshot(f.root), diagnosed = await f.call(f.line(lines('cli-diagnose')[0]!));
         assert.equal(diagnosed.code, 0, diagnosed.err); assert.equal(JSON.parse(diagnosed.out).configuration.profile_name, 'Work');
         assert.deepEqual(snapshot(f.root), before);
+        writeFileSync(join(f.configDir, 'claude-statusline.json'), '{');
+        const corrupted = snapshot(f.root), rendered = await f.call(['render'], JSON.stringify({cwd:f.project}));
+        assert.equal(rendered.code, 0); assert.equal(rendered.out, '', 'The bound model-only Profile remains selected, rather than default directory/Git items');
+        assert.equal((await f.call(['config', 'show', '--json'])).code, 2);
+        assert.deepEqual(snapshot(f.root), corrupted, 'Fallback rendering and failed inspection preserve the invalid file');
     });
     for (const kind of ['style', 'group']) test(`CLI ${kind} reuse example enforces reviewed source and target revisions (${suffix || 'en'})`, async t => {
         const f = fixture(t), commands = lines('cli-' + kind + '-reuse');

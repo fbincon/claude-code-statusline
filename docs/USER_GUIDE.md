@@ -867,7 +867,7 @@ If you intend this tool to manage the status line, run `claude-statusline instal
 
 ### Corrupted JSON configuration
 
-The renderer continues with defaults, but diagnostics and normal writes report errors. Restore defaults:
+An invalid user-default display file falls back to built-in user-default settings during rendering; a valid project Profile can still be selected. Diagnostics and normal writes report the invalid file. Restore the user default without deleting Profiles or project bindings:
 
 ```bash
 claude-statusline config reset

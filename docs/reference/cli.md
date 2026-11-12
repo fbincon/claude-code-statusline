@@ -1035,7 +1035,7 @@ The current display schema is v17. Historical v1–v16 are readable and are back
 
 If display configuration is corrupted:
 
-- Both renderers silently fall back to built-in defaults to protect the Claude Code interface.
+- Both renderers silently use built-in user-default settings when the default file is invalid; a valid project Profile can still be selected afterward.
 - `config show`, normal configuration writes, and `doctor` report an explicit error.
 - `config reset` removes the corrupted configuration and restores defaults.
 

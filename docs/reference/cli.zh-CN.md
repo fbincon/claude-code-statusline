@@ -1005,7 +1005,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 如果显示配置损坏：
 
-- 两个 renderer 都会静默回退到内建默认显示，避免破坏 Claude Code 主界面。
+- 用户默认文件无效时，两个 renderer 静默使用内建用户默认设置；之后仍可选择有效的项目 Profile。
 - `config show`、普通配置写命令和 `doctor` 会明确报告错误。
 - `config reset` 可以删除损坏配置并恢复默认值。
 

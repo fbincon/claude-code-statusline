@@ -21,6 +21,8 @@ The existing [content/example suite](../../README.md#documentation-content-check
 
 The CLI journeys verify enabled ordering and disabled-instance retention in layouts; user-default/Profile resolution across reset; style/group reuse with exact source and target revisions; byte/mode preservation on refused writes and previews; ordinary transaction-recovery preview; diagnostic/task JSON and error meanings; and local JSON subagent observation publication. Source observations retain numeric values. Disabling custom subagent rows emits no overrides. Fixtures isolate configuration, export paths, runtime/session locations and GitHub credentials, and assert actual cleanup through the platform removal adapter.
 
+A subsequent review also clarifies the corrupted-default fallback in the reference and user guide: rendering can still select a valid project Profile, while normal inspection reports the invalid default file. The Profile journey asserts that selection and byte/mode preservation.
+
 ## Source identities and checks
 
 The baseline is `6a39f1a89981e9e5dd7547f354cd10b01f7bee6d`; implementation commit `3eeac9f5850e2e8772eda472cc5a5d88b4dd53e3` is on `docs/cli-reference-refresh`. This subsequent record/index commit adds no product code.
