@@ -296,7 +296,8 @@ Client 编辑器首次打开时读取目录和配置，保留完整草稿及数�
 全部目标，再还原字节／缺失状态／模式，或保留已确认提交的阶段。官方写入结果通过
 实际库存、缓存哈希及 argv 绑定核对，不盲目重放记录的写入参数。持久刷新意图在
 卸载／重装间隙保留用户明确禁用。这些日志独立于显示／UI／runtime 协议 schema。
-参见[候选恢复契约](typescript-migration/ts-04/recovery.zh-CN.md)。
+参见[TS-04 历史候选恢复证据](typescript-migration/ts-04/recovery.zh-CN.md)；当前恢复行为由本节及
+[CLI 参考](../reference/cli.zh-CN.md#包管理与恢复)规定。
 
 <a id="功能契约演进"></a>
 

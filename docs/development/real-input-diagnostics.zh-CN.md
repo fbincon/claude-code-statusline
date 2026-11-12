@@ -2,17 +2,19 @@
 
 [English](real-input-diagnostics.md) | **简体中文**
 
+> **历史记录（冻结于 v3.3.0，2026-10-20）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)及[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 实现基线：配置体验交付后的 `6716435`。[用户指南](../DIAGNOSTICS.zh-CN.md)定义命令契约。v3.3.0 已通过 npm、GitHub 和 Gitee 发布及验证，交付证据记录在下文。
 
 ## 架构与契约
 
 core 负责宿主字段解释、配置原因、中性的渲染追踪和真实输入报告组装；既有示例适配器把中性布局结果转换为示例专用原因码，生产渲染仍按需开启追踪。cli 负责显式输入解析、显示／设置只读访问及现有存储适配；platform 提供有大小限制的文件读取，不提供写入或进程能力。
 
-编辑器协议 14 新增 `diagnose`：必填 `draft`、`input`、`scope`、`width`，可选 `source` 默认 `supplied_json`，`observed_at` 默认 null，`include_local` 默认 true。响应分别表示来源、拟合文本片段、实例原因、证据和行结果；`explain` 仍仅解释示例。显示 schema 8、runtime 2、portable 1、UI preferences 1 不变。两个编辑器通过生成的目录及翻译资源获得新的可选组件。
+在 v3.3.0，编辑器协议 14 新增 `diagnose`：必填 `draft`、`input`、`scope`、`width`，可选 `source` 默认 `supplied_json`，`observed_at` 默认 null，`include_local` 默认 true。响应分别表示来源、拟合文本片段、实例原因、证据和行结果；`explain` 仍仅解释示例。显示 schema 8、runtime 2、portable 1、UI preferences 1 保持不变。两个编辑器通过生成的目录及翻译资源获得新的可选组件。
 
 诊断不调用会创建安装锁的 `ConfigurationService.read`，而是独立只读显示和设置文件。运行时适配器不调用 collector、事务服务、目录扫描、协调、子进程或网络客户端。已发布的请求／费用关联有独立的纯快照解析器；普通采集继续保留现有协调行为。已有任务快照可以直接使用生产计时格式化逻辑，无须采集转录。
 
-两个工作树字段共存时保留既有会话名称优先级，普通 Git 工作树使用独立标签。缓存原因仍是宿主判断的可能原因，详细数量和时间保留在诊断报告中。可选的 `cache-miss-reason` 增加一个主栏指标：主栏／子代理指标为 61／14，含组合组件的类型为 63／16，默认选择不变。
+两个工作树字段共存时保留既有会话名称优先级，普通 Git 工作树使用独立标签。缓存原因仍是宿主判断的可能原因，详细数量和时间保留在诊断报告中。在 v3.3.0，可选的 `cache-miss-reason` 增加一个主栏指标：主栏／子代理指标为 61／14，含组合组件的类型为 63／16，默认选择不变。
 
 ## 证据与边界
 

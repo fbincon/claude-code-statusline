@@ -2,13 +2,15 @@
 
 **English** | [简体中文](external-tui-regressions.zh-CN.md)
 
+> **Historical record (frozen at v3.1.2, 2026-10-19).** Current status and interface versions are in the [roadmap](roadmap.md) and [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions).
+
 Updated: **2026-10-19** (Asia/Shanghai). Delivered: **v3.1.2**. Status: **DONE** under the version-specific maintainer decision.
 
 ## Baselines and scope
 
 The independent review fixed Python v2.0.0 at `9b6d2fab4bf165be280d428a874521bfbf02c7e1` and TypeScript v3.1.1 at clean `main`, `fb07615bb041d4433865f20317a6eb85d988e4a4`. Python source was exported directly from that commit; the current archive was not assumed identical. The earlier [v3.1.1 delivery](external-tui-parity.md) remains a historical record, not evidence that every interaction was correct.
 
-The maintainer approved six confirmed regression repairs and stable npm/GitHub/Gitee delivery. Public commands, protocol 12, display schema 8 and independent Save/preferences contracts remain compatible. Append-only text editing and the search length/grapheme boundary shared by both baselines remain legacy limitations. The Python archive, frozen fixtures and comparison waivers are unchanged. README remains a product introduction.
+The maintainer approved six confirmed regression repairs and stable npm/GitHub/Gitee delivery. At v3.1.2, public commands, protocol 12, display schema 8 and independent Save/preferences contracts remained compatible. Append-only text editing and the search length/grapheme boundary shared by both baselines remain legacy limitations. The Python archive, frozen fixtures and comparison waivers are unchanged. README remains a product introduction.
 
 ## Repairs and regression evidence
 
@@ -33,7 +35,7 @@ Ordinary PR/push changes limited to root README/CHANGELOG Markdown and `docs/**/
 
 v3.1.2 requires final-head, merge and tag acceptance: eight installed targets, 32 Node 22/24 cases and thirteen fixed hosts using the same package digest. Two independent builds and source-archive rebuilds, installed PTY checks, draft assets and public downloads remain required. Approval date/path are matched per version; another version's decision, a changed date or expanded gaps fail verification.
 
-[The v3.1.2-only approval](../releases/approvals/v3.1.2.json) accepts the same six existing gaps: physical macOS sleep, macOS 14 Intel desktop/power, Windows 10 desktop, WSL desktop/popup, remaining target-specific human/power checks and Claude 2.1.296 exact declarations. They remain unverified/unavailable. New functional or automated failures are not waived. D06 stays **FAIL**; PERF-01 stays **NOT_STARTED**.
+[The v3.1.2-only approval](../releases/approvals/v3.1.2.json) accepts the same six existing gaps: physical macOS sleep, macOS 14 Intel desktop/power, Windows 10 desktop, WSL desktop/popup, remaining target-specific human/power checks and Claude 2.1.296 exact declarations. They remain unverified/unavailable. New functional or automated failures are not waived. At v3.1.2, D06 remained **FAIL** and PERF-01 was **NOT_STARTED**; PERF-01 was later closed in the [v3.1.4 delivery](history/performance/perf-01.md#delivery-v314).
 
 ## Final-source acceptance and identity
 
@@ -86,4 +88,4 @@ The actual installed public `.bin/claude-statusline` bootstrap also passed a rea
 
 Gitee's automatic repository archives are distinct from the four delivered attachments. The first release-notes PATCH omitted the API's required tag_name and returned 400 without changing metadata. Reading the existing Release confirmed the unchanged body; supplying the original tag_name and stable flag then updated the rendered bilingual notes successfully. The tag object and attachments remain identical; no upload was repeated.
 
-GitHub remains primary. Gitee synchronization uses checked, non-divergent main and the exact annotated tag with explicit non-force refspecs. The delivery-document follow-up does not move the public tag or replace assets. Root READMEs, historical releases, beta and the personal installation are preserved. The six accepted gaps remain unverified/unavailable; D06 stays **FAIL: 104 pass / 60 fail / 28 inconclusive**, PERF-01 **NOT_STARTED**.
+GitHub remains primary. Gitee synchronization uses checked, non-divergent main and the exact annotated tag with explicit non-force refspecs. The delivery-document follow-up does not move the public tag or replace assets. Root READMEs, historical releases, beta and the personal installation are preserved. The six accepted gaps remain unverified/unavailable; at v3.1.2, D06 remained **FAIL: 104 pass / 60 fail / 28 inconclusive** and PERF-01 was **NOT_STARTED**.

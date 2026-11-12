@@ -4,7 +4,7 @@
 
 > **Current applicability (2026-10-15 amendment):** this report preserves its measured results and then-current stage decisions. Statements below about IN_PROGRESS, TS-03 remediation or TS-04 admission are historical. The latest measurement remains FAIL (104/60/28), with unchanged data. Under the [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15), TS-03/03-F [close as DONE](README.md#closure-2026-10-15) on existing non-performance evidence. Further performance work belongs to [PERF-01](../../performance/perf-01.md) after TS-06 and does not block migration/release; this task starts no subsequent implementation.
 
-State: **IN_PROGRESS**. Both approved optimization rounds and their complete unchanged D06 measurements are finished. Round 2 has **104 pass / 60 fail / 28 inconclusive**; implementation stops for focused review. The original [03-F failure](PERFORMANCE.md) and [raw summary](performance.03-f.json) remain historical evidence. This work does not change TS-04 admission or switch the installed backend.
+State at this stage: **IN_PROGRESS** (historical; TS-03 later [closed as DONE](README.md#closure-2026-10-15)). Both approved optimization rounds and their complete unchanged D06 measurements were finished. Round 2 has **104 pass / 60 fail / 28 inconclusive**; implementation stopped for focused review. The original [03-F failure](PERFORMANCE.md) and [raw summary](performance.03-f.json) remain historical evidence. This work did not change TS-04 admission or switch the installed backend.
 
 ## Scope and reproducibility
 
@@ -108,7 +108,7 @@ Twenty-two of the 192 raw TS medians are higher than round 1; every increase is 
 
 ## Stop condition and focused review
 
-Both approved implementation rounds and their full D06 measurements are complete; **TS-03 remains IN_PROGRESS**. Verified overall improvements can be integrated through the PR checks without claiming stage admission. Round 1's measured `8219155`, final evidence head `735ff9c` and integration merge `b8e1b296e47e1b3de2a50afc0c9bb8b2b506d357` were verified separately, including equal GitHub/Gitee main refs. PR #85 records final integration for round 2's measured `93384f5`.
+Both approved implementation rounds and their full D06 measurements were complete; **TS-03 remained IN_PROGRESS at that stage**. Verified overall improvements could be integrated through the PR checks without claiming stage admission. Round 1's measured `8219155`, final evidence head `735ff9c` and integration merge `b8e1b296e47e1b3de2a50afc0c9bb8b2b506d357` were verified separately, including equal GitHub/Gitee main refs. PR #85 records final integration for round 2's measured `93384f5`.
 
 Review the remaining work before authorizing a third implementation round:
 

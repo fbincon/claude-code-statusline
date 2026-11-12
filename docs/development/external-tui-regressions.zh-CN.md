@@ -2,13 +2,15 @@
 
 [English](external-tui-regressions.md) | **简体中文**
 
+> **历史记录（冻结于 v3.1.2，2026-10-19）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)及[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 更新日期：**2026-10-19**（Asia/Shanghai）。已交付：**v3.1.2**。状态：按本版维护者决定为 **DONE**。
 
 ## 基线与范围
 
 独立审查固定 Python v2.0.0 为 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`，TypeScript v3.1.1 为干净 `main` 的 `fb07615bb041d4433865f20317a6eb85d988e4a4`。Python 源码直接导出自该提交，不默认当前归档完全相同。[v3.1.1 交付记录](external-tui-parity.zh-CN.md)作为历史保留，不作为所有交互均正确的证明。
 
-维护者批准修复六项已确认回归并正式交付 npm／GitHub／Gitee。公共命令、协议 12、显示 schema 8 及各自独立的 Save／偏好契约保持兼容。两个基线共有的尾部文字编辑、搜索长度／字素边界限制保留为遗留问题。Python 归档、冻结 fixture 和比较豁免均保持原样；README 继续承担产品介绍。
+维护者批准修复六项已确认回归并正式交付 npm／GitHub／Gitee。在 v3.1.2，公共命令、协议 12、显示 schema 8 及各自独立的 Save／偏好契约保持兼容。两个基线共有的尾部文字编辑、搜索长度／字素边界限制保留为遗留问题。Python 归档、冻结 fixture 和比较豁免均保持原样；README 继续承担产品介绍。
 
 ## 修复与回归证据
 
@@ -33,7 +35,7 @@
 
 v3.1.2 要求最终 head、合并和标签验收：八安装目标、32 项 Node 22／24 和十三固定宿主均绑定相同包摘要。独立双构建、源码包重建、安装包 PTY、草稿附件和公开下载继续作为门槛。批准日期／路径逐版本严格匹配，跨版本批准、日期错误或扩大缺口范围均拒绝。
 
-[v3.1.2 专属批准](../releases/approvals/v3.1.2.json)接受相同六项既有缺口：macOS 实机睡眠、macOS 14 Intel 桌面／电源、Windows 10 桌面、WSL 桌面／弹窗、其他目标人工／电源检查、Claude 2.1.296 精确声明。仍为未验证／不可用，不豁免新增功能或自动化失败。D06 保持 **FAIL**；PERF-01 保持 **NOT_STARTED**。
+[v3.1.2 专属批准](../releases/approvals/v3.1.2.json)接受相同六项既有缺口：macOS 实机睡眠、macOS 14 Intel 桌面／电源、Windows 10 桌面、WSL 桌面／弹窗、其他目标人工／电源检查、Claude 2.1.296 精确声明。仍为未验证／不可用，不豁免新增功能或自动化失败。在 v3.1.2，D06 仍为 **FAIL**，PERF-01 为 **NOT_STARTED**；PERF-01 后续已在 [v3.1.4 交付](history/performance/perf-01.zh-CN.md#delivery-v314)中关闭。
 
 ## 最终源码验收与身份
 
@@ -86,4 +88,4 @@ npm integrity：`sha512-kFjPdlknTk7fRb5kg1cUcLVuFS0AArKXHi1h+o7GSYNHmtdrcE16HTdF
 
 Gitee 自动仓库归档与交付的四个附件分开核验。首次说明 PATCH 因漏传 API 必需的 tag_name 返回 400，未改变元数据；读取现有 Release 确认正文未变，补齐原 tag_name 和正式版标志后，双语说明成功更新。标签对象及附件保持一致，没有重复上传。
 
-GitHub 保持主仓库。检查 main 无分歧后，用明确的非强制 refspec 同步 Gitee main 和同一注释标签；交付文档后续提交不移动公开标签，也不替换附件。项目 README、历史发布、beta 和个人安装保留。六项接受缺口保持未验证／不可用；D06 继续 **FAIL：104 通过／60 失败／28 不确定**，PERF-01 继续 **NOT_STARTED**。
+GitHub 保持主仓库。检查 main 无分歧后，用明确的非强制 refspec 同步 Gitee main 和同一注释标签；交付文档后续提交不移动公开标签，也不替换附件。项目 README、历史发布、beta 和个人安装保留。六项接受缺口保持未验证／不可用；在 v3.1.2，D06 为 **FAIL：104 通过／60 失败／28 不确定**，PERF-01 为 **NOT_STARTED**。

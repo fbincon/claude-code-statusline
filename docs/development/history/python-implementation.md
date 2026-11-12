@@ -2,7 +2,7 @@
 
 **English** | [简体中文](python-implementation.zh-CN.md)
 
-These notes describe the released Python implementation. See the [frozen Python archive](../../../archive/python/README.md) for its source and the [TypeScript architecture](../architecture.md) for current implementation details. The paths, locks and launch commands below apply to the historical versions described here.
+These notes describe the final Python release, v2.0.0, before the TypeScript migration. See the [frozen Python archive](../../../archive/python/README.md) for its source and the [TypeScript architecture](../architecture.md) for current implementation details. The paths, locks and launch commands below apply to that historical implementation.
 
 ## Files and platform behavior
 
@@ -195,7 +195,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 <details>
 <summary>View Persistence</summary>
 
-Current display schema v8 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1–v7 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
+The final Python release used display schema v8, which evolved independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1–v7 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
 Keep local planning archives and raw acceptance records out of distributions. Public planning documents are maintained under `docs/development/`. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -236,7 +236,7 @@ Usage state keeps optional input/output observation flags alongside the existing
 <details>
 <summary>View Phase 4 configuration boundaries</summary>
 
-Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v8 and protocol v11 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
+Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. The final Python release used display schema v8 and protocol v11, which evolved independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
 
 Curses `ui.forms` and Client `lib/client/forms.ts` expose scoped formats, Layout fitting and global settings from the canonical descriptors. Native hooks alone perform backend/file effects; `lib/preferences.ts` owns actual-row descriptions and supported controls, with separate Claude API application. Production and sample rendering share formatting and explicit layout; lazy Git/transcript collection is retained. No Phase 5 runtime indicators are added.
 
@@ -309,7 +309,7 @@ External session effects and native host effects write language immediately afte
 <details>
 <summary>View Independent statusline language</summary>
 
-Display schema v8 and configuration protocol v12 carry `statusline_language` through complete drafts, revisions, previews and portable files. `i18n.statusline` reads a generated Python-only subset of the canonical JSON resources; normal render calls do not read UI preferences or parse UI JSON. Formatter boundaries localize complete phrases and known values while collection stores keep their original codes. Item-scoped prefix metadata separates labels from user data. Shared editor descriptors add a choice that stays in the display draft; UI language remains an immediate preference.
+The final Python release used display schema v8 and configuration protocol v11 to carry `statusline_language` through complete drafts, revisions, previews and portable files. `i18n.statusline` reads a generated Python-only subset of the canonical JSON resources; normal render calls do not read UI preferences or parse UI JSON. Formatter boundaries localize complete phrases and known values while collection stores keep their original codes. Item-scoped prefix metadata separates labels from user data. Shared editor descriptors add a choice that stays in the display draft; UI language remains an immediate preference.
 
 </details>
 

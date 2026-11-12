@@ -10,7 +10,7 @@
 
 ## 规划基线与产品方向
 
-**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](deliveries/language-expansion.zh-CN.md#final-release) 作为产品基线，原始规划源码为 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`。
+**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](deliveries/language-expansion.zh-CN.md#final-release) 作为产品基线；2026-10-28 的审查使用产品 v3.9.1 的源 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`。
 
 下表记录以 v3.16.0 为基线时用于规划的能力。现行操作见[使用指南](../../USER_GUIDE.zh-CN.md)，基线之后的变化见[变更日志](../../../CHANGELOG.zh-CN.md)。
 
@@ -25,7 +25,7 @@
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
 | 扩展数据 | 本机 JSON、GitHub PR／CI 与命令源；可读状态、检查分页、引用保护的绑定及独立审核的活跃会话自动刷新；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
 | Native 展示 | 宿主保留编辑状态、有界可见帧、独立容量检查及可恢复保存结果 | 所有新页面遵守这些边界；见[容量与恢复](../native-capacity.zh-CN.md) |
-| 接口 | 显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
+| 接口 | 显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1；[当前版本](../../reference/cli.zh-CN.md#协议与-schema-版本) | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
 [审查基线](work-package-designs.zh-CN.md#review-baseline)区分隔离复现、源码确认和拟新增能力。上一份规划快照为 `f68d26eeddda98ab4041d2b9e873ade556fa1909`。相关定义与证据见[目录源码](../../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../../packages/core/src/contracts/ui.ts)、[架构](../architecture.zh-CN.md)和[交付索引](README.zh-CN.md#delivery-records)。

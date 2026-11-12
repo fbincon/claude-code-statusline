@@ -3,8 +3,9 @@
 [English](TS06-HANDOFF.md) | **简体中文**
 
 TS-05 交付私有通用工程候选、可重建源码包、校验文件及绑定源码的验收证据。
-参见[关闭证据](README.zh-CN.md)和[候选指南](candidate.zh-CN.md)。TS-06 仍为
-**NOT_STARTED**；本文记录其前提，不执行发布或切换已安装产品。
+参见[关闭证据](README.zh-CN.md)和[候选指南](candidate.zh-CN.md)。该次交接时 TS-06 为
+**NOT_STARTED**；本文记录其前提，未执行发布或切换已安装产品。TS-06 随后
+[交付正式版 v3.0.0](../ts-06/stable-release.zh-CN.md)。
 
 ## 输入与保留契约
 
@@ -44,8 +45,9 @@ TS-05 没有新增付费模型调用、公开预览、版本标签、注册表�
 既有付费记录和模拟验证了预算工具；新调用仍须显式启用、新证据目录及共享预算/账本约束。
 已安装 Python 产品未切换。
 
-D06 仍为 **FAIL：104 pass / 60 fail / 28 inconclusive**，TS-05 没有运行完整 D06 测量。
-PERF-01 保持 **NOT_STARTED**，在 TS-06 后进行，保留原测量策略、源码/工具固定信息和失败记录。
+该次交接时 D06 仍为 **FAIL：104 pass / 60 fail / 28 inconclusive**，TS-05 没有运行完整 D06 测量。
+PERF-01 当时保持 **NOT_STARTED**，在 TS-06 后进行，保留原测量策略、源码/工具固定信息和失败记录；
+该专项后来已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。
 功能超时、资源上限、事件丢失、原子写入和恢复仍是当前门槛。
 
 ## TS-06 预览修订，2026-10-18

@@ -2,6 +2,8 @@
 
 [English](extensions.md) | **简体中文**
 
+> **历史记录（冻结于 v3.6.0，2026-10-23）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)及[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 本次从 `9b783c9b92135607cb5f234a9c53314553fe9ecf` 实现 EXTENSIONS-01、LINKS-01、WORKFLOW-01、COMMAND-01、CAPABILITIES-01。CI-01、依赖自动更新和 SHOWCASE-01 不在范围内。使用方式见[扩展指南](../EXTENSIONS.zh-CN.md)。
 
 ## 职责与契约
@@ -15,12 +17,12 @@
 - 双编辑器复用同一数据源状态机，前端只适配绘制与通信。源保存、显示 Save 和宿主 Apply 分开。
 - 链接目标附着于带样式的字素与预览片段，截断和换行重新构造闭合 OSC 8 区间；分隔符与装饰不继承前一链接。外部输入不能注入原始控制序列。
 
-显示 schema 为 10，编辑器协议为 17；注册表与观测分别为 v1。运行时 2、生命周期 4、便携外层 1、UI 偏好 1、方案集合/导出 1 不变。旧 ID 与默认选择不变，增加三个主项和一个子代理项，含文本与占位共 66/17 种类型。
+本次交付中，显示 schema 为 10，编辑器协议为 17；注册表与观测分别为 v1。运行时 2、生命周期 4、便携外层 1、UI 偏好 1、方案集合/导出 1 不变。旧 ID 与默认选择不变，增加三个主项和一个子代理项，含文本与占位共 66/17 种类型。
 
 
 ## 已完成的验收与交付
 
-五个选定工作包均为 DONE。版本发布状态单独记录为已完成：[GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.6.0)、[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.6.0)、[Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.6.0) 均交付核验后的产物。CI-01、Dependabot、SHOWCASE-01 未启动。
+五个选定工作包均为 DONE。版本发布状态单独记录为已完成：[GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.6.0)、[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.6.0)、[Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.6.0) 均交付核验后的产物。CI-01、Dependabot、SHOWCASE-01 在本次交付时未启动。CI-01 后续已完成，Dependabot 已启用，SHOWCASE-01 已在后续[交付](showcase.md#delivery)中完成。
 
 ### 源码与自动化门禁
 

@@ -2,6 +2,8 @@
 
 [English](external-tui-parity.md) | **简体中文**
 
+> **历史记录（冻结于 v3.1.1，2026-10-19）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)及[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 更新日期：**2026-10-19**（Asia/Shanghai）。已交付：**v3.1.1**。状态：按本版维护者决定为 **DONE**。[机器可读交付证据](external-tui-parity.delivery.json)。
 
 ## 后续独立回归审查
@@ -12,7 +14,7 @@
 
 对比 Python v2.0.0（`9b6d2fab4bf165be280d428a874521bfbf02c7e1`）与 TypeScript v3.1.0（`10de45895d2734a8ab1eacec09b57bc89417be51`）后，维护者确认实施计划：保留青色标题、整行选中、列对齐和六语言，恢复有用的外部编辑器信息并修复呈现缺陷。边框与背景保持终端默认值，保留四页、最低 64×18 及20行起完整边框。
 
-公共 CLI、编辑器协议 12 及持久格式保持兼容；原生编辑器行为与 Python 归档保留。产品测试不引入 TUI 对 CLI 的依赖。项目 README 继续承担产品介绍，不新增发布历史。
+在 v3.1.1，公共 CLI、编辑器协议 12 及持久格式保持兼容；原生编辑器行为与 Python 归档保留。产品测试不引入 TUI 对 CLI 的依赖。项目 README 继续承担产品介绍，不新增发布历史。
 
 ## 实现
 
@@ -59,7 +61,7 @@
 
 ## 发布决定
 
-[v3.1.1 批准](../releases/approvals/v3.1.1.json) 单独记录维护者接受相同六项既有缺口，仅适用于本版。发布校验不接受借用其他版本批准，也不接受失败或缺失的自动化证据。D06 继续 FAIL，PERF-01 继续 NOT_STARTED。
+[v3.1.1 批准](../releases/approvals/v3.1.1.json) 单独记录维护者接受相同六项既有缺口，仅适用于本版。发布校验不接受借用其他版本批准，也不接受失败或缺失的自动化证据。在 v3.1.1，D06 仍为 FAIL，PERF-01 为 NOT_STARTED；PERF-01 后续已在 [v3.1.4 交付](history/performance/perf-01.zh-CN.md#delivery-v314)中关闭。
 
 上述固定构建、源码重建及最终 head／合并／标签检查建立发布资格。npm 收到已验证的 tgz，GitHub／Gitee 收到同一 tgz、源码 tar.gz、构建清单及 SHA256SUMS。批准记录 SHA-256 为 `7352650c32c059fb522ad11c19e804cda879d415a5f942168e667a24a82d2cbd`。[发布说明](../releases/v3.1.1.md#简体中文)。
 
@@ -76,4 +78,4 @@
 
 六份公开 CI 回执绑定最终源码、验证器源码、包摘要和两个 registry 选择器；本地公开下载检查也独立通过。Gitee 四份下载与上表一致，tgz 通过完整包校验和安装检查；自动仓库归档与交付的可重建源码附件分开记录。
 
-GitHub 继续作为主仓库。确认 Gitee main 无分歧提交后，以明确、无强推的 refspec 同步已验证 main 和注释标签。本次文档／图库回填不移动公开标签或替换附件，保留历史发布、beta、Python 参考／图片、项目根 README 及个人现用安装。六项接受的实机／桌面／声明缺口仍为未验证／不可用，CI 和重建图不关闭这些缺口。D06 保持 **FAIL：104 pass / 60 fail / 28 inconclusive**，PERF-01 保持 **NOT_STARTED**。
+GitHub 继续作为主仓库。确认 Gitee main 无分歧提交后，以明确、无强推的 refspec 同步已验证 main 和注释标签。本次文档／图库回填不移动公开标签或替换附件，保留历史发布、beta、Python 参考／图片、项目根 README 及个人现用安装。六项接受的实机／桌面／声明缺口仍为未验证／不可用，CI 和重建图不关闭这些缺口。在 v3.1.1，D06 为 **FAIL：104 pass / 60 fail / 28 inconclusive**，PERF-01 为 **NOT_STARTED**。

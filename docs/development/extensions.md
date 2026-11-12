@@ -2,9 +2,11 @@
 
 **English** | [简体中文](extensions.zh-CN.md)
 
+> **Historical record (frozen at v3.6.0, 2026-10-23).** Current status and interface versions are in the [roadmap](roadmap.md) and [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions).
+
 This change implements EXTENSIONS-01, LINKS-01, WORKFLOW-01, COMMAND-01 and
 CAPABILITIES-01 from baseline `9b783c9b92135607cb5f234a9c53314553fe9ecf`.
-CI-01, dependency-update automation and SHOWCASE-01 remain outside this work.
+CI-01, dependency-update automation and SHOWCASE-01 were outside this work.
 See the [user guide](../EXTENSIONS.md) for configuration and examples.
 
 ## Responsibilities and contracts
@@ -39,11 +41,12 @@ See the [user guide](../EXTENSIONS.md) for configuration and examples.
   Clipping/wrapping reconstructs closed OSC 8 ranges; separators and decorations
   do not inherit the preceding target. External input never supplies raw controls.
 
-Display schema is 10; editor protocol is 17. Registry and observation versions
-are independently 1. Runtime 2, lifecycle 4, portable 1, UI preferences 1 and
-profile collection/export 1 retain their versions. Existing IDs and default
-selections remain unchanged; the catalog adds three main types and one subagent
-type, for 66 main and 17 subagent types including text and spacer.
+At this delivery, display schema was 10 and editor protocol was 17. Registry
+and observation versions were independently 1. Runtime 2, lifecycle 4, portable
+1, UI preferences 1 and profile collection/export 1 retained their versions.
+Existing IDs and default selections remained unchanged; the catalog added three
+main types and one subagent type, for 66 main and 17 subagent types including
+text and spacer.
 
 
 ## Completed validation and delivery
@@ -52,7 +55,9 @@ The five selected work packages are DONE. Version publication is separately
 complete: [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.6.0),
 [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.6.0) and
 [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.6.0)
-deliver the verified files. CI-01, Dependabot and SHOWCASE-01 were not started.
+deliver the verified files. CI-01, Dependabot and SHOWCASE-01 were not started at
+this delivery. CI-01 was completed later, Dependabot is active, and SHOWCASE-01
+was completed in its [delivery](showcase.md#delivery).
 
 ### Source and automated gates
 

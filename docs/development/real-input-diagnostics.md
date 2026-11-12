@@ -2,17 +2,19 @@
 
 **English** | [简体中文](real-input-diagnostics.zh-CN.md)
 
+> **Historical record (frozen at v3.3.0, 2026-10-20).** Current status and interface versions are in the [roadmap](roadmap.md) and [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions).
+
 Implementation baseline: `6716435` after configuration-experience delivery. The [user guide](../DIAGNOSTICS.md) defines the shipped command contract. v3.3.0 is published and verified on npm, GitHub and Gitee; the delivery evidence is recorded below.
 
 ## Architecture and contracts
 
 Core owns host-field interpretation, configuration reasons, neutral render tracing and real-input report assembly. The existing sample adapter maps neutral layout results to its sample-specific reason codes. Production rendering keeps tracing opt-in. CLI owns explicit input parsing, display/settings reads and adaptation of existing stores; platform exposes bounded file reads without mutation or process methods.
 
-Editor protocol 14 adds `diagnose` with required `draft`, `input`, `scope` and `width`; optional `source` defaults to `supplied_json`, `observed_at` defaults to null, and `include_local` defaults to true. The response separates provenance, fitted output spans, instance reasons, evidence and row outcomes. `explain` remains sample-only. Display schema 8, runtime 2, portable 1 and UI preferences 1 are unchanged. Both editors receive the new optional component through generated catalog and localization resources.
+At v3.3.0, editor protocol 14 added `diagnose` with required `draft`, `input`, `scope` and `width`; optional `source` defaulted to `supplied_json`, `observed_at` defaulted to null, and `include_local` defaulted to true. The response separated provenance, fitted output spans, instance reasons, evidence and row outcomes. `explain` remained sample-only. Display schema 8, runtime 2, portable 1 and UI preferences 1 were unchanged. Both editors received the new optional component through generated catalog and localization resources.
 
 The diagnostic adapter does not use `ConfigurationService.read`, which creates an installation lock. It uses individual read-only display/settings reads. Runtime observations never invoke collector classes, transaction services, directory scans, reconciliation, subprocesses or network clients. Published request/cost joins have a separate pure snapshot resolver; ordinary collection retains its existing reconciliation behavior. Frozen task snapshots can use the production timer formatter without collecting transcripts.
 
-The ordinary worktree label remains preferred when both host fields exist. A linked Git worktree has a distinct label. Cache miss explanations remain host-reported hypotheses; detailed counts and timestamps stay in the report. The optional `cache-miss-reason` adds one main metric: 61 main / 14 subagent metrics, or 63 / 16 types including composition components. Defaults are unchanged.
+The ordinary worktree label remains preferred when both host fields exist. A linked Git worktree has a distinct label. Cache miss explanations remain host-reported hypotheses; detailed counts and timestamps stay in the report. At v3.3.0, the optional `cache-miss-reason` added one main metric: 61 main / 14 subagent metrics, or 63 / 16 types including composition components. Defaults were unchanged.
 
 ## Evidence and limits
 
