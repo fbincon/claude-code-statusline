@@ -114,9 +114,11 @@ References: [actual-build Mod types](https://code.claude.com/docs/en/plugins/mod
 
 ## Phase 4 editor acceptance
 
-Main/Subagents open scoped formats with Ctrl+E. Layout manages explicit boundaries, priorities and terminal-column widths. Settings expands presets and imports into an unsaved draft, exports that draft separately, and unfolds actual host appearance/time/title/behavior rows. Ctrl+G restores an input or returns from a scoped form; Enter accepts fields. Curses keeps legacy Enter saves and adds Ctrl+S for every page, using raw input to avoid XON/XOFF swallowing the chord.
+> **Historical Python/Curses-era record.** This section preserves the Phase 4 editor acceptance of the pre-TypeScript implementation. The current TypeScript editor and its checks are documented above.
 
-Run `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>` from an installed candidate wheel. It checks both persistent entries at 120×30 and 80×48, CJK label/path input, ANSI palette, explicit boundaries/priority/width saves, preset/export/import validation, cancellation without writes and cross-editor readback. Raw logs remain private. Human Linux/Windows and macOS available-entry acceptance was confirmed on 2026-10-05; the previously reported macOS Client input limitation remains open.
+Main/Subagents opened scoped formats with Ctrl+E. Layout managed explicit boundaries, priorities and terminal-column widths. Settings expanded presets and imported into an unsaved draft, exported that draft separately, and unfolded actual host appearance/time/title/behavior rows. Ctrl+G restored an input or returned from a scoped form; Enter accepted fields. Curses kept legacy Enter saves and added Ctrl+S for every page, using raw input to avoid XON/XOFF swallowing the chord.
+
+The historical check ran [`archive/python/tools/native_mod_acceptance.py`](../../archive/python/tools/native_mod_acceptance.py) `--persistent --advanced --report-dir dist/validation/<new-directory>` from an installed candidate wheel. It checked both persistent entries at 120×30 and 80×48, CJK label/path input, ANSI palette, explicit boundaries/priority/width saves, preset/export/import validation, cancellation without writes and cross-editor readback. Raw logs remained private. Human Linux/Windows and macOS available-entry acceptance was confirmed on 2026-10-05; the previously reported macOS Client input limitation remains open.
 
 ## v1.5.0 stable acceptance
 

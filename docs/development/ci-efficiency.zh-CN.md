@@ -57,4 +57,4 @@
 
 ## 解读口径
 
-Runner 时间按作业求和，包含并行执行。墙钟还受依赖关系与可用容量影响。无模型诊断可验证 worker、恢复行为及专项耗时。下一次自然触发的核心产品 PR 用于观测优化后的整轮耗时，并与 70 分钟目标比较。六项既有物理与宿主声明缺口继续绑定原发布记录。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)
+Runner 时间按作业求和，包含并行执行。墙钟还受依赖关系与可用容量影响。无模型诊断可验证 worker、恢复行为及专项耗时。[PR #204](https://github.com/fbincon/claude-code-statusline/pull/204) 的[完整运行](https://github.com/fbincon/claude-code-statusline/actions/runs/41291221369)于 2026-11-01 09:00:45–10:55:52Z 完成，墙钟约 115 分钟，对照 70 分钟目标。六项既有物理与宿主声明缺口继续绑定原发布记录。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)

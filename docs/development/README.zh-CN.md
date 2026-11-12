@@ -76,7 +76,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 
 按[影响检查](impact-checks.zh-CN.md)使用不可变提交和新报告路径。混合变更合并检查要求；归属未知或比较未解决时阻断。本地检查不能替代最终 head 的 `Complete candidate evidence` 门禁及 main 晋级核验。[CI 分流](ci-maintenance.zh-CN.md)。
 
-`npm run check` 覆盖真实 Node 并发、故障、终端、固定案例、生成资源、文档及职责台账。`tools/generation/` 维护当前语言／Mod／技能输出，不重新生成 Python 归档。构建后可在受支持 Node 下用 `npm run test:runtime` 测试编译产品，无需重新构建。
+`npm run check` 覆盖真实 Node 并发、故障、终端、固定案例、生成资源、文档及职责台账。`tools/generation/` 维护当前语言／Mod 输出，不重新生成 Python 归档，也不维护技能输出。状态栏技能资源以 `packages/cli/resources/statusline-config/SKILL.md` 和 `packages/cli/resources/statusline-configure/SKILL.md` 为规范源，单独维护。构建后可在受支持 Node 下用 `npm run test:runtime` 测试编译产品，无需重新构建。
 
 完整产品验收包含八个安装目标、32 个 Node 用例、十六个固定宿主组合及适用的 Native 容量案例，使用匹配产物。2.1.296 类型声明缺口单独保留；执行共享、草稿检查和诊断的含义不同，见[测试与验收](testing.zh-CN.md)。
 
