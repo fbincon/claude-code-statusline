@@ -58,3 +58,17 @@ test('documentation examples require unique markers and strict production-compat
         assert.throws(() => example(original.replace('```text', '```sh'), 'github-workflow', 'text'));
     }
 });
+test('CLI option tables reject missing, unknown and duplicate options in either language', () => {
+    for (const suffix of ['', '.zh-CN']) {
+        const path = `docs/reference/cli${suffix}.md`, original = pages.get(path)!.replaceAll('\r\n', '\n');
+        const row = original.match(/^\| `powerline-padding` \|.*$/mu)![0];
+        for (const replacement of ['', row.replace('`powerline-padding`', '`unknown-option`'), row + '\n' + row]) {
+            const changed = new Map(pages); changed.set(path, original.replace(row, replacement));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Set option IDs differ from CLI')));
+        }
+        for (const replacement of ['', '<!-- docs-example: cli-order -->\n<!-- docs-example: cli-order -->']) {
+            const changed = new Map(pages); changed.set(path, original.replace('<!-- docs-example: cli-order -->', replacement));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Expected one cli-order example')));
+        }
+    }
+});

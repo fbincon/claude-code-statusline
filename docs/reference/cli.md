@@ -12,97 +12,80 @@ With no subcommand, an interactive invocation opens the reviewed [persistent-ins
 - [Languages](#languages)
 - [Installation and diagnostics](#installation-and-diagnostics)
 - [Configuration command reference](#configuration-command-reference)
-- [Appearance and display options](#appearance-and-display-options)
+- [Profiles and projects](#profiles-and-projects)
 - [Import, export and reuse](#import-export-and-reuse)
 - [Source management](#source-management)
-- [Interactive task viewer](#interactive-task-viewer)
+- [Diagnosis and task inspection](#diagnosis-and-task-inspection)
+- [Appearance and display options](#appearance-and-display-options)
 - [Display items and scopes](#display-items-and-scopes)
 - [Configuration files](#configuration-files)
 - [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
 - [Exit codes](#exit-codes)
 
-[Profiles and projects](../PROFILES.md) · [Complete schemes](../SCHEMES.md) · [Draft history and structural review](../DRAFT_HISTORY.md) · [Input diagnosis](../DIAGNOSTICS.md) · [Package management and recovery](../PACKAGE_MANAGEMENT.md)
+[Profiles and projects](../PROFILES.md) · [Complete schemes](../SCHEMES.md) · [Draft history and reuse](../DRAFT_HISTORY.md) · [Input diagnosis](../DIAGNOSTICS.md) · [Package management](../PACKAGE_MANAGEMENT.md)
 
 <a id="cli-总览"></a>
 
 ## CLI overview
 
+Brackets mark optional arguments; `A|B` means choose one alternative, and `...` means repetition. Uppercase words such as `PATH`, `ITEM`, `ID` and `LANGUAGE` are placeholders. Quote paths and text containing spaces; do not type the syntax markers literally.
+
 ```text
-claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id] COMMAND ...
-claude-statusline update [--version EXACT | --channel latest|beta] [--prefix PATH] [--config-dir PATH] [--yes]
-claude-statusline update (--check | --dry-run) [--version EXACT | --channel latest|beta]
-  [--prefix PATH] [--config-dir PATH] [--json]
-claude-statusline rollback [--version EXACT]
-claude-statusline recover --package [--version EXACT]
-claude-statusline recover --restore-config BACKUP_ID
-claude-statusline setup [--config-dir PATH] [--dry-run]
-claude-statusline configure [--config-dir PATH] [--user | --profile NAME | --project PATH]
-claude-statusline config [--config-dir PATH] show [--json]
-claude-statusline config [--config-dir PATH] list-items [--json]
-claude-statusline config [--config-dir PATH] set-items [ITEM...]
-claude-statusline config [--config-dir PATH] enable ITEM...
-claude-statusline config [--config-dir PATH] disable ITEM...
-claude-statusline config [--config-dir PATH] order [ITEM...]
-claude-statusline config [--config-dir PATH] subagents list-items [--json]
-claude-statusline config [--config-dir PATH] subagents set-items [ITEM...]
-claude-statusline config [--config-dir PATH] subagents enable ITEM...
-claude-statusline config [--config-dir PATH] subagents disable ITEM...
-claude-statusline config [--config-dir PATH] subagents order [ITEM...]
-claude-statusline config [--config-dir PATH] set OPTION VALUE
-claude-statusline config [--config-dir PATH] apply ...
-claude-statusline config [--config-dir PATH] preset NAME [--dry-run]
-claude-statusline config [--config-dir PATH] import PATH [--dry-run]
-claude-statusline config [--config-dir PATH] export PATH [--overwrite]
-claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
-claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
-claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
-claude-statusline config [--config-dir PATH] language reset
-claude-statusline config [--config-dir PATH] reset
-claude-statusline config [--config-dir PATH] instance main|subagent ACTION ...
-claude-statusline config [--config-dir PATH] group main|subagent ACTION ...
-claude-statusline config [--config-dir PATH] alignment ACTION ...
-claude-statusline config [--config-dir PATH] profile ACTION ...
-claude-statusline config [--config-dir PATH] project ACTION ...
-claude-statusline source [--config-dir PATH] ACTION ...
-claude-statusline task show|view --session-id ID [--prompt-id ID] [--config-dir PATH]
-claude-statusline diagnose --input FILE|- [--scope main|subagent] [--config-dir PATH]
-claude-statusline install [--dry-run] [--force]
-  [--experimental-slash-tui | --no-experimental-slash-tui]
-  [--native-editor | --no-native-editor]
-  [--native-timing | --no-native-timing]
-  [--live-metrics | --no-live-metrics]
-  [--config-dir PATH]
-claude-statusline uninstall [--dry-run] [--config-dir PATH]
-claude-statusline doctor [--config-dir PATH]
+claude-statusline [--language LANGUAGE] COMMAND ...
+claude-statusline [--language LANGUAGE] [--prefix PATH] [--config-dir PATH] [--dry-run]
+claude-statusline --help
 claude-statusline --version
 ```
 
-In Windows PowerShell, replace the command name with `claude-statusline.cmd`; arguments and output formats are identical. Brackets and ellipses above indicate syntax, not literal arguments. See the [internal commands appendix](../development/README.md#appendix-internal-commands) for commands called by Claude Code.
+In Windows PowerShell use `claude-statusline.cmd`; command arguments and output formats are the same. Root `--language` precedes the command. The no-subcommand form reviews persistent installation; ordinary non-TTY entry exits 2 without changing installation or configuration.
 
-Package management accepts `--json` with `--check` or `--dry-run`. Noninteractive writes require an exact `--version`, explicit `--prefix` and `--yes`. See [package management](../PACKAGE_MANAGEMENT.md) for update, rollback and recovery workflows.
+### Command index
 
-View built-in help at any level:
+| Commands | Reference | Purpose |
+| --- | --- | --- |
+| `setup / install / uninstall / configure` | [Installation and diagnostics](#installation-and-diagnostics) | Installation, integration and editor entry |
+| `update / rollback / recover` | [Package management and recovery](#package-management-and-recovery) | Package review, replacement and three recovery forms |
+| `config show / list-items / set-items / enable / disable / order / subagents / set / apply / preset / reset` | [Configuration command reference](#configuration-command-reference) | User-default display and host settings |
+| `config instance / group / layout / alignment / item` | [Configuration command reference](#configuration-command-reference) | Instances, composition and scoped options |
+| `config profile / project` | [Profiles and projects](#profiles-and-projects) | Named displays and project bindings |
+| `config import / export` | [Import, export and reuse](#import-export-and-reuse) | Full/selective transfer, styles and groups |
+| `source` | [Source management](#source-management) | Local source permissions, bindings and refreshes |
+| `doctor / diagnose / task show / task view` | [Diagnosis and task inspection](#diagnosis-and-task-inspection) | Installation checks, input diagnosis and saved task evidence |
+| `config language / --language` | [Languages](#languages) | Interface and display language choices |
 
-```bash
-claude-statusline --help
-claude-statusline config --help
-claude-statusline config set --help
-claude-statusline config apply --help
+Internal `render`, `render-subagents`, `hook`, `slash-hook`, `ui` and `runtime` interfaces are documented in the [internal commands appendix](../development/README.md#appendix-internal-commands).
+
+### Directory selection and help
+
+An explicit `--config-dir PATH` selects storage before `CLAUDE_CONFIG_DIR`, then `~/.claude`. Its placement depends on the command:
+
+| Command family | Position of `--config-dir PATH` |
+| --- | --- |
+| `config`, `source` | Immediately after the command, before its action |
+| `configure` | Immediately after the command, before target options |
+| `setup`, `install`, `uninstall`, `doctor`, `update`, `rollback`, `recover`, `diagnose`, `task show/view` | Among that command's options |
+
+```text
+claude-statusline config --config-dir "/path/to/claude config" show
+claude-statusline source --config-dir "/path/to/claude config" list
+claude-statusline configure --config-dir "/path/to/claude config" --user
 ```
 
-For `config`, `--config-dir` comes before the action:
+`--help` is accepted at command paths such as `config set --help`, but the current implementation returns the shared `config` overview, not action-specific parameter help. Use the sections below for complete syntax.
 
-```bash
-claude-statusline config --config-dir /path/to/claude-config show
-```
+### Targets, prerequisites and effects
 
-For `configure`, `install`, `uninstall`, and `doctor`, options follow the command directly:
+| Operations | Target and prerequisites |
+| --- | --- |
+| `config show / list-items` | Read the user default and installation identity, not the project-selected Profile; `--json` is available. |
+| `config set-items / enable / disable / order / item / instance / group / layout / alignment / set` | Edit the user default. Display edits need no owned main installation; host fields require ownership. Project bindings can also coordinate owned subagent integration, protecting foreign renderers. |
+| `config apply / preset / import` | Full application includes host settings and requires owned installation. Supported `--dry-run` forms preview without saving. |
+| `configure` | Requires an interactive terminal, valid configuration and owned installation. Defaults to the working directory's resolved Profile; `--user`, `--profile` or `--project` selects the target. |
+| `config import --select / --style-from / --groups` | Defaults to the user target; supports explicit user/Profile/project targets. Target writes use the existing ownership and revision rules. |
+| `source` | Registration, enablement, binding, manual refresh and automatic policy are separate effects. Display saves/imports cannot grant source execution permissions. |
+| `diagnose / task show` | Noninteractive reports use supplied input or existing saved evidence; they do not start collection. Missing evidence can be a successful unavailable report. |
 
-```bash
-claude-statusline configure --config-dir /path/to/claude-config
-claude-statusline doctor --config-dir /path/to/claude-config
-```
+A command that does not save display settings is not a promise of zero filesystem activity: some reads use locks, package dry-runs use temporary staging/npm caches, and enabled JSON sources can publish observation caches. See each command's boundary. Successful operations normally exit 0; handled argument/configuration errors exit 2. Doctor/setup and signals have [specific exit codes](#exit-codes).
 
 ## Languages
 
@@ -121,6 +104,16 @@ Help text/groups, argument errors and administrative output use the selected lan
 Display schema v17 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
+
+```text
+claude-statusline setup [--config-dir PATH] [--dry-run]
+claude-statusline install [--config-dir PATH] [--dry-run] [--force]
+  [--native-editor | --no-native-editor]
+  [--experimental-slash-tui | --no-experimental-slash-tui]
+  [--native-timing | --no-native-timing] [--live-metrics | --no-live-metrics]
+claude-statusline uninstall [--config-dir PATH] [--dry-run]
+claude-statusline configure [--config-dir PATH] [--user | --profile NAME_OR_ID | --project PATH]
+```
 
 After installing the npm package, use `setup` to preview a display and review Claude Code integration in a guided flow. Use `install` to configure that integration directly. [First-use setup](#first-use-setup-and-complete-schemes).
 
@@ -163,6 +156,37 @@ On Claude Code 2.1.258+ with hooks enabled, these execute locally. Older/unknown
 
 `config profile` and `config project` management remain terminal CLI/editor operations. Ordinary slash display changes and the wizard edit the user default; a project binding can still select a named profile instead. `/statusline-configure` accepts no configuration arguments; `help`, `-h`, and `--help` show usage. [Choosing an entry point](../USER_GUIDE.md#choose-a-configuration-entry-point).
 
+### Package management and recovery
+
+```text
+claude-statusline update [--version EXACT | --channel latest|beta] [--check | --dry-run]
+  [--prefix PATH] [--config-dir PATH] [--yes] [--json]
+claude-statusline rollback [--version EXACT] [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+claude-statusline recover [--config-dir PATH] [--dry-run]
+claude-statusline recover --package [--version EXACT] [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+claude-statusline recover --restore-config BACKUP_ID [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+```
+
+| Form | Purpose and restrictions |
+| --- | --- |
+| `update` | Defaults to the recorded channel or `latest`; exact versions cannot downgrade. `--check` reviews metadata only; `--dry-run` additionally stages and verifies the package. |
+| `rollback` | Selects the previous successful artifact for this prefix/config directory when version is omitted; a specified version must be older. |
+| `recover` | Recovers unfinished file/plugin transactions; takes no package/version/JSON options. Preview before applying. |
+| `recover --package` | Reviews and resumes a retained package transaction, checking actual installed bytes and executor liveness. |
+| `recover --restore-config` | Restores a selected package backup's display/Profile configuration separately; `BACKUP_ID` is the actual `pkg-` plus UUID identifier. Rejects `--version`; source execution permissions stay current. |
+
+Package `--json` requires `--check` or `--dry-run`. Noninteractive package replacement requires exact `--version`, explicit `--prefix` and `--yes`; configuration restore instead requires `--prefix` and `--yes`, with its backup ID. Interactive writes present a review and require confirmation unless `--yes` is supplied. `--prefix` selects the persistent npm installation, independently of `--config-dir`.
+
+<!-- docs-example: cli-recover -->
+```text
+claude-statusline recover --dry-run
+```
+
+This ordinary recovery preview reports retained transactions, or that none exist, without applying recovery. Package checks may use registry/network access and normal npm caches; dry-run does not change the target installation/configuration. [Full review and recovery workflows](../PACKAGE_MANAGEMENT.md).
+
 <a id="配置命令详解"></a>
 
 ## Configuration command reference
@@ -181,13 +205,13 @@ is equivalent to:
 
 ### `config show`
 
-Shows the current **effective configuration**: display configuration, Claude Code host configuration, file paths, whether the current executable owns `statusLine.command`, and the desired enabled state, installed state, and ownership of subagent rows.
+Shows the **effective user-default configuration**, not the Profile selected for a project: display configuration, Claude Code host configuration, file paths, whether the current executable owns `statusLine.command`, and the desired enabled state, installed state, and ownership of subagent rows.
 
 ```bash
 claude-statusline config show
 ```
 
-Example output:
+Example output for a customized five-item display with an English interface:
 
 ```text
 Scope: user
@@ -196,6 +220,8 @@ Installed: yes
 Items: model-with-effort, current-dir, git, context-remaining, task-timer
 Colors: on
 Palette: default
+Theme: classic
+Powerline separator: ascii
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
@@ -296,7 +322,9 @@ Disabling a valid item that is already disabled is idempotent and does not affec
 
 Change only the order, retaining the enabled set:
 
-```bash
+<!-- docs-example: cli-order -->
+```text
+claude-statusline config set-items model-with-effort current-dir git task-timer
 claude-statusline config order git current-dir model-with-effort task-timer
 ```
 
@@ -305,6 +333,7 @@ Arguments must contain every currently enabled item exactly once. Missing or ext
 Inspect the current set before reordering:
 
 ```bash
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config show
 claude-statusline config order model-with-effort git current-dir context-remaining task-timer
 ```
@@ -343,10 +372,23 @@ When a unique metric is toggled in an explicit layout or a composition, its posi
 
 `config group main|subagent list|create|set|copy|move|ungroup` manages continuous instance groups. Create requires `ID --members ID,ID --primary ID`; optional `--linked on|off` and `--powerline on|off` select presentation. Move requires one of `--before ID` or `--after ID`. [Examples and invariants](../COMPOSITION.md#component-groups).
 
+```text
+claude-statusline config group main|subagent list [--json]
+claude-statusline config group main|subagent create ID --members ID,ID --primary ID
+  [--linked on|off] [--powerline on|off]
+claude-statusline config group main|subagent set ID members|primary|linked|powerline VALUE
+claude-statusline config group main|subagent copy ID
+claude-statusline config group main|subagent move ID (--before ID | --after ID)
+claude-statusline config group main|subagent ungroup ID
+```
+
+`members` uses comma-separated instance IDs, `primary` one member ID, and `linked`/`powerline` use `on|off`. Groups must remain continuous. Mutations use the user default; supported structural review flags are described under alignment.
+
 ### `config layout auto|explicit [ROW...]`
 
-Automatic mode wraps as before. Explicit mode accepts comma-separated rows whose flattened IDs must exactly equal configured instance order, including disabled instances; omitted rows put all instances into one explicit row.
+Automatic mode wraps as before. Saved explicit rows contain all configured instance IDs, including disabled instances, in configured order. Input may also list exactly the enabled instances in their current order: the compatibility path appends omitted disabled instances into the saved partition. The example below uses that path after selecting three types. With enabled instances present, omitting rows creates one explicit row containing all configured instances.
 
+<!-- docs-example: cli-layout -->
 ```text
 claude-statusline config set-items model current-dir context-used
 claude-statusline config layout explicit model,current-dir context-used
@@ -378,7 +420,7 @@ claude-statusline config set statusline-language zh-CN
 
 Display options can be configured before installing the status line. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` modify `settings.json/statusLine`, so they require the current status line to be managed by this `claude-statusline` executable. Otherwise, writes are rejected to protect other implementations.
 
-`subagent-statusline` saves the desired enabled state. Disabling an owned renderer immediately returns empty content; rerunning `install` also removes the owned `subagentStatusLine`. Enabling restores it on compatible versions. This separation lets `config set subagent-statusline off` resolve an installation conflict without touching third-party settings.
+`subagent-statusline` saves the desired enabled state. With it off, `render-subagents` emits no overrides, preserving the host's default rows; rerunning `install` also removes the owned `subagentStatusLine`. Enabling and rerunning `install` restores it on compatible versions. This separation lets `config set subagent-statusline off` resolve an installation conflict without touching third-party settings.
 
 See [display and host options](#display-and-host-options) for all valid `set` values.
 
@@ -393,7 +435,7 @@ claude-statusline config item main current-dir max-width 32
 claude-statusline config item subagent task max-width none
 ```
 
-`label`/`icon` accept text up to 256 code points without control characters; `inherit` clears an override and an empty string suppresses the label/icon. `priority` accepts 0–100 (default 50); `max-width` accepts 2–10000 or `none`. The seven formatting choices in [display options](#display-and-host-options) accept a value or `inherit` to remove the per-item override. Width counts terminal columns, including CJK and combining characters.
+`label`/`icon` accept text up to 256 code points without control characters; `inherit` clears an override and an empty string suppresses the label/icon. `priority` accepts 0–100 (default 50); `max-width` accepts 2–10000 or `none`. The seven formatting keys accept values or `inherit` only on compatible component types; see the [scoped option table](#scoped-instance-options). Width counts terminal columns, including CJK and combining characters.
 
 `foreground`/`background` accept `inherit`, `default`, `ansi:0`–`ansi:255`, or quoted `#RRGGBB`. `visibility` accepts `always` plus the rule supported by that scoped item; `visibility-threshold` is an integer 0–100 (default 70) and applies only to usage rules. Conditions use raw used percentages independently of warning colors. See [supported rules and color precedence](../APPEARANCE.md).
 
@@ -470,12 +512,200 @@ This command:
 
 `reset` also handles corrupted `claude-statusline.json`, making it the simplest recovery when configuration JSON cannot be parsed.
 
+`reset` changes only the user-default display and applicable host fields. It preserves the Profile library, project bindings and independent source permissions. A bound project can therefore keep rendering its named Profile after a reset; inspect it with `config project resolve PATH --json`.
+
+## Profiles and projects
+
+Place `--config-dir PATH` after `config` and before `profile`/`project`. All forms below accept `--json`. `NAME_OR_ID` resolves an existing Profile; a save/rename/new-import name is a human name.
+
+```text
+claude-statusline config profile list [--json]
+claude-statusline config profile save NAME [--overwrite] [--bind PATH] [--json]
+claude-statusline config profile rename NAME_OR_ID NEW_NAME [--json]
+claude-statusline config profile delete NAME_OR_ID [--json]
+claude-statusline config profile preview NAME_OR_ID [--width N] [--scenario SCENARIO] [--json]
+claude-statusline config profile activate NAME_OR_ID [--json]
+claude-statusline config profile import PATH [--name NAME] [--overwrite] [--dry-run] [--json]
+claude-statusline config profile export NAME_OR_ID PATH [--overwrite] [--json]
+claude-statusline config project list [--json]
+claude-statusline config project bind PATH NAME_OR_ID [--overwrite] [--json]
+claude-statusline config project unbind PATH [--json]
+claude-statusline config project resolve [PATH] [--json]
+```
+
+`save` copies the saved user default; `activate` copies a Profile into that default without creating a project binding. Names are case-sensitive, trimmed/NFC-normalized, 1–128 Unicode code points, without controls. Overwriting a name, binding or export destination requires `--overwrite`; bound Profiles cannot be deleted. `resolve` defaults to the working directory, selects the deepest matching registered root and explains fallback. Mutations retain locks, backups, revision and integration-ownership checks.
+
+Preview is read-only: width defaults to 120, range 2–10000; scenario defaults to `normal`. Choices are `normal`, `warning`, `critical`, `zero`, `missing`, `source-stale`, `source-failed`, `long-content`, `git-clean`, `git-modified`, `git-conflicted`, `no-agents`, `few-agents`, `many-agents`. Full Profile import creates a named copy; selective/style/group import instead edits a selected target as described below.
+
+In a fresh example library, replace `/absolute/project` with an existing project directory. This demonstrates that user-default changes and reset do not change the bound Profile:
+
+<!-- docs-example: cli-profile-target -->
+```text
+claude-statusline config set-items model
+claude-statusline config profile save Work
+claude-statusline config project bind /absolute/project Work
+claude-statusline config set-items current-dir
+claude-statusline config show --json
+claude-statusline config project resolve /absolute/project --json
+claude-statusline config reset
+claude-statusline config project resolve /absolute/project --json
+```
+
+The first `show` enables `current-dir`; both resolutions select `Work`, whose enabled selection remains `model`. [Targets, sharing and recovery](../PROFILES.md).
+
+## Import, export and reuse
+
+<a id="portable-import-export"></a>
+
+### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
+
+```text
+claude-statusline config export ./statusline.json
+claude-statusline config import ./statusline.json --dry-run
+claude-statusline config import ./statusline.json
+```
+
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+
+Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
+
+Exporting to a protected configuration path is rejected with a configuration error and exit code 2, leaving the protected file unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
+
+### Selective display reuse
+
+`config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
+
+### Style and group reuse
+
+```text
+claude-statusline config import PATH --style-from SCOPE:ID --style-to SCOPE:ID[,SCOPE:ID...]
+  --style-fields FIELD,... [--user | --profile NAME_OR_ID | --project PATH]
+  [--profile-file] [--dry-run | --expected-revision TARGET_REV --source-revision SOURCE_REV]
+claude-statusline config import PATH --groups SCOPE:ID[,SCOPE:ID...]
+  [--references review|expand|exclude] [--explicit-layout]
+  [--user | --profile NAME_OR_ID | --project PATH] [--profile-file]
+  [--dry-run | --expected-revision TARGET_REV --source-revision SOURCE_REV]
+```
+
+`SCOPE` is `main` or `subagent`; style destinations share one scope, as do selected groups. Use `--profile-file` for a Profile envelope, or replace `config import` with `config profile import` and omit that flag. Do not combine reuse with `--select`, `--name` or `--overwrite`. Targets default to the user; at most one explicit target is allowed.
+
+Style fields are `foreground`, `background`, `foreground_gradient`, `background_gradient`, `label`, `icon`, and compatible `formatting.KEY` overrides. Data identity, source binding, content, order, priority, widths and visibility remain unchanged. Group reference handling defaults to `review`; `expand` includes dependencies and `exclude` drops external alignment references. `--explicit-layout` separately permits a needed auto-to-explicit transition.
+
+The following examples overwrite the user-default selection and create a new `source.json`; use a separate export path and begin without a same-name group. First prepare a portable source, then review and repeat exactly with the returned `expected_revision`/`source_revision` substituted for `TARGET_REV`/`SOURCE_REV`. Changed source or target revisions and unresolved dependencies block saving.
+
+<!-- docs-example: cli-style-reuse -->
+```text
+claude-statusline config set-items model current-dir
+claude-statusline config item main model foreground '#123456'
+claude-statusline config export source.json
+claude-statusline config item main model foreground inherit
+claude-statusline config import source.json --style-from main:model --style-to main:current-dir --style-fields foreground --dry-run
+claude-statusline config import source.json --style-from main:model --style-to main:current-dir --style-fields foreground --expected-revision TARGET_REV --source-revision SOURCE_REV
+```
+
+The destination directory instance receives the model's exported foreground only. For the independent group example, choose a new export destination if `source.json` already exists:
+
+<!-- docs-example: cli-group-reuse -->
+```text
+claude-statusline config set-items model current-dir
+claude-statusline config group main create context --members model,current-dir --primary model
+claude-statusline config export source.json
+claude-statusline config group main ungroup context
+claude-statusline config import source.json --groups main:context --references expand --explicit-layout --dry-run
+claude-statusline config import source.json --groups main:context --references expand --explicit-layout --expected-revision TARGET_REV --source-revision SOURCE_REV
+```
+
+Group reuse appends new instance/group identities and clears imported local source bindings; it cannot authorize execution. Review output includes candidate differences, references and ID mappings. [Detailed reuse rules](../DRAFT_HISTORY.md).
+
+## Source management
+
+See the [extensions guide](../EXTENSIONS.md) for complete examples.
+
+```text
+claude-statusline source [--config-dir PATH] list [--json]
+claude-statusline source add|edit ID --file DEFINITION.json [--json]
+claude-statusline source review ID [--json]
+claude-statusline source enable ID --review REVIEW_REVISION [--json]
+claude-statusline source disable|remove ID [--json]
+claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
+claude-statusline source auto-off ID [--json]
+claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
+claude-statusline source unbind ID --binding BINDING_ID [--json]
+claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
+claude-statusline source status|cancel JOB_ID [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
+```
+
+For every source action, put `--config-dir PATH` immediately after `source`. Binding saves the selected user/Profile/project display target and requires installation ownership; registration and execution permissions remain separate. `list` and `diagnose` use readable text unless `--json` is supplied; other actions return structured JSON. `--json` also requests structured handled errors. Link appearance is listed under [scoped instance options](#scoped-instance-options).
+
+
+Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
+
+Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
+
+### Source binding maintenance
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
+
+## Diagnosis and task inspection
+
+### `doctor` / `diagnose`
+
+```text
+claude-statusline doctor [--config-dir PATH]
+claude-statusline diagnose --input FILE|- [--scope main|subagent] [--width N]
+  [--observed-at ISO_TIME] [--input-only] [--json] [--config-dir PATH]
+```
+
+`doctor` checks installation and local policy, reports text rows and exits 1 if any row is ERROR. It does not repair settings. `diagnose` requires supplied statusline JSON (a file or `-` for stdin); scope defaults to `main`, width to 120 with range 2–10000. `--observed-at` must be a known input capture time including a timezone, never a file mtime. UTF-8/BOM is accepted; input must be one object, at most 32 MiB, without duplicate keys or non-finite constants.
+
+Diagnosis uses the saved display resolved for the input project and matching existing local observations; `--input-only` excludes local observation stores and the local hostname but still reads configuration/installation/collector choices. No collection, source execution, network, repair or cache publication is started. `--json` returns structured evidence/reason codes, or an `error` object on failure. Exit 0 means a report was generated, including unavailable/stale evidence; malformed input, arguments and read failures exit 2.
+
+Replace `input.json` with your captured input file:
+
+<!-- docs-example: cli-diagnose -->
+```text
+claude-statusline diagnose --input input.json --input-only --json
+```
+
+[Input format, interpretation and limitations](../DIAGNOSTICS.md).
+
+### `task show`
+
+Supply the actual session ID; omitting `--prompt-id` uses only the published current-task pointer. This reads existing bounded evidence without scanning transcripts, guessing another session, collection or installation initialization. JSON contains the version-1 task detail model; absent evidence is represented as unavailable. A valid report exits 0; invalid identities/arguments or handled failures exit 2, with an `error` object under `--json`.
+
+```text
+claude-statusline task show --session-id SESSION_ID [--prompt-id PROMPT_ID] [--config-dir PATH] [--json]
+```
+
+<!-- docs-example: cli-task -->
+```text
+claude-statusline task show --session-id SESSION_ID --json
+```
+
+### Interactive task viewer
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+
 ## Appearance and display options
 
 <a id="显示与宿主选项"></a>
 
 ### Display and host options
 
+Use `config set OPTION VALUE` on the user default. The three host options require owned installation; other entries are display options. Powerline controls affect Powerline rendering. Values such as language codes and preset IDs are stable arguments.
+
+<!-- cli-set-options:start -->
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
 | `statusline-language` | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, `id` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
@@ -505,6 +735,13 @@ This command:
 | `subagent-hide-completed` | `on`, `off` | `off` | Hide completed rows; failures remain subject to other filters |
 | `subagent-row-limit` | `none`, `0`–`10000` | `none` | Maximum visible rows; zero suppresses all custom rows |
 | `subagent-task-max-width` | `none`, `2`–`10000` | `none` | Limit task text width in terminal columns |
+| `powerline-padding` | `none`, `left`, `right`, `both` | `both` | Block padding; independent of host padding |
+| `powerline-separator` | `arrow`, `slash`, `bar`, `none` | `arrow` | Powerline boundary shape |
+| `powerline-start-cap` | `on`, `off` | `off` | Leading cap for Powerline rows |
+| `powerline-end-cap` | `on`, `off` | `on` | Trailing cap for Powerline rows |
+| `powerline-color-mode` | `semantic`, `continuous`, `restart` | `semantic` | Semantic roles, continuous sequence, or per-row restart |
+| `powerline-row-background-gradient` | `off`, PRESET, or 2–5 comma-separated `#RRGGBB` colors | `off` | Continuous Powerline row background; same gradient presets as instances |
+<!-- cli-set-options:end -->
 
 <a id="颜色"></a>
 
@@ -537,7 +774,7 @@ Windows drive paths, paths with spaces or Chinese characters, UNC paths, and cas
 
 `classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items. `powerline` treats every visible item as a separate block; padding and boundaries count toward width. See [Powerline behavior](../APPEARANCE.md#basic-powerline).
 
-With the ordinary separators, adjacent items in the following semantic groups join with ` · ` and share the same color:
+With the ordinary separators, adjacent items in the following semantic groups join with ` · `. Color names below describe the default classic theme; themes and item overrides can change them:
 
 - `model-with-effort`, `fast-mode`, and `thinking` (model group, ivory)
 - `current-dir`, `project-name`, and `hostname` (location group, green)
@@ -595,68 +832,28 @@ See the [composition guide](../COMPOSITION.md#adaptive-indicators-and-continuous
 
 The optional `session-cost-rate` component accepts `config instance main set INSTANCE cost-rate-basis session|api`. Omission selects session duration; either basis requires at least one minute. See [cost rate definitions](../DISPLAY_ITEMS.md#session-cost-rate).
 
-## Import, export and reuse
+### Scoped instance options
 
-<a id="portable-import-export"></a>
+Use `config instance main|subagent set INSTANCE OPTION VALUE` for an existing instance. Legacy `config item main|subagent TYPE OPTION VALUE` resolves a unique type (and can configure a disabled/absent metric); repeated types require the instance form. `text` and `spacer` are instance-only, and spacers expose no item appearance fields. Unsupported combinations fail without saving.
 
-### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
+| OPTION | Values / default | Applies to |
+| --- | --- | --- |
+| `label / icon` | `inherit`, empty text, or ≤256 code points without controls; default inherited | Metrics and text |
+| `foreground / background` | `inherit`, `default`, `ansi:0`–`ansi:255`, quoted `#RRGGBB`; default inherited | Metrics and text |
+| `foreground-gradient / background-gradient` | `off`, eleven presets or 2–5 colors; default off | Metrics and text |
+| `priority / max-width` | 0–100 (50) / 2–10000 or `none` (`none`) | Metrics and text; width uses terminal cells |
+| `model-name` | `original`, `short`, `inherit`; inherited | Model-bearing metrics |
+| `number-format` | `legacy`, `compact`, `full`, `grouped`, `inherit`; inherited | Compatible numeric metrics; not `current-dir` |
+| `labels / icons` | Global choices or `inherit`; inherited | Compatible metrics |
+| `allowance` | `remaining`, `used`, `inherit`; inherited | Main allowance limits |
+| `reset-format / reset-timezone` | Global choices or `inherit`; inherited | Main reset-time metrics |
+| `visibility / visibility-threshold` | `always` or supported rule / 0–100 (70) | Rules are scope/type-specific; threshold only for usage rules |
+| `presentation / bar-width / bar-style` | `numeric` / 4–20 (8) / `auto` by default; see graphical indicators | Eligible usage/context indicators |
+| `cost-rate-basis` | `session`, `api`; `session` | Main `session-cost-rate` |
+| `link` | `off`, `auto`, `on`; `off` | Link-capable components only |
+| `text` | Literal text, ≤256 code points; empty on add unless `--text` supplied | Text instances, instance form only |
 
-```text
-claude-statusline config export ./statusline.json
-claude-statusline config import ./statusline.json --dry-run
-claude-statusline config import ./statusline.json
-```
-
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v17 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
-
-Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
-
-Exporting to a protected configuration path is rejected with a configuration error and exit code 2, leaving the protected file unchanged. Choose a separate export destination; scripts should treat any nonzero result as failure.
-
-### Selective display reuse
-
-`config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
-
-## Source management
-
-See the [extensions guide](../EXTENSIONS.md) for complete examples.
-
-```text
-claude-statusline source [--config-dir PATH] list [--json]
-claude-statusline source add|edit ID --file DEFINITION.json [--json]
-claude-statusline source review ID [--json]
-claude-statusline source enable ID --review REVIEW_REVISION [--json]
-claude-statusline source disable|remove ID [--json]
-claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
-claude-statusline source auto-off ID [--json]
-claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
-claude-statusline source unbind ID --binding BINDING_ID [--json]
-claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
-claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
-claude-statusline config instance main set INSTANCE link off|auto|on
-```
-Interrupting a waiting refresh releases only that CLI consumer; other consumers/applicable automatic leases continue. `--no-wait` retains interest until completion or the original deadline. `source cancel JOB_ID` explicitly cancels the whole job.
-
-Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
-
-### Source binding maintenance
-
-```text
-claude-statusline source bindings [--offset N] [--json]
-claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
-claude-statusline source release-draft OWNER [--json]
-```
-
-`source diagnose ID` displays the shared readable summary; `--json` includes advanced saved check details. Automatic commands require separate approval, default to 300 seconds and accept 60–86400 seconds independently of TTL. Binding cleanup rechecks references and revision; release only an explicitly abandoned/recovered draft owner. See [source operations](../EXTENSIONS.md) and [package execution](../PACKAGE_MANAGEMENT.md).
-
-## Interactive task viewer
-
-```sh
-claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
-```
-
-Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+The catalog JSON exposes each type's `capabilities` and supported `format_options`; consult it before scripting an override. For example, `config item main current-dir number-format compact` is rejected. The [appearance guide](../APPEARANCE.md) owns exact visibility/link eligibility, color precedence and rendering rules.
 
 ## Display items and scopes
 
@@ -700,7 +897,7 @@ See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clo
 
 ### Subagent rows and the three scopes
 
-On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state.
+On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. Ordinary payload metrics do not scan transcripts or query the network. Completed-agent timing may read existing local end evidence. Enabled, bound external values can read their selected JSON files, inspect local Git identity and publish observation caches; command/GitHub values read published results without executing the provider during rendering. These source effects require explicit local enablement/binding and are separate from the pure row formatter.
 
 The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
 
@@ -711,6 +908,20 @@ See the [metric definitions](../DISPLAY_ITEMS.md#display-scopes) for field meani
 <a id="配置文件"></a>
 
 ## Configuration files
+
+All files below are relative to the selected Claude configuration directory. JSON formats are separate; a portable export is not a copy of this entire directory.
+
+| File | Role and write entry |
+| --- | --- |
+| `claude-statusline.json` | Schema-17 user-default display; ordinary display commands |
+| `claude-statusline-profiles.json` | Version-1 Profile library and project bindings; `config profile/project` |
+| `claude-statusline-sources.json` | Version-2 local source definitions, permissions and bindings; `source` |
+| `statusline-ui.json` | Schema-1 UI language; `config language` |
+| `claude-statusline-features.json / claude-statusline-native.json` | Schema-1 editor preferences; explicit install flags |
+| `claude-statusline-runtime.json` | Schema-2 collector preferences; explicit install flags |
+| `settings.json` | Claude-owned settings with merged integration and host options; install/uninstall and owned host writes |
+
+Profile storage limits and recovery are in [Profiles](../PROFILES.md#files-conflicts-and-recovery); local source records and observation caches are in [Extensions](../EXTENSIONS.md). Ordinary reset/uninstall preserve the Profile library and source registry.
 
 <a id="显示配置"></a>
 
