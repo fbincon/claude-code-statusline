@@ -18,7 +18,7 @@ Each record preserves the feature-introduction version, source identity, checks 
 
 | Area | Delivery records |
 | --- | --- |
-| Documentation maintenance | [Reader-oriented content organization and bilingual checks](deliveries/documentation-content-organization.md) · [Corrections, complete source workflows and targeted regression checks](deliveries/documentation-content-validation.md) · [CLI reference coverage, targets and regression checks](deliveries/cli-reference-maintenance.md) |
+| Documentation maintenance | [Reader-oriented content organization and bilingual checks](deliveries/documentation-content-organization.md) · [Corrections, complete source workflows and targeted regression checks](deliveries/documentation-content-validation.md) · [CLI reference coverage, targets and regression checks](deliveries/cli-reference-maintenance.md) · [User-guide onboarding and editor operations](deliveries/user-guide-onboarding.md) |
 | v3.16.3 configuration skills | [Question paging, scope and fallback workflows](../skill-workflows.md#final-release) |
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |
