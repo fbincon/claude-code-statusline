@@ -33,6 +33,8 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/USER_GUIDE${suffix}.md`, suffix ? '完整 `config apply`' : 'complete `config apply`', suffix ? '独立 `config apply`' : 'standalone `config apply`'],
             [`docs/USER_GUIDE${suffix}.md`, 'config language reset', 'config language clear'],
             [`docs/USER_GUIDE${suffix}.md`, 'claude-statusline setup --dry-run', 'claude-statusline setup --check'],
+            [`docs/EDITORS${suffix}.md`, '64×18', '63×18'],
+            [`docs/EDITORS${suffix}.md`, '2.1.287+', '2.1.999+'],
             [`docs/SCHEMES${suffix}.md`, '`quota-cost`', '`wrong-scheme`'],
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
             [`docs/COMPOSITION${suffix}.md`, 'schema ' + SCHEMA_VERSION, 'schema 999'],

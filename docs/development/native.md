@@ -2,6 +2,8 @@
 
 **English** | [简体中文](native.zh-CN.md)
 
+For everyday operations, see [configuration editors](../EDITORS.md). This page maintains implementation and acceptance details.
+
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
 Since v1.3.0, the project provides Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` opens the external TypeScript TUI through its platform launcher. Stable defaults both on, with independent preferences and version suspension.
@@ -42,24 +44,9 @@ For a source backend, first run `npm run build`. Set plugin `backendExecutable` 
 
 ## Editor behavior
 
-Click the Client region once after opening, then use the keyboard. Opening with `focus: true` does not establish Client keyboard focus in the tested Linux 2.1.288 host. Esc is not delivered to Client: first it returns input focus, then it can close the pane. Use Ctrl+G to cancel field editing. Saving or an unknown save outcome blocks ordinary closing.
+Opening, key controls, draft operations and window adaptation are documented in [configuration editors](../EDITORS.md). In the existing Linux 2.1.288 observation, `focus: true` did not establish Client keyboard focus. Esc is not delivered to Client; the host manages focus and closure.
 
-| Key | Action |
-| --- | --- |
-| Tab / Shift+Tab; 1/2/3/4 | Change Main, Subagents, Settings and Layout page |
-| Ctrl+E / Ctrl+G | Open selected item format / return to its item list |
-| Up/Down; PgUp/PgDn; Home/End | Select, paginate, first/last row |
-| Left/Right | Reorder item rows; adjust settings |
-| Space / Enter | Toggle an item; operate a setting or enter/accept numeric editing |
-| / | Enter search on an item page; Enter finishes search input |
-| Ctrl+U / Ctrl+G | Clear input / restore the search or numeric value before editing |
-| S / F / Q | Save and continue / save then finish / discard pending changes and close |
-| H / A | Fold/unfold Claude preferences / apply them separately |
-| R / K / V | Discard and reload / check an unknown save / retry sample preview |
-
-During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; search/category filters disable reordering until cleared. Enabled and disabled instances retain their saved placement; only enabled instances render. Subagent exclusions come from the shared catalog.
-
-The pane requests 72 columns and 24 body rows; actual placement/space belongs to the host. Minimum usable body is 32×12. At 64×20 or larger, the content and preview have group borders. Compact panes use titled separators. Navigation, selected row, details, sample preview and action hints have distinct visual regions. Settings groups Appearance, Refresh / behavior, Git metrics, Formatting, Risk colors, Subagent visibility, Presets / portable files, and folded Claude preferences. Small panes retain the draft and offer resize/close. Increasing terminal height or the host's pane-resize chord may be necessary for inline placement.
+The pane requests a 72×24 body; actual placement and space belong to the host. The minimum usable body is 32×12. Drawing and navigation share the layout budget, retaining the draft and selected field after resize. Enabled and disabled instances retain placement, only enabled instances render, and exclusions come from the shared catalog.
 
 Sample preview uses fixed data and production formatting, with at most three rows plus an overflow count. Draft or width changes request a new sample; height changes and navigation reuse it. Client input is sent as cumulative ordered batches, acknowledged and deduplicated. Port snapshots contain only detached visible presentation nodes because the host freezes them; complete drafts stay in the host. Stale props, old epochs and late preview replies cannot replace current state.
 
@@ -71,30 +58,13 @@ Claude appearance, time/title and model/effort/thinking/fast behavior use actual
 
 ## Client page hierarchy, footer and pagination
 
-The Client follows the host theme roles described in [Theme rendering](#theme-rendering). The theme-accent **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys use the theme's primary text color and bold weight; action descriptions are lowercase, use the theme's inactive color and regular weight. Keys are judged by readability, not a fixed color. Letter shortcuts display uppercase and accept either case outside input editing.
-
-Page shortcuts appear in the footer after the separate save/finish/close/preview group. Every page starts with `Tab page`:
-
-| Page | Footer order |
-| --- | --- |
-| Main / Subagents | `Tab page · A/D/X add/copy/remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
-| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
-| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
-| Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
-
-Settings offers H outside editing and A only while Claude preferences are expanded. `/ search` remains beside Filter and also appears in the footer on idle item pages. Editing replaces ordinary shortcuts with accept/cancel/clear/delete; Esc remains a host focus action. Busy operations and unknown saves show their applicable controls. Complete hints wrap without splitting a key from its description. At 32×12, compact descriptions and fewer detail rows preserve selection, basic controls and a sample preview; secondary preview/reload/focus hints may be omitted.
-
-Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
+User operations moved to [configuration editors: Client pagination and footer](../EDITORS.md#client-pagination-and-footer). Layout budgets, host color roles and visible-frame implementation remain in [source layout and checks](#source-layout-and-checks), [theme rendering](#theme-rendering) and [editor behavior](#editor-behavior) above.
 
 <a id="external-terminal-editor-page-regions-and-footer"></a>
 
 ## External terminal editor page regions and footer
 
-Content and `Preview (sample data)` are separate regions: frames at 64×20 and above, compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`; settings and forms show `OPTION`, `VALUE`.
-
-Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colors, subagent visibility, and presets/portable files. Layout groups mode, row boundaries, and item fitting. Group titles are not selectable. The fixed-sample preview uses production rendering and does not inspect live Git or transcripts. [TypeScript editor captures from v3.16.0](../images/typescript/v3.16.0/README.md).
-
-The footer follows the current input context. Category selection shows arrows and Home/End; numeric editing shows `←→ Home/End` and `Backspace/Delete`, while Ctrl+U belongs to search/text input. Main/Subagents show Enter/Ctrl+S for saving, and hide ordering while filtered. Add/copy/remove hints use compact labels when space is limited. Inherited values are localized; literal labels, icons, text and Git references retain their exact spelling. The title marks changed configuration text before confirmation; opening an edit or changing a file path alone does not mark the configuration modified.
+User operations moved to [configuration editors: terminal page regions and footer](../EDITORS.md#terminal-page-regions-and-footer). The external implementation remains in `packages/tui`; current test entry points are in [testing and acceptance](testing.md). [v3.16.0 captures](../images/typescript/v3.16.0/README.md) retain their original version identity.
 
 ## Persistent installation and recovery
 

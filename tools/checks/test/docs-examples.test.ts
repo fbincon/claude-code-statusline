@@ -219,9 +219,19 @@ for (const suffix of ['', '.zh-CN']) {
             if (id === 'guide-preset-import')
                 assert(lines.every(line => line.includes('--dry-run') || line.includes('config export ')), 'Guide preset/import example must stay dry-run/export-only');
             for (const line of lines) {
-                const argv = f.line(line), reply = await f.call(argv);
+                const argv = f.line(line), before = argv.includes('--dry-run') ? snapshot(f.root) : undefined;
+                const reply = await f.call(argv);
                 assert.equal(reply.code, 0, line + '\n' + reply.out + reply.err);
+                if (before) assert.deepEqual(snapshot(f.root), before, 'Documented dry run preserves bytes and modes');
             }
+        }
+        const refusals = body.match(/`config (apply)`(?: and | 与 )`config (set)`[^\n]*`--dry-run`/u);
+        assert(refusals, 'Guide must distinguish commands without dry-run support');
+        for (const action of refusals.slice(1)) {
+            const before = snapshot(f.root);
+            const reply = await f.call(['config', action, ...(action === 'set' ? ['padding', '0'] : []), '--dry-run']);
+            assert.equal(reply.code, 2); assert.match(reply.err, /--dry-run/u);
+            assert.deepEqual(snapshot(f.root), before, 'Unsupported dry run preserves bytes and modes');
         }
     });
 }
