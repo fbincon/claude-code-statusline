@@ -13,7 +13,11 @@
 - [主栏显示项](#主栏显示项)
   - [默认主栏条目](#默认主栏条目)
   - [常用可选主栏条目](#常用可选主栏条目)
-  - [独立指标与实时主栏条目](#独立指标与实时主栏条目)
+  - [模型、上下文与额度条目](#模型上下文与额度条目)
+  - [会话用量条目](#会话用量条目)
+  - [会话身份、仓库与 Git 条目](#会话身份仓库与-git-条目)
+  - [实时执行状态条目](#实时执行状态条目)
+  - [请求指标](#请求指标)
 - [子 Agent 显示项](#子-agent-显示项)
 - [布局组件](#布局组件)
 - [可选外部组件](#可选外部组件)
@@ -99,18 +103,31 @@
 | `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 按当前平台路径语义取得的末级目录名；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
 | `hostname` | `Host NAME` | 本机 Node 的 `os.hostname()`；由本机运行时提供 | 本机名称查询失败，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
 
-### 独立指标与实时主栏条目
+<a id="独立指标与实时主栏条目"></a>
 
-本表同时包含可选快照字段、实时运行状态和请求派生指标；每行注明来源。
+其余可选主栏条目按目录中的相关分组归类。每行注明来源；下方章节解释计时、Token、额度、Git、实时状态和请求行为。
+
+### 模型、上下文与额度条目
+
+模型标识、上下文用量与剩余额度。重置窗口和缓存观测见[额度、重置与缓存](#额度重置与缓存)。
 
 | ID | 示例 | 定义与来源 |
 | --- | --- | --- |
-| `task-active-timer` | `Active 1m 30s` | 可选执行耗时；原生用户等待覆盖不完整时隐藏。 |
 | `model` | `claude-opus` | 优先使用 `model.id`，缺失时使用 `model.display_name`。 |
 | `effort` | `high` | 实时 `effort.level`；模型不支持或字段缺失时隐藏。 |
 | `context-tokens` | `Context 54K / 200K` | `context_window.current_usage` 中普通输入、缓存写入和缓存读取之和／窗口容量，不含输出。若分项对象不存在，可用官方 `total_input_tokens`；压缩后明确为 null 时仍视为不可用。 |
 | `five-hour-reset` | `5h reset 2h 13m` | 按 `rate_limits.five_hour.resets_at` 倒计时。 |
 | `weekly-reset` | `weekly reset 6d 2h` | 按 `rate_limits.seven_day.resets_at` 倒计时。 |
+| `spend-amount` | `Spend $31.50 / $350.00` | 网关可选估算金额 `used_usd`／`limit_usd`，两者均须可用。 |
+| `spend-period` | `Spend monthly` | 网关可选 `period`：daily、weekly 或 monthly。 |
+
+### 会话用量条目
+
+会话执行时间、官方费用字段、缓存计数和累计 Token 计数。见[任务时钟与标记](#任务时钟与标记)、[Token 含义](#token-含义)、[会话费用速率](#会话费用速率)和[额度、重置与缓存](#额度重置与缓存)。
+
+| ID | 示例 | 定义与来源 |
+| --- | --- | --- |
+| `task-active-timer` | `Active 1m 30s` | 可选执行耗时；原生用户等待覆盖不完整时隐藏。 |
 | `session-cost-rate` | `费用速率 ~$0.58/会话小时`（zh-CN） | 官方费用与所选会话／API 时长推导的每小时估算速率，详见下文。 |
 | `session-cost` | `Cost $0.12` | 官方会话累计费用 `cost.total_cost_usd`。 |
 | `session-duration` | `Session 12m 30s` | 官方会话累计运行时间 `cost.total_duration_ms`。 |
@@ -120,25 +137,44 @@
 | `cache-expires` | `Cache TTL 4m 20s` | 仅在已观测主对话缓存仍 warm 时显示 TTL，需有效的未来 `expires_at`。 |
 | `cache-misses` | `Cache miss 2` | 官方 `prompt_cache.misses`，不把压缩或清理后的 `expected_rebuilds` 当成 miss。 |
 | `cache-miss-reason` | `缓存可能原因 工具变化`（zh-CN） | 默认关闭；读取 `prompt_cache.last_miss_cause.causes`，表示宿主判断的最近一次主会话缓存未命中的可能原因。需要 2.1.260+；未知原因码安全保留，详细数量和时间见[诊断](DIAGNOSTICS.zh-CN.md)。 |
-| `worktree` | `工作树 feature-x`（存在 `worktree.name`）或 `Git 工作树 feature-x`（linked Git worktree） | 优先 `worktree.name`（Claude 工作树会话）；缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
 | `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子代理请求。 |
+| `input-tokens` | `in 1.29M` | 累计已记录的普通输入＋缓存写入＋缓存读取，从现有 `tokens` 同一主／子代理会话统计读取原始整数。 |
+| `output-tokens` | `out 22.4K` | 同一完整会话统计中累计已记录的输出。 |
+
+### 会话身份、仓库与 Git 条目
+
+会话身份、输出样式与仓库状态。见 [Git 标记](#git-标记)和[已提交分支比较](#已提交分支比较)。
+
+| ID | 示例 | 定义与来源 |
+| --- | --- | --- |
 | `session-name` | `Session demo-session` | 已观测的 `session_name`，不以 ID 兜底。 |
 | `session-id` | `ID demo-session` | 完整的 `session_id`。 |
 | `session-id-short` | `ID demo-ses` | `session_id` 前八位；原有 `session` 仍优先名称，否则显示短 ID。 |
 | `output-style` | `Style Default` | 官方 `output_style.name`。 |
+| `worktree` | `工作树 feature-x`（存在 `worktree.name`）或 `Git 工作树 feature-x`（linked Git worktree） | 优先 `worktree.name`（Claude 工作树会话）；缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
 | `git-branch` | `Git main` | 复用本地 Git 分支采集，游离 HEAD 显示 `HEAD@<hash>`。 |
 | `git-changes` | `Git ~2 ?1` | 已暂存、未暂存、冲突及未跟踪文件数；确认干净时显示 `Git clean`。 |
 | `git-ahead-behind` | `Git ↑1 ↓0` | 相对已配置上游的提交差距；同步时显示零，无上游时隐藏，上游已移除时显示 `[gone]`。 |
-| `spend-amount` | `Spend $31.50 / $350.00` | 网关可选估算金额 `used_usd`／`limit_usd`，两者均须可用。 |
-| `spend-period` | `Spend monthly` | 网关可选 `period`：daily、weekly 或 monthly。 |
-| `input-tokens` | `in 1.29M` | 累计已记录的普通输入＋缓存写入＋缓存读取，从现有 `tokens` 同一主／子代理会话统计读取原始整数。 |
-| `output-tokens` | `out 22.4K` | 同一完整会话统计中累计已记录的输出。 |
+| `branch-diff` | `Diff 3 files +42/-7` | 从 `merge-base(base, HEAD)` 到 HEAD 的已提交文件数、增加行和删除行；二进制文件只计文件数。自动基准依次 origin/HEAD、本地 main、master。不 fetch；总超时 2 秒，缓存按仓库、HEAD 和基准提交隔离。 |
+
+### 实时执行状态条目
+
+当前主线程执行中已验证的任务与代理状态。见[实时状态项](#实时状态项)。
+
+| ID | 示例 | 定义与来源 |
+| --- | --- | --- |
 | `run-state` | `State waiting agents` | 用户任务的主线程执行、排队、等待代理、收尾及终止状态；来源失效或归属不明显示 `—`。 |
 | `permission-mode` | `Mode plan*` | 事件实际观测的权限模式；hook 快照附 `*` 表示最近观测，15 秒后过期，不以设置默认值推断。 |
 | `active-agents` | `Agents 2` | 本任务已验证的活跃代理数，包含嵌套代理并按 ID 去重；不统计后台 shell/server/workflow，归属不确定时标记已知小计 `*`。 |
 | `task-progress` | `Tasks 3/5` | 成功的结构化 Task/Todo 操作维护的完成数/总数，完整快照优先；不是耗时百分比。有限覆盖附 `*`。 |
 | `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果；已开始但未完成的工具显示 `started`。 |
-| `branch-diff` | `Diff 3 files +42/-7` | 从 `merge-base(base, HEAD)` 到 HEAD 的已提交文件数、增加行和删除行；二进制文件只计文件数。自动基准依次 origin/HEAD、本地 main、master。不 fetch；总超时 2 秒，缓存按仓库、HEAD 和基准提交隔离。 |
+
+### 请求指标
+
+请求派生的时延、吞吐和归属提示词总量。见[请求覆盖与 SDK 回退](#请求覆盖与-sdk-回退)。
+
+| ID | 示例 | 定义与来源 |
+| --- | --- | --- |
 | `ttft` | `TTFT(host) 0.420s` | 最新主线程请求，从进入 turn.step 到首个真实文本、思考或工具内容块的宿主观测时长。缺失或合成流、异常时钟保持不可用。 |
 | `output-rate` | `Rate 36.5 tok/s` | 官方输出 token 除以最新主请求的完整观测耗时，包含首内容等待；不是纯生成速率。 |
 | `prompt-input-tokens` | `Prompt in 48K*` | 同一用户任务去重请求的普通输入＋缓存写入＋缓存读取，包含可靠归属的嵌套代理和主线程收尾。 |
