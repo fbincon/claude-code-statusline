@@ -12,7 +12,8 @@ import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registr
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { MAX_REQUESTS, MAX_TASKS, MAX_TOOLS, MAX_TURNS } from '@fbincon/statusline-core/runtime/live/model';
 import { DEVELOPMENT_CONTENT_PATHS, DOCUMENT_CONTENT_PATHS } from './impact-documentation.js';
-import { HOSTS, TARGETS } from './runtime-inputs.js';
+import { developmentFacts, sourceReader, type SourceReader } from './docs-source-facts.js';
+import { checkInterfaceVersions, checkNpmScripts, documentationProse, NUMBER, numericClaims } from './docs-markdown.js';
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 import { NATIVE } from '@fbincon/statusline-cli/integration/model';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
@@ -59,7 +60,7 @@ const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'e
 const han = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
 function count(value: string): number { return /^\d+$/u.test(value) ? Number(value) : Math.max(words.indexOf(value.toLowerCase()), han.indexOf(value)); }
 
-export function contentErrors(pages: Documents, root = process.cwd()): string[] {
+export function contentErrors(pages: Documents, root = process.cwd(), readSource: SourceReader = sourceReader(root)): string[] {
     const errors: string[] = [];
     const page = (path: string) => { const value = pages.get(path); assert(value !== undefined, 'Missing page'); return value; };
     const check = (path: string, verify: (body: string) => void) => {
@@ -74,6 +75,7 @@ export function contentErrors(pages: Documents, root = process.cwd()): string[] 
         .match(/argument-hint: "\[([^\]]+)\]"/u)?.[1]?.split('|') ?? [];
     const toolDirs = readdirSync(join(root, 'tools'), { withFileTypes: true })
         .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+    const facts = developmentFacts(root, readSource);
     for (const suffix of ['', '.zh-CN']) {
         const readme = `README${suffix}.md`, metrics = `docs/DISPLAY_ITEMS${suffix}.md`, guide = `docs/USER_GUIDE${suffix}.md`, schemes = `docs/SCHEMES${suffix}.md`;
         for (const path of [readme, metrics, guide]) check(path, body => {
@@ -172,100 +174,60 @@ export function contentErrors(pages: Documents, root = process.cwd()): string[] 
                 example(body, id, 'text');
         });
     }
-    const mainTypeCount = metricCounts[0]! + 2, subagentTypeCount = metricCounts[1]! + 2;
+    const [mainTypeCount, subagentTypeCount] = ['main', 'subagent'].map(scope => ITEMS.filter(item => item.scope === scope).length);
     for (const suffix of ['', '.zh-CN']) {
         const zh = suffix === '.zh-CN';
         for (const base of DEVELOPMENT_CONTENT_PATHS) check(base + suffix + '.md', body => {
             const expected = (value: string, message: string) => assert(body.includes(value), message);
+            const prose = documentationProse(body);
+            const numeric = (pattern: string, values: number[], message: string) => numericClaims(prose, pattern, values, message);
             assert(!/Historical record \(frozen|历史记录（冻结/u.test(body), 'Current development page retains a historical banner');
             assert(!/^At this delivery\b|^本次交付中[，,]/mu.test(body), 'Current development page uses historical delivery framing');
-            const prose = body.split(/\r?\n/u).filter(line => !/^\s*\|/u.test(line)).join('\n');
-            const stale = /(?:display schema|显示 schema)\s*(?:8|9|10|16)\b|(?:editor protocol|编辑器协议)\s*(?:13|15|16|17|26|27|28|30)\b|(?:runtime protocol|运行协议)\s*2\b/u;
-            assert(!stale.test(prose), 'Current development page states a historical interface version');
-            for (const match of prose.matchAll(/(?:display schema|显示 schema)\s*v?(\d+)(?![\d–-])/giu))
-                assert.equal(Number(match[1]), SCHEMA_VERSION, 'Display schema differs from core');
-            for (const match of prose.matchAll(/(?:editor protocol|编辑器协议)\s*(\d+)/giu))
-                assert.equal(Number(match[1]), PROTOCOL_VERSION, 'Editor protocol differs from core');
-            if (base !== 'docs/development/live')
-                for (const match of prose.matchAll(/(?:runtime protocol|运行协议)\s*v?(\d+)/giu))
-                    assert.equal(Number(match[1]), RUNTIME_PROTOCOL_VERSION, 'Runtime protocol differs from core');
-            for (const match of body.matchAll(/`npm run ([a-z][a-z0-9:_-]*)`/gu))
-                assert(scripts.has(match[1]!), 'Unknown npm script ' + match[1]);
+            checkInterfaceVersions(body, { schema: SCHEMA_VERSION, editor: PROTOCOL_VERSION, runtime: RUNTIME_PROTOCOL_VERSION }, base === 'docs/development/live');
+            checkNpmScripts(body, scripts);
             const relative = base.slice('docs/development/'.length);
             if (existsSync(join(root, 'docs/development/history/deliveries', relative + '.md')))
                 assert(body.includes('history/deliveries/' + relative), 'Missing delivery record link');
             switch (base) {
                 case 'docs/development/testing':
-                    if (zh) {
-                        expected('8 安装目标', 'Installed target count differs from the matrix');
-                        expected('32 个 Node 场景', 'Node case count differs from the matrix');
-                        expected('16 宿主', 'Host count differs from the matrix');
-                        expected('27 类检查', 'Installed check category count differs');
-                    } else {
-                        expected(`${TARGETS.length} installations`, 'Installed target count differs from the matrix');
-                        expected(`${TARGETS.length * 4} Node cases`, 'Node case count differs from the matrix');
-                        expected(`${HOSTS.length} hosts`, 'Host count differs from the matrix');
-                        expected('27 check categories', 'Installed check category count differs');
-                    }
+                    numeric(NUMBER + (zh ? ' 安装目标' : ' installations'), [facts.installations], 'Installed target count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 个 Node 场景' : ' Node cases'), [facts.nodeCases], 'Node case count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 宿主' : ' hosts'), [facts.hosts], 'Host count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 类检查' : ' check categories'), [facts.installedCategories], 'Installed check category count differs');
                     break;
                 case 'docs/development/contracts':
-                    if (zh) {
-                        expected(`全部 ${OPERATIONS.length} 项`, 'Operation count differs from core');
-                        expected(`${mainTypeCount} 个主栏类型和 ${subagentTypeCount} 个子代理类型`, 'Catalog type count differs from core');
-                        expected(`显示 schema ${SCHEMA_VERSION}`, 'Display schema differs from core');
-                        expected(`协议 ${PROTOCOL_VERSION}`, 'Editor protocol differs from core');
-                    } else {
-                        expected(`all ${OPERATIONS.length} current \`OPERATIONS\``, 'Operation count differs from core');
-                        expected(`${mainTypeCount} main and ${subagentTypeCount} subagent types`, 'Catalog type count differs from core');
-                        expected(`Display schema ${SCHEMA_VERSION}`, 'Display schema differs from core');
-                        expected(`Protocol ${PROTOCOL_VERSION}`, 'Editor protocol differs from core');
-                    }
+                    numeric(zh ? '全部 ' + NUMBER + ' 项' : 'all ' + NUMBER + ' current OPERATIONS', [OPERATIONS.length], 'Operation count differs from core');
+                    numeric(NUMBER + (zh ? ' 个主栏类型和 ' : ' main and ') + NUMBER + (zh ? ' 个子代理类型' : ' subagent types'),
+                        [mainTypeCount!, subagentTypeCount!], 'Catalog type count differs from core');
+                    numeric((zh ? '显示 schema ' : 'Display schema ') + NUMBER, [SCHEMA_VERSION], 'Display schema differs from core');
+                    numeric((zh ? '协议 ' : 'Protocol ') + NUMBER + (zh ? ' 要求' : ' requires'), [PROTOCOL_VERSION], 'Editor protocol differs from core');
                     break;
                 case 'docs/development/i18n':
                     for (const code of LANGUAGES) expected('`' + code + '`', 'Missing language ' + code);
                     break;
                 case 'docs/development/node-regional-languages':
                     for (const code of LANGUAGES) expected('`' + code + '`', 'Missing language ' + code);
-                    if (zh) {
-                        expected('八个安装', 'Installed target count differs from the matrix');
-                        expected(`${TARGETS.length * 4} 个 Node 用例`, 'Node case count differs from the matrix');
-                        expected('十六个固定宿主', 'Host count differs from the matrix');
-                    } else {
-                        expected('eight installations', 'Installed target count differs from the matrix');
-                        expected(`${TARGETS.length * 4} Node cases`, 'Node case count differs from the matrix');
-                        expected('sixteen fixed hosts', 'Host count differs from the matrix');
-                    }
+                    numeric(NUMBER + (zh ? '个安装' : ' installations'), [facts.installations], 'Installed target count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 个 Node 用例' : ' Node cases'), [facts.nodeCases], 'Node case count differs from the matrix');
+                    numeric(NUMBER + (zh ? '个固定宿主' : ' fixed hosts'), [facts.hosts], 'Host count differs from the matrix');
                     break;
                 case 'docs/development/i18n-workflow':
-                    expected(zh ? `${LANGUAGES.length ** 2} 组语言组合` : `${LANGUAGES.length ** 2} language combinations`, 'Language combination count differs from registry');
+                    numeric(NUMBER + (zh ? ' 组语言组合' : ' language combinations'), [LANGUAGES.length ** 2], 'Language combination count differs from registry');
                     break;
                 case 'docs/development/live':
-                    if (zh) {
-                        expected(`${MAX_TURNS} 个 turn`, 'Turn bound differs from core');
-                        expected(`${MAX_TOOLS.toLocaleString('en-US')} 个工具`, 'Tool bound differs from core');
-                        expected(`${MAX_TASKS.toLocaleString('en-US')} 个任务`, 'Task bound differs from core');
-                        expected(`${MAX_REQUESTS.toLocaleString('en-US')} 个请求`, 'Request bound differs from core');
-                    } else {
-                        expected(`${MAX_TURNS} turns`, 'Turn bound differs from core');
-                        expected(`${MAX_TOOLS.toLocaleString('en-US')} tools`, 'Tool bound differs from core');
-                        expected(`${MAX_TASKS.toLocaleString('en-US')} tasks`, 'Task bound differs from core');
-                        expected(`${MAX_REQUESTS.toLocaleString('en-US')} requests`, 'Request bound differs from core');
-                    }
+                    for (const [unit, bound] of [[zh ? ' 个 turn' : ' turns', MAX_TURNS], [zh ? ' 个工具' : ' tools', MAX_TOOLS],
+                        [zh ? ' 个任务' : ' tasks', MAX_TASKS], [zh ? ' 个请求' : ' requests', MAX_REQUESTS]] as const)
+                        numeric(NUMBER + unit, [bound], 'Runtime bound differs from core: ' + unit);
                     break;
                 case 'docs/development/native':
                     expected(zh ? '## 外部 TUI' : '## External TUI', 'Missing current External TUI section');
                     expected('A/D/X', 'Missing native control order');
                     break;
                 case 'docs/development/ci-maintenance':
-                    if (zh) {
-                        expected(`${TARGETS.length * 5} 项逻辑`, 'Logical obligation count differs from the matrix');
-                        expected(`${HOSTS.length} 个宿主`, 'Host count differs from the matrix');
-                        expected('8 条完整／8 条短历史', 'Host history split differs from the matrix');
-                    } else {
-                        expected(`${TARGETS.length * 5} logical`, 'Logical obligation count differs from the matrix');
-                        expected(`${HOSTS.length} fixed hosts`, 'Host count differs from the matrix');
-                        expected('eight full / eight short', 'Host history split differs from the matrix');
-                    }
+                    numeric(NUMBER + (zh ? ' 项逻辑' : ' logical'), [facts.logical], 'Logical obligation count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 个宿主' : ' fixed hosts'), [facts.hosts], 'Host count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 条完整／' : ' full / ') + NUMBER + (zh ? ' 条短历史' : ' short'),
+                        [facts.fullHosts, facts.shortHosts], 'Host history split differs from the matrix');
                     break;
                 case 'docs/development/README':
                     expected('packages/cli/resources/statusline-config/SKILL.md', 'Missing canonical skill path');
@@ -281,15 +243,12 @@ export function contentErrors(pages: Documents, root = process.cwd()): string[] 
                     break;
                 }
                 case 'docs/development/source-command-package-management':
-                    if (zh) {
-                        expected('300 秒', 'Automatic interval default differs from source');
-                        expected('60–86400 秒', 'Automatic interval range differs from source');
-                        expected('五秒续租、十五秒过期', 'Lease timing differs from source');
-                    } else {
-                        expected('300 seconds', 'Automatic interval default differs from source');
-                        expected('60–86400', 'Automatic interval range differs from source');
-                        expected('renew every five seconds and expire after fifteen', 'Lease timing differs from source');
-                    }
+                    numeric((zh ? '命令默认自动间隔 ' : 'Commands start automatic policy at ') + NUMBER + (zh ? ' 秒' : ' seconds'),
+                        [facts.initial], 'Automatic interval default differs from source');
+                    numeric((zh ? '允许 ' : 'adjustable ') + NUMBER + '–' + NUMBER + (zh ? ' 秒' : ' separately'),
+                        [facts.minimum, facts.maximum], 'Automatic interval range differs from source');
+                    numeric(zh ? NUMBER + '秒续租、' + NUMBER + '秒过期' : 'renew every ' + NUMBER + ' seconds and expire after ' + NUMBER,
+                        [facts.renewalSeconds, facts.leaseSeconds], 'Lease timing differs from source');
                     break;
             }
         });
