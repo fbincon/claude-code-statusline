@@ -89,7 +89,7 @@ The release and CI regression suites cover adding a version through data only, m
 
 ## Git, terminal and package transactions
 
-Installed acceptance now requires twenty check categories, including Git policy, shared terminal capability, persistent first entry and explicit version management. Windows receipts include fifteen environment cases and nine real shell/entry combinations; environment simulation alone does not establish shell launch acceptance. See [implementation and diagnostic evidence](history/deliveries/m8-m9-delivery.md).
+The v3.15.0+ installed-acceptance contract requires 27 check categories (26 for earlier versions), including Git policy, shared terminal capability, persistent first entry, explicit version management and the i18n workflow. Windows receipts include fifteen environment cases and nine real shell/entry combinations; environment simulation alone does not establish shell launch acceptance. See [implementation and diagnostic evidence](history/deliveries/m8-m9-delivery.md).
 
 Package tests use temporary prefixes and configuration directories, a controlled loopback registry and real npm with lifecycle scripts disabled. They verify the public v3.7.0 archive digest before roundtrips, interruption and separate restoration. `TS06_LEGACY_370_ARTIFACT` may point to an already downloaded copy; the same digest check still applies. Runtime and official-host receipts must include every operation result. These tests do not change the developer's ordinary Claude configuration or make model calls. Current publication requirements are in the [release guide](../RELEASING.md#current-typescript-publication).
 

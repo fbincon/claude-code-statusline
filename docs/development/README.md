@@ -81,7 +81,7 @@ Select checks from the actual responsibilities changed:
 
 Use immutable commits and new report paths as described in [impact checks](impact-checks.md). Mixed changes combine their obligations; unknown ownership or unresolved comparisons block. Local checks do not replace the final-head `Complete candidate evidence` gate or verified main promotion. [CI routing](ci-maintenance.md).
 
-`npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and responsibility ledgers. `tools/generation/` owns current language/Mod/skill outputs and never regenerates the Python archive. After building, `npm run test:runtime` tests compiled products under a supported Node without rebuilding.
+`npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and responsibility ledgers. `tools/generation/` owns current language/Mod outputs and never regenerates the Python archive; it does not own skill outputs. The statusline skill resources are canonical in `packages/cli/resources/statusline-config/SKILL.md` and `packages/cli/resources/statusline-configure/SKILL.md`; they are maintained separately. After building, `npm run test:runtime` tests compiled products under a supported Node without rebuilding.
 
 Complete product acceptance includes eight installed targets, 32 Node cases, sixteen fixed host combinations and applicable native-capacity cases consuming matching artifacts. Missing 2.1.296 declarations remain explicit. Execution sharing, draft checks and diagnostics retain separate meanings; see [testing and acceptance](testing.md).
 

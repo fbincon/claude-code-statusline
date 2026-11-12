@@ -2,7 +2,7 @@
 
 **English** | [简体中文](stable-release.zh-CN.md)
 
-Publication status: **v3.0.0 delivered on 2026-10-18** through npm `latest`, GitHub stable/Latest and Gitee stable. Public downloads and installations passed. **TS-06 is DONE under the version-limited maintainer decision; PERF-01 remains NOT_STARTED.** [Release notes](../../../releases/v3.0.0.md) · [Decision and gates](README.md#stable-decision-2026-10-18) · [Platform feedback #96](https://github.com/fbincon/claude-code-statusline/issues/96).
+Publication status: **v3.0.0 delivered on 2026-10-18** through npm `latest`, GitHub stable/Latest and Gitee stable. Public downloads and installations passed. **TS-06 is DONE under the version-limited maintainer decision; PERF-01 remained NOT_STARTED at this delivery and later [closed as DONE](../../history/performance/perf-01.md#delivery-v314).** [Release notes](../../../releases/v3.0.0.md) · [Decision and gates](README.md#stable-decision-2026-10-18) · [Platform feedback #96](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 ## Immutable release identity
 
@@ -26,7 +26,7 @@ Exactly four delivery attachments are published. SHA256SUMS lists the other thre
 | `build-manifest.json` | 952 | `3eca893298f8dd1b3a23891963eb02ef79920c80d8e180a9ecb675a9546ee318` |
 | `SHA256SUMS` | 302 | `3564ff726327c0ca37be006ff0ab9c9c59cc761841f6c7b73b1031e0bc49ae62` |
 
-The npm package contains 648 files, including native dependencies for Linux x64, Windows x64, macOS x64 and macOS ARM64. Internal workspaces remain private. Windows ARM uses x64 Node emulation. Display schema 8, editor protocol 11, runtime protocol 2 with v1 compatibility and task schema 4 remain compatible.
+The npm package contains 648 files, including native dependencies for Linux x64, Windows x64, macOS x64 and macOS ARM64. Internal workspaces remain private. Windows ARM uses x64 Node emulation. At v3.0.0, display schema 8, editor protocol 11, runtime protocol 2 with v1 compatibility and task schema 4 remained compatible; these are historical stage values, with current versions in the [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
 
 ## Build and final-artifact acceptance
 
@@ -68,4 +68,4 @@ On 2026-10-18 the maintainer accepted the exact source-archived scope for **v3.0
 
 No new physical sleep/reboot or human desktop acceptance is inferred from CI or reconstructed PTY images. Failed functionality, saves, event delivery and restoration remain blocking. The valid version-limited approval plus the complete passing automated matrix and verified artifact identity establish the stable publication gate; this does not approve a later version or a failed/incomplete matrix.
 
-All requested channels and public-download checks are complete, so **TS-06 is DONE** under that decision. **D06 remains FAIL: 104 pass / 60 fail / 28 inconclusive. PERF-01 remains NOT_STARTED** and requires a subsequent task. The source, runtime/dependency identities and attachment digests above are its reproducible baseline. Platform feedback stays on #96 without checking off missing observations. Private raw logs and temporary files remain in ignored validation directories.
+All requested channels and public-download checks are complete, so **TS-06 is DONE** under that decision. **D06 remains FAIL: 104 pass / 60 fail / 28 inconclusive. PERF-01 remained NOT_STARTED at this closure** and later [closed as DONE](../../history/performance/perf-01.md#delivery-v314). The source, runtime/dependency identities and attachment digests above are its reproducible baseline. Platform feedback stays on #96 without checking off missing observations. Private raw logs and temporary files remain in ignored validation directories.

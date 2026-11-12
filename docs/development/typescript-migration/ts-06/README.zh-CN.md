@@ -2,23 +2,25 @@
 
 [English](README.md) | **简体中文**
 
+> **历史阶段记录（冻结于 TS-06 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 状态：依据下述限定版本决定，**DONE**。**v3.0.0 已在 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式版发布并通过下载核验**。[正式版身份、摘要及 CI 证据](stable-release.zh-CN.md)。保留 [beta.1 交付记录](preview-release.zh-CN.md)、npm `beta` 和不可变附件。[用户指南](../../../USER_GUIDE.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 正式版决定：2026-10-18
 
 维护者确认 beta.1 验收，明确选择**接受已知缺项发布**，并批准 v3.0.0 实施及正式交付计划。本决定仅对 **v3.0.0** 修订此前实体/桌面必过门槛，目标支持范围保持不变。macOS 实机休眠恢复、macOS 14 Intel 桌面/电源、Windows 10 桌面、WSL 桌面/弹窗和其他目标人工/电源覆盖继续标为**未验证**；Claude 2.1.296 精确声明仍不可用。不推断新增人工、电源或类型检查通过。
 
-[机器可读批准记录](stable-approval.json)包含在已校验源码包中；`release:prepare --stable` 核对版本和批准范围，将记录 SHA-256 与通过的源码/产物绑定自动证据一起报告。该记录不能批准其他版本、不完整矩阵或功能失败。D06 仍 FAIL，PERF-01 仍 NOT_STARTED。[正式交付证据](stable-release.zh-CN.md)按实际结果更新。
+[机器可读批准记录](stable-approval.json)包含在已校验源码包中；`release:prepare --stable` 核对版本和批准范围，将记录 SHA-256 与通过的源码/产物绑定自动证据一起报告。该记录不能批准其他版本、不完整矩阵或功能失败。D06 仍 FAIL；PERF-01 当时仍为 NOT_STARTED，后续已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。[正式交付证据](stable-release.zh-CN.md)按实际结果更新。
 
 v3.0.0 使用 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式 Release。双编辑器默认接入保持不变；未保存偏好时，原生计时和高级采集均默认关闭，显式参数和已保存偏好仍优先。不上传 PyPI，Python v2.0.0 保留为回退目标；beta.1 保持 `beta` 和不可变附件。
 
 ## 关闭记录：2026-10-18
 
-[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99)交付安装默认值、外部 TUI 恢复及正式发布支持。最终 head、合并提交、标签的 CI 各 23 项通过；固定源码 `d3c87090fed4005f9d1ec8d84d3b016e0cdd4774` 可从源码附件重建为相同字节，草稿下载、npm 和 Gitee 字节一致。三系统公开下载检查均通过精确版本及 `latest` 安装。[完整报告](stable-release.zh-CN.md)记录各附件、源码归档内批准及仍未验证的范围。TS-06 为 DONE；PERF-01 保持 NOT_STARTED，须由后续任务启动。#96 继续收集缺失的平台观察。
+[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99)交付安装默认值、外部 TUI 恢复及正式发布支持。最终 head、合并提交、标签的 CI 各 23 项通过；固定源码 `d3c87090fed4005f9d1ec8d84d3b016e0cdd4774` 可从源码附件重建为相同字节，草稿下载、npm 和 Gitee 字节一致。三系统公开下载检查均通过精确版本及 `latest` 安装。[完整报告](stable-release.zh-CN.md)记录各附件、源码归档内批准及仍未验证的范围。TS-06 为 DONE；PERF-01 当时保持 NOT_STARTED，后续已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。#96 继续收集缺失的平台观察。
 
 ## 已批准的预览门槛修订，2026-10-18
 
-预览交接时，维护者批准先公开预览，收集本机无法完成的 macOS/Windows 及其他目标平台反馈，替代此前“任何 TS 发布之前完成全部实体/桌面验证”的要求。上文限定版本决定出台前，缺失项仍是正式版门槛，延期从不代表通过。目标平台边界不变。当时首个预览交付后 TS-06 仍进行中，后续正式交付见上文关闭记录；PERF-01 保持 NOT_STARTED。
+预览交接时，维护者批准先公开预览，收集本机无法完成的 macOS/Windows 及其他目标平台反馈，替代此前“任何 TS 发布之前完成全部实体/桌面验证”的要求。上文限定版本决定出台前，缺失项仍是正式版门槛，延期从不代表通过。目标平台边界不变。当时首个预览交付后 TS-06 仍进行中，后续正式交付见上文关闭记录；PERF-01 当时保持 NOT_STARTED，后续已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。
 
 当时预览包名为 `@fbincon/claude-code-statusline`，版本 `3.0.0-beta.1`，npm 使用 `beta` 标签；GitHub/Gitee 使用 `v3.0.0-beta.1` 并标记预览。Python v2.0.0 当时为最新稳定版，现仍保留为回退目标，没有上传 PyPI。与历史 Python 预览不同，TS 预览默认开启两个兼容编辑器，保留显式关闭；高级 live metrics 仍显式启用。
 

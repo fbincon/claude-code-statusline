@@ -6,7 +6,7 @@
 
 ## 实现与兼容性
 
-UX-03、COMPOSITION-04、IMPORT-02 从 `bae8e70e6e7f254b22ec5f87fa61c052aa6575ac`（v3.12.0）开始，全部切片于 2026-10-29 合并交付 v3.13.0，状态为 **DONE**。下方发版后发现继续开放，不补发修补版。[用户操作](../DRAFT_HISTORY.zh-CN.md)。
+UX-03、COMPOSITION-04、IMPORT-02 从 `bae8e70e6e7f254b22ec5f87fa61c052aa6575ac`（v3.12.0）开始，全部切片于 2026-10-29 合并交付 v3.13.0，状态为 **DONE**。下方发版后发现（#178、#180）在本次交付时仍未关闭，未补发修补版；二者后由 v3.14.0 修复（[实际机器与收尾](adaptive-row-scenarios.zh-CN.md#实际机器与收尾)），#179 保持 closed/not_planned 且不在本轮范围。[用户操作](../DRAFT_HISTORY.zh-CN.md)。
 
 Core 管理会话历史、语义差异、结构修复候选、样式字段兼容性及分组引用闭包；CLI 管理有界文件解析、来源／目标修订检查及现有加锁事务；外部 TUI 与 Native 适配共享管理器。Mod 资源继续由现有资源生成器维护。
 
@@ -75,6 +75,6 @@ Native 提供 Ctrl+_ 撤销、Ctrl+R 重做，“变更与历史”页面也提�
 
 - [#178](https://github.com/fbincon/claude-code-statusline/issues/178)：`npm audit signatures` 遍历内置私有工作区包，因 registry E404 失败。全树审计不记作通过；上方单独限定外层包的签名／provenance 验证通过。
 - [#179](https://github.com/fbincon/claude-code-statusline/issues/179)：临时实际配置 Native 诊断**误发了两次模型请求**，违反不运行付费模型测试的指令。通用 API-key-helper 警告误匹配过宽的自动弹窗处理，实际配置又覆盖模拟环境地址。进程已停止，Claude 记账约 **USD 0.0955**，实际服务商扣费未核验。失败诊断不记作零调用回执。最终通过的 Native 重试使用无路由的 Linux 非特权用户／网络命名空间，验证出站 ENETUNREACH，且未观察到 API 请求；长期工具改进留在 issue 中。
-- [#180](https://github.com/fbincon/claude-code-statusline/issues/180)：Native 简中样式入口仍显示英文，尽管规范翻译键已存在。功能验证按实际显示的标题导航，不据此宣称新增 Native 入口标题已完全本地化。
+- [#180](https://github.com/fbincon/claude-code-statusline/issues/180)：在 v3.13.0，Native 简中样式入口仍显示英文，尽管规范翻译键已存在；该问题已在 v3.14.0 修复。功能验证按实际显示的标题导航，不据此宣称新增 Native 入口标题已完全本地化。
 
-发布门禁与不可变候选验收未调用付费模型，发版后误发请求另行明确记录。上述发现不触发产品修正、新 tag 或补丁发布。[版本限定授权](../releases/approvals/v3.13.0.json) 只接受 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 原有六项缺口且保持未验证，不豁免新增自动化失败。证据补充含文档白名单之外的 PNG，按完整产品 CI 矩阵执行。
+发布门禁与不可变候选验收未调用付费模型；本次交付中，发版后误发请求另行明确记录，上述发现当时不触发产品修正、新 tag 或补丁发布。#178 与 #180 后由 v3.14.0 修复（[实际机器与收尾](adaptive-row-scenarios.zh-CN.md#实际机器与收尾)）；#179 保持 closed/not_planned 且不在本轮范围。[版本限定授权](../releases/approvals/v3.13.0.json) 只接受 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 原有六项缺口且保持未验证，不豁免新增自动化失败。证据补充含文档白名单之外的 PNG，按完整产品 CI 矩阵执行。

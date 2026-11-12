@@ -66,7 +66,7 @@ archive/python/                  冻结实现及比较证据
 
 `ConfigurationService`／`Storage` 绑定文件事务和宿主身份。编辑器 UI 协议与 runtime 观测协议独立演进；当前版本与读取范围由 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)维护，操作和错误行为由[共享契约](contracts.zh-CN.md)维护。
 
-文件发布在修改前记录不可覆盖的原始快照与持久检查点。共同安装锁保护文件提交，管理锁串行化官方集成阶段。`cli/recovery` 维护带版本的文件与官方操作日志，未完成日志阻止配置写入，直到显式恢复。恢复核验记录状态、核对不明确的宿主结果并保留插件禁用偏好。持久刷新意图跨卸载／重装保留手动禁用；doctor 仅检查。参见[恢复流程](typescript-migration/ts-04/recovery.zh-CN.md)和[安装验收](typescript-migration/ts-04/candidate.zh-CN.md)。
+文件发布在修改前记录不可覆盖的原始快照与持久检查点。共同安装锁保护文件提交，管理锁串行化官方集成阶段。`cli/recovery` 维护带版本的文件与官方操作日志，未完成日志阻止配置写入，直到显式恢复。恢复核验记录状态、核对不明确的宿主结果并保留插件禁用偏好。持久刷新意图跨卸载／重装保留手动禁用；doctor 仅检查。参见[TS-04 历史恢复证据](typescript-migration/ts-04/recovery.zh-CN.md)和[TS-04 历史安装验收](typescript-migration/ts-04/candidate.zh-CN.md)；当前恢复行为由[共享契约](contracts.zh-CN.md#候选安装与恢复)规定。
 
 ## 平台与宿主集成
 

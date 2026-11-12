@@ -2,7 +2,7 @@
 
 **English** | [简体中文](node-regional-languages.zh-CN.md)
 
-This post-migration work is **DONE**: v3.1.0 is delivered on npm, GitHub and Gitee. TS-01–TS-06 remain complete; their frozen fixtures, historical decisions and Python reference are retained. PERF-01 remains separate and not started.
+This post-migration work is **DONE**: v3.1.0 is delivered on npm, GitHub and Gitee. TS-01–TS-06 remain complete; their frozen fixtures, historical decisions and Python reference are retained. At this v3.1.0 delivery PERF-01 was separate and not started; it was later closed in [Delivery v3.1.4](history/performance/perf-01.md#delivery-v314).
 
 ## Runtime contract
 
@@ -16,7 +16,7 @@ Windows Node 24.0.0/libuv 1.50 also reports a zero device ID in path stats while
 
 Selectors contain `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, in that order. `zh-Hant` is an input-only compatibility alias for Taiwan. Reads normalize without rewriting; explicit saves and exports emit canonical codes. Unknown inputs remain invalid. Taiwan and Hong Kong have complete independent packs, regional terminology, shared generation, multilingual search and independent UI/output selection. [Translation conventions](i18n.md).
 
-Editor protocol 12 rejects older frontends with a reinstall message. Display schema 8, UI preferences 1, portable envelope 1 and runtime protocol 2 retain their formats. Reinstallation refreshes matching resources and accepts the former owned protocol marker for upgrade. Before downgrading, reset both language settings to English using the newer version, or restore a compatible backup.
+The v3.1.0 delivery uses editor protocol 12, which rejects older frontends with a reinstall message. Display schema 8, UI preferences 1, portable envelope 1 and runtime protocol 2 retain their formats in that delivery. Reinstallation refreshes matching resources and accepts the former owned protocol marker for upgrade. Before downgrading, reset both language settings to English using the newer version, or restore a compatible backup.
 
 The frozen migration capture adapts historical protocol-11 requests in memory. Comparison permits only the known protocol fields, exact unsupported-version text and two language-choice lists to change; unrelated behavior and the three original CLI wording exemptions remain checked.
 
@@ -24,7 +24,7 @@ The frozen migration capture adapts historical protocol-11 requests in memory. C
 
 Status: **DONE**, 2026-10-18. Generation/coverage checks, product/tool tests, eight installed targets, thirteen hosts and 32 runtime receipts passed. All 36 installed UI/output combinations passed. Tests cover regional search, legacy preferences and arguments, failed writes, portable imports, protocol mismatch, save/cancel/reopen, main and subagent output. Both editors were checked at minimum/common sizes and light/dark backgrounds. [Installed regional interfaces and capture scope](../images/typescript/regional/README.md).
 
-The maintainer explicitly accepted the same six disclosed historical gaps for v3.1.0 in the [version-specific decision](../releases/approvals/v3.1.0.json). They remain unverified: physical macOS sleep; macOS 14 Intel desktop/power; Windows 10 desktop; WSL desktop/popup; remaining target-specific human/power checks; and Claude 2.1.296 exact declarations. Functional and automated failures remain blocking. The v3.0.0 approval is unchanged. D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive**; PERF-01 remains **NOT_STARTED**, with no performance-improvement claim.
+The maintainer explicitly accepted the same six disclosed historical gaps for v3.1.0 in the [version-specific decision](../releases/approvals/v3.1.0.json). They remain unverified: physical macOS sleep; macOS 14 Intel desktop/power; Windows 10 desktop; WSL desktop/popup; remaining target-specific human/power checks; and Claude 2.1.296 exact declarations. Functional and automated failures remain blocking. The v3.0.0 approval is unchanged. D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive** as historical evidence; at this v3.1.0 delivery PERF-01 was **NOT_STARTED**, with no performance-improvement claim, and it was later closed in [Delivery v3.1.4](history/performance/perf-01.md#delivery-v314).
 
 ### Immutable release identity
 

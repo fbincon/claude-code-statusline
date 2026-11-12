@@ -6,7 +6,7 @@ v3.14.0 实现 APPEARANCE-07、APPEARANCE-06、PROFILE-02，以及 [#178](https:
 
 ## 共享表示与最终着色
 
-显示 schema 17 增加 `presentation=adaptive` 与可选的 `powerline.row_background_gradient`；编辑器协议 30 传输对应描述。portable／profile 外层格式保持版本 1。旧文件只在内存中规范化，读取不写入，也不会启用新行为。更早 schema 拒绝新选项；显式写入保留修订检查、锁、备份和原子发布。
+v3.14.0 的显示 schema 17 增加 `presentation=adaptive` 与可选的 `powerline.row_background_gradient`；编辑器协议 30 传输对应描述。portable／profile 外层格式保持版本 1。旧文件只在内存中规范化，读取不写入，也不会启用新行为。更早 schema 拒绝新选项；显式写入保留修订检查、锁、备份和原子发布。
 
 自适应指标保留结构化百分比及已用／剩余文本。固定行依次缩短可缩减的内置标签、将条缩至四格、转数字，再按既有优先级省略；各阶段先缩减低优先级项。自定义标签和图标保持完整，数字表示仍放不下则省略。`max_width`、分组和两个作用域共用规则。自动布局保留正常换行，仅对超过整行宽度的单元缩减。真实输入诊断和样例解释同样记录组件自身宽度限制下的缩减阶段；整项省略记为 `width_omitted`，而不是数据为空。
 
@@ -124,4 +124,4 @@ npm run release:signatures -- --version 3.14.0 --commit FULL_SOURCE_SHA --artifa
 
 本机经已验证、无冲突的 dry-run 后，由 3.13.0 升级至 3.14.0；全部 1,062 个已安装文件与验证后的公开包逐字节一致。Claude Code 2.1.312 上，实际外部编辑器（英语，120 × 32）与 Native 编辑器（简体中文，200 × 50）均通过五场景预览／取消／接受、行背景渐变编辑／取消、草稿导出、撤销重做及本地化样式／分组／历史管理器流程。Native 使用无外部路由的 Linux 用户／网络命名空间，核验 `ENETUNREACH`，模型请求尝试为零。九项原显示／界面／方案／来源／宿主偏好路径恢复并保留字节、权限及缺失状态，仅将项目拥有的后端版本升至 `3.14.0`。随后实际配置的 statusline 命令通过样例渲染，模型 ID、目录与上下文剩余含义符合预期，并再次核验偏好。本次发版后验证未发现新的产品问题。
 
-[#178](https://github.com/fbincon/claude-code-statusline/issues/178) 与 [#180](https://github.com/fbincon/claude-code-statusline/issues/180) 已以 completed 关闭，并关联公开签名及实际机器证据。#179 在本轮范围外，保留原有 `closed / not_planned` 状态。仅沿用六项既有 [#96 缺口](https://github.com/fbincon/claude-code-statusline/issues/96)，仍为接受但未验证。自动终端和代理检查的重建图不代表物理验收或新增人工验收。SHOWCASE-01 保持 NOT_STARTED。发版后新增本机发现另提 issue 并保留 v3.14.0，本轮不追加修补版本。
+[#178](https://github.com/fbincon/claude-code-statusline/issues/178) 与 [#180](https://github.com/fbincon/claude-code-statusline/issues/180) 已以 completed 关闭，并关联公开签名及实际机器证据。#179 在本轮范围外，保留原有 `closed / not_planned` 状态。仅沿用六项既有 [#96 缺口](https://github.com/fbincon/claude-code-statusline/issues/96)，仍为接受但未验证。自动终端和代理检查的重建图不代表物理验收或新增人工验收。SHOWCASE-01 在本次 v3.14.0 交付时为 NOT_STARTED，后于 [SHOWCASE-01 交付](showcase.zh-CN.md#delivery)完成。发版后新增本机发现另提 issue 并保留 v3.14.0，本轮不追加修补版本。

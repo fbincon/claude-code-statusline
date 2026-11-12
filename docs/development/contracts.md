@@ -321,7 +321,7 @@ before restoring bytes/absence/modes, or retains a confirmed committed phase.
 Official mutation outcomes are reconciled from actual inventory, cache hashes
 and argv binding; recovery never blindly replays recorded mutating arguments.
 The durable refresh intent preserves an explicitly disabled plugin across the
-uninstall/reinstall gap. These journals are independent of display/UI/runtime wire schemas. See the [candidate recovery contract](typescript-migration/ts-04/recovery.md).
+uninstall/reinstall gap. These journals are independent of display/UI/runtime wire schemas. See the [historical TS-04 candidate recovery evidence](typescript-migration/ts-04/recovery.md); current recovery behavior is defined in this section and the [CLI reference](../reference/cli.md#package-management-and-recovery).
 
 <a id="feature-contract-evolution"></a>
 

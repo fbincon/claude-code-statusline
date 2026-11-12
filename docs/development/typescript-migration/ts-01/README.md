@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+> **Historical stage record (frozen at TS-01 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+
 The [migration plan](../../typescript-migration.md) owns stage status. This record
 explains the frozen reference, portable cases, verification and evidence. TS-01
 does not implement a TypeScript backend or decide D01–D06.
@@ -90,7 +92,9 @@ observable results without importing Python.
 ## Reproduce and review
 
 Use a development virtual environment with the repository installed and the
-existing test dependencies (`wcwidth==0.9.1`, `pyte`). Run from the repository root:
+existing test dependencies (`wcwidth==0.9.1`, `pyte`). The commands below use the
+original pre-archive tree layout; in the current checkout they run from
+`archive/python/` under its [reference procedure](../../../../archive/python/README.md):
 
 ```bash
 python -m tools.migration inventory --output /tmp/ts01-inventory-new.json
@@ -170,6 +174,6 @@ Claude Code 2.1.296 has runtime/installation checks but no exact-build declarati
 coverage through the current preparation flow. The agreed TS-01 scope excludes
 new paid model calls and cross-platform human desktop acceptance. Physical sleep,
 reboot, power-loss durability and uncovered architecture/terminal combinations
-remain explicit TS-02/TS-06 work. D01–D06 remain OPEN.
+remain explicit TS-02/TS-06 work. D01–D06 remained OPEN at this stage.
 
 Implementation `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` passed all 14 [CI jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) and 13 [Mod jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593). [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records the final reviewed head, merge commit and verified Gitee synchronization after the documentation revision passes its checks. The next implementation stage is TS-02.

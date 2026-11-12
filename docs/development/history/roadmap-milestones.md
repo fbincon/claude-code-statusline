@@ -10,7 +10,7 @@ This record preserves the v3.16.0 planning snapshot, reference projects and the 
 
 ## Planning baseline and product direction
 
-The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](deliveries/language-expansion.md#final-release) as its product baseline. The original planning source is `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`.
+The planning snapshot on **2026-10-30** (Asia/Shanghai) uses [v3.16.0](deliveries/language-expansion.md#final-release) as its product baseline. The review on 2026-10-28 used source `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`, which was product v3.9.1.
 
 The table describes the capabilities used to plan from v3.16.0. See the [user guide](../../USER_GUIDE.md) for current procedures and the [changelog](../../../CHANGELOG.md) for changes since that baseline.
 
@@ -25,7 +25,7 @@ The table describes the capabilities used to plan from v3.16.0. See the [user gu
 | Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI and commands; readable state, check pagination, reference-protected bindings and separately reviewed active-session refresh; optional OSC 8 links | Keep authorization separate from display schemes; clear local bindings only in imported sections |
 | Native presentation | Host-retained editing state, bounded visible frames, independent capacity checks and recoverable save outcomes | Apply these boundaries to every new page; see [capacity and recovery](../native-capacity.md) |
-| Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
+| Interfaces | Display schema 17, editor protocol 31, source registry 3/jobs 4, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1; [current versions](../../reference/cli.md#protocol-and-schema-versions) | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
 The [review baseline](work-package-designs.md#review-baseline) separates isolated reproductions, source-confirmed gaps and proposed capabilities. The previous planning snapshot is `f68d26eeddda98ab4041d2b9e873ade556fa1909`. See the [catalog](../../../packages/core/src/config/catalog-data.ts), [editor protocol](../../../packages/core/src/contracts/ui.ts), [architecture](../architecture.md) and [delivery index](README.md#delivery-records) for the corresponding definitions and evidence.

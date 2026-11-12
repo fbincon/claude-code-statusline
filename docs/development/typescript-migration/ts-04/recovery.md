@@ -2,10 +2,12 @@
 
 **English** | [简体中文](recovery.zh-CN.md)
 
-This procedure applies to the private TS-04/TS-05 candidates. The released Python
-package and the maintainer's existing installation remain unchanged. Run the
-candidate with an explicit isolated configuration directory until release
-acceptance authorizes a cutover.
+> **Historical TS-04 evidence.** This recovery procedure is frozen at TS-04 delivery and is not current guidance. Current recovery behavior is owned by the [shared contracts](../../contracts.md#candidate-installation-and-recovery) and the [CLI reference](../../../reference/cli.md#package-management-and-recovery).
+
+This procedure applied to the private TS-04/TS-05 candidates. The released Python
+package and the maintainer's existing installation remained unchanged. The
+candidate was run with an explicit isolated configuration directory until release
+acceptance authorized a cutover.
 
 
 See the [engineering candidate guide](../ts-05/candidate.md) for TS-05 offline installation, artifact hashes and independent Python rollback verification.

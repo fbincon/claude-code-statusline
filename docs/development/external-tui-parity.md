@@ -2,6 +2,8 @@
 
 **English** | [简体中文](external-tui-parity.zh-CN.md)
 
+> **Historical record (frozen at v3.1.1, 2026-10-19).** Current status and interface versions are in the [roadmap](roadmap.md) and [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions).
+
 Updated: **2026-10-19** (Asia/Shanghai). Delivered: **v3.1.1**. Status: **DONE** under the version-specific maintainer decision. [Machine-readable delivery evidence](external-tui-parity.delivery.json).
 
 ## Subsequent regression review
@@ -12,7 +14,7 @@ The v3.1.1 record below remains historical. An independent review of fixed v3.1.
 
 The maintainer approved implementation after comparing Python v2.0.0 (`9b6d2fab4bf165be280d428a874521bfbf02c7e1`) and TypeScript v3.1.0 (`10de45895d2734a8ab1eacec09b57bc89417be51`). Retain cyan headings, full-row selection, aligned columns and six languages. Restore useful external-editor information and repair presentation defects. Keep terminal-default frames and backgrounds, four pages, minimum 64×18 and full frames from 20 rows.
 
-Public CLI, editor protocol 12 and persisted formats remain unchanged. Native editor behavior and the Python archive are preserved. Product tests do not introduce a CLI dependency into the TUI package. README remains a product introduction, with no new release history.
+At v3.1.1, public CLI, editor protocol 12 and persisted formats remained unchanged. Native editor behavior and the Python archive were preserved. Product tests do not introduce a CLI dependency into the TUI package. README remains a product introduction, with no new release history.
 
 ## Implementation
 
@@ -59,7 +61,7 @@ Two source-rebuild attempts failed on registry TLS reset/download timeout and we
 
 ## Release decision
 
-[v3.1.1 approval](../releases/approvals/v3.1.1.json) records the maintainer's explicit acceptance of the same six existing gaps for this version only. The release verifier accepts neither another version's approval nor failed/missing automated evidence. D06 remains FAIL and PERF-01 NOT_STARTED.
+[v3.1.1 approval](../releases/approvals/v3.1.1.json) records the maintainer's explicit acceptance of the same six existing gaps for this version only. The release verifier accepts neither another version's approval nor failed/missing automated evidence. At v3.1.1, D06 remained FAIL and PERF-01 was NOT_STARTED; PERF-01 was later closed in the [v3.1.4 delivery](history/performance/perf-01.md#delivery-v314).
 
 The fixed build, source rebuild and final-head/merge/tag checks above established readiness. npm received the verified tgz; GitHub/Gitee received that same tgz, source tar.gz, build manifest and SHA256SUMS. Approval SHA-256 is `7352650c32c059fb522ad11c19e804cda879d415a5f942168e667a24a82d2cbd`. [Release notes](../releases/v3.1.1.md).
 
@@ -76,4 +78,4 @@ The fixed build, source rebuild and final-head/merge/tag checks above establishe
 
 Six public CI receipts bind the final source, verifier source, package digest and both registry selectors; local public-download checks independently pass. All four Gitee downloads match the table, and its tgz passes complete bundle verification and installed checks. Gitee's automatic repository archives are separate from the delivered rebuildable source attachment.
 
-GitHub remains primary. After checking that Gitee main had no divergent commits, explicit non-force refspecs synchronized validated main and the annotated tag. This documentation/gallery follow-up does not move that public tag or replace assets. Historical releases, beta, Python reference/images, root project READMEs and the personal installation are preserved. The six accepted physical/desktop/declaration gaps remain unverified/unavailable; CI and reconstructed images do not close them. D06 stays **FAIL: 104 pass / 60 fail / 28 inconclusive**; PERF-01 stays **NOT_STARTED**.
+GitHub remains primary. After checking that Gitee main had no divergent commits, explicit non-force refspecs synchronized validated main and the annotated tag. This documentation/gallery follow-up does not move that public tag or replace assets. Historical releases, beta, Python reference/images, root project READMEs and the personal installation are preserved. The six accepted physical/desktop/declaration gaps remain unverified/unavailable; CI and reconstructed images do not close them. At v3.1.1, D06 remained **FAIL: 104 pass / 60 fail / 28 inconclusive**, and PERF-01 was **NOT_STARTED**.

@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+> **历史阶段记录（冻结于 TS-05 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 状态：**DONE**，2026-10-16（Asia/Shanghai）。执行者：Codex。
 收尾分支：`fbincon/ts-05-closure`。[迁移总计划](../../typescript-migration.zh-CN.md)
 维护阶段状态。已批准交付通用离线工程候选包、验证后的 CI 制品和仓库内隔离的 Python 归档。
@@ -55,7 +57,7 @@ x64 的 PowerShell 主/子 Agent 渲染为 **2998 / 466 ms**；ARM 主机使用 
 
 [候选指南](candidate.zh-CN.md)提供重建和安装命令，[TS-06 交接](TS06-HANDOFF.zh-CN.md)
 列出发布前条件。本轮没有公开标签、预览、Release、注册表发布、新增付费调用、实机验收或
-现用 Python 切换。D06 保持 FAIL，PERF-01 和 TS-06 保持 NOT_STARTED。
+现用 Python 切换。D06 保持 FAIL；本次关闭时 PERF-01 和 TS-06 为 NOT_STARTED，后续完成情况见[阶段表](../../typescript-migration.zh-CN.md#阶段与进度)。
 下文各批次记录保留当时的检查点状态和数量。
 
 ## 实施批次
@@ -115,8 +117,8 @@ PowerShell 的[原生命令处理器](https://github.com/PowerShell/PowerShell/b
 固定参考结果携带来源、运行时和验收器哈希。固定提交的两次干净构建必须生成相同候选字节。
 八目标安装和十三个固定主机组合使用同一制品。保留可用的精确构建声明检查及 2.1.296 的声明限制。
 
-显示 schema 8、UI 协议 11、运行时协议 2/v1 兼容和任务 schema 4 不变。
-D06 的历史 FAIL 保留，PERF-01 在 TS-06 后进行。普通验收不调用付费模型。
+TS-05 未改变显示 schema 8、UI 协议 11、运行时协议 2/v1 兼容和任务 schema 4；这些是历史阶段版本值，当前版本见[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+D06 的历史 FAIL 保留，PERF-01 随后在 TS-06 后进行。普通验收不调用付费模型。
 原始证据保存在忽略目录 `dist/validation/typescript-migration/ts-05/`。
 
 ## 05-A 本地验证

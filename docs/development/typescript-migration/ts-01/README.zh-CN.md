@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+> **历史阶段记录（冻结于 TS-01 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 [迁移总计划](../../typescript-migration.zh-CN.md)统一记录阶段状态。本文说明固定参考、
 可移植样例、核验方式和证据。TS-01 不实现 TypeScript 后端，也不决定 D01–D06。
 
@@ -72,8 +74,9 @@ TypeScript 适配器应使用相同输入、输出相同可观察结果，且不
 
 ## 复现与审查
 
-使用已安装本项目及现有测试依赖（`wcwidth==0.9.1`、`pyte`）的开发虚拟环境，
-在仓库根目录运行：
+使用已安装本项目及现有测试依赖（`wcwidth==0.9.1`、`pyte`）的开发虚拟环境。
+下列命令沿用归档前的原始目录布局；在当前检出的 `archive/python/` 中按其
+[参考流程](../../../../archive/python/README.md)运行：
 
 ```bash
 python -m tools.migration inventory --output /tmp/ts01-inventory-new.json
@@ -137,6 +140,6 @@ python -m unittest tests.migration.test_baseline -v
 
 Claude Code 2.1.296 有运行及安装检查，但现有流程不能生成其精确宿主声明。按已确认范围，
 TS-01 不新增付费模型调用，也不等待跨平台人工桌面验收。真实休眠、重启、断电持久性及
-未覆盖的架构/终端组合继续作为 TS-02/TS-06 的明确工作。D01–D06 保持 OPEN。
+未覆盖的架构/终端组合继续作为 TS-02/TS-06 的明确工作。D01–D06 当时保持 OPEN。
 
 实现提交 `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` 已通过全部 14 项 [CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) 和 13 项 [Mod](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593) 检查。收尾文档版本通过检查后，最终审查提交、合并提交及 Gitee 同步核对结果记录于 [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)。下一项实施阶段为 TS-02。

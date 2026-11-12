@@ -2,10 +2,11 @@
 
 **English** | [简体中文](TS06-HANDOFF.zh-CN.md)
 
-TS-05 delivers the private universal engineering candidate, its rebuildable source
+TS-05 delivered the private universal engineering candidate, its rebuildable source
 archive, checksums and source-bound acceptance. See [closure evidence](README.md)
-and the [candidate guide](candidate.md). TS-06 remains **NOT_STARTED**; this handoff
-records its prerequisites and does not publish or change the installed product.
+and the [candidate guide](candidate.md). At this handoff, TS-06 was **NOT_STARTED**;
+this handoff records its prerequisites and did not publish or change the installed
+product. TS-06 later [delivered stable v3.0.0](../ts-06/stable-release.md).
 
 ## Inputs and preserved contracts
 
@@ -49,9 +50,10 @@ or Release. Existing paid records and simulations verify the budgeted tooling;
 new calls still require explicit invocation, a fresh evidence directory and the
 shared budget/ledger constraints. The installed Python product was not switched.
 
-D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive**. No full D06 measurement
-ran in TS-05. PERF-01 remains **NOT_STARTED** after TS-06; retain its original
-measurement policy, source/harness pins and failure records. Functional timeouts,
+D06 remained **FAIL: 104 pass / 60 fail / 28 inconclusive** at this handoff. No full D06 measurement
+ran in TS-05. PERF-01 was **NOT_STARTED** after TS-06; its original
+measurement policy, source/harness pins and failure records were retained. It later
+[closed as DONE](../../history/performance/perf-01.md#delivery-v314). Functional timeouts,
 bounded resources, event loss, atomic writes and recovery remain current gates.
 
 ## TS-06 preview amendment, 2026-10-18

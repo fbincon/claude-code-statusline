@@ -2,12 +2,14 @@
 
 [English](README.md) | **简体中文**
 
+> **历史阶段记录（冻结于 TS-02 交付时）。** 当前状态与接口版本见[迁移总计划](../../typescript-migration.zh-CN.md)和[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
+
 2026-10-14: [Linux 整合、实体机验收及已批准的发布前补验](LINUX-20261014.zh-CN.md).
 
 更新：**2026-10-15**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)统一维护。
 TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已[按修订后的非性能标准关闭](../ts-03/README.zh-CN.md#closure-2026-10-15)。
 [D06 适用范围修订](D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作归入 TS-06 之后的
-[PERF-01](../../performance/perf-01.zh-CN.md)。TS-04～TS-06 和 PERF-01 保持 NOT_STARTED。
+[PERF-01](../../performance/perf-01.zh-CN.md)。该次交接时 TS-04～TS-06 和 PERF-01 为 NOT_STARTED，后续完成情况见[阶段表](../../typescript-migration.zh-CN.md#阶段与进度)。
 整合 CI 和本 Linux 实体机电源／桌面验收已通过。维护者明确将无法补齐的外部实体机／桌面检查
 延后到[发布前补验](LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，仍记为未验证，平台支持承诺不变。
 
@@ -39,7 +41,8 @@ Koffi 的原生二进制位于对应 `@koromix/koffi-*` 可选包中，Windows A
 ## 复现
 
 使用精确锁定的 Node，以及仅供测试参考的 Python 3.14.4；可通过 `TS02_PYTHON` 指定其绝对路径。
-从仓库根目录运行：
+下列命令沿用归档前的原始目录布局；在当前检出的 `archive/python/tools/migration/ts-02/` 中按其
+[参考流程](../../../../archive/python/README.md)运行。历史上这些命令从仓库根目录执行：
 
 ```bash
 npm ci --prefix tools/migration/ts-02 --ignore-scripts --no-audit --no-fund
@@ -56,7 +59,9 @@ npm run --prefix tools/migration/ts-02 benchmark -- /absolute/new-benchmark-dire
 `exportReference` 从 `9b6d2fa` 读取不可变 Git blob，避免 checkout／archive 换行转换。
 不得为了修复探针而移动 TS-01 参考。
 
-Linux／macOS 上可用固定 Claude 宿主及 Node 的绝对路径执行免费的真实宿主 argv 检查：
+Linux／macOS 上可用固定 Claude 宿主及 Node 的绝对路径执行免费的真实宿主 argv 检查。
+该历史辅助脚本沿用相同的归档前布局，现位于
+`archive/python/tools/migration/ts-02/scripts/mod-smoke.py`：
 
 ```bash
 python tools/migration/ts-02/scripts/mod-smoke.py --claude /path/to/claude --node /path/to/node --output /absolute/new-mod-evidence-directory

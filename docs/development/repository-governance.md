@@ -16,7 +16,7 @@ PR checks follow the immutable [impact plan](impact-checks.md): documentation/me
 
 An equivalent main merge reuses verified final-PR evidence through the appropriate product or maintenance route. The accepted base independently verifies source, merge/tree, original execution and artifacts; product promotion also requires integration smoke. Changed integrations are reclassified, and unavailable, expired, failed or cancelled evidence and unexpected skips remain blocking. [CI maintenance](ci-maintenance.md) owns the exact routes and expiry rules. Do not weaken classification, repository protection or status sources to finish a failed PR.
 
-Successful PR merges automatically delete their head branches when GitHub permits it. Historical branches are retained. The 2026-10-26 inventory recorded 131 non-main branch heads already reachable from main and three not reachable; that historical inventory is not authorization to delete branches. Check active PRs, immutable commit identities and documentation links before any later cleanup.
+Successful PR merges automatically delete their head branches when GitHub permits it. When checked on 2026-11-13, `origin` exposed only `main`. The 2026-10-26 inventory recorded 131 non-main branch heads already reachable from main and three not reachable; that historical inventory is not authorization to delete branches. Check active PRs, immutable commit identities and documentation links before any later cleanup.
 
 ## Dependency and release maintenance
 

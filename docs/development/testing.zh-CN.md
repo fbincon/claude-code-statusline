@@ -89,7 +89,7 @@ npm run test:mods -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT" \
 
 ## Git、终端与包事务
 
-安装验收现要求二十类检查，包含 Git 策略、共享终端能力、持久首次入口及显式版本管理。Windows 回执包含十五项环境场景与九种真实 shell／入口组合；模拟环境本身不能证明实际 shell 启动通过。详见[实现与诊断证据](history/deliveries/m8-m9-delivery.zh-CN.md)。
+v3.15.0 及之后的安装验收契约要求 27 类检查（更早版本为 26 类），包含 Git 策略、共享终端能力、持久首次入口、显式版本管理及 i18n 工作流。Windows 回执包含十五项环境场景与九种真实 shell／入口组合；模拟环境本身不能证明实际 shell 启动通过。详见[实现与诊断证据](history/deliveries/m8-m9-delivery.zh-CN.md)。
 
 包测试使用临时 prefix、配置目录、受控 loopback registry 和禁用生命周期脚本的真实 npm。往返、中断及独立恢复前，先核验公开 v3.7.0 归档摘要；可用 `TS06_LEGACY_370_ARTIFACT` 指向已下载副本，仍执行相同摘要检查。runtime 与官方宿主回执必须包含每项操作结果。测试不更改开发者日常 Claude 配置，也不调用模型。当前发布要求见[发布指南](../RELEASING.zh-CN.md#current-typescript-publication)。
 

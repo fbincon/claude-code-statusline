@@ -2,7 +2,9 @@
 
 [English](typescript-migration.md) | **简体中文**
 
-> **历史档案。** 本页记录已完成的 Python 到 TypeScript 迁移及当时的验收决定。现行流程见[开发指南](README.zh-CN.md)和[测试与验收](testing.zh-CN.md)。
+> **历史档案（TS-01～TS-06 已完成；最后更新 2026-10-19）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)和[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+>
+> 本页记录已完成的 Python 到 TypeScript 迁移及当时的验收决定。现行流程见[开发指南](README.zh-CN.md)和[测试与验收](testing.zh-CN.md)。已完成的阶段状态保留在[阶段表](#阶段与进度)。
 
 更新日期：**2026-10-19**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
@@ -15,13 +17,15 @@
 
 ## 迁移后后续工作
 
-TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL，当前 PERF-01 工作单独跟踪。
+TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL。独立的 PERF-01 后续工作已在 [v3.1.4 交付](history/performance/perf-01.zh-CN.md#delivery-v314)中关闭。
 
 独立的 v3.1.1 外部 TUI 呈现修复后续工作为 **DONE**：npm latest、GitHub stable／Latest 和 Gitee stable 均交付一致产物，六项公开 Node 22／24 安装作业通过；保留六语言发布、接受缺口边界及已公开 Python 参考。[实现、验收与交付](external-tui-parity.zh-CN.md)。
 
 后续独立审查确认的六项回归及 v3.1.2 修复使用[单独实现与交付记录](external-tui-regressions.zh-CN.md)，历史迁移及 v3.1.1 结果继续保留。
 
-## 当前决策：2026-10-15
+<a id="当前决策2026-10-15"></a>
+
+## 归档关闭决策：2026-10-15
 
 先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。在当时的 2026-10-15 交接中，独立 [PERF-01](history/performance/perf-01.zh-CN.md) 在 TS-06 后执行，状态为 **NOT_STARTED**；当前关闭记录见上文。
 
@@ -33,17 +37,19 @@ TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾�
 
 **2026-10-18 正式版修订：** 维护者仅对 v3.0.0 接受已披露缺项，批准在本任务默认采集及外部 TUI 修复后正式发布。实体/桌面缺项仍为未验证；[批准记录与正式门槛](typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅对该版本修订此前阻塞政策。自动化/功能失败仍阻塞。三渠道及公开下载检查现已通过，**TS-06 为 DONE**。[正式交付证据](typescript-migration/ts-06/stable-release.zh-CN.md)。
 
-## 当前状态
+<a id="当前状态"></a>
+
+## 归档关闭状态
 
 | 项目 | 状态 |
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-06 DONE**；[TS-06 关闭记录](typescript-migration/ts-06/README.zh-CN.md#关闭记录2026-10-18) |
-| 当前任务范围 | 迁移及 v3.1.4 后续工作已交付；PERF-01 按正确性优先修订 DONE；接受的缺口仍为未验证 |
+| 归档关闭任务范围 | 迁移及 v3.1.4 后续工作已交付；PERF-01 按正确性优先修订 DONE；接受的缺口仍为未验证 |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位，D01–D06 DECIDED；保留[限定版本批准及未验证范围](typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18) |
 | 目标版本与工期 | v3.0.0 已交付 npm latest、GitHub 正式版/Latest 与 Gitee 正式版，保留 beta.1 及 Python 回退资产 |
-| 下一项实施工作 | PERF-01 已关闭；保留[全部测量、代价及交付证据](history/performance/perf-01.zh-CN.md)，后续优化另定范围 |
+| 归档关闭后续工作 | PERF-01 已关闭；保留[全部测量、代价及交付证据](history/performance/perf-01.zh-CN.md)，后续优化另定范围 |
 
 维护者批准预览及限定版本正式交付，验收使用隔离环境和显式恢复，个人现用 Python 安装保持不变。[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md)跟踪正式交付、历史预览证据及接受的未验证项。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 

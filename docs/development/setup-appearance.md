@@ -2,7 +2,9 @@
 
 **English** | [简体中文](setup-appearance.zh-CN.md)
 
-The development baseline is `a268fcb3b2ed8ad89da07d7e36e70fa8f4e691f2` (v3.4.0 plus repository cleanup). This work implements SETUP-01, APPEARANCE-01 and APPEARANCE-02 for v3.5.0. SHOWCASE-01 and external data sources remain separate work.
+> **Historical record (frozen at v3.5.0, 2026-10-23).** Current status and interface versions are in the [roadmap](roadmap.md) and [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions).
+
+The development baseline is `a268fcb3b2ed8ad89da07d7e36e70fa8f4e691f2` (v3.4.0 plus repository cleanup). This work implements SETUP-01, APPEARANCE-01 and APPEARANCE-02 for v3.5.0. SHOWCASE-01 and external data sources were separate work at this delivery. SHOWCASE-01 was completed in its [delivery](showcase.md#delivery), and external data sources were delivered in [v3.6.0](../releases/v3.6.0.md).
 
 ## Implementation
 
@@ -13,7 +15,7 @@ The development baseline is `a268fcb3b2ed8ad89da07d7e36e70fa8f4e691f2` (v3.4.0 p
 
 ## Interfaces and compatibility
 
-Display schema 9 adds `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, `color_mode`. Editor protocol 16 carries it, and adds the new preset metadata and CLI option descriptions. Runtime 2, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1 are unchanged. Schema 1–8 reads migrate only in memory; writes retain compatible backups. Older frontend/backend protocol pairs remain rejected.
+At this delivery, display schema 9 added `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, `color_mode`. Editor protocol 16 carried it, and added the new preset metadata and CLI option descriptions. Runtime 2, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1 were unchanged. Schema 1–8 reads migrated only in memory; writes retained compatible backups. Older frontend/backend protocol pairs remained rejected.
 
 The 161 frozen fixtures are unchanged. Their comparison explicitly translates only known display schema/default fields, derived revisions, portable/config bytes, new descriptor fields and the existing protocol metadata. Rendering values and original input/backup bytes remain compared. The existing CLI-help exception uses a new exact hash for the added setup command; no new arbitrary comparison exception is allowed.
 

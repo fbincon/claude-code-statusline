@@ -2,7 +2,9 @@
 
 [English](setup-appearance.md) | **简体中文**
 
-开发基线为 `a268fcb3b2ed8ad89da07d7e36e70fa8f4e691f2`（v3.4.0 加仓库整理）。本次为 v3.5.0 实现 SETUP-01、APPEARANCE-01、APPEARANCE-02；SHOWCASE-01 与外部数据来源仍为独立工作。
+> **历史记录（冻结于 v3.5.0，2026-10-23）。** 当前状态与接口版本见[路线图](roadmap.zh-CN.md)及[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
+开发基线为 `a268fcb3b2ed8ad89da07d7e36e70fa8f4e691f2`（v3.4.0 加仓库整理）。本次为 v3.5.0 实现 SETUP-01、APPEARANCE-01、APPEARANCE-02；SHOWCASE-01 与外部数据来源在本次交付时为独立工作。SHOWCASE-01 后续已在[交付](showcase.md#delivery)中完成，外部数据来源已在 [v3.6.0](../releases/v3.6.0.md) 交付。
 
 ## 实现
 
@@ -13,7 +15,7 @@
 
 ## 接口与兼容
 
-显示 schema 9 新增 `powerline`，字段为 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 16 传输这些字段，并包含新预设元数据与 CLI 选项描述。运行协议 2、生命周期 4、portable 1、UI 偏好 1、方案集合／导出 1 不变。schema 1–8 仅读取时在内存中迁移，写入保留兼容备份；旧前后端协议组合仍被拒绝。
+本次交付中，显示 schema 9 新增 `powerline`，字段为 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 16 传输这些字段，并包含新预设元数据与 CLI 选项描述。运行协议 2、生命周期 4、portable 1、UI 偏好 1、方案集合／导出 1 不变。schema 1–8 仅读取时在内存中迁移，写入保留兼容备份；旧前后端协议组合仍被拒绝。
 
 161 个冻结样本保持原样。比较器仅对已知显示 schema／默认字段、派生修订、portable／配置字节、新字段描述和既有协议元数据进行明确转换；渲染结果、原始输入与备份字节仍严格比较。既有 CLI 帮助例外仅更新为包含 setup 命令的精确摘要，不新增任意比较豁免。
 

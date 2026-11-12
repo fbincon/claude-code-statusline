@@ -19,22 +19,22 @@
 <details>
 <summary>查看规划快照与原始审查结果</summary>
 
-**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](../language-expansion.zh-CN.md#final-release) 作为产品基线，原始规划源码为 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`，上一份快照为 `f68d26eeddda98ab4041d2b9e873ade556fa1909`。已完成章节保留 M1–M12、十八个后续工作包和 SHOWCASE-01 的原始设计。其余候选事项尚无指定版本或日期。
+**2026-10-30**（Asia/Shanghai）的规划快照采用 [v3.16.0](../language-expansion.zh-CN.md#final-release) 作为产品基线；2026-10-28 的审查使用产品 v3.9.1 的源 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`；上一份规划快照为 `f68d26eeddda98ab4041d2b9e873ade556fa1909`。已完成章节保留 M1–M12、十八个后续工作包和 SHOWCASE-01 的原始设计。其余候选事项尚无指定版本或日期。
 
 当前行为见[使用指南](../../USER_GUIDE.zh-CN.md)。[v3.16.0 专项决定](../../releases/approvals/v3.16.0.json)记录该版本对 [Issue #96 六项未验证缺口](https://github.com/fbincon/claude-code-statusline/issues/96)的接受范围。
 
-规划基线的接口版本为显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1。
+v3.16.0 规划基线的接口版本为显示 schema 17、编辑器协议 31、来源注册表 3／任务 4、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1；当前版本见[协议与 schema 版本](../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
-2026-10-28 将[讨论记录](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b)与 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`、产品 v3.9.1 核对。下列探针使用合成输入及内存中的存储／后端替身，不写入用户配置、不启动来源命令，也不构成安装版宿主验收。渲染／来源／诊断探针使用已有构建，并核对对应源码；Native 按键探针直接加载 TypeScript 处理器。
+2026-10-28 将[讨论记录](https://chatgpt.com/share/6ae0c882-881c-83ee-9ef1-ee77a1f69e3b)与审查源 `0f5638f613c8ffc9588a50d30ebc51f14549b1fb`、产品 v3.9.1 核对。下列探针使用合成输入及内存中的存储／后端替身，不写入用户配置、不启动来源命令，也不构成安装版宿主验收。渲染／来源／诊断探针使用已有构建，并核对对应源码；Native 按键探针直接加载 TypeScript 处理器。
 
-| 问题 | 规划基线证据 | 后续工作 |
+| 问题 | v3.9.1 审查源证据 | 后续工作 |
 | --- | --- | --- |
 | 保存未知态仍可进入来源管理 | 隔离调用 `handleKey`，`uncertain=true` 时 Ctrl+Y 仍被接受；源码确认解绑会修改草稿，成功核对会替换草稿。未重跑完整宿主保存丢失流程。 | FIX-01；[按键分派](../../../mods/statusline-native/lib/client/keys.ts)、[共享来源管理](../../../packages/core/src/editor/source-manager.ts)、[保存核对](../../../mods/statusline-native/hooks/register.ts) |
 | 进度条标签修饰不正确 | 生产渲染在剩余 50%、隐藏标签时输出 `[####----] Context 50% left`，自定义 `CTX` 时输出 `CTX [####----] Context 50% left`；数字模式正确去除／替换旧标签。 | FIX-02；[图形指标](../../../packages/core/src/rendering/indicators.ts)、[文字修饰](../../../packages/core/src/rendering/preferences.ts) |
 | 刷新取消跨越使用者 | 两次内存 GitHub 刷新复用同一任务，owner 仍为编辑器 A；关闭 A 请求取消 B 正在使用的同一任务。未执行真实 worker。 | FIX-03；[来源服务](../../../packages/cli/src/sources/service.ts)、共享来源管理关闭流程 |
 | 扩展诊断采用较晚数据并覆盖代理证据 | 11:00 输入将 12:00 观测的替身来源视图记为 `observed/current` 并渲染值；两个代理均请求来源，最终证据只保留第二个。 | FIX-04；[诊断适配](../../../packages/cli/src/diagnostics/service.ts) |
 | 任务语言依赖详情成功 | 源码先初始化英文、在偏好加载前注册／打开标题，并仅在任务读取成功后赋予已加载偏好。失败路径为源码确认，未新增宿主复现。 | I18N-01；Native 任务注册与刷新 |
-| 尚缺的界面／扩展能力 | 规划基线时，源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
+| 尚缺的界面／扩展能力 | 审查源（v3.9.1）时，源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
 
 [#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](../native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。五项正确性工作包已完成[验收与发布](../correctness-maintenance.zh-CN.md)，[路线图](../roadmap.zh-CN.md#milestones)记录后续交付及剩余验收义务；#96 六项缺口保持原有未验证状态。
 

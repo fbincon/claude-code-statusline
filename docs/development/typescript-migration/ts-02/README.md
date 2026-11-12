@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+> **Historical stage record (frozen at TS-02 delivery).** Current status and interface versions are in the [migration plan](../../typescript-migration.md) and [protocol and schema versions](../../../reference/cli.md#protocol-and-schema-versions).
+
 2026-10-14: [Linux integration, physical acceptance and approved release deferrals](LINUX-20261014.md).
 
 Updated: **2026-10-15** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
@@ -9,7 +11,7 @@ owns stage status. TS-02 is **DONE**, D01–D06 are **DECIDED**, and TS-03 has
 [closed under revised non-performance criteria](../ts-03/README.md#closure-2026-10-15).
 The [D06 applicability amendment](D06.md#applicability-amendment-2026-10-15)
 assigns further performance work to [PERF-01](../../performance/perf-01.md) after TS-06.
-TS-04–TS-06 and PERF-01 remain NOT_STARTED. Integrated CI and this physical Linux power/desktop
+TS-04–TS-06 and PERF-01 were NOT_STARTED at that handoff; the [stage table](../../typescript-migration.md#stages-and-progress) records their later completion. Integrated CI and this physical Linux power/desktop
 acceptance passed. The maintainer explicitly moved unavailable external physical/
 desktop checks to the [release-before checklist](LINUX-20261014.md#approved-stage-and-release-gates);
 they remain unverified and platform support promises are unchanged.
@@ -49,7 +51,11 @@ continues to describe the current released Python product.
 ## Reproduce
 
 Use the exact locked Node and a Python 3.14.4 interpreter for the test-only oracle.
-`TS02_PYTHON` may select its absolute path. Run from the repository root:
+`TS02_PYTHON` may select its absolute path. The commands below use the original
+pre-archive tree layout; in the current checkout the probe package lives under
+`archive/python/tools/migration/ts-02/` and runs through its
+[reference procedure](../../../../archive/python/README.md). Historically, they ran
+from the repository root:
 
 ```bash
 npm ci --prefix tools/migration/ts-02 --ignore-scripts --no-audit --no-fund
@@ -68,7 +74,9 @@ native modules; Python is exclusively a reference/test adapter at this stage.
 archive newline conversion. Do not change the TS-01 reference to fix a probe.
 
 For a free, real-host argv smoke on Linux/macOS, run the test-only helper with
-absolute paths to a fixed Claude host and the locked Node executable:
+absolute paths to a fixed Claude host and the locked Node executable. The
+historical helper uses the same pre-archive layout; it now lives at
+`archive/python/tools/migration/ts-02/scripts/mod-smoke.py`:
 
 ```bash
 python tools/migration/ts-02/scripts/mod-smoke.py --claude /path/to/claude --node /path/to/node --output /absolute/new-mod-evidence-directory

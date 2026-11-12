@@ -2,7 +2,7 @@
 
 [English](stable-release.md) | **简体中文**
 
-发布状态：**v3.0.0 已于 2026-10-18 通过 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式版交付**，公开下载及安装验收通过。**依据限定版本的维护者决定，TS-06 为 DONE；PERF-01 保持 NOT_STARTED。**[发行说明](../../../releases/v3.0.0.md) · [决定与门槛](README.zh-CN.md#正式版决定2026-10-18) · [平台反馈 #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
+发布状态：**v3.0.0 已于 2026-10-18 通过 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式版交付**，公开下载及安装验收通过。**依据限定版本的维护者决定，TS-06 为 DONE；PERF-01 当时保持 NOT_STARTED，后续已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。**[发行说明](../../../releases/v3.0.0.md) · [决定与门槛](README.zh-CN.md#正式版决定2026-10-18) · [平台反馈 #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 不可变发布身份
 
@@ -26,7 +26,7 @@
 | `build-manifest.json` | 952 | `3eca893298f8dd1b3a23891963eb02ef79920c80d8e180a9ecb675a9546ee318` |
 | `SHA256SUMS` | 302 | `3564ff726327c0ca37be006ff0ab9c9c59cc761841f6c7b73b1031e0bc49ae62` |
 
-npm 包含 648 个文件，随包提供 Linux x64、Windows x64、macOS x64/ARM64 原生依赖，内部 workspace 保持私有。Windows ARM 使用模拟 x64 Node。显示 schema 8、编辑器协议 11、runtime 协议 2/v1 兼容及任务 schema 4 保持兼容。
+npm 包含 648 个文件，随包提供 Linux x64、Windows x64、macOS x64/ARM64 原生依赖，内部 workspace 保持私有。Windows ARM 使用模拟 x64 Node。v3.0.0 时显示 schema 8、编辑器协议 11、runtime 协议 2/v1 兼容及任务 schema 4 保持兼容；这些是历史阶段版本值，当前版本见[协议与 schema 版本](../../../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 ## 构建与最终产物验收
 
@@ -68,4 +68,4 @@ GitHub 为主仓库；检查分歧后，通过明确 refspec 将已验证 main �
 
 CI 和 PTY 重建图不构成新增实体休眠/重启或真人桌面验收。功能、保存、事件投递或恢复失败仍阻塞。有效的限定版本批准、完整通过的自动矩阵及已核对产物身份共同满足正式发布门槛；不批准后续版本或失败/不完整矩阵。
 
-全部请求渠道与公开下载检查完成，因此依据该决定 **TS-06 为 DONE**。**D06 保持 FAIL：104 pass / 60 fail / 28 inconclusive；PERF-01 保持 NOT_STARTED**，须由后续任务启动。以上源码、运行时/依赖及附件摘要是其可重现基线。#96 继续收集平台反馈，缺失观察不勾选完成。私有原始日志和临时文件保留在忽略的验收目录。
+全部请求渠道与公开下载检查完成，因此依据该决定 **TS-06 为 DONE**。**D06 保持 FAIL：104 pass / 60 fail / 28 inconclusive；PERF-01 当时保持 NOT_STARTED**，后续已[关闭为 DONE](../../history/performance/perf-01.zh-CN.md#delivery-v314)。以上源码、运行时/依赖及附件摘要是其可重现基线。#96 继续收集平台反馈，缺失观察不勾选完成。私有原始日志和临时文件保留在忽略的验收目录。

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](task-version-review.zh-CN.md)
 
-TASK-02 and UPDATE-02 slice 1 are delivered in v3.11.0, published on 2026-10-28. TASK-02 includes both reading slices; UPDATE-02 slices 2/3 remain unstarted. The maintainer requested keeping 3.11.0 and deferring the observed package-page permission warning to [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173). [Task usage](../TASK_DETAILS.md) · [Package management](../PACKAGE_MANAGEMENT.md).
+TASK-02 and UPDATE-02 slice 1 are delivered in v3.11.0, published on 2026-10-28. TASK-02 includes both reading slices; UPDATE-02 slices 2/3 were unstarted at v3.11.0 and were later delivered in v3.12.0 ([v3.12.0 delivery record](source-command-package-management.md#v3120-delivery-record)). The maintainer requested keeping 3.11.0 and deferring the observed package-page permission warning to [issue #173](https://github.com/fbincon/claude-code-statusline/issues/173), which was fixed in v3.12.0 (PR #175). [Task usage](../TASK_DETAILS.md) · [Package management](../PACKAGE_MANAGEMENT.md).
 
 ## Responsibilities and interfaces
 
@@ -10,7 +10,7 @@ Core owns task reading/navigation, package review state, localized presentation 
 
 The independent `task view` entry requires an explicit session; the external editor offers the same view through Settings. Prompt omission retains published current-pointer semantics. Both readers share agent status filtering, case-insensitive name/ID search, ancestor context, expand/collapse, evidence visibility and stable row anchors. No additional collection, transcript scan, model call or background task polling is introduced. A failed read retains the last successful report and capture time. UI preferences initialize independently from task reads.
 
-Editor protocol 27 adds local `package_status` and owner-bound `package_review_start`, `package_review_status`, `package_review_cancel`. See [contracts](contracts.md#task-browsing-and-package-review-protocol-27). Task details remain version 1; display schema 16 and existing persistent formats do not change.
+In v3.11.0, editor protocol 27 adds local `package_status` and owner-bound `package_review_start`, `package_review_status`, `package_review_cancel`. See [contracts](contracts.md#task-browsing-and-package-review-protocol-27). In that delivery, task details remain version 1; display schema 16 and existing persistent formats do not change.
 
 ## Review and failure behavior
 
@@ -18,7 +18,7 @@ Opening the package page is local. Explicit metadata checks remain unverified; d
 
 Long reviews use private temporary jobs and, for installed packages, an independent copy of the current package. Each job accepts only check/dry-run operations, has an owner and deadline, and uses the established bounded literal-argv npm adapter with lifecycle scripts disabled. Progress is queried explicitly. Closing cancels only that view's job; a late start is also cancelled. Cancellation waits within a short request budget for verified process exit before removing its runner. An unconfirmed stop retains the files and blocks a replacement review. Temporary review files never become installation transactions or recovery history. Existing CLI execution, locking, snapshots and recovery remain in UPDATE-01.
 
-Damaged history and snapshots are reported without repair. History presentation reads at most 16 records per page; a pending operation is shown separately. Package execution/recovery UI and protected history cleanup remain UPDATE-02 slices 2/3. Reviews never save an editor draft or restore source grants.
+Damaged history and snapshots are reported without repair. History presentation reads at most 16 records per page; a pending operation is shown separately. At v3.11.0, package execution/recovery UI and protected history cleanup were still UPDATE-02 slices 2/3; they were later delivered in v3.12.0 ([v3.12.0 delivery record](source-command-package-management.md#v3120-delivery-record)). Reviews never save an editor draft or restore source grants.
 
 ## Validation and delivery
 
@@ -53,7 +53,7 @@ Original candidate artifact `12813002893` supplies the four delivery files. Acce
 
 The final source passes `npm run check`: 1,364 tests pass, six existing platform cases skip and none fail. Generation checks cover 70 owned resources; documentation, archive and responsibility checks pass. The fixed Claude 2.1.310 Native suite passes all 164 tests and exact-host type checks.
 
-Installed acceptance now has 24 categories, including six-language task reading and the metadata/verified-artifact distinction. The four downloaded GitHub draft attachments match the original CI files, and a fresh offline installation of that downloaded package passes all 24 categories. Configuration and package bytes remain unchanged during reviews.
+At v3.11.0, installed acceptance had 24 categories, including six-language task reading and the metadata/verified-artifact distinction. The four downloaded GitHub draft attachments matched the original CI files, and a fresh offline installation of that downloaded package passed all 24 categories. Configuration and package bytes remain unchanged during reviews.
 
 The final package passes 27 real Linux Native/external PTY journeys. Extended external capture records 924 light/dark frames across six languages and four monochrome/dumb-terminal controls, with restored terminals and unchanged configuration. Task summary, evidence, explicit identity, standalone entry and local package pages were visually inspected. Capture sources are [the external collector](../../tools/acceptance/editor-capture.ts) and [the Native/external journey collector](../../tools/acceptance/native-capacity-pty.ts); their reports retain exact source, package, font and frame hashes. These are terminal-cell reconstructions using synthetic task evidence. The isolated local package-page captures intentionally show an unknown persistent prefix; they do not claim a managed global installation.
 
@@ -73,6 +73,6 @@ Configuration-restoration review found no display changes to restore. Original d
 
 ## Deferred package-page warning
 
-[Issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) records a confirmed post-publication defect: the package page reads ordinary npm manifests through the private recovery-artifact reader, so POSIX modes such as `0644`/`0664` can produce `io_error` and false local compatibility. Version, prefix and previous-version identification still work. Existing CLI package reviews remain available; installation permissions must not be changed merely to suppress the warning.
+[Issue #173](https://github.com/fbincon/claude-code-statusline/issues/173) records a confirmed post-publication defect: the package page reads ordinary npm manifests through the private recovery-artifact reader, so POSIX modes such as `0644`/`0664` can produce `io_error` and false local compatibility. Version, prefix and previous-version identification still work. Existing CLI package reviews remain available; installation permissions must not be changed merely to suppress the warning. The defect was fixed in v3.12.0 (PR #175); this section retains the v3.11.0 observation and deferred decision.
 
-On 2026-10-28 the maintainer explicitly requested keeping 3.11.0 and leaving this issue for subsequent development. The uncommitted corrective patch was withdrawn; no 3.11.1 tag or publication was created. This known defect is separate from the six still-unverified issue #96 gaps and is not reported as a passing check. TASK-02 is delivered; UPDATE-02 slice 1 is delivered with this separately tracked issue, while slices 2/3 remain unstarted.
+On 2026-10-28 the maintainer explicitly requested keeping 3.11.0 and leaving this issue for subsequent development. The uncommitted corrective patch was withdrawn; no 3.11.1 tag or publication was created. This known defect is separate from the six still-unverified issue #96 gaps and is not reported as a passing check. TASK-02 is delivered; UPDATE-02 slice 1 is delivered with this separately tracked issue, while slices 2/3 were unstarted at v3.11.0 and were later delivered in v3.12.0 ([v3.12.0 delivery record](source-command-package-management.md#v3120-delivery-record)).
