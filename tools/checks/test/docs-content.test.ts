@@ -123,3 +123,38 @@ test('CLI option tables reject missing, unknown and duplicate options in either 
         }
     }
 });
+
+test('development content checks reject changed current facts and historical framing', () => {
+    for (const suffix of ['', '.zh-CN']) {
+        for (const [path, before, after] of [
+            [`docs/development/testing${suffix}.md`, suffix ? '27 类检查' : '27 check categories', suffix ? '20 类检查' : '20 check categories'],
+            [`docs/development/testing${suffix}.md`, suffix ? '8 安装目标' : '8 installations', suffix ? '9 安装目标' : '9 installations'],
+            [`docs/development/contracts${suffix}.md`, suffix ? '全部 41 项' : 'all 41 current `OPERATIONS`', suffix ? '全部 40 项' : 'all 40 current `OPERATIONS`'],
+            [`docs/development/contracts${suffix}.md`, suffix ? '67 个主栏类型和 17 个子代理类型' : '67 main and 17 subagent types', suffix ? '66 个主栏类型和 17 个子代理类型' : '66 main and 17 subagent types'],
+            [`docs/development/i18n${suffix}.md`, '`pt-BR`', '`xx-XX`'],
+            [`docs/development/node-regional-languages${suffix}.md`, '`pt-BR`', '`xx-XX`'],
+            [`docs/development/node-regional-languages${suffix}.md`, suffix ? '八个安装' : 'eight installations', suffix ? '七个安装' : 'nine installations'],
+            [`docs/development/i18n-workflow${suffix}.md`, suffix ? '144 组语言组合' : '144 language combinations', suffix ? '143 组语言组合' : '143 language combinations'],
+            [`docs/development/live${suffix}.md`, suffix ? '1,024 个工具' : '1,024 tools', suffix ? '2,024 个工具' : '2,024 tools'],
+            [`docs/development/native${suffix}.md`, 'A/D/X', 'A/X/D'],
+            [`docs/development/ci-maintenance${suffix}.md`, suffix ? '40 项逻辑' : '40 logical', suffix ? '41 项逻辑' : '41 logical'],
+            [`docs/development/README${suffix}.md`, 'packages/cli/resources/statusline-config/SKILL.md', 'packages/cli/resources/statusline-config/SKILL-none.md'],
+            [`docs/development/adaptive-row-scenarios${suffix}.md`, 'history/deliveries/adaptive-row-scenarios', 'history/missing-record'],
+            [`docs/development/architecture${suffix}.md`, 'benchmarks/', 'benchmarkz/'],
+            [`docs/development/skill-workflows${suffix}.md`, suffix ? '`show`、`list-items`' : '`show`, `list-items`', suffix ? '`show`、`missing-action`' : '`show`, `missing-action`'],
+            [`docs/development/source-command-package-management${suffix}.md`, suffix ? '300 秒' : '300 seconds', suffix ? '600 秒' : '600 seconds'],
+        ] as const) {
+            const original = pages.get(path)!, changed = new Map(pages);
+            assert(original.includes(before), path);
+            changed.set(path, original.replaceAll(before, after));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':')), path + ': ' + before);
+        }
+        const path = `docs/development/architecture${suffix}.md`, original = pages.get(path)!;
+        for (const injection of suffix
+            ? ['> **历史记录（冻结于 v3.0.0，2026-01-01）。**\n\n', '本次交付中，页面为当前状态。\n\n', '显示 schema 8 为当前版本。\n\n', '运行 `npm run docs:checkk`。\n\n']
+            : ['> **Historical record (frozen at v3.0.0, 2026-01-01).**\n\n', 'At this delivery, the page was current.\n\n', 'Display schema 8 is current.\n\n', 'Run `npm run docs:checkk`.\n\n']) {
+            const changed = new Map(pages); changed.set(path, injection + original);
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':')), injection);
+        }
+    }
+});
