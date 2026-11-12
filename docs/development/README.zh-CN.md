@@ -94,9 +94,20 @@ npm run build
 node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescript/tools/checks/test/docs-examples.test.js
 ```
 
-测试读取实际 Markdown 中带 `docs-example` 标记的代码块，用生产解析器验证 JSON，对照 core 检查目录／语言／预设／接口事实，并在临时目录中运行选定 CLI 流程。CLI 选项表与生产 `OPTIONS` 对照；排序、布局兼容、Profile 目标／重置、来源及目标修订拒绝、恢复预演和诊断／任务 JSON 均有定向覆盖。仅替换文档声明的路径／修订／实例／会话占位符；命令示例实际运行 Node 输出 `42`，GitHub 使用注入的离线 runner，本地 JSON 用例验证子代理观测缓存发布。这不代表真实 GitHub、交互式 PowerShell 或实体编辑器验收，也不验证全部说明文字。
+| 检查 | 能证明的内容 |
+| --- | --- |
+| `docs:check` | 本地链接、锚点及双语／模板结构正确。 |
+| `docs-content.test.js` | 根目录及现行开发指南中已登记的事实与来源定义一致；格式错误或相互矛盾的数字声明会失败。 |
+| `docs-examples.test.js` | 选定的标记 CLI 示例在隔离临时目录中成功运行，并满足预期效果及拒绝行为。 |
+| `Complete candidate evidence` | 最终不可变 PR head 具备影响计划要求的证据；本地文档检查本身不能证明这一点。 |
 
-[登记页面清单](../../tools/checks/impact-documentation.ts)使相关页面变更（含删除／重命名）在 `docs` 之外选择现有 `checks` 测试族，后者保留 Linux、Windows、macOS 执行。移动现行页面时同步维护登记和示例标记；早于此测试的历史源码保留原有义务。清单进入不可变影响政策摘要。已提交验收仍使用所选 `ci:plan`／`ci:check` 任务。
+内容规则比较完整数值，支持千分位、英文数字词及中文计数，不查找预期数字子串。目录、语言、预设、接口及实时上限来自 core；矩阵数量、Node 选择器及宿主历史拆分来自现有 CI 注册表。来源自动刷新的默认值／范围、租约期限、Mod 续租定时器及安装检查类别，则使用现有 TypeScript 解析器读取对应执行定义或验收清单，不执行这些源码文件。定义缺失、定位不唯一、语法无法解析或相关定义不一致时明确失败，不回退到旧字面值。
+
+当前运行传输／请求声明必须与 core 一致，包含加粗及带 `v` 的版本写法。明确的历史引入说明、兼容范围及协议历史表格保留原始版本。行内代码及 `bash`、`sh`、`shell`、`powershell`、`ps1`、`console`、`text` 代码块中的字面 `npm run` 命令均与根清单对照，覆盖参数、受支持的 npm 选项及 shell 续行。此静态检查不执行命令，也不解释任意 shell 程序。
+
+示例测试读取实际 `docs-example` 代码块，并用生产解析器验证 JSON。CLI 选项表与生产 `OPTIONS` 对照；排序、布局兼容、Profile 目标／重置、来源及目标修订拒绝、恢复预演和诊断／任务 JSON 均有定向覆盖。仅替换文档声明的路径／修订／实例／会话占位符；命令示例实际运行 Node 输出 `42`，GitHub 使用注入的离线 runner，本地 JSON 用例验证子代理观测缓存发布。这不代表真实 GitHub、交互式 PowerShell 或实体编辑器验收。未登记的事实及说明文字不在自动内容检查范围内。
+
+[登记页面清单](../../tools/checks/impact-documentation.ts)使相关页面变更（含删除／重命名）在 `docs` 之外选择现有 `checks` 测试族，后者保留 Linux、Windows、macOS 执行。新增或移动现行页面时，同步维护登记和示例标记。修改已登记事实时，更新英中两版及其源码对照规则，补充能在源码变化后拒绝旧文档、接受正确新文档的回归测试；识别的执行结构变化时，明确更新源码读取器。早于此测试的历史源码保留原有义务。清单进入不可变影响政策摘要。已提交验收仍使用所选 `ci:plan`／`ci:check` 任务。
 
 ### 清理编译输出
 
