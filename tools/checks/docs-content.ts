@@ -10,6 +10,7 @@ import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.js';
+import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 
 export type Documents = ReadonlyMap<string, string>;
 export function contentDocuments(root: string): Documents {
@@ -37,6 +38,14 @@ export function displayExample(markdown: string) {
     const value = exampleJson(markdown, 'display-config');
     assert(value && typeof value === 'object' && 'schema_version' in value && isSchema(value.schema_version, SCHEMA_VERSION), 'Example must use the current display schema');
     return validateDisplay(value);
+}
+export function configSetOptions(markdown: string): string[] {
+    const start = '<!-- cli-set-options:start -->', end = '<!-- cli-set-options:end -->';
+    assert.equal(markdown.split(start).length, 2, 'Expected one set-options table start');
+    assert.equal(markdown.split(end).length, 2, 'Expected one set-options table end');
+    const tail = markdown.split(start)[1]!;
+    assert(tail.includes(end), 'Set-options table end must follow its start');
+    return [...tail.split(end)[0]!.replaceAll('\r\n', '\n').matchAll(/^\| `([^`]+)` \|/gmu)].map(match => match[1]!);
 }
 function exampleJson(markdown: string, id: string): unknown {
     return readJson(example(markdown, id, 'json'), { duplicate: key => assert.fail('Duplicate field ' + key), constant: token => assert.fail('Non-finite value ' + token) });
@@ -106,7 +115,12 @@ export function contentErrors(pages: Documents): string[] {
         });
         for (const base of ['docs/COMPOSITION', 'docs/DRAFT_HISTORY']) check(base + suffix + '.md', body => { example(body, 'alignment-review', 'text'); });
         check(`docs/SETUP${suffix}.md`, body => { example(body, 'setup-powershell', 'powershell'); });
-        check(`docs/reference/cli${suffix}.md`, displayExample);
+        check(`docs/reference/cli${suffix}.md`, body => {
+            displayExample(body);
+            assert.deepEqual(configSetOptions(body).sort(), [...OPTIONS].sort(), 'Set option IDs differ from CLI');
+            for (const id of ['cli-order', 'cli-layout', 'cli-profile-target', 'cli-recover', 'cli-style-reuse', 'cli-group-reuse', 'cli-diagnose', 'cli-task'])
+                example(body, id, 'text');
+        });
     }
     return errors;
 }

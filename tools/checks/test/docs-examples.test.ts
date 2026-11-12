@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { main } from '@fbincon/statusline-cli/main';
+import { ProfileService } from '@fbincon/statusline-cli/config/profiles';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { createStorage, jsonBytes } from '@fbincon/statusline-cli/config/storage';
 import { SourceService } from '@fbincon/statusline-cli/sources/service';
@@ -24,7 +25,7 @@ type Reply = { code: number; out: string; err: string };
 function fixture(t: TestContext) {
     const root = mkdtempSync(join(tmpdir(), 'docs examples 中文 ')), configDir = join(root, 'Claude Config'), project = join(root, 'Example Project');
     mkdirSync(configDir, { mode: 0o700 }); mkdirSync(project);
-    const keys = ['GH_CONFIG_DIR', 'GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN'];
+    const keys = ['GH_CONFIG_DIR', 'GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'CLAUDE_STATUSLINE_RUNTIME_DIR', 'CLAUDE_STATUSLINE_SESSIONS_DIR'];
     const previous = keys.map(key => [key, process.env[key]] as const);
     for (const key of keys) delete process.env[key];
     process.env.GH_CONFIG_DIR = join(root, 'isolated-gh');
@@ -57,6 +58,7 @@ function fixture(t: TestContext) {
         ['forge-source.json', join(project, 'forge-source.json')], ['answer-source.json', join(project, 'answer-source.json')],
         ['C:\\Users\\Example\\Claude Config', configDir], ['C:\\Work\\Example Project', project],
         ['C:\\Work\\Example Project\\answer-source.json', join(project, 'answer-source.json')],
+        ['source.json', join(project, 'source.json')], ['input.json', join(project, 'input.json')], ['SESSION_ID', 'docs-session'],
     ]);
     const git = (...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=' + join(root, 'no-hooks'), '-c', 'commit.gpgsign=false', '-C', project, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
     const call = async (argv: string[], stdin = ''): Promise<Reply> => {
@@ -76,8 +78,8 @@ function fixture(t: TestContext) {
     const line = (text: string) => {
         const tokens = splitCommand(text); assert(tokens?.length && /^claude-statusline(?:\.cmd)?$/u.test(tokens[0]!), text);
         const argv = tokens.slice(1).map(token => values.get(token) ?? token);
-        assert(['source', 'config', 'setup'].includes(argv[0]!), 'Only fixture-bound documentation commands are admitted');
-        for (const token of argv) assert(!/^(?:REVIEW_REVISION|(?:PR_|CI_)?INSTANCE_ID|TARGET_REV|ALIGNMENT_IDS)$/u.test(token), 'Unresolved placeholder ' + token);
+        assert(['source', 'config', 'setup', 'recover', 'diagnose', 'task'].includes(argv[0]!), 'Only fixture-bound documentation commands are admitted');
+        for (const token of argv) assert(!/^(?:REVIEW_REVISION|(?:PR_|CI_)?INSTANCE_ID|TARGET_REV|SOURCE_REV|ALIGNMENT_IDS|SESSION_ID)$/u.test(token), 'Unresolved placeholder ' + token);
         return argv;
     };
     return { root, configDir, project, configuration, worker, git, values, line, call,
@@ -200,5 +202,138 @@ for (const suffix of ['', '.zh-CN']) {
         assert.equal((await f.call(accept)).code, 0);
         const saved = f.configuration.read().display; assert.deepEqual(saved.instances.map(node => node.id), ['a', 'c', 'd']); assert.equal(saved.layout.alignments![0]!.columns.length, 1);
         const after = snapshot(f.root); assert.equal((await f.call(accept)).code, 2); assert.deepEqual(snapshot(f.root), after);
+    });
+}
+
+for (const suffix of ['', '.zh-CN']) {
+    const body = pages.get(`docs/reference/cli${suffix}.md`)!;
+    const lines = (id: string) => example(body, id, 'text').split('\n');
+    test(`CLI reference sorting and compatible layouts preserve configured disabled instances (${suffix || 'en'})`, async t => {
+        const f = fixture(t), initial = f.configuration.read();
+        f.configuration.apply({ display: defaultDisplay(), host: initial.host }, initial.revision);
+        for (const line of lines('cli-order')) {
+            const reply = await f.call(f.line(line)); assert.equal(reply.code, 0, reply.err);
+        }
+        assert.deepEqual(f.configuration.read().display.instances.filter(n => n.enabled).map(n => n.id), ['git', 'current-dir', 'model-with-effort', 'task-timer']);
+        for (const line of lines('cli-layout')) {
+            const argv = f.line(line), reply = await f.call(argv); assert.equal(reply.code, 0, reply.err);
+            if (argv.includes('explicit')) {
+                const display = f.configuration.read().display;
+                assert(display.instances.some(node => !node.enabled));
+                assert.deepEqual(display.layout.rows.flat(), display.instances.map(node => node.id));
+                assert.deepEqual(display.layout.rows[0], ['model', 'current-dir']);
+            }
+        }
+        assert.equal(f.configuration.read().display.layout.mode, 'auto');
+    });
+    test(`CLI reference separates user defaults from project Profiles across reset (${suffix || 'en'})`, async t => {
+        const f = fixture(t), profiles = new ProfileService(f.configuration);
+        let library: Buffer | undefined, resolutions = 0;
+        for (const line of lines('cli-profile-target')) {
+            const argv = f.line(line), reply = await f.call(argv); assert.equal(reply.code, 0, reply.err);
+            if (argv[1] === 'show') {
+                const current = JSON.parse(reply.out); assert.equal(current.scope, 'user');
+                assert.deepEqual(current.display.instances.filter((n: {enabled: boolean}) => n.enabled).map((n: {id: string}) => n.id), ['current-dir']);
+                library = readFileSync(join(f.configDir, 'claude-statusline-profiles.json'));
+            }
+            if (argv.includes('resolve')) {
+                resolutions++; assert.equal(JSON.parse(reply.out).profile_name, 'Work');
+                const target = profiles.readTarget({ kind: 'project', path: f.project });
+                assert.deepEqual(target.display.instances.filter(n => n.enabled).map(n => n.id), ['model']);
+            }
+            if (argv[1] === 'reset') {
+                assert(library); assert.deepEqual(readFileSync(join(f.configDir, 'claude-statusline-profiles.json')), library);
+                assert(!existsSync(join(f.configDir, 'claude-statusline.json')));
+            }
+        }
+        assert.equal(resolutions, 2);
+        writeFileSync(f.values.get('input.json')!, JSON.stringify({cwd:f.project,model:{id:'docs-model'}}));
+        const before = snapshot(f.root), diagnosed = await f.call(f.line(lines('cli-diagnose')[0]!));
+        assert.equal(diagnosed.code, 0, diagnosed.err); assert.equal(JSON.parse(diagnosed.out).configuration.profile_name, 'Work');
+        assert.deepEqual(snapshot(f.root), before);
+        writeFileSync(join(f.configDir, 'claude-statusline.json'), '{');
+        const corrupted = snapshot(f.root), rendered = await f.call(['render'], JSON.stringify({cwd:f.project}));
+        assert.equal(rendered.code, 0); assert.equal(rendered.out, '', 'The bound model-only Profile remains selected, rather than default directory/Git items');
+        assert.equal((await f.call(['config', 'show', '--json'])).code, 2);
+        assert.deepEqual(snapshot(f.root), corrupted, 'Fallback rendering and failed inspection preserve the invalid file');
+    });
+    for (const kind of ['style', 'group']) test(`CLI ${kind} reuse example enforces reviewed source and target revisions (${suffix || 'en'})`, async t => {
+        const f = fixture(t), commands = lines('cli-' + kind + '-reuse');
+        for (const line of commands.slice(0, -1)) {
+            const argv = f.line(line);
+            if (['import', 'export'].includes(argv[1]!)) assert.equal(argv[2], f.values.get('source.json'), 'Transfer stays inside the fixture');
+            const before = snapshot(f.root), reply = await f.call(argv); assert.equal(reply.code, 0, reply.err);
+            if (argv.includes('--dry-run')) {
+                assert.deepEqual(snapshot(f.root), before);
+                const review = JSON.parse(reply.out); assert.deepEqual(review.blocked, []);
+                f.values.set('TARGET_REV', review.expected_revision); f.values.set('SOURCE_REV', review.source_revision);
+            }
+        }
+        const commit = () => f.line(commands.at(-1)!);
+        assert.equal(commit()[2], f.values.get('source.json'));
+        const source = f.values.get('source.json')!, original = readFileSync(source), modified = JSON.parse(original.toString('utf8'));
+        modified.draft.display.theme = 'dark'; writeFileSync(source, JSON.stringify(modified));
+        let before = snapshot(f.root), reply = await f.call(commit());
+        assert.equal(reply.code, 2); assert.deepEqual(snapshot(f.root), before, 'Changed source refuses without touching bytes or modes');
+        writeFileSync(source, original);
+        assert.equal((await f.call(['config', 'set', 'colors', 'on'])).code, 0);
+        before = snapshot(f.root); reply = await f.call(commit());
+        assert.equal(reply.code, 2); assert.deepEqual(snapshot(f.root), before, 'Changed target refuses without touching bytes or modes');
+        const preview = f.line(commands.at(-2)!), reviewed = await f.call(preview); assert.equal(reviewed.code, 0, reviewed.err);
+        assert.deepEqual(snapshot(f.root), before);
+        const review = JSON.parse(reviewed.out); f.values.set('TARGET_REV', review.expected_revision); f.values.set('SOURCE_REV', review.source_revision);
+        reply = await f.call(commit()); assert.equal(reply.code, 0, reply.err);
+        const display = f.configuration.read().display;
+        if (kind === 'style') {
+            assert.equal(display.instances.find(n => n.id === 'current-dir')!.options.foreground, '#123456');
+            assert.equal(display.instances.find(n => n.id === 'model')!.options.foreground, null);
+        } else {
+            const mappings = JSON.parse(reply.out).mappings;
+            assert.deepEqual(display.instances.map(n => n.type_id), ['model', 'current-dir', 'model', 'current-dir']);
+            assert.deepEqual(display.groups[0]!.member_ids, [mappings.instances.model, mappings.instances['current-dir']]);
+            assert.equal(display.groups[0]!.primary_id, mappings.instances.model);
+            assert.notEqual(mappings.instances.model, 'model');
+        }
+    });
+    test(`CLI recovery preview, diagnosis and task JSON retain report and failure boundaries (${suffix || 'en'})`, async t => {
+        const f = fixture(t), recovery = f.line(lines('cli-recover')[0]!);
+        assert.deepEqual(recovery, ['recover', '--dry-run']);
+        let before = snapshot(f.root), reply = await f.call(recovery); assert.equal(reply.code, 0, reply.err);
+        assert(reply.out.trim()); assert.deepEqual(snapshot(f.root), before);
+        writeFileSync(f.values.get('input.json')!, JSON.stringify({model:{id:'docs-model'}}));
+        const diagnose = f.line(lines('cli-diagnose')[0]!); assert.equal(diagnose[2], f.values.get('input.json'));
+        before = snapshot(f.root); reply = await f.call(diagnose); assert.equal(reply.code, 0, reply.err);
+        assert.equal(JSON.parse(reply.out).source, f.values.get('input.json')); assert.deepEqual(snapshot(f.root), before);
+        reply = await f.call(diagnose.map(arg => arg === f.values.get('input.json') ? '-' : arg), '{');
+        assert.equal(reply.code, 2); assert.equal(JSON.parse(reply.out).error.code, 'invalid_json'); assert.deepEqual(snapshot(f.root), before);
+        const task = f.line(lines('cli-task')[0]!); assert.deepEqual(task, ['task', 'show', '--session-id', 'docs-session', '--json']);
+        reply = await f.call(task); assert.equal(reply.code, 0, reply.err);
+        const details = JSON.parse(reply.out); assert.equal(details.version, 1); assert.equal(details.prompt_id, null); assert(details.limitations.includes('no_current_task'));
+        reply = await f.call(task.filter(arg => !['--session-id', 'docs-session'].includes(arg)));
+        assert.equal(reply.code, 2); assert.equal(JSON.parse(reply.out).error.code, 'invalid_request'); assert.deepEqual(snapshot(f.root), before);
+        assert.equal(f.worker.jobs().length, 0);
+    });
+    test(`documented local JSON source can publish subagent observation caches (${suffix || 'en'})`, async t => {
+        const f = fixture(t), source = JSON.parse(example(pages.get(`docs/EXTENSIONS${suffix}.md`)!, 'local-source', 'json'));
+        const input = f.values.get('/absolute/path/queue.json')!, definition = join(f.project, 'queue-source.json');
+        source.settings.path = input; writeFileSync(definition, JSON.stringify(source));
+        writeFileSync(input, JSON.stringify({value:42, observed_at:new Date().toISOString()}));
+        const payload = JSON.stringify({cwd:f.project,columns:120,tasks:[{id:'agent',name:'Audit',status:'running',startTime:Date.now()-1000}]}), before = snapshot(f.root);
+        assert.equal((await f.call(['render-subagents'], payload)).code, 0); assert.deepEqual(snapshot(f.root), before);
+        assert.equal((await f.call(['source', 'add', 'queue', '--file', definition, '--json'])).code, 0);
+        const reviewed = await f.call(['source', 'review', 'queue', '--json']); assert.equal(reviewed.code, 0);
+        assert.equal((await f.call(['source', 'enable', 'queue', '--review', JSON.parse(reviewed.out).review_revision, '--json'])).code, 0);
+        const added = await f.call(['config', 'instance', 'subagent', 'add', 'external-value']); assert.equal(added.code, 0);
+        const id = added.out.trim().split(/\r?\n/u).at(-1)!;
+        assert.equal((await f.call(['source', 'bind', 'queue', '--instance', id, '--scope', 'subagent', '--json'])).code, 0);
+        const observations = join(f.configDir, 'statusline_runtime', 'sources', 'observations'); assert(!existsSync(observations));
+        const reply = await f.call(['render-subagents'], payload); assert.equal(reply.code, 0); assert.match(JSON.parse(reply.out).content, /42/u);
+        const files = readdirSync(observations); assert.equal(files.length, 1);
+        const stored = JSON.parse(readFileSync(join(observations, files[0]!), 'utf8'));
+        assert.equal(stored.current.state, 'valid'); assert.equal(stored.current.value, 42);
+        assert.equal(f.worker.jobs().length, 0); assert.equal(f.queries(), 0);
+        assert.equal((await f.call(['config', 'set', 'subagent-statusline', 'off'])).code, 0);
+        const disabled = snapshot(f.root), hidden = await f.call(['render-subagents'], payload);
+        assert.equal(hidden.code, 0); assert.equal(hidden.out, ''); assert.deepEqual(snapshot(f.root), disabled);
     });
 }

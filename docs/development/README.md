@@ -95,7 +95,7 @@ npm run build
 node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescript/tools/checks/test/docs-examples.test.js
 ```
 
-The tests read the marked `docs-example` fences in the actual Markdown, validate JSON with production parsers, compare catalog/language/preset/interface facts with core, and run selected CLI workflows in temporary directories. Only documented path/revision/instance placeholders are substituted. The command example runs Node to print `42`; GitHub uses an injected offline runner. This does not establish live GitHub, interactive PowerShell or physical editor acceptance, or validate every prose statement.
+The tests read the marked `docs-example` fences in the actual Markdown, validate JSON with production parsers, compare catalog/language/preset/interface facts with core, and run selected CLI workflows in temporary directories. The CLI option table is compared with production `OPTIONS`; sorting, layout compatibility, Profile targets/reset, source/target revision refusals, recovery preview and diagnostic/task JSON have targeted coverage. Only documented path/revision/instance/session placeholders are substituted. The command example runs Node to print `42`; GitHub uses an injected offline runner, and local JSON source cases verify subagent observation-cache publication. This does not establish live GitHub, interactive PowerShell or physical editor acceptance, or validate every prose statement.
 
 The [registered page list](../../tools/checks/impact-documentation.ts) selects the existing `checks` family alongside `docs` when those pages change, including deletion/rename. `checks` retains Linux, Windows and macOS execution. Keep registration and example markers with a moved current page; historical sources predating the suite retain their original obligations. The list is part of the immutable impact-policy digest. Use the selected `ci:plan`/`ci:check` tasks for committed acceptance.
 
@@ -153,7 +153,7 @@ These examples read `claude-statusline.json` from the current configuration dire
 
 ### `render-subagents`
 
-Read official Claude Code `subagentStatusLine` JSON from stdin and render each valid task as one `{"id":"...","content":"..."}` NDJSON line. Invalid top-level JSON, `tasks`, or individual fields degrade silently with exit code 0. Stdout contains only protocol results; the renderer does not scan transcripts, Git, the network, or runtime state.
+Read official Claude Code `subagentStatusLine` JSON from stdin and render each valid task as one `{"id":"...","content":"..."}` NDJSON line. Invalid top-level JSON, `tasks`, or individual fields degrade silently with exit code 0. Stdout contains only protocol results. Ordinary payload metrics do not scan transcripts or query the network; completed timing can read existing local end evidence. Enabled, bound external values may read selected JSON, inspect local Git identity and save observation caches; command/GitHub providers are not executed during rendering. See [CLI rendering boundaries](../reference/cli.md#subagent-rows-and-the-three-scopes).
 
 Linux / WSL / macOS:
 

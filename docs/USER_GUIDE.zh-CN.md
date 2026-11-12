@@ -836,7 +836,7 @@ claude-statusline doctor
 
 ### JSON 配置损坏
 
-renderer 会继续使用默认显示，但诊断和普通写命令会报错。恢复默认配置：
+用户默认显示文件无效时，渲染先使用内建用户默认设置，之后仍可选择有效的项目 Profile；诊断和普通写命令会报告文件错误。以下操作恢复用户默认，保留 Profile 及项目绑定：
 
 ```bash
 claude-statusline config reset

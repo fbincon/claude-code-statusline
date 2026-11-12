@@ -12,95 +12,78 @@
 - [语言设置](#语言设置)
 - [安装与诊断](#安装与诊断)
 - [配置命令详解](#配置命令详解)
-- [外观与显示选项](#外观与显示选项)
+- [方案与项目](#方案与项目)
 - [导入、导出与复用](#导入导出与复用)
 - [数据源管理](#数据源管理)
-- [交互任务查看器](#交互任务查看器)
+- [诊断与任务查看](#诊断与任务查看)
+- [外观与显示选项](#外观与显示选项)
 - [显示项与数据作用域](#显示项与数据作用域)
 - [配置文件](#配置文件)
 - [自定义配置目录与环境变量](#自定义配置目录与环境变量)
 - [退出码](#退出码)
 
-[方案与项目](../PROFILES.zh-CN.md) · [完整方案](../SCHEMES.zh-CN.md) · [草稿历史与结构审阅](../DRAFT_HISTORY.zh-CN.md) · [输入诊断](../DIAGNOSTICS.zh-CN.md) · [版本管理与恢复](../PACKAGE_MANAGEMENT.zh-CN.md)
+[方案与项目](../PROFILES.zh-CN.md) · [完整方案](../SCHEMES.zh-CN.md) · [草稿历史与复用](../DRAFT_HISTORY.zh-CN.md) · [输入诊断](../DIAGNOSTICS.zh-CN.md) · [版本管理](../PACKAGE_MANAGEMENT.zh-CN.md)
 
 ## CLI 总览
 
+方括号表示可选参数，`A|B` 表示从中选择一项，`...` 表示重复；`PATH`、`ITEM`、`ID`、`LANGUAGE` 等大写名称是占位符。含空格的路径和文本需加引号，不要原样输入语法记号。
+
 ```text
-claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id] COMMAND ...
-claude-statusline update [--version EXACT | --channel latest|beta] [--prefix PATH] [--config-dir PATH] [--yes]
-claude-statusline update (--check | --dry-run) [--version EXACT | --channel latest|beta]
-  [--prefix PATH] [--config-dir PATH] [--json]
-claude-statusline rollback [--version EXACT]
-claude-statusline recover --package [--version EXACT]
-claude-statusline recover --restore-config BACKUP_ID
-claude-statusline setup [--config-dir PATH] [--dry-run]
-claude-statusline configure [--config-dir PATH] [--user | --profile NAME | --project PATH]
-claude-statusline config [--config-dir PATH] show [--json]
-claude-statusline config [--config-dir PATH] list-items [--json]
-claude-statusline config [--config-dir PATH] set-items [ITEM...]
-claude-statusline config [--config-dir PATH] enable ITEM...
-claude-statusline config [--config-dir PATH] disable ITEM...
-claude-statusline config [--config-dir PATH] order [ITEM...]
-claude-statusline config [--config-dir PATH] subagents list-items [--json]
-claude-statusline config [--config-dir PATH] subagents set-items [ITEM...]
-claude-statusline config [--config-dir PATH] subagents enable ITEM...
-claude-statusline config [--config-dir PATH] subagents disable ITEM...
-claude-statusline config [--config-dir PATH] subagents order [ITEM...]
-claude-statusline config [--config-dir PATH] set OPTION VALUE
-claude-statusline config [--config-dir PATH] apply ...
-claude-statusline config [--config-dir PATH] preset NAME [--dry-run]
-claude-statusline config [--config-dir PATH] import PATH [--dry-run]
-claude-statusline config [--config-dir PATH] export PATH [--overwrite]
-claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
-claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
-claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko|es|fr|de|pt-BR|ru|id
-claude-statusline config [--config-dir PATH] language reset
-claude-statusline config [--config-dir PATH] reset
-claude-statusline config [--config-dir PATH] instance main|subagent ACTION ...
-claude-statusline config [--config-dir PATH] group main|subagent ACTION ...
-claude-statusline config [--config-dir PATH] alignment ACTION ...
-claude-statusline config [--config-dir PATH] profile ACTION ...
-claude-statusline config [--config-dir PATH] project ACTION ...
-claude-statusline source [--config-dir PATH] ACTION ...
-claude-statusline task show|view --session-id ID [--prompt-id ID] [--config-dir PATH]
-claude-statusline diagnose --input FILE|- [--scope main|subagent] [--config-dir PATH]
-claude-statusline install [--dry-run] [--force]
-  [--experimental-slash-tui | --no-experimental-slash-tui]
-  [--native-editor | --no-native-editor]
-  [--native-timing | --no-native-timing]
-  [--live-metrics | --no-live-metrics]
-  [--config-dir PATH]
-claude-statusline uninstall [--dry-run] [--config-dir PATH]
-claude-statusline doctor [--config-dir PATH]
+claude-statusline [--language LANGUAGE] COMMAND ...
+claude-statusline [--language LANGUAGE] [--prefix PATH] [--config-dir PATH] [--dry-run]
+claude-statusline --help
 claude-statusline --version
 ```
 
-Windows PowerShell 中把命令名替换为 `claude-statusline.cmd`；参数和输出格式相同。上面的方括号和省略号是语法记号，不是要原样输入的参数。供 Claude Code 调用的命令见[内部命令附录](../development/README.zh-CN.md#附录内部命令)。
+Windows PowerShell 使用 `claude-statusline.cmd`，命令参数和输出格式相同。根选项 `--language` 放在命令前。无子命令形式用于审阅持久安装；普通非 TTY 入口退出码为 2，不修改安装或配置。
 
-包管理的 `--json` 用于 `--check` 或 `--dry-run`。非交互写入要求精确 `--version`、明确 `--prefix` 和 `--yes`。升级、回退和恢复见[包管理指南](../PACKAGE_MANAGEMENT.zh-CN.md)。
+### 命令索引
 
-查看任意层级的内建帮助：
+| 命令 | 参考 | 用途 |
+| --- | --- | --- |
+| `setup / install / uninstall / configure` | [安装与诊断](#安装与诊断) | 安装、接入与编辑器入口 |
+| `update / rollback / recover` | [包管理与恢复](#包管理与恢复) | 包审阅、替换及三种恢复形式 |
+| `config show / list-items / set-items / enable / disable / order / subagents / set / apply / preset / reset` | [配置命令详解](#配置命令详解) | 用户默认显示及宿主设置 |
+| `config instance / group / layout / alignment / item` | [配置命令详解](#配置命令详解) | 实例、布局组合及逐项选项 |
+| `config profile / project` | [方案与项目](#方案与项目) | 命名显示方案及项目绑定 |
+| `config import / export` | [导入导出与复用](#导入导出与复用) | 完整／选择性传输、样式及分组复用 |
+| `source` | [数据源管理](#数据源管理) | 本机数据源许可、绑定及刷新 |
+| `doctor / diagnose / task show / task view` | [诊断与任务查看](#诊断与任务查看) | 安装检查、输入诊断及已有任务证据 |
+| `config language / --language` | [语言设置](#语言设置) | 界面与显示语言选择 |
 
-```bash
-claude-statusline --help
-claude-statusline config --help
-claude-statusline config set --help
-claude-statusline config apply --help
+内部 `render`、`render-subagents`、`hook`、`slash-hook`、`ui`、`runtime` 接口见[内部命令附录](../development/README.zh-CN.md#附录内部命令)。
+
+### 配置目录与帮助
+
+配置目录按显式 `--config-dir PATH`、`CLAUDE_CONFIG_DIR`、`~/.claude` 的顺序选择，参数位置取决于命令：
+
+| 命令族 | `--config-dir PATH` 的位置 |
+| --- | --- |
+| `config`, `source` | 紧跟命令，位于动作之前 |
+| `configure` | 紧跟命令，位于目标选项之前 |
+| `setup`, `install`, `uninstall`, `doctor`, `update`, `rollback`, `recover`, `diagnose`, `task show/view` | 位于该命令的选项中 |
+
+```text
+claude-statusline config --config-dir "/path/to/claude config" show
+claude-statusline source --config-dir "/path/to/claude config" list
+claude-statusline configure --config-dir "/path/to/claude config" --user
 ```
 
-注意 `config` 的 `--config-dir` 位于具体动作之前：
+`--help` 可用于 `config set --help` 等命令路径，但当前实现返回共享的 `config` 总览，不提供动作专属参数帮助；完整语法以本页对应章节为准。
 
-```bash
-claude-statusline config --config-dir /path/to/claude-config show
-```
+### 操作目标、前置条件与效果
 
-而 `configure`、`install`、`uninstall` 和 `doctor` 的参数直接跟在命令之后：
+| 操作 | 目标与前置条件 |
+| --- | --- |
+| `config show / list-items` | 读取用户默认及安装身份，不解析项目实际选择的 Profile；支持 `--json`。 |
+| `config set-items / enable / disable / order / item / instance / group / layout / alignment / set` | 编辑用户默认。显示修改不要求主栏安装归属，宿主字段要求归属；项目绑定还可能协调归属本工具的子代理接入，保留对第三方渲染器的保护。 |
+| `config apply / preset / import` | 完整应用包含宿主设置并要求安装归属；受支持的 `--dry-run` 形式只预演，不保存。 |
+| `configure` | 要求交互终端、有效配置及安装归属；默认编辑工作目录解析出的方案，可用 `--user`、`--profile`、`--project` 选择目标。 |
+| `config import --select / --style-from / --groups` | 默认以用户配置为目标，可明确选择用户／Profile／项目；目标写入沿用已有归属与修订检查。 |
+| `source` | 注册、启用、绑定、手动刷新及自动策略分别生效；显示保存／导入不能授予来源执行许可。 |
+| `diagnose / task show` | 非交互报告使用明确输入或已有证据，不启动采集；缺少证据可以成功返回不可用报告。 |
 
-```bash
-claude-statusline configure --config-dir /path/to/claude-config
-claude-statusline doctor --config-dir /path/to/claude-config
-```
+不保存显示设置不等于完全没有文件系统活动：部分读取使用锁，包预演使用临时 staging／npm 缓存，已启用 JSON 源可以发布观测缓存。以各命令说明的边界为准。操作成功通常退出 0，已处理的参数／配置错误退出 2；doctor、setup 及信号另有[退出码](#退出码)。
 
 ## 语言设置
 
@@ -119,6 +102,16 @@ claude-statusline doctor --config-dir /path/to/claude-config
 显示 schema v17 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
+
+```text
+claude-statusline setup [--config-dir PATH] [--dry-run]
+claude-statusline install [--config-dir PATH] [--dry-run] [--force]
+  [--native-editor | --no-native-editor]
+  [--experimental-slash-tui | --no-experimental-slash-tui]
+  [--native-timing | --no-native-timing] [--live-metrics | --no-live-metrics]
+claude-statusline uninstall [--config-dir PATH] [--dry-run]
+claude-statusline configure [--config-dir PATH] [--user | --profile NAME_OR_ID | --project PATH]
+```
 
 安装 npm 软件包后，可通过 `setup` 向导预览显示并审阅 Claude Code 接入。`install` 用于直接配置接入。参见[首次设置](#首次设置与完整方案)。
 
@@ -161,6 +154,37 @@ Claude Code 2.1.258+ 且 hooks 启用时本地执行；旧版、未知版本或 
 
 `config profile`／`config project` 管理仍使用终端 CLI 或编辑器。普通 slash 显示修改和向导修改用户默认配置，项目绑定仍可能选择命名方案。`/statusline-configure` 不接受配置参数；`help`、`-h`、`--help` 显示用法。详见[入口选择](../USER_GUIDE.zh-CN.md#选择配置入口)。
 
+### 包管理与恢复
+
+```text
+claude-statusline update [--version EXACT | --channel latest|beta] [--check | --dry-run]
+  [--prefix PATH] [--config-dir PATH] [--yes] [--json]
+claude-statusline rollback [--version EXACT] [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+claude-statusline recover [--config-dir PATH] [--dry-run]
+claude-statusline recover --package [--version EXACT] [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+claude-statusline recover --restore-config BACKUP_ID [--prefix PATH] [--config-dir PATH]
+  [--dry-run] [--yes] [--json]
+```
+
+| 形式 | 用途及限制 |
+| --- | --- |
+| `update` | 默认沿用记录的渠道或 `latest`；指定精确版本不能降级。`--check` 仅审阅元数据，`--dry-run` 还暂存并验证软件包。 |
+| `rollback` | 省略版本时选择该 prefix／配置目录的上一成功产物；明确指定的版本必须更旧。 |
+| `recover` | 恢复未完成的文件／插件事务，不接受包、版本或 JSON 选项；先预演再应用。 |
+| `recover --package` | 审阅并继续保留的包事务，检查实际安装产物及执行器存活状态。 |
+| `recover --restore-config` | 单独还原所选包备份的显示／Profile 配置；`BACKUP_ID` 使用实际返回的 `pkg-` 加 UUID 标识符。拒绝 `--version`，来源执行许可保持当前值。 |
+
+包管理的 `--json` 要求同时使用 `--check` 或 `--dry-run`。非交互包替换要求精确 `--version`、明确 `--prefix` 和 `--yes`；配置还原则使用备份 ID，并要求 `--prefix` 与 `--yes`。交互写入展示审阅并要求确认，除非已传入 `--yes`。`--prefix` 选择持久 npm 安装，与 `--config-dir` 独立。
+
+<!-- docs-example: cli-recover -->
+```text
+claude-statusline recover --dry-run
+```
+
+这一普通恢复预演报告保留的事务或“无未完成事务”，不应用恢复。包检查可能访问 registry／网络及普通 npm 缓存；预演不修改目标安装／配置。[完整审阅与恢复流程](../PACKAGE_MANAGEMENT.zh-CN.md)。
+
 ## 配置命令详解
 
 [slash 命令支持范围](#slash-命令支持范围)列出的操作可在 Claude Code 中使用 `/statusline-config`；方案／项目管理使用终端 CLI 或编辑器。例如：
@@ -177,13 +201,13 @@ claude-statusline config set colors off
 
 ### `config show`
 
-显示当前**有效配置**，包括显示配置、Claude Code 宿主配置、配置文件路径、当前 `statusLine.command` 是否属于这个可执行文件，以及子 Agent 行的 期望启用状态（enabled）、installed 和所有权状态。
+显示当前**用户默认有效配置**，不表示项目实际采用的 Profile，包括显示配置、Claude Code 宿主配置、配置文件路径、当前 `statusLine.command` 是否属于这个可执行文件，以及子 Agent 行的 期望启用状态（enabled）、installed 和所有权状态。
 
 ```bash
 claude-statusline config show
 ```
 
-示例输出：
+自定义五项显示、使用英文界面时的示例输出：
 
 ```text
 Scope: user
@@ -192,6 +216,8 @@ Installed: yes
 Items: model-with-effort, current-dir, git, context-remaining, task-timer
 Colors: on
 Palette: default
+Theme: classic
+Powerline separator: ascii
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
@@ -292,7 +318,9 @@ claude-statusline config disable spend-limit tokens
 
 只改变顺序，不改变启用集合：
 
-```bash
+<!-- docs-example: cli-order -->
+```text
+claude-statusline config set-items model-with-effort current-dir git task-timer
 claude-statusline config order git current-dir model-with-effort task-timer
 ```
 
@@ -301,6 +329,7 @@ claude-statusline config order git current-dir model-with-effort task-timer
 推荐先查看当前集合，再排序：
 
 ```bash
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config show
 claude-statusline config order model-with-effort git current-dir context-remaining task-timer
 ```
@@ -339,10 +368,23 @@ claude-statusline config subagents order status-elapsed name model-with-effort c
 
 `config group main|subagent list|create|set|copy|move|ungroup` 管理连续实例分组。创建要求 `ID --members ID,ID --primary ID`，可选 `--linked on|off` 与 `--powerline on|off`。移动要求 `--before ID` 或 `--after ID` 二选一。[示例与约束](../COMPOSITION.zh-CN.md#组件分组)。
 
+```text
+claude-statusline config group main|subagent list [--json]
+claude-statusline config group main|subagent create ID --members ID,ID --primary ID
+  [--linked on|off] [--powerline on|off]
+claude-statusline config group main|subagent set ID members|primary|linked|powerline VALUE
+claude-statusline config group main|subagent copy ID
+claude-statusline config group main|subagent move ID (--before ID | --after ID)
+claude-statusline config group main|subagent ungroup ID
+```
+
+`members` 使用逗号分隔实例 ID，`primary` 使用一个成员 ID，`linked`／`powerline` 使用 `on|off`。组成员必须连续。修改面向用户默认，受支持的结构审阅参数见对齐说明。
+
 ### `config layout auto|explicit [ROW...]`
 
-自动模式沿用折行。显式模式使用逗号分隔行，按顺序展平后必须恰好等于全部已配置主栏项，包括禁用项；省略行参数时将全部已配置实例放入同一显式行。
+自动模式沿用折行。保存的显式行按配置顺序包含全部实例 ID，包括禁用实例。输入也可仅按当前启用顺序列出全部启用实例，兼容路径会把省略的禁用实例补入保存的分行结构。下例先选择三个类型，再使用这一兼容输入。存在启用实例时，省略行参数会创建包含全部配置实例的单行。
 
+<!-- docs-example: cli-layout -->
 ```text
 claude-statusline config set-items model current-dir context-used
 claude-statusline config layout explicit model,current-dir context-used
@@ -374,7 +416,7 @@ claude-statusline config set statusline-language zh-CN
 
 显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
 
-`subagent-statusline` 保存期望的启用状态。已有 owned renderer 时关闭会立即返回空 content；重跑 `install` 会进一步移除 owned `subagentStatusLine`，打开则在兼容版本上恢复它。这个分离使 `config set subagent-statusline off` 可以在不触碰第三方设置的前提下解除安装冲突。
+`subagent-statusline` 保存期望的启用状态。关闭时 `render-subagents` 不输出覆盖结果，保留宿主默认行；重跑 `install` 会进一步移除 owned `subagentStatusLine`。重新启用并运行 `install` 会在兼容版本上恢复接入。这个分离使 `config set subagent-statusline off` 可以在不触碰第三方设置的前提下解除安装冲突。
 
 所有 `set` 的合法值见[显示与宿主选项](#显示与宿主选项)。
 
@@ -389,7 +431,7 @@ claude-statusline config item main current-dir max-width 32
 claude-statusline config item subagent task max-width none
 ```
 
-`label`、`icon` 接受不含控制字符的最多 256 码点文本，`inherit` 清除覆盖，空字符串隐藏标签或图标。`priority` 为 0–100，默认 50；`max-width` 为 2–10000 或 `none`。[显示选项](#显示与宿主选项)中的七种格式选项可设值，或用 `inherit` 清除逐项覆盖。宽度按终端列计算，包括 CJK 与组合字符。
+`label`、`icon` 接受不含控制字符的最多 256 码点文本，`inherit` 清除覆盖，空字符串隐藏标签或图标。`priority` 为 0–100，默认 50；`max-width` 为 2–10000 或 `none`。七种格式键仅对兼容组件类型接受取值或 `inherit`；详见[逐项选项表](#逐项实例选项)。宽度按终端列计算，包括 CJK 与组合字符。
 
 `foreground`／`background` 接受 `inherit`、`default`、`ansi:0`–`ansi:255` 或加引号的 `#RRGGBB`。`visibility` 接受 `always` 及该作用域项目支持的规则；`visibility-threshold` 为 0–100 整数，默认 70，仅对用量规则生效。条件按原始已用比例判定，独立于告警颜色。详见[适用规则与颜色优先级](../APPEARANCE.zh-CN.md)。
 
@@ -466,10 +508,198 @@ claude-statusline config reset
 
 `reset` 也能处理损坏的 `claude-statusline.json`，因此它是配置文件 JSON 无法解析时最直接的恢复方法。
 
+`reset` 仅修改用户默认显示及适用的宿主字段，保留 Profile 库、项目绑定和独立来源许可。因此，绑定项目在重置后仍可能渲染命名方案；可用 `config project resolve PATH --json` 核对。
+
+## 方案与项目
+
+`--config-dir PATH` 位于 `config` 后、`profile`／`project` 前。下列形式均支持 `--json`。`NAME_OR_ID` 解析已有 Profile；保存、重命名及新导入使用可读名称。
+
+```text
+claude-statusline config profile list [--json]
+claude-statusline config profile save NAME [--overwrite] [--bind PATH] [--json]
+claude-statusline config profile rename NAME_OR_ID NEW_NAME [--json]
+claude-statusline config profile delete NAME_OR_ID [--json]
+claude-statusline config profile preview NAME_OR_ID [--width N] [--scenario SCENARIO] [--json]
+claude-statusline config profile activate NAME_OR_ID [--json]
+claude-statusline config profile import PATH [--name NAME] [--overwrite] [--dry-run] [--json]
+claude-statusline config profile export NAME_OR_ID PATH [--overwrite] [--json]
+claude-statusline config project list [--json]
+claude-statusline config project bind PATH NAME_OR_ID [--overwrite] [--json]
+claude-statusline config project unbind PATH [--json]
+claude-statusline config project resolve [PATH] [--json]
+```
+
+`save` 复制已保存的用户默认；`activate` 将 Profile 复制为用户默认，不创建项目绑定。名称区分大小写，去除首尾空白并作 NFC 规范化，允许 1–128 个 Unicode 码点且不含控制字符。覆盖同名方案、项目绑定或导出目标要求 `--overwrite`；已绑定方案不能删除。`resolve` 默认使用工作目录，选择最深匹配根并解释回退原因。修改保留锁、备份、修订及接入归属检查。
+
+预览只读，宽度默认 120，范围 2–10000；场景默认 `normal`，可选 `normal`、`warning`、`critical`、`zero`、`missing`、`source-stale`、`source-failed`、`long-content`、`git-clean`、`git-modified`、`git-conflicted`、`no-agents`、`few-agents`、`many-agents`。完整 Profile 导入创建命名副本，选择性／样式／分组导入则按下文规则修改所选目标。
+
+在新的示例方案库中，将 `/absolute/project` 替换为已有项目目录。以下示例展示用户默认修改及重置不会改变绑定的 Profile：
+
+<!-- docs-example: cli-profile-target -->
+```text
+claude-statusline config set-items model
+claude-statusline config profile save Work
+claude-statusline config project bind /absolute/project Work
+claude-statusline config set-items current-dir
+claude-statusline config show --json
+claude-statusline config project resolve /absolute/project --json
+claude-statusline config reset
+claude-statusline config project resolve /absolute/project --json
+```
+
+首次 `show` 的启用项为 `current-dir`；两次解析均选择 `Work`，其启用选择仍为 `model`。[编辑目标、共享与恢复](../PROFILES.zh-CN.md)。
+
+## 导入、导出与复用
+
+<a id="portable-import-export"></a>
+
+### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
+
+```text
+claude-statusline config export ./statusline.json
+claude-statusline config import ./statusline.json --dry-run
+claude-statusline config import ./statusline.json
+```
+
+可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v17 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+
+文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
+
+向受保护的配置路径导出会被拒绝，返回配置错误和退出码 2，保护目标不被修改。使用独立导出路径，脚本将任何非零结果作为失败处理。
+
+### 选择性复用显示设置
+
+`config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。
+
+### 样式与分组复用
+
+```text
+claude-statusline config import PATH --style-from SCOPE:ID --style-to SCOPE:ID[,SCOPE:ID...]
+  --style-fields FIELD,... [--user | --profile NAME_OR_ID | --project PATH]
+  [--profile-file] [--dry-run | --expected-revision TARGET_REV --source-revision SOURCE_REV]
+claude-statusline config import PATH --groups SCOPE:ID[,SCOPE:ID...]
+  [--references review|expand|exclude] [--explicit-layout]
+  [--user | --profile NAME_OR_ID | --project PATH] [--profile-file]
+  [--dry-run | --expected-revision TARGET_REV --source-revision SOURCE_REV]
+```
+
+`SCOPE` 为 `main` 或 `subagent`，样式目标须同作用域，所选分组也须同作用域。Profile 文件使用 `--profile-file`，或改用 `config profile import` 并省略该参数。复用不能与 `--select`、`--name`、`--overwrite` 混用。目标默认是用户配置，最多指定一个明确目标。
+
+样式字段为 `foreground`、`background`、`foreground_gradient`、`background_gradient`、`label`、`icon` 及兼容的 `formatting.KEY` 覆盖；数据身份、来源绑定、内容、顺序、优先级、宽度和可见性保留。分组引用处理默认 `review`，`expand` 扩选依赖，`exclude` 排除组外对齐引用；需要由自动转显式布局时，另用 `--explicit-layout` 允许。
+
+下例替换用户默认选择并创建新的 `source.json`；使用独立导出路径，开始时不要存在同名分组。先准备可移植来源，再审阅，并用返回的 `expected_revision`／`source_revision` 替换 `TARGET_REV`／`SOURCE_REV` 后重复同一选择。来源或目标修订变化、依赖未解决时拒绝保存。
+
+<!-- docs-example: cli-style-reuse -->
+```text
+claude-statusline config set-items model current-dir
+claude-statusline config item main model foreground '#123456'
+claude-statusline config export source.json
+claude-statusline config item main model foreground inherit
+claude-statusline config import source.json --style-from main:model --style-to main:current-dir --style-fields foreground --dry-run
+claude-statusline config import source.json --style-from main:model --style-to main:current-dir --style-fields foreground --expected-revision TARGET_REV --source-revision SOURCE_REV
+```
+
+目标目录实例仅取得来源模型实例导出的前景色。以下为独立的分组示例，若 `source.json` 已存在，请另选导出目标：
+
+<!-- docs-example: cli-group-reuse -->
+```text
+claude-statusline config set-items model current-dir
+claude-statusline config group main create context --members model,current-dir --primary model
+claude-statusline config export source.json
+claude-statusline config group main ungroup context
+claude-statusline config import source.json --groups main:context --references expand --explicit-layout --dry-run
+claude-statusline config import source.json --groups main:context --references expand --explicit-layout --expected-revision TARGET_REV --source-revision SOURCE_REV
+```
+
+分组复用追加新实例／分组身份并清除导入的本地来源绑定，不授予执行许可。审阅结果包含候选差异、引用及 ID 映射。[复用详细规则](../DRAFT_HISTORY.zh-CN.md)。
+
+## 数据源管理
+
+详细示例见[扩展指南](../EXTENSIONS.zh-CN.md)。
+
+```text
+claude-statusline source [--config-dir PATH] list [--json]
+claude-statusline source add|edit ID --file DEFINITION.json [--json]
+claude-statusline source review ID [--json]
+claude-statusline source enable ID --review REVIEW_REVISION [--json]
+claude-statusline source disable|remove ID [--json]
+claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
+claude-statusline source auto-off ID [--json]
+claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
+claude-statusline source unbind ID --binding BINDING_ID [--json]
+claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
+claude-statusline source status|cancel JOB_ID [--json]
+claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
+```
+
+所有数据源动作的 `--config-dir PATH` 均紧跟 `source`。绑定会保存所选用户／Profile／项目显示目标，并要求安装归属；注册及执行许可仍独立。`list`、`diagnose` 默认输出可读文本，传入 `--json` 时输出 JSON，其余动作返回结构化 JSON；`--json` 也要求已处理错误使用结构化结果。链接外观见[逐项实例选项](#逐项实例选项)。
+
+
+刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
+
+创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
+
+### 来源绑定维护
+
+```text
+claude-statusline source bindings [--offset N] [--json]
+claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
+claude-statusline source release-draft OWNER [--json]
+```
+
+`source diagnose ID` 显示共享可读摘要；`--json` 提供高级已保存检查详情。命令自动执行单独审核，默认 300 秒，允许 60–86400 秒，与 TTL 独立。绑定清理重新检查引用和修订；仅释放明确放弃或已恢复的草稿 owner。参见[来源操作](../EXTENSIONS.zh-CN.md)及[包执行](../PACKAGE_MANAGEMENT.zh-CN.md)。
+
+## 诊断与任务查看
+
+### `doctor` / `diagnose`
+
+```text
+claude-statusline doctor [--config-dir PATH]
+claude-statusline diagnose --input FILE|- [--scope main|subagent] [--width N]
+  [--observed-at ISO_TIME] [--input-only] [--json] [--config-dir PATH]
+```
+
+`doctor` 检查安装及本地策略，输出文本诊断行，存在 ERROR 时退出 1，不修复设置。`diagnose` 必须明确提供状态栏 JSON（文件或表示 stdin 的 `-`）；作用域默认 `main`，宽度默认 120，范围 2–10000。`--observed-at` 必须是含时区的已知输入采集时间，不使用文件修改时间。输入接受 UTF-8／BOM，须为不超过 32 MiB 的单个对象，拒绝重复键及非有限常量。
+
+诊断使用输入项目解析出的已保存显示及匹配的已有本地观测；`--input-only` 排除本地观测存储及本机主机名，仍读取配置、接入及采集器选择。不启动采集、来源执行、网络查询、修复或缓存发布。`--json` 返回结构化证据／原因码，失败时返回 `error` 对象。退出 0 表示生成了报告，证据不可用或陈旧也可能成功；输入、参数或读取错误退出 2。
+
+将 `input.json` 替换为已捕获的输入文件：
+
+<!-- docs-example: cli-diagnose -->
+```text
+claude-statusline diagnose --input input.json --input-only --json
+```
+
+[输入格式、报告解读及限制](../DIAGNOSTICS.zh-CN.md)。
+
+### `task show`
+
+使用实际会话 ID，省略 `--prompt-id` 时仅采用已发布的当前任务指针。读取已有有界证据，不扫描 transcript、不猜测其他会话、不采集、不初始化安装。JSON 为版本 1 任务详情模型，缺失证据表示不可用。有效报告退出 0；无效身份／参数或已处理失败退出 2，`--json` 下提供 `error` 对象。
+
+```text
+claude-statusline task show --session-id SESSION_ID [--prompt-id PROMPT_ID] [--config-dir PATH] [--json]
+```
+
+<!-- docs-example: cli-task -->
+```text
+claude-statusline task show --session-id SESSION_ID --json
+```
+
+### 交互任务查看器
+
+```sh
+claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
+```
+
+要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。
+
 ## 外观与显示选项
 
 ### 显示与宿主选项
 
+使用 `config set OPTION VALUE` 修改用户默认。三个宿主选项要求安装归属，其余为显示选项；Powerline 控制用于 Powerline 渲染。语言代码及预设 ID 等是稳定参数值。
+
+<!-- cli-set-options:start -->
 | OPTION | VALUE | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `statusline-language` | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`、`id` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
@@ -499,6 +729,13 @@ claude-statusline config reset
 | `subagent-hide-completed` | `on`、`off` | `off` | 隐藏 completed，失败行仍受其他筛选控制 |
 | `subagent-row-limit` | `none`、`0`–`10000` | `none` | 最大可见行数，零隐藏所有自定义行 |
 | `subagent-task-max-width` | `none`、`2`–`10000` | `none` | 任务文字最大终端列数 |
+| `powerline-padding` | `none`, `left`, `right`, `both` | `both` | 色块内边距，与宿主 padding 独立 |
+| `powerline-separator` | `arrow`, `slash`, `bar`, `none` | `arrow` | Powerline 边界形状 |
+| `powerline-start-cap` | `on`, `off` | `off` | Powerline 行首端帽 |
+| `powerline-end-cap` | `on`, `off` | `on` | Powerline 行尾端帽 |
+| `powerline-color-mode` | `semantic`, `continuous`, `restart` | `semantic` | 语义角色、连续序列或逐行重启 |
+| `powerline-row-background-gradient` | `off`、PRESET 或 2–5 个逗号分隔的 `#RRGGBB` 颜色 | `off` | 连续 Powerline 行背景，与实例使用相同渐变预设 |
+<!-- cli-set-options:end -->
 
 #### 颜色
 
@@ -525,7 +762,7 @@ Windows drive path、含空格或中文的路径、UNC path 与大小写归一�
 
 `classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。`powerline` 将每个可见项目作为独立色块，内边距和边界计入宽度；详见[基础 Powerline](../APPEARANCE.zh-CN.md#基础-powerline)。普通分隔符继续遵循下面的语义分组。
 
-以下条目在相邻时属于同一语义组，并用 ` · ` 连接；同组条目使用相同颜色：
+以下条目在相邻时属于同一语义组，并用 ` · ` 连接；下列颜色描述默认 classic 主题，主题和逐项覆盖可改变颜色：
 
 - `model-with-effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
 - `current-dir`、`project-name` 与 `hostname`（位置组，绿色）
@@ -581,68 +818,28 @@ claude-statusline config set powerline-row-background-gradient off
 
 可选 `session-cost-rate` 组件支持 `config instance main set INSTANCE cost-rate-basis session|api`。省略使用会话时长，两种分母均至少要求一分钟。详见[费用速率定义](../DISPLAY_ITEMS.zh-CN.md#会话费用速率)。
 
-## 导入、导出与复用
+### 逐项实例选项
 
-<a id="portable-import-export"></a>
+已有实例使用 `config instance main|subagent set INSTANCE OPTION VALUE`。旧 `config item main|subagent TYPE OPTION VALUE` 解析唯一类型，也可配置禁用／尚未放置的指标；重复类型须用实例形式。`text`、`spacer` 仅用于实例，留白不提供逐项外观字段。不支持的组合会拒绝且不保存。
 
-### `config import PATH [--dry-run]` / `config export PATH [--overwrite]`
+| OPTION | 取值／默认值 | 适用范围 |
+| --- | --- | --- |
+| `label / icon` | `inherit`、空文本或不含控制字符的最多 256 码点文本；默认继承 | 指标及文本 |
+| `foreground / background` | `inherit`、`default`、`ansi:0`–`ansi:255`、加引号的 `#RRGGBB`；默认继承 | 指标及文本 |
+| `foreground-gradient / background-gradient` | `off`、十一种预设或 2–5 个颜色；默认关闭 | 指标及文本 |
+| `priority / max-width` | 0–100（50）／2–10000 或 `none`（`none`） | 指标及文本；宽度为终端列 |
+| `model-name` | `original`、`short`、`inherit`；默认继承 | 模型相关指标 |
+| `number-format` | `legacy`、`compact`、`full`、`grouped`、`inherit`；默认继承 | 兼容的数值指标，不适用于 `current-dir` |
+| `labels / icons` | 全局取值或 `inherit`；默认继承 | 兼容指标 |
+| `allowance` | `remaining`、`used`、`inherit`；默认继承 | 主栏额度限制指标 |
+| `reset-format / reset-timezone` | 全局取值或 `inherit`；默认继承 | 主栏重置时间指标 |
+| `visibility / visibility-threshold` | `always` 或支持的规则／0–100（70） | 规则依作用域／类型，阈值仅用于用量规则 |
+| `presentation / bar-width / bar-style` | 默认 `numeric`／4–20（8）／`auto`；值域见图形指标 | 支持的用量／上下文指标 |
+| `cost-rate-basis` | `session`、`api`；默认 `session` | 主栏 `session-cost-rate` |
+| `link` | `off`、`auto`、`on`；默认 `off` | 仅支持链接的组件 |
+| `text` | 最多 256 码点的字面文本；新增时默认空，除非指定 `--text` | 文本实例，仅实例形式 |
 
-```text
-claude-statusline config export ./statusline.json
-claude-statusline config import ./statusline.json --dry-run
-claude-statusline config import ./statusline.json
-```
-
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v17 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
-
-文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
-
-向受保护的配置路径导出会被拒绝，返回配置错误和退出码 2，保护目标不被修改。使用独立导出路径，脚本将任何非零结果作为失败处理。
-
-### 选择性复用显示设置
-
-`config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。
-
-## 数据源管理
-
-详细示例见[扩展指南](../EXTENSIONS.zh-CN.md)。
-
-```text
-claude-statusline source [--config-dir PATH] list [--json]
-claude-statusline source add|edit ID --file DEFINITION.json [--json]
-claude-statusline source review ID [--json]
-claude-statusline source enable ID --review REVIEW_REVISION [--json]
-claude-statusline source disable|remove ID [--json]
-claude-statusline source auto-on ID --review REVIEW_REVISION [--interval SECONDS] [--json]
-claude-statusline source auto-off ID [--json]
-claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
-claude-statusline source unbind ID --binding BINDING_ID [--json]
-claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
-claude-statusline source status|cancel JOB_ID [--json]
-claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID] [--agent ID] [--json]
-claude-statusline config instance main set INSTANCE link off|auto|on
-```
-刷新等待被中断时仅释放该 CLI 的消费者，其他消费者／适用自动租约继续执行。`--no-wait` 保留需求到完成或原 deadline；`source cancel JOB_ID` 明确取消整项任务。
-
-创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
-
-### 来源绑定维护
-
-```text
-claude-statusline source bindings [--offset N] [--json]
-claude-statusline source cleanup-bindings BINDING_ID --review REVISION [--json]
-claude-statusline source release-draft OWNER [--json]
-```
-
-`source diagnose ID` 显示共享可读摘要；`--json` 提供高级已保存检查详情。命令自动执行单独审核，默认 300 秒，允许 60–86400 秒，与 TTL 独立。绑定清理重新检查引用和修订；仅释放明确放弃或已恢复的草稿 owner。参见[来源操作](../EXTENSIONS.zh-CN.md)及[包执行](../PACKAGE_MANAGEMENT.zh-CN.md)。
-
-## 交互任务查看器
-
-```sh
-claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
-```
-
-要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。
+目录 JSON 提供类型的 `capabilities` 和支持的 `format_options`，脚本设置覆盖前应先查询。例如 `config item main current-dir number-format compact` 会被拒绝。[外观指南](../APPEARANCE.zh-CN.md)维护具体可见性／链接适用范围、颜色优先级及渲染规则。
 
 ## 显示项与数据作用域
 
@@ -674,7 +871,7 @@ claude-statusline config enable project-name hostname context-used
 
 ### 子 Agent 行与三种作用域
 
-Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态。
+Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络；已完成代理计时可能读取已有本地结束证据。明确启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存；命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果要求明确的本机启用／绑定，与纯行格式化器分离。
 
 宽度直接使用 payload 中的正整数 `columns`，无效时回退 80 列。每行使用完整宽度预算，输入文本中的换行、制表符和控制字符会被清理。
 
@@ -683,6 +880,20 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 字段含义、默认选择与数据作用域见[指标定义](../DISPLAY_ITEMS.zh-CN.md#display-scopes)。
 
 ## 配置文件
+
+下列文件均位于选定的 Claude 配置目录。JSON 格式彼此独立，可移植导出不等于复制整个目录。
+
+| 文件 | 职责及修改入口 |
+| --- | --- |
+| `claude-statusline.json` | schema 17 用户默认显示；普通显示命令 |
+| `claude-statusline-profiles.json` | 版本 1 Profile 库及项目绑定；`config profile/project` |
+| `claude-statusline-sources.json` | 版本 2 本机来源定义、许可及绑定；`source` |
+| `statusline-ui.json` | schema 1 界面语言；`config language` |
+| `claude-statusline-features.json / claude-statusline-native.json` | schema 1 编辑器偏好；显式安装参数 |
+| `claude-statusline-runtime.json` | schema 2 采集偏好；显式安装参数 |
+| `settings.json` | Claude 设置及合并的接入／宿主选项；安装、卸载及有归属的宿主写入 |
+
+Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突与恢复)，本机来源记录及观测缓存见[扩展指南](../EXTENSIONS.zh-CN.md)。普通重置／卸载保留 Profile 库及来源注册。
 
 ### 显示配置
 
@@ -794,7 +1005,7 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 
 如果显示配置损坏：
 
-- 两个 renderer 都会静默回退到内建默认显示，避免破坏 Claude Code 主界面。
+- 用户默认文件无效时，两个 renderer 静默使用内建用户默认设置；之后仍可选择有效的项目 Profile。
 - `config show`、普通配置写命令和 `doctor` 会明确报告错误。
 - `config reset` 可以删除损坏配置并恢复默认值。
 
