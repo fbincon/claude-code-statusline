@@ -30,6 +30,8 @@ The baseline is `b50178766b78881eb3a22abba09ecea429533f18`; the implementation i
 
 Regression cases include 8→18 installations, 67→167 catalog types, 1,024→11,024 tools, 300→1300 seconds, a wrong or missing current runtime version, and nonexistent scripts in inline/argument/fenced commands. Controlled source mutations change automatic defaults, minimum/maximum bounds, renewal/expiry, installed categories and Node selectors through the same fact reader: old documents fail and corrected documents pass with LF and CRLF. Invalid or inconsistent source definitions also fail. These tests only replace read-only source inputs in memory; executable examples retain isolated temporary fixtures.
 
+The [first PR CI run](https://github.com/fbincon/claude-code-statusline/actions/runs/43310083810) passed Linux/macOS and found an LF-only mutation target in the new npm regression on Windows. Its CRLF checkout left the test input unchanged, so the expected failure was absent. The fixture now normalizes the source once, constructs LF and CRLF mutations explicitly and asserts that the target exists before replacing it. This is a test-fixture repair; the original failed run remains recorded. Final-head checks and receipts use the corrected commit, not relabeled evidence from that run.
+
 ## Limits and delivery
 
 The static readers recognize registered document and source forms, not arbitrary prose or shell programs. Source-structure changes require an explicit reader update; old values are not a fallback. Checks do not execute the parsed installed suite or Mod hooks and do not establish installed-product, physical editor, terminal, live-provider or paid-model acceptance. The six accepted issue #96 gaps remain unverified.

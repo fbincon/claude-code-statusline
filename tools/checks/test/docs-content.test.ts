@@ -220,9 +220,13 @@ test('current live protocol declarations are required while explicit history and
 
 test('npm scripts are checked in literal inline commands, supported fences, arguments and continuations without execution', () => {
     for (const suffix of ['', '.zh-CN']) {
-        const path = `docs/development/README${suffix}.md`, original = pages.get(path)!;
-        const changed = new Map(pages); changed.set(path, original.replace('npm run build\n', 'npm run builx\n'));
-        assert(contentErrors(changed).some(error => error.includes('Unknown npm script builx')));
+        const path = `docs/development/README${suffix}.md`, original = pages.get(path)!.replaceAll('\r\n', '\n');
+        for (const ending of ['\n', '\r\n']) {
+            const checkout = original.replaceAll('\n', ending), before = 'npm run build' + ending;
+            assert(checkout.includes(before), 'Missing build command mutation target');
+            const changed = new Map(pages); changed.set(path, checkout.replace(before, 'npm run builx' + ending));
+            assert(contentErrors(changed).some(error => error.includes('Unknown npm script builx')), suffix + ': ' + JSON.stringify(ending));
+        }
         for (const language of ['bash', 'sh', 'shell', 'powershell', 'ps1', 'console', 'text']) {
             const fence = (text: string) => '\n```' + language + '\n' + text + '\n```\n';
             const continuation = ['powershell', 'ps1'].includes(language) ? '`' : '\\';
