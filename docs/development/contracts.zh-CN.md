@@ -82,7 +82,7 @@
 
 ### 结构化格式
 
-协议 v31 返回完整 schema v17 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v31 返回完整 schema v17 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子代理草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ### 实例身份与草稿
 
@@ -110,7 +110,7 @@ TS 配置服务沿用安装锁、显示 schema 17、UI protocol 31、语义修�
 
 apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进制 revision。配置服务取得锁后重读两个文件，比较 revision、检查归属，再复用现有备份、原子写入和回滚事务。外部 TUI 将打开时的快照传给同一服务，使用同一 revision 检查。返回 revision 在锁内根据提交后的快照计算，不另做无锁读取。
 
-显式设置的 renderer 绝对路径必须与选定后端匹配；保留 Windows 和旧安装使用的规范 PATH 命令兼容性，解析后的命令身份参与 revision。通过绑定的 console-script 路径调用 JSON 接口时，使用该入口的身份，即使 PATH 中存在另一安装。拒绝外部主或子 Agent renderer，包括其他目录下的同名可执行文件和非 command 类型设置；允许子 Agent renderer 尚未安装。apply 只编辑显示选择和本工具主 renderer 的宿主选项，不安装 renderer、不接管外部归属。
+显式设置的 renderer 绝对路径必须与选定后端匹配；保留 Windows 和旧安装使用的规范 PATH 命令兼容性，解析后的命令身份参与 revision。通过绑定的 console-script 路径调用 JSON 接口时，使用该入口的身份，即使 PATH 中存在另一安装。拒绝外部主或子代理 renderer，包括其他目录下的同名可执行文件和非 command 类型设置；允许子代理 renderer 尚未安装。apply 只编辑显示选择和本工具主 renderer 的宿主选项，不安装 renderer、不接管外部归属。
 
 无关设置从最新锁内快照合并；写入失败恢复两个文件的原始内容，并报告回滚失败。首次保存可能创建缺失的显示文件或将旧 schema 迁移至 v17；持久化配置已经相同时，使用返回的草稿/revision 重复保存不写文件、不创建备份。事务实际改变文件时才返回 `backup_dir`，无需调用模型。
 
@@ -124,7 +124,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 `packages/core/src/config/catalog.ts` 以 `(scope, id)` 定义 67 个主栏类型和 17 个子代理类型（分别为 65／15 个指标及文本、留白），提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；外部 TUI 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
-最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
+最低版本只在有证据时声明。子代理的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
 目录项目同时提供 `guidance` 对象，包含来源类型代码、统计范围、启用条件代码和设置／诊断命令。
 这些静态定义由 `packages/core` 维护，共用多语言消息和生成的 TypeScript 词汇表。查看项目的“来源与启用条件”页
@@ -159,7 +159,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 `describe.presets` 包含 `purpose_key`、`requirements_key` 和 `example`；共享展示顺序保留原四种用途及两个示例，再列八套完整方案，预设 ID 和展开语义保持兼容。协议 31 要求匹配的前后端资源；显示 schema 17、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
 
-`read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`、`background`，两个颜色通道分别为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..255}`，没有原始 ANSI 转义。返回主行和子 Agent 行；空选择和关闭子 Agent 显示仍返回空行列表。
+`read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`、`background`，两个颜色通道分别为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..255}`，没有原始 ANSI 转义。返回主行和子代理行；空选择和关闭子代理显示仍返回空行列表。
 
 `preview`、`explain` 接受可选 `scenario`，省略为 `normal`；生产预览返回场景元数据。有效身份为 `normal`、`warning`、`critical`、`zero`、`missing`、`source-stale`、`source-failed`、`long-content`、`git-clean`、`git-modified`、`git-conflicted`、`no-agents`、`few-agents`、`many-agents`。场景只改变注入观测；宽度与预览行浏览是临时界面状态。
 
@@ -189,7 +189,7 @@ schema 17 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `I
 
 ### 费用速率契约
 
-可选主栏 `session-cost-rate` 类型支持实例选项 `cost_rate_basis: session|api`（省略为 session）。核心计算要求有限非负费用及至少 60,000 ms 的所选官方时长；关闭标签仍保留分母和估算标记，输入证据只列所选分母。旧显示文件只读迁移，不启用新类型或改写文件。其他接口版本见当前版本表。
+可选主栏 `session-cost-rate` 类型支持实例选项 `cost_rate_basis: session|api`（省略为 session）。核心计算要求有限非负费用及至少 60,000 ms 的所选官方时长；关闭标签仍保留分母和估算标记，输入证据只列所选分母。旧显示文件只读迁移，不启用新类型或改写文件。其他接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 ### 渐变契约
 
@@ -229,7 +229,7 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 `sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_release`, `source_cancel`, `source_diagnose` 提供注册管理、独立审查与可取消刷新；`sources_apply` 使用注册表修订检查并单独提交。`source_refresh` 返回任务而不等待命令执行。显示引用不包含程序或文件路径，便携导出清除绑定 ID；选择性导入仅清除被导入分区的绑定。
 
-`source_release` 接受 `{id,owner}` 并返回任务，幂等释放单个消费者；`source_cancel` 仍明确取消整项任务。任务保留初始 owner／trigger，并包含 `consumers:[{owner,expires_at}]`。适用自动租约独立提供需求；无任何需求才取消执行。v1／v2 任务只读兼容，运行中的旧任务不被加入。双编辑器共享未确定保存的草稿守卫和提交快照，外部 TUI 使用 Ctrl+K 只读核对。详细接口及验收见[正确性修复记录](correctness-maintenance.zh-CN.md)。
+`source_release` 接受 `{id,owner}` 并返回任务，幂等释放单个消费者；`source_cancel` 仍明确取消整项任务。任务保留初始 owner／trigger，并包含 `consumers:[{owner,expires_at}]`。适用自动租约独立提供需求；无任何需求才取消执行。v1／v2 任务只读兼容，运行中的旧任务不被加入。双编辑器共享未确定保存的草稿守卫和提交快照，外部 TUI 使用 Ctrl+K 只读核对。详细接口及验收见[正确性修复记录](history/deliveries/correctness-maintenance.zh-CN.md)。
 
 来源检查与包管理还提供 `source_inspect`、`source_bindings_review/cleanup`、`source_draft`、`package_execute_start/status/detach` 和 `package_cleanup_review/apply`。Core 定义有界摘要／分页及共享交互状态，CLI 实施修订、身份、许可和引用规则，平台层承担文件、进程及删除效果；Mod 资源由规范契约生成。
 
@@ -244,7 +244,7 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 包审核提供 `package_status`（`prefix: string|null`、非负整数 `offset`）、`package_review_start`（`owner`、`request`）及 `package_review_status`／`package_review_cancel`（`id`、`owner`）。request 包含 `action`（`check`、`update`、`rollback`、`recover-package`、`restore-config`）、`prefix`、`expected_revision` 和可空的 `target`、`channel`、`backup_id`、`expected_integrity`。元数据检查与已验证 dry-run 分开；配置还原返回独立文件审核，不宣称产物验证。
 
-状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。其他接口版本见当前版本表。
+状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。其他接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。包历史／未完成事务的 `running` 为 `true`、`false` 或 `null`（无法确认）；未知执行器保留记录，并阻止恢复／替换，直到确认退出或身份不同。清理绑定修订并保守保护。来源注册表 3 或较新显示配置可能无法被旧包读取；回退审核必须在替换前拒绝不兼容配置，禁止修改 schema 数字强行回退。
 
@@ -314,6 +314,7 @@ Client 编辑器首次打开时读取目录和配置，保留完整草稿及数�
 | 22 | 13 | [选择性导入](#选择性导入契约) |
 | 23 | 14 | [组件渐变](#渐变契约) |
 | 24 | 15 | [显式行对齐](#显式行对齐--composition-03) |
+| 25 | 15 | [编辑器、来源与诊断正确性（v3.9.2）](history/deliveries/correctness-maintenance.zh-CN.md) |
 | 26 | 16 | <a id="外观与诊断协议-26"></a>[主题、场景与文件诊断](#配置与示例解释协议) |
 | 27 | 16 | <a id="任务浏览与包审核协议-27"></a>[任务浏览与包审核](#包审核执行与清理) |
 | 28 | 16 | <a id="来源操作与包执行协议-28"></a>[来源维护与包执行](#数据源协议) |

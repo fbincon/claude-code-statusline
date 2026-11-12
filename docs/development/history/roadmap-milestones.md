@@ -60,7 +60,7 @@ Keep the original project and authors credited when discussing these references.
 
 ## Stages and dependencies
 
-These records preserve the status, original dependencies and scheduling of delivered work. See [delivery history](../roadmap.md#delivery-history) for versions and evidence.
+These records preserve the status, original dependencies and scheduling of delivered work. See the [work packages by version](README.md#delivery-by-version) and [delivery records by topic](README.md#delivery-records) for versions and evidence.
 
 <a id="planned-mainline"></a>
 

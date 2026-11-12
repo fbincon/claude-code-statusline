@@ -180,7 +180,7 @@ before applying it.
 
 Adaptive indicators take part in width fitting while retaining custom labels, icons and percentage meaning; automatic layout retains normal wrapping. Continuous backgrounds apply only to colored Powerline output. Spacers and explicit backgrounds break gradient runs, while alignment padding stays uncolored. See [appearance controls](APPEARANCE.md#adaptive-indicators) and [continuous row backgrounds](APPEARANCE.md#continuous-row-backgrounds) for the complete options and paint rules.
 
-Choose a layout example from the [complete schemes](SCHEMES.md) and review its candidate. Schemes grant no source permissions. The original v3.14.0 scenarios and compatibility evidence remain in [implementation and scenarios](development/adaptive-row-scenarios.md).
+Choose a layout example from the [complete schemes](SCHEMES.md) and review its candidate. Schemes grant no source permissions. The current rules are above and in [appearance controls](APPEARANCE.md#adaptive-indicators); the original v3.14.0 scenarios and compatibility evidence remain in the [historical implementation and scenarios record](development/history/deliveries/adaptive-row-scenarios.md).
 
 ## CLI
 

@@ -8,6 +8,10 @@ These records retain version-specific instructions, original evidence and the li
 
 [Version records](#typescript-release-records-by-version) · [First TypeScript releases](#first-typescript-preview-and-stable-releases) · [Python and PyPI](#python-and-pypi-publication) · [Python release gates](#python-release-gates-by-version)
 
+**Version portal:** [v3.16.3](#v3163-bundled-configuration-skills) · [v3.16.2](#v3162-keyboard-and-editor-repairs) · [v3.16.1](#v3161-runtime-source-and-save-conflict-repairs) · [v3.16.0](#v3160-language-expansion) · [v3.15.0](#v3150-incremental-language-workflow) · [v3.14.0](#v3140-adaptive-and-continuous-appearance) · [v3.13.0](#v3130-draft-history-and-reuse) · [v3.12.0](#v3120-source-command-and-package-management) · [v3.11.0](#v3110-task-browsing-and-version-review) · [v3.10.0](#v3100-appearance-and-understanding) · [v3.9.2](#v392-correctness-repairs) · [v3.9.1](#v391-native-capacity-patch) · [v3.9.0](#v390-import-gradients-and-alignment) · [v3.8.0](#v380-git-terminal-and-package-management) · [v3.7.0](#v370-indicators-groups-refresh-and-rates) · [v3.6.0](#v360-extension-delivery) · [v3.5.0](#v350-setup-and-complete-appearances) · [v3.4.0](#v340-schemes-projects-and-task-details) · [v3.3.0](#v330-input-diagnosis-delivery) · [v3.2.0](#v320-configuration-experience-delivery) · [v3.1.4](#v314-performance-follow-up) · [v3.1.3](#v313-post-migration-repairs) · [v3.1.2](#v312-external-tui-regression-delivery) · [v3.1.1](#v311-external-tui-stable-delivery) · [v3.1.0](#v310-regional-language-and-node-stable-delivery) · [Python gates](#python-release-gates-by-version)
+
+**Step portal:** [Prepare the release commit](#prepare-the-release-commit) · [Build distributions](#build-distributions-from-a-commit) · [Checksums](#generate-and-verify-checksums) · [Tag and draft Release](#create-a-tag-and-draft-release) · [Publish and verify](#publish-and-verify-downloads) · [Trusted publisher](#trusted-publisher-setup) · [TestPyPI](#testpypi-acceptance) · [Gitee synchronization](#gitee-synchronization-for-python-releases) · [Generate notes](#generate-notes-for-python-releases)
+
 ## TypeScript release records by version
 
 The version-specific decisions and acceptance counts below belong to their named releases.
@@ -136,6 +140,15 @@ Use the [v3.9.1-specific approval](../../releases/approvals/v3.9.1.json) and req
 
 </details>
 
+### v3.9.0 import, gradients and alignment
+
+<details>
+<summary>Expand v3.9.0 import, gradients and alignment</summary>
+
+v3.9.0 delivered IMPORT-01, APPEARANCE-04 and COMPOSITION-03: selective import, static gradients and cross-line alignment. The [v3.9.0 approval](../../releases/approvals/v3.9.0.json) accepts only the six historical #96 gaps; final PR/main/tag gates, four published files and public GitHub/npm/Gitee verification are recorded in the [M10–M12 delivery record](deliveries/m10-m12-delivery.md#final-source-and-release-gates). Display schema 15 and editor protocol 24 require matching resources.
+
+</details>
+
 ### v3.8.0 Git, terminal and package management
 
 <details>
@@ -233,7 +246,7 @@ Use the existing stable procedure with the [v3.1.2-only approval](../../releases
 
 At v3.1.2, documentation-only PR/push changes used a strict Markdown allowlist; other paths used full CI. This records that release's policy. Current maintenance follows [impact checks](../impact-checks.md), with a required aggregate and separate release evidence. Approval remains version-limited and never waives failed automated evidence.
 
-Gitee release-note updates must include the original `tag_name`, `name` and `body`; keep the existing prerelease state (lowercase form booleans) and verify metadata, annotation and attachments after updating. The [official Release update schema](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md) also requires the Tag name; a body-only PATCH is insufficient.
+Gitee release-note updates must include the original `tag_name`, `name` and `body`; keep the existing prerelease state (lowercase form booleans) and verify metadata, annotation and attachments after updating. The [official Release update schema](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md) also requires the Tag name; a body-only PATCH is insufficient. This v3.1.2 record is the historical instance that established the Gitee Release metadata rule retained by the [current release guide](../../RELEASING.md#gitee-code-and-release-synchronization).
 
 </details>
 
@@ -613,7 +626,18 @@ Authentication is local to each maintainer's machine: use a dedicated Gitee SSH 
 
 ## Python release gates by version
 
-These gates record the coverage and limitations applied at the time.
+These gates record the coverage and limitations applied at the time. The feature-named gates map to these versions:
+
+| Version | Gate |
+| --- | --- |
+| v1.5.0 (v1.5.0a1 preview) | [Phase 4 preview and stable promotion](#phase-4-preview-and-stable-promotion) |
+| v1.6.0 (v1.6.0a1 preview) | [Phase 5 preview and promotion](#phase-5-preview-and-promotion) |
+| v1.7.0 (v1.7.0a1 preview) | [Task timing prerelease gates](#task-timing-prerelease-gates) |
+| v1.9.0 | [Statusline localization release gates](#statusline-localization-release-gates) |
+| v1.10.0 | [Discovery and import-review release gates](#discovery-and-import-review-release-gates) |
+| v1.12.0 | [Appearance release gates](#appearance-release-gates) |
+| v1.13.0 | [Multilingual release gates](#multilingual-release-gates) |
+| v2.0.0 (v2.0.0a1 preview) | [Component-instance release gates](#component-instance-release-gates) |
 
 ### v1.3.0 stable promotion
 

@@ -4,6 +4,18 @@
 
 This page preserves commands, conclusions and limitations from earlier stages. See [testing and acceptance](../testing.md) for current TypeScript procedures. The [pre-archive commit](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176) identifies the original Python source. The [frozen archive](../../../archive/python/README.md) documents independent reference verification.
 
+## Contents and version index
+
+[Stage context](#migration-stage-context) · [Python development and installed-package checks](#python-development-and-installed-package-checks) · [Python feature and release acceptance](#python-feature-and-release-acceptance) · [TypeScript migration-stage acceptance](#typescript-migration-stage-acceptance) · [v3.15.0 language workflow](#v3150-language-workflow)
+
+| Version | Acceptance records |
+| --- | --- |
+| v1.5.0 | [Phase 4 verification](#phase-4-verification) · [Stable acceptance](#v150-stable-acceptance) |
+| v1.6.0 | [Phase 5 metric migration](#phase-5-metric-migration) · [Real Phase 5 acceptance](#real-phase-5-acceptance) · [Stable acceptance](#v160-stable-acceptance) |
+| v1.6.1 | [External TUI grouping checks](#v161-external-tui-grouping-checks) |
+| v1.7.0 | [Task timing preview validation](#task-timing-preview-validation) · [Stable acceptance](#v170-stable-acceptance) |
+| v3.15.0 | [Language workflow cross-reference](#v3150-language-workflow) |
+
 ## Migration-stage context
 
 <details>
@@ -548,6 +560,8 @@ not claim hardware power-loss validation. PERF-01 remains the performance follow
 ## v3.15.0 language workflow
 
 <a id="i18n-02-acceptance"></a>
+
+**Cross-reference to the [I18N-02 delivery record](../i18n-02-delivery.md), not a current procedure.** This section preserves the v3.15.0 acceptance evidence; use the [language workflow guide](../i18n-workflow.md) for current steps.
 
 <details>
 <summary>Expand the I18N-02 acceptance record</summary>

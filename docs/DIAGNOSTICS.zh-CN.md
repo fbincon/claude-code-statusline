@@ -78,7 +78,7 @@ claude-statusline config enable cache-miss-reason
 
 当前接口版本与读取范围见 [CLI 参考](reference/cli.zh-CN.md#协议与-schema-版本)，后端与编辑器资源须匹配。降级前恢复与目标旧包兼容的配置备份；仅移除一个组件不能让较新 schema 兼容旧包。诊断不自动迁移或改写配置。
 
-另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
+另见[后端契约](development/contracts.zh-CN.md#配置与示例解释协议)、[指标定义](DISPLAY_ITEMS.zh-CN.md)、本页[报告规则](#阅读报告)及[历史实现与验收记录](development/history/deliveries/real-input-diagnostics.zh-CN.md)。
 
 ## Git 采集策略
 

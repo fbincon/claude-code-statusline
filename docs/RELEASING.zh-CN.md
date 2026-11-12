@@ -106,7 +106,7 @@ npm run release:gitee-notes -- \
   --output "$RELEASE_ROOT/gitee-notes.md"
 ```
 
-生成器以 `docs/releases/<tag>.md` 为基准解析相对链接，并使用实际附件地址。将输出与公开的 GitHub 正文对照审查。通过官方 MCP/API 更新 Gitee 正文，保留接口要求的原元数据字段。更新后读取验证新正文，以及预期的标签、目标提交、预发布状态和附件身份。凭据沿用维护者的 SSH 和密钥环配置。不同软件包格式分别参见[生成器约定](../tools/release/gitee-notes.ts)和[历史 wheel 同步](development/history/release-procedures.zh-CN.md#python-发行版的-gitee-同步)。
+生成器以 `docs/releases/<tag>.md` 为基准解析相对链接，并使用实际附件地址。将输出与公开的 GitHub 正文对照审查。通过官方 MCP/API 更新 Gitee 正文，保留接口要求的原元数据字段。更新必须携带原 `tag_name`、`name` 和 `body`；仅发送正文的 PATCH 不足。更新后读取验证新正文，以及预期的标签、目标提交、预发布状态和附件身份。凭据沿用维护者的 SSH 和密钥环配置。不同软件包格式分别参见[生成器约定](../tools/release/gitee-notes.ts)和[历史 wheel 同步](development/history/release-procedures.zh-CN.md#python-发行版的-gitee-同步)。
 
 ## 记录交付
 

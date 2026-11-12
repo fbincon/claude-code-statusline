@@ -4,6 +4,18 @@
 
 本页保留历史阶段的命令、结论和限制。现行 TypeScript 步骤见[测试与验收](../testing.zh-CN.md)。Python 源码以[归档前提交](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176)为准，[冻结归档](../../../archive/python/README.zh-CN.md)提供独立的 reference 验证。
 
+## 目录与版本索引
+
+[阶段背景](#迁移阶段背景) · [Python 开发与安装包检查](#python-开发与安装包检查) · [Python 功能与发布验收](#python-功能与发布验收) · [TypeScript 迁移阶段验收](#typescript-迁移阶段验收) · [v3.15.0 多语言工作流](#v3150-多语言工作流)
+
+| 版本 | 验收记录 |
+| --- | --- |
+| v1.5.0 | [Phase 4 验证](#phase-4-验证) · [正式验收](#v150-正式验收) |
+| v1.6.0 | [Phase 5 指标迁移](#phase-5-指标迁移) · [Phase 5 真实验收](#phase-5-真实验收) · [正式版验收](#v160-正式版验收) |
+| v1.6.1 | [外部 TUI 分组验证](#v161-外部-tui-分组验证) |
+| v1.7.0 | [任务计时预览验证](#任务计时预览验证) · [正式验收](#v170-正式验收) |
+| v3.15.0 | [多语言工作流交叉引用](#v3150-多语言工作流) |
+
 ## 迁移阶段背景
 
 <details>
@@ -545,6 +557,8 @@ TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中�
 ## v3.15.0 多语言工作流
 
 <a id="i18n-02-验收"></a>
+
+**交叉引用：[I18N-02 交付记录](../i18n-02-delivery.zh-CN.md)，并非现行流程。** 本节保留 v3.15.0 验收证据；现行步骤见[多语言工作流指南](../i18n-workflow.zh-CN.md)。
 
 <details>
 <summary>展开 I18N-02 验收记录</summary>

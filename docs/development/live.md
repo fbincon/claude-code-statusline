@@ -51,7 +51,9 @@ active time remains unavailable when its clock evidence is abnormal.
 Each session has a hashed filename under `statusline_runtime/live`, or `live` under
 `CLAUDE_STATUSLINE_RUNTIME_DIR`. A fixed per-session lock spans read/merge/atomic
 publication; files are private on POSIX. Stores retain up to 100 sessions, 32 epochs,
-32 prompts and 256 agents. Each epoch retains a 4096-sequence deduplication window
+32 prompts, 256 agents, 256 turns, 1,024 tools, 1,000 tasks and 2,048 requests (the
+`MAX_TURNS`, `MAX_TOOLS`, `MAX_TASKS` and `MAX_REQUESTS` bounds). Each epoch retains a
+4096-sequence deduplication window
 and rejects older sequences below its retained floor. Sequence gaps mark incomplete
 coverage. Missing or ambiguous ownership is not attached to the current prompt.
 

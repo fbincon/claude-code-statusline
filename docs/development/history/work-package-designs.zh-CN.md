@@ -10,6 +10,8 @@
 
 以下保留已交付工作的原始设计、排期和验收要求。实际结果见[交付记录](README.zh-CN.md#delivery-records)，包括 [M10–M12](deliveries/m10-m12-delivery.zh-CN.md) 与 [v3.9.1 Native](../native-capacity.zh-CN.md)。
 
+本归档覆盖 M1–M12、十八个后续工作包和 SHOWCASE-01。M1 之前已交付的设计——UX-01/UX-02/EXPLAIN-01、DIAG-01/INPUT-01，以及 PROFILE-01/PROJECT-01/TASK-01——记录在各自的专题交付记录中：[配置体验](deliveries/configuration-experience.zh-CN.md)、[真实输入诊断](deliveries/real-input-diagnostics.zh-CN.md)、[方案、项目与任务详情](deliveries/profiles-projects-tasks.zh-CN.md)。
+
 [审查基线](#review-baseline) · [原工作包排期](#原工作包排期) · [后续工作包设计](#已交付后续工作包) · [主线与维护设计](#delivered-mainline) · [早期设计与演示](#delivered-designs)
 
 <a id="review-baseline"></a>

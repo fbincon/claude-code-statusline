@@ -198,7 +198,7 @@ The main display and subagent template support `groups`. Each group has `id`, or
 
 ### Cost rate contract
 
-The optional main `session-cost-rate` type supports optional instance `cost_rate_basis: session|api` (session by omission). Core calculation requires finite nonnegative cost and at least 60,000 ms of the chosen official duration. Units and the estimate marker remain with labels off; source evidence names only the selected denominator. Old display files migrate without enabling this type or rewriting bytes. Other interface versions follow the current version table.
+The optional main `session-cost-rate` type supports optional instance `cost_rate_basis: session|api` (session by omission). Core calculation requires finite nonnegative cost and at least 60,000 ms of the chosen official duration. Units and the estimate marker remain with labels off; source evidence names only the selected denominator. Old display files migrate without enabling this type or rewriting bytes. Other interface versions are in the [CLI reference](../reference/cli.md#protocol-and-schema-versions).
 
 ### Gradient contract
 
@@ -252,7 +252,7 @@ The `display.powerline` object has closed choices and legacy defaults; schema 17
 
 `sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_release`, `source_cancel`, `source_diagnose` expose registry management, independent review and cancellable refresh. `sources_apply` checks the registry revision and commits independently. `source_refresh` returns a job without waiting for execution. Display references contain no executable or file path; portable exports clear binding IDs, and selective imports clear them only in imported sections.
 
-`source_release` accepts `{id,owner}` and returns the job after an idempotent single-consumer release; `source_cancel` remains an explicit whole-job cancellation. Jobs preserve origin owner/trigger and carry `consumers:[{owner,expires_at}]`. Applicable automatic leases supply independent interest; only an execution with no interest is cancelled. Jobs v1/v2 remain read-only compatible and running legacy jobs cannot be joined. Both editors share the unresolved-save guard and submitted snapshot; the external TUI uses Ctrl+K for read-only reconciliation. See [correctness interfaces and validation](correctness-maintenance.md).
+`source_release` accepts `{id,owner}` and returns the job after an idempotent single-consumer release; `source_cancel` remains an explicit whole-job cancellation. Jobs preserve origin owner/trigger and carry `consumers:[{owner,expires_at}]`. Applicable automatic leases supply independent interest; only an execution with no interest is cancelled. Jobs v1/v2 remain read-only compatible and running legacy jobs cannot be joined. Both editors share the unresolved-save guard and submitted snapshot; the external TUI uses Ctrl+K for read-only reconciliation. See [correctness interfaces and validation](history/deliveries/correctness-maintenance.md).
 
 Additional source inspection and package operations are `source_inspect`, `source_bindings_review/cleanup`, `source_draft`, `package_execute_start/status/detach` and `package_cleanup_review/apply`. Core defines bounded summaries/pages and shared interaction states; CLI enforces revision, identity, permission and reference rules; platform owns file/process/delete effects. Mod resources are generated from these canonical contracts.
 
@@ -267,7 +267,7 @@ The source registry stores local `automatic` policies: `{source_id,enabled,revie
 
 Package review provides `package_status` (`prefix: string|null`, `offset: nonnegative integer`), `package_review_start` (`owner`, `request`), and `package_review_status` / `package_review_cancel` (`id`, `owner`). A request contains `action` (`check`, `update`, `rollback`, `recover-package`, `restore-config`), `prefix`, `expected_revision`, and nullable `target`, `channel`, `backup_id`, `expected_integrity`. Metadata checks and verified dry runs are distinct. Restoration returns its own file review and does not claim artifact verification.
 
-Status includes the current backend version, installed identity, compatibility reasons, pending operation and at most 16 history records per page. Jobs have version 1 and running/complete/failed/cancelled states. Their temporary files are separate from installation journals; polling is explicit, cancellation is owner-bound, and identity/revision changes invalidate results. Matching frontend/backend resources are required. Other interface versions follow the current version table.
+Status includes the current backend version, installed identity, compatibility reasons, pending operation and at most 16 history records per page. Jobs have version 1 and running/complete/failed/cancelled states. Their temporary files are separate from installation journals; polling is explicit, cancellation is owner-bound, and identity/revision changes invalidate results. Matching frontend/backend resources are required. Other interface versions are in the [CLI reference](../reference/cli.md#protocol-and-schema-versions).
 
 Package execution records have independent version 1 and retained controls. Progress reads never rewrite records; verified process identity distinguishes stopped from unknown. Package-history/pending `running` is `true`, `false` or `null` (unverifiable). Unknown executors retain their records and block recovery/replacement until exit or a different identity is confirmed. Cleanup is revision-bound and conservative. Source registry 3 or newer display configuration may prevent an old package reading current files; rollback review must reject incompatible configuration before replacement. Do not edit schema numbers to force rollback.
 
@@ -338,6 +338,7 @@ These are introduction versions, rather than replacements for the current contra
 | 22 | 13 | [Selective import](#selective-import-contract) |
 | 23 | 14 | [Component gradients](#gradient-contract) |
 | 24 | 15 | [Explicit-row alignment](#explicit-row-alignment--composition-03) |
+| 25 | 15 | [Editor, source and diagnosis correctness (v3.9.2)](history/deliveries/correctness-maintenance.md) |
 | 26 | 16 | <a id="appearance-and-diagnosis-protocol-26"></a>[Themes, scenarios and file diagnosis](#configuration-and-sample-explanation-protocol) |
 | 27 | 16 | <a id="task-browsing-and-package-review-protocol-27"></a>[Task browsing and package review](#package-review-execution-and-cleanup) |
 | 28 | 16 | <a id="source-operations-and-package-execution-protocol-28"></a>[Source maintenance and package execution](#source-operations) |

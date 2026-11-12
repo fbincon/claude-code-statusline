@@ -166,7 +166,7 @@ Additional themes are `ocean`, `ember`, `slate` (dark surfaces) and `blossom` (l
 
 Settings includes sample scenario and preview width. Ctrl+V cycles fourteen scenarios, Ctrl+W cycles available/40/80/120 columns and Ctrl+N advances rows. The title identifies the scenario and effective width. These choices last only for the current editor session and also apply to candidate previews and sample explanations. Samples never start a collector, command or network query.
 
-See [implementation and validation](development/appearance-preview-diagnosis.md).
+See [visual color selection and sample scenarios](#visual-color-selection-and-sample-scenarios) for current behavior and the [historical implementation and validation record](development/history/deliveries/appearance-preview-diagnosis.md).
 
 ## Captured examples
 

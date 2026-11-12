@@ -168,7 +168,7 @@ claude-statusline config set powerline-row-background-gradient off
 
 设置页提供样例场景和预览宽度。Ctrl+V 切换十四个场景，Ctrl+W 切换可用／40／80／120 列，Ctrl+N 推进预览行。标题显示场景和实际宽度。这些选择仅保留在当前编辑会话，同样应用于候选预览和样例解释。样例不启动采集、命令或网络查询。
 
-参见[实施与验证](development/appearance-preview-diagnosis.zh-CN.md)。
+参见[可视选色与样例场景](#可视选色与样例场景)的当前行为及[历史实施与验证记录](development/history/deliveries/appearance-preview-diagnosis.zh-CN.md)。
 
 ## 实际终端捕获示例
 

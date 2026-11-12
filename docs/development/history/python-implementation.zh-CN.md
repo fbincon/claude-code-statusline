@@ -311,9 +311,4 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 
 ### 历史架构中的组件实例与布局
 
-<details>
-<summary>查看组件实例与布局</summary>
-
-`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../../COMPOSITION.zh-CN.md)与[共享契约](../contracts.zh-CN.md)。
-
-</details>
+本架构主题仅在[组件实例与布局](#组件实例与布局)一节记录。

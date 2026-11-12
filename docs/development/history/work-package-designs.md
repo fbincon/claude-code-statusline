@@ -10,6 +10,8 @@
 
 These sections preserve the original designs, schedules and acceptance criteria for delivered work. See the [delivery records](README.md#delivery-records) for actual results, including [M10–M12](deliveries/m10-m12-delivery.md) and [v3.9.1 Native](../native-capacity.md).
 
+The archive covers M1–M12, the eighteen follow-up packages and SHOWCASE-01. Delivered pre-M1 designs — UX-01/UX-02/EXPLAIN-01, DIAG-01/INPUT-01, and PROFILE-01/PROJECT-01/TASK-01 — are recorded in their topic delivery records: [configuration experience](deliveries/configuration-experience.md), [real-input diagnostics](deliveries/real-input-diagnostics.md) and [profiles, projects and tasks](deliveries/profiles-projects-tasks.md).
+
 [Review baseline](#review-baseline) · [Original schedules](#original-work-package-schedules) · [Follow-up designs](#delivered-follow-up-packages) · [Mainline and maintenance designs](#delivered-mainline) · [Earlier designs and demonstrations](#delivered-designs)
 
 <a id="review-baseline"></a>
