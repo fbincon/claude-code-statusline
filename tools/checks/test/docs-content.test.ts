@@ -21,6 +21,18 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`README${suffix}.md`, ITEMS.filter(item => item.scope === 'main' && !(NODE_TYPES as readonly string[]).includes(item.id)).length + ' ', '999 '],
             [`README${suffix}.md`, LANGUAGE_NAMES[LANGUAGES.at(-1)!], 'Missing language'],
             [`docs/USER_GUIDE${suffix}.md`, '`zh-HK`', '`missing-code`'],
+            [`docs/USER_GUIDE${suffix}.md`, suffix ? '65 个主栏指标' : '65 main metrics', suffix ? '999 个主栏指标' : '999 main metrics'],
+            [`docs/USER_GUIDE${suffix}.md`, suffix ? '5 个子代理条目' : '5 subagent items', suffix ? '6 个子代理条目' : '6 subagent items'],
+            [`docs/USER_GUIDE${suffix}.md`, suffix ? '八套完整显示方案' : 'eight complete display schemes', suffix ? '九套完整显示方案' : 'nine complete display schemes'],
+            [`docs/USER_GUIDE${suffix}.md`, '^22.0.0 || ^24.0.0', '^20.0.0 || ^24.0.0'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.205', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.214', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.258', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.287', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.289', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, suffix ? '完整 `config apply`' : 'complete `config apply`', suffix ? '独立 `config apply`' : 'standalone `config apply`'],
+            [`docs/USER_GUIDE${suffix}.md`, 'config language reset', 'config language clear'],
+            [`docs/USER_GUIDE${suffix}.md`, 'claude-statusline setup --dry-run', 'claude-statusline setup --check'],
             [`docs/SCHEMES${suffix}.md`, '`quota-cost`', '`wrong-scheme`'],
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
             [`docs/COMPOSITION${suffix}.md`, 'schema ' + SCHEMA_VERSION, 'schema 999'],
@@ -30,6 +42,25 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             const changed = new Map(pages), original = changed.get(path!)!;
             assert(original.includes(before!), path); changed.set(path!, original.replaceAll(before!, after!));
             assert(contentErrors(changed).some(error => error.startsWith(path! + ':')), path);
+        }
+        const gateRows = suffix
+            ? [
+                '| 子代理行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |',
+                '| 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |',
+                '| 会话内 Client 编辑器 | 2.1.287+ |',
+                '| 原生计时及高级实时指标采集 | 2.1.289+ |',
+            ]
+            : [
+                '| Subagent rows and lifecycle hooks | 2.1.205+; per-task effort 2.1.214+ |',
+                '| Local argument-based slash commands, external entry | 2.1.258+ |',
+                '| In-session Client editor | 2.1.287+ |',
+                '| Native timing and advanced live-metrics collection | 2.1.289+ |',
+            ];
+        for (const row of gateRows) {
+            const path = `docs/USER_GUIDE${suffix}.md`, original = pages.get(path)!;
+            assert(original.includes(row), path);
+            const changed = new Map(pages); changed.set(path, original.replace(row, ''));
+            assert(contentErrors(changed).some(error => error.startsWith(path + ':') && error.includes('Missing requirements row')), path + ': ' + row);
         }
         const missing = new Map(pages);
         for (const base of ['docs/DISPLAY_ITEMS', 'docs/USER_GUIDE']) {

@@ -12,7 +12,9 @@ Select validation from the actual change and preserve each result's source/artif
 | Core behavior/runtime dependencies | Complete product checks and the applicable installed/runtime/host matrix |
 | Terminal, physical or paid work | Explicitly scoped collection, source-bound reports and actual limitations; paid calls need an approved budget and shared ledger |
 
-Ordinary tests use isolated configuration and installation directories. Follow [candidate acceptance](#candidate-build-and-isolated-installation) for installed-package and host checks. Terminal, physical and paid scenarios have separate entry points. Record PTY reconstruction, operator observations and physical results separately. The six existing [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified.
+<a id="known-validation-gaps"></a>
+
+Ordinary tests use isolated configuration and installation directories. Follow [candidate acceptance](#candidate-build-and-isolated-installation) for installed-package and host checks. Terminal, physical and paid scenarios have separate entry points. Record PTY reconstruction, operator observations and physical results separately. The six existing [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified. Historical release decisions, including [v3.1.0](../releases/approvals/v3.1.0.json), retain their original scope; they are not passes for newer packages or exemptions from new failures.
 
 Current native-capacity rules and applicable host checks are in [capacity and recovery](native-capacity.md). The [delivery index](history/README.md#delivery-records) links feature-specific evidence; counts in those records describe their named versions, not a fresh run against current main.
 

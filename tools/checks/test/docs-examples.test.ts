@@ -206,6 +206,27 @@ for (const suffix of ['', '.zh-CN']) {
 }
 
 for (const suffix of ['', '.zh-CN']) {
+    test(`documented USER_GUIDE recipes and dry runs execute in isolation (${suffix || 'en'})`, async t => {
+        const f = fixture(t), body = pages.get(`docs/USER_GUIDE${suffix}.md`)!;
+        f.values.set('statusline.json', join(f.project, 'statusline.json'));
+        for (const [id, language] of [
+            ['guide-recipes', 'bash'],
+            ['guide-context', 'bash'],
+            ['guide-preset-import', 'bash'],
+            ['guide-language', 'text'],
+        ] as const) {
+            const lines = example(body, id, language).split('\n').filter(Boolean);
+            if (id === 'guide-preset-import')
+                assert(lines.every(line => line.includes('--dry-run') || line.includes('config export ')), 'Guide preset/import example must stay dry-run/export-only');
+            for (const line of lines) {
+                const argv = f.line(line), reply = await f.call(argv);
+                assert.equal(reply.code, 0, line + '\n' + reply.out + reply.err);
+            }
+        }
+    });
+}
+
+for (const suffix of ['', '.zh-CN']) {
     const body = pages.get(`docs/reference/cli${suffix}.md`)!;
     const lines = (id: string) => example(body, id, 'text').split('\n');
     test(`CLI reference sorting and compatible layouts preserve configured disabled instances (${suffix || 'en'})`, async t => {
