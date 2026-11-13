@@ -1,8 +1,9 @@
-import test from 'node:test';
+import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { anchors, configurationSection } from '../docs.js';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { anchors, checkReleases, configurationSection } from '../docs.js';
 function nextHeading(text: string, anchor: string): string | undefined {
     const lines = text.split(/\r?\n/u);
     const start = lines.findIndex(line => line.includes(`<a id="${anchor}"></a>`));
@@ -145,4 +146,51 @@ test('README configuration checks preserve the same section under Windows CRLF a
         assert(expected.includes('/statusline-configure-native')); assert(expected.includes('claude-statusline config'));
         assert(!expected.includes('wrong section')); assert.equal(configurationSection(text.replaceAll('\n', '\r\n'), heading), expected);
     }
+});
+function releaseFixture(t: TestContext): { root: string; files: Record<string, string> } {
+    const root = mkdtempSync(join(tmpdir(), 'release notes '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    return { root, files: {
+        'v1.0.0.md': '# v1.0.0\n\n[English](#english) | [简体中文](#简体中文)\n\n<a id="english"></a>\n\n<a id="简体中文"></a>\n\n<details>\n<summary>简体中文</summary>\n\n中文摘要。\n\n</details>\n',
+        'v9.0.0.md': '# v9.0.0 — Test release\n\n**English** | [简体中文](v9.0.0.zh-CN.md)\n\nPublished on **2026-01-01**. Delivery evidence.\n\nThis release verifies the template.\n\n- Change one.\n\nCompatibility. Rerun `claude-statusline install`.\n\nSupported platforms/runtimes: Node 22/24.\n\nOnly the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted.\n\n[Version decision](approvals/v9.0.0.json) · [Release process](../RELEASING.md).\n',
+        'v9.0.0.zh-CN.md': '# v9.0.0 — 测试发布\n\n[English](v9.0.0.md) | **简体中文**\n\n已于 **2026-01-01** 发布。交付证据。\n\n本版本验证模板。\n\n- 变更一。\n\n兼容性。运行 `claude-statusline install`。\n\n支持平台／运行时：Node 22/24。\n\n仅接受 [issue #96 六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)。\n\n[版本决策](approvals/v9.0.0.json) · [发布流程](../RELEASING.zh-CN.md).\n',
+        'README.md': '# Release notes\n\n- [**v9.0.0**](v9.0.0.md) · 2026-01-01 · Stable — Test release · [中文](v9.0.0.zh-CN.md)\n- [**v1.0.0**](v1.0.0.md) · 2020-01-01 · Stable — Initial · [中文](v1.0.0.md#简体中文)\n',
+        'README.zh-CN.md': '# 发布说明\n\n- [**v9.0.0**](v9.0.0.zh-CN.md) · 2026-01-01 · 正式版 — 测试发布 · [English](v9.0.0.md)\n- [**v1.0.0**](v1.0.0.md#简体中文) · 2020-01-01 · 正式版 — 初始 · [English](v1.0.0.md#english)\n',
+    } };
+}
+function writeReleaseFixture(root: string, files: Record<string, string>): void {
+    for (const [name, body] of Object.entries(files)) {
+        const path = join(root, 'docs', 'releases', name);
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, body);
+    }
+}
+test('release template accepts a historical note and a current pair', t => {
+    const fixture = releaseFixture(t);
+    writeReleaseFixture(fixture.root, fixture.files);
+    assert.deepEqual(checkReleases(fixture.root), []);
+});
+const invalidReleases: readonly [string, (files: Record<string, string>) => void, RegExp][] = [
+    ['current pair without Chinese page', files => { delete files['v9.0.0.zh-CN.md']; }, /missing Simplified Chinese counterpart/u],
+    ['separate Chinese page before v3.10.0', files => { files['v1.0.0.zh-CN.md'] = files['v1.0.0.md']!; }, /separate Chinese note is not allowed/u],
+    ['current H1 without tag', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('# v9.0.0 — Test release', '# Release'); }, /H1 must start with v9\.0\.0/u],
+    ['current note without publication date', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('Published on **2026-01-01**. ', ''); }, /missing a valid Published on date/u],
+    ['current note without install step', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace(' Rerun `claude-statusline install`.', ''); }, /missing claude-statusline install/u],
+    ['current note without decision link', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('[Version decision](approvals/v9.0.0.json) · ', ''); }, /missing version decision link/u],
+    ['historical note without navigation', files => { files['v1.0.0.md'] = files['v1.0.0.md']!.replace('[English](#english) | [简体中文](#简体中文)\n\n', ''); }, /missing historical language navigation/u],
+    ['Chinese anchor inside details', files => { files['v1.0.0.md'] = files['v1.0.0.md']!.replace('<a id="简体中文"></a>\n\n<details>', '<details>\n<a id="简体中文"></a>'); }, /Chinese anchor must precede the details block/u],
+    ['duplicate index entry', files => { files['README.md'] = files['README.md']! + '- [**v9.0.0**](v9.0.0.md) · duplicate\n'; }, /v9\.0\.0 must appear exactly once/u],
+    ['reserved Gitee heading', files => { files['v9.0.0.md'] = files['v9.0.0.md']! + '\n## Gitee installation and downloads\n'; }, /contains a reserved Gitee heading/u],
+    ['mismatched change bullets', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('- Change one.', '- Change one.\n- Change two.'); }, /change bullet counts differ/u],
+    ['mismatched publication dates', files => { files['v9.0.0.zh-CN.md'] = files['v9.0.0.zh-CN.md']!.replace('2026-01-01', '2026-01-02'); }, /publication dates differ/u],
+];
+for (const [name, mutate, expected] of invalidReleases)
+    test('release template rejects ' + name, t => {
+        const fixture = releaseFixture(t);
+        mutate(fixture.files);
+        writeReleaseFixture(fixture.root, fixture.files);
+        assert.match(checkReleases(fixture.root).join('\n'), expected);
+    });
+test('repository release notes satisfy the release template', () => {
+    assert.deepEqual(checkReleases(process.cwd()), []);
 });

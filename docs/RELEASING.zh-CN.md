@@ -4,7 +4,7 @@
 
 GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，Gitee 同步已验证的代码和交付文件。安装见[使用指南](USER_GUIDE.zh-CN.md#安装与接入)。旧版本的操作及证据见[交付与历史索引](development/history/README.zh-CN.md)。
 
-[发布准备](#current-typescript-publication) · [源码与证据](#绑定源码的-ci-证据晋级) · [标签与草稿](#发布身份与不可变附件) · [npm OIDC](#通过-github-actions-可信发布-npm) · [公开下载](#github-正式发布与公开验证) · [Gitee](#gitee-代码与-release-同步) · [交付记录](#记录交付)
+[发布准备](#current-typescript-publication) · [发布说明模板](#发布说明模板) · [源码与证据](#绑定源码的-ci-证据晋级) · [标签与草稿](#发布身份与不可变附件) · [npm OIDC](#通过-github-actions-可信发布-npm) · [公开下载](#github-正式发布与公开验证) · [Gitee](#gitee-代码与-release-同步) · [交付记录](#记录交付)
 
 <a id="current-typescript-publication"></a>
 
@@ -13,9 +13,24 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 1. 确认发布范围、渠道及[应用版本](../packages/core/src/release.ts)。使用固定开发工具链，按贡献指南的命名约定从当前 `main` 创建分支。更新双语变更记录和版本说明。规范源变化时重新生成对应资源。参见[贡献指南](../CONTRIBUTING.zh-CN.md)和[开发指南](development/README.zh-CN.md)。
 2. 正式版发布需新增维护者决定 JSON，并登记版本、路径和准确批准日期。校验器从不可变源码归档读取这两份文件。决定仅适用于该版本与六项既有未验证缺口，所有必需的自动化门禁均须通过。参见[审批登记表](releases/approvals/registry.json)和[发布数据规则](development/ci-maintenance.zh-CN.md#发布数据与验收策略)。
 3. 执行影响计划选中的检查。最终审核的 PR head 须通过 **Complete candidate evidence**，合并后等待主分支验证通过。预览版和正式版公开发布均要求 A/B 语言完整就绪。参见[按影响检查](development/impact-checks.zh-CN.md)和[语言发布流程](development/i18n-workflow.zh-CN.md)。
-4. 将双语版本说明存入 `docs/releases/<tag>.md` 及其中文配对页。Release 标题使用英文，公开正文包含两种语言。记录用户可见改动、支持的平台及运行时、兼容性、安装方式和已知限制，并与该版本证据及[运行要求](USER_GUIDE.zh-CN.md#运行要求)核对。将新版本加入中英两版[发布说明索引](releases/README.zh-CN.md)。
+4. 将版本说明存入 `docs/releases/<tag>.md`；自 v3.10.0 起另存简体中文配对页，更早版本使用一个双语页面。Release 标题使用英文，公开正文包含两种语言。记录用户可见改动、支持的平台及运行时、兼容性、安装方式和已知限制，并与该版本证据及[运行要求](USER_GUIDE.zh-CN.md#运行要求)核对。将新版本加入中英两版[发布说明索引](releases/README.zh-CN.md)。
 
 例行仓库维护走专项检查和已验证主分支同步。产品发布由维护者单独决定。
+
+## 发布说明模板
+
+发布页面位于 `docs/releases/`。每个新版本按以下结构编写。
+
+1. **命名与配对。** 英文写 `vX.Y.Z.md`，简体中文写 `vX.Y.Z.zh-CN.md`。自 v3.10.0 起两者都必须存在。v3.9.2 及以前使用一个双语 `vX.Y.Z.md`，不要新增独立中文页。
+2. **固定顺序。** 一个以 tag 开头的 H1；语言导航；发布日期；简短摘要；用户可见变更 bullets；兼容性与安装；支持平台／运行时；已知限制及 #96 六项接受缺口；页脚链接。
+3. **必需块。** `已于 **YYYY-MM-DD** 发布。`、至少一条变更 bullet、`claude-statusline install`、#96 接受说明、`approvals/<tag>.json`、交付记录及本指南。
+4. **可选块。** 日期行后的交付记录句、降级说明、已知问题和额外参考链接。
+5. **不写内部证据。** 源 SHA、金额、请求／回放次数、原始运行／产物 ID 及验收脚本诊断留在交付记录，页面只链接记录。
+6. **历史页面。** 保留冻结的 H1、正文和命令。只补顶部语言导航、`english` 与 `简体中文` 锚点、状态说明，以及中文为摘要时的 `中文摘要` 标识。中文索引链接 `vX.Y.Z.md#简体中文`。
+7. **索引。** 在同一次改动中把版本加入 `docs/releases/README.md` 和 `README.zh-CN.md`，并保持“当前稳定版”提示最新。
+8. **保留标题。** 不要使用 `## Gitee installation and downloads` 或 `## Original publication`；Gitee 渲染器会追加这些标题。
+
+提交前运行 `npm run docs:check`。`checkReleases` 会检查文件名／配对边界、单一 H1、语言导航、索引完整性、保留标题，以及现行页的日期／安装／决策块。
 
 ## 绑定源码的 CI 证据晋级
 
