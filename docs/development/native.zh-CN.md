@@ -1,6 +1,6 @@
 # 会话内 Client 配置编辑器
 
-**简体中文** | [English](native.md)
+[English](native.md) | **简体中文**
 
 日常操作见[配置编辑器](../EDITORS.zh-CN.md)，本页维护实现与验收说明。
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { anchors, checkApprovalData, checkChangelog, checkDeliveryRecords, checkReleases, configurationSection } from '../docs.js';
+import { anchors, checkApprovalData, checkChangelog, checkDeliveryRecords, checkDocumentationPages, checkDocumentationRegistration, checkDocs, checkReleases, configurationSection } from '../docs.js';
 function nextHeading(text: string, anchor: string): string | undefined {
     const lines = text.split(/\r?\n/u);
     const start = lines.findIndex(line => line.includes(`<a id="${anchor}"></a>`));
@@ -385,4 +385,68 @@ test('approval check tolerates a repository without an approval registry', t => 
 });
 test('repository approval decisions satisfy the registry template', () => {
     assert.deepEqual(checkApprovalData(process.cwd()), []);
+});
+
+function documentationFixture(t: TestContext): { root: string; write: (name: string, body: string) => void } {
+    const root = mkdtempSync(join(tmpdir(), 'documentation pages '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    const write = (name: string, body: string): void => {
+        const path = join(root, name);
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, body);
+    };
+    write('docs/README.md', '# Documentation\n\n**English** | [简体中文](README.zh-CN.md)\n\n[Guide](USER_GUIDE.md)\n');
+    write('docs/README.zh-CN.md', '# 文档\n\n[English](README.md) | **简体中文**\n\n[指南](USER_GUIDE.zh-CN.md)\n');
+    write('docs/USER_GUIDE.md', '# User guide\n\n**English** | [简体中文](USER_GUIDE.zh-CN.md)\n');
+    write('docs/USER_GUIDE.zh-CN.md', '# 用户指南\n\n[English](USER_GUIDE.md) | **简体中文**\n');
+    write('docs/development/README.md', '# Development\n\n**English** | [简体中文](README.zh-CN.md)\n\n[Architecture](architecture.md)\n');
+    write('docs/development/README.zh-CN.md', '# 开发\n\n[English](README.md) | **简体中文**\n\n[架构](architecture.zh-CN.md)\n');
+    write('docs/development/architecture.md', '# Architecture\n\n**English** | [简体中文](architecture.zh-CN.md)\n');
+    write('docs/development/architecture.zh-CN.md', '# 架构\n\n[English](architecture.md) | **简体中文**\n');
+    return { root, write };
+}
+test('documentation page checks accept registered bilingual pages', t => {
+    const fixture = documentationFixture(t);
+    assert.deepEqual(checkDocumentationPages(fixture.root), []);
+    assert.deepEqual(checkDocumentationRegistration(fixture.root), []);
+    assert.deepEqual(checkDocumentationPages(process.cwd()), []);
+    assert.deepEqual(checkDocumentationRegistration(process.cwd()), []);
+});
+test('documentation page checks reject missing H1, reversed navigation and unindexed pages', t => {
+    for (const [name, mutate, expected] of [
+        ['a missing H1', (fixture: ReturnType<typeof documentationFixture>) =>
+            fixture.write('docs/USER_GUIDE.md', '**English** | [简体中文](USER_GUIDE.zh-CN.md)\n'), /missing a single H1/u],
+        ['reversed Chinese navigation', (fixture: ReturnType<typeof documentationFixture>) =>
+            fixture.write('docs/development/architecture.zh-CN.md', '# 架构\n\n**简体中文** | [English](architecture.md)\n'), /missing Chinese language navigation/u],
+        ['an unindexed page', (fixture: ReturnType<typeof documentationFixture>) =>
+            fixture.write('docs/README.md', '# Documentation\n\n**English** | [简体中文](README.zh-CN.md)\n'), /not linked from the current documentation index/u],
+    ] as const) {
+        const fixture = documentationFixture(t);
+        mutate(fixture);
+        assert.match(checkDocumentationPages(fixture.root).join('\n'), expected, name);
+    }
+});
+test('documentation registration rejects an unregistered current top-level page', t => {
+    const fixture = documentationFixture(t);
+    fixture.write('docs/UNREGISTERED.md', '# Unregistered\n\n**English** | [简体中文](UNREGISTERED.zh-CN.md)\n');
+    fixture.write('docs/UNREGISTERED.zh-CN.md', '# 未登记\n\n[English](UNREGISTERED.md) | **简体中文**\n');
+    assert.match(checkDocumentationRegistration(fixture.root).join('\n'), /not registered or explicitly allowlisted/u);
+});
+test('nested ROADMAP paths are not exempt from documentation checks', t => {
+    const root = mkdtempSync(join(tmpdir(), 'documentation local '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    const write = (name: string, body: string): void => {
+        const path = join(root, name);
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, body);
+    };
+    const commands = '/statusline-configure-native\n/statusline-configure\n/statusline-config\nclaude-statusline configure\nclaude-statusline config\n';
+    write('README.md', `## Common configuration\n${commands}<a id="v130a2-external-tui-and-in-session-client"></a>\n`);
+    write('README.zh-CN.md', `## 常用配置\n${commands}<a id="v130a2外部-tui-与会话内-client"></a>\n`);
+    write('docs/USER_GUIDE.md', '[Editor](#native-configuration-editor)\n<a id="native-configuration-editor"></a>\n<a id="v130a2-external-tui-and-in-session-client"></a>\n2.1.287 2.1.258 claude-statusline-native.json\n');
+    write('docs/USER_GUIDE.zh-CN.md', '[编辑器](#原生配置编辑器)\n<a id="原生配置编辑器"></a>\n<a id="v130a2外部-tui-与会话内-client"></a>\n2.1.287 2.1.258 claude-statusline-native.json\n');
+    write('docs/RELEASING.md', '<a id="v130-preview-rollout"></a>\n');
+    write('docs/RELEASING.zh-CN.md', '<a id="v130-预览推进"></a>\n');
+    write('docs/notes/ROADMAP.md', '# Notes\n');
+    assert(checkDocs(root).errors.includes('docs/notes/ROADMAP.md: missing bilingual counterpart'));
 });

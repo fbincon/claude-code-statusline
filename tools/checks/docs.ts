@@ -1,11 +1,12 @@
 import * as fs from 'node:fs';
-import { join, resolve, relative, dirname, basename, extname, sep } from 'node:path';
+import { join, resolve, relative, dirname, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB, TAG } from '../release/markdown.ts';
 import { assessApprovalRegistry, assessStableApproval } from '../release/approval.ts';
 import { checkCommunity } from './community.ts';
 import { checkImageGalleries } from './impact-assets.ts';
-const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
+import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.ts';
+const LOCAL_ONLY = new Set(['docs/ROADMAP.md', 'docs/ROADMAP.zh-CN.md', 'docs/MACOS_VALIDATION.md']);
 const RELEASE_FILE = /^(v\d+\.\d+\.\d+(?:(?:a|b|rc)\d+|-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?)(\.zh-CN)?\.md$/u;
 const RELEASE_FENCE = /^ {0,3}(`{3,}|~{3,})/u;
 const RESERVED_RELEASE_HEADING = /^## (?:Gitee installation and downloads|Original publication)$/mu;
@@ -485,6 +486,70 @@ export function checkApprovalData(root: string): string[] {
     }
     return errors;
 }
+function indexLinkTargets(root: string, files: readonly string[]): Set<string> {
+    const result = new Set<string>();
+    for (const file of files) {
+        const path = join(root, file);
+        if (!fs.existsSync(path)) continue;
+        const origin = dirname(path), body = fs.readFileSync(path, 'utf8').replaceAll('\r\n', '\n');
+        for (const match of body.matchAll(/\]\(([^)#]+)(?:#[^)]*)?\)/gu)) {
+            const target = match[1]!;
+            if (/^[a-zA-Z][\w+.-]*:/u.test(target) || target.startsWith('//') || target.startsWith('/')) continue;
+            result.add(relative(root, resolve(origin, target.split('?')[0]!)).split(sep).join('/'));
+        }
+    }
+    return result;
+}
+export function checkDocumentationPages(root: string): string[] {
+    if (!fs.existsSync(join(root, 'docs', 'development', 'README.md'))) return [];
+    const errors: string[] = [];
+    const englishIndex = indexLinkTargets(root, ['docs/README.md', 'docs/development/README.md']);
+    const chineseIndex = indexLinkTargets(root, ['docs/README.zh-CN.md', 'docs/development/README.zh-CN.md']);
+    const indexPages = new Set(['docs/README.md', 'docs/README.zh-CN.md', 'docs/development/README.md', 'docs/development/README.zh-CN.md']);
+    for (const path of DOCUMENT_CONTENT_PATHS) {
+        const file = join(root, path);
+        if (!fs.existsSync(file)) continue;
+        const body = fs.readFileSync(file, 'utf8').replaceAll('\r\n', '\n'), lines = body.split('\n');
+        let index = 0;
+        while (index < lines.length && (!lines[index]!.trim() || /^<a id="[^"]+"><\/a>$/u.test(lines[index]!.trim()))) index++;
+        if (!/^# .+/u.test(lines[index] ?? '')) {
+            errors.push(`${path}: missing a single H1 before content`);
+            continue;
+        }
+        let nav = index + 1;
+        while (nav < lines.length && !lines[nav]!.trim()) nav++;
+        const line = lines[nav] ?? '', chinese = path.endsWith('.zh-CN.md');
+        if (chinese) {
+            if (!line.startsWith('[English](') || !line.includes('| **简体中文**'))
+                errors.push(`${path}: missing Chinese language navigation`);
+        } else if (!line.startsWith('**English** | [简体中文](')) {
+            errors.push(`${path}: missing English language navigation`);
+        }
+        if (!indexPages.has(path) && !path.startsWith('README')) {
+            const reachable = chinese ? chineseIndex : englishIndex;
+            if (!reachable.has(path)) errors.push(`${path}: is not linked from the current documentation index`);
+        }
+    }
+    return errors;
+}
+export function checkDocumentationRegistration(root: string): string[] {
+    const directory = join(root, 'docs');
+    if (!fs.existsSync(directory)) return [];
+    const registered = new Set(DOCUMENT_CONTENT_PATHS
+        .filter(path => path.startsWith('docs/') && path.split('/').length === 2)
+        .map(path => path.replace(/\.zh-CN\.md$|\.md$/u, '')));
+    const allowed = new Set(['docs/APPEARANCE', 'docs/DIAGNOSTICS', 'docs/PACKAGE_MANAGEMENT',
+        'docs/PROFILES', 'docs/SHOWCASE', 'docs/TASK_DETAILS']);
+    const excluded = /^(?:README|RELEASING|PREVIEW|ROADMAP|MACOS_VALIDATION|AGENTS)(?:\.zh-CN)?\.md$/u;
+    const errors: string[] = [];
+    for (const name of fs.readdirSync(directory).filter(name => name.endsWith('.md') && !name.endsWith('.zh-CN.md'))) {
+        if (excluded.test(name)) continue;
+        const path = `docs/${name.replace(/\.md$/u, '')}`;
+        if (!registered.has(path) && !allowed.has(path))
+            errors.push(`${path}.md: current top-level guide is not registered or explicitly allowlisted`);
+    }
+    return errors;
+}
 export function checkDocs(root: string, additional: readonly string[] = []): {
     links: number;
     errors: string[];
@@ -501,8 +566,10 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
         const page = resolve(root, name), local = relative(root, page);
         if (name.endsWith('.md') && !local.startsWith('..') && fs.existsSync(page) && !pages.includes(page)) pages.push(page);
     }
-    for (const page of pages.filter(p => !LOCAL_ONLY.has(basename(p)))) {
-        const body = fs.readFileSync(page, 'utf8'), name = relative(root, page).split(sep).join('/');
+    for (const page of pages) {
+        const name = relative(root, page).split(sep).join('/');
+        if (LOCAL_ONLY.has(name)) continue;
+        const body = fs.readFileSync(page, 'utf8');
         const counterpart = page.endsWith('.zh-CN.md') ? page.replace(/\.zh-CN\.md$/u, '.md') : page.replace(/\.md$/u, '.zh-CN.md');
         if (name !== 'AGENTS.md' && page !== pullRequestTemplate && (!name.split('/').includes('releases') || page.endsWith('.zh-CN.md')) && !fs.existsSync(counterpart))
             errors.push(name + ': missing bilingual counterpart');
@@ -550,6 +617,8 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
     errors.push(...checkDeliveryRecords(root));
     errors.push(...checkApprovalData(root));
     errors.push(...checkImageGalleries(root));
+    errors.push(...checkDocumentationPages(root));
+    errors.push(...checkDocumentationRegistration(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
