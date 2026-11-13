@@ -49,6 +49,44 @@
 | 贡献者指南 | [贡献指南维护](deliveries/contributing-maintenance.zh-CN.md) |
 | 根目录文档 | [根目录文档维护](deliveries/root-docs-maintenance.zh-CN.md) |
 | 变更日志 | [变更日志模板与格式检查](deliveries/changelog-template-maintenance.zh-CN.md) |
+| 交付记录 | [交付记录模板与检查](deliveries/delivery-record-governance.zh-CN.md) |
+
+<a id="交付记录模板"></a>
+
+## 交付记录模板
+
+此模板适用于引言日期为 `2026-11-14` 或之后的交付记录。更早的记录保持冻结和原有结构。记录可在必需结构之后追加章节。
+
+```markdown
+# <简短交付标题>
+
+[English](<record>.md) | **简体中文**
+
+本次 YYYY-MM-DD 的<文档／功能>交付<范围>。<产品行为与发布说明；如未创建版本、标签、Release 或 npm 发布，须明确说明。>
+
+## 变更
+
+| 领域 | 结果 |
+| --- | --- |
+| <领域> | <结果> |
+
+## 源码身份
+
+- 任务前基线：`<短 SHA>`。
+- 实现提交与最终 head 在 CI 后记录于 PR 描述。
+
+## 验证与限制
+
+| 检查 | 实际结果 |
+| --- | --- |
+| `<命令>` | <实际结果> |
+
+<限制说明：未执行哪些验收，以及哪些冻结内容未改动。>
+```
+
+当变更日志以 `#final-release` 引用本记录时，在最终发布证据章节前添加 `<a id="final-release"></a>`。源码 SHA、成本、原始运行 ID 和机器路径保留在交付记录中，不写入发布说明。
+
+`checkDeliveryRecords` 对边界之后的记录检查带日期的引言、标题顺序、双语日期一致性及历史索引登记；它不改写更早的记录，也不校验正文质量。
 
 <a id="delivery-by-version"></a>
 

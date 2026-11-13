@@ -55,7 +55,7 @@ CI 对混合维护取检查并集。产品逻辑、协议、运行时依赖与�
 
 在功能 PR 中同步更新受影响的中英文用户指南和技术指南。按[文档更新责任](docs/development/README.zh-CN.md#documentation-ownership)选择维护位置。当前流程放在 `docs/development`，冻结记录放在 `docs/development/history`；[CLI 参考](docs/reference/cli.zh-CN.md#协议与-schema-版本)是当前接口和格式版本的唯一来源。新增或重组页面时同步更新相应索引和链接。
 
-交付时在 `docs/development/history/deliveries/` 新增中英文成对记录，并加入[交付索引](docs/development/history/README.zh-CN.md#delivery-records)，记录源码与产物身份、实际检查、结果和限制。不得改写冻结记录。迁移页面或章节时，在原路径保留简短兼容存根，维持原有链接和章节锚点。仅文档维护不产生产品版本、标签、Release 或 npm 发布。
+交付时在 `docs/development/history/deliveries/` 新增中英文成对记录，并加入[交付索引](docs/development/history/README.zh-CN.md#delivery-records)，记录源码与产物身份、实际检查、结果和限制。2026-11-14 及之后新增的记录按[交付记录模板](docs/development/history/README.zh-CN.md#交付记录模板)编写；更早的记录保持冻结。不得改写冻结记录。迁移页面或章节时，在原路径保留简短兼容存根，维持原有链接和章节锚点。仅文档维护不产生产品版本、标签、Release 或 npm 发布。
 
 新增或更换截图、终端捕获时，须在同一变更中更新[图片索引](docs/images/README.zh-CN.md)、中英文图库 README 与状态条目、目录树、相关指南以及捕获／来源清单；引用文件、SHA-256、尺寸和字节数必须一致。使用中性示例路径，不得重新编码或改写冻结归档图片。
 

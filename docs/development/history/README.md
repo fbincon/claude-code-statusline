@@ -49,6 +49,44 @@ These records preserve documentation organization, navigation and check-maintena
 | Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
 | Root documentation | [Root documentation maintenance](deliveries/root-docs-maintenance.md) |
 | Changelog | [Changelog template and format check](deliveries/changelog-template-maintenance.md) |
+| Delivery records | [Delivery record template and check](deliveries/delivery-record-governance.md) |
+
+<a id="delivery-record-template"></a>
+
+## Delivery record template
+
+Apply this template to delivery records whose intro date is `2026-11-14` or later. Earlier records are frozen and keep their original structure. A record may add sections after the required spine.
+
+```markdown
+# <Short delivery title>
+
+**English** | [简体中文](<record>.zh-CN.md)
+
+This YYYY-MM-DD <documentation/feature> delivery <scope>. <Product behavior and release statement; state explicitly when no version, tag, Release or npm publication is created.>
+
+## Changes
+
+| Area | Result |
+| --- | --- |
+| <area> | <result> |
+
+## Source identities
+
+- Baseline before the task: `<short SHA>`.
+- Implementation commit and final head are recorded in the PR description after CI.
+
+## Validation and limits
+
+| Check | Actual result |
+| --- | --- |
+| `<command>` | <actual result> |
+
+<Prose limitations: what was not tested and which frozen content was not changed.>
+```
+
+Add `<a id="final-release"></a>` before the final-release evidence section when the changelog cites this record with `#final-release`. Keep source SHAs, costs, raw run IDs and machine paths in the record rather than release notes.
+
+`checkDeliveryRecords` validates the dated intro, heading order, bilingual date agreement and history-index membership for records at or after the boundary. It does not rewrite earlier records or validate prose quality.
 
 <a id="delivery-by-version"></a>
 
