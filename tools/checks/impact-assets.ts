@@ -41,16 +41,34 @@ export interface AssetInputs {
     read(path: string): Buffer | undefined;
     jsonFiles(): string[];
 }
+const MANIFEST_KEYS = ['captures', 'images', 'frames', 'records'] as const;
+type ManifestRow = { file?: unknown; name?: unknown; png_sha256?: unknown; sha256?: unknown; width?: unknown; height?: unknown; bytes?: unknown; source_sha256?: unknown };
+/** Rows in maintained image manifests use either an explicit file or a frame name without its .png suffix. */
+function rowFile(row: ManifestRow): string | undefined {
+    if (typeof row.file === 'string') return row.file;
+    if (typeof row.name === 'string') return row.name.includes('.') ? row.name : row.name + '.png';
+    return undefined;
+}
+function manifestRows(record: unknown): ManifestRow[] | undefined {
+    if (typeof record !== 'object' || record === null) return undefined;
+    for (const key of MANIFEST_KEYS) {
+        const rows = (record as Record<string, unknown>)[key];
+        if (Array.isArray(rows)) return rows as ManifestRow[];
+    }
+    return undefined;
+}
 export function checkAssetInputs(paths: readonly string[], inputs: AssetInputs, observed?: (name: string, bytes: Buffer) => void): void {
     const selected = new Set(paths);
     const changedMedia = new Set(paths.filter(name => /^docs\/.*\.(?:png|jpe?g|gif|webp|svg|mp4|webm|pdf)$/u.test(name)));
     if (changedMedia.size) for (const name of inputs.jsonFiles()) {
         if (selected.has(name)) continue;
         const raw = inputs.read(name);
-        if (!raw?.includes('"captures"')) continue;
-        const captures = JSON.parse(raw.toString('utf8')).captures;
-        if (Array.isArray(captures) && captures.some(row => typeof row?.file === 'string' &&
-            changedMedia.has(posix.join(posix.dirname(name), row.file)))) selected.add(name);
+        if (!raw || !MANIFEST_KEYS.some(key => raw.includes('"' + key + '"'))) continue;
+        const rows = manifestRows(JSON.parse(raw.toString('utf8')));
+        if (rows?.some(row => {
+            const file = rowFile(row);
+            return file !== undefined && changedMedia.has(posix.join(posix.dirname(name), file));
+        })) selected.add(name);
     }
     for (const name of selected) {
         if (!/^docs\/.*\.(?:png|jpe?g|gif|webp|svg|mp4|webm|pdf|json)$/u.test(name)) continue;
@@ -58,17 +76,21 @@ export function checkAssetInputs(paths: readonly string[], inputs: AssetInputs, 
         if (raw === undefined) continue; // A deleted image is still checked against its surviving capture manifest.
         checkAsset(name, raw); observed?.(name,raw);
         if (!name.endsWith('.json')) continue;
-        const record = JSON.parse(raw.toString());
-        if (!Array.isArray(record.captures)) continue;
-        for (const capture of record.captures) {
-            assert(typeof capture.file === 'string' && !posix.isAbsolute(capture.file) && !capture.file.includes('\\') && !/^[a-z]:/iu.test(capture.file), 'Invalid capture path');
-            const path = posix.join(posix.dirname(name), capture.file);
+        const rows = manifestRows(JSON.parse(raw.toString()));
+        if (!rows) continue;
+        for (const row of rows) {
+            const file = rowFile(row);
+            if (file === undefined) continue; // Fileless captures (for example language/page matrices) have no path to resolve.
+            assert(!posix.isAbsolute(file) && !file.includes('\\') && !/^[a-z]:/iu.test(file), 'Invalid capture path');
+            const path = posix.join(posix.dirname(name), file);
             assert(path !== '..' && !path.startsWith('../'), 'Capture escapes repository');
             const pixels = inputs.read(path); assert(pixels, 'Missing referenced capture: ' + path);
             checkAsset(path, pixels); observed?.(path,pixels);
-            if (capture.png_sha256 !== undefined) assert.equal(createHash('sha256').update(pixels).digest('hex'), capture.png_sha256, 'Capture digest differs');
-            if (path.endsWith('.png') && capture.width !== undefined) assert.deepEqual(pngDimensions(pixels), { width: capture.width, height: capture.height });
-            if (capture.source_sha256 !== undefined) assert.match(capture.source_sha256, /^[a-f0-9]{64}$/u);
+            const digest = typeof row.png_sha256 === 'string' ? row.png_sha256 : typeof row.sha256 === 'string' ? row.sha256 : undefined;
+            if (digest !== undefined) assert.equal(createHash('sha256').update(pixels).digest('hex'), digest, 'Capture digest differs');
+            if (path.endsWith('.png') && row.width !== undefined) assert.deepEqual(pngDimensions(pixels), { width: row.width, height: row.height });
+            if (row.bytes !== undefined) assert.equal(pixels.length, row.bytes, 'Capture byte count differs');
+            if (row.source_sha256 !== undefined) assert.match(String(row.source_sha256), /^[a-f0-9]{64}$/u);
         }
     }
 }
