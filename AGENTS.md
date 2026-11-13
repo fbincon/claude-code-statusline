@@ -72,7 +72,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 ## Documentation
 
 - Maintain this root `AGENTS.md` in English only. Pair other maintained English Markdown with complete `.zh-CN.md` counterparts. GitHub forms and the PR template use their existing single bilingual format.
-- Release notes through v3.9.x retain both languages on one historical page. Starting with v3.10.0, use separate English and Simplified Chinese pages. [Release notes index](docs/releases/README.md).
+- Release notes through v3.9.x retain both languages on one historical page. Starting with v3.10.0, use separate English and Simplified Chinese pages. [Release notes index](docs/releases/README.md). Follow the [release note template](docs/RELEASING.md#release-note-template) for new pages and update both indexes in the same change.
 - Keep local links and anchors valid, update the relevant documentation indexes, and reference detailed guides instead of duplicating changing versions, schemas or delivery records here.
 - Keep the project README focused on introduction and usage. Put release/update narratives in CHANGELOG, release notes or development records; update screenshots and changelogs when relevant.
 

@@ -4,7 +4,7 @@
 
 GitHub is the primary repository for review, CI and Releases. npm distributes the TypeScript package, and Gitee mirrors the verified code and release files. For installation, start with the [user guide](USER_GUIDE.md#installation-and-integration). For procedures and evidence tied to earlier versions, use the [delivery and history index](development/history/README.md).
 
-[Preparation](#current-typescript-publication) · [Source and evidence](#source-bound-ci-evidence-promotion) · [Tag and draft](#release-identity-and-immutable-assets) · [npm OIDC](#npm-trusted-publishing-with-github-actions) · [Public downloads](#github-publication-and-public-verification) · [Gitee](#gitee-code-and-release-synchronization) · [Delivery record](#record-delivery)
+[Preparation](#current-typescript-publication) · [Release note template](#release-note-template) · [Source and evidence](#source-bound-ci-evidence-promotion) · [Tag and draft](#release-identity-and-immutable-assets) · [npm OIDC](#npm-trusted-publishing-with-github-actions) · [Public downloads](#github-publication-and-public-verification) · [Gitee](#gitee-code-and-release-synchronization) · [Delivery record](#record-delivery)
 
 <a id="current-typescript-publication"></a>
 
@@ -13,9 +13,24 @@ GitHub is the primary repository for review, CI and Releases. npm distributes th
 1. Confirm the release scope, channel and [application version](../packages/core/src/release.ts). Use the pinned development toolchain and branch from current `main` under the contribution branch naming convention. Update the bilingual changelog and versioned notes, and regenerate owned resources when their canonical inputs change. Follow the [contribution guide](../CONTRIBUTING.md) and [development guide](development/README.md).
 2. For stable publication, add the maintainer's decision JSON and register its version, path and exact approval date. The verifier reads both files from the immutable source archive. The decision covers that version and the six existing unverified gaps, while every required automated gate still applies. Use the [approval registry](releases/approvals/registry.json) and [release data policy](development/ci-maintenance.md#release-data-and-acceptance-policy).
 3. Run the checks selected by the impact plan. Require **Complete candidate evidence** on the final reviewed PR head and wait for successful main verification after merging. Public previews and stable versions both require complete A/B language readiness. Use [impact checks](development/impact-checks.md) and the [language release workflow](development/i18n-workflow.md).
-4. Store the bilingual release notes under `docs/releases/<tag>.md` and its companion. Use an English Release title and combine both languages in the public body. Include user-visible changes, supported platforms and runtimes, compatibility, installation and known limits. Review the notes against the versioned evidence and [user requirements](USER_GUIDE.md#requirements). Add the version to both editions of the [release notes index](releases/README.md).
+4. Store the release notes under `docs/releases/<tag>.md` and, from v3.10.0, its Simplified Chinese companion; earlier releases use one bilingual page. Use an English Release title and combine both languages in the public body. Include user-visible changes, supported platforms and runtimes, compatibility, installation and known limits. Review the notes against the versioned evidence and [user requirements](USER_GUIDE.md#requirements). Add the version to both editions of the [release notes index](releases/README.md).
 
 Routine repository maintenance uses scoped checks and verified main synchronization. A product publication is a separate maintainer decision.
+
+## Release note template
+
+Release pages live in `docs/releases/`. Follow this structure for every new release.
+
+1. **Naming and pairing.** Write `vX.Y.Z.md` in English and `vX.Y.Z.zh-CN.md` in Simplified Chinese. Both are required from v3.10.0. Releases through v3.9.2 use one bilingual `vX.Y.Z.md`; do not add a separate Chinese page.
+2. **Fixed order.** One H1 beginning with the tag; language navigation; publication date; a short summary; user-visible change bullets; compatibility and installation; supported platforms/runtimes; known limits and the six accepted issue #96 gaps; footer links.
+3. **Required blocks.** A `Published on **YYYY-MM-DD**.` line, at least one change bullet, `claude-statusline install`, the #96 acceptance sentence, `approvals/<tag>.json`, the delivery record, and this guide.
+4. **Optional blocks.** A delivery-record sentence after the date, downgrade guidance, known issues, and extra reference links.
+5. **No internal evidence.** Keep source SHAs, dollar costs, request/replay counts, raw run/artifact IDs and harness diagnostics in the delivery record. Link the record instead.
+6. **Historical pages.** Keep frozen H1s, prose and commands. Add only the top language navigation, the `english` and `简体中文` anchors, status notes and the `中文摘要` label where the Chinese section is a summary. Link the Chinese index to `vX.Y.Z.md#简体中文`.
+7. **Indexes.** Add the version to both `docs/releases/README.md` and `README.zh-CN.md` in the same change. Keep the current-release callout current.
+8. **Reserved headings.** Do not use `## Gitee installation and downloads` or `## Original publication`; the Gitee renderer appends them.
+
+Run `npm run docs:check` before committing. `checkReleases` enforces the filename/pair boundary, one H1, language navigation, index completeness, reserved headings and the current-era date/install/decision blocks.
 
 ## Source-bound CI evidence promotion
 
