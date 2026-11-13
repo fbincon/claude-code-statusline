@@ -51,6 +51,7 @@
 | 变更日志 | [变更日志模板与格式检查](deliveries/changelog-template-maintenance.zh-CN.md) |
 | 交付记录 | [交付记录模板与检查](deliveries/delivery-record-governance.zh-CN.md) |
 | 发布物 | [发布物模板与检查](deliveries/release-artifact-governance.zh-CN.md) |
+| 图片 | [图片图库模板与清单 schema](deliveries/image-gallery-governance.zh-CN.md) |
 
 <a id="交付记录模板"></a>
 

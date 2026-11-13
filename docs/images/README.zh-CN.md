@@ -43,6 +43,39 @@ docs/images/
 ```
 
 <a id="更新约定"></a>
+## 图库模板
+
+新图库遵循以下结构。既有图库和 `docs/images/archive/**` 保留原布局，不回溯修改。
+
+1. **README 配对。** `README.md` 与 `README.zh-CN.md` 使用单个 H1、现有语言导航、上方分类中的 `**Status:**`／`**状态：**`，然后依次为 `## Provenance`／`## 来源`、`## Capture method`／`## 采集方法`、`## Evidence limits`／`## 证据限制`、媒体表、清单链接、复现说明及返回本索引的链接。
+2. **清单。** `captures.json` 使用 schema 2。图库中的每张图片都必须被引用，每一行路径都必须解析到图库内部。
+3. **索引。** 在图库索引中新增恰好一行，状态取自上方分类。
+4. **来源。** 记录源码提交、包身份（仅源码图库可为 `null`）、模型调用及实体视觉验收。
+
+## 采集清单 schema 2
+
+```json
+{
+  "schema_version": 2,
+  "kind": "fixed samples through the installed production renderer",
+  "source_commit": "<40-hex>",
+  "package_sha256": "<64-hex or null>",
+  "model_calls": 0,
+  "physical_visual_acceptance": false,
+  "captures": [
+    {
+      "file": "sample.png",
+      "png_sha256": "<64-hex>",
+      "width": 1200,
+      "height": 400,
+      "bytes": 12345
+    }
+  ]
+}
+```
+
+`captures` 必须非空。每一行使用相对 PNG 路径、SHA-256 摘要、正尺寸及精确字节数。既有 `schema_version: 1` 清单继续有效，不得改写。
+
 <a id="updating-screenshots"></a>
 
 ## 更新约定
