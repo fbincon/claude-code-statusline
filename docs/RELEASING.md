@@ -147,7 +147,7 @@ The renderer resolves relative links from `docs/releases/<tag>.md` and uses the 
 
 Record the source SHA, main merge, annotated tag and four file digests. Link the required PR, main and tag CI, npm publication and provenance, public download and signature checks, and both public Releases. Distinguish work executed for the release from reused coverage, retries and diagnostics. Record any separately approved machine, physical or paid checks with their actual scope and limits, and retain the six unverified gaps with the version decision. Keep raw logs and machine paths in isolated validation output.
 
-Use the [changelog](../CHANGELOG.md) for the release date and summary, the version notes for user-facing changes, and the corresponding [delivery record](development/history/README.md) for checks and source identities. Merge the evidence documentation through the normal scoped route and synchronize validated main.
+Use the [changelog](../CHANGELOG.md) for the release date and summary, the version notes for user-facing changes, and the corresponding [delivery record](development/history/README.md) for checks and source identities. Follow the [delivery record template](development/history/README.md#delivery-record-template) for records introduced on or after 2026-11-14; earlier records are frozen. Merge the evidence documentation through the normal scoped route and synchronize validated main.
 
 ## Historical section links
 

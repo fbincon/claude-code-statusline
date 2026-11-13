@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { anchors, checkChangelog, checkReleases, configurationSection } from '../docs.js';
+import { anchors, checkChangelog, checkDeliveryRecords, checkReleases, configurationSection } from '../docs.js';
 function nextHeading(text: string, anchor: string): string | undefined {
     const lines = text.split(/\r?\n/u);
     const start = lines.findIndex(line => line.includes(`<a id="${anchor}"></a>`));
@@ -263,6 +263,8 @@ const invalidChangelogs: readonly [string, (fixture: ReturnType<typeof changelog
     ['a future em dash violation', fixture => fixture.write(fixture.en.replace('## 3.16.4 — 2026-01-02', '## 3.16.4 - 2026-01-02'), fixture.zh), /em dash/u],
     ['a future missing publication line', fixture => fixture.write(fixture.en.replace('Published on npm, GitHub and Gitee on 2026-01-02. ', ''), fixture.zh), /Published/u],
     ['a future release-notes link that is not first', fixture => fixture.write(fixture.en.replace('[Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/test.md#final-release)', '[Delivery record](docs/development/history/deliveries/test.md#final-release) · [Release notes](docs/releases/v3.16.4.md)'), fixture.zh), /Release notes.*first|first.*Release notes/u],
+    ['a future missing English delivery link', fixture => fixture.write(fixture.en.replace(' · [Delivery record](docs/development/history/deliveries/test.md#final-release)', ''), fixture.zh), /delivery record/u],
+    ['a future missing Chinese delivery link', fixture => fixture.write(fixture.en, fixture.zh.replace(' · [交付记录](docs/development/history/deliveries/test.zh-CN.md#final-release)', '')), /delivery record|交付记录/u],
 ];
 for (const [name, mutate, expected] of invalidChangelogs)
     test('changelog rejects ' + name, t => {
@@ -272,4 +274,63 @@ for (const [name, mutate, expected] of invalidChangelogs)
     });
 test('repository changelog satisfies the changelog template', () => {
     assert.deepEqual(checkChangelog(process.cwd()), []);
+});
+
+function deliveryFixture(t: TestContext): { root: string; write: (name: string, body: string, zh: string, link?: boolean) => void } {
+    const root = mkdtempSync(join(tmpdir(), 'delivery records '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    const directory = join(root, 'docs', 'development', 'history', 'deliveries');
+    mkdirSync(directory, { recursive: true });
+    const write = (name: string, body: string, zh: string, link = true): void => {
+        const zhName = name.replace(/\.md$/u, '.zh-CN.md');
+        writeFileSync(join(directory, name), body);
+        writeFileSync(join(directory, zhName), zh);
+        writeFileSync(join(root, 'docs', 'development', 'history', 'README.md'), link
+            ? `# Development history\n\n## Delivery records by topic\n\n| Area | Delivery records |\n| --- | --- |\n| Test | [Record](deliveries/${name}) |\n`
+            : '# Development history\n');
+        writeFileSync(join(root, 'docs', 'development', 'history', 'README.zh-CN.md'), link
+            ? `# 开发历史\n\n## 按主题查找交付记录\n\n| 领域 | 交付记录 |\n| --- | --- |\n| 测试 | [记录](deliveries/${zhName}) |\n`
+            : '# 开发历史\n');
+    };
+    return { root, write };
+}
+const deliveryEnglish = `# Delivery record test\n\n**English** | [简体中文](record.zh-CN.md)\n\nThis 2026-11-15 documentation maintenance adds a fixture. Product behavior is unchanged; no version, tag, Release or npm publication is created.\n\n## Changes\n\n| Area | Result |\n| --- | --- |\n| Fixture | Added. |\n\n## Source identities\n\n- Baseline before the task: \`abc1234\`.\n\n## Validation and limits\n\n| Check | Actual result |\n| --- | --- |\n| \`npm run docs:check\` | Passed. |\n`;
+const deliveryChinese = `# 交付记录测试\n\n[English](record.md) | **简体中文**\n\n本次 2026-11-15 的文档维护新增测试夹具。产品行为不变；不创建版本、标签、Release 或 npm 发布。\n\n## 变更\n\n| 领域 | 结果 |\n| --- | --- |\n| 夹具 | 已新增。 |\n\n## 源码身份\n\n- 任务前基线：\`abc1234\`。\n\n## 验证与限制\n\n| 检查 | 实际结果 |\n| --- | --- |\n| \`npm run docs:check\` | 通过。 |\n`;
+test('delivery template accepts a current dated record and CRLF', t => {
+    for (const ending of ['\n', '\r\n']) {
+        const fixture = deliveryFixture(t);
+        fixture.write('record.md', deliveryEnglish.replaceAll('\n', ending), deliveryChinese.replaceAll('\n', ending));
+        assert.deepEqual(checkDeliveryRecords(fixture.root), []);
+    }
+});
+test('delivery template accepts pre-boundary and date-less records', t => {
+    const fixture = deliveryFixture(t);
+    fixture.write('record.md', '# Legacy\n\n**English** | [简体中文](record.zh-CN.md)\n\nThis 2026-11-13 record predates the template.\n', '# 历史\n\n[English](record.md) | **简体中文**\n\n本次 2026-11-13 的记录早于模板。\n');
+    assert.deepEqual(checkDeliveryRecords(fixture.root), []);
+    fixture.write('record.md', '# Undated\n\n**English** | [简体中文](record.zh-CN.md)\n\nThis change has no dated intro.\n', '# 无日期\n\n[English](record.md) | **简体中文**\n\n本次变更未写日期。\n');
+    assert.deepEqual(checkDeliveryRecords(fixture.root), []);
+});
+const invalidDeliveries: readonly [string, (body: string) => string, RegExp][] = [
+    ['a missing Changes heading', body => body.replace('## Changes\n\n', ''), /missing ## Changes/u],
+    ['headings out of order', body => body.replace(
+        '## Source identities\n\n- Baseline before the task: `abc1234`.\n\n## Validation and limits\n\n| Check | Actual result |\n| --- | --- |\n| `npm run docs:check` | Passed. |',
+        '## Validation and limits\n\n| Check | Actual result |\n| --- | --- |\n| `npm run docs:check` | Passed. |\n\n## Source identities\n\n- Baseline before the task: `abc1234`.'),
+        /out of order/u],
+    ['a malformed intro date', body => body.replace('2026-11-15', '2026-13-40'), /valid dated intro/u],
+];
+for (const [name, mutate, expected] of invalidDeliveries)
+    test('delivery template rejects ' + name, t => {
+        const fixture = deliveryFixture(t);
+        fixture.write('record.md', mutate(deliveryEnglish), deliveryChinese);
+        assert.match(checkDeliveryRecords(fixture.root).join('\n'), expected);
+    });
+test('delivery template rejects mismatched dates and missing index links', t => {
+    const fixture = deliveryFixture(t);
+    fixture.write('record.md', deliveryEnglish, deliveryChinese.replace('2026-11-15', '2026-11-16'));
+    assert.match(checkDeliveryRecords(fixture.root).join('\n'), /intro dates differ/u);
+    fixture.write('record.md', deliveryEnglish, deliveryChinese, false);
+    assert.match(checkDeliveryRecords(fixture.root).join('\n'), /not linked from the delivery index/u);
+});
+test('repository delivery records satisfy the delivery template', () => {
+    assert.deepEqual(checkDeliveryRecords(process.cwd()), []);
 });

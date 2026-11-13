@@ -241,6 +241,8 @@ function parseChangelog(root: string, name: 'CHANGELOG.md' | 'CHANGELOG.zh-CN.md
                 errors.push(`${name}: ${section.version} publication date must match the heading date`);
             if (!firstLink || firstLink[1] !== 'Release notes' || firstLink[2] !== changelogReleaseTarget(section.version, 'en'))
                 errors.push(`${name}: ${section.version} Release notes must be the first link in the final bullet`);
+            if (!/\[Delivery record\]\(docs\/development\/history\/deliveries\/[^)]+\.md#final-release\)/u.test(section.finalBullet))
+                errors.push(`${name}: ${section.version} final bullet must link the delivery record with #final-release`);
             if (!section.finalBullet.endsWith('.'))
                 errors.push(`${name}: ${section.version} final bullet must end with a period`);
         } else {
@@ -250,6 +252,8 @@ function parseChangelog(root: string, name: 'CHANGELOG.md' | 'CHANGELOG.zh-CN.md
                 errors.push(`${name}: ${section.version} publication date must match the heading date`);
             if (!firstLink || firstLink[1] !== '发布说明' || firstLink[2] !== changelogReleaseTarget(section.version, 'zh'))
                 errors.push(`${name}: ${section.version} 发布说明 must be the first link in the final bullet`);
+            if (!/\[交付记录\]\(docs\/development\/history\/deliveries\/[^)]+\.zh-CN\.md#final-release\)/u.test(section.finalBullet))
+                errors.push(`${name}: ${section.version} final bullet must link the delivery record with #final-release`);
             if (!section.finalBullet.endsWith('。'))
                 errors.push(`${name}: ${section.version} final bullet must end with 。`);
         }
@@ -277,6 +281,74 @@ export function checkChangelog(root: string): string[] {
         const version = /export const VERSION = '([^']+)'/u.exec(fs.readFileSync(releasePath, 'utf8'))?.[1];
         if (version && english.sections[0]!.version !== version)
             errors.push(`CHANGELOG.md: top version ${english.sections[0]!.version} differs from release.ts ${version}`);
+    }
+    return errors;
+}
+const DELIVERY_TEMPLATE_FROM = '2026-11-14';
+const DELIVERY_HEADINGS = {
+    en: ['## Changes', '## Source identities', '## Validation and limits'],
+    zh: ['## 变更', '## 源码身份', '## 验证与限制'],
+} as const;
+function deliveryIntro(body: string, language: 'en' | 'zh'): { raw: string; date?: string } | undefined {
+    const match = (language === 'en' ? /^This (\d{4})-(\d{2})-(\d{2})\b/mu : /^本次 (\d{4})-(\d{2})-(\d{2})\b/mu).exec(body);
+    if (!match) return undefined;
+    return { raw: `${match[1]}-${match[2]}-${match[3]}`, date: changelogDate(match[1]!, match[2]!, match[3]!) };
+}
+function deliveryIndexLinks(body: string): Set<string> {
+    const links = new Set<string>();
+    for (const match of body.matchAll(/\]\((deliveries\/[^)#]+)(?:#[^)]*)?\)/gu))
+        links.add(match[1]!.slice('deliveries/'.length));
+    return links;
+}
+export function checkDeliveryRecords(root: string): string[] {
+    const directory = join(root, 'docs', 'development', 'history', 'deliveries');
+    if (!fs.existsSync(directory)) return [];
+    const errors: string[] = [];
+    const indexPaths = [join(root, 'docs', 'development', 'history', 'README.md'),
+        join(root, 'docs', 'development', 'history', 'README.zh-CN.md')];
+    const indexes = indexPaths.map(path => fs.existsSync(path)
+        ? deliveryIndexLinks(fs.readFileSync(path, 'utf8').replaceAll('\r\n', '\n')) : undefined);
+    for (const name of fs.readdirSync(directory).filter(name => name.endsWith('.md') && !name.endsWith('.zh-CN.md')).sort()) {
+        const relative = `docs/development/history/deliveries/${name}`;
+        const body = fs.readFileSync(join(directory, name), 'utf8').replaceAll('\r\n', '\n');
+        const zhName = name.replace(/\.md$/u, '.zh-CN.md'), zhPath = join(directory, zhName);
+        const zhBody = fs.existsSync(zhPath) ? fs.readFileSync(zhPath, 'utf8').replaceAll('\r\n', '\n') : undefined;
+        const english = deliveryIntro(body, 'en'), chinese = zhBody ? deliveryIntro(zhBody, 'zh') : undefined;
+        if ((english?.raw && english.raw >= DELIVERY_TEMPLATE_FROM) || (chinese?.raw && chinese.raw >= DELIVERY_TEMPLATE_FROM)) {
+            const h1 = body.match(/^# .+$/gmu) ?? [];
+            if (h1.length !== 1) errors.push(`${relative}: expected exactly one H1, found ${h1.length}`);
+            if (!body.includes(`**English** | [简体中文](${zhName})`))
+                errors.push(`${relative}: missing English language navigation`);
+            if (!english?.date) errors.push(`${relative}: missing a valid dated intro (This YYYY-MM-DD)`);
+            const headings: string[] = body.match(/^## .+$/gmu) ?? [];
+            let last = -1;
+            for (const heading of DELIVERY_HEADINGS.en) {
+                const index = headings.indexOf(heading);
+                if (index < 0) errors.push(`${relative}: missing ${heading}`);
+                else if (index < last) errors.push(`${relative}: ${heading} is out of order`);
+                else last = index;
+            }
+            if (zhBody) {
+                const zhRelative = relative.replace(/\.md$/u, '.zh-CN.md');
+                if (!zhBody.includes(`[English](${name}) | **简体中文**`))
+                    errors.push(`${zhRelative}: missing Chinese language navigation`);
+                if (!chinese?.date) errors.push(`${zhRelative}: missing a valid dated intro (本次 YYYY-MM-DD)`);
+                if (english?.date && chinese?.date && english.date !== chinese.date)
+                    errors.push(`${relative}: intro dates differ between languages`);
+                const zhHeadings: string[] = zhBody.match(/^## .+$/gmu) ?? [];
+                let zhLast = -1;
+                for (const heading of DELIVERY_HEADINGS.zh) {
+                    const index = zhHeadings.indexOf(heading);
+                    if (index < 0) errors.push(`${zhRelative}: missing ${heading}`);
+                    else if (index < zhLast) errors.push(`${zhRelative}: ${heading} is out of order`);
+                    else zhLast = index;
+                }
+            }
+        }
+        if (indexes[0] && !indexes[0].has(name))
+            errors.push(`docs/development/history/README.md: ${name} is not linked from the delivery index`);
+        if (indexes[1] && !indexes[1].has(zhName))
+            errors.push(`docs/development/history/README.zh-CN.md: ${zhName} is not linked from the delivery index`);
     }
     return errors;
 }
@@ -342,6 +414,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
             errors.push(name + ': missing legacy anchor ' + fragment);
     errors.push(...checkReleases(root));
     errors.push(...checkChangelog(root));
+    errors.push(...checkDeliveryRecords(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
