@@ -24,7 +24,7 @@ Preserve the Python archive; use its [separate reference procedure](archive/pyth
 ## Canonical sources and generated files
 
 - Product identity lives in [core release definitions](packages/core/src/release.ts); private workspace versions are development metadata.
-- Maintain catalog and protocol definitions in `packages/core`, translations in `packages/core/resources/i18n`, and skill templates in `packages/cli/resources`.
+- Maintain catalog and protocol definitions in `packages/core`, translations in `packages/core/resources/i18n`, and statusline skill resources in `packages/cli/resources`; the `SKILL.md` files there are canonical and not generated.
 - Update canonical sources and regenerate owned copies; do not edit files marked as generated or regenerate the Python archive. Keep generated Native modules within the host import-file limit; split resources without dropping language or acceptance coverage.
 - Use the existing [resource generator](tools/generation/resources.ts) and [translation guide](docs/development/i18n.md), preserving message keys and named placeholders.
 - Language lifecycle inputs live in `tools/generation/i18n/data`, outside runtime resources. Keep translation-bound acceptance and historical contracts verifiable; use explicit language validation/acceptance operations instead of filling raw packs with English. Development requires complete A languages; every public release requires complete A/B languages through both complete-source and maintenance-source verification.
@@ -45,16 +45,16 @@ Install dependencies from the checkout root:
 npm ci --ignore-scripts --no-audit --no-fund
 ```
 
-- Maintained documentation/templates, including root `AGENTS.md`: run `npm run docs:check` and `git diff --check`.
-- Core product behavior changes: run `npm run check` and `git diff --check`. For committed maintenance changes, use `npm run ci:plan` and the selected `npm run ci:check` tasks; resolve package-sensitive plans with `--compare`. Follow [impact checks](docs/development/impact-checks.md) for immutable inputs and platform responsibilities.
-- CI classifies actual source responsibilities and unions applicable checks. Documentation/media, presentation, tests, tools, CI and release data use scoped checks; runtime dependency or core behavior changes require the full product matrix. Unknown ownership or unresolved comparison blocks instead of automatically running the matrix. Bundled product instructions remain execution inputs.
+- Maintained documentation/templates, including root `AGENTS.md`: run `npm run docs:check` and `git diff --check`. For registered root and current development guides, also run `npm run build` and the source-backed content and example tests; when changing a registered fact, update both languages, its source-backed rule and a regression. Follow [documentation content checks](docs/development/README.md#documentation-content-checks).
+- Core product behavior changes: run `npm run check` and `git diff --check`. For committed maintenance changes, use `npm run ci:plan` and the selected `npm run ci:check` tasks; resolve package-sensitive plans with `--compare`. Follow [impact checks](docs/development/impact-checks.md#responsibilities-and-checks) for immutable inputs and platform responsibilities.
+- CI classifies actual source responsibilities and unions applicable checks. Documentation/media, presentation, tests, tools, CI and release data use scoped checks; product logic, protocols, runtime dependencies and bundled skill instructions require the full product matrix, while build/generation inputs use package comparison plus generation/build tests and three-platform installation smoke. Unknown ownership or unresolved comparison blocks instead of automatically running the matrix.
 - Draft quick checks and manual diagnostic probes are not complete acceptance. Preserve all logical platform/runtime/host obligations when sharing identical executions; receipts must identify the original execution and verified inputs.
 - Bind logical coverage and historical depth to the immutable source policy. Each physical stage retains its original job, attempt and executable identities through retries and promotion.
 - Promote only immutable, available evidence through verified PR/main/tag relationships. Core merges reuse complete PR acceptance plus integration smoke; maintenance merges reuse scoped receipts verified by accepted-base code. Maintenance-source releases build their own bytes and explicitly link original product coverage. Keep missing/expired/failed evidence blocking, manual diagnostics separate, and original source identities unchanged. Follow the [CI routing and expiry rules](docs/development/ci-maintenance.md).
 - After moving or deleting source files, follow the documented [compiled-output cleanup](docs/development/README.md#clean-compiled-outputs) before rebuilding.
 - Use isolated temporary configuration and installation directories. Preserve real Claude settings and the installed product.
-- Installed, official-host, terminal, physical and paid acceptance have separate entries in [testing and acceptance](docs/development/testing.md); invoke the checks appropriate to the task. Paid checks require explicit scope and budget.
-- Report actual evidence and limitations. Automated tests, PTYs and reconstructed screenshots do not establish physical acceptance. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new automated failures.
+- Installed, official-host, terminal, physical and paid acceptance have separate entries in [testing and acceptance](docs/development/testing.md); invoke the checks appropriate to the task. Paid checks require an approved budget and shared ledger; retain failed, retried and uncertain calls.
+- Report actual evidence and limitations. Automated tests, PTYs and reconstructed screenshots do not establish physical acceptance. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new automated failures; see [known validation gaps](docs/development/testing.md#known-validation-gaps).
 
 ## Behavior and compatibility
 
@@ -72,14 +72,18 @@ npm ci --ignore-scripts --no-audit --no-fund
 ## Documentation
 
 - Maintain this root `AGENTS.md` in English only. Pair other maintained English Markdown with complete `.zh-CN.md` counterparts. GitHub forms and the PR template use their existing single bilingual format.
-- Release notes through v3.9.x retain both languages on one historical page. Starting with v3.10.0, use separate English and Simplified Chinese pages. [Release notes index](docs/releases/README.md). Follow the [release note template](docs/RELEASING.md#release-note-template) for new pages and update both indexes in the same change.
+- Use the [documentation ownership map](docs/development/README.md#documentation-ownership) to choose the owning guide. Keep current procedures under `docs/development` and frozen records under `docs/development/history`; update both languages in the feature PR. The [CLI reference](docs/reference/cli.md#protocol-and-schema-versions) owns current interface and format versions.
+- At delivery, add a bilingual record under `docs/development/history/deliveries/` and link it from the [delivery index](docs/development/history/README.md#delivery-records) with source and artifact identities, actual checks, results and limits. Do not rewrite frozen records.
+- When moving or archiving pages, preserve original evidence, commands and results, and leave a link at the old path and section anchor. Archived release notes, delivery records and images are frozen.
+- Maintain the [image gallery index](docs/images/README.md) and each gallery's bilingual README/status entry. When adding or changing media, update the index, tree, related guides and capture/provenance manifests together; referenced files, SHA-256 values, dimensions and byte counts must match. Use neutral sample paths and never re-encode frozen archive images.
+- Release notes through v3.9.2 use one bilingual page; v3.10.0 and later use separate English and Chinese pages. Follow the [release note template](docs/RELEASING.md#release-note-template) and update both the [English](docs/releases/README.md) and [Chinese](docs/releases/README.zh-CN.md) indexes in the same change.
 - Keep local links and anchors valid, update the relevant documentation indexes, and reference detailed guides instead of duplicating changing versions, schemas or delivery records here.
-- Keep the project README focused on introduction and usage. Put release/update narratives in CHANGELOG, release notes or development records; update screenshots and changelogs when relevant.
+- Keep the project README focused on introduction and usage. Put release/update narratives in CHANGELOG, release notes or development records; update the changelog when relevant.
 
 ## Pull requests and synchronization
 
 - Keep changes focused, use conventional commit/PR titles, and record actual checks and limitations.
 - Name new development branches `<type>/<short-description>` following [Contributing](CONTRIBUTING.md#branch-names). Use this complete format instead of the desktop app's default branch prefix; do not prepend a personal or tool prefix.
 - Target `main`, bring the branch up to date, and require successful `Complete candidate evidence` for the final reviewed head before merging. Preserve [repository protections](docs/development/repository-governance.md#main-protection-and-checks).
-- GitHub is primary for development, PRs and CI; Gitee distributes synchronized code. Synchronize validated main with explicit refspecs after checking divergence, and verify the resulting remote commit.
+- GitHub is primary for development, PRs and CI; Gitee mirrors synchronized code and release files. Synchronize validated main with explicit refspecs after checking divergence, and verify the resulting remote commit.
 - Publication is a separate maintainer task governed by the [release guide](docs/RELEASING.md). Documentation maintenance does not itself require a product version, tag, Release or npm publication.
