@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Latest language capture (installed v3.16.0 candidate); not current product acceptance.
+
 These nine images reconstruct cells emitted by the installed v3.16.0 candidate in an isolated Linux x64 PTY: six external Settings frames and three Native Settings frames. Every PNG was inspected separately from the automated behavior checks. They are terminal reconstructions, not operating-system screenshots or new human desktop/power acceptance.
 
 Captured on 2026-10-30 from source [`6e86031ff1bfeb900c9c38dee58ca10194ab936d`](https://github.com/fbincon/claude-code-statusline/commit/6e86031ff1bfeb900c9c38dee58ca10194ab936d). Candidate package: `fbincon-claude-code-statusline-3.16.0.tgz`, SHA-256 `6d6d955e3850e25c36705927e97ba8522d0bde83d60f1de32b8d229458501b68`. This capture identity remains unchanged by later documentation or release commits. [Image, cell, collector, renderer, font and verification hashes](provenance.json) · [Language-expansion delivery record](../../../development/language-expansion.md).

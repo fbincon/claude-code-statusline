@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical feature gallery (2.0.0a1); not current product acceptance.
+
 These images reconstruct cells from actual installed-terminal output, with fixed sample previews. They are not OS screenshots or human acceptance. Instance suffixes distinguish copies of a type. A wide viewport retains left-side components and right-side context; narrower views collapse flexible whitespace and then hide lower-priority content.
 
 Native uses A/D/X; external uses Ctrl+A/D/X. Interface and output languages are independent, so the Chinese interface can still preview English output. See the [composition guide](../../COMPOSITION.md).

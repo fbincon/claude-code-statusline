@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical feature gallery (v3.13.0); not current product acceptance.
+
 These images reconstruct cells from actual installed PTYs. They are not desktop screenshots or human visual acceptance.
 
 - Source: `200df8fcea2b3f6d1a40885305b6b19bf28f9d05`

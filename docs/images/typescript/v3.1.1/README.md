@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical TypeScript gallery (v3.1.1); not current product acceptance.
+
 These 50 selected images reconstruct cells emitted by the installed v3.1.1 external editor in an isolated Linux x64 PTY. They are **not operating-system screenshots** or new human desktop/power acceptance. Earlier TypeScript captures and the [original Python gallery](../../README.md) are preserved.
 
 Source: [`b484dc9acc87bc55a2833904dd332827307603ca`](https://github.com/fbincon/claude-code-statusline/commit/b484dc9acc87bc55a2833904dd332827307603ca). Package: `fbincon-claude-code-statusline-3.1.1.tgz`, SHA-256 `364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609`. Node 24.21.0; xterm-256color. [Image, cell, ANSI, collector and font hashes](provenance.json) · [Behavior and delivery evidence](../../../development/external-tui-parity.md).

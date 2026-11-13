@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+**状态：** TypeScript 历史图库（v3.1.0）；不是当前产品验收。
+
 图片来自已安装的 v3.1.0 包，源码 `10de45895d2734a8ab1eacec09b57bc89417be51`，tgz SHA-256 为 `000ddea0e995034ec8040691e21c9cf3119e18b6508c4870bc55b95247591011`。这些是经 agent 检查的终端单元格重建图，不是操作系统截图，也不代表新增人工桌面验收。[机器可读来源](provenance.json) · [验证与交付](../../../development/node-regional-languages.zh-CN.md)。
 
 | 语言 | 原生 Client，深色／浅色 | 外部编辑器深色页面 | 外部最小／常用浅色 |

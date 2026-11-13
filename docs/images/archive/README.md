@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Frozen archive; do not update historical claims.
+
 This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the 2026-10-07 in-session and external TUI screenshots. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result. This page and the replacement snapshot are frozen: do not update their historical claims.
 
 ## Gallery replacement batch
@@ -21,6 +23,8 @@ These screenshots were formerly shown in the [project README](../../../README.md
 | Linux | [statusline.png](screenshots/replaced-2026-10-07/statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
 | macOS | [statusline-macos.png](screenshots/replaced-2026-10-07/statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
 | Windows | [statusline-windows.png](screenshots/replaced-2026-10-07/statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
+
+Capture batches: the retained main status lines entered this archive with the 2026-10-07 replacement; the external configuration pages were captured on 2026-10-05; the in-session screenshots below on 2026-10-04.
 
 ## In-session Client screenshots
 

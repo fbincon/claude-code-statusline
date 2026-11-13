@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical TypeScript gallery (v3.1.0); not current product acceptance.
+
 These images come from the installed v3.1.0 package at source `10de45895d2734a8ab1eacec09b57bc89417be51` and tgz SHA-256 `000ddea0e995034ec8040691e21c9cf3119e18b6508c4870bc55b95247591011`. They are agent-inspected terminal-cell reconstructions, not operating-system screenshots or new human desktop acceptance. [Machine-readable provenance](provenance.json) · [Validation and delivery](../../../development/node-regional-languages.md).
 
 | Language | Native Client, dark / light | External pages, dark | External minimum / light |

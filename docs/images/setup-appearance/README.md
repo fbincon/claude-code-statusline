@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical feature gallery (v3.5.0); not current product acceptance.
+
 These images come from an isolated installation of the v3.5.0 acceptance candidate. The production renderer and real PTYs supply the terminal cells reconstructed here. They are fixed samples, not OS screenshots, actual account observations or human platform acceptance. See the [delivery record](../../development/setup-appearance.md) for final-release identity and revalidation. [Machine-readable provenance](provenance.json) records each committed PNG's digest, dimensions and byte count from the files in this directory.
 
 - Candidate source: `ec0b182ffca7a02e2d0c8523fbacaba52bd8bfae`.
