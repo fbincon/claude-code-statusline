@@ -77,6 +77,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - When moving or archiving pages, preserve original evidence, commands and results, and leave a link at the old path and section anchor. Archived release notes, delivery records and images are frozen.
 - Maintain the [image gallery index](docs/images/README.md) and each gallery's bilingual README/status entry. When adding or changing media, update the index, tree, related guides and capture/provenance manifests together; referenced files, SHA-256 values, dimensions and byte counts must match. Use neutral sample paths and never re-encode frozen archive images.
 - Release notes through v3.9.2 use one bilingual page; v3.10.0 and later use separate English and Chinese pages. Follow the [release note template](docs/RELEASING.md#release-note-template) and update both the [English](docs/releases/README.md) and [Chinese](docs/releases/README.zh-CN.md) indexes in the same change.
+- Follow the [changelog template](docs/RELEASING.md#changelog-template) for new entries; earlier changelog entries are frozen.
 - Keep local links and anchors valid, update the relevant documentation indexes, and reference detailed guides instead of duplicating changing versions, schemas or delivery records here.
 - Keep the project README focused on introduction and usage. Put release/update narratives in CHANGELOG, release notes or development records; update the changelog when relevant.
 

@@ -8,7 +8,7 @@
 
 ## 索引说明
 
-- **日期**取自[更新日志](../../CHANGELOG.zh-CN.md)的公开发布日期。
+- **日期**取自[变更日志](../../CHANGELOG.zh-CN.md)的公开发布日期。
 - **状态**为 `最新稳定版`、`正式版` 或 `预览版`；alpha、beta 和候选版本均为预览版。
 - 语言链接打开另一语言：历史单页说明使用 `#english`，v3.10.0 及以后使用 `.md` 页面。
 - [`approvals/`](approvals/registry.json) 保存按版本限定的维护者决定；交付证据见[开发历史](../development/history/README.zh-CN.md)。
@@ -84,4 +84,4 @@
 
 ## 本目录说明
 
-每个版本保留一个发布页面；v3.10.0 及以后英文和中文分页。`approvals/` 是机器可读的版本决定，不是读者文档。[更新日志](../../CHANGELOG.zh-CN.md)负责带日期的一行摘要，[开发历史](../development/history/README.zh-CN.md)负责交付与验收证据。
+每个版本保留一个发布页面；v3.10.0 及以后英文和中文分页。`approvals/` 是机器可读的版本决定，不是读者文档。[变更日志](../../CHANGELOG.zh-CN.md)负责带日期的简明版本摘要，[开发历史](../development/history/README.zh-CN.md)负责交付与验收证据。

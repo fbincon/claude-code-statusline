@@ -136,6 +136,150 @@ export function checkReleases(root: string): string[] {
         if (!releases.has(tag)) errors.push(`docs/releases/README.md: unknown release entry ${tag}`);
     return errors;
 }
+const CHANGELOG_TEMPLATE_FROM = '3.16.4';
+const CHANGELOG_VERSION = /^(\d+)\.(\d+)\.(\d+)((?:a|b|rc)\d+|-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/u;
+const CHANGELOG_HEADING = /^## (\S+) ([—-]) (\d{4})-(\d{2})-(\d{2})$/u;
+interface ChangelogSection {
+    version: string;
+    date: string;
+    separator: string;
+    body: string;
+    bullets: number;
+    finalBullet: string;
+}
+interface ParsedChangelog {
+    sections: ChangelogSection[];
+    errors: string[];
+}
+function changelogVersionParts(version: string): { core: number[]; prerelease?: string } {
+    const match = CHANGELOG_VERSION.exec(version)!;
+    return { core: [Number(match[1]), Number(match[2]), Number(match[3])], prerelease: match[4] };
+}
+function compareChangelogVersions(left: string, right: string): number {
+    const a = changelogVersionParts(left), b = changelogVersionParts(right);
+    for (let index = 0; index < 3; index++)
+        if (a.core[index] !== b.core[index]) return a.core[index]! - b.core[index]!;
+    if (!a.prerelease && b.prerelease) return 1;
+    if (a.prerelease && !b.prerelease) return -1;
+    if (a.prerelease && b.prerelease) return a.prerelease.localeCompare(b.prerelease);
+    return 0;
+}
+function changelogVersionAtLeast(version: string, minimum: string): boolean {
+    return compareChangelogVersions(version, minimum) >= 0;
+}
+function changelogDate(year: string, month: string, day: string): string | undefined {
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    return date.getUTCFullYear() === Number(year) && date.getUTCMonth() === Number(month) - 1 && date.getUTCDate() === Number(day)
+        ? `${year}-${month}-${day}` : undefined;
+}
+function changelogReleaseTarget(version: string, language: 'en' | 'zh'): string {
+    if (language === 'en') return `docs/releases/v${version}.md`;
+    return changelogVersionAtLeast(version, '3.10.0')
+        ? `docs/releases/v${version}.zh-CN.md`
+        : `docs/releases/v${version}.md#简体中文`;
+}
+function parseChangelog(root: string, name: 'CHANGELOG.md' | 'CHANGELOG.zh-CN.md', language: 'en' | 'zh'): ParsedChangelog {
+    const path = join(root, name), errors: string[] = [], sections: ChangelogSection[] = [];
+    if (!fs.existsSync(path)) return { sections, errors };
+    const lines = fs.readFileSync(path, 'utf8').replaceAll('\r\n', '\n').split('\n');
+    const title = language === 'en' ? '# Changelog' : '# 变更日志';
+    const h1 = lines.filter(line => /^# .+$/u.test(line));
+    if (h1.length !== 1 || h1[0] !== title) errors.push(`${name}: expected exactly one ${title} H1`);
+    const headings: { index: number; version: string; date: string; separator: string }[] = [];
+    for (let index = 0; index < lines.length; index++) {
+        if (!lines[index]!.startsWith('## ')) continue;
+        const match = CHANGELOG_HEADING.exec(lines[index]!);
+        if (!match || !CHANGELOG_VERSION.test(match[1]!)) {
+            errors.push(`${name}: invalid changelog heading at line ${index + 1}`);
+            continue;
+        }
+        const date = changelogDate(match[3]!, match[4]!, match[5]!);
+        if (!date) {
+            errors.push(`${name}: invalid changelog date for ${match[1]}`);
+            continue;
+        }
+        headings.push({ index, version: match[1]!, date, separator: match[2]! });
+    }
+    for (let index = 0; index < headings.length; index++) {
+        const heading = headings[index]!, end = headings[index + 1]?.index ?? lines.length;
+        const bodyLines = lines.slice(heading.index + 1, end);
+        const bullets = bodyLines.filter(line => line.startsWith('- '));
+        sections.push({
+            version: heading.version,
+            date: heading.date,
+            separator: heading.separator,
+            body: bodyLines.join('\n'),
+            bullets: bullets.length,
+            finalBullet: bullets.at(-1)?.trim() ?? '',
+        });
+    }
+    const versions = new Set<string>();
+    for (let index = 0; index < sections.length; index++) {
+        const section = sections[index]!;
+        if (versions.has(section.version)) errors.push(`${name}: duplicate changelog version ${section.version}`);
+        versions.add(section.version);
+        if (index > 0) {
+            const previous = sections[index - 1]!;
+            if (compareChangelogVersions(previous.version, section.version) <= 0)
+                errors.push(`${name}: changelog versions are not in descending order at ${section.version}`);
+            if (previous.date < section.date)
+                errors.push(`${name}: changelog dates are not in descending order at ${section.version}`);
+        }
+        if (Number(section.version.split('.')[0]) >= 3) {
+            const target = changelogReleaseTarget(section.version, language);
+            if (!section.body.includes(`](${target})`))
+                errors.push(`${name}: ${section.version} missing release notes link ${target}`);
+        }
+        if (!changelogVersionAtLeast(section.version, CHANGELOG_TEMPLATE_FROM)) continue;
+        if (section.separator !== '—')
+            errors.push(`${name}: ${section.version} must use an em dash heading`);
+        const firstLink = /\[([^\]]+)\]\(([^)]+)\)/u.exec(section.finalBullet);
+        if (language === 'en') {
+            if (!section.finalBullet.startsWith('- Published '))
+                errors.push(`${name}: ${section.version} final bullet must start with Published`);
+            if (!section.finalBullet.includes(section.date))
+                errors.push(`${name}: ${section.version} publication date must match the heading date`);
+            if (!firstLink || firstLink[1] !== 'Release notes' || firstLink[2] !== changelogReleaseTarget(section.version, 'en'))
+                errors.push(`${name}: ${section.version} Release notes must be the first link in the final bullet`);
+            if (!section.finalBullet.endsWith('.'))
+                errors.push(`${name}: ${section.version} final bullet must end with a period`);
+        } else {
+            if (!section.finalBullet.startsWith('- 已于 '))
+                errors.push(`${name}: ${section.version} final bullet must start with 已于`);
+            if (!section.finalBullet.includes(section.date))
+                errors.push(`${name}: ${section.version} publication date must match the heading date`);
+            if (!firstLink || firstLink[1] !== '发布说明' || firstLink[2] !== changelogReleaseTarget(section.version, 'zh'))
+                errors.push(`${name}: ${section.version} 发布说明 must be the first link in the final bullet`);
+            if (!section.finalBullet.endsWith('。'))
+                errors.push(`${name}: ${section.version} final bullet must end with 。`);
+        }
+    }
+    return { sections, errors };
+}
+export function checkChangelog(root: string): string[] {
+    const english = parseChangelog(root, 'CHANGELOG.md', 'en'), chinese = parseChangelog(root, 'CHANGELOG.zh-CN.md', 'zh');
+    const errors = [...english.errors, ...chinese.errors];
+    if (english.sections.length && chinese.sections.length) {
+        if (english.sections.length !== chinese.sections.length)
+            errors.push('CHANGELOG.md: version count differs between languages');
+        for (let index = 0; index < Math.min(english.sections.length, chinese.sections.length); index++) {
+            const en = english.sections[index]!, zh = chinese.sections[index]!;
+            if (en.version !== zh.version)
+                errors.push(`CHANGELOG.md: version differs between languages at entry ${index + 1}`);
+            else {
+                if (en.date !== zh.date) errors.push(`CHANGELOG.md: date differs between languages for ${en.version}`);
+                if (en.bullets !== zh.bullets) errors.push(`CHANGELOG.md: bullet count differs between languages for ${en.version}`);
+            }
+        }
+    }
+    const releasePath = join(root, 'packages', 'core', 'src', 'release.ts');
+    if (english.sections.length && fs.existsSync(releasePath)) {
+        const version = /export const VERSION = '([^']+)'/u.exec(fs.readFileSync(releasePath, 'utf8'))?.[1];
+        if (version && english.sections[0]!.version !== version)
+            errors.push(`CHANGELOG.md: top version ${english.sections[0]!.version} differs from release.ts ${version}`);
+    }
+    return errors;
+}
 export function checkDocs(root: string, additional: readonly string[] = []): {
     links: number;
     errors: string[];
@@ -197,6 +341,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
         if (!anchors(fs.readFileSync(join(root, name), 'utf8')).has(fragment))
             errors.push(name + ': missing legacy anchor ' + fragment);
     errors.push(...checkReleases(root));
+    errors.push(...checkChangelog(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
