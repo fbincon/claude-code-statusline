@@ -35,7 +35,7 @@
 
 | 目标 | 记录 |
 | --- | --- |
-| 按版本查找变更 | [更新日志](../CHANGELOG.zh-CN.md) · [发布说明](releases/README.zh-CN.md) |
+| 按版本查找变更 | [变更日志](../CHANGELOG.zh-CN.md) · [发布说明](releases/README.zh-CN.md) |
 | 追溯原始设计、交付与迁移证据 | [开发历史](development/history/README.zh-CN.md) |
 | 查阅 TypeScript 预览版的原始流程 | [v3.0.0-beta.1 历史预览档案](PREVIEW.zh-CN.md) |
 | 查找图片的来源和版本 | [图片索引](images/README.zh-CN.md) |

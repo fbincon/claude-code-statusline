@@ -32,6 +32,26 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 
 提交前运行 `npm run docs:check`。`checkReleases` 会检查文件名／配对边界、单一 H1、语言导航、索引完整性、保留标题，以及现行页的日期／安装／决策块。
 
+## 变更日志模板
+
+`CHANGELOG.md` 是按日期索引已发布版本；发布说明负责详细的用户可见变更，交付记录负责检查与源码身份。每个新条目链接上述记录，不重复其内容。
+
+1. **标题。** `## X.Y.Z — YYYY-MM-DD`；版本号不带 `v`；ISO 日期；新条目在上。`3.16.4` 之前的历史条目保留原标题格式。
+2. **摘要。** 使用 3–7 条（大版本最多 8 条），每条用一句祈使句描述一个用户可见结果。按功能、行为变化、修复、兼容性与安装排序。中文条目保持相同数量和顺序。
+3. **兼容性。** 用一条说明 schema、协议或存储变化；没有变化时明确说明。安装步骤写在发布说明中。
+4. **页脚。** 以一条 bullet 结束：`- 已于 YYYY-MM-DD 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/vX.Y.Z.zh-CN.md) · [交付记录](docs/development/history/deliveries/<record>.zh-CN.md#final-release)。` 预发布需说明实际渠道及 Latest 保持不变。中文条目使用 `发布说明` 和 `交付记录`。
+5. **证据与引用。** 不写源码 SHA、金额、请求次数、运行 ID 或验收脚本细节，改为链接交付记录。issue 引用写作 `[#N](https://github.com/fbincon/claude-code-statusline/issues/N)`。
+6. **适用范围。** 本模板适用于 `3.16.4` 及以后的版本；更早条目保持冻结。`npm run docs:check` 会运行 `checkChangelog`，检查标题、日期、顺序、中英版本／日期／bullet 数一致性、顶部版本与 `release.ts` 一致、v3.0.0 起的发布说明链接，以及边界后条目的严格页脚规则。
+
+```markdown
+## 3.16.4 — 2026-11-20
+
+- 修复未知保存结果的核对，读取失败时不重复写入配置。
+- 首次描述加载失败后，重试或重开任务时保留语言。
+- 保持显示 schema 17、编辑器协议 31 及既有存储格式。
+- 已于 2026-11-20 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.4.zh-CN.md) · [交付记录](docs/development/history/deliveries/<record>.zh-CN.md#final-release)。
+```
+
 ## 绑定源码的 CI 证据晋级
 
 根据已验证的 PR 与主分支记录选择发布源码。下文中 `SOURCE_COMMIT` 是选定源码的完整 SHA，`RELEASE_TAG` 是获批的版本标签，`RELEASE_ROOT` 是存放本次交付文件与报告的隔离目录。将 `DRAFT_TGZ` 设为下载的草稿软件包绝对路径。

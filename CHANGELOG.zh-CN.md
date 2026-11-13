@@ -1,4 +1,6 @@
-# Changelog
+<a id="changelog"></a>
+
+# 变更日志
 
 [English](CHANGELOG.md) | **简体中文**
 

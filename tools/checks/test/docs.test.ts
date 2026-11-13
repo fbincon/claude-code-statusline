@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { anchors, checkReleases, configurationSection } from '../docs.js';
+import { anchors, checkChangelog, checkReleases, configurationSection } from '../docs.js';
 function nextHeading(text: string, anchor: string): string | undefined {
     const lines = text.split(/\r?\n/u);
     const start = lines.findIndex(line => line.includes(`<a id="${anchor}"></a>`));
@@ -193,4 +193,83 @@ for (const [name, mutate, expected] of invalidReleases)
     });
 test('repository release notes satisfy the release template', () => {
     assert.deepEqual(checkReleases(process.cwd()), []);
+});
+
+function changelogFixture(t: TestContext): { root: string; en: string; zh: string; write: (en: string, zh?: string) => void } {
+    const root = mkdtempSync(join(tmpdir(), 'changelog '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    mkdirSync(join(root, 'packages', 'core', 'src'), { recursive: true });
+    writeFileSync(join(root, 'packages', 'core', 'src', 'release.ts'), "export const VERSION = '3.16.4';\n");
+    const en = `# Changelog
+
+**English** | [简体中文](CHANGELOG.zh-CN.md)
+
+## 3.16.4 — 2026-01-02
+
+- Add one behavior.
+
+- Published on npm, GitHub and Gitee on 2026-01-02. [Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/test.md#final-release).
+
+## 3.0.0-beta.1 — 2026-01-01
+
+- First preview.
+
+- [Release notes](docs/releases/v3.0.0-beta.1.md) · [Implementation and validation](docs/development/test.md).
+
+## 2.0.0 - 2026-01-01
+
+- Historical entry.
+`;
+    const zh = `# 变更日志
+
+[English](CHANGELOG.md) | **简体中文**
+
+## 3.16.4 — 2026-01-02
+
+- 新增一项行为。
+
+- 已于 2026-01-02 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.4.zh-CN.md) · [交付记录](docs/development/history/deliveries/test.zh-CN.md#final-release)。
+
+## 3.0.0-beta.1 — 2026-01-01
+
+- 首个预览版。
+
+- [发布说明](docs/releases/v3.0.0-beta.1.md#简体中文) · [实现与验证](docs/development/test.zh-CN.md)。
+
+## 2.0.0 - 2026-01-01
+
+- 历史条目。
+`;
+    const write = (english: string, chinese = zh): void => {
+        writeFileSync(join(root, 'CHANGELOG.md'), english);
+        writeFileSync(join(root, 'CHANGELOG.zh-CN.md'), chinese);
+    };
+    write(en, zh);
+    return { root, en, zh, write };
+}
+test('changelog accepts historical and current entries without rewriting history', t => {
+    const fixture = changelogFixture(t);
+    assert.deepEqual(checkChangelog(fixture.root), []);
+});
+const invalidChangelogs: readonly [string, (fixture: ReturnType<typeof changelogFixture>) => void, RegExp][] = [
+    ['a duplicate version', fixture => fixture.write(fixture.en.replace('## 3.0.0-beta.1 — 2026-01-01', '## 3.16.4 — 2026-01-01'), fixture.zh), /duplicate/u],
+    ['out-of-order versions', fixture => fixture.write(fixture.en.replace('## 3.0.0-beta.1 — 2026-01-01', '## 3.16.5 — 2026-01-01'), fixture.zh), /order/u],
+    ['out-of-order dates', fixture => fixture.write(fixture.en.replace('## 3.0.0-beta.1 — 2026-01-01', '## 3.0.0-beta.1 — 2026-01-03'), fixture.zh), /date/u],
+    ['a top version that differs from release.ts', fixture => {
+        writeFileSync(join(fixture.root, 'packages', 'core', 'src', 'release.ts'), "export const VERSION = '3.16.3';\n");
+    }, /top version/u],
+    ['a missing release-notes link', fixture => fixture.write(fixture.en.replace('[Release notes](docs/releases/v3.16.4.md) · ', ''), fixture.zh), /release notes/u],
+    ['mismatched bilingual bullet counts', fixture => fixture.write(fixture.en, fixture.zh.replace('- 新增一项行为。', '- 新增一项行为。\n- 额外条目。')), /bullet count/u],
+    ['a future em dash violation', fixture => fixture.write(fixture.en.replace('## 3.16.4 — 2026-01-02', '## 3.16.4 - 2026-01-02'), fixture.zh), /em dash/u],
+    ['a future missing publication line', fixture => fixture.write(fixture.en.replace('Published on npm, GitHub and Gitee on 2026-01-02. ', ''), fixture.zh), /Published/u],
+    ['a future release-notes link that is not first', fixture => fixture.write(fixture.en.replace('[Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/test.md#final-release)', '[Delivery record](docs/development/history/deliveries/test.md#final-release) · [Release notes](docs/releases/v3.16.4.md)'), fixture.zh), /Release notes.*first|first.*Release notes/u],
+];
+for (const [name, mutate, expected] of invalidChangelogs)
+    test('changelog rejects ' + name, t => {
+        const fixture = changelogFixture(t);
+        mutate(fixture);
+        assert.match(checkChangelog(fixture.root).join('\n'), expected);
+    });
+test('repository changelog satisfies the changelog template', () => {
+    assert.deepEqual(checkChangelog(process.cwd()), []);
 });

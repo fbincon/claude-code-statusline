@@ -32,6 +32,26 @@ Release pages live in `docs/releases/`. Follow this structure for every new rele
 
 Run `npm run docs:check` before committing. `checkReleases` enforces the filename/pair boundary, one H1, language navigation, index completeness, reserved headings and the current-era date/install/decision blocks.
 
+## Changelog template
+
+`CHANGELOG.md` is the dated index of published versions. Release notes own detailed user-visible changes; delivery records own checks and source identities. Each new entry links those records instead of repeating them.
+
+1. **Heading.** `## X.Y.Z — YYYY-MM-DD`; no `v` prefix; ISO date; newest first. Historical entries before `3.16.4` keep their original heading style.
+2. **Summary.** Use 3–7 bullets (a major release may use up to 8), each describing one user-visible outcome in one imperative sentence. Order features, behavior changes, fixes, then compatibility and installation. The Chinese entry has the same count and order.
+3. **Compatibility.** Use one bullet for schema, protocol or storage changes, or state explicitly that they are unchanged. Installation steps belong in the release notes.
+4. **Footer.** End with one bullet: `- Published on npm, GitHub and Gitee on YYYY-MM-DD. [Release notes](docs/releases/vX.Y.Z.md) · [Delivery record](docs/development/history/deliveries/<record>.md#final-release).` Name actual channels and state that Latest is unchanged for a prerelease. Chinese entries use `发布说明` and `交付记录` with `.zh-CN.md` targets.
+5. **Evidence and references.** Do not include source SHAs, costs, request counts, run IDs or harness detail; link the delivery record. Reference issues as `[#N](https://github.com/fbincon/claude-code-statusline/issues/N)`.
+6. **Scope.** This template applies to versions at or after `3.16.4`; earlier entries are frozen. `npm run docs:check` runs `checkChangelog`, which validates headings, dates, ordering, bilingual version/date/bullet parity, the top version against `release.ts`, release-note links from v3.0.0, and the strict footer rules for entries at or after the boundary.
+
+```markdown
+## 3.16.4 — 2026-11-20
+
+- Fix unknown-save reconciliation so a failed read does not repeat a configuration write.
+- Keep task language after retry and reopen when the initial descriptor load fails.
+- Preserve display schema 17, editor protocol 31 and existing storage formats.
+- Published on npm, GitHub and Gitee on 2026-11-20. [Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/<record>.md#final-release).
+```
+
 ## Source-bound CI evidence promotion
 
 Choose the release source using the verified PR and main records. In the commands below, `SOURCE_COMMIT` is the full selected source SHA, `RELEASE_TAG` is its approved version tag, and `RELEASE_ROOT` is an isolated directory for the release files and reports. Set `DRAFT_TGZ` to the absolute path of the downloaded draft package.

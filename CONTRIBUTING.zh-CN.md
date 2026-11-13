@@ -51,7 +51,7 @@ CI 对混合维护取检查并集。产品逻辑、协议、运行时依赖与�
 
 保持变更集中。说明变更后的行为与相关取舍，并记录影响路线、选中任务、实际结果和限制。标题采用 `fix: ...`、`docs: ...`、`ci: ...` 等 conventional 风格。不要求 DCO sign-off。仅分享脱敏证据。
 
-英文文档 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 和 `packages/cli/resources` 下的规范产品技能资源除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。v3.9.2 及更早版本使用一个双语发布页；自 v3.10.0 起分别维护英文和简体中文页面。按[发布说明模板](docs/RELEASING.zh-CN.md#发布说明模板)编写，并在同一次变更中更新[英文](docs/releases/README.md)和[中文](docs/releases/README.zh-CN.md)两个发布说明索引。历史发布页除导航和状态说明外保持冻结；内部证据留在交付记录中。
+英文文档 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 和 `packages/cli/resources` 下的规范产品技能资源除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。v3.9.2 及更早版本使用一个双语发布页；自 v3.10.0 起分别维护英文和简体中文页面。按[发布说明模板](docs/RELEASING.zh-CN.md#发布说明模板)和[变更日志模板](docs/RELEASING.zh-CN.md#变更日志模板)编写，并在同一次变更中更新[英文](docs/releases/README.md)和[中文](docs/releases/README.zh-CN.md)两个发布说明索引。历史发布页和变更日志条目除导航和状态说明外保持冻结；内部证据留在交付记录中。
 
 在功能 PR 中同步更新受影响的中英文用户指南和技术指南。按[文档更新责任](docs/development/README.zh-CN.md#documentation-ownership)选择维护位置。当前流程放在 `docs/development`，冻结记录放在 `docs/development/history`；[CLI 参考](docs/reference/cli.zh-CN.md#协议与-schema-版本)是当前接口和格式版本的唯一来源。新增或重组页面时同步更新相应索引和链接。
 

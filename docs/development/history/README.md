@@ -48,6 +48,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Agent guidance | [Project agent guidance maintenance](deliveries/agents-guidance-maintenance.md) |
 | Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
 | Root documentation | [Root documentation maintenance](deliveries/root-docs-maintenance.md) |
+| Changelog | [Changelog template and format check](deliveries/changelog-template-maintenance.md) |
 
 <a id="delivery-by-version"></a>
 

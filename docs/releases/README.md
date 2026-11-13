@@ -84,4 +84,4 @@ Starting with v3.10.0, release notes have separate English and Simplified Chines
 
 ## Directory notes
 
-Each version has one release page; v3.10.0 and later split English and Chinese. `approvals/` contains machine-readable decisions, not reader documentation. The [changelog](../../CHANGELOG.md) owns the dated one-line summaries; [development history](../development/history/README.md) owns delivery and acceptance evidence.
+Each version has one release page; v3.10.0 and later split English and Chinese. `approvals/` contains machine-readable decisions, not reader documentation. The [changelog](../../CHANGELOG.md) owns the dated concise version summaries; [development history](../development/history/README.md) owns delivery and acceptance evidence.
