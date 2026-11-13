@@ -42,6 +42,25 @@
 
 归档时保留原始证据、命令和结果。更新导航，为移走的每个章节保留原路径、原锚点及指向新位置的链接。用 `npm run docs:check` 和 `git diff --check` 检查双语页面以及新旧链接。
 
+### 新增现行文档页面
+
+1. **配对与导航。** 新增 `docs/<page>.md` 与 `docs/<page>.zh-CN.md`。以一个 H1 和现有语言导航行开头；除既有历史锚点外，不要把锚点放在 H1 之前。
+2. **范围与索引。** 添加简短范围段落，将页面加入所属索引，并按[文档更新责任](#documentation-ownership)选择维护位置。长页面可加 `## 文档导航`；短页面无需添加。
+3. **登记。** 若页面包含源码事实或 `docs-example` 标记，在 `tools/checks/impact-documentation.ts` 中登记并运行内容与示例测试。若页面属于现行但尚未具备源码事实，在 `tools/checks/docs.ts` 的 `UNREGISTERED_CURRENT_PAGES` 显式白名单中登记并注明原因。不得让新页面同时绕过两者。
+4. **风格。** 保持单一事实来源：链接[协议与 schema 版本](../reference/cli.zh-CN.md#协议与-schema-版本)，不重复版本号；链接详细流程，不复制内容。与 shell 无关的命令块使用 `text`，需要区分 shell 时使用 `bash` 或 `powershell`；较长指南末尾保留一行相关指南链接。冻结页面沿用既有历史／状态提示措辞。
+5. **交付。** 新增双语交付记录与历史索引条目，然后运行 `docs:check`、已登记的内容与示例测试及 `git diff --check`。
+
+### 模板与检查登记表
+
+| 产物 | 模板 | 检查 | 边界 |
+| --- | --- | --- | --- |
+| 交付记录 | [交付记录模板](history/README.zh-CN.md#交付记录模板) | `checkDeliveryRecords` | 2026-11-14 起的记录 |
+| 发布说明 | [发布说明模板](../RELEASING.zh-CN.md#发布说明模板) | `checkReleases` | 当前时代；3.16.4 起更严格 |
+| 变更日志 | [变更日志模板](../RELEASING.zh-CN.md#变更日志模板) | `checkChangelog` | 3.16.4 起的条目 |
+| 审批决定 | [审批决定模板](../RELEASING.zh-CN.md#审批决定模板) | `checkApprovalData` | 已登记决定 |
+| 图片图库 | [图库模板](../images/README.zh-CN.md#图库模板) · [清单 schema 2](../images/README.zh-CN.md#采集清单-schema-2) | `checkImageGalleries` | 新图库及 schema 2 |
+| 文档页面 | 本节 | `checkDocumentationPages` · `checkDocumentationRegistration` | 当前已登记页面 |
+
 ### 迁移与交付记录
 
 [开发历史索引](history/README.zh-CN.md)汇集[工作包设计档案](history/work-package-designs.zh-CN.md#completed-designs)、各版交付记录、迁移阶段、性能报告和历史验证流程。

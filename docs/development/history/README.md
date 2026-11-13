@@ -52,6 +52,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Delivery records | [Delivery record template and check](deliveries/delivery-record-governance.md) |
 | Release artifacts | [Release artifact templates and checks](deliveries/release-artifact-governance.md) |
 | Images | [Image gallery template and manifest schema](deliveries/image-gallery-governance.md) |
+| Documentation pages | [Documentation page and registration governance](deliveries/documentation-registration-governance.md) |
 
 <a id="delivery-record-template"></a>
 
