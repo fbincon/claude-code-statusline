@@ -22,7 +22,7 @@
 | [首次设置与完整外观](setup-appearance/README.zh-CN.md) | v3.5.0 | 较早功能 | 设置／方案样例来源 |
 | [组件组合](composition/README.zh-CN.md) | 2.0.0a1 | 较早功能 | 实例、副本及左右布局 |
 | [TUI 截图](tui/README.zh-CN.md) | 2026-10-07 | 主要物理证据 | 21 张原始会话内／外部截图 |
-| [Python 时代归档](archive/python-era/README.zh-CN.md) | v1.6.1–v1.13.0 | 冻结的 Python 时代归档 | 59 张外观、状态栏、查找、语言及 TUI 重建图片 |
+| [Python 时代归档](archive/python-era/README.zh-CN.md) | v1.6.1–v1.13.0 | 冻结归档 | 59 张外观、状态栏、查找、语言及 TUI 重建图片 |
 | [历史归档](archive/README.zh-CN.md) | 混合 | 冻结归档 | 51 张被替换截图及更早的捕获记录 |
 
 ## 目录结构

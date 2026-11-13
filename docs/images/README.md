@@ -22,7 +22,7 @@ Status taxonomy: **Current baseline** is the approved 3.16 visual baseline; **La
 | [Setup and complete appearance](setup-appearance/README.md) | v3.5.0 | Earlier feature | Setup/scheme sample provenance |
 | [Component composition](composition/README.md) | 2.0.0a1 | Earlier feature | Instances, copies and left/right layouts |
 | [TUI screenshots](tui/README.md) | 2026-10-07 | Primary physical evidence | 21 original in-session/external screenshots |
-| [Python-era archive](archive/python-era/README.md) | v1.6.1–v1.13.0 | Frozen Python-era archive | 59 appearance, statusline, discovery, language and TUI-reconstruction images |
+| [Python-era archive](archive/python-era/README.md) | v1.6.1–v1.13.0 | Frozen archive | 59 appearance, statusline, discovery, language and TUI-reconstruction images |
 | [Historical archive](archive/README.md) | mixed | Frozen archive | 51 replaced screenshots and earlier capture records |
 
 ## Directory layout
