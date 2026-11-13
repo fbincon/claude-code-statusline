@@ -47,4 +47,4 @@
 
 使用已核验的源码、包、捕获单元矩阵和五种已记录字体，通过规范渲染器 `tools/acceptance/render-capture.ts` 重建。其编译后入口接受 `CAPTURE_JSON OUTPUT_PNG --commit FULL_SHA --bounds X,Y,WIDTH,HEIGHT --font FONT`，为五个字体文件分别重复 `--font`。外部图像使用裁剪范围 `0,0,200,50`，Native 图像使用 `128,4,72,40`。本次专用 PTY 驱动、原始 ANSI、完整单元格、合成宿主配置和恢复快照保留在被忽略的私有验证输出中，不包含在仓库克隆中。公开来源记录仅包含摘要与所选图像元数据，不包含私人绝对路径或会话正文。
 
-[此前的六语言图库](../v3.1.1/README.zh-CN.md)、[地区图库](../regional/README.zh-CN.md)及[历史 Python 语言图像](../../languages/README.zh-CN.md)保留原始图片与证据。
+[此前的六语言图库](../v3.1.1/README.zh-CN.md)、[地区图库](../regional/README.zh-CN.md)及[历史 Python 语言图像](../../archive/python-era/languages/README.zh-CN.md)保留原始图片与证据。

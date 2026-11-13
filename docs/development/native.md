@@ -38,9 +38,9 @@ For a source backend, first run `npm run build`. Set plugin `backendExecutable` 
 
 [Linux light/dark capture provenance](../images/README.md#theme-terminal-captures). These are cropped reconstructions of real terminal cells, not OS screenshots or new human acceptance.
 
-![Light theme native editor](../images/tui/native/linux/themes/main-light.png)
+![Light theme native editor](../images/archive/python-era/tui/native/linux/themes/main-light.png)
 
-![Dark theme native editor](../images/tui/native/linux/themes/main-dark.png)
+![Dark theme native editor](../images/archive/python-era/tui/native/linux/themes/main-dark.png)
 
 ## Editor behavior
 
@@ -146,10 +146,10 @@ Choose **Preview background (UI only)** to match the terminal’s light/dark app
 
 | Terminal / Claude theme | default | ANSI |
 | --- | --- | --- |
-| light / light | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
-| light / dark | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
-| dark / light | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
-| dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
+| light / light | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
+| light / dark | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
+| dark / light | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
+| dark / dark | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
 
 [Capture provenance](../images/README.md#native-preview-background-captures).
 

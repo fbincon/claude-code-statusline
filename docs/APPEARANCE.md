@@ -172,9 +172,9 @@ See [visual color selection and sample scenarios](#visual-color-selection-and-sa
 
 The [usage demonstrations](SHOWCASE.md) show current non-Powerline scene variants. The older examples below preserve their original installed-package identities and fixed sample data; see the [image provenance](images/README.md#conditional-appearance-captures). They are terminal-output reconstructions, not human platform acceptance.
 
-![Powerline](images/appearance/native-dark-en.png)
+![Powerline](images/archive/python-era/appearance/native-dark-en.png)
 
-![Item colors](images/appearance/external-light-zh-CN.png)
+![Item colors](images/archive/python-era/appearance/external-light-zh-CN.png)
 
 Item appearance belongs to an instance and can change independently after copying. See [composition](COMPOSITION.md) for text and spacer rules.
 

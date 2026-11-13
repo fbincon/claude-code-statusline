@@ -4,7 +4,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Status:** Historical Python-era capture (backend 1.10.0), not current product behavior. Back to the [image index](../README.md).
+**Status:** Historical Python-era capture (backend 1.10.0), not current product behavior. Back to the [image index](../../../README.md).
 
 **Historical behavior note:** these v1.10.0 external-editor captures clip long descriptions at the panel edge without an ellipsis; the current TypeScript external editor adds the ellipsis. The captures retain the historical behavior.
 

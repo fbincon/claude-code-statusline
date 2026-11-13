@@ -21,11 +21,8 @@
 | [Native 容量与恢复](native-capacity/README.zh-CN.md) | v3.9.1 | 较早功能 | 快速配置、渐变、24 实例保存和高面板缩放 |
 | [首次设置与完整外观](setup-appearance/README.zh-CN.md) | v3.5.0 | 较早功能 | 设置／方案样例来源 |
 | [组件组合](composition/README.zh-CN.md) | 2.0.0a1 | 较早功能 | 实例、副本及左右布局 |
-| [TUI 截图](tui/README.zh-CN.md) | 2026-10-07 | 主要物理证据 | 21 张原始会话内／外部截图及 Python 时代终端重建 |
-| [项目查找与导入审阅](discovery/README.zh-CN.md) | v1.10.0 | Python 时代历史 | 16 张安装后编辑器搜索／导入捕获 |
-| [条件显示与外观](appearance/README.zh-CN.md) | v1.12.0 | Python 时代历史 | 两张条件显示外观样例 |
-| [状态栏语言](statusline/README.zh-CN.md) | v1.8/1.9 | Python 时代历史 | 两张实际 CLI 输出捕获；编辑器捕获见 TUI 图库 |
-| [语言图库](languages/README.zh-CN.md) | v1.13.0 | Python 时代历史 | 较早的繁体中文、日语和韩语捕获 |
+| [TUI 截图](tui/README.zh-CN.md) | 2026-10-07 | 主要物理证据 | 21 张原始会话内／外部截图 |
+| [Python 时代归档](archive/python-era/README.zh-CN.md) | v1.6.1–v1.13.0 | 冻结归档 | 59 张外观、状态栏、查找、语言及 TUI 重建图片 |
 | [历史归档](archive/README.zh-CN.md) | 混合 | 冻结归档 | 51 张被替换截图及更早的捕获记录 |
 
 ## 目录结构
@@ -41,11 +38,8 @@ docs/images/
 ├── setup-appearance/         # 设置与方案证据
 ├── composition/              # 组件布局证据
 ├── tui/                      # 原始物理截图及 Python 时代终端重建
-├── discovery/                # 搜索与导入证据
-├── appearance/               # 条件显示外观证据
-├── statusline/               # 实际 CLI 输出捕获
-├── languages/                # 较早的语言捕获
 └── archive/                  # 被替换图片、原始记录及历史重建
+    └── python-era/           # 59 张 Python 时代外观／状态栏／查找／语言／TUI 图片
 ```
 
 <a id="更新约定"></a>
@@ -101,10 +95,11 @@ docs/images/
 | 旧区域 | 当前位置 |
 | --- | --- |
 | 原始 21 张截图、会话内 Client 及来源哈希 | [TUI 截图](tui/README.zh-CN.md) |
-| 主题、外部配色、预览背景及双语捕获 | [TUI 截图](tui/README.zh-CN.md) |
-| 状态栏语言捕获 | [状态栏语言](statusline/README.zh-CN.md)及 [TUI 截图](tui/README.zh-CN.md#状态栏语言采集) |
-| 项目查找与导入审阅 | [项目查找与导入审阅](discovery/README.zh-CN.md) |
-| 条件显示与外观 | [条件显示与外观](appearance/README.zh-CN.md) |
+| 主题、外部配色、预览背景及双语捕获 | [Python 时代 TUI 重建](archive/python-era/tui/README.zh-CN.md) |
+| 状态栏语言捕获 | [Python 时代状态栏归档](archive/python-era/statusline/README.zh-CN.md)及 [TUI 重建](archive/python-era/tui/README.zh-CN.md#状态栏语言采集) |
+| 项目查找与导入审阅 | [Python 时代查找归档](archive/python-era/discovery/README.zh-CN.md) |
+| 条件显示与外观 | [Python 时代外观归档](archive/python-era/appearance/README.zh-CN.md) |
+| 语言图库 | [Python 时代语言归档](archive/python-era/languages/README.zh-CN.md) |
 | 展示说明、文件索引、更早重建及 v1.x 发布捕获 | [历史归档](archive/README.zh-CN.md) |
 
 </details>

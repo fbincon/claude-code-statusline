@@ -40,9 +40,9 @@ Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部
 
 [Linux 浅色／深色捕获来源](../images/README.zh-CN.md#主题终端捕获)。图片是实际终端单元格的裁剪重建，与系统截图及真人验收分别记录。
 
-![浅色主题原生编辑器](../images/tui/native/linux/themes/main-light.png)
+![浅色主题原生编辑器](../images/archive/python-era/tui/native/linux/themes/main-light.png)
 
-![深色主题原生编辑器](../images/tui/native/linux/themes/main-dark.png)
+![深色主题原生编辑器](../images/archive/python-era/tui/native/linux/themes/main-dark.png)
 
 ## 编辑器行为
 
@@ -150,10 +150,10 @@ v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 
 
 | 终端／Claude 主题 | default | ANSI |
 | --- | --- | --- |
-| light / light | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
-| light / dark | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
-| dark / light | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
-| dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
+| light / light | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
+| light / dark | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
+| dark / light | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
+| dark / dark | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/archive/python-era/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
 
 [捕获来源](../images/README.zh-CN.md#原生预览背景捕获)。
 

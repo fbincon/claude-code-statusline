@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-**Status:** Python-era historical (v1.12.0), not the current appearance baseline and not human platform acceptance. See the [usage demonstrations](../../SHOWCASE.md) for current non-Powerline scenes. Back to the [image index](../README.md).
+**Status:** Python-era historical (v1.12.0), not the current appearance baseline and not human platform acceptance. See the [usage demonstrations](../../../../SHOWCASE.md) for current non-Powerline scenes. Back to the [image index](../../../README.md).
 
 <a id="conditional-appearance-captures"></a>
 

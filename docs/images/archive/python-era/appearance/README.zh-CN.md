@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-**状态：** Python 时代历史（v1.12.0），不是当前外观基线，也不是真人平台验收。当前非 Powerline 场景见[使用演示](../../SHOWCASE.zh-CN.md)。返回[图片索引](../README.zh-CN.md)。
+**状态：** Python 时代历史（v1.12.0），不是当前外观基线，也不是真人平台验收。当前非 Powerline 场景见[使用演示](../../../../SHOWCASE.zh-CN.md)。返回[图片索引](../../../README.zh-CN.md)。
 
 <a id="conditional-appearance-captures"></a>
 

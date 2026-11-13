@@ -174,9 +174,9 @@ claude-statusline config set powerline-row-background-gradient off
 
 [使用演示](SHOWCASE.zh-CN.md)提供当前不使用 Powerline 的场景变体。下方旧示例保留原安装包身份和固定样例数据，见[图片索引](images/README.zh-CN.md#conditional-appearance-captures)。它们是终端输出重建，不代表人工平台验收。
 
-![Powerline](images/appearance/native-dark-en.png)
+![Powerline](images/archive/python-era/appearance/native-dark-en.png)
 
-![Item colors](images/appearance/external-light-zh-CN.png)
+![Item colors](images/archive/python-era/appearance/external-light-zh-CN.png)
 
 逐项外观设置作用于实例，复制后可独立修改。文本与留白的规则见[组件组合](COMPOSITION.zh-CN.md)。
 
