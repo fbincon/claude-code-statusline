@@ -45,6 +45,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Indexes, archives and navigation | [Development documentation archive and navigation refresh](deliveries/development-docs-archive-refresh.md) · [Image index organization and Python-era archive](deliveries/docs-images-organization.md) · [Release notes index, navigation and template](deliveries/docs-releases-organization.md) |
 | Checks and regression repairs | [Development content checks and registration](deliveries/development-content-checks.md) · [Documentation content regression repairs](deliveries/docs-content-check-fixes.md) |
 | Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) |
+| Agent guidance | [Project agent guidance maintenance](deliveries/agents-guidance-maintenance.md) |
 
 <a id="delivery-by-version"></a>
 
