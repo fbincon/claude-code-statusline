@@ -46,6 +46,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Checks and regression repairs | [Development content checks and registration](deliveries/development-content-checks.md) · [Documentation content regression repairs](deliveries/docs-content-check-fixes.md) |
 | Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) |
 | Agent guidance | [Project agent guidance maintenance](deliveries/agents-guidance-maintenance.md) |
+| Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
 
 <a id="delivery-by-version"></a>
 

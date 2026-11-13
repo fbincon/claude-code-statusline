@@ -46,6 +46,7 @@
 | 检查与回归修复 | [开发文档内容检查与登记](deliveries/development-content-checks.zh-CN.md) · [文档内容回归校验修复](deliveries/docs-content-check-fixes.zh-CN.md) |
 | 针对性措辞与范围调整 | [文档评审针对性调整](deliveries/docs-review-targeted-adjustments.zh-CN.md) |
 | 代理指南 | [项目级代理指南维护](deliveries/agents-guidance-maintenance.zh-CN.md) |
+| 贡献者指南 | [贡献指南维护](deliveries/contributing-maintenance.zh-CN.md) |
 
 <a id="delivery-by-version"></a>
 
