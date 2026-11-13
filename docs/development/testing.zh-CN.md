@@ -79,6 +79,8 @@ npm run test:mods -- --artifact "$CANDIDATE_TGZ" --commit "$SOURCE_COMMIT" \
 
 ### 安装后的语言组合
 
+> **适用范围：** 默认派发输入构建当前候选包；`language_input=v3.16.1` 仅用于复测历史 #198 测量，现行验收使用默认输入。见 [v3.16.1 交付记录](history/deliveries/runtime-source-save-fixes.zh-CN.md#final-release)。
+
 候选包逐一验证所有已注册的界面和输出语言组合。每种界面语言有一个驱动，调用已安装 CLI 的入口函数。对每种输出语言，驱动核对预览前后文件字节，使用原 revision 应用草稿，再从新进程重开配置并按 120 列渲染。每行保留一对组合，六个操作全部经过真实 CLI 管道；这些冷启动组合覆盖每种界面和输出语言。十二种语言共 144 对，验收最多启动 231 个候选 Node 进程。
 
 在驱动所在分支手动运行 CI 工作流，选择 `validation=language-comparison`。默认从派发所指的提交统一构建输入。使用兼容驱动时，选择 `language_input=v3.16.1` 可复测 #198 摘要固定的原包。Linux x64、macOS Intel 和使用 x64 Node 的 Windows ARM 宿主均测试同一份包。Windows 分别执行开发 Node 和 22.0.0。各 runner 交错运行三组旧驱动与当前驱动，保留每次测量、包与驱动身份、进程启动数和语义结果。此对照单独运行安装语言场景，完整平台和发布验收还要求其余场景。[安装验收时限](ci-maintenance.zh-CN.md#安装验收时限)。

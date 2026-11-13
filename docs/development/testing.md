@@ -79,6 +79,8 @@ Use the [source-bound CI rules](ci-maintenance.md#candidate-promotion-across-pr-
 
 ### Installed language combinations
 
+> **Scope:** The default dispatch input builds the current candidate. `language_input=v3.16.1` only reproduces the historical #198 measurement; current acceptance uses the default input. See the [v3.16.1 delivery record](history/deliveries/runtime-source-save-fixes.md#final-release).
+
 The candidate exercises every registered UI/output language pair. Each UI language gets a driver that calls the installed CLI entry function. For each output language the driver checks the bytes before and after preview, applies the original revision, then reopens the saved configuration in a fresh process and renders at 120 columns. One pair per UI language uses real CLI pipes for all six operations. Together those cold pairs cover every UI and output language. With twelve languages the suite checks all 144 pairs with at most 231 candidate Node starts.
 
 Dispatch the CI workflow on the harness branch with `validation=language-comparison`. The default input is built once from the dispatch commit. Select `language_input=v3.16.1` with a compatible harness to reproduce the digest-pinned #198 package. The same package is tested on Linux x64, macOS Intel and a Windows ARM host with x64 Node. Windows runs both the development Node and 22.0.0. Each runner alternates the baseline and current drivers in three pairs and retains all samples, the package and harness identities, launch counts and semantic results. The comparison exercises the installed language case in isolation. Complete platform and release acceptance also require their other scenarios. [Installed acceptance deadlines](ci-maintenance.md#installed-acceptance-deadlines).

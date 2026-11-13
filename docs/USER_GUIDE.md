@@ -331,7 +331,7 @@ In a real terminal outside Claude Code, run:
 claude-statusline configure
 ```
 
-On Windows use `claude-statusline.cmd configure`. The current CLI must own the installation, configuration must be valid, stdin/stdout must be TTYs and the minimum size is 64×18. Tab changes pages, Space toggles an item, Ctrl+E opens details and Ctrl+S saves; top-level Esc confirms discarding a modified draft. See [opening conditions](EDITORS.md#open-an-editor) and [full keyboard controls](EDITORS.md#keyboard-controls).
+On Windows use `claude-statusline.cmd configure`. The current CLI must own the installation, configuration must be valid, stdin/stdout must be TTYs and the minimum size is 64×18. See [opening conditions](EDITORS.md#open-an-editor) and [full keyboard controls](EDITORS.md#keyboard-controls).
 
 <a id="external-terminal-statusline-configure"></a>
 
@@ -364,11 +364,11 @@ Controls follow the terminal's default foreground/background; previews use the s
 /statusline-configure-native
 ```
 
-Click inside Client before using the keyboard. Tab changes pages and Space toggles an item; S saves and continues, F saves successfully before closing, and Q discards the display draft. Esc belongs to the host; Ctrl+G cancels field input. See [opening conditions](EDITORS.md#open-an-editor) and [full keyboard controls](EDITORS.md#keyboard-controls).
+Click inside Client before using the keyboard. Esc belongs to the host; Ctrl+G cancels field input. See [opening conditions](EDITORS.md#open-an-editor) and [full keyboard controls](EDITORS.md#keyboard-controls).
 
 ### Saving, conflicts and recovery
 
-Saving rejects stale revisions and retains conflicting drafts. When the save result is unknown, use K to check it without submitting another write. Claude preferences use separate Apply. See [save, cancel and recovery](EDITORS.md#save-cancel-and-recover). macOS Client interaction remains unverified; see [focus checks](#macos-mouse-reporting-and-client-focus).
+Saving rejects stale revisions and retains conflicting drafts. See [save, cancel and recovery](EDITORS.md#save-cancel-and-recover). macOS Client interaction remains unverified; see [focus checks](#macos-mouse-reporting-and-client-focus).
 
 ### Page hierarchy and pagination
 
@@ -426,13 +426,13 @@ Use this tool's configuration commands; Claude's built-in `/statusline` may repl
 
 ## Find items and review imports
 
-On Main/Subagents, use `/` to search, Ctrl+F to choose a category and Ctrl+E to open item details. Filtered items can be toggled or formatted; clear filters before reordering. See [finding items](EDITORS.md#find-items-and-inspect-requirements) for full search rules and read-only source requirements.
+On Main/Subagents, use `/` to search, choose category filters and open item details. Filtered items can be toggled or formatted; clear filters before reordering. See [finding items](EDITORS.md#find-items-and-inspect-requirements) for full search rules and read-only source requirements.
 
-Settings import compares with the unsaved draft. A accepts only into that draft; Save is separate. Cancellation keeps the previous draft. See [import review and export](EDITORS.md#presets-import-review-and-export); [presets and portable configuration](#presets-and-portable-configuration) covers CLI installation prerequisites and dry-run examples.
+Settings import compares with the unsaved draft. Acceptance applies only to the draft; saving is separate. Cancellation keeps the previous draft. See [import review and export](EDITORS.md#presets-import-review-and-export); [presets and portable configuration](#presets-and-portable-configuration) covers CLI installation prerequisites and dry-run examples.
 
 ## Component composition
 
-Main and Subagents show configured instances. In-session A (or terminal-editor Ctrl+A) opens the type picker; in-session D (or terminal-editor Ctrl+D) copies; in-session X (or terminal-editor Ctrl+X) removes. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
+Main and Subagents show configured instances. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
 
 <a id="formatting-layout-presets"></a>
 
@@ -440,7 +440,7 @@ Main and Subagents show configured instances. In-session A (or terminal-editor C
 
 ## Formatting, layouts and presets
 
-Defaults retain the existing appearance. Use global Settings choices for consistent formatting and Ctrl+E item forms for specific overrides; inspect Preview before saving.
+Defaults retain the existing appearance. Use global Settings choices for consistent formatting and item-detail forms for specific overrides; inspect Preview before saving.
 
 Settings covers model names, numbers, labels, icons, allowance balance/utilization, reset-time styles, and risk colors. All accepted values and defaults are in the [display option reference](reference/cli.md#display-and-host-options).
 
@@ -503,7 +503,7 @@ Use Ctrl+E on Main/Subagents for item formatting, and Layout for automatic/expli
 
 ### Claude preferences apply separately
 
-In Client Settings, H expands Claude preferences and A applies them separately. Display Save/Finish does not implicitly apply them. See [Claude preferences apply separately](EDITORS.md#claude-preferences-apply-separately).
+Claude preferences are applied separately in Client Settings. Display Save/Finish does not implicitly apply them. See [Claude preferences apply separately](EDITORS.md#claude-preferences-apply-separately).
 
 <a id="phase-5-preview-installation"></a>
 <a id="phase-5-stable-installation"></a>
@@ -514,11 +514,11 @@ In Client Settings, H expands Claude preferences and A applies them separately. 
 
 ### Quick setup
 
-In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. The [scheme guide](SCHEMES.md#editor-quick-setup) covers choosing, previewing, saving and cancelling a candidate.
+In `/statusline-configure-native` or `claude-statusline configure`, choose **Settings → Quick setup**. The [scheme guide](SCHEMES.md#editor-quick-setup) covers choosing, previewing, saving and cancelling a candidate.
 
 ### Text input
 
-Enter accepts a field and Ctrl+G cancels; Client Esc belongs to the host. See [text input](EDITORS.md#text-input) for cursor editing, limits and paste behavior.
+Client Esc belongs to the host. See [text input](EDITORS.md#text-input) for cursor editing, limits and paste behavior.
 
 ### Sample explanation
 

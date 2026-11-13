@@ -323,7 +323,7 @@ claude-statusline config show
 claude-statusline configure
 ```
 
-Windows 使用 `claude-statusline.cmd configure`。要求当前 CLI 接管安装、配置有效、stdin/stdout 为 TTY，最低 64×18。Tab 切页、Space 勾选、Ctrl+E 编辑详情、Ctrl+S 保存；顶层 Esc 在有修改时确认是否放弃。详见[打开条件](EDITORS.zh-CN.md#open-an-editor)与[完整键位](EDITORS.zh-CN.md#keyboard-controls)。
+Windows 使用 `claude-statusline.cmd configure`。要求当前 CLI 接管安装、配置有效、stdin/stdout 为 TTY，最低 64×18。详见[打开条件](EDITORS.zh-CN.md#open-an-editor)与[完整键位](EDITORS.zh-CN.md#keyboard-controls)。
 
 <a id="外部终端入口-statusline-configure"></a>
 
@@ -356,11 +356,11 @@ Windows 使用 `claude-statusline.cmd configure`。要求当前 CLI 接管安装
 /statusline-configure-native
 ```
 
-先点击 Client 正文再用键盘。Tab 切页、Space 勾选，S 保存继续、F 保存成功后关闭，Q 放弃显示草稿。Esc 由宿主管理，取消字段用 Ctrl+G。详见[打开条件](EDITORS.zh-CN.md#open-an-editor)与[完整键位](EDITORS.zh-CN.md#keyboard-controls)。
+先点击 Client 正文再用键盘。Esc 由宿主管理，取消字段用 Ctrl+G。详见[打开条件](EDITORS.zh-CN.md#open-an-editor)与[完整键位](EDITORS.zh-CN.md#keyboard-controls)。
 
 ### 保存、冲突与恢复
 
-保存拒绝旧 revision，冲突时保留草稿；保存结果不明时用 K 核对，不重复写入。Claude 偏好使用独立 Apply。详见[保存、取消与恢复](EDITORS.zh-CN.md#save-cancel-and-recover)。macOS Client 交互仍未验证，见[焦点检查](#macos-鼠标报告与-client-焦点)。
+保存拒绝旧 revision，冲突时保留草稿。详见[保存、取消与恢复](EDITORS.zh-CN.md#save-cancel-and-recover)。macOS Client 交互仍未验证，见[焦点检查](#macos-鼠标报告与-client-焦点)。
 
 ### 页面层级与分页
 
@@ -420,13 +420,13 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 
 
 ## 查找显示项与审阅导入
 
-Main/Subagents 用 `/` 搜索、Ctrl+F 选择分类、Ctrl+E 查看逐项详情。筛选时可勾选或设置格式，排序需先清除筛选。完整搜索规则与只读条件说明见[查找显示项](EDITORS.zh-CN.md#find-items-and-inspect-requirements)。
+Main/Subagents 用 `/` 搜索、选择分类筛选并查看逐项详情。筛选时可勾选或设置格式，排序需先清除筛选。完整搜索规则与只读条件说明见[查找显示项](EDITORS.zh-CN.md#find-items-and-inspect-requirements)。
 
-Settings 导入先与未保存草稿比较，A 仅接受到草稿，随后单独保存。取消保留原草稿；详见[导入审阅与导出](EDITORS.zh-CN.md#presets-import-review-and-export)。CLI 导入的安装前提与预演示例见[预设与可移植配置](#预设与可移植配置)。
+Settings 导入先与未保存草稿比较，接受只写入草稿，随后单独保存。取消保留原草稿；详见[导入审阅与导出](EDITORS.zh-CN.md#presets-import-review-and-export)。CLI 导入的安装前提与预演示例见[预设与可移植配置](#预设与可移植配置)。
 
 ## 组件组合
 
-Main 和 Subagents 显示已配置实例；会话内 A／终端编辑器 Ctrl+A 打开组件目录，会话内 D／终端编辑器 Ctrl+D 复制，会话内 X／终端编辑器 Ctrl+X 移除。每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
+Main 和 Subagents 显示已配置实例；每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
 
 <a id="formatting-layout-presets"></a>
 
@@ -434,7 +434,7 @@ Main 和 Subagents 显示已配置实例；会话内 A／终端编辑器 Ctrl+A 
 
 ## 格式、布局与预设
 
-默认设置保留现有外观。使用 Settings 统一设置格式，通过 Ctrl+E 表单覆盖单个条目，保存前检查 Preview。
+默认设置保留现有外观。使用 Settings 统一设置格式，通过逐项详情表单覆盖单个条目，保存前检查 Preview。
 
 Settings 可调整模型名、数字、标签、图标、剩余额度或使用比例、重置时间样式与风险颜色。完整值域与默认值见[显示选项参考](reference/cli.zh-CN.md#显示与宿主选项)。
 
@@ -493,15 +493,13 @@ claude-statusline config import statusline.json
 
 可移植文件用于共享显示设置及工具管理的 padding／刷新／Vim 选项，不含安装、运行状态、接入偏好和 Claude 外观及行为偏好。先导出到独立文件，用 `--dry-run` 校验导入，再执行导入；已有导出文件需 CLI 明确传入 `--overwrite` 才能替换。详见[传输格式、校验及受保护目标](reference/cli.zh-CN.md#portable-import-export)。
 
-保存进行中或结果未知时，两个编辑器都会阻止草稿修改，包括已经打开的来源／方案管理器。终端编辑器的 Ctrl+K、会话内编辑器的 K 只读核对已提交快照，不重复保存；确定结果后恢复编辑，冲突保留草稿。来源只读检查仍可使用。参见[保存与恢复](development/correctness-maintenance.zh-CN.md#共享草稿保护fix-01)。
-
 ### 两种编辑器中的格式与布局操作
 
 Main/Subagents 用 Ctrl+E 设置逐项格式，Layout 设置自动／显式分行及行边界。完整操作见[格式与布局](EDITORS.zh-CN.md#formats-and-layouts)，组件、分组和对齐规则见[组件与布局](COMPOSITION.zh-CN.md)。保存、取消和结果核对见[保存与恢复](EDITORS.zh-CN.md#save-cancel-and-recover)。
 
 ### Claude 宿主偏好独立应用
 
-Client Settings 用 H 展开 Claude 偏好，A 独立 Apply；显示 Save/Finish 不隐式应用这些偏好。详见[Claude 偏好独立应用](EDITORS.zh-CN.md#claude-preferences-apply-separately)。
+Client Settings 中 Claude 偏好独立 Apply；显示 Save/Finish 不隐式应用这些偏好。详见[Claude 偏好独立应用](EDITORS.zh-CN.md#claude-preferences-apply-separately)。
 
 <a id="phase-5-预览安装"></a>
 <a id="phase-5-正式版安装"></a>
@@ -512,11 +510,11 @@ Client Settings 用 H 展开 Claude 偏好，A 独立 Apply；显示 Save/Finish
 
 ### 快速配置
 
-在 `/statusline-configure-native` 或 `claude-statusline configure` 中按 **Ctrl+P**，或在设置页选择“快速配置”。选择、预览、保存或取消候选的步骤见[方案指南](SCHEMES.zh-CN.md#editor-quick-setup)。
+在 `/statusline-configure-native` 或 `claude-statusline configure` 中，选择设置页的“快速配置”。选择、预览、保存或取消候选的步骤见[方案指南](SCHEMES.zh-CN.md#editor-quick-setup)。
 
 ### 文本输入
 
-Enter 接受字段，Ctrl+G 取消；Client 的 Esc 由宿主管理。光标编辑、长度限制和粘贴注意事项见[文本输入](EDITORS.zh-CN.md#text-input)。
+Client 的 Esc 由宿主管理。光标编辑、长度限制和粘贴注意事项见[文本输入](EDITORS.zh-CN.md#text-input)。
 
 ### 示例说明
 

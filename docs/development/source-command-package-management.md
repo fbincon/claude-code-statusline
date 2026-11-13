@@ -18,6 +18,8 @@ Interactive bootstrap inspects the command before creating terminal streams. Run
 
 Windows historical package journeys run sequentially to avoid competing npm/copy fixtures. All historical versions, transitions and crash/recovery assertions remain. Each original journey retains its 900-second budget (1,200 seconds with an official host); the additional editor-execution journey has a separate 900/1,200-second budget. Phase timers and release validation prevent one phase borrowing another's time; enclosing budgets sum the required phases. Product subprocess deadlines remain unchanged. The crash fixture propagates a pre-checkpoint management failure and retains its bounded output, so an earlier timeout cannot masquerade as successful execution or as an injected crash.
 
+> **Scope:** The Windows diagnostic in the following paragraph is historical v3.12.0 evidence for Node 24.0.0 on x64 and ARM-host/x64; it is not a current reproduction procedure. Current cleanup tests assert actual absence. See the [v3.12.0 delivery record](history/deliveries/source-command-package-management.md#v3120-delivery-record).
+
 Owned Unicode fixture deletion uses the existing platform tree-removal adapter. The [Windows diagnostic](https://github.com/fbincon/claude-code-statusline/actions/runs/40756220503) reproduced Node 24.0.0 returning from `rmSync` with the execution directory still present on x64 and ARM-host/x64. Tests assert actual absence before reviewing references, and retain foreign-file and stale-review refusal checks. The diagnostic source probe repeats cleanup twenty times per environment; it is separate from release acceptance.
 
 ## Source lifecycle and references

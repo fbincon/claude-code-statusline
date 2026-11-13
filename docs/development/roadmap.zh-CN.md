@@ -63,7 +63,7 @@ M1–M12 和选定的十八个后续工作包均已交付。[SHOWCASE-01](showca
 
 ## 阶段路线与依赖
 
-M1 → M2 → M3 → M4–M7 记录早期交付顺序。SHOWCASE-01 在原十八个正式后续工作包及其全部切片验收后交付。I18N-02 单独排期。原始依赖与排期见下方历史表格。
+M1 → M2 → M3 → M4–M7 记录早期交付顺序。SHOWCASE-01 在原十八个正式后续工作包及其全部切片验收后交付。I18N-02 单独排期。原始依赖与排期见[历史里程碑与依赖](history/roadmap-milestones.zh-CN.md#milestones)。
 
 选定候选方向后，从当时最新的 `main` 开始，核对进入条件，并在工作包中明确依赖和交付范围。使用 `NOT_STARTED` → `IN_PROGRESS` → `VALIDATING` → `DONE` 记录进度，并分别记录功能合并、包完成和版本发布。
 

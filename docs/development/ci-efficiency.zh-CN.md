@@ -2,6 +2,8 @@
 
 [English](ci-efficiency.md) | **简体中文**
 
+> **适用范围：** 本页记录针对特定版本与运行的一次性 CI 实测；这些数字是历史观测，不定义现行阈值，也不构成复现命令。现行验收流程见[测试与验收](testing.zh-CN.md)。
+
 ## 失败基线
 
 旧安装套件的 55 分钟总时限曾提前终止仍在自身期限内的外观场景。#190 的 Windows ARM／x64 Node 已执行 4.64 秒，#198 为 52.86 秒，两份日志均已有 26 项测试通过。#198 的 Windows ARM／Node 22.0.0 单项重跑耗时 52 分 28 秒。#198 最终 head 的另一次失败发生在 Intel Mac 产品断言通过后的制品上传。该运行首轮墙钟为 2 小时 03 分 16 秒，60 个作业未加权 runner 执行合计 1,389 分 13 秒，最长排队 99 分 20 秒。Intel 作业和依赖门禁重跑另花 24 分 31 秒 runner 时间。[#190 超时](https://github.com/fbincon/claude-code-statusline/actions/runs/41007969032/job/123908643050) · [#198 超时重跑](https://github.com/fbincon/claude-code-statusline/actions/runs/41168202931/job/124463172951) · [#198 最终源码各轮运行](https://github.com/fbincon/claude-code-statusline/actions/runs/41180416268)

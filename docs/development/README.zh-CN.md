@@ -16,7 +16,9 @@
 | 理解实现 | [架构](architecture.zh-CN.md) · [共享契约](contracts.zh-CN.md) · [渲染与 Unicode](rendering.zh-CN.md) |
 | 选择验证与 CI 证据 | [测试与验收](testing.zh-CN.md) · [影响检查](impact-checks.zh-CN.md) · [CI 维护／晋级](ci-maintenance.zh-CN.md) · [CI 实测耗时](ci-efficiency.zh-CN.md) |
 | 维护宿主接入 | [原生编辑器](native.zh-CN.md) · [容量／恢复](native-capacity.zh-CN.md) · [任务计时](timer.zh-CN.md) · [实时指标](live.zh-CN.md) |
-| 配置显示、任务与来源 | [扩展](extensions.zh-CN.md#职责与契约) · [首次设置与外观](setup-appearance.zh-CN.md) · [方案、项目与任务](profiles-projects-tasks.zh-CN.md) · [来源／命令／包管理](source-command-package-management.zh-CN.md) · [配置体验](configuration-experience.zh-CN.md) · [自适应行](adaptive-row-scenarios.zh-CN.md) · [外观／预览诊断](appearance-preview-diagnosis.zh-CN.md) · [真实输入诊断](real-input-diagnostics.zh-CN.md) · [任务与版本审阅](task-version-review.zh-CN.md) · [内置技能工作流](skill-workflows.zh-CN.md) |
+| 配置与显示 | [首次设置与外观](setup-appearance.zh-CN.md) · [方案、项目与任务](profiles-projects-tasks.zh-CN.md) · [配置体验](configuration-experience.zh-CN.md) |
+| 渲染、预览与诊断 | [自适应行](adaptive-row-scenarios.zh-CN.md) · [外观／预览诊断](appearance-preview-diagnosis.zh-CN.md) · [真实输入诊断](real-input-diagnostics.zh-CN.md) |
+| 扩展来源、任务与工作流 | [扩展](extensions.zh-CN.md#职责与契约) · [来源／命令／包管理](source-command-package-management.zh-CN.md) · [任务与版本审阅](task-version-review.zh-CN.md) · [内置技能工作流](skill-workflows.zh-CN.md) |
 | 维护语言 | [翻译指南](i18n.zh-CN.md) · [多语言工作流](i18n-workflow.zh-CN.md) · [Node 与地区语言](node-regional-languages.zh-CN.md) |
 | 制作与核验媒体 | [图片索引](../images/README.zh-CN.md) · [SHOWCASE-01 采集步骤](showcase.zh-CN.md#collection) |
 | 准备发布 | [发布流程](../RELEASING.zh-CN.md#current-typescript-publication) |
