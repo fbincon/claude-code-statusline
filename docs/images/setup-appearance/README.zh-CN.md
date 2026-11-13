@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-以下图片来自隔离安装的 v3.5.0 验收候选包，通过生产渲染器与真实 PTY 采集后重建终端单元格。它们是固定样例，不是操作系统截图、真实账户数据或真人平台验收。发布包的最终身份与复验结果见[交付记录](../../development/setup-appearance.zh-CN.md)。
+以下图片来自隔离安装的 v3.5.0 验收候选包，通过生产渲染器与真实 PTY 采集后重建终端单元格。它们是固定样例，不是操作系统截图、真实账户数据或真人平台验收。发布包的最终身份与复验结果见[交付记录](../../development/setup-appearance.zh-CN.md)。[机器可读来源记录](provenance.json)记录本目录每张已提交 PNG 的摘要、尺寸和字节数。
 
 - 候选源码: `ec0b182ffca7a02e2d0c8523fbacaba52bd8bfae`.
 - 安装包 SHA-256: `a9baded89bd7dd28dec520b2bdc5c0fe22c4e47627d3204cf6f028722c9c3cab`.
@@ -10,7 +10,7 @@
 - 覆盖六种语言、80/120 列、浅色/深色/终端主题、三种方案及状态样例。设置向导使用明确标记的合成 Claude 2.1.258 检测结果；所有流程取消后验证文件未改动。
 - 字体：DejaVu Sans Mono 与 Noto Sans CJK。图标默认 ASCII；可选 Powerline 示例使用 ASCII 斜线与连续配色，不声称自动检测特殊字体。
 
-最终发行复验使用源码 `7723c540c3e16644b5601b94ce538dcd4ed37d68`，安装包 SHA-256 为 `dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b`。258 项捕获再次全部通过，最终收据 SHA-256 为 `107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa`。已提交的 27 张图库 PNG 与重生成文件逐字节一致；上方候选身份保留图片的原始来源记录。
+最终发行复验使用源码 `7723c540c3e16644b5601b94ce538dcd4ed37d68`，安装包 SHA-256 为 `dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b`。258 项捕获再次全部通过，最终收据 SHA-256 为 `107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa`。已提交的 27 张图库 PNG 与重生成文件逐字节一致；当前 SHA-256、尺寸和字节数记录在 [provenance.json](provenance.json)。missing 与 expired quota 样例都省略 quota 行，因此两张图片有意逐字节相同；该重复是预期结果，不是采集失败。上方候选身份保留图片的原始来源记录。
 
 ## 三套方案：80 / 120 列
 
@@ -34,7 +34,7 @@
 
 ## 可选主题与装饰
 
-浅色与深色 Powerline 示例使用英文输出，均为 120 列。
+浅色 compact 与深色 Powerline 示例使用英文输出，均为 120 列。
 
 ![daily-development — light compact](daily-development-en-120-light-standard-compact.png)
 

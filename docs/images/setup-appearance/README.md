@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-These images come from an isolated installation of the v3.5.0 acceptance candidate. The production renderer and real PTYs supply the terminal cells reconstructed here. They are fixed samples, not OS screenshots, actual account observations or human platform acceptance. See the [delivery record](../../development/setup-appearance.md) for final-release identity and revalidation.
+These images come from an isolated installation of the v3.5.0 acceptance candidate. The production renderer and real PTYs supply the terminal cells reconstructed here. They are fixed samples, not OS screenshots, actual account observations or human platform acceptance. See the [delivery record](../../development/setup-appearance.md) for final-release identity and revalidation. [Machine-readable provenance](provenance.json) records each committed PNG's digest, dimensions and byte count from the files in this directory.
 
 - Candidate source: `ec0b182ffca7a02e2d0c8523fbacaba52bd8bfae`.
 - Package SHA-256: `a9baded89bd7dd28dec520b2bdc5c0fe22c4e47627d3204cf6f028722c9c3cab`.
@@ -10,7 +10,7 @@ These images come from an isolated installation of the v3.5.0 acceptance candida
 - Coverage: six languages, 80/120 columns, light/dark/terminal themes, three schemes and state samples. Wizard PTYs explicitly inject synthetic Claude 2.1.258 detection, cancel, and verify unchanged files.
 - Fonts: DejaVu Sans Mono and Noto Sans CJK. Icons default to ASCII. Optional Powerline samples use ASCII slashes and continuous colors, without claiming automatic special-font detection.
 
-Final-release revalidation used source `7723c540c3e16644b5601b94ce538dcd4ed37d68` and package SHA-256 `dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b`. All 258 captures passed again; the final receipt SHA-256 is `107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa`. All 27 committed gallery PNGs matched the regenerated files byte for byte. The initial candidate identities above retain the images' original provenance.
+Final-release revalidation used source `7723c540c3e16644b5601b94ce538dcd4ed37d68` and package SHA-256 `dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b`. All 258 captures passed again; the final receipt SHA-256 is `107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa`. All 27 committed gallery PNGs matched the regenerated files byte for byte. Their current SHA-256, dimensions and byte counts are recorded in [provenance.json](provenance.json). The missing and expired quota samples both omit quota rows, so those two images are intentionally byte-identical; the duplicate is expected, not a capture failure. The initial candidate identities above retain the images' original provenance.
 
 ## Three schemes: 80 / 120 columns
 
@@ -34,7 +34,7 @@ Final-release revalidation used source `7723c540c3e16644b5601b94ce538dcd4ed37d68
 
 ## Optional themes and decorations
 
-Light and dark Powerline examples use English output at 120 columns.
+Light compact and dark Powerline examples use English output at 120 columns.
 
 ![daily-development — light compact](daily-development-en-120-light-standard-compact.png)
 
