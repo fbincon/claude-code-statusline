@@ -52,6 +52,36 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 - 已于 2026-11-20 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.4.zh-CN.md) · [交付记录](docs/development/history/deliveries/<record>.zh-CN.md#final-release)。
 ```
 
+## 审批决定模板
+
+稳定公开版本需要一个按版本限定的维护者决定及其登记行。校验器从不可变源码归档读取这两个文件；`checkApprovalData` 在 `docs:check` 中校验检出内容。
+
+1. **决定文件。** 新增 `docs/releases/approvals/vX.Y.Z.json`：
+   ```json
+   {
+     "schema_version": 1,
+     "version": "X.Y.Z",
+     "decision": "accept-known-gaps",
+     "approved_by": "fbincon",
+     "approved_on": "YYYY-MM-DD",
+     "authority": "<维护者决定与范围>",
+     "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+     "accepted_gaps": [
+       "physical-macos-sleep",
+       "macos-14-intel-desktop-power",
+       "windows-10-desktop",
+       "wsl-desktop-popup",
+       "remaining-target-power-and-human-visual",
+       "claude-2.1.296-exact-declarations"
+     ]
+   }
+   ```
+2. **登记行。** 在 `approvals/registry.json` 中新增 `{ "version": "X.Y.Z", "path": "docs/releases/approvals/vX.Y.Z.json", "approved_on": "YYYY-MM-DD" }`。保持既有行顺序，不改写历史条目。
+3. **历史例外。** v3.0.0 继续以 `docs/development/typescript-migration/ts-06/stable-approval.json` 作为登记路径。
+4. **范围。** 该决定只接受 issue #96 的六项既有缺口，不豁免自动失败或新缺口，所有必需门禁仍然适用。
+
+`npm run docs:check` 会在检出内容上运行 `checkApprovalData`；发布准备与晋级仍从已验证源码归档读取这两个文件，而不是检出内容。
+
 ## 绑定源码的 CI 证据晋级
 
 根据已验证的 PR 与主分支记录选择发布源码。下文中 `SOURCE_COMMIT` 是选定源码的完整 SHA，`RELEASE_TAG` 是获批的版本标签，`RELEASE_ROOT` 是存放本次交付文件与报告的隔离目录。将 `DRAFT_TGZ` 设为下载的草稿软件包绝对路径。

@@ -50,6 +50,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Root documentation | [Root documentation maintenance](deliveries/root-docs-maintenance.md) |
 | Changelog | [Changelog template and format check](deliveries/changelog-template-maintenance.md) |
 | Delivery records | [Delivery record template and check](deliveries/delivery-record-governance.md) |
+| Release artifacts | [Release artifact templates and checks](deliveries/release-artifact-governance.md) |
 
 <a id="delivery-record-template"></a>
 

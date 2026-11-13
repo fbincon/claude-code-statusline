@@ -52,6 +52,36 @@ Run `npm run docs:check` before committing. `checkReleases` enforces the filenam
 - Published on npm, GitHub and Gitee on 2026-11-20. [Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/<record>.md#final-release).
 ```
 
+## Approval decision template
+
+A stable public release requires one version-limited maintainer decision and its registry row. The verifier reads both files from the immutable source archive; `checkApprovalData` validates the checkout during `docs:check`.
+
+1. **Decision file.** Add `docs/releases/approvals/vX.Y.Z.json`:
+   ```json
+   {
+     "schema_version": 1,
+     "version": "X.Y.Z",
+     "decision": "accept-known-gaps",
+     "approved_by": "fbincon",
+     "approved_on": "YYYY-MM-DD",
+     "authority": "<maintainer decision and scope>",
+     "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+     "accepted_gaps": [
+       "physical-macos-sleep",
+       "macos-14-intel-desktop-power",
+       "windows-10-desktop",
+       "wsl-desktop-popup",
+       "remaining-target-power-and-human-visual",
+       "claude-2.1.296-exact-declarations"
+     ]
+   }
+   ```
+2. **Registry row.** Add `{ "version": "X.Y.Z", "path": "docs/releases/approvals/vX.Y.Z.json", "approved_on": "YYYY-MM-DD" }` to `approvals/registry.json`. Keep the existing row order; do not rewrite historical entries.
+3. **Historical exception.** v3.0.0 keeps `docs/development/typescript-migration/ts-06/stable-approval.json` as its registered path.
+4. **Scope.** The decision accepts only the six recorded issue #96 gaps. It does not waive automated failures or new gaps, and every required gate still applies.
+
+`npm run docs:check` runs `checkApprovalData` against the checkout. Release preparation and promotion still read both files from the verified source archive, not the checkout.
+
 ## Source-bound CI evidence promotion
 
 Choose the release source using the verified PR and main records. In the commands below, `SOURCE_COMMIT` is the full selected source SHA, `RELEASE_TAG` is its approved version tag, and `RELEASE_ROOT` is an isolated directory for the release files and reports. Set `DRAFT_TGZ` to the absolute path of the downloaded draft package.
