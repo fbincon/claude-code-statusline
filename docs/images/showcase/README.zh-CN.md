@@ -18,7 +18,7 @@
 
 ### 代理工作台
 
-![中文任务及活动组，使用经典分隔符，独立子代理行按相同组件类型共用渐变](zh-CN/agents.png)
+![中文任务及活动组，主行使用经典分隔符，活动摘要以空格连接，独立子代理行按相同组件类型共用渐变](zh-CN/agents.png)
 
 [方案](../../../examples/showcase/agents.json) · [英文图片](en/agents.png)。派生自 `agent-workbench`；任务时间与代理计时保持不同作用域。
 
@@ -38,7 +38,7 @@
 
 ![中文浅色背景状态栏，使用经典分隔符及统一前景渐变的深色版本](zh-CN/light.png)
 
-[方案](../../../examples/showcase/light.json) · [英文图片](en/light.png)。派生自 `light-readable`；相同组件色相为浅色背景加深，使用 Light 主题和默认调色板，不启用 Powerline 背景。
+[方案](../../../examples/showcase/light.json) · [英文图片](en/light.png)。派生自 `light-readable`；相同组件色相为浅色背景加深，使用 Light 主题和默认调色板，不启用 Powerline 背景。在记录的 80 列宽度下，英文拟合丢弃最低优先级的 `Main/Session` 作用域标签，中文捕获保留该标签；这是渲染器的宽度拟合优先级，不是不同方案。
 
 ## 简短操作演示
 
@@ -74,11 +74,11 @@
 
 ![中文版本操作和诊断，以及彩色固定样本状态栏预览](zh-CN/versions.png)
 
-[英文版本图](en/versions.png) · [版本走查](../../SHOWCASE.zh-CN.md#versions)。彩色预览旁的版本控件保持中性；精确范围及可能的组合记录在清单中。遇到多个前缀的警告时，应明确选择目标 `--prefix`。在原始已是当前 3.16.0 的安装中，另行 dry-run 返回 `unchanged: true` 和 `artifact_verified: false`；彩色预览不证明新下载包检查通过。
+[英文版本图](en/versions.png) · [版本走查](../../SHOWCASE.zh-CN.md#versions)。彩色预览旁的版本控件保持中性；清单记录裁剪范围，但英文和中文捕获显示不同的包列表窗口：英文从 `Previous successful version` 开始、到 `Review package rollback` 结束；中文从“渠道：未知”开始，并包含“审核未完成包事务恢复”。内部滚动偏移未保留，因此不作声明。遇到多个前缀的警告时，应明确选择目标 `--prefix`。在原始已是当前 3.16.0 的安装中，另行 dry-run 返回 `unchanged: true` 和 `artifact_verified: false`；彩色预览不证明新下载包检查通过。
 
 ## 来源与限制
 
-公开包源码为 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`，tgz SHA256 为 `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a`。采集工具身份独立保留。原始私有会话日志、凭据和偏好不公开；输入脱敏和渲染转换均记录。
+公开包源码为 `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`，tgz SHA-256 为 `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a`。采集工具身份独立保留。原始私有会话日志、凭据和偏好不公开；输入脱敏和渲染转换均记录。
 
 本次视觉修订复用保留的任务观察，不计划新增付费调用。原始两项顶层任务按 CLI 报告合计 0.00224378 美元，仍属于原执行证据。先前 CLI 灰色输出继承了 `NO_COLOR=1`；重新采集彩色素材只在隔离录制环境中移除该继承设置，产品的 `NO_COLOR` 行为不变。
 

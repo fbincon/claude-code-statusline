@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "kind": "installed PTY terminal-cell reconstruction; fixed production samples; not OS screenshots or human acceptance",
+  "application_version": "3.5.0",
+  "candidate_source_commit": "ec0b182ffca7a02e2d0c8523fbacaba52bd8bfae",
+  "candidate_tarball_sha256": "a9baded89bd7dd28dec520b2bdc5c0fe22c4e47627d3204cf6f028722c9c3cab",
+  "candidate_receipt_sha256": "67734eac097e0ea2287167c90fde557c2a7f8e6a88808a559e92b9572515d76d",
+  "final_release_source_commit": "7723c540c3e16644b5601b94ce538dcd4ed37d68",
+  "final_release_tarball_sha256": "dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b",
+  "final_release_receipt_sha256": "107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa",
+  "platform": "linux-x64",
+  "model_calls": 0,
+  "physical_visual_acceptance": false,
+  "notes": "Per-file digests and geometry computed from the committed PNGs. Candidate and final-release identities are the ones recorded in README.md. The missing and expired quota captures intentionally render identically and therefore share bytes.",
+  "captures": [
+    {
+      "file": "agent-focus-en-120-dark-standard-powerline.png",
+      "png_sha256": "9c280d8b15cf4762afa720a1792435fc4074ff4b6d4841c4c9555240ec237dbc",
+      "width": 1464,
+      "height": 120,
+      "bytes": 34574,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "agent-focus-en-120-light-standard-compact.png",
+      "png_sha256": "c2e1fa3567986fcd20508d6d627e86bb4ba86f21970a6bbc79ef64e065b6cb30",
+      "width": 1464,
+      "height": 120,
+      "bytes": 29111,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "agent-focus-en-120-terminal-standard-compact.png",
+      "png_sha256": "03c1109754765f06d1e141c97c9865c7fd93f3cc2713bd08a54e8527434f47d2",
+      "width": 1464,
+      "height": 120,
+      "bytes": 28500,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "agent-focus-en-80-terminal-failed-compact.png",
+      "png_sha256": "1b1ef553d21331e6849c87b5c87b1f60015279425e141778abdf15e92f694e8c",
+      "width": 984,
+      "height": 48,
+      "bytes": 8335,
+      "columns": 80,
+      "rows": 1
+    },
+    {
+      "file": "agent-focus-en-80-terminal-running-compact.png",
+      "png_sha256": "fce6d7247d26267dc2cec266519df585ce50fc159e34f5618ecec18bbfc9466f",
+      "width": 984,
+      "height": 48,
+      "bytes": 8228,
+      "columns": 80,
+      "rows": 1
+    },
+    {
+      "file": "agent-focus-en-80-terminal-standard-compact.png",
+      "png_sha256": "ae2d15091914f52c179688f984efc2d7e6e9719f23c10c421c9d920c972af259",
+      "width": 984,
+      "height": 120,
+      "bytes": 23911,
+      "columns": 80,
+      "rows": 4
+    },
+    {
+      "file": "agent-focus-zh-CN-120-terminal-standard-compact.png",
+      "png_sha256": "f55406af1eacd11ffdb0cbd25ed307303825bd3aa50bb9be2fbcd1056b877a3a",
+      "width": 1464,
+      "height": 120,
+      "bytes": 29862,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "agent-focus-zh-CN-80-terminal-standard-compact.png",
+      "png_sha256": "23fbbec0da8aec350e17b5fcc6c4c8eaca448048b47deeb0f9f6988055489f2b",
+      "width": 984,
+      "height": 120,
+      "bytes": 28409,
+      "columns": 80,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-en-120-dark-standard-powerline.png",
+      "png_sha256": "3fe9a947c0be3f987a54d5692a94f3df1f1f9fe5e06a118ce937ad158dfd59b6",
+      "width": 1464,
+      "height": 120,
+      "bytes": 38808,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-en-120-light-standard-compact.png",
+      "png_sha256": "b3ccfc770a3913942723c2e78df9110b59a2d56f0a0383ca856d3e21d7b195d9",
+      "width": 1464,
+      "height": 120,
+      "bytes": 34389,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-en-120-terminal-standard-compact.png",
+      "png_sha256": "220891d9ca328991637f51964c2e757f7b9b669f24e79ba2fefdc4f53ea4a1b1",
+      "width": 1464,
+      "height": 120,
+      "bytes": 33386,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-en-80-terminal-standard-compact.png",
+      "png_sha256": "f55bb6503e8c8cbfe095d7f82f5224fe94fda0011265acab349c10d307027407",
+      "width": 984,
+      "height": 120,
+      "bytes": 30660,
+      "columns": 80,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-zh-CN-120-terminal-standard-compact.png",
+      "png_sha256": "f6eb9890277be92237e371f7baa8fb4c7df51c3d40de10125152faf3282105ca",
+      "width": 1464,
+      "height": 120,
+      "bytes": 34547,
+      "columns": 120,
+      "rows": 4
+    },
+    {
+      "file": "daily-development-zh-CN-80-terminal-standard-compact.png",
+      "png_sha256": "08f7125605f40fa18e03ea504e7096fd42053b521445c4f0bc24f16a72e6caa5",
+      "width": 984,
+      "height": 120,
+      "bytes": 31985,
+      "columns": 80,
+      "rows": 4
+    },
+    {
+      "file": "quota-watch-en-120-dark-standard-powerline.png",
+      "png_sha256": "c9757d72ebdcff2c1c487d238d396edf3cf4d2a1a37a8a91234f1ddc58fd6249",
+      "width": 1464,
+      "height": 168,
+      "bytes": 49155,
+      "columns": 120,
+      "rows": 6
+    },
+    {
+      "file": "quota-watch-en-120-light-standard-compact.png",
+      "png_sha256": "0eed7993aaf2f74ca7faa82e0fe17c94c9ae4c8599dac2f510fe240529be8f7e",
+      "width": 1464,
+      "height": 168,
+      "bytes": 40439,
+      "columns": 120,
+      "rows": 6
+    },
+    {
+      "file": "quota-watch-en-120-terminal-standard-compact.png",
+      "png_sha256": "09a38a48fea89f9ee897fdfcbe5e0ed9d38637189a85d500d19d0660ae1a6ab2",
+      "width": 1464,
+      "height": 168,
+      "bytes": 39843,
+      "columns": 120,
+      "rows": 6
+    },
+    {
+      "file": "quota-watch-en-80-terminal-expired-compact.png",
+      "png_sha256": "b8c3cbeefe3e7a5e89147f42d51b77d3c029346b5f2662b8568f511bef3eded4",
+      "width": 984,
+      "height": 72,
+      "bytes": 8491,
+      "columns": 80,
+      "rows": 2
+    },
+    {
+      "file": "quota-watch-en-80-terminal-missing-compact.png",
+      "png_sha256": "b8c3cbeefe3e7a5e89147f42d51b77d3c029346b5f2662b8568f511bef3eded4",
+      "width": 984,
+      "height": 72,
+      "bytes": 8491,
+      "columns": 80,
+      "rows": 2
+    },
+    {
+      "file": "quota-watch-en-80-terminal-standard-compact.png",
+      "png_sha256": "fe0c19f50eb8eedf5a7c7cf684f47bcb76556ecfcb93a828b05f6d6f4aed111a",
+      "width": 984,
+      "height": 168,
+      "bytes": 38058,
+      "columns": 80,
+      "rows": 6
+    },
+    {
+      "file": "quota-watch-en-80-terminal-zero-compact.png",
+      "png_sha256": "aa7df384878b1e5c6bb6067fec2804519d9a23f8f239f6ae899565886f9e8f5f",
+      "width": 984,
+      "height": 96,
+      "bytes": 15617,
+      "columns": 80,
+      "rows": 3
+    },
+    {
+      "file": "quota-watch-zh-CN-120-terminal-standard-compact.png",
+      "png_sha256": "dde6e930e5ff81a5d5182a1f1c4e99b881a59adff403ce2541bee274387188c3",
+      "width": 1464,
+      "height": 168,
+      "bytes": 41097,
+      "columns": 120,
+      "rows": 6
+    },
+    {
+      "file": "quota-watch-zh-CN-80-terminal-standard-compact.png",
+      "png_sha256": "9c30b0a5dae27f5006d234237bad7566686237681907f1bed58ced1b32ab1f12",
+      "width": 984,
+      "height": 168,
+      "bytes": 39139,
+      "columns": 80,
+      "rows": 6
+    },
+    {
+      "file": "setup-en-appearance.png",
+      "png_sha256": "cb7e533b12759f5cc5d4db2d302ce8f34073db748e0b76ecabdce91759ecfe52",
+      "width": 1464,
+      "height": 792,
+      "bytes": 59523,
+      "columns": 120,
+      "rows": 32
+    },
+    {
+      "file": "setup-en-review.png",
+      "png_sha256": "934ad722609f9561635f50f8001be1ed9d16a95fe2a23d7f0360a176b9ec9133",
+      "width": 1464,
+      "height": 792,
+      "bytes": 118099,
+      "columns": 120,
+      "rows": 32
+    },
+    {
+      "file": "setup-zh-CN-appearance.png",
+      "png_sha256": "5646cf6f7148cdcafbf7f845d185d61bc9f4711202a02b3945bc1a62c6ccac61",
+      "width": 1464,
+      "height": 792,
+      "bytes": 69806,
+      "columns": 120,
+      "rows": 32
+    },
+    {
+      "file": "setup-zh-CN-review.png",
+      "png_sha256": "c3c2c74c6a57ae94c6e445e28b94218bf6cd238debc3bd8725db84ca7d7cf2fd",
+      "width": 1464,
+      "height": 792,
+      "bytes": 131977,
+      "columns": 120,
+      "rows": 32
+    }
+  ]
+}

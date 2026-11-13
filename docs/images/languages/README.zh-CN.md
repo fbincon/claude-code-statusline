@@ -20,11 +20,11 @@
 
 终端默认调色板来自明确的捕获分析夹具，不会修改实体桌面主题。在持久 tmux 深色路径中，宿主可能把原生预览背景转换为 ANSI-256 索引 17（`#00005f`）；验收工具记录并仅接受这个已观测的转换，直接 truecolor 检查仍保持严格。这是捕获传输限制，不是新增颜色选项。
 
-`tools/render_native_capture.py` 使用 DejaVu Sans Mono、Noto Sans CJK 和 Noto Symbols 2 渲染真实单元格。原生裁剪排除了会话正文、输入框和私人配置路径。PNG 元数据保留源码提交及原始捕获 SHA256。原始 PTY／配置凭据保存在被忽略的 `dist/validation/final-gallery-*`，不进入发行包。不声称进行了付费模型调用、新增 Windows/macOS 真人终端验收或母语者审校。
+`archive/python/tools/render_native_capture.py` 使用 DejaVu Sans Mono、Noto Sans CJK 和 Noto Symbols 2 渲染真实单元格。原生裁剪排除了会话正文、输入框和私人配置路径。PNG 元数据保留源码提交及原始捕获 SHA-256。原始 PTY／配置凭据保存在被忽略的 `dist/validation/final-gallery-*`，不进入发行包。不声称进行了付费模型调用、新增 Windows/macOS 真人终端验收或母语者审校。
 
 ## PNG 完整性
 
-| 文件 | 像素 | SHA256 |
+| 文件 | 像素 | SHA-256 |
 | --- | --- | --- |
 | [external/ja-dark.png](external/ja-dark.png) | 1464×744 | `7b3e64e2f689378c4547d98b81c2ee10ca60a380413041fb98c2e46b9ade89d4` |
 | [external/ja-minimum.png](external/ja-minimum.png) | 792×456 | `84edfc9fb17ff11a6366ca4280cd5536a6e0dfdc06633cd0772f4aee68d7a920` |

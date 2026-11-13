@@ -6,9 +6,11 @@
 
 [v3.1.1 六语言图库](v3.1.1/README.zh-CN.md)保留该版本最终安装包的四页面、上下文操作、明暗配色及最小窗口视图，其图片摘要、源码／包来源及独立行为断言保留原始身份。
 
-[v3.1.0 地区图库](regional/README.zh-CN.md)保留两个编辑器的台湾／香港捕获，下方准备阶段图片保留原始来源。
+[v3.1.0 地区图库](regional/README.zh-CN.md)保留两个编辑器的台湾／香港捕获；下方 v3.0.0 准备阶段图片保留原始来源。
 
-八张图由 Linux PTY 中**实际安装包**的外部编辑器终端单元重建，**不是操作系统截图**。Python 原始截图继续保留在[跨平台图库](../README.zh-CN.md)。
+## v3.0.0 准备阶段捕获
+
+八张图由 Linux PTY 中**实际安装包**的外部编辑器终端单元重建，**不是操作系统截图**。21 张原始物理截图继续保留在[跨平台图库](../README.zh-CN.md)。
 
 捕获源码：`2f6d1c21f2abccfe0a05396172c1c8ec55cd989a`；准备包 tgz SHA-256：`4870797de594c064ab7bbea190eaaa0e6981ac5b60a263b7ac418b5cd94d8b50`。这是准备产物，与最终发布产物分别记录。[图像摘要、字体及配置](provenance.json) · [最终交付证据](../../development/typescript-migration/ts-06/stable-release.zh-CN.md)。
 

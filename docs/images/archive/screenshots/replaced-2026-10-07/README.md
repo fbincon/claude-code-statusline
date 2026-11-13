@@ -1,26 +1,26 @@
 # Gallery replaced on 2026-10-07
 
-This snapshot preserves the 18 images previously used by the README. The date names the replacement batch, not the capture date. Original capture records, dimensions and PNG hashes below retain their original meaning. [Current gallery](../../../README.md).
+This snapshot preserves the 18 images previously used by the README. The date names the replacement batch, not the capture date. Original capture records, dimensions and PNG hashes below retain their original meaning. [Current gallery](../../../README.md). This snapshot is frozen; do not update its historical claims.
 
 **English** | [简体中文](README.zh-CN.md)
 
-The current gallery contains 18 images: three retained main status lines, three new in-session Client screenshots and twelve new external configuration pages. Earlier images and capture records are in the [archive](../../README.md).
+At the 2026-10-07 replacement, the gallery contained 18 images: three retained main status lines, three new in-session Client screenshots and twelve new external configuration pages. Earlier images and capture records are in the [archive](../../README.md).
 
 PNG bytes, dimensions, colors and metadata are preserved. Main status lines show session data; configuration `Preview (sample data)` uses fixed examples, not actual token usage or evidence of real parallel agents.
 
-## Directory layout
+## Directory layout at replacement
 
 ```text
-images/
+docs/images/ at the 2026-10-07 replacement
 ├── statusline/{linux,macos,windows}.png
-├── tui/native/{linux,macos,windows}/session.png
-├── tui/external/{linux,macos,windows}/{main,subagents,settings,layout}.png
-└── archive/
-    ├── screenshots/{native,external}/{linux,macos,windows}/
-    └── reconstructions/<source-version>/linux/
+└── tui/
+    ├── native/{linux,macos,windows}/session.png
+    └── external/{linux,macos,windows}/{main,subagents,settings,layout}.png
 ```
 
-## Current images
+The table below links to this snapshot's archived copies; the tree records the paths as they existed at replacement time.
+
+## Images in this snapshot
 
 | Platform | Main status line | In-session Client | Main | Subagents | Settings | Layout |
 | --- | --- | --- | --- | --- | --- | --- |

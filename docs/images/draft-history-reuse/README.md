@@ -5,10 +5,13 @@
 These images reconstruct cells from actual installed PTYs. They are not desktop screenshots or human visual acceptance.
 
 - Source: `200df8fcea2b3f6d1a40885305b6b19bf28f9d05`
+- Application version: `3.13.0`.
 - Package SHA-256: `ec7fdf4df2dd739c82366e4230a33f8cef1a83c8e7864d407a783128ca6da66c`
 - Claude Code: `2.1.312`; Node: `24.21.0`; interface: `en`; model calls: `0`
 
-Native crops follow the observed header and footer; external captures retain the whole 120×32 terminal. Observations are fixed preview samples. The collector preserves configuration and restores terminal attributes.
+Native crops follow the observed header and footer; external captures retain the whole 120×32 terminal. Observations are fixed preview samples. The collector preserves configuration and restores terminal attributes. [Machine-readable captures](captures.json) record each file, crop, digest and dimensions.
+
+**Known visual limitation:** in the 73-column Native crops, the pane title extends under the host's right-aligned Retry/Close controls, leaving partial characters visible between the buttons. This is a product layout limitation in the recorded versions, not a reconstruction artifact. Tracked as [#241](https://github.com/fbincon/claude-code-statusline/issues/241).
 
 | File | Crop (x, y, columns, rows) | PNG SHA-256 | Cells SHA-256 |
 | --- | --- | --- | --- |
@@ -35,4 +38,4 @@ Native crops follow the observed header and footer; external captures retain the
 npm run capture:native-capacity -- --artifact ABSOLUTE_TGZ --commit 200df8fcea2b3f6d1a40885305b6b19bf28f9d05 --output NEW_DIRECTORY
 ```
 
-The four new journeys per editor retain `after.cells.json`; render with `tools/acceptance/render-capture.ts` and the recorded fonts/crops. Raw cells, ANSI and host logs remain in the ignored acceptance directory; no physical or paid acceptance is inferred.
+The shared `capture:native-capacity` PTY harness drives these four journeys per editor; it retains `after.cells.json`. Render with `tools/acceptance/render-capture.ts` and the recorded fonts/crops. Raw cells, ANSI and host logs remain in the ignored acceptance directory; no physical or paid acceptance is inferred.

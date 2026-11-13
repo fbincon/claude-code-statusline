@@ -6,6 +6,8 @@ These five images reconstruct actual cells from the installed v3.9.1 candidate i
 
 Source: [`d195f7a41d23d0b8d38c53addd7575e9a06e874a`](https://github.com/fbincon/claude-code-statusline/commit/d195f7a41d23d0b8d38c53addd7575e9a06e874a). Candidate package SHA-256: `34150c0bf8c0cbae0c4890c68e227cb2ca0cad55626c3b42279cc35ae2c31c9e`. The crops preserve original text and styles. [Provenance](provenance.json) records cell/image/renderer/font digests and exact crop bounds. Raw ANSI streams, matrices and host logs remain in private validation output.
 
+**Known visual limitation:** in these 73-column Native crops, the pane title extends under the host's right-aligned Retry/Close controls, leaving partial characters visible between the buttons. This is a product layout limitation in the recorded versions, not a reconstruction artifact. Tracked as [#241](https://github.com/fbincon/claude-code-statusline/issues/241).
+
 | Scenario | Capture | Checked behavior |
 | --- | --- | --- |
 | Quick setup | [Appearance](quick-setup.png) | Open use cases, select a candidate, cancel without changing the display file |

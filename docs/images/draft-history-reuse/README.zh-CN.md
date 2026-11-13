@@ -4,13 +4,16 @@
 
 这些图片重建自实际安装产物的 PTY 终端单元，不是桌面截图或真人视觉验收。
 
-- Source: `200df8fcea2b3f6d1a40885305b6b19bf28f9d05`
-- Package SHA-256: `ec7fdf4df2dd739c82366e4230a33f8cef1a83c8e7864d407a783128ca6da66c`
-- Claude Code: `2.1.312`; Node: `24.21.0`; interface: `en`; model calls: `0`
+- 源码: `200df8fcea2b3f6d1a40885305b6b19bf28f9d05`
+- 应用版本: `3.13.0`。
+- 安装包 SHA-256: `ec7fdf4df2dd739c82366e4230a33f8cef1a83c8e7864d407a783128ca6da66c`
+- Claude Code: `2.1.312`; Node: `24.21.0`; 界面语言: `en`; 模型调用: `0`
 
-Native 裁剪边界来自实际标题与页脚位置；外部编辑器保留完整 120×32 终端。观测使用固定预览样例，采集器保持配置并恢复终端属性。
+Native 裁剪边界来自实际标题与页脚位置；外部编辑器保留完整 120×32 终端。观测使用固定预览样例，采集器保持配置并恢复终端属性。[机器可读捕获记录](captures.json)记录每张文件、裁剪范围、摘要和尺寸。
 
-| File | Crop (x, y, columns, rows) | PNG SHA-256 | Cells SHA-256 |
+**已知视觉限制：** 在 73 列 Native 裁剪中，面板标题延伸到宿主右对齐的 Retry／Close 控件下方，按钮之间会留下部分字符。这是录制版本的产品布局限制，不是重建伪影；已作为产品问题 [#241](https://github.com/fbincon/claude-code-statusline/issues/241) 跟踪。
+
+| 文件 | 裁剪范围 (x, y, 列, 行) | PNG SHA-256 | 单元 SHA-256 |
 | --- | --- | --- | --- |
 | [native-draft-history.png](native-draft-history.png) | `[127, 0, 73, 45]` | `13ba63bb7b9a2e47f1488be632d39359c61b2f492fef015c40c5312bca7944e8` | `5d2e9ae3b8a4933decd875a329ad18243165968697b316db9d2a9bc87ee36034` |
 | [native-style-reuse.png](native-style-reuse.png) | `[127, 0, 73, 45]` | `cd9418cc492d24b5218aa841bc42a2b97ab113a946e3c1a6dee2aa38f26c9d3d` | `ac0a3069a69119b09e7a63f66ac32b69fdb809099928b345e5853ea34c98f680` |
@@ -23,7 +26,7 @@ Native 裁剪边界来自实际标题与页脚位置；外部编辑器保留完�
 
 ## 字体
 
-| File | SHA-256 |
+| 文件 | SHA-256 |
 | --- | --- |
 | DejaVuSansMono.ttf | `a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab` |
 | NotoSansCJK-Regular.ttc | `b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a` |
@@ -35,4 +38,4 @@ Native 裁剪边界来自实际标题与页脚位置；外部编辑器保留完�
 npm run capture:native-capacity -- --artifact ABSOLUTE_TGZ --commit 200df8fcea2b3f6d1a40885305b6b19bf28f9d05 --output NEW_DIRECTORY
 ```
 
-每个编辑器的四条新增旅程保留 `after.cells.json`；按记录字体及裁剪参数使用 `tools/acceptance/render-capture.ts` 渲染。原始单元、ANSI 与宿主日志保留在被忽略的验收目录，不据此推断实体或付费验收。
+共享的 `capture:native-capacity` PTY 验收工具驱动每个编辑器的四条旅程，并保留 `after.cells.json`；按记录字体及裁剪参数使用 `tools/acceptance/render-capture.ts` 渲染。原始单元、ANSI 与宿主日志保留在被忽略的验收目录，不据此推断实体或付费验收。

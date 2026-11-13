@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the new in-session and external TUI screenshots. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result.
+This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the 2026-10-07 in-session and external TUI screenshots. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result. This page and the replacement snapshot are frozen: do not update their historical claims.
 
 ## Gallery replacement batch
 
@@ -10,7 +10,7 @@ The [18-image gallery replaced on 2026-10-07](screenshots/replaced-2026-10-07/RE
 
 <a id="界面截图"></a>
 
-Screenshots appear in the [project README](../../../README.md#screenshots). Main status line images come from actual Claude sessions; configuration `Preview (sample data)` uses fixed samples. The two Subagents previews are not evidence of acceptance testing with real parallel agents.
+These screenshots were formerly shown in the [project README](../../../README.md#screenshots); the current project README uses SHOWCASE-01 images. Main status line images come from actual Claude sessions; configuration `Preview (sample data)` uses fixed samples. The two Subagents previews are not evidence of acceptance testing with real parallel agents.
 
 <a id="文件索引"></a>
 
@@ -52,7 +52,7 @@ The following filename convention describes the archived assets. New screenshots
 
 - Use PNG and lowercase English filenames, with `-macos` / `-windows` platform suffixes.
 - Keep status lines and configuration pages legible; update README references and this index together.
-- `MANIFEST.in` includes this directory's Markdown and PNGs in the source distribution; CI checks packaging completeness.
+- The archived Python source distribution used its historical `MANIFEST.in` to include this directory's Markdown and PNGs; that packaging path is not part of the current npm release.
 
 ## Native editor captures
 
@@ -66,7 +66,7 @@ These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288
 
 [Main](reconstructions/v1.2.0a1/linux/native-main-linux.png) · [Subagents](reconstructions/v1.2.0a1/linux/native-subagents-linux.png) · [Settings](reconstructions/v1.2.0a1/linux/native-settings-linux.png)
 
-These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA256.
+These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `archive/python/tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA-256.
 
 The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. The `configure-*-macos.png` and `configure-*-windows.png` images show the compatibility TUI; native screenshots for those platforms were not supplied at that release; the maintainer separately confirmed human results on Windows 11 and macOS 14.5.
 
@@ -74,7 +74,7 @@ The visible statusline values are production sample preview data. Settings conti
 
 [Main](reconstructions/v1.3.0a2/linux/client-main-v1.3.0a2-linux.png) · [Subagents](reconstructions/v1.3.0a2/linux/client-subagents-v1.3.0a2-linux.png) · [Settings](reconstructions/v1.3.0a2/linux/client-settings-v1.3.0a2-linux.png)
 
-These PNGs reconstruct actual terminal cells from Linux x86_64, the Claude Code 2.1.288 interactive host, backend 1.3.0a2 and the persistently installed Mod. Fixed source commit: `2ed1f3ae306776caeffe6a27205a4d680cb8e472`; runtime resources match this candidate. The 120×30 PTY runs in a private tmux server; the same run checks 80×48 inline operation. Cropping excludes transcript/composer/live statusline; Preview is fixed production sample data. These are terminal reconstructions, not OS pixel screenshots or design mockups. Each embeds its commit/capture SHA256; private raw data remains in ignored `dist/validation/client-a2-fixed-288`. These captures do not establish human acceptance. On 2026-10-04 the maintainer separately confirmed a2 human acceptance on Linux, Windows and macOS; exact terminal/architecture/host metadata were not supplied. Stable v1.3.0 retains these Client interaction modules, with updated version/description metadata. Images keep their original a2 filenames and provenance.
+These PNGs reconstruct actual terminal cells from Linux x86_64, the Claude Code 2.1.288 interactive host, backend 1.3.0a2 and the persistently installed Mod. Fixed source commit: `2ed1f3ae306776caeffe6a27205a4d680cb8e472`; runtime resources match this candidate. The 120×30 PTY runs in a private tmux server; the same run checks 80×48 inline operation. Cropping excludes transcript/composer/live statusline; Preview is fixed production sample data. These are terminal reconstructions, not OS pixel screenshots or design mockups. Each embeds its commit/capture SHA-256; private raw data remains in ignored `dist/validation/client-a2-fixed-288`. These captures do not establish human acceptance. On 2026-10-04 the maintainer separately confirmed a2 human acceptance on Linux, Windows and macOS; exact terminal/architecture/host metadata were not supplied. Stable v1.3.0 retains these Client interaction modules, with updated version/description metadata. Images keep their original a2 filenames and provenance.
 
 ### v1.5.0a1 Phase 4 captures
 
@@ -100,11 +100,11 @@ See the [historical acceptance record](../../development/history/acceptance-reco
 
 These seven PNGs reconstruct actual curses PTY cells from the installed wheel at source commit `ceb70bb127eb33d6257d47498b947f1f4c57a7f2`, backend/both Mods 1.6.1. Environment: Linux x86_64 (kernel 7.0.0-38-generic), Python 3.14.4, xterm-256color PTY and pyte 0.8.2. Five standalone sizes passed four pages/detail, resize during input, byte-identical cancellation and regrouped numeric save/readback. Raw captures remain in ignored `dist/validation/tui-sections-candidate/external-pty`.
 
-80×24 shows Main, Subagents, Settings, Layout and item formatting; 64×18 shows compact Settings/Layout. The screenshot fixture selects three main items to expose grouping. CJK/combining text comes from actual field input; Preview uses production fixed samples. Images reconstruct terminal text/attributes with documentation fonts/colors; they are not OS pixel screenshots or design mockups. PNG metadata embeds source commit/capture SHA256; full capture digests follow.
+80×24 shows Main, Subagents, Settings, Layout and item formatting; 64×18 shows compact Settings/Layout. The screenshot fixture selects three main items to expose grouping. CJK/combining text comes from actual field input; Preview uses production fixed samples. Images reconstruct terminal text/attributes with documentation fonts/colors; they are not OS pixel screenshots or design mockups. PNG metadata embeds source commit/capture SHA-256; full capture digests follow.
 
 Agent inspection confirmed distinct titles, columns, groups, selected rows, Preview and controls in all seven images. Automated `manual_visual_acceptance` stays false; no new maintainer human acceptance is claimed and historical platform confirmations retain their original scope. Standalone captures do not claim a Claude session; official persistent PTYs independently verify both slash entries and configuration readback.
 
-| Image | Terminal cells | Capture JSON SHA256 |
+| Image | Terminal cells | Capture JSON SHA-256 |
 | --- | --- | --- |
 | [external-main-v1.6.1-linux.png](reconstructions/v1.6.1/linux/external-main-v1.6.1-linux.png) | 80x24 | `d7309f186324c8859ec727531d0579ed1c2f04e9848bf3fc7d5d202b67fcea4f` |
 | [external-subagents-v1.6.1-linux.png](reconstructions/v1.6.1/linux/external-subagents-v1.6.1-linux.png) | 80x24 | `1fc7f0d99f0c147430a0c64affde00b9f882a7e5d15f80b1988d633e0053b39a` |
@@ -155,4 +155,4 @@ Agent inspection confirmed distinct titles, columns, groups, selected rows, Prev
 
 </details>
 
-These hashes identify the PNG files. Capture JSON SHA256 values in the provenance tables identify the original terminal records, a different artifact.
+These hashes identify the PNG files. Capture JSON SHA-256 values in the provenance tables identify the original terminal records, a different artifact.

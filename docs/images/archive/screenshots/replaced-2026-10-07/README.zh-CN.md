@@ -1,26 +1,26 @@
 # 2026-10-07 替换的图库
 
-本快照保留原 README 使用的 18 张图片。目录日期表示替换批次，不代表捕获日期；以下原始捕获记录、尺寸和 PNG 哈希保持原有含义。[当前图库](../../../README.zh-CN.md)。
+本快照保留原 README 使用的 18 张图片。目录日期表示替换批次，不代表捕获日期；以下原始捕获记录、尺寸和 PNG 哈希保持原有含义。[当前图库](../../../README.zh-CN.md)。本快照已冻结，不再更新其历史结论。
 
 [English](README.md) | **简体中文**
 
-本目录收录当前展示的 18 张截图：三张保留的主状态栏图、三张新会话内 Client 图和十二张新外部配置页。历史图片与捕获记录见[归档索引](../../README.zh-CN.md)。
+2026-10-07 替换时，图库包含 18 张截图：三张保留的主状态栏图、三张新会话内 Client 图和十二张新外部配置页。历史图片与捕获记录见[归档索引](../../README.zh-CN.md)。
 
 截图保持原始 PNG 字节、尺寸、颜色与元数据。主状态栏使用实际会话数据；配置界面的 `Preview (sample data)` 使用固定样例，不表示实际 token 用量或真实并行代理。
 
-## 目录布局
+## 替换时的目录布局
 
 ```text
-images/
+docs/images/ 在 2026-10-07 替换时的布局
 ├── statusline/{linux,macos,windows}.png
-├── tui/native/{linux,macos,windows}/session.png
-├── tui/external/{linux,macos,windows}/{main,subagents,settings,layout}.png
-└── archive/
-    ├── screenshots/{native,external}/{linux,macos,windows}/
-    └── reconstructions/<source-version>/linux/
+└── tui/
+    ├── native/{linux,macos,windows}/session.png
+    └── external/{linux,macos,windows}/{main,subagents,settings,layout}.png
 ```
 
-## 当前图片
+下方表格链接到本快照的归档副本；目录树记录替换时的路径。
+
+## 本快照中的图片
 
 | 平台 | 主状态栏 | 会话内 Client | Main | Subagents | Settings | Layout |
 | --- | --- | --- | --- | --- | --- | --- |

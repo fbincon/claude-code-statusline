@@ -18,7 +18,7 @@ These ten English/Chinese scene images use named fixed observations through the 
 
 ### Agent workbench
 
-![English task and activity groups with classic separators and matching per-type gradients on separate subagent rows](en/agents.png)
+![English task and activity groups with classic separators on the main row, a space-joined activity summary, and matching per-type gradients on separate subagent rows](en/agents.png)
 
 [Profile](../../../examples/showcase/agents.json) · [Chinese image](zh-CN/agents.png). Derived from `agent-workbench`; task and agent timing retain separate scopes.
 
@@ -38,7 +38,7 @@ These ten English/Chinese scene images use named fixed observations through the 
 
 ![English statusline on a light background with classic separators and darkened versions of the shared foreground gradients](en/light.png)
 
-[Profile](../../../examples/showcase/light.json) · [Chinese image](zh-CN/light.png). Derived from `light-readable`; the same component hues are darkened for a light background with the Light theme and default palette. No Powerline background is enabled.
+[Profile](../../../examples/showcase/light.json) · [Chinese image](zh-CN/light.png). Derived from `light-readable`; the same component hues are darkened for a light background with the Light theme and default palette. No Powerline background is enabled. At the recorded 80-column width, the English fit drops the lowest-priority `Main/Session` scope label; the Chinese capture retains it. This is the renderer's width-fit priority, not a different profile.
 
 ## Short walkthroughs
 
@@ -74,11 +74,11 @@ The task montage has two separately attributed sources: completed-task observati
 
 ![English version actions and diagnostics with a colored fixed-sample statusline preview](en/versions.png)
 
-[Chinese version image](zh-CN/versions.png) · [Version walkthrough](../../SHOWCASE.md#versions). Version controls remain neutral beside the colored preview. Exact bounds and any composition are recorded in the inventory. Choose the intended `--prefix` explicitly when a multiple-prefix warning is present. On the original already-current 3.16.0 installation, the separate dry-run returned `unchanged: true` and `artifact_verified: false`; a colored preview does not establish a newly downloaded archive check.
+[Chinese version image](zh-CN/versions.png) · [Version walkthrough](../../SHOWCASE.md#versions). Version controls remain neutral beside the colored preview. The inventory records the crop bounds, but the English and Chinese captures show different package-list windows: English starts at `Previous successful version` and ends at `Review package rollback`; Chinese starts at `渠道：未知` and includes `审核未完成包事务恢复`. The internal scroll offset was not retained, so it is not claimed. Choose the intended `--prefix` explicitly when a multiple-prefix warning is present. On the original already-current 3.16.0 installation, the separate dry-run returned `unchanged: true` and `artifact_verified: false`; a colored preview does not establish a newly downloaded archive check.
 
 ## Provenance and limits
 
-The public package source is `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`, with tgz SHA256 `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a`. Collector identities remain separate. Raw private session logs, credentials and preferences are not published; any input sanitization and rendering transformations are recorded.
+The public package source is `c89a2ca088099ccd3ceb76baf59ecf11d84b08f0`, with tgz SHA-256 `2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a`. Collector identities remain separate. Raw private session logs, credentials and preferences are not published; any input sanitization and rendering transformations are recorded.
 
 The visual refinement reuses retained task observations and plans no new paid calls. The original two top-level tasks cost USD 0.00224378 in total according to the CLI; that remains original execution evidence. The earlier gray CLI output inherited `NO_COLOR=1`. Colored recollection removes that inherited setting only from the isolated recording environment; the product's `NO_COLOR` behavior is unchanged.
 
