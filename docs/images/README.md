@@ -42,6 +42,39 @@ docs/images/
     └── python-era/           # 59 Python-era appearance/statusline/discovery/language/TUI images
 ```
 
+## Gallery template
+
+New galleries follow this structure. Existing galleries and `docs/images/archive/**` keep their original layout and are not retrofitted.
+
+1. **README pair.** `README.md` and `README.zh-CN.md` use a single H1, the existing language navigation, `**Status:**` / `**状态：**` from the taxonomy above, then `## Provenance` / `## 来源`, `## Capture method` / `## 采集方法`, `## Evidence limits` / `## 证据限制`, the media table, the manifest link, reproduction notes and a link back to this index.
+2. **Manifest.** `captures.json` uses schema 2. Every image in the gallery must be referenced, and every row path must resolve inside the gallery.
+3. **Index.** Add exactly one row to the gallery index with the status from the taxonomy above.
+4. **Provenance.** Record the source commit, package identity (or `null` for a source-only gallery), model calls and physical visual acceptance.
+
+## Capture manifest schema 2
+
+```json
+{
+  "schema_version": 2,
+  "kind": "fixed samples through the installed production renderer",
+  "source_commit": "<40-hex>",
+  "package_sha256": "<64-hex or null>",
+  "model_calls": 0,
+  "physical_visual_acceptance": false,
+  "captures": [
+    {
+      "file": "sample.png",
+      "png_sha256": "<64-hex>",
+      "width": 1200,
+      "height": 400,
+      "bytes": 12345
+    }
+  ]
+}
+```
+
+`captures` must be non-empty. Each row uses a relative PNG path, a SHA-256 digest, positive dimensions and the exact byte count. Existing `schema_version: 1` manifests remain valid; do not rewrite them.
+
 <a id="updating-screenshots"></a>
 
 ## Updating screenshots

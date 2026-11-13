@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB, TAG } from '../release/markdown.ts';
 import { assessApprovalRegistry, assessStableApproval } from '../release/approval.ts';
 import { checkCommunity } from './community.ts';
+import { checkImageGalleries } from './impact-assets.ts';
 const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
 const RELEASE_FILE = /^(v\d+\.\d+\.\d+(?:(?:a|b|rc)\d+|-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?)(\.zh-CN)?\.md$/u;
 const RELEASE_FENCE = /^ {0,3}(`{3,}|~{3,})/u;
@@ -548,6 +549,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
     errors.push(...checkChangelog(root));
     errors.push(...checkDeliveryRecords(root));
     errors.push(...checkApprovalData(root));
+    errors.push(...checkImageGalleries(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
