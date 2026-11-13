@@ -50,7 +50,7 @@ The clip copies a metric, then shows Undo, Redo, Save and reopening the editor. 
 | Windows 10/11 | Node 22.x or 24.x, x64 |
 | macOS 14+ | Node 22.x or 24.x, Intel / Apple Silicon |
 
-Windows ARM devices use x64 Node under emulation; native Windows ARM64 and 32-bit runtimes are outside the support contract. Git fields require Git. Claude Code requirements vary by feature: subagent rows 2.1.205+, local slash arguments/external entry 2.1.258+, in-session editor 2.1.287+, native timing/live metrics 2.1.289+. [Requirements and limitations](docs/USER_GUIDE.md#requirements).
+Windows ARM devices use x64 Node under emulation; native Windows ARM64 and 32-bit runtimes are outside the support contract. Git fields require Git. Claude Code requirements vary by feature: subagent rows 2.1.205+ (per-task effort 2.1.214+), local slash arguments/external entry 2.1.258+, in-session editor 2.1.287+, native timing/live metrics 2.1.289+. [Requirements and limitations](docs/USER_GUIDE.md#requirements).
 
 <a id="install-current-source"></a>
 <a id="install-from-a-release-recommended"></a>
@@ -170,7 +170,7 @@ The TypeScript workspace separates pure rules (`packages/core`), platform effect
 
 ## Documentation and help
 
-[Documentation index](docs/README.md) · [User guide](docs/USER_GUIDE.md) · [Development guide](docs/development/README.md) · [Release notes](docs/releases/README.md)
+[Documentation index](docs/README.md) · [User guide](docs/USER_GUIDE.md) · [CLI reference](docs/reference/cli.md) · [Development guide](docs/development/README.md) · [Release notes](docs/releases/README.md) · [Changelog](CHANGELOG.md)
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues) accepts reproducible bugs, questions and feature ideas. Include versions, steps and relevant diagnostics; remove private paths and session content.
 

@@ -47,6 +47,7 @@
 | 针对性措辞与范围调整 | [文档评审针对性调整](deliveries/docs-review-targeted-adjustments.zh-CN.md) |
 | 代理指南 | [项目级代理指南维护](deliveries/agents-guidance-maintenance.zh-CN.md) |
 | 贡献者指南 | [贡献指南维护](deliveries/contributing-maintenance.zh-CN.md) |
+| 根目录文档 | [根目录文档维护](deliveries/root-docs-maintenance.zh-CN.md) |
 
 <a id="delivery-by-version"></a>
 

@@ -46,7 +46,7 @@
 | Windows 10/11 | Node 22.x 或 24.x，x64 |
 | macOS 14+ | Node 22.x 或 24.x，Intel / Apple Silicon |
 
-Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时不在支持范围。Git 字段需要 Git。Claude Code 条件按功能区分：子代理行 2.1.205+，本地 slash 参数／外部入口 2.1.258+，会话内编辑器 2.1.287+，原生计时／实时指标 2.1.289+。[运行要求与限制](docs/USER_GUIDE.zh-CN.md#运行要求)。
+Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时不在支持范围。Git 字段需要 Git。Claude Code 条件按功能区分：子代理行 2.1.205+（逐任务 effort 2.1.214+），本地 slash 参数／外部入口 2.1.258+，会话内编辑器 2.1.287+，原生计时／实时指标 2.1.289+。[运行要求与限制](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 <a id="从-release-安装推荐"></a>
 <a id="从固定标签源码安装"></a>
@@ -156,7 +156,7 @@ TypeScript workspace 分为纯规则（`packages/core`）、平台副作用（`p
 
 ## 文档与帮助
 
-[文档中心](docs/README.zh-CN.md) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [开发指南](docs/development/README.zh-CN.md) · [发布说明](docs/releases/README.zh-CN.md)
+[文档中心](docs/README.zh-CN.md) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [CLI 参考](docs/reference/cli.zh-CN.md) · [开发指南](docs/development/README.zh-CN.md) · [发布说明](docs/releases/README.zh-CN.md) · [变更日志](CHANGELOG.zh-CN.md)
 
 [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)接受可复现缺陷、问题及功能建议。请提供版本、步骤和相关诊断，并移除私人路径及会话内容。
 

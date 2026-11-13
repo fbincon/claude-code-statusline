@@ -9,7 +9,7 @@
 - Generate current appearance choices and document the nineteen shared slash-parser actions, with profile/project management kept in terminal commands or editors.
 - Require literal argument handling in model fallback, check installation/ownership before questions and reread saved state before applying answers.
 - Update `/statusline-configure` fallback guidance for the stable Node terminal editor, preserving tool restrictions and Windows command spelling.
-- Published on npm, GitHub and Gitee on 2026-11-05. [Release notes](docs/releases/v3.16.3.md) · [Verified delivery](docs/development/skill-workflows.md#final-release).
+- Published on npm, GitHub and Gitee on 2026-11-05. [Release notes](docs/releases/v3.16.3.md) · [Verified delivery](docs/development/history/deliveries/skill-workflows.md#final-release).
 
 ## 3.16.2 — 2026-11-01
 
@@ -17,7 +17,7 @@
 - Give accurate undo/redo feedback, keep draft history out of active fields and open read-only catalog requirements from the Native add picker.
 - Protect unsaved external editor changes on Esc and keep Alt, function-key sequences and literal pasted text from triggering commands.
 - Keep the diagnosis caret and selection visible after resizing. Report scrolling follows the current page height.
-- Published 2026-11-01. [Release notes](docs/releases/v3.16.2.md) · [Verified delivery](docs/development/editor-input-delivery.md#final-release)
+- Published 2026-11-01. [Release notes](docs/releases/v3.16.2.md) · [Verified delivery](docs/development/history/deliveries/editor-input-delivery.md#final-release)
 
 ## 3.16.1 — 2026-10-31
 
@@ -25,7 +25,7 @@
 - Retain command-source timeout failures, execution diagnostics and error observations independently of caller cancellation; reconcile automatic retry feedback with durable results after delayed settlement (#195).
 - Treat explicit-target profile conflicts as definitive save refusals and open both editors' normal conflict review with draft/history and saved winner preserved (#196).
 - Retain display schema 17, editor protocol 31 and existing source/runtime/storage formats, Native capacity boundaries and truthful historical coverage.
-- Published 2026-10-31 on npm, GitHub and Gitee; [implementation and evidence](docs/development/runtime-source-save-fixes.md#final-release) · [Release notes](docs/releases/v3.16.1.md).
+- Published 2026-10-31 on npm, GitHub and Gitee; [implementation and evidence](docs/development/history/deliveries/runtime-source-save-fixes.md#final-release) · [Release notes](docs/releases/v3.16.1.md).
 
 ## 3.16.0 — 2026-10-30
 
@@ -103,11 +103,10 @@
 - Exclude later/untimestamped values and auxiliary fields from historical extension output and retain every instance/agent evidence pair.
 - Initialize task language before descriptions/titles, retain it after failure, reload on retry/reopen and bound the plain task Pane with paging.
 - Advance editor protocol to 25 and source jobs to 3; retain display schema 15, registry 2, observation 1, runtime 3 and UI preferences 1.
-- [Release notes](docs/releases/v3.9.2.md) · [Implementation and validation](docs/development/correctness-maintenance.md).
-
 - Reduce Windows controlled-process startup overhead with an isolated native Job Object supervisor, preserving literal arguments, process-tree termination and package recovery (#157).
 - Batch read-only npm registry/cache discovery while preserving configuration precedence and validation; add opt-in phase timing without changing command output (#157).
 - Read macOS process identity and liveness through the native adapter, retaining the existing UTC token format and rejecting unverifiable identities without a timed `ps` subprocess (#157).
+- [Release notes](docs/releases/v3.9.2.md) · [Implementation and validation](docs/development/correctness-maintenance.md).
 
 ## 3.9.1 — 2026-10-26
 

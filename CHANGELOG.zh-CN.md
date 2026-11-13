@@ -9,7 +9,7 @@
 - 生成当前外观选项，文档覆盖共享 slash 解析器的十九项动作，方案／项目管理继续使用终端命令或编辑器。
 - 模型回退要求按字面处理参数，提问前检查安装／归属，应用答案前重新读取已保存状态。
 - 更新 `/statusline-configure` 对稳定 Node 终端编辑器的回退说明，保留工具限制及 Windows 命令写法。
-- 已于 2026-11-05 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.3.zh-CN.md) · [交付核验](docs/development/skill-workflows.zh-CN.md#final-release)。
+- 已于 2026-11-05 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.3.zh-CN.md) · [交付核验](docs/development/history/deliveries/skill-workflows.zh-CN.md#final-release)。
 
 ## 3.16.2 — 2026-11-01
 
@@ -17,7 +17,7 @@
 - 撤销和重做显示准确反馈，活动输入框不再触发后台草稿历史。在 Native 添加选择器中可查看只读的目录类型要求。
 - 外部编辑器按 Esc 放弃未保存草稿前需要确认。Alt、功能键序列和粘贴文字分别处理，避免误执行命令。
 - 缩放后保持诊断输入光标与选中项可见，报告翻页使用真实视口高度。
-- 已于 2026-11-01 发布。[发布说明](docs/releases/v3.16.2.zh-CN.md) · [交付核验](docs/development/editor-input-delivery.zh-CN.md#final-release)
+- 已于 2026-11-01 发布。[发布说明](docs/releases/v3.16.2.zh-CN.md) · [交付核验](docs/development/history/deliveries/editor-input-delivery.zh-CN.md#final-release)
 
 ## 3.16.1 — 2026-10-31
 
@@ -25,7 +25,7 @@
 - 独立于调用方取消，保留命令源超时失败、执行诊断及错误观测；延迟结算后按持久化结果核对自动重试反馈（#195）。
 - 将明确目标的方案冲突识别为保存已拒绝，双编辑器打开正常冲突审阅，保留草稿／历史及胜出方已保存配置（#196）。
 - 保持显示 schema 17、编辑器协议 31、既有来源／runtime／存储格式、Native 容量边界及真实历史覆盖。
-- 已于 2026-10-31 在 npm、GitHub 和 Gitee 发布；[实现与证据](docs/development/runtime-source-save-fixes.zh-CN.md#final-release) · [发布说明](docs/releases/v3.16.1.zh-CN.md)。
+- 已于 2026-10-31 在 npm、GitHub 和 Gitee 发布；[实现与证据](docs/development/history/deliveries/runtime-source-save-fixes.zh-CN.md#final-release) · [发布说明](docs/releases/v3.16.1.zh-CN.md)。
 
 ## 3.16.0 — 2026-10-30
 
@@ -103,11 +103,10 @@
 - 历史扩展诊断排除之后／无时间戳的值及附属字段，并保留每个实例／代理的证据。
 - 任务详情在描述和首次标题前加载语言，失败后保留，重试／重开更新；普通 Pane 使用有界分页。
 - 编辑器协议升至 25、来源任务升至 3；显示 schema 15、注册表 2、观测 1、runtime 3、UI preferences 1 保持兼容。
-- [发布说明](docs/releases/v3.9.2.md) · [实施与验收](docs/development/correctness-maintenance.zh-CN.md)。
-
 - 使用隔离的原生 Job Object 监督进程降低 Windows 受控子进程启动开销，保留字面参数、进程树终止及包恢复保障（#157）。
 - 合并只读 npm registry／cache 查询，保留配置优先级和校验；增加可选阶段计时，不改变命令输出（#157）。
 - 通过原生适配器读取 macOS 进程身份与存活状态，保留既有 UTC token 格式，拒绝无法验证的身份，不再依赖有时限的 `ps` 子进程（#157）。
+- [发布说明](docs/releases/v3.9.2.md#简体中文) · [实施与验收](docs/development/correctness-maintenance.zh-CN.md)。
 
 ## 3.9.1 — 2026-10-26
 
@@ -116,7 +115,7 @@
 - 保存结果独立于显示失败，恢复已接收草稿时不重复写入，未知保存结果通过读取核对。
 - 新增生产数据容量回归及 Linux、Windows、macOS 的 Claude 2.1.310，必需宿主矩阵扩至十六个组合。
 - 保持显示 schema 15、编辑器协议 24、存储格式与 Node 22／24 支持。
-- [发布说明](docs/releases/v3.9.1.md) · [实施与验收](docs/development/native-capacity.zh-CN.md)。
+- [发布说明](docs/releases/v3.9.1.md#简体中文) · [实施与验收](docs/development/native-capacity.zh-CN.md)。
 
 ## 3.9.0 — 2026-10-26
 
@@ -125,7 +124,7 @@
 - 显式主行支持按稳定 ID 对齐对应列，保留隐藏列位，窄终端回退，并在引用失效时给出具体提示。
 - 修复跨协议回滚的已校验 Mod 交接和缓存刷新，保留禁用状态及无关配置。
 - 显示 schema／编辑器协议升级为 15／24，portable／方案外层仍为 1，来源及运行时格式不变；验收已发布 v3.7.0、v3.8.0 的升级、拒绝、备份恢复和回滚路径。
-- [发布说明](docs/releases/v3.9.0.md) · [实施与验收](docs/development/m10-m12-delivery.zh-CN.md)。
+- [发布说明](docs/releases/v3.9.0.md#简体中文) · [实施与验收](docs/development/m10-m12-delivery.zh-CN.md)。
 
 ## 3.8.0 — 2026-10-25
 
@@ -135,7 +134,7 @@
 - 新增显式版本检查、升级、回退、中断包恢复及独立批准的配置恢复，使用已发布 v3.7.0 归档验证往返。
 - 保留 Node 22／24、六语言、显示 schema 13、编辑器协议 21 及既有来源／runtime 格式；新增独立的包兼容与事务记录。
 - 将 GitHub Actions 固定至已核实提交，新增离线身份检查及每周同主版本 Actions 更新提议。
-- [发布说明](docs/releases/v3.8.0.md) · [实现与验收](docs/development/m8-m9-delivery.zh-CN.md) · [CI 维护](docs/development/ci-maintenance.zh-CN.md)。
+- [发布说明](docs/releases/v3.8.0.md#简体中文) · [实现与验收](docs/development/m8-m9-delivery.zh-CN.md) · [CI 维护](docs/development/ci-maintenance.zh-CN.md)。
 
 ## 3.7.0 — 2026-10-24
 
@@ -144,7 +143,7 @@
 - 新增独立审核、持续保留的 GitHub 自动刷新策略，受活跃会话租约、身份校验、去重、取消及退避约束。
 - 新增 `session-cost-rate`，支持会话／API 分母，至少观察一分钟，明确显示估算单位。
 - 显示／编辑器接口升至 13／21，来源注册表／任务升至 2，runtime 升至 3；保留旧观测兼容和显示文件只读迁移。
-- [发布说明](docs/releases/v3.7.0.md) · [实现与验收](docs/development/m4-m7-delivery.zh-CN.md)。
+- [发布说明](docs/releases/v3.7.0.md#简体中文) · [实现与验收](docs/development/m4-m7-delivery.zh-CN.md)。
 
 ## 3.6.0 — 2026-10-23
 
@@ -152,7 +151,7 @@
 - 手动刷新与渲染分离；保留并标记过期/失败结果，隔离项目、会话、账号、分支与 HEAD。
 - 新增可选 OSC 8 链接，共享组件能力描述；保留既有默认选择、实例和方案。
 - 显示 schema 升至 10、编辑器协议升至 17；导入导出清除本机源绑定，旧配置只在明确保存时迁移。
-- [发布说明](docs/releases/v3.6.0.md) · [实现与验收](docs/development/extensions.zh-CN.md)。
+- [发布说明](docs/releases/v3.6.0.md#简体中文) · [实现与验收](docs/development/extensions.zh-CN.md)。
 
 ## 3.5.0 — 2026-10-23
 
@@ -160,7 +159,7 @@
 - 新增三套完整方案及共享 Quick setup 另存副本，保留原有预设、方案、项目绑定和关闭偏好。
 - 新增 Powerline 留白、分隔符、首尾装饰与跨行配色；保留 ASCII 任务／代理状态含义。
 - 显示 schema 升至 9、编辑器协议升至 16，旧配置只读迁移，明确写入时保留备份。
-- [发布说明](docs/releases/v3.5.0.md) · [实现与验收](docs/development/setup-appearance.zh-CN.md)。
+- [发布说明](docs/releases/v3.5.0.md#简体中文) · [实现与验收](docs/development/setup-appearance.zh-CN.md)。
 
 ## 3.4.0 — 2026-10-21
 
@@ -168,14 +167,14 @@
 - 新增用户侧项目／worktree 根目录绑定、最深匹配解析、可解释回退及 revision 保护。
 - 新增 `/statusline-task` 与文本／JSON CLI，只读展示可归属任务和代理证据。
 - 编辑器协议升级为 15；显示 schema 8、运行协议 2、生命周期 schema 4、portable 1 和 UI 偏好 1 不变。
-- [发布说明](docs/releases/v3.4.0.md) · [实现与验收](docs/development/profiles-projects-tasks.zh-CN.md)。
+- [发布说明](docs/releases/v3.4.0.md#简体中文) · [实现与验收](docs/development/profiles-projects-tasks.zh-CN.md)。
 
 ## 3.3.0 — 2026-10-20
 
 - 新增只读真实输入诊断，提供可归属证据、逐实例可见性及宽度结果。
 - 支持关联 worktree 元数据和可选缓存未命中解释组件，明确保留未知证据。
 - 编辑器协议升至 14，显示与运行 schema 保持兼容。
-- [发布说明](docs/releases/v3.3.0.md) · [实现与验证](docs/development/real-input-diagnostics.zh-CN.md)。
+- [发布说明](docs/releases/v3.3.0.md#简体中文) · [实现与验证](docs/development/real-input-diagnostics.zh-CN.md)。
 
 ## 3.2.0 — 2026-10-19
 
@@ -183,7 +182,7 @@
 - 新增显式快速配置：用途、外观、示例、微调或事务保存，取消保留进入前草稿。
 - 新增按实例的配置与示例解释，区分本地条件和示例渲染结果，真实可用性保持未观察。
 - 编辑器协议升级为 13，保留显示 schema 8、运行协议 2 和 portable 1；外部保存失败可继续检查草稿。
-- [发布说明](docs/releases/v3.2.0.md) · [实现与验收](docs/development/configuration-experience.zh-CN.md)。
+- [发布说明](docs/releases/v3.2.0.md#简体中文) · [实现与验收](docs/development/configuration-experience.zh-CN.md)。
 
 ## 3.1.4 — 2026-10-19
 
@@ -191,7 +190,7 @@
 - 在既有缓存锁内合并不可变用量索引页发布，保留有界序列化暂存、持久化写入和精确重放统计。
 - 增加已验证安装包基准，完整恢复缓存快照、分离诊断并测量新进程峰值 RSS；保留历史 D06 结果。
 - 保留 Node 22／24、公开命令、磁盘格式和既有全部功能发布门槛。
-- [发布说明](docs/releases/v3.1.4.md) · [性能专项与证据](docs/development/performance/perf-01.zh-CN.md)。
+- [发布说明](docs/releases/v3.1.4.md#简体中文) · [性能专项与证据](docs/development/performance/perf-01.zh-CN.md)。
 
 ## 3.1.3 — 2026-10-19
 
@@ -225,7 +224,7 @@
 - 将通用繁体拆为台湾 `zh-TW` 和香港 `zh-HK`，旧 `zh-Hant` 兼容映射台湾，读取不改写文件。
 - 六语言覆盖两个编辑器、CLI、预览、搜索及状态栏；编辑器协议升级为 12，保留配置格式和备份／事务保护。
 - 为本版本单独记录六项既有验收缺口的批准，所有新增自动化检查必须通过。
-- [发布说明](docs/releases/v3.1.0.md) · [实现与验收](docs/development/node-regional-languages.zh-CN.md)。
+- [发布说明](docs/releases/v3.1.0.md#简体中文) · [实现与验收](docs/development/node-regional-languages.zh-CN.md)。
 
 ## 3.0.0 — 2026-10-18
 
@@ -234,7 +233,7 @@
 - 外部 TUI 全页面恢复完整边框、分组横线、列对齐、整行选中、青色标题和加粗快捷键。
 - 增加源码绑定的正式验收、`latest` 下载/安装验证，以及仅适用于 v3.0.0 的维护者缺项批准记录；未验证项保持原状态。
 - 保留配置/协议兼容、Python 回退及冻结参考。D06 继续 FAIL，PERF-01 独立处理。
-- [发布说明](docs/releases/v3.0.0.md) · [安装与升级](docs/USER_GUIDE.zh-CN.md#安装与接入)。
+- [发布说明](docs/releases/v3.0.0.md#简体中文) · [安装与升级](docs/USER_GUIDE.zh-CN.md#安装与接入)。
 
 ## 3.0.0-beta.1 — 2026-10-18
 
@@ -242,7 +241,7 @@
 - 统一应用/Mod 版本身份，兼容宿主双编辑器默认开启并保留停用偏好。
 - 保持配置/协议格式、显式恢复与 Python v2.0.0 回退；记录正式版仍需的实体/桌面验证。
 - 新增预览反馈与源码/安装包关联验收；披露 D06 FAIL，PERF-01 保持独立。
-- [发布说明](docs/releases/v3.0.0-beta.1.md) · [试用指南](docs/PREVIEW.zh-CN.md)。
+- [发布说明](docs/releases/v3.0.0-beta.1.md#简体中文) · [试用指南](docs/PREVIEW.zh-CN.md)。
 
 ## 2.0.0 - 2026-10-11
 
