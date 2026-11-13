@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { anchors, checkChangelog, checkDeliveryRecords, checkReleases, configurationSection } from '../docs.js';
+import { anchors, checkApprovalData, checkChangelog, checkDeliveryRecords, checkReleases, configurationSection } from '../docs.js';
 function nextHeading(text: string, anchor: string): string | undefined {
     const lines = text.split(/\r?\n/u);
     const start = lines.findIndex(line => line.includes(`<a id="${anchor}"></a>`));
@@ -152,10 +152,10 @@ function releaseFixture(t: TestContext): { root: string; files: Record<string, s
     t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
     return { root, files: {
         'v1.0.0.md': '# v1.0.0\n\n[English](#english) | [简体中文](#简体中文)\n\n<a id="english"></a>\n\n<a id="简体中文"></a>\n\n<details>\n<summary>简体中文</summary>\n\n中文摘要。\n\n</details>\n',
-        'v9.0.0.md': '# v9.0.0 — Test release\n\n**English** | [简体中文](v9.0.0.zh-CN.md)\n\nPublished on **2026-01-01**. Delivery evidence.\n\nThis release verifies the template.\n\n- Change one.\n\nCompatibility. Rerun `claude-statusline install`.\n\nSupported platforms/runtimes: Node 22/24.\n\nOnly the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted.\n\n[Version decision](approvals/v9.0.0.json) · [Release process](../RELEASING.md).\n',
-        'v9.0.0.zh-CN.md': '# v9.0.0 — 测试发布\n\n[English](v9.0.0.md) | **简体中文**\n\n已于 **2026-01-01** 发布。交付证据。\n\n本版本验证模板。\n\n- 变更一。\n\n兼容性。运行 `claude-statusline install`。\n\n支持平台／运行时：Node 22/24。\n\n仅接受 [issue #96 六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)。\n\n[版本决策](approvals/v9.0.0.json) · [发布流程](../RELEASING.zh-CN.md).\n',
-        'README.md': '# Release notes\n\n- [**v9.0.0**](v9.0.0.md) · 2026-01-01 · Stable — Test release · [中文](v9.0.0.zh-CN.md)\n- [**v1.0.0**](v1.0.0.md) · 2020-01-01 · Stable — Initial · [中文](v1.0.0.md#简体中文)\n',
-        'README.zh-CN.md': '# 发布说明\n\n- [**v9.0.0**](v9.0.0.zh-CN.md) · 2026-01-01 · 正式版 — 测试发布 · [English](v9.0.0.md)\n- [**v1.0.0**](v1.0.0.md#简体中文) · 2020-01-01 · 正式版 — 初始 · [English](v1.0.0.md#english)\n',
+        'v9.0.0.md': '# v9.0.0 — Test release\n\n**English** | [简体中文](v9.0.0.zh-CN.md)\n\nPublished on **2026-01-01**. Delivery evidence.\n\nThis release verifies the template.\n\n- Change one.\n\nCompatibility. Rerun `claude-statusline install`.\n\nSupported platforms/runtimes: Node 22/24.\n\nOnly the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted.\n\n[Delivery record](../development/history/deliveries/test.md#final-release) · [Version decision](approvals/v9.0.0.json) · [Release process](../RELEASING.md).\n',
+        'v9.0.0.zh-CN.md': '# v9.0.0 — 测试发布\n\n[English](v9.0.0.md) | **简体中文**\n\n已于 **2026-01-01** 发布。交付证据。\n\n本版本验证模板。\n\n- 变更一。\n\n兼容性。运行 `claude-statusline install`。\n\n支持平台／运行时：Node 22／24。\n\n仅接受 [issue #96 六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)。\n\n[交付记录](../development/history/deliveries/test.zh-CN.md#final-release) · [版本决策](approvals/v9.0.0.json) · [发布流程](../RELEASING.zh-CN.md).\n',
+        'README.md': '# Release notes\n\n> **Current stable: [v9.0.0](v9.0.0.md)** · 2026-01-01\n\n## TypeScript v3.10 and later\n\n- [**v9.0.0**](v9.0.0.md) · 2026-01-01 · Latest — Test release · [中文](v9.0.0.zh-CN.md)\n\n## TypeScript v3.0–v3.9\n\n- [**v1.0.0**](v1.0.0.md) · 2020-01-01 · Stable — Initial · [中文](v1.0.0.md#简体中文)\n',
+        'README.zh-CN.md': '# 发布说明\n\n> **当前正式版：[v9.0.0](v9.0.0.zh-CN.md)** · 2026-01-01\n\n## TypeScript v3.10 及后续版本\n\n- [**v9.0.0**](v9.0.0.zh-CN.md) · 2026-01-01 · 最新稳定版 — 测试发布 · [English](v9.0.0.md)\n\n## TypeScript v3.0–v3.9\n\n- [**v1.0.0**](v1.0.0.md#简体中文) · 2020-01-01 · 正式版 — 初始 · [English](v1.0.0.md#english)\n',
     } };
 }
 function writeReleaseFixture(root: string, files: Record<string, string>): void {
@@ -183,6 +183,16 @@ const invalidReleases: readonly [string, (files: Record<string, string>) => void
     ['reserved Gitee heading', files => { files['v9.0.0.md'] = files['v9.0.0.md']! + '\n## Gitee installation and downloads\n'; }, /contains a reserved Gitee heading/u],
     ['mismatched change bullets', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('- Change one.', '- Change one.\n- Change two.'); }, /change bullet counts differ/u],
     ['mismatched publication dates', files => { files['v9.0.0.zh-CN.md'] = files['v9.0.0.zh-CN.md']!.replace('2026-01-01', '2026-01-02'); }, /publication dates differ/u],
+    ['current note without #96 gaps', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('[#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96)', '#96 gaps'); }, /issue #96/u],
+    ['current note without platform block', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('Node 22/24', 'Node'); }, /Node 22\/24/u],
+    ['current note without delivery link', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('[Delivery record](../development/history/deliveries/test.md#final-release) · ', ''); }, /delivery record/u],
+    ['current note without release guide', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace(' · [Release process](../RELEASING.md)', ''); }, /release guide/u],
+    ['current note without compatibility', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('Compatibility. ', ''); }, /compatibility/u],
+    ['current note without summary', files => { files['v9.0.0.md'] = files['v9.0.0.md']!.replace('\nThis release verifies the template.\n', '\n'); }, /summary/u],
+    ['index date mismatch', files => { files['README.md'] = files['README.md']!.replace('· 2026-01-01 · Latest', '· 2026-01-02 · Latest'); }, /date differs/u],
+    ['index status mismatch', files => { files['README.zh-CN.md'] = files['README.zh-CN.md']!.replace('· 最新稳定版 —', '· 正式版 —'); }, /status differs|Latest/u],
+    ['duplicate Latest row', files => { files['README.md'] = files['README.md']!.replace('- [**v9.0.0**](v9.0.0.md) · 2026-01-01 · Latest — Test release · [中文](v9.0.0.zh-CN.md)', '- [**v9.0.0**](v9.0.0.md) · 2026-01-01 · Latest — Test release · [中文](v9.0.0.zh-CN.md)\n- [**v9.0.1**](v9.0.1.md) · 2026-01-01 · Latest — Duplicate · [中文](v9.0.1.zh-CN.md)'); }, /exactly one Latest/u],
+    ['callout mismatch', files => { files['README.md'] = files['README.md']!.replace('Current stable: [v9.0.0]', 'Current stable: [v9.0.1]'); }, /callout/u],
 ];
 for (const [name, mutate, expected] of invalidReleases)
     test('release template rejects ' + name, t => {
@@ -333,4 +343,46 @@ test('delivery template rejects mismatched dates and missing index links', t => 
 });
 test('repository delivery records satisfy the delivery template', () => {
     assert.deepEqual(checkDeliveryRecords(process.cwd()), []);
+});
+
+const acceptanceGaps = [
+    'physical-macos-sleep', 'macos-14-intel-desktop-power', 'windows-10-desktop',
+    'wsl-desktop-popup', 'remaining-target-power-and-human-visual', 'claude-2.1.296-exact-declarations',
+];
+function approvalFixture(t: TestContext): { root: string; write: (value: unknown, extra?: string) => void } {
+    const root = mkdtempSync(join(tmpdir(), 'approvals '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    const directory = join(root, 'docs', 'releases', 'approvals');
+    mkdirSync(directory, { recursive: true });
+    const write = (value: unknown, extra?: string): void => {
+        writeFileSync(join(directory, 'registry.json'), JSON.stringify({ schema_version: 1,
+            approvals: [{ version: '9.9.9', path: 'docs/releases/approvals/v9.9.9.json', approved_on: '2026-01-01' }] }));
+        writeFileSync(join(directory, 'v9.9.9.json'), JSON.stringify(value));
+        if (extra) writeFileSync(join(directory, extra), '{}');
+    };
+    return { root, write };
+}
+const approval = {
+    schema_version: 1, version: '9.9.9', decision: 'accept-known-gaps', approved_by: 'fbincon',
+    approved_on: '2026-01-01', authority: 'Test approval',
+    reference: 'https://github.com/fbincon/claude-code-statusline/issues/96', accepted_gaps: acceptanceGaps,
+};
+test('approval decisions match the registry template', t => {
+    const fixture = approvalFixture(t);
+    fixture.write(approval);
+    assert.deepEqual(checkApprovalData(fixture.root), []);
+    fixture.write({ ...approval, decision: 'all-passed' });
+    assert.match(checkApprovalData(fixture.root).join('\n'), /all-passed/u);
+    fixture.write({ ...approval, approved_on: '2026-01-02' });
+    assert.match(checkApprovalData(fixture.root).join('\n'), /date differs/u);
+    fixture.write(approval, 'v9.9.10.json');
+    assert.match(checkApprovalData(fixture.root).join('\n'), /not registered/u);
+});
+test('approval check tolerates a repository without an approval registry', t => {
+    const root = mkdtempSync(join(tmpdir(), 'approvals empty '));
+    t.after(() => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    assert.deepEqual(checkApprovalData(root), []);
+});
+test('repository approval decisions satisfy the registry template', () => {
+    assert.deepEqual(checkApprovalData(process.cwd()), []);
 });

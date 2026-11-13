@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import { join, resolve, relative, dirname, basename, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB, TAG } from '../release/markdown.ts';
+import { assessApprovalRegistry, assessStableApproval } from '../release/approval.ts';
 import { checkCommunity } from './community.ts';
 const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
 const RELEASE_FILE = /^(v\d+\.\d+\.\d+(?:(?:a|b|rc)\d+|-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?)(\.zh-CN)?\.md$/u;
@@ -23,6 +24,10 @@ export function anchors(body: string): Set<string> {
 function releaseCurrent(tag: string): boolean {
     const match = /^v(\d+)\.(\d+)\.(\d+)/u.exec(tag)!;
     return Number(match[1]) > 3 || Number(match[1]) === 3 && Number(match[2]) >= 10;
+}
+const RELEASE_TEMPLATE_FROM = '3.16.4';
+function releaseAtLeast(tag: string, minimum: string): boolean {
+    return changelogVersionAtLeast(tag.slice(1), minimum);
 }
 function releaseText(body: string): string {
     let fence = '';
@@ -68,6 +73,27 @@ function releasePageErrors(tag: string, language: 'en' | 'zh', current: boolean,
         }
         if (!body.includes('claude-statusline install')) errors.push(`docs/releases/${name}: missing claude-statusline install`);
         if (!body.includes(`approvals/${tag}.json`)) errors.push(`docs/releases/${name}: missing version decision link`);
+        if (releaseAtLeast(tag, RELEASE_TEMPLATE_FROM)) {
+            if (!body.includes('https://github.com/fbincon/claude-code-statusline/issues/96'))
+                errors.push(`docs/releases/${name}: missing issue #96 gaps link`);
+            if (!/(?:Node\s*22\s*[／/]\s*24|Node\s*22[^\n]*Node\s*24)/u.test(body))
+                errors.push(`docs/releases/${name}: missing Node 22/24 platform block`);
+            const delivery = language === 'en'
+                ? /\]\(\.\.\/development\/history\/deliveries\/[^)]+\.md#final-release\)/u
+                : /\]\(\.\.\/development\/history\/deliveries\/[^)]+\.zh-CN\.md#final-release\)/u;
+            if (!delivery.test(body)) errors.push(`docs/releases/${name}: missing delivery record link`);
+            if (!body.includes(language === 'en' ? '](../RELEASING.md)' : '](../RELEASING.zh-CN.md)'))
+                errors.push(`docs/releases/${name}: missing release guide link`);
+            if (!/Compatibility|兼容性/iu.test(body)) errors.push(`docs/releases/${name}: missing compatibility statement`);
+            const lines = releaseText(body).split('\n');
+            const dateIndex = lines.findIndex(line => language === 'en'
+                ? /^Published on \*\*\d{4}-\d{2}-\d{2}\*\*/u.test(line)
+                : /^已于 \*\*\d{4}-\d{2}-\d{2}\*\* 发布/u.test(line));
+            const bulletIndex = lines.findIndex((line, index) => index > dateIndex && line.startsWith('- '));
+            const summary = dateIndex >= 0 && lines.slice(dateIndex + 1, bulletIndex < 0 ? undefined : bulletIndex)
+                .some(line => line.trim() && !line.trim().startsWith('|'));
+            if (!summary) errors.push(`docs/releases/${name}: missing a summary paragraph before the change bullets`);
+        }
     } else if (language === 'en') {
         if (!body.includes('](#english)') || !body.includes('](#简体中文)')) errors.push(`docs/releases/${name}: missing historical language navigation`);
         const anchors = body.match(/<a id="english"><\/a>/gu) ?? [];
@@ -93,10 +119,79 @@ function releaseIndexTags(body: string): string[] {
     }
     return tags;
 }
+interface ReleaseIndexRow {
+    tag: string;
+    target: string;
+    date: string;
+    status: string;
+    summary: string;
+    language: string;
+}
+function releaseIndexSection(body: string, language: 'en' | 'zh'): string | undefined {
+    const heading = language === 'en' ? '## TypeScript v3.10 and later' : '## TypeScript v3.10 及后续版本';
+    const start = body.indexOf(heading);
+    return start < 0 ? undefined : body.slice(start + heading.length).split(/^## /mu)[0]!;
+}
+function releaseIndexRows(body: string, language: 'en' | 'zh'): ReleaseIndexRow[] {
+    const section = releaseIndexSection(body, language);
+    if (section === undefined) return [];
+    const pattern = language === 'en'
+        ? /^- \[\*\*(v[^\]]+)\*\*\]\(([^)]+)\) · (\d{4}-\d{2}-\d{2}) · (Latest|Stable|Preview) — (.+) · \[中文\]\(([^)]+)\)$/gmu
+        : /^- \[\*\*(v[^\]]+)\*\*\]\(([^)]+)\) · (\d{4}-\d{2}-\d{2}) · (最新稳定版|正式版|预览版) — (.+) · \[English\]\(([^)]+)\)$/gmu;
+    return [...section.matchAll(pattern)].map(match => ({
+        tag: match[1]!, target: match[2]!, date: match[3]!, status: match[4]!, summary: match[5]!, language: match[6]!,
+    }));
+}
+function releaseIndexRowCount(body: string, language: 'en' | 'zh'): number {
+    return releaseIndexSection(body, language)?.split('\n').filter(line => line.startsWith('- ')).length ?? 0;
+}
+function checkReleaseIndexRows(english: string, chinese: string, englishDates: ReadonlyMap<string, string>,
+    chineseDates: ReadonlyMap<string, string>, errors: string[]): void {
+    const enRows = releaseIndexRows(english, 'en'), zhRows = releaseIndexRows(chinese, 'zh');
+    if (!enRows.length && !zhRows.length) return;
+    if (!enRows.length || !zhRows.length) {
+        errors.push('docs/releases/README.md: current-era release index rows are missing in one language');
+        return;
+    }
+    if (releaseIndexRowCount(english, 'en') !== enRows.length)
+        errors.push('docs/releases/README.md: current-era release index contains a malformed row');
+    if (releaseIndexRowCount(chinese, 'zh') !== zhRows.length)
+        errors.push('docs/releases/README.zh-CN.md: current-era release index contains a malformed row');
+    const enByTag = new Map(enRows.map(row => [row.tag, row])), zhByTag = new Map(zhRows.map(row => [row.tag, row]));
+    const status: Record<string, string> = { Latest: '最新稳定版', Stable: '正式版', Preview: '预览版' };
+    for (const row of enRows) {
+        if (!releaseAtLeast(row.tag, RELEASE_TEMPLATE_FROM)) continue;
+        const zh = zhByTag.get(row.tag);
+        if (!zh) { errors.push(`docs/releases/README.zh-CN.md: missing row for ${row.tag}`); continue; }
+        if (row.target !== `${row.tag}.md`) errors.push(`docs/releases/README.md: ${row.tag} row must target ${row.tag}.md`);
+        if (row.language !== `${row.tag}.zh-CN.md`) errors.push(`docs/releases/README.md: ${row.tag} row must link ${row.tag}.zh-CN.md`);
+        if (zh.target !== `${row.tag}.zh-CN.md`) errors.push(`docs/releases/README.zh-CN.md: ${row.tag} row must target ${row.tag}.zh-CN.md`);
+        if (zh.language !== `${row.tag}.md`) errors.push(`docs/releases/README.zh-CN.md: ${row.tag} row must link ${row.tag}.md`);
+        if (status[row.status] !== zh.status) errors.push(`docs/releases/README.zh-CN.md: ${row.tag} status differs between languages`);
+        if (englishDates.get(row.tag) !== row.date) errors.push(`docs/releases/README.md: ${row.tag} date differs from its release note`);
+        if (chineseDates.get(row.tag) !== zh.date) errors.push(`docs/releases/README.zh-CN.md: ${row.tag} date differs from its release note`);
+        if (!row.summary.trim()) errors.push(`docs/releases/README.md: ${row.tag} row needs a summary`);
+    }
+    const latest = enRows.filter(row => row.status === 'Latest'), zhLatest = zhRows.filter(row => row.status === '最新稳定版');
+    if (latest.length !== 1) errors.push(`docs/releases/README.md: expected exactly one Latest row, found ${latest.length}`);
+    if (zhLatest.length !== 1) errors.push(`docs/releases/README.zh-CN.md: expected exactly one 最新稳定版 row, found ${zhLatest.length}`);
+    if (latest.length === 1 && zhLatest.length === 1 && latest[0]!.tag !== zhLatest[0]!.tag)
+        errors.push('docs/releases/README.md: Latest differs between languages');
+    const newestStable = enRows.find(row => row.status === 'Latest' || row.status === 'Stable');
+    if (latest.length === 1 && newestStable && latest[0]!.tag !== newestStable.tag)
+        errors.push(`docs/releases/README.md: Latest row ${latest[0]!.tag} is not the newest stable ${newestStable.tag}`);
+    const englishCallout = /Current stable: \[(v[^\]]+)\]/u.exec(english)?.[1];
+    const chineseCallout = /当前正式版：\[(v[^\]]+)\]/u.exec(chinese)?.[1];
+    if (latest.length === 1 && englishCallout !== latest[0]!.tag)
+        errors.push(`docs/releases/README.md: current-stable callout must be ${latest[0]!.tag}`);
+    if (zhLatest.length === 1 && chineseCallout !== zhLatest[0]!.tag)
+        errors.push(`docs/releases/README.zh-CN.md: current-stable callout must be ${zhLatest[0]!.tag}`);
+}
 export function checkReleases(root: string): string[] {
     const directory = join(root, 'docs', 'releases');
     if (!fs.existsSync(directory)) return [];
     const errors: string[] = [], releases = new Map<string, { en?: string; zh?: string }>();
+    const englishDates = new Map<string, string>(), chineseDates = new Map<string, string>();
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
         if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md' || entry.name === 'README.zh-CN.md') continue;
         const match = RELEASE_FILE.exec(entry.name);
@@ -118,22 +213,28 @@ export function checkReleases(root: string): string[] {
         const chinese = release.zh ? fs.readFileSync(join(directory, release.zh), 'utf8') : undefined;
         if (english) errors.push(...releasePageErrors(tag, 'en', current, english));
         if (chinese) errors.push(...releasePageErrors(tag, 'zh', current, chinese));
+        const englishDate = english ? releaseDate(english, 'en') : undefined;
+        const chineseDate = chinese ? releaseDate(chinese, 'zh') : undefined;
+        if (englishDate) englishDates.set(tag, englishDate);
+        if (chineseDate) chineseDates.set(tag, chineseDate);
         if (current && english && chinese) {
-            const englishDate = releaseDate(english, 'en'), chineseDate = releaseDate(chinese, 'zh');
             if (englishDate && chineseDate && englishDate !== chineseDate) errors.push(`docs/releases/${tag}.md: publication dates differ between languages`);
             const englishBullets = releaseBullets(english), chineseBullets = releaseBullets(chinese);
             if (englishBullets === 0 || chineseBullets === 0) errors.push(`docs/releases/${tag}.md: current release needs at least one change bullet`);
             else if (englishBullets !== chineseBullets) errors.push(`docs/releases/${tag}.md: change bullet counts differ between languages`);
         }
     }
-    const readIndex = (name: string) => fs.existsSync(join(directory, name)) ? fs.readFileSync(join(directory, name), 'utf8') : '';
-    const englishIndex = releaseIndexTags(readIndex('README.md')), chineseIndex = releaseIndexTags(readIndex('README.zh-CN.md'));
+    const readIndex = (name: string) => fs.existsSync(join(directory, name))
+        ? fs.readFileSync(join(directory, name), 'utf8').replaceAll('\r\n', '\n') : '';
+    const englishIndexBody = readIndex('README.md'), chineseIndexBody = readIndex('README.zh-CN.md');
+    const englishIndex = releaseIndexTags(englishIndexBody), chineseIndex = releaseIndexTags(chineseIndexBody);
     for (const tag of releases.keys()) {
         if (englishIndex.filter(item => item === tag).length !== 1) errors.push(`docs/releases/README.md: ${tag} must appear exactly once`);
         if (chineseIndex.filter(item => item === tag).length !== 1) errors.push(`docs/releases/README.zh-CN.md: ${tag} must appear exactly once`);
     }
     for (const tag of new Set([...englishIndex, ...chineseIndex]))
         if (!releases.has(tag)) errors.push(`docs/releases/README.md: unknown release entry ${tag}`);
+    checkReleaseIndexRows(englishIndexBody, chineseIndexBody, englishDates, chineseDates, errors);
     return errors;
 }
 const CHANGELOG_TEMPLATE_FROM = '3.16.4';
@@ -352,6 +453,37 @@ export function checkDeliveryRecords(root: string): string[] {
     }
     return errors;
 }
+export function checkApprovalData(root: string): string[] {
+    const directory = join(root, 'docs', 'releases', 'approvals');
+    const registryPath = join(directory, 'registry.json');
+    if (!fs.existsSync(registryPath)) return [];
+    const errors: string[] = [];
+    let registry: ReturnType<typeof assessApprovalRegistry>;
+    try {
+        registry = assessApprovalRegistry(JSON.parse(fs.readFileSync(registryPath, 'utf8')));
+    } catch (error) {
+        return [`docs/releases/approvals/registry.json: ${error instanceof Error ? error.message : String(error)}`];
+    }
+    const registered = new Set<string>();
+    for (const row of registry.approvals) {
+        registered.add(row.path);
+        const path = join(root, row.path);
+        if (!fs.existsSync(path)) {
+            errors.push(`docs/releases/approvals/registry.json: ${row.version} is missing ${row.path}`);
+            continue;
+        }
+        try {
+            assessStableApproval(JSON.parse(fs.readFileSync(path, 'utf8')), row.version, registry);
+        } catch (error) {
+            errors.push(`${row.path}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    for (const name of fs.readdirSync(directory).filter(name => /^v.*\.json$/u.test(name))) {
+        const relative = `docs/releases/approvals/${name}`;
+        if (!registered.has(relative)) errors.push(`${relative}: approval decision is not registered`);
+    }
+    return errors;
+}
 export function checkDocs(root: string, additional: readonly string[] = []): {
     links: number;
     errors: string[];
@@ -415,6 +547,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
     errors.push(...checkReleases(root));
     errors.push(...checkChangelog(root));
     errors.push(...checkDeliveryRecords(root));
+    errors.push(...checkApprovalData(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
