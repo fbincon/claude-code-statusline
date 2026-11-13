@@ -102,6 +102,8 @@ npm run test:mods -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report d
 
 Record each fixed candidate's real loading, initial click, Space/Enter, page/order/search, numeric Ctrl+G, save/finish/cancel, Esc focus/close, narrow/CJK layout, preferences, conflicts and return to the same session. Windows/macOS human checks remain separate from CI.
 
+> **Scope:** The acceptance records below are historical human-acceptance evidence for the named versions. They are not current setup or verification steps; current checks are described above. See the [acceptance records index](history/acceptance-records.md#contents-and-version-index).
+
 ## Stable acceptance record
 
 The v1.2.0 UI passed the maintainer's Linux, Windows 11 and macOS 14.5 checklists before stable promotion. The original records remain in the v1.2.0 release documentation; unprovided architecture/terminal details remain unknown.

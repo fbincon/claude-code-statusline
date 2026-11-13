@@ -20,7 +20,6 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 
 | Area | Delivery records |
 | --- | --- |
-| Documentation maintenance | [Reader-oriented content organization and bilingual checks](deliveries/documentation-content-organization.md) · [Corrections, complete source workflows and targeted regression checks](deliveries/documentation-content-validation.md) · [CLI reference coverage, targets and regression checks](deliveries/cli-reference-maintenance.md) · [User-guide onboarding and editor operations](deliveries/user-guide-onboarding.md) · [Root documentation accuracy and organization](deliveries/root-documentation-audit.md) · [Root documentation structure and version ownership](deliveries/root-docs-structure.md) · [Development documentation factual corrections and historical freezing](deliveries/development-docs-corrections.md) · [Development documentation archive and navigation refresh](deliveries/development-docs-archive-refresh.md) · [Development content checks and registration](deliveries/development-content-checks.md) · [Documentation content regression repairs](deliveries/docs-content-check-fixes.md) · [Image index organization and Python-era archive](deliveries/docs-images-organization.md) · [Release notes index, navigation and template](deliveries/docs-releases-organization.md) |
 | v3.16.3 configuration skills | [Question paging, scope and fallback workflows](deliveries/skill-workflows.md#final-release) |
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |
@@ -33,6 +32,19 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 | Post-migration review | [Findings](migration/post-migration-review.md) · [Repairs](migration/post-migration-fixes.md) · [External TUI parity](migration/external-tui-parity.md) · [External TUI regressions](migration/external-tui-regressions.md) |
 | Performance | [Reports by version](#performance-reports) |
 | Demonstration delivery | [SHOWCASE-01](deliveries/showcase.md#delivery) |
+
+<a id="documentation-maintenance-records"></a>
+
+## Documentation maintenance records
+
+These records preserve documentation organization, navigation and check-maintenance deliveries. Current maintenance ownership is in [Where to update documentation](../README.md#documentation-ownership).
+
+| Area | Delivery records |
+| --- | --- |
+| Content organization and accuracy | [Reader-oriented content organization and bilingual checks](deliveries/documentation-content-organization.md) · [Corrections, complete source workflows and targeted regression checks](deliveries/documentation-content-validation.md) · [CLI reference coverage, targets and regression checks](deliveries/cli-reference-maintenance.md) · [User-guide onboarding and editor operations](deliveries/user-guide-onboarding.md) · [Root documentation accuracy and organization](deliveries/root-documentation-audit.md) · [Root documentation structure and version ownership](deliveries/root-docs-structure.md) · [Development documentation factual corrections and historical freezing](deliveries/development-docs-corrections.md) |
+| Indexes, archives and navigation | [Development documentation archive and navigation refresh](deliveries/development-docs-archive-refresh.md) · [Image index organization and Python-era archive](deliveries/docs-images-organization.md) · [Release notes index, navigation and template](deliveries/docs-releases-organization.md) |
+| Checks and regression repairs | [Development content checks and registration](deliveries/development-content-checks.md) · [Documentation content regression repairs](deliveries/docs-content-check-fixes.md) |
+| Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) |
 
 <a id="delivery-by-version"></a>
 

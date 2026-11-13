@@ -106,6 +106,8 @@ npm run test:mods -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report d
 
 固定候选需核实实际加载、首次点击、Space/Enter、切页/排序/搜索、数值 Ctrl+G、保存/完成/取消、Esc 焦点及关闭、窄窗/CJK、偏好、冲突和继续同一 session。Windows/macOS 真人检查与 CI 分开记录。
 
+> **适用范围：** 下方验收记录是特定版本的历史人工验收证据，不是现行安装或验证步骤；现行检查见上文。索引见[验收记录](history/acceptance-records.zh-CN.md#目录与版本索引)。
+
 ## 稳定版验收记录
 
 v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 14.5 的完整真人清单通过。原始结论保留在 v1.2.0 发布文档；未提供的架构与终端信息保持未知。

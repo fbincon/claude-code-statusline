@@ -2,6 +2,8 @@
 
 **English** | [简体中文](ci-efficiency.zh-CN.md)
 
+> **Scope:** This page records one-time CI measurements for named versions and runs. They are historical observations; they do not define current thresholds or constitute reproduction commands. Current acceptance procedures are in [testing and acceptance](testing.md).
+
 ## Failure baseline
 
 The old 55-minute installation timeout stopped otherwise valid Windows ARM/x64 Node appearance work after 4.64 seconds on #190 and 52.86 seconds on #198. Both logs contained 26 passing tests. The Windows ARM Node 22.0.0 rerun on #198 took 52m28s. A separate run on the final #198 head failed uploading the Intel Mac receipt after its product assertions had passed. That run's first attempt took 2h03m16s wall clock, with 1,389m13s of unweighted runner execution across 60 jobs. The longest queue was 99m20s. Repeating the Intel job and aggregate cost another 24m31s of runner time. [#190 timeout](https://github.com/fbincon/claude-code-statusline/actions/runs/41007969032/job/123908643050) · [#198 timeout rerun](https://github.com/fbincon/claude-code-statusline/actions/runs/41168202931/job/124463172951) · [#198 final-source attempts](https://github.com/fbincon/claude-code-statusline/actions/runs/41180416268)

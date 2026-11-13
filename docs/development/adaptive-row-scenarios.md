@@ -34,6 +34,8 @@ Complete editor state remains in the host. Props, the outer Pane and Client draw
 
 ## Supported signature verification
 
+> **Scope:** The `release:signatures` procedure is current. The `3.14.0` version and artifact below are the original delivery example; substitute the release under verification. See [publication, signatures and public bytes](history/deliveries/adaptive-row-scenarios.md#publication-signatures-and-public-bytes).
+
 Use the pinned development toolchain and an exact downloaded package:
 
 ```bash

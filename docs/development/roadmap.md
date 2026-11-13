@@ -63,7 +63,7 @@ Candidates have no assigned version or date. Listing one does not start developm
 
 ## Stages and dependencies
 
-M1 → M2 → M3 → M4–M7 records the early delivery sequence. SHOWCASE-01 followed acceptance of the original eighteen formal follow-up packages and all their slices. I18N-02 had a separate schedule. The archived tables preserve the original dependencies and scheduling.
+M1 → M2 → M3 → M4–M7 records the early delivery sequence. SHOWCASE-01 followed acceptance of the original eighteen formal follow-up packages and all their slices. I18N-02 had a separate schedule. The [archived milestones and dependencies](history/roadmap-milestones.md#milestones) preserve the original dependencies and scheduling.
 
 After selecting a candidate, start from the then-current `main`, verify its entry conditions and define dependencies and delivery scope in the work package. Track `NOT_STARTED` → `IN_PROGRESS` → `VALIDATING` → `DONE` and record feature merge, package completion and publication separately.
 
