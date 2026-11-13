@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+**状态：** 最新语言捕获（已安装 v3.16.0 候选包）；不是当前产品验收。
+
 这九张图像重建了在隔离 Linux x64 PTY 中运行的 v3.16.0 候选安装包输出：六张外部设置页和三张 Native 设置页。每张 PNG 都经过独立于自动化行为检查的画面检查。它们是终端重建图，不是操作系统截图，也不构成新增真人桌面／电源验收。
 
 采集日期为 2026-10-30，源码为 [`6e86031ff1bfeb900c9c38dee58ca10194ab936d`](https://github.com/fbincon/claude-code-statusline/commit/6e86031ff1bfeb900c9c38dee58ca10194ab936d)。候选包：`fbincon-claude-code-statusline-3.16.0.tgz`，SHA-256 为 `6d6d955e3850e25c36705927e97ba8522d0bde83d60f1de32b8d229458501b68`。后续文档或发布提交不会改变这一采集身份。[图片、单元格、采集器、渲染器、字体与验证摘要](provenance.json) · [语言扩展交付记录](../../../development/language-expansion.zh-CN.md)。

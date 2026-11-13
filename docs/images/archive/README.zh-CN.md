@@ -2,9 +2,17 @@
 
 [English](README.md) | **简体中文**
 
+**状态：** 冻结归档；不再更新历史结论。
+
 本页保留此前文档使用的 51 张图片和原来源记录。当前图片索引列出 2026-10-07 的会话内与外部 TUI 截图，见[当前图片索引](../README.zh-CN.md)。以下历史反馈按原日期和范围保留；不会因文件迁移而成为新的验收结论。本页及替换快照已冻结，不再更新其历史结论。
 
 这些截图此前在[项目首页](../../../README.zh-CN.md#界面预览)展示；当前项目首页使用 SHOWCASE-01 图片。主状态栏图片来自实际 Claude 会话；配置页中的 `Preview (sample data)` 使用固定样例，Subagents 配置页的两条预览不代表真实并行 Agent 的验收结果。
+
+## 图库替换批次
+
+[2026-10-07 替换的 18 张图库图片](screenshots/replaced-2026-10-07/README.zh-CN.md)保留原主状态栏、会话内 Main 截图和外部四页图库，以及原文件名和 PNG 哈希。替换日期不改变捕获日期或验收结论。
+
+<a id="file-index"></a>
 
 ## 文件索引
 
@@ -13,6 +21,10 @@
 | Linux | [statusline.png](screenshots/replaced-2026-10-07/statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
 | macOS | [statusline-macos.png](screenshots/replaced-2026-10-07/statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
 | Windows | [statusline-windows.png](screenshots/replaced-2026-10-07/statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
+
+采集批次：保留的主状态栏图随 2026-10-07 替换进入归档；外部配置页采集于 2026-10-05；下方会话内截图采集于 2026-10-04。
+
+<a id="interface-screenshots"></a>
 
 ## 会话内 Client 截图
 
@@ -25,6 +37,8 @@
 | macOS | [client-session-macos.png](screenshots/native/macos/session.png) | 1347×892 | 面板可以打开；交互异常；有效配置尚未验证 |
 
 原文件名依次为 `linux.png`、`windows.png` 和 `macOS.png`。保留 PNG 原始字节、尺寸和颜色，不裁剪或重绘；会话原文中的先前命令及连接消息同样保留。Client Preview 使用固定样例数据。截图用于展示布局，交互结论来自维护者另行反馈。macOS 检查建议见[使用指南](../../USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)；本次反馈与历史验收分别记录在[原生编辑器开发说明](../../development/native.zh-CN.md#claude-code-21289-交互反馈)。
+
+<a id="display-notes"></a>
 
 ## 展示说明
 
@@ -42,13 +56,19 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 - 保留可读的状态栏或配置页面，更新时同步首页引用和文件索引。
 - 历史 Python 源码分发包曾通过 `MANIFEST.in` 收录本目录的 Markdown 和 PNG；该打包路径不属于当前 npm 发布流程。
 
+<a id="native-editor-captures"></a>
+
 ## 原生编辑器画面
+
+<a id="v130a1-preview-captures"></a>
 
 ### v1.3.0a1 预览画面
 
 [Main](reconstructions/v1.3.0a1/linux/native-main-v1.3.0a1-linux.png) · [Subagents](reconstructions/v1.3.0a1/linux/native-subagents-v1.3.0a1-linux.png) · [Settings](reconstructions/v1.3.0a1/linux/native-settings-v1.3.0a1-linux.png)
 
 三张 PNG 重建真实 Linux x86_64、Claude Code 2.1.288、后端 1.3.0a1、官方持久插件的解码 cells，干净源码提交为 `4cd97dd480aa0025fb9edc7644b872bf3fa6336b`（2026-10-04）。停靠终端尺寸 120×30，同一自动运行另检查 80×48 的内嵌操作。渲染器裁去会话/输入区并内嵌提交与原始画面哈希；数值为生产样例，是终端重建，不是 OS 逐像素截图或 mockup。原始来源仅留在忽略的 `dist/validation/native-usability-capture-288`。维护者随后确认 a1 三平台真人验收通过；a2 Client 真人验收单独记录。
+
+<a id="v120-captures"></a>
 
 ### v1.2.0 画面
 
@@ -58,11 +78,15 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 状态行数值为生产样例预览。Settings 下方内容通过宿主滚动/Tab 查看。画面及 120/80 列自动保存取消检查不表示真人验收通过，私有 cells/debug 在忽略的 `dist/validation/phase2-editor-pty-fixed`。`configure-*-macos.png` 与 `configure-*-windows.png` 是兼容 TUI 图片；该版本发布时未提供这两个平台的原生截图，维护者已另行确认 Windows 11、macOS 14.5 真人结果。
 
+<a id="v130a2-client-captures"></a>
+
 ### v1.3.0a2 Client 画面
 
 [Main](reconstructions/v1.3.0a2/linux/client-main-v1.3.0a2-linux.png) · [Subagents](reconstructions/v1.3.0a2/linux/client-subagents-v1.3.0a2-linux.png) · [Settings](reconstructions/v1.3.0a2/linux/client-settings-v1.3.0a2-linux.png)
 
 三张 PNG 重建 Linux x86_64、Claude Code 2.1.288 交互宿主、后端 1.3.0a2 和持久安装 Mod 的真实终端 cells。固定源码提交 `2ed1f3ae306776caeffe6a27205a4d680cb8e472`，运行时资源与本次候选一致。120×30 PTY 使用私有 tmux server，另验证 80×48 内嵌布局。图片裁去会话、输入区和真实状态栏，Preview 为固定生产样例；不是 OS 像素截图或设计 mockup。图片内嵌提交与原始画面 SHA-256，原始数据留在忽略的 `dist/validation/client-a2-fixed-288`。这些自动画面不计为真人验收。2026-10-04 维护者另行确认 a2 在 Linux、Windows、macOS 真人验收通过，未附终端/架构/宿主详细元数据。正式 v1.3.0 沿用其 Client 交互模块，仅更新版本/描述等元数据；图片保留 a2 文件名和原始来源。
+
+<a id="v150a1-phase-4-captures"></a>
 
 ### v1.5.0a1 Phase 4 终端重建画面
 
@@ -72,21 +96,23 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 重建工具裁去对话／输入框／实时状态和私有路径，紧凑页使用明确的单元格裁剪范围，并保留 CJK 续列背景。Preview 为生产样例。代理检查确认格式／布局／宿主控件与中文可读；画面属于终端重建，不是系统像素截图或人工验收。原始记录仅保留在忽略的 `dist/validation/phase4/preview-candidate-r2-pty`。Linux／Windows Phase 4 及 macOS 独立 TUI／CLI 人工验收已于 2026-10-05 确认，macOS Client 输入问题继续保留。
 
+<a id="v150-stable-acceptance"></a>
+
 ## v1.5.0 正式验收
 
 2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
 
 正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。
 
+<a id="v160-stable-acceptance"></a>
+
 ## v1.6.0 正式版验收
 
 维护者确认及 Phase 5 证据范围见[历史验收记录](../../development/history/acceptance-records.zh-CN.md#v160-正式版验收)。
 
-## 图库替换批次
-
-[2026-10-07 替换的 18 张图库图片](screenshots/replaced-2026-10-07/README.zh-CN.md)保留原主状态栏、会话内 Main 截图和外部四页图库，以及原文件名和 PNG 哈希。替换日期不改变捕获日期或验收结论。
-
 <a id="external-tui-v161"></a>
+
+<a id="v161-external-tui-captures"></a>
 
 ## v1.6.1 外部 TUI 捕获
 

@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+**状态：** 历史功能图库（v3.9.1）；不是当前产品验收。
+
 这五张图像重建自隔离 Linux x64 PTY 中已安装 v3.9.1 候选包的真实终端单元格，宿主为 Claude Code 2.1.310，Node 为 24.21.0。它们不是操作系统截图，也不是人工桌面验收。图中各流程均通过交互、保存／取消及宿主日志断言；最终发布门禁和包身份另见[交付记录](../../development/native-capacity.zh-CN.md)。
 
 来源：[`d195f7a41d23d0b8d38c53addd7575e9a06e874a`](https://github.com/fbincon/claude-code-statusline/commit/d195f7a41d23d0b8d38c53addd7575e9a06e874a)。候选包 SHA-256：`34150c0bf8c0cbae0c4890c68e227cb2ca0cad55626c3b42279cc35ae2c31c9e`。裁剪保留原始文字和样式。[来源记录](provenance.json) 包含单元格、图像、渲染器、字体摘要和精确裁剪范围；原始 ANSI、单元格矩阵及宿主日志仅保留在本机验证目录。

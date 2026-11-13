@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Latest language capture at v3.16.0; v3.1.1, v3.1.0 regional and v3.0.0 preparation galleries are historical.
+
 The [v3.16.0 language gallery](v3.16.0/README.md) shows six additional interface languages in the external editor and three Native examples from a verified installed candidate. It records exact source/package identities, image hashes, privacy crops and separate twelve-language behavior checks.
 
 The [v3.1.1 six-language gallery](v3.1.1/README.md) preserves four pages, contextual controls, light/dark profiles and minimum-window views from that final installed package. Its image hashes, source/package provenance and separate behavior assertions retain their original identities.

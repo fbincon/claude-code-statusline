@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+**状态：** TypeScript 历史图库（v3.1.1）；不是当前产品验收。
+
 这 50 张选图由隔离 Linux x64 PTY 中已安装的 v3.1.1 外部编辑器实际输出单元重建，**不是操作系统截图**，也不构成新增人工桌面／电源验收。此前 TypeScript 图片和[原始 Python 图集](../../README.zh-CN.md)全部保留。
 
 来源提交：[`b484dc9acc87bc55a2833904dd332827307603ca`](https://github.com/fbincon/claude-code-statusline/commit/b484dc9acc87bc55a2833904dd332827307603ca)。安装包：`fbincon-claude-code-statusline-3.1.1.tgz`，SHA-256 为 `364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609`。Node 24.21.0，xterm-256color。[图片、单元、ANSI、采集器和字体校验值](provenance.json) · [行为验收与交付证据](../../../development/external-tui-parity.zh-CN.md)。

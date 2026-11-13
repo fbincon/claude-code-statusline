@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical feature gallery (v3.14.0); not current product acceptance.
+
 These five images reconstruct fixed samples rendered by the installed v3.14.0 candidate. They are terminal-cell reconstructions, not desktop screenshots or human acceptance. Sample model, task, usage and quota values are synthetic. [Exact PNG, cell, ANSI and font hashes](provenance.json).
 
 - Source: `492d3d50c8d0d72b6230aff956425958b86f5417`

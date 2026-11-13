@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Current visual baseline (v3.16.0 recording; current product 3.16.3).
+
 The [walkthrough](../../SHOWCASE.md) reproduces these scenes with published **v3.16.0**. Download the associated profile, inspect it, import it and preview before activation. The approved visual baseline uses classic separators and the default palette, with distinct soft foreground gradients and no Powerline. Dark backgrounds use the Classic theme; light backgrounds use Light. Original model names, legacy formatting and meaningful status symbols remain; extra `M` / `D` / `G` decorations are removed. The [capture inventory](captures.json) records product/collector identity, inputs, method, dimensions, fonts, transformations and file digests; [acceptance](../../development/showcase.md) is separate from the pictures.
 
 The [visual refinement record](../../development/showcase.md#visual-refinement) tracks recollection and verification for all 14 PNGs and six GIFs. It records the new collection's own status and receipts while retaining earlier collection identities. Components share their gradient across scenes and main/subagent rows; the light variant darkens the same hues. See the [formatting baseline](../../SHOWCASE.md#visual-baseline) for the choices behind the profiles.

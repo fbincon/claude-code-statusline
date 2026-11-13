@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Historical feature gallery (v3.9.1); not current product acceptance.
+
 These five images reconstruct actual cells from the installed v3.9.1 candidate in isolated Linux x64 PTYs with Claude Code 2.1.310 and Node 24.21.0. They are not operating-system screenshots or human desktop acceptance. Every pictured journey passed its interaction, save/cancel and host-log assertions. Final release gates and package identities are tracked separately in the [delivery record](../../development/native-capacity.md).
 
 Source: [`d195f7a41d23d0b8d38c53addd7575e9a06e874a`](https://github.com/fbincon/claude-code-statusline/commit/d195f7a41d23d0b8d38c53addd7575e9a06e874a). Candidate package SHA-256: `34150c0bf8c0cbae0c4890c68e227cb2ca0cad55626c3b42279cc35ae2c31c9e`. The crops preserve original text and styles. [Provenance](provenance.json) records cell/image/renderer/font digests and exact crop bounds. Raw ANSI streams, matrices and host logs remain in private validation output.

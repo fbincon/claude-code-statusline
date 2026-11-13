@@ -4,6 +4,8 @@ This snapshot preserves the 18 images previously used by the README. The date na
 
 **English** | [简体中文](README.zh-CN.md)
 
+**Status:** Frozen snapshot of the 2026-10-07 replacement; not current.
+
 At the 2026-10-07 replacement, the gallery contained 18 images: three retained main status lines, three new in-session Client screenshots and twelve new external configuration pages. Earlier images and capture records are in the [archive](../../README.md).
 
 PNG bytes, dimensions, colors and metadata are preserved. Main status lines show session data; configuration `Preview (sample data)` uses fixed examples, not actual token usage or evidence of real parallel agents.
