@@ -17,7 +17,7 @@ Captured on 2026-10-11 on Linux x86_64, Python 3.14.4 and Claude Code 2.1.296 fr
 
 Reconstruction uses DejaVu Sans Mono, Noto Sans CJK and Noto Sans Symbols with an explicit dark-terminal color fixture. Images received agent inspection. Actual font rendering and new human Windows/macOS interaction acceptance are not established by these images.
 
-| Entry / language | Capture SHA256 | PNG SHA256 |
+| Entry / language | Capture SHA-256 | PNG SHA-256 |
 | --- | --- | --- |
 | native / en | `68a5b50078f882ff846a22f80d968c52e8906fc198f6bb3dc424ca6fe8dfeef6` | `2427a9762727b56ff8932efbd364e7b23f589f6dee6988e8b2f6f260099b1d77` |
 | native / zh-CN | `bbe991a4e41304b8266c86d10e1d0a29560eb5ef66823c78241761b4632d565d` | `6c4138e77a68877fb13323803477b872499de66523f0a4f4a6825ef9d3a37fe2` |

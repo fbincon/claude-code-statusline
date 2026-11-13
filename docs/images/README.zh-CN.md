@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-当前可复现操作流程与非 Powerline 场景变体，从 [SHOWCASE-01 图库](showcase/README.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)开始。各图库分别记录软件包／源码／输入身份及捕获方法。实机截图、终端录制、PTY 重建、代理检查和人工验收是不同类型的证据。
+当前可复现操作流程与非 Powerline 场景变体，从 [SHOWCASE-01 图库](showcase/README.zh-CN.md)和[使用演示](../SHOWCASE.zh-CN.md)开始；录制基线为 v3.16.0，当前文档产品为 3.16.3。各图库分别记录其证据可用的软件包／源码／输入身份及捕获方法。实机截图、终端录制、PTY 重建、代理检查和人工验收是不同类型的证据。
 
 ## 图库导航
 
@@ -10,9 +10,9 @@
 | --- | --- |
 | [SHOWCASE-01](showcase/README.zh-CN.md) | 首页场景、配置流程及复现／来源说明 |
 | [v3.16.0 语言](typescript/v3.16.0/README.zh-CN.md) | 六种新增界面语言、Native 示例及独立十二语言行为检查 |
-| [自适应外观](adaptive-row-scenarios/README.zh-CN.md) | v3.14.0 五套方案在 40／80／120 列的显示 |
+| [自适应外观](adaptive-row-scenarios/README.zh-CN.md) | v3.14.0 五个场景样本，覆盖 40／80／120 列 |
 | [草稿历史与复用](draft-history-reuse/README.zh-CN.md) | 草稿历史、结构审阅及复用捕获 |
-| [来源、命令与包管理](source-command-package/README.zh-CN.md) | 已安装的来源和版本操作界面 |
+| [来源操作](source-command-package/README.zh-CN.md) | 已安装来源状态、绑定清单和策略审核界面 |
 | [Native 容量与恢复](native-capacity/README.zh-CN.md) | 快速配置、渐变、24 实例保存和高面板缩放 |
 | [首次设置与完整外观](setup-appearance/README.zh-CN.md) | 最初设置／方案的捕获来源 |
 | [组件组合](composition/README.zh-CN.md) | 实例、副本及左右布局 |
@@ -127,7 +127,7 @@ images/
 
 2026-10-09 从真实 Claude Code 2.1.294 truecolor PTY 单元格重建两张 Linux 图片，仅裁出原生编辑器区域。已完成代理视觉检查；与 21 张原始系统截图、真人验收分别记录。源码提交：`bb687df044d7e875c4817d9b1fc8c905749834bc`；视口 120×30；系统 Linux x86_64。四页、表单和独立主题 Apply 在 120×30 与 80×48 均检查。原始单元格与私有会话日志保留在忽略目录。
 
-| 主题 | 捕获 | 尺寸 | PNG SHA256 | 单元格 SHA256 |
+| 主题 | 捕获 | 尺寸 | PNG SHA-256 | 单元格 SHA-256 |
 | --- | --- | --- | --- | --- |
 | light | [main-light.png](tui/native/linux/themes/main-light.png) | 888×576 | `08eee7ab45ad74814280c770c2c51c4772456382e1d80ff7c75edcb166205b11` | `0d74c602d9b8dc21e05349fcb9c1be65eba07b79c1518d85705b3a082f19686d` |
 | dark | [main-dark.png](tui/native/linux/themes/main-dark.png) | 888×576 | `ec5292f49b7adc18089d02ea94dab021c25a01e025ef5ea5177c36183da9908b` | `1bed1c71d5956fe7a4b3eab602bc2ed4b2b57d85db77523babb7038684807433` |
@@ -138,9 +138,9 @@ images/
 
 浅色配置使用 `#17191e` 前景和 `#ffffff` 背景，深色使用 `#dedee7` 与 `#17191e`。两组都复制原默认配置的 GNOME ANSI 调色板，关闭 bold-is-bright，并在捕获中记录颜色值。预览沿用终端背景和所选生产配色，default 与 ANSI 图片显示实际差异，RGB 样例按能力量化。ANSI 在未保存草稿中选择，随后取消，配置字节保持不变。主界面和反色选择通过 4.5:1 对比度检查；样例保留原色，让用户看到对比度不足并比较配色。
 
-这些是终端重建图，不代表系统截图或真人验收；GNOME Shell 拒绝了此前的截图 API 尝试。原始 ANSI、解码单元格和报告留在忽略的 `dist/validation/v1.7.7-terminal-source/gnome`，由 `tools/render_native_capture.py` 读取记录的默认色及 ANSI 调色板绘制。另行运行的五尺寸浅色／深色 PTY 套件检查四页／表单、切换配色、Colors off 和保存后的 ANSI 生产输出。临时终端配置、窗口和服务器已移除，原默认配置保留。后续仅文档提交保留已测试实现。
+这些是终端重建图，不代表系统截图或真人验收；GNOME Shell 拒绝了此前的截图 API 尝试。原始 ANSI、解码单元格和报告留在忽略的 `dist/validation/v1.7.7-terminal-source/gnome`，由 `archive/python/tools/render_native_capture.py` 读取记录的默认色及 ANSI 调色板绘制。另行运行的五尺寸浅色／深色 PTY 套件检查四页／表单、切换配色、Colors off 和保存后的 ANSI 生产输出。临时终端配置、窗口和服务器已移除，原默认配置保留。后续仅文档提交保留已测试实现。
 
-| 终端／配色 | 图片 | 捕获 JSON SHA256 | PNG SHA256 |
+| 终端／配色 | 图片 | 捕获 JSON SHA-256 | PNG SHA-256 |
 | --- | --- | --- | --- |
 | light / default | [PNG](tui/external/linux/themes/main-light.png) | `1bb05a06b8bf6f2467c796b82660945cac875cee0e129787fe99a8a7a6d5920c` | `caa98e74e0a80184d56f02289e3778cd2f713604b027bca83a2ca1686fb45af9` |
 | light / ansi | [PNG](tui/external/linux/themes/main-light-ansi.png) | `6c0bddf026f8ff427f3b38a8c245c2b7b6268ddea87c04ff2e79b6b52406949e` | `ea5fb0ccfba335d9be038279a0dd4ed298b2eb7d4c38e4c3b19f682401771a0e` |
@@ -151,7 +151,7 @@ images/
 
 八张原生编辑器 PNG 于 2026-10-09 从 Linux x86_64／Python 3.14.4／Claude Code 2.1.295 的实际终端单元格重建，源码提交为 `12fbbdc9054b33875179b4feb94639b1872d9e13`。每次 120×30 捕获裁剪为 888×576 编辑器图片；另以 80×48 内嵌布局检查紧凑绘制。终端默认前景／背景及 xterm ANSI 调色板为明确的分析夹具，与 Claude 主题独立。通过实际 UI 选择匹配的预览背景，检查 default／ANSI、Colors off、所有页面／表单、偏好记忆及主题单独 Apply。图片属于终端重建，不是系统截图、物理配置测量或新的真人验收。原始日志与单元格保存在忽略的 `dist/validation/v1.7.8-preview-*`；后续仅文档提交保留相同运行源码。
 
-| 终端／主题／配色 | 图片 | 单元格 JSON SHA256 | PNG SHA256 |
+| 终端／主题／配色 | 图片 | 单元格 JSON SHA-256 | PNG SHA-256 |
 | --- | --- | --- | --- |
 | light / light / default | [light-terminal-light-theme-default.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | `e911e3f5013863220c9a2a75e0d1db2bb084d89230a6f2f5bc69b1dbe29d8a91` | `86b63f913fa2d7444f4aa59136a13b3b11554e1660af204f11994a5baf22c4b1` |
 | light / light / ansi | [light-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) | `2fba1791bf0da4e140db326109e58ed6d78fb181cf2b53cdb58e0ac5f6d9ea4a` | `52af8ac4e6121de77dcd9b0c616b3dc61ae8dcff0c61bf440c9168a76531ac3d` |
@@ -164,11 +164,11 @@ images/
 
 ## 双语终端采集
 
-`tui/{native,external}/linux/languages/` 下十张图片重建安装包的真实 PTY 输出，采集于 2026-10-09，源为 `19c74739a5bc45ec93258a52dcc0a800228497d5`。实现候选在发行版本提升前仍报告 1.7.8，界面实现保留于 1.8.0。环境为 Linux 7.0.0-38-generic x86_64、CPython 3.14.4、Claude Code 2.1.295，使用 pyte 解码及 `tools/render_native_capture.py`；终端 120×30，原生停靠区域裁剪 72 列，外部完整裁剪。原有 21 张物理截图与历史 PNG 保留原字节。
+`tui/{native,external}/linux/languages/` 下十张图片重建安装包的真实 PTY 输出，采集于 2026-10-09，源为 `19c74739a5bc45ec93258a52dcc0a800228497d5`。实现候选在发行版本提升前仍报告 1.7.8，界面实现保留于 1.8.0。环境为 Linux 7.0.0-38-generic x86_64、CPython 3.14.4、Claude Code 2.1.295，使用 pyte 解码及 `archive/python/tools/render_native_capture.py`；终端 120×30，原生停靠区域裁剪 72 列，外部完整裁剪。原有 21 张物理截图与历史 PNG 保留原字节。
 
-原生采集采用明确浅色终端／背景样本、Claude light 主题及 tmux 3.6；该路径宿主输出量化的 256 色样例。外部使用深色终端默认色样本及已记录 xterm 调色板。这些分析样本不读取物理终端的准确默认色。预览为不随翻译改变的固定数据。PNG 元数据记录源提交、采集 SHA256 和单元格裁剪范围，字体为 DejaVu Sans Mono、Noto Sans CJK、Noto Sans Symbols 2。原生 transcript／输入框／私有路径已裁去。代理画面检查确认选中字段、分组页面、语言自称和快捷键行对齐，完整重绘后没有旧语言残留。自动／代理检查与人类及 Windows／macOS 终端验收分别记录。
+原生采集采用明确浅色终端／背景样本、Claude light 主题及 tmux 3.6；该路径宿主输出量化的 256 色样例。外部使用深色终端默认色样本及已记录 xterm 调色板。这些分析样本不读取物理终端的准确默认色。预览为不随翻译改变的固定数据。外部 PNG 元数据记录源提交、采集 SHA-256 和单元格裁剪范围；原生 PNG 元数据记录源提交和采集 SHA-256。字体为 DejaVu Sans Mono、Noto Sans CJK、Noto Sans Symbols 2。原生 transcript／输入框／私有路径已裁去。代理画面检查确认选中字段、分组页面、语言自称和快捷键行对齐，完整重绘后没有旧语言残留。自动／代理检查与人类及 Windows／macOS 终端验收分别记录。
 
-| 界面／页面／语言 | 图片 | PNG SHA256 |
+| 界面／页面／语言 | 图片 | PNG SHA-256 |
 | --- | --- | --- |
 | native/main-zh-CN | [PNG](tui/native/linux/languages/main-zh-CN.png) | `31f213011e040b1452966b603153393b39ce0ce9d33301a8059eea6a0daceeb2` |
 | native/subagents-zh-CN | [PNG](tui/native/linux/languages/subagents-zh-CN.png) | `994a981a60de6195fc2108b77cbd6ee3abd1fdd72c6e18a18d8d73b1e21fe868` |
@@ -244,7 +244,7 @@ images/
 
 来源为 Linux 安装包候选提交 `bf53c807fbe1a924b5137b887a6af59bc6acebac`，原生宿主 2.1.294。原生 120×30 捕获裁剪到 Client 区域，外部 120×30 保留全帧。使用 DejaVu Sans Mono 与 Noto Sans CJK 重建原始解码单元格；外部颜色反映 256 色量化，原生保留直接 RGB。原始终端流、单元格和报告保存在忽略的 `dist/validation/v1.12`。已做 agent 图片检查，无新增真人验收或付费模型调用。
 
-| PNG | PNG SHA256 | Cell capture SHA256 |
+| PNG | PNG SHA-256 | Cell capture SHA-256 |
 | --- | --- | --- |
 | [native-dark-en.png](appearance/native-dark-en.png) | `711c322f2dcca7b0949097f98763d90ca56e1afba0fc8815104b583a88c9eb5c` | `84d271985dc45130b0c0055a95a67a5ac7886f41b742adeee37fe35b935586f0` |
 | [external-light-zh-CN.png](appearance/external-light-zh-CN.png) | `43440b8a8d2fd0c5ac67dc6c0fea1ea381a7b520b82684f95b3934f45c45edf0` | `b70552ee390683e17e7ff7df83dc15979b1700cc10289af6bc806702e6d76a2f` |

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Start with the [SHOWCASE-01 gallery](showcase/README.md) and [usage demonstrations](../SHOWCASE.md) for reproducible current workflows and non-Powerline scene variants. Each gallery records its own package/source/input identity and capture method. A physical screenshot, terminal recording, PTY reconstruction, agent inspection and human acceptance establish different kinds of evidence.
+Start with the [SHOWCASE-01 gallery](showcase/README.md) and [usage demonstrations](../SHOWCASE.md) for reproducible workflows from the v3.16.0 recording baseline; the current documented product is 3.16.3. Each gallery records the package/source/input identity and capture method available for its evidence. A physical screenshot, terminal recording, PTY reconstruction, agent inspection and human acceptance establish different kinds of evidence.
 
 ## Gallery navigation
 
@@ -10,9 +10,9 @@ Start with the [SHOWCASE-01 gallery](showcase/README.md) and [usage demonstratio
 | --- | --- |
 | [SHOWCASE-01](showcase/README.md) | Featured scenes, configuration workflow and reproducibility/provenance |
 | [v3.16.0 languages](typescript/v3.16.0/README.md) | Six additional interface languages, Native examples and separate twelve-language behavior checks |
-| [Adaptive appearance](adaptive-row-scenarios/README.md) | Five v3.14.0 schemes at 40/80/120 columns |
+| [Adaptive appearance](adaptive-row-scenarios/README.md) | Five v3.14.0 scenario samples spanning 40/80/120 columns |
 | [Draft history and reuse](draft-history-reuse/README.md) | Draft history, structural review and reuse captures |
-| [Source, command and package management](source-command-package/README.md) | Installed source and version-operation views |
+| [Source operations](source-command-package/README.md) | Installed source state, binding inventory and policy-review views |
 | [Native capacity and recovery](native-capacity/README.md) | Quick setup, gradients, 24-instance save and tall-pane resizing |
 | [Setup and complete appearance](setup-appearance/README.md) | Original setup/scheme capture provenance |
 | [Component composition](composition/README.md) | Instances, copies and left/right layouts |
@@ -126,7 +126,7 @@ Original captures, hashes and acceptance scope for older links remain in the [ar
 
 Two additional Linux images were reconstructed on 2026-10-09 from actual Claude Code 2.1.294 truecolor PTY cells, cropped to the native editor. They are agent-inspected terminal captures, separate from the 21 original screenshots and from human acceptance. Source commit: `bb687df044d7e875c4817d9b1fc8c905749834bc`; viewport 120×30; OS Linux x86_64. All pages, forms and separate theme Apply are checked at both 120×30 and 80×48. Raw cells and private session logs stay in ignored validation directories.
 
-| Theme | Capture | Size | PNG SHA256 | Cell SHA256 |
+| Theme | Capture | Size | PNG SHA-256 | Cell SHA-256 |
 | --- | --- | --- | --- | --- |
 | light | [main-light.png](tui/native/linux/themes/main-light.png) | 888×576 | `08eee7ab45ad74814280c770c2c51c4772456382e1d80ff7c75edcb166205b11` | `0d74c602d9b8dc21e05349fcb9c1be65eba07b79c1518d85705b3a082f19686d` |
 | dark | [main-dark.png](tui/native/linux/themes/main-dark.png) | 888×576 | `ec5292f49b7adc18089d02ea94dab021c25a01e025ef5ea5177c36183da9908b` | `1bed1c71d5956fe7a4b3eab602bc2ed4b2b57d85db77523babb7038684807433` |
@@ -137,9 +137,9 @@ These images reconstruct actual external TUI output from source commit `41686253
 
 The light profile uses foreground `#17191e` and background `#ffffff`; the dark uses `#dedee7` and `#17191e`. Both copy the original default profile's GNOME ANSI palette with bold-is-bright disabled, recording its values in the capture. Previews inherit the terminal background and show the selected production palette; the default and ANSI screenshots show genuine palette differences, with capability-quantized RGB samples. ANSI was selected in the unsaved draft, then cancellation preserved configuration bytes. Chrome and reversed selections passed 4.5:1 contrast checks; sample colors are preserved so users can see low contrast and compare palettes.
 
-These are terminal reconstructions, not OS screenshots or human acceptance; GNOME Shell denied the earlier screenshot API attempt. Raw ANSI, decoded cells and reports remain in ignored `dist/validation/v1.7.7-terminal-source/gnome`. `tools/render_native_capture.py` reads the recorded defaults and ANSI palette. Separate five-size light/dark PTY suites check four pages/forms, palette changes, Colors off and saved ANSI production output. Temporary terminal profiles/windows/servers were removed and the original default profile was preserved. Later documentation-only commits retain the tested implementation.
+These are terminal reconstructions, not OS screenshots or human acceptance; GNOME Shell denied the earlier screenshot API attempt. Raw ANSI, decoded cells and reports remain in ignored `dist/validation/v1.7.7-terminal-source/gnome`. `archive/python/tools/render_native_capture.py` reads the recorded defaults and ANSI palette. Separate five-size light/dark PTY suites check four pages/forms, palette changes, Colors off and saved ANSI production output. Temporary terminal profiles/windows/servers were removed and the original default profile was preserved. Later documentation-only commits retain the tested implementation.
 
-| Terminal / Palette | Image | Captured JSON SHA256 | PNG SHA256 |
+| Terminal / Palette | Image | Captured JSON SHA-256 | PNG SHA-256 |
 | --- | --- | --- | --- |
 | light / default | [PNG](tui/external/linux/themes/main-light.png) | `1bb05a06b8bf6f2467c796b82660945cac875cee0e129787fe99a8a7a6d5920c` | `caa98e74e0a80184d56f02289e3778cd2f713604b027bca83a2ca1686fb45af9` |
 | light / ansi | [PNG](tui/external/linux/themes/main-light-ansi.png) | `6c0bddf026f8ff427f3b38a8c245c2b7b6268ddea87c04ff2e79b6b52406949e` | `ea5fb0ccfba335d9be038279a0dd4ed298b2eb7d4c38e4c3b19f682401771a0e` |
@@ -150,7 +150,7 @@ These are terminal reconstructions, not OS screenshots or human acceptance; GNOM
 
 Eight native-editor PNGs were reconstructed on 2026-10-09 from Claude Code 2.1.295 terminal cells on Linux x86_64 / Python 3.14.4 at source commit `12fbbdc9054b33875179b4feb94639b1872d9e13`. Each 120×30 capture is cropped to 888×576 editor pixels; separate 80×48 inline runs check compact rendering. The terminal default foreground/background and xterm ANSI palette are explicit analysis fixtures independent of the Claude theme. The matching preview background is selected through the real UI, and both default/ANSI palettes, Colors off, all pages/forms, preference persistence and separate theme Apply are verified. These are terminal reconstructions, not OS screenshots, physical profile measurements or new human acceptance. Raw logs/cells stay in ignored `dist/validation/v1.7.8-preview-*` directories. Later documentation-only commits retain the same runtime source.
 
-| Terminal / theme / palette | Image | Cell JSON SHA256 | PNG SHA256 |
+| Terminal / theme / palette | Image | Cell JSON SHA-256 | PNG SHA-256 |
 | --- | --- | --- | --- |
 | light / light / default | [light-terminal-light-theme-default.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | `e911e3f5013863220c9a2a75e0d1db2bb084d89230a6f2f5bc69b1dbe29d8a91` | `86b63f913fa2d7444f4aa59136a13b3b11554e1660af204f11994a5baf22c4b1` |
 | light / light / ansi | [light-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) | `2fba1791bf0da4e140db326109e58ed6d78fb181cf2b53cdb58e0ac5f6d9ea4a` | `52af8ac4e6121de77dcd9b0c616b3dc61ae8dcff0c61bf440c9168a76531ac3d` |
@@ -163,11 +163,11 @@ Eight native-editor PNGs were reconstructed on 2026-10-09 from Claude Code 2.1.2
 
 ## Bilingual terminal captures
 
-Ten images under `tui/{native,external}/linux/languages/` reconstruct actual installed-package PTY output captured on 2026-10-09, source `19c74739a5bc45ec93258a52dcc0a800228497d5`. The implementation candidate still reported 1.7.8 before the release version promotion; its interface implementation is retained in 1.8.0. Environment: Linux 7.0.0-38-generic x86_64, CPython 3.14.4, Claude Code 2.1.295, pyte decoder and `tools/render_native_capture.py`; 120×30 terminal, native docked crop (72 columns), full external crop. The original 21 physical screenshots and historical PNGs retain their bytes.
+Ten images under `tui/{native,external}/linux/languages/` reconstruct actual installed-package PTY output captured on 2026-10-09, source `19c74739a5bc45ec93258a52dcc0a800228497d5`. The implementation candidate still reported 1.7.8 before the release version promotion; its interface implementation is retained in 1.8.0. Environment: Linux 7.0.0-38-generic x86_64, CPython 3.14.4, Claude Code 2.1.295, pyte decoder and `archive/python/tools/render_native_capture.py`; 120×30 terminal, native docked crop (72 columns), full external crop. The original 21 physical screenshots and historical PNGs retain their bytes.
 
-Native captures use an explicit light terminal/background fixture with the Claude light theme and tmux 3.6; the host emits quantized 256-color samples in this path. External captures use the dark terminal-default fixture and documented xterm palette. These analysis fixtures do not read a physical terminal's exact defaults. Preview content is fixed data, unchanged by translation. PNG metadata records source commit, capture SHA256 and cell bounds; fonts are DejaVu Sans Mono, Noto Sans CJK and Noto Sans Symbols 2. Native transcript/composer/private paths are cropped away. Agent visual inspection found the selected field, grouped pages, language autonyms and shortcut rows aligned, without old-language residue after full repaint. Automated/agent inspection is separate from human and Windows/macOS terminal acceptance.
+Native captures use an explicit light terminal/background fixture with the Claude light theme and tmux 3.6; the host emits quantized 256-color samples in this path. External captures use the dark terminal-default fixture and documented xterm palette. These analysis fixtures do not read a physical terminal's exact defaults. Preview content is fixed data, unchanged by translation. External PNG metadata records source commit, capture SHA-256 and cell bounds; native PNG metadata records source commit and capture SHA-256. Fonts are DejaVu Sans Mono, Noto Sans CJK and Noto Sans Symbols 2. Native transcript/composer/private paths are cropped away. Agent visual inspection found the selected field, grouped pages, language autonyms and shortcut rows aligned, without old-language residue after full repaint. Automated/agent inspection is separate from human and Windows/macOS terminal acceptance.
 
-| Surface / page / language | Image | PNG SHA256 |
+| Surface / page / language | Image | PNG SHA-256 |
 | --- | --- | --- |
 | native/main-zh-CN | [PNG](tui/native/linux/languages/main-zh-CN.png) | `31f213011e040b1452966b603153393b39ce0ce9d33301a8059eea6a0daceeb2` |
 | native/subagents-zh-CN | [PNG](tui/native/linux/languages/subagents-zh-CN.png) | `994a981a60de6195fc2108b77cbd6ee3abd1fdd72c6e18a18d8d73b1e21fe868` |
@@ -243,7 +243,7 @@ Only the editor is shown: native crops exclude the transcript, composer, live mo
 
 Captured on Linux from the installed candidate built at `bf53c807fbe1a924b5137b887a6af59bc6acebac`; native host 2.1.294. The native 120×30 capture is cropped to its Client region; external 120×30 retains the full frame. DejaVu Sans Mono and Noto Sans CJK render the original decoded cells. External colors reflect 256-color quantization; native preserves direct RGB. Raw streams, decoded cells and reports remain under ignored `dist/validation/v1.12`. Agent image inspection passed; no new human acceptance or paid model calls.
 
-| PNG | PNG SHA256 | Cell capture SHA256 |
+| PNG | PNG SHA-256 | Cell capture SHA-256 |
 | --- | --- | --- |
 | [native-dark-en.png](appearance/native-dark-en.png) | `711c322f2dcca7b0949097f98763d90ca56e1afba0fc8815104b583a88c9eb5c` | `84d271985dc45130b0c0055a95a67a5ac7886f41b742adeee37fe35b935586f0` |
 | [external-light-zh-CN.png](appearance/external-light-zh-CN.png) | `43440b8a8d2fd0c5ac67dc6c0fea1ea381a7b520b82684f95b3934f45c45edf0` | `b70552ee390683e17e7ff7df83dc15979b1700cc10289af6bc806702e6d76a2f` |

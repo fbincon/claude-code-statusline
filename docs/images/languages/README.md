@@ -20,11 +20,11 @@ The complete three-language acceptance matrix passed 30 external cases (five siz
 
 Terminal-default palettes are explicit capture-analysis fixtures; they do not change a physical desktop theme. In the persistent dark tmux path, the host can emit ANSI-256 index 17 (`#00005f`) for the requested native preview background. The acceptance tool records this transport conversion and accepts that exact observed mapping; direct truecolor checks stay strict. This is a capture/transport limitation, not a new color setting.
 
-`tools/render_native_capture.py` renders captured cells with DejaVu Sans Mono, Noto Sans CJK and Noto Symbols 2. Native cropping excludes the transcript, composer and private configuration paths. PNG metadata retains the source commit and capture SHA256. Raw PTY/configuration receipts remain in ignored `dist/validation/final-gallery-*` and are excluded from distributions. No paid model calls, new Windows/macOS human terminal checks or native-speaker review are claimed.
+`archive/python/tools/render_native_capture.py` renders captured cells with DejaVu Sans Mono, Noto Sans CJK and Noto Symbols 2. Native cropping excludes the transcript, composer and private configuration paths. PNG metadata retains the source commit and capture SHA-256. Raw PTY/configuration receipts remain in ignored `dist/validation/final-gallery-*` and are excluded from distributions. No paid model calls, new Windows/macOS human terminal checks or native-speaker review are claimed.
 
 ## PNG integrity
 
-| File | Pixels | SHA256 |
+| File | Pixels | SHA-256 |
 | --- | --- | --- |
 | [external/ja-dark.png](external/ja-dark.png) | 1464×744 | `7b3e64e2f689378c4547d98b81c2ee10ca60a380413041fb98c2e46b9ade89d4` |
 | [external/ja-minimum.png](external/ja-minimum.png) | 792×456 | `84edfc9fb17ff11a6366ca4280cd5536a6e0dfdc06633cd0772f4aee68d7a920` |

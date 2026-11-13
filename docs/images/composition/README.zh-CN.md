@@ -17,7 +17,7 @@
 
 字体使用 DejaVu Sans Mono、Noto Sans CJK 与 Noto Sans Symbols；固定的深色终端颜色仅用于重建。图像已由代理检查；真实字体表现以及 Windows／macOS 人工交互验收未由这些图像证明。
 
-| 入口 / 语言 | Capture SHA256 | PNG SHA256 |
+| 入口 / 语言 | Capture SHA-256 | PNG SHA-256 |
 | --- | --- | --- |
 | native / en | `68a5b50078f882ff846a22f80d968c52e8906fc198f6bb3dc424ca6fe8dfeef6` | `2427a9762727b56ff8932efbd364e7b23f589f6dee6988e8b2f6f260099b1d77` |
 | native / zh-CN | `bbe991a4e41304b8266c86d10e1d0a29560eb5ef66823c78241761b4632d565d` | `6c4138e77a68877fb13323803477b872499de66523f0a4f4a6825ef9d3a37fe2` |

@@ -6,6 +6,8 @@
 
 来源：[`d195f7a41d23d0b8d38c53addd7575e9a06e874a`](https://github.com/fbincon/claude-code-statusline/commit/d195f7a41d23d0b8d38c53addd7575e9a06e874a)。候选包 SHA-256：`34150c0bf8c0cbae0c4890c68e227cb2ca0cad55626c3b42279cc35ae2c31c9e`。裁剪保留原始文字和样式。[来源记录](provenance.json) 包含单元格、图像、渲染器、字体摘要和精确裁剪范围；原始 ANSI、单元格矩阵及宿主日志仅保留在本机验证目录。
 
+**已知视觉限制：** 在这些 73 列 Native 裁剪中，面板标题延伸到宿主右对齐的 Retry／Close 控件下方，按钮之间会留下部分字符。这是录制版本的产品布局限制，不是重建伪影；已作为产品问题 [#241](https://github.com/fbincon/claude-code-statusline/issues/241) 跟踪。
+
 | 场景 | 图像 | 已检查行为 |
 | --- | --- | --- |
 | 快速配置 | [外观选择](quick-setup.png) | 打开用途、选择候选、取消且不改变显示文件 |

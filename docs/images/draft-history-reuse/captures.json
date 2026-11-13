@@ -1,5 +1,6 @@
 {
   "kind": "installed PTY terminal-cell reconstruction; not an OS screenshot",
+  "application_version": "3.13.0",
   "commit": "200df8fcea2b3f6d1a40885305b6b19bf28f9d05",
   "tarball_sha256": "ec7fdf4df2dd739c82366e4230a33f8cef1a83c8e7864d407a783128ca6da66c",
   "host": "2.1.312",
