@@ -24,7 +24,7 @@
 | 繁體中文（台灣） | [深色](native/zh-TW/minimum-dark.png)／[浅色](native/zh-TW/minimum-light.png) |
 | 繁體中文（香港） | [深色](native/zh-HK/minimum-dark.png)／[浅色](native/zh-HK/minimum-light.png) |
 
-最终包的完整捕获集包含 24 张外部页面、32 张外部边界、20 张原生组件及 4 张真实宿主原生图；本图库选取其中 20 张。地区搜索、保存／取消／重开、写入失败和 36 种独立语言组合有另行自动化覆盖。既有实机、桌面和精确声明缺口继续在交付报告披露。宿主传输可能量化深色原生预览颜色，这些观察不更改桌面主题。原始 ANSI、单元格、收集脚本和回执保留在仓库之外。较早的 [Python 多语言图](../../languages/README.zh-CN.md)及 [TypeScript 准备图](../README.zh-CN.md)保留各自原始来源。
+最终包的完整捕获集包含 24 张外部页面、32 张外部边界、20 张原生组件及 4 张真实宿主原生图；本图库选取其中 20 张。地区搜索、保存／取消／重开、写入失败和 36 种独立语言组合有另行自动化覆盖。既有实机、桌面和精确声明缺口继续在交付报告披露。宿主传输可能量化深色原生预览颜色，这些观察不更改桌面主题。原始 ANSI、单元格、收集脚本和回执保留在仓库之外。较早的 [Python 多语言图](../../archive/python-era/languages/README.zh-CN.md)及 [TypeScript 准备图](../README.zh-CN.md)保留各自原始来源。
 
 ## PNG 完整性
 

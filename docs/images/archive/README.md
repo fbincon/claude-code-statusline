@@ -4,7 +4,7 @@
 
 **Status:** Frozen archive; do not update historical claims.
 
-This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the 2026-10-07 in-session and external TUI screenshots. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result. This page and the replacement snapshot are frozen: do not update their historical claims.
+This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the 2026-10-07 in-session and external TUI screenshots. The [Python-era image archive](python-era/README.md) holds 59 additional images moved from the former top-level galleries; together the archive contains 110 images. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result. This page, the Python-era archive and the replacement snapshot are frozen: do not update their historical claims.
 
 ## Gallery replacement batch
 

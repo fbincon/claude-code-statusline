@@ -21,11 +21,8 @@ Status taxonomy: **Current baseline** is the approved 3.16 visual baseline; **La
 | [Native capacity and recovery](native-capacity/README.md) | v3.9.1 | Earlier feature | Quick setup, gradients, 24-instance save and tall-pane resizing |
 | [Setup and complete appearance](setup-appearance/README.md) | v3.5.0 | Earlier feature | Setup/scheme sample provenance |
 | [Component composition](composition/README.md) | 2.0.0a1 | Earlier feature | Instances, copies and left/right layouts |
-| [TUI screenshots](tui/README.md) | 2026-10-07 | Primary physical evidence | 21 original in-session/external screenshots plus Python-era terminal reconstructions |
-| [Discovery and import review](discovery/README.md) | v1.10.0 | Python-era historical | 16 installed-editor search/import captures |
-| [Conditional appearance](appearance/README.md) | v1.12.0 | Python-era historical | Two conditional appearance samples |
-| [Statusline language](statusline/README.md) | v1.8/1.9 | Python-era historical | Two actual CLI output captures; editor captures are in the TUI gallery |
-| [Language gallery](languages/README.md) | v1.13.0 | Python-era historical | Earlier Traditional Chinese, Japanese and Korean captures |
+| [TUI screenshots](tui/README.md) | 2026-10-07 | Primary physical evidence | 21 original in-session/external screenshots |
+| [Python-era archive](archive/python-era/README.md) | v1.6.1–v1.13.0 | Frozen Python-era archive | 59 appearance, statusline, discovery, language and TUI-reconstruction images |
 | [Historical archive](archive/README.md) | mixed | Frozen archive | 51 replaced screenshots and earlier capture records |
 
 ## Directory layout
@@ -41,11 +38,8 @@ docs/images/
 ├── setup-appearance/         # Setup and scheme evidence
 ├── composition/              # Component layout evidence
 ├── tui/                      # Original physical screenshots and Python-era reconstructions
-├── discovery/                # Search and import evidence
-├── appearance/               # Conditional appearance evidence
-├── statusline/               # Actual CLI output captures
-├── languages/                # Earlier language captures
 └── archive/                  # Replaced images, original records and historical reconstructions
+    └── python-era/           # 59 Python-era appearance/statusline/discovery/language/TUI images
 ```
 
 <a id="updating-screenshots"></a>
@@ -92,10 +86,11 @@ The following anchors are kept for old links and point to their new locations.
 | Old area | Current location |
 | --- | --- |
 | Original 21 screenshots, in-session Client and source hashes | [TUI screenshots](tui/README.md) |
-| Theme, external color, preview-background and bilingual captures | [TUI screenshots](tui/README.md) |
-| Statusline language captures | [Statusline language](statusline/README.md) and [TUI screenshots](tui/README.md#statusline-language-captures) |
-| Discovery and import review | [Discovery and import review](discovery/README.md) |
-| Conditional appearance | [Conditional appearance](appearance/README.md) |
+| Theme, external color, preview-background and bilingual captures | [Python-era TUI reconstructions](archive/python-era/tui/README.md) |
+| Statusline language captures | [Python-era statusline archive](archive/python-era/statusline/README.md) and [TUI reconstructions](archive/python-era/tui/README.md#statusline-language-captures) |
+| Discovery and import review | [Python-era discovery archive](archive/python-era/discovery/README.md) |
+| Conditional appearance | [Python-era appearance archive](archive/python-era/appearance/README.md) |
+| Language gallery | [Python-era language archive](archive/python-era/languages/README.md) |
 | Display notes, file index, earlier reconstructions and v1.x release captures | [Historical archive](archive/README.md) |
 
 </details>
