@@ -26,7 +26,13 @@ The initial scan on 2026-10-26 found six alerts (one high, two moderate and thre
 
 Release immutability applies to future GitHub publications. Prepare and verify all four assets in a draft before publishing. Fix a published package through a new version; do not replace assets or move its associated tag. Historical releases are not rebuilt, and no blanket `v*` ruleset is added. Gitee copies require their own digest verification; see the [release process](../RELEASING.md).
 
-The repository metadata configured in that maintenance task points Homepage to the npm package, describes the TypeScript/Node CLI in Topics, disables the empty Wiki and retains Projects. CodeQL, npm scheduled updates and additional community services were outside that task.
+The repository metadata configured in that maintenance task points Homepage to the npm package, describes the TypeScript/Node CLI in Topics, disables the empty Wiki and retains Projects. npm scheduled updates and additional community services remain outside that task.
+
+## CodeQL and code scanning
+
+CodeQL default setup is enabled for GitHub Actions and JavaScript/TypeScript. Python is disabled because the Python implementation is preserved as a frozen archive. The setup uses the standard GitHub runner, the default query suite and the remote-sources threat model; it scans pushes and pull requests to `main` and protected branches plus a weekly schedule. CodeQL is not part of the `Complete candidate evidence` aggregate; making it a required check requires a separate ruleset decision.
+
+The first scan on `2c2044d0` completed without analysis errors and produced 29 alerts. All were triaged and dismissed with recorded reasons: 14 test/tooling findings as used in tests or false positive, and 15 `actions/cache-poisoning` findings as false positive because the candidate jobs use read-only permissions, Actions caches are branch-scoped, and the workflow is manually dispatched without an arbitrary commit input. No open alerts remain. New alerts should be triaged in the Security tab; do not dismiss a finding without checking its path and trust model. See the [CodeQL default setup delivery record](history/deliveries/codeql-default-setup.md).
 
 ## Validation record
 
