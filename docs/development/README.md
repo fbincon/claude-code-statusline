@@ -62,6 +62,7 @@ Preserve original evidence, commands and results when archiving. Update navigati
 | Documentation page | This section | `checkDocumentationPages` · `checkDocumentationRegistration` | Current registered pages |
 | Pull request template | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | `checkPullRequestTemplate` | Single bilingual template |
 | Acceptance receipt | [Receipt envelope](testing.md#acceptance-receipt-envelope) | `validateAcceptanceEnvelope` | Exemplar scripts; CI-bound formats unchanged |
+| Acceptance producer registry | [Producer registry](testing.md#acceptance-receipt-producers) | `checkAcceptanceProducers` | Every non-test `tools/acceptance/*.ts`; source-file classification only |
 | Skill resource | [Resource skeleton](skill-workflows.md#canonical-resource-skeleton) | `checkSkillResources` | `packages/cli/resources/*/SKILL.md` |
 
 ### Migration and delivery records

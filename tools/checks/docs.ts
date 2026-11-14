@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB, TAG } from '../release/markdown.ts';
 import { assessApprovalRegistry, assessStableApproval } from '../release/approval.ts';
 import { checkCommunity } from './community.ts';
+import { checkAcceptanceProducers } from './acceptance-producers.ts';
 import { checkSkillResources } from './skill-resources.ts';
 import { checkImageGalleries } from './impact-assets.ts';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.ts';
@@ -620,6 +621,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
     errors.push(...checkImageGalleries(root));
     errors.push(...checkDocumentationPages(root));
     errors.push(...checkDocumentationRegistration(root));
+    errors.push(...checkAcceptanceProducers(root));
     errors.push(...checkSkillResources(root));
     return { links, errors };
 }

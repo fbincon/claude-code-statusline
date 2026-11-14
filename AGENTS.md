@@ -54,6 +54,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - After moving or deleting source files, follow the documented [compiled-output cleanup](docs/development/README.md#clean-compiled-outputs) before rebuilding.
 - Use isolated temporary configuration and installation directories. Preserve real Claude settings and the installed product.
 - Installed, official-host, terminal, physical and paid acceptance have separate entries in [testing and acceptance](docs/development/testing.md); invoke the checks appropriate to the task. Paid checks require an approved budget and shared ledger; retain failed, retried and uncertain calls.
+- Every non-test top-level `tools/acceptance/*.ts` module is registered in [acceptance receipt producers](docs/development/testing.md#acceptance-receipt-producers). New, removed or reclassified modules require the `ACCEPTANCE_PRODUCERS` constant and both language tables; deliberate reclassifications that change a fixed exception also update `validateKnownExceptions` and, for `planned`, `PLANNED_ALLOWED`. `npm run docs:check` and the acceptance-family scoped test block drift.
 - Report actual evidence and limitations. Automated tests, PTYs and reconstructed screenshots do not establish physical acceptance. The six accepted [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified and do not waive new automated failures; see [known validation gaps](docs/development/testing.md#known-validation-gaps).
 
 ## Behavior and compatibility
