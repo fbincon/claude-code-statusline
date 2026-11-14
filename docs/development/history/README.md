@@ -49,6 +49,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
 | Community policy | [Bilingual Code of Conduct](deliveries/code-of-conduct.md) |
 | Root documentation | [Root documentation maintenance](deliveries/root-docs-maintenance.md) |
+| README presentation | [README badges and Code of Conduct link](deliveries/readme-badges.md) |
 | Changelog | [Changelog template and format check](deliveries/changelog-template-maintenance.md) |
 | Delivery records | [Delivery record template and check](deliveries/delivery-record-governance.md) |
 | Release artifacts | [Release artifact templates and checks](deliveries/release-artifact-governance.md) |
