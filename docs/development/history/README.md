@@ -57,6 +57,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Acceptance | [Acceptance receipt envelope](deliveries/acceptance-receipt-envelope.md) |
 | Skill resources | [Skill resource skeleton and check](deliveries/skill-resource-skeleton.md) |
 | i18n | [i18n authoring input examples](deliveries/i18n-authoring-examples.md) |
+| Performance | [Future performance report template](deliveries/performance-report-template.md) |
 
 <a id="delivery-record-template"></a>
 

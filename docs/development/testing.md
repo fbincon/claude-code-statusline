@@ -134,6 +134,21 @@ separately from timed samples; cold/append preparation restores the whole usage
 index. Linux GNU time records fresh-child peak RSS. Product correctness is the
 hard gate; its recorded result does not require a minimum speedup or a Python-budget pass.
 
+### Future performance reports
+
+New performance reports use this structure. The five historical reports linked from the [performance index](history/README.md#performance-reports) remain frozen; do not rewrite them.
+
+```markdown
+# <Report title>
+
+- **Status:** proposed, running, completed or failed.
+- **Baseline source:** exact source commit/tree and the accepted baseline identity.
+- **Artifact identity:** package and source hashes, Node/runtime and host identity.
+- **Method:** benchmark command, scenario, sample count and warm/cold preparation; link PERF-01 for the installed method.
+- **Results:** separate timed samples from counters; record actual values and the raw report path.
+- **Limits:** missing hosts, skipped cases, measurement uncertainty and non-comparable data.
+```
+
 ## External TUI product regressions
 
 The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across all registered languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Current protocol and save boundaries are in [transport and response envelopes](contracts.md#transport-and-response-envelopes) and [revision and transactions](contracts.md#revision-and-transactions); installed captures and delivery evidence are preserved in the [external TUI parity](history/migration/external-tui-parity.md) and [regression](history/migration/external-tui-regressions.md) records. Reconstructed cells do not establish human desktop or power acceptance.
