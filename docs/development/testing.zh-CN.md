@@ -39,7 +39,7 @@ CHECK_ROOT=$(mktemp -d)
 npm run candidate:build -- --commit "$SOURCE_COMMIT" --output "$CHECK_ROOT/candidate"
 ```
 
-构建先导出选定的 Git tree，核验文件清单及 blob 身份，再在两个独立目录中使用锁定依赖和空 npm 缓存分别构建。两个软件包压缩档必须逐字节一致。获取构建依赖需要联网。保留候选 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS` 的原始文件名，并放在同一目录。将 `CANDIDATE_TGZ` 设为生成的候选软件包绝对路径。
+构建先导出选定的 Git tree，核验文件清单及 blob 身份，再在两个独立目录中使用锁定依赖和空 npm 缓存分别构建。两个软件包压缩档必须逐字节一致。获取构建依赖需要联网。保留候选 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS` 的原始文件名，并放在同一目录。字段级发布资产 schema 见[发布指南](../RELEASING.zh-CN.md#release-asset-schemas)。将 `CANDIDATE_TGZ` 设为生成的候选软件包绝对路径。
 
 ```bash
 CANDIDATE_TGZ="/absolute/path/to/the/generated-candidate.tgz"

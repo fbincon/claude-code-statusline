@@ -112,6 +112,25 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 
 核对准确的 ref、提交与摘要后，才可修正未发布草稿的附件或标签。正式公开后，保留标签对象与附件字节，产品修复通过新版本交付。Gitee 副本需单独核对字节。参见 [GitHub 不可变 Release](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。
 
+<a id="release-asset-schemas"></a>
+
+### 发布资产 schema
+
+四个上传文件是 npm 包、源码归档、`build-manifest.json` 和 `SHA256SUMS`。`build-manifest.json` 记录：
+
+- `schema_version`：`1`。
+- `commit`：源码 commit。
+- `channel`：`candidate`、`preview` 或 `stable`。
+- `candidate_version`：交付 npm 包的版本（`preview`/`stable` 为应用版本；`candidate` 为私有 `0.0.0-ts05.g<12-character-commit>` 版本）。
+- `candidate`：npm 包的 `{ file, sha256 }`。
+- `source`：源码归档的 `{ file, sha256 }`。
+- `byte_identical`：两次独立构建一致时为 `true`。
+- `builds`：两条 `{ round, sha256, bytes, node_sha256 }` 记录。
+
+`SHA256SUMS` 每行一个文件：64 位小写 SHA-256、两个空格和 basename。它列出包、源码归档和 `build-manifest.json`，不列自身。重复或意外条目失败。`npm run release:verify -- --artifact ARTIFACT --commit COMMIT` 校验清单与摘要。
+
+源码归档包含 `statusline-source/.candidate-source.json`，含 `schema_version`、`commit` 和路径到 SHA-256 的 `files` 映射。它位于归档内部，不是第五个上传资产。`build-report.json` 是本地构建记录，不是发布资产。
+
 ## 通过 GitHub Actions 可信发布 npm
 
 [Publish npm with OIDC 工作流](../.github/workflows/npm-publish.yml)准备已验证的交付文件并发布其中的 tgz。它解析完整源码晋级记录或维护源码绑定。完整源码路线使用原覆盖上下文重新执行 `release:prepare` 核验。维护源码路线重新验证本次交付包及其与原产品覆盖的关联。
