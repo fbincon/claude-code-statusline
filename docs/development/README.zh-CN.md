@@ -61,6 +61,7 @@
 | 图片图库 | [图库模板](../images/README.zh-CN.md#图库模板) · [清单 schema 2](../images/README.zh-CN.md#采集清单-schema-2) | `checkImageGalleries` | 新图库及 schema 2 |
 | 文档页面 | 本节 | `checkDocumentationPages` · `checkDocumentationRegistration` | 当前已登记页面 |
 | PR 模板 | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | `checkPullRequestTemplate` | 单文件双语模板 |
+| 验收回执 | [回执 envelope](testing.zh-CN.md#acceptance-receipt-envelope) | `validateAcceptanceEnvelope` | 试点脚本；CI 绑定格式不变 |
 
 ### 迁移与交付记录
 

@@ -10,6 +10,7 @@ import { installCandidate } from './install.js';
 import { verifyDelivery } from '../build/verify.js';
 import { sha256 } from '../build/files.js';
 import { sourceHashes } from '../migration/ts-03/common.js';
+import { createAcceptanceEnvelope, validateAcceptanceEnvelope } from '../checks/receipt.ts';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture, TERMINAL_THEMES, verifyColors } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
@@ -375,11 +376,24 @@ try {
             } finally { await pty.close(); }
         }
     }
+    const receiptSource = artifact.source.source_hashes['tools/checks/receipt.ts'];
+    assert(receiptSource, 'Missing receipt module source identity');
+    const envelope = createAcceptanceEnvelope({
+        schema_version: 1, kind: 'acceptance-envelope', status: 'pass',
+        producer: { kind: 'installed PTY terminal-cell reconstruction; not an OS screenshot' },
+        source: { commit: values.commit, files_sha256: artifact.source.source_manifest_sha256 },
+        artifact: { sha256: artifact.sha256, filename: basename(values.artifact), version: artifact.source.application_version },
+        runtime: { node: process.version, platform: process.platform, arch: process.arch, os_release: release() },
+        checks: [{ name: 'installed PTY terminal-cell reconstruction', status: 'pass' }],
+        limitations: ['Installed PTY terminal-cell reconstruction; not an OS screenshot or human acceptance.'],
+    });
+    validateAcceptanceEnvelope(envelope);
     const report = { status: 'pass', kind: 'installed PTY terminal-cell reconstruction; not an OS screenshot', commit: values.commit, tarball_sha256: artifact.sha256,
         application_version: artifact.source.application_version, platform: process.platform, arch: process.arch, os_release: release(), node: process.version,
-        collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], model_calls: 0, terminal_restored: true, extended: values.extended === true,
+        collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], collector_dependencies: { 'tools/checks/receipt.ts': receiptSource },
+        model_calls: 0, terminal_restored: true, extended: values.extended === true,
         sample_configuration: { directory_style: 'home', statusline_language: 'matches the interface language', data: 'fixed production preview samples' },
-        font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures, monochrome };
+        font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures, monochrome, envelope };
     fs.writeFileSync(join(output, 'editor-capture.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify({ status: 'pass', captures: captures.length, commit: values.commit, tarball_sha256: artifact.sha256 }));
 } finally { installed.cleanup(); }

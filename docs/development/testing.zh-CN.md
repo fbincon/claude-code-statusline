@@ -101,6 +101,30 @@ v3.15.0 及之后的安装验收契约要求 27 类检查（更早版本为 26 �
 
 在本地运行固定官方宿主诊断时，每个宿主使用独立的干净 checkout。先前宿主可能在插件的 `.claude-plugin/types` 留下被 Git 忽略的声明。验收类型或测试结果前应核对实际宿主与声明头。[实测样本](ci-efficiency.zh-CN.md)
 
+<a id="acceptance-receipt-envelope"></a>
+
+## 验收回执
+
+可提升且与 CI 绑定的证据可以携带共享验收 envelope。envelope 是增量字段：`ci-fragment` schema 2、`impact-product` schema 1 和发布绑定等既有格式仍是权威，不被包装或替换。本地诊断和草稿报告可保留自身格式，且不得晋升。
+
+```json
+{
+  "schema_version": 1,
+  "kind": "acceptance-envelope",
+  "status": "pass",
+  "producer": { "kind": "showcase fixed samples" },
+  "source": { "commit": "<40-hex>", "files_sha256": "<64-hex>", "tree": "<40-hex>" },
+  "artifact": { "sha256": "<64-hex>", "filename": "...", "version": "..." },
+  "runtime": { "node": "...", "node_sha256": "<64-hex>", "platform": "...", "arch": "...", "os_release": "...", "host": null },
+  "checks": [{ "name": "...", "status": "pass", "detail": "..." }],
+  "limitations": ["..."]
+}
+```
+
+`source.commit` 与 `source.files_sha256` 标识被接受的源码；`tree` 可选。没有打包产物时 `artifact` 可以为 `null`。`checks` 必须非空、名称唯一，状态为 `pass` 或 `skip`，且至少有一个 `pass`。每条 `limitations` 必须非空，且数组至少包含一条。允许未知扩展键，`produced_at` 可选。
+
+`createAcceptanceEnvelope` 与 `validateAcceptanceEnvelope` 位于 `tools/checks/receipt.ts`。`showcase` 与 `editor-capture` 验收脚本是当前 exemplar：既有顶层回执不变，envelope 作为增量字段携带。`official-tests` 仍是具有独立 schema 与校验器的 CI 绑定回执；在那里采用 envelope 属于后续增量变更，并需要兼容测试。
+
 ## 安装包性能尝试
 
 [PERF-01](history/performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。
