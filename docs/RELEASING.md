@@ -112,6 +112,25 @@ Use the original complete candidate artifact for promotion. Worker-input manifes
 
 Correct unpublished draft assets or a draft's tag only after checking the exact ref, commit and digests. Once the release is public, preserve the tag object and asset bytes and publish a new version for product fixes. Gitee's copy requires its own byte verification. See [immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).
 
+<a id="release-asset-schemas"></a>
+
+### Release asset schemas
+
+The four uploaded files are the npm package, the source archive, `build-manifest.json` and `SHA256SUMS`. `build-manifest.json` records:
+
+- `schema_version`: `1`.
+- `commit`: the source commit.
+- `channel`: `candidate`, `preview` or `stable`.
+- `candidate_version`: the version of the delivered npm package (the application version for `preview`/`stable`; the private `0.0.0-ts05.g<12-character-commit>` version for `candidate`).
+- `candidate`: `{ file, sha256 }` for the npm package.
+- `source`: `{ file, sha256 }` for the source archive.
+- `byte_identical`: `true` when the two independent builds match.
+- `builds`: two records of `{ round, sha256, bytes, node_sha256 }`.
+
+`SHA256SUMS` has one line per file: a 64-character lowercase SHA-256, two spaces and the basename. It lists the package, source archive and `build-manifest.json`; it does not list itself. Duplicate or unexpected entries fail. `npm run release:verify -- --artifact ARTIFACT --commit COMMIT` checks the inventory and digests.
+
+The source archive contains `statusline-source/.candidate-source.json` with `schema_version`, `commit` and a `files` map from path to SHA-256. It is inside the archive, not a fifth uploaded asset. `build-report.json` is a local build record, not a release asset.
+
 ## npm trusted publishing with GitHub Actions
 
 The [Publish npm with OIDC workflow](../.github/workflows/npm-publish.yml) prepares the verified delivery and publishes its exact tgz. It resolves either the complete-source promotion or the maintenance-source binding. For the complete-source route it rechecks `release:prepare` with the original coverage context. The maintenance route rechecks the current-source bundle and its original product coverage linkage.

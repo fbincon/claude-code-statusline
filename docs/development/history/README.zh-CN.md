@@ -58,6 +58,7 @@
 | 技能资源 | [技能资源骨架与检查](deliveries/skill-resource-skeleton.zh-CN.md) |
 | i18n | [i18n 维护输入示例](deliveries/i18n-authoring-examples.zh-CN.md) |
 | 性能 | [后续性能报告模板](deliveries/performance-report-template.zh-CN.md) |
+| 发布资产 | [发布资产 schema 文档](deliveries/release-asset-schema.zh-CN.md) |
 
 <a id="交付记录模板"></a>
 

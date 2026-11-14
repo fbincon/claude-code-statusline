@@ -39,7 +39,7 @@ CHECK_ROOT=$(mktemp -d)
 npm run candidate:build -- --commit "$SOURCE_COMMIT" --output "$CHECK_ROOT/candidate"
 ```
 
-The build exports the selected Git tree, checks its file inventory and blob identities, then builds in two independent directories with locked dependencies and empty npm caches. The two package tarballs must match byte for byte. Build dependencies require network access. Keep the candidate tgz, the source archive, `build-manifest.json` and `SHA256SUMS` together under their generated names. Set `CANDIDATE_TGZ` to the absolute path of the generated candidate package.
+The build exports the selected Git tree, checks its file inventory and blob identities, then builds in two independent directories with locked dependencies and empty npm caches. The two package tarballs must match byte for byte. Build dependencies require network access. Keep the candidate tgz, the source archive, `build-manifest.json` and `SHA256SUMS` together under their generated names. Field-level release asset schemas are in the [release guide](../RELEASING.md#release-asset-schemas). Set `CANDIDATE_TGZ` to the absolute path of the generated candidate package.
 
 ```bash
 CANDIDATE_TGZ="/absolute/path/to/the/generated-candidate.tgz"
