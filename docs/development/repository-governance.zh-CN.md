@@ -26,7 +26,13 @@ PR 成功合并后，在 GitHub 允许时自动删除其来源分支。2026-11-1
 
 Release immutability 面向未来 GitHub 正式发布。先在草稿中准备并验证全部四项附件，再正式发布。已发布包的修复通过新版本交付，不替换附件或移动关联标签。不重建历史发布，也不新增覆盖全部 `v*` 的规则集。Gitee 副本须独立核对摘要，详见[发布流程](../RELEASING.zh-CN.md)。
 
-该维护任务配置的仓库元数据将 Homepage 指向 npm 包，Topics 描述 TypeScript/Node CLI，关闭空 Wiki 并保留 Projects。CodeQL、npm 定期更新及其他社区服务不在当时范围内。
+该维护任务配置的仓库元数据将 Homepage 指向 npm 包，Topics 描述 TypeScript/Node CLI，关闭空 Wiki 并保留 Projects。npm 定期更新及其他社区服务仍不在该任务范围内。
+
+## CodeQL 与代码扫描
+
+已为 GitHub Actions 和 JavaScript/TypeScript 启用 CodeQL 默认配置。Python 保持关闭，因为 Python 实现作为冻结归档保留。配置使用标准 GitHub runner、默认查询集和 remote-sources 威胁模型；扫描推送到 `main` 和受保护分支的变更、针对这些分支的 PR，以及每周计划任务。CodeQL 不属于 `Complete candidate evidence` 聚合门禁；将其设为必需检查需要单独的 ruleset 决策。
+
+`2c2044d0` 上的首次扫描无分析错误，产生 29 个告警。全部告警均已分诊并按记录的理由关闭：14 个测试／工具类告警按 used in tests 或 false positive 关闭；15 个 `actions/cache-poisoning` 告警按 false positive 关闭，因为候选任务使用只读权限、Actions 缓存按分支隔离，且工作流由维护者手动派发，不接受任意 commit 输入。当前无开放告警。新告警应在 Security 页面分诊；未核对路径和信任模型前不得关闭。参见 [CodeQL 默认配置交付记录](history/deliveries/codeql-default-setup.zh-CN.md)。
 
 ## 验证记录
 
