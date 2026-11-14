@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB, TAG } from '../release/markdown.ts';
 import { assessApprovalRegistry, assessStableApproval } from '../release/approval.ts';
 import { checkCommunity } from './community.ts';
+import { checkSkillResources } from './skill-resources.ts';
 import { checkImageGalleries } from './impact-assets.ts';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.ts';
 const LOCAL_ONLY = new Set(['docs/ROADMAP.md', 'docs/ROADMAP.zh-CN.md', 'docs/MACOS_VALIDATION.md']);
@@ -619,6 +620,7 @@ export function checkDocs(root: string, additional: readonly string[] = []): {
     errors.push(...checkImageGalleries(root));
     errors.push(...checkDocumentationPages(root));
     errors.push(...checkDocumentationRegistration(root));
+    errors.push(...checkSkillResources(root));
     return { links, errors };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

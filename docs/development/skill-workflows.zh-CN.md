@@ -30,6 +30,17 @@
 
 取消或仍有未解决答案时不保存配置。所有答案解决后重新读取 `config show --json`，将显示、宿主、安装状态和子代理归属与初始快照比较。发生变化时停止，由用户明确重新开始，不自动重启或覆盖。这是尽力而为的复核，因为 `config apply` 没有修订号参数，不能原子比较原始快照。复核一致后只执行一次 `config apply`，随后通过 `config show --json` 核对结果。应用或验证失败时如实报告，不通过拆分或减少答案重试写入。[用户流程](../USER_GUIDE.zh-CN.md#statusline-config-问答向导) · [CLI 支持](../reference/cli.zh-CN.md#slash-命令支持范围)
 
+<a id="canonical-resource-skeleton"></a>
+
+## 规范资源骨架
+
+`packages/cli/resources/*/SKILL.md` 下的内置技能资源共享同一结构。现有 `statusline-config` 与 `statusline-configure` 文件是当前原型。
+
+- **Frontmatter。** 使用单个 YAML 映射；`name` 与目录名一致，`description` 非空，`argument-hint` 为字符串（无动作时为空串），`disable-model-invocation: true`，并且 `allowed-tools` 或 `disallowed-tools` 恰好一个、为非空字符串数组。
+- **正文。** 只保留一个 H1 和非空指令正文。保留命令边界、字面参数与引用规则、引导工作流或外部回退，以及渲染器使用的资源占位符。
+- **占位符。** 安装器替换已知 token（`ALLOWED_RULES`、`COMMAND`、`ITEM_GROUPS`、`LANGUAGES`、`LANGUAGE_CHOICES`、`THEME_CHOICES`）。内部 `statusline-config` 技能可以包含独立的已知 token（如 `__CLAUDE_STATUSLINE_ALLOWED_RULES__`）；外部 `statusline-configure` 技能不得包含占位符。结构检查在解析 YAML 前校验这一点。
+- **检查边界。** `checkSkillResources` 在 `docs:check` 中校验该结构。它是开发契约检查；`packages/cli/resources` 仍是产品执行输入，变更时保留完整产品矩阵。
+
 ## 源码维护与回归覆盖
 
 CLI 安装器针对已安装的精确可执行文件渲染规范模板，保留路径和参数的字面内容。条目分组、语言及主题选项来自共享注册表，不手工维护副本。同步更新规范资源和生成器，再执行生成和影响计划选中的检查。不要编辑已安装技能，也不要重新生成 Python 归档资源。

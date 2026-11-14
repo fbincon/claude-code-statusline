@@ -30,6 +30,17 @@ Language selection uses consecutive pages of at most three language codes, follo
 
 No configuration is saved after cancellation or while an answer remains unresolved. Once every answer is resolved, reread `config show --json` and compare display, host, installed state and subagent ownership with the initial snapshot. A change stops the flow and requires an explicit restart; do not restart or overwrite automatically. This is best effort, because `config apply` has no revision argument and cannot atomically compare the original snapshot. If the recheck matches, submit one `config apply`, then read `config show --json` to verify its result. Report apply or verification failures without retrying separate or reduced writes. [User workflow](../USER_GUIDE.md#statusline-config-wizard) · [CLI support](../reference/cli.md#slash-command-support)
 
+<a id="canonical-resource-skeleton"></a>
+
+## Canonical resource skeleton
+
+The bundled skill resources under `packages/cli/resources/*/SKILL.md` share one structure. The existing `statusline-config` and `statusline-configure` files are the current archetypes.
+
+- **Frontmatter.** Use one YAML mapping with `name` equal to the directory name, a non-empty `description`, a string `argument-hint` (empty when the skill has no actions), `disable-model-invocation: true`, and exactly one of `allowed-tools` or `disallowed-tools` as a non-empty string array.
+- **Body.** Keep exactly one H1 and a non-empty instruction body. Preserve the command boundary, literal-argument and quoting rules, the guided workflow or external fallback, and the resource placeholders used by the renderer.
+- **Placeholders.** The installer replaces the known tokens (`ALLOWED_RULES`, `COMMAND`, `ITEM_GROUPS`, `LANGUAGES`, `LANGUAGE_CHOICES`, `THEME_CHOICES`). The internal `statusline-config` skill may contain a standalone known token such as `__CLAUDE_STATUSLINE_ALLOWED_RULES__`; the external `statusline-configure` skill must not contain placeholders. The structural check validates this before parsing YAML.
+- **Check boundary.** `checkSkillResources` validates this structure in `docs:check`. It is a development contract check; `packages/cli/resources` remains a product execution input and keeps the full product matrix when changed.
+
 ## Source maintenance and regression coverage
 
 The CLI installer renders the canonical templates for the exact installed executable, preserving literal paths and arguments. Item groups, language choices and theme choices come from shared registries rather than hand-maintained copies. Update the canonical resources and generator together, then run generation and the checks selected by the impact plan. Do not edit installed skills or regenerate the archived Python resources.
