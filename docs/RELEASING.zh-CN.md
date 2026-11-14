@@ -165,6 +165,18 @@ npm 发布及公开 registry 验证完成后，发布已核验的草稿。确认
 
 精确版本标签的 [Release public downloads](../.github/workflows/preview-downloads.yml) 工作流须全部通过。工作流比对匿名下载字节，在 Linux、Windows 和 macOS 分别用 Node 22 和 24 安装精确版本及其渠道选择器。签名作业检查公开软件包、打包的已签名上游依赖及 OIDC 来源证明。只读重验时显式选择已发布标签，并使用应用版本与标签一致的校验器检出。渠道选择器须仍指向该版本。分别记录发布源码和校验器 SHA。
 
+<a id="public-release-body-checklist"></a>
+
+### 公开发布正文清单
+
+仓库内的发布说明页面（`docs/releases/vX.Y.Z.md` 与 `.zh-CN.md`）与 GitHub/Gitee Release 正文不同。页面按发布说明模板维护；外部正文按本清单检查。
+
+- **标题。** 与英文发布说明 H1 一致：`vX.Y.Z — <English summary>`。
+- **正文。** 沿用当前惯例：英文主文加 `<details><summary>简体中文</summary>` 中文摘要。保留源码 commit、交付记录链接、变更 bullets、兼容性/安装、Node 22/24、issue #96 六项缺口，以及版本决策与发布流程链接。
+- **附件。** 链接四个准确文件：包 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS`。不要添加其他文件。
+- **证据边界。** 费用、原始 run/artifact ID 与诊断留在交付记录；正文链接该记录。
+- **Gitee。** 使用保存的 GitHub/Gitee Release JSON 运行 `npm run release:gitee-notes`。保留追加的 `## Gitee installation and downloads` 和 `## Original publication` 章节；不要自行使用这些保留标题。更新后回读 tag、target、预发布状态、正文与附件身份，并匿名重新下载四个文件。
+
 ## Gitee 代码与 Release 同步
 
 使用独立的 `gitee` SSH 远程。获取 GitHub 和 Gitee refs，确认 Gitee `main` 与通过必要 CI 的 GitHub `main` 相同或是其祖先。将该 GitHub 提交的完整 SHA 设为 `VALIDATED_MAIN`。发布版本时，核对本地带注释标签对象及提交与 GitHub 一致，并确认 Gitee 的同名标签相同或尚不存在。引用分叉时先解决，再推送。
