@@ -59,6 +59,7 @@ These records preserve documentation organization, navigation and check-maintena
 | i18n | [i18n authoring input examples](deliveries/i18n-authoring-examples.md) |
 | Performance | [Future performance report template](deliveries/performance-report-template.md) |
 | Release assets | [Release asset schema documentation](deliveries/release-asset-schema.md) |
+| Release body | [Public release body checklist](deliveries/release-body-checklist.md) |
 
 <a id="delivery-record-template"></a>
 

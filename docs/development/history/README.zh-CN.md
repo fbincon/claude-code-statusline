@@ -59,6 +59,7 @@
 | i18n | [i18n 维护输入示例](deliveries/i18n-authoring-examples.zh-CN.md) |
 | 性能 | [后续性能报告模板](deliveries/performance-report-template.zh-CN.md) |
 | 发布资产 | [发布资产 schema 文档](deliveries/release-asset-schema.zh-CN.md) |
+| 发布正文 | [公开发布正文清单](deliveries/release-body-checklist.zh-CN.md) |
 
 <a id="交付记录模板"></a>
 

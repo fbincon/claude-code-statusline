@@ -165,6 +165,18 @@ Publish the verified draft after npm publication and public registry verificatio
 
 Require all jobs of [Release public downloads](../.github/workflows/preview-downloads.yml) for the exact release tag. The workflow compares anonymous download bytes and installs both the exact version and its channel selector on Linux, Windows and macOS with Node 22 and 24. Its signature job checks the public package, signed bundled upstreams and OIDC source provenance. For a read-only rerun, use the exact published tag and a verifier checkout whose application version matches. The channel selector must still point to the selected version. Record the release source and verifier SHAs separately.
 
+<a id="public-release-body-checklist"></a>
+
+### Public release body checklist
+
+The repository release pages (`docs/releases/vX.Y.Z.md` and `.zh-CN.md`) are separate from the GitHub/Gitee Release body. Use the release note template for the pages; use this checklist for the external body.
+
+- **Title.** Match the English release page H1: `vX.Y.Z — <English summary>`.
+- **Body.** Use the current convention: English main text plus a `<details><summary>简体中文</summary>` Chinese summary. Keep the source commit, delivery record link, change bullets, compatibility/installation, Node 22/24, the six issue #96 gaps, and the version decision and release process links.
+- **Attachments.** Link the four exact files: the package tgz, the source archive, `build-manifest.json` and `SHA256SUMS`. Do not add other files.
+- **Evidence boundary.** Keep costs, raw run/artifact IDs and diagnostics in the delivery record; link it instead.
+- **Gitee.** Run `npm run release:gitee-notes` with the saved GitHub/Gitee Release JSON. Keep the appended `## Gitee installation and downloads` and `## Original publication` sections; do not use those headings yourself. After updating, read back the tag, target, prerelease state, body and attachment identities, and redownload the four files anonymously.
+
 ## Gitee code and Release synchronization
 
 Use the separate `gitee` SSH remote. Fetch GitHub and Gitee refs, then verify that Gitee `main` is an ancestor of, or equal to, the exact GitHub `main` commit with successful required CI. Set `VALIDATED_MAIN` to that full SHA. For publication, verify the local annotated tag object and commit against GitHub and confirm Gitee has either the identical tag or no tag with that name. Resolve divergence before pushing.
