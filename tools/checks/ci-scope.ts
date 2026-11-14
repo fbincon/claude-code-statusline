@@ -8,14 +8,14 @@ const DOCUMENTATION = new Set([
     'AGENTS.md',
     'README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md',
     'SECURITY.md', 'SECURITY.zh-CN.md', 'CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md',
-    '.github/pull_request_template.md', '.github/ISSUE_TEMPLATE/bug_report.yml',
-    '.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/preview-feedback.yml',
+    '.github/pull_request_template.md',
 ]);
+const ISSUE_TEMPLATE = /^\.github\/ISSUE_TEMPLATE\/[^/]+\.ya?ml$/u;
 
-/** Only explicitly maintained documentation and community templates may avoid the product matrix. */
+/** Only maintained documentation and community templates may avoid the product matrix. */
 export function documentationOnly(event: string, refType: string, paths: readonly string[]): boolean {
     return ['pull_request', 'push'].includes(event) && refType === 'branch' && paths.length > 0 &&
-        paths.every(path => DOCUMENTATION.has(path) || /^docs\/(?:[^/]+\/)*[^/]+\.md$/u.test(path));
+        paths.every(path => DOCUMENTATION.has(path) || ISSUE_TEMPLATE.test(path) || /^docs\/(?:[^/]+\/)*[^/]+\.md$/u.test(path));
 }
 
 export function changedDocumentationOnly(event: string, refType: string, base: string, head: string): boolean {

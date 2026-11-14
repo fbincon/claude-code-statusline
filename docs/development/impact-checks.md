@@ -22,7 +22,7 @@ The classifier reads both immutable Git trees, including additions, deletions, m
 | Build/generation inputs, development dependencies and export settings | Actual package comparison, generation/build tests and three-platform installation smoke |
 | Product logic, protocols, runtime dependencies and bundled skill instructions | Existing complete product matrix |
 
-Template locations and check boundaries are listed in the [template and check registry](README.md#template-and-check-registry).
+Template locations and check boundaries are listed in the [template and check registry](README.md#template-and-check-registry). The PR template structure and any top-level Issue form routing are covered by `docs:check` and the maintenance route, not the product matrix; see [community documentation checks](ci-maintenance.md#community-documentation-checks).
 
 Documentation checks run on Linux. Pure core tests run on Linux; platform, application, terminal and tooling families retain Linux, Windows and macOS executions. Mod checks use the existing fixed host inventory for the affected Mod; unsupported Runtime hosts are excluded rather than reported as passes. Scoped host jobs run official validation/tests and available exact-host declarations without running unrelated installation/runtime matrices. The existing Claude 2.1.296 declaration gap remains explicit.
 

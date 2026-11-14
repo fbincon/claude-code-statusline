@@ -53,6 +53,7 @@
 | 发布物 | [发布物模板与检查](deliveries/release-artifact-governance.zh-CN.md) |
 | 图片 | [图片图库模板与清单 schema](deliveries/image-gallery-governance.zh-CN.md) |
 | 文档页面 | [文档页面与登记治理](deliveries/documentation-registration-governance.zh-CN.md) |
+| 社区模板 | [PR 模板与 Issue 路由治理](deliveries/pr-issue-template-governance.zh-CN.md) |
 
 <a id="交付记录模板"></a>
 

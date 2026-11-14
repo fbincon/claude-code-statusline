@@ -7,12 +7,13 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { documentationOnly, changedDocumentationOnly, assessCiNeeds } from '../ci-scope.js';
 
-test('only allowlisted Markdown changes on ordinary PRs and branches avoid the matrix', () => {
+test('maintained documentation and community template changes on ordinary PRs and branches avoid the matrix', () => {
     const docs = ['AGENTS.md', 'README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'docs/development/external-tui-parity.md', 'docs/releases/v3.1.2.md',
         'SECURITY.md', 'SECURITY.zh-CN.md', 'CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md', '.github/pull_request_template.md',
-        '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/preview-feedback.yml'];
+        '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/config.yml',
+        '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/feedback.yaml', '.github/ISSUE_TEMPLATE/unknown.yml'];
     for (const event of ['pull_request', 'push']) assert.equal(documentationOnly(event, 'branch', docs), true);
-    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', '.github/workflows/new.yaml', '.github/dependabot.yml', '.github/actions/local/action.yml', '.github/ISSUE_TEMPLATE/unknown.yml', '.github/unknown.md', 'SECURITY.js', 'tools/checks/community.ts', 'tools/checks/actions.ts', 'tools/checks/docs.ts', 'tools/checks/ci-scope.ts', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.override.md', 'AGENTS.local.md', 'AGENTS.zh-CN.md', 'packages/core/AGENTS.md', 'NOTES.md', 'unknown', 'docs/not-markdown'])
+    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', '.github/workflows/new.yaml', '.github/dependabot.yml', '.github/actions/local/action.yml', '.github/ISSUE_TEMPLATE/nested/issue.yml', '.github/ISSUE_TEMPLATE/notes.md', '.github/ISSUE_TEMPLATE/unknown.txt', '.github/unknown.md', 'SECURITY.js', 'tools/checks/community.ts', 'tools/checks/actions.ts', 'tools/checks/docs.ts', 'tools/checks/ci-scope.ts', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.override.md', 'AGENTS.local.md', 'AGENTS.zh-CN.md', 'packages/core/AGENTS.md', 'NOTES.md', 'unknown', 'docs/not-markdown'])
         assert.equal(documentationOnly('pull_request', 'branch', [...docs, path]), false, path);
     assert.equal(documentationOnly('push', 'tag', docs), false);
     assert.equal(documentationOnly('workflow_dispatch', 'branch', docs), false);
@@ -72,7 +73,7 @@ test('community additions, edits and deletions stay light, but executable rename
     try {
         git('init');
         fs.mkdirSync(join(root, '.github/ISSUE_TEMPLATE'), { recursive: true });
-        fs.writeFileSync(join(root, '.github/ISSUE_TEMPLATE/preview-feedback.yml'), 'name: Preview\n');
+        fs.writeFileSync(join(root, '.github/ISSUE_TEMPLATE/feature-request.yml'), 'name: Feature\n');
         fs.writeFileSync(join(root, 'runtime.js'), 'export const runtime = true;\n');
         git('add', '.'); git('commit', '-m', 'baseline');
         const base = git('rev-parse', 'HEAD');
@@ -82,7 +83,7 @@ test('community additions, edits and deletions stay light, but executable rename
         }
         fs.appendFileSync(join(root, 'SECURITY.md'), 'updated\n'); git('add', 'SECURITY.md'); git('commit', '-m', 'edit policy');
         assert.equal(classify(base), 'docs_only=true\ndraft=false\n');
-        git('rm', '.github/ISSUE_TEMPLATE/preview-feedback.yml'); git('commit', '-m', 'replace preview');
+        git('rm', '.github/ISSUE_TEMPLATE/feature-request.yml'); git('commit', '-m', 'replace feature request');
         assert.equal(classify(base), 'docs_only=true\ndraft=false\n');
         git('mv', 'runtime.js', '.github/pull_request_template.md'); git('commit', '-m', 'executable rename');
         assert.equal(classify(base), 'docs_only=false\ndraft=false\n');

@@ -59,7 +59,7 @@ function classify(path: string, before: Blob | undefined, after: Blob | undefine
         return result('tests', [check, ...(check === 'generation' ? ['core' as const] : [])], 'Registered test family, including shared fixtures');
     }
     if (/^tests\//u.test(path)) return result('tests', ['core', 'platform', 'cli', 'tui', 'migration', 'archive'], 'Shared fixtures require all consuming source families');
-    if (path.endsWith('.md') && /^(?:[^/]+\.md|docs\/|mods\/[^/]+\/README|packages\/[^/]+\/README|tools\/[^/]+\/README|archive\/)/u.test(path) || /^\.github\/(?:pull_request_template\.md|ISSUE_TEMPLATE\/(?:bug_report|config|preview-feedback)\.yml)$/u.test(path))
+    if (path.endsWith('.md') && /^(?:[^/]+\.md|docs\/|mods\/[^/]+\/README|packages\/[^/]+\/README|tools\/[^/]+\/README|archive\/)/u.test(path) || /^\.github\/(?:pull_request_template\.md|ISSUE_TEMPLATE\/[^/]+\.ya?ml)$/u.test(path))
         return result('documentation', contentChecks && DOCUMENT_CONTENT_PATHS.includes(path) ? ['docs', 'checks'] : ['docs'],
             'Maintained documentation or community template');
     if (extra === 'assets') return result('documentation', ['docs', 'assets'], 'Documentation asset or recorded evidence');

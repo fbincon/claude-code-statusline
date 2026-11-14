@@ -93,6 +93,9 @@ test('maintenance categories form a union; product source and bundled instructio
         ['tools/benchmarks/new.ts', 'tool fixture', 'maintenance', 'benchmarks'],
         ['.github/workflows/new.yml', 'name: fixture', 'maintenance', 'checks'],
         ['docs/releases/approvals/v9.0.0.json', '{}', 'maintenance', 'approval'],
+        ['.github/pull_request_template.md', '## Purpose / 目的', 'maintenance', 'docs'],
+        ['.github/ISSUE_TEMPLATE/feature_request.yml', 'name: Feature', 'maintenance', 'docs'],
+        ['.github/ISSUE_TEMPLATE/feedback.yaml', 'name: Feedback', 'maintenance', 'docs'],
         ['packages/cli/resources/statusline-configure/SKILL.md', 'Run the command', 'product', 'actions'],
         ['packages/tui/src/state.ts', 'export const state = 1;', 'product', 'actions'],
     ]) {
@@ -101,6 +104,8 @@ test('maintenance categories form a union; product source and bundled instructio
     }
     const base = git('rev-parse', 'HEAD'); write('docs/mixed.md', '# Mixed'); write('tools/checks/new.ts', 'export {};');
     const mixed = createImpactPlan(base, commit()); assert.equal(mixed.route, 'maintenance'); assert(mixed.checks.includes('docs') && mixed.checks.includes('checks'));
+    const nestedBase = git('rev-parse', 'HEAD'); write('.github/ISSUE_TEMPLATE/nested/feature.yml', 'name: Nested'); const nested = createImpactPlan(nestedBase, commit());
+    assert.equal(nested.route, 'maintenance'); assert(nested.checks.includes('checks') && !nested.checks.includes('docs'), 'nested Issue form must remain policy, not documentation');
 });
 test('unknown files and executable renames do not hide behind documentation extensions', t => {
     const { git, write, commit } = repository(t);
