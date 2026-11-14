@@ -125,6 +125,93 @@ v3.15.0 及之后的安装验收契约要求 27 类检查（更早版本为 26 �
 
 `createAcceptanceEnvelope` 与 `validateAcceptanceEnvelope` 位于 `tools/checks/receipt.ts`。`showcase` 与 `editor-capture` 验收脚本是当前 exemplar：既有顶层回执不变，envelope 作为增量字段携带。`official-tests` 仍是具有独立 schema 与校验器的 CI 绑定回执；在那里采用 envelope 属于后续增量变更，并需要兼容测试。
 
+<a id="acceptance-receipt-producers"></a>
+
+## 验收回执生产者
+
+`tools/acceptance` 下每个非测试顶层 TypeScript 模块都有一个登记角色。权威登记是 `tools/checks/acceptance-producers.ts` 中的 `ACCEPTANCE_PRODUCERS` 常量；下方两张表是受检查的投影。新增、删除或重分类模块时，必须同时更新常量与两语言表。
+
+新/改的 release-promotable producer 必须在成功报告中加入 [验收回执](#acceptance-receipt-envelope) 中的嵌套 `AcceptanceEnvelope`。失败、诊断、手动、付费与物理路径不得携带 pass envelope；演示 producer 只有在其登记为 `adopted` 时才可以携带，如 `showcase` 与 `editor-capture`。既有 `planned` 条目在下一次实质变更前保持 grandfather；新 producer 不得使用 `planned`。`physical` 保持 `blocked-reader-first`，直到晋升 reader 接受新的 fragment schema。改变固定例外的重分类还必须更新 `validateKnownExceptions`；涉及 `planned` 时还要更新 `PLANNED_ALLOWED`。
+
+严格 CI 证据格式仍保持权威，且不在本 registry 范围内：`ci-fragment` schema 2 的精确顶层键与 `PhysicalIdentity`、`ci-section-evidence` 的精确 report sections、release 与 evidence 的精确 receipt 集合、嵌入 `mods.json` 的 `official-tests` schema、`integration-smoke` schema 1 报告以及 legacy `runtime.json` reader。Registry 只分类源码文件，不重复 coverage-plan 义务、producer 或 job 身份、receipt 文件集合或 release binding。
+
+角色：`producer` 拥有主回执；`diagnostic` 写入不可晋升诊断报告；`helper` 提供共享内存逻辑；`wrapper` 适配进程或 section；`driver` 准备 fixture 或采集数据。
+
+证据类别：`complete-acceptance` 是完整 PR candidate 证据；`additional-smoke` 是集成或发布 smoke，不是完整 PR acceptance；`official-host` 是固定宿主证据；`demonstration` 是文档或演示证据；`diagnostic` 是不可晋升诊断；`manual`、`paid`、`physical` 是操作员、付费与物理证据；`legacy` 是旧版 v1 证据；`none` 表示没有验收证据。
+
+Envelope 状态：`adopted` 已写入嵌套 envelope；`planned` 是尚未接入的 grandfather promotable producer；`embedded-via-parent` 是由父报告持久化的内存回执；`blocked-reader-first` 被精确键 reader 阻塞；`diagnostic-opt-out`、`manual-opt-out`、`not-applicable` 是明确的未采用状态。
+
+验证路径：`ci` 是 CI 矩阵或 worker；`official-host` 是固定官方宿主；`local` 是本地或离线运行；`manual` 是手动或 PTY 采集；`paid` 是付费运行；`physical` 是操作员物理证据；`none` 表示没有验收输出。
+
+主要输出是持久化回执或报告的稳定标识；日志、fixture 与媒体不逐一枚举。
+
+Registry 为阻断式：`npm run docs:check` 与 `npm run check` 在漂移时失败，`tools/acceptance/test/acceptance-producers.test.ts` 覆盖 acceptance 家族的 scoped route。两语言的机器列必须一致；`Notes` 可以翻译。表格单元格内不得使用 `|`。
+
+<!-- acceptance-producers:start -->
+| 文件 | 角色 | 主要输出 | 可晋升 | 证据类别 | Envelope | 校验 | 说明 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `artifact.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存 artifact 身份绑定；不是验收回执。 |
+| `budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 付费调用 ledger 预留与结算 helper；不是验收回执。 |
+| `budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 截止时间与阶段预算常量。 |
+| `diagnostics.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 有界脱敏日志写入器。 |
+| `editor-capture.ts` | `producer` | `editor-capture.json` | no | `demonstration` | `adopted` | `manual` | 手动 PTY 编辑器单元格重建；嵌套 envelope；仅演示证据。 |
+| `editor-shells.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Windows 编辑器 shell 命令与环境构造器。 |
+| `first-entry.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 子程序 first-entry journey helper。 |
+| `fixture-processes.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 进程所有权与终止 helper。 |
+| `git-policy.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 子程序 Git 策略 helper。 |
+| `historical-inputs.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 校验和固定的历史 tarball 准备；CI 输入，不是回执。 |
+| `historical-releases.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 归档发布摘要登记。 |
+| `install.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 隔离安装 fixture。 |
+| `installed-admission.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 安装预算准入 helper。 |
+| `installed-case.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 安装版 node:test 用例注册。 |
+| `installed-commands.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 安装版命令 fixture。 |
+| `installed-language-process.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | fork 与 IPC worker supervisor。 |
+| `installed-language-worker.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | 复制的 installed-language worker。 |
+| `installed-language.ts` | `diagnostic` | `installed-language-sample` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | 可选的不可晋升语言 journey 报告。 |
+| `installed-plan.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 安装阶段与选择计划。 |
+| `installed-supervisor.ts` | `diagnostic` | `events.jsonl` | no | `diagnostic` | `diagnostic-opt-out` | `local` | 看门狗与 supervisor；写入 promotable:false 阶段事件。 |
+| `installed.ts` | `producer` | `installed.json` | yes | `complete-acceptance` | `planned` | `ci` | 正常模式可晋升；diagnostic-pattern 模式写入失败且不可晋升。 |
+| `integration-smoke.ts` | `producer` | `smoke.json` | yes | `additional-smoke` | `planned` | `ci` | 主分支必需的三平台附加 smoke；不是完整 PR acceptance。 |
+| `language-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 语言截止时间与准入。 |
+| `language-comparison.ts` | `diagnostic` | `installed-language-comparison` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | CI 语言诊断；promotable:false。 |
+| `mod-types.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 宿主声明准备；写入元数据，不是回执。 |
+| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `planned` | `official-host` | v1 mods 证据与 v2 官方宿主 section。 |
+| `native-capacity-pty.ts` | `producer` | `pty-reports` | no | `manual` | `manual-opt-out` | `manual` | 手动 PTY 容量采集；文档证据。 |
+| `native-capacity.ts` | `producer` | `mods.json:capacity` | yes | `official-host` | `embedded-via-parent` | `official-host` | 内存容量回执，持久化到 mods.json。 |
+| `native-stability.ts` | `producer` | `native-stability.json` | yes | `official-host` | `embedded-via-parent` | `official-host` | 临时稳定性报告，嵌入 physical fragment。 |
+| `official-tests.ts` | `producer` | `mods.json:official_tests` | yes | `official-host` | `embedded-via-parent` | `official-host` | 内存中的 official-test batches，持久化到 mods.json；自身 schema 仍权威。 |
+| `paid-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 付费证据校验器。 |
+| `paid.ts` | `producer` | `paid-ledger` | no | `paid` | `manual-opt-out` | `paid` | 操作员付费验收；需要预算与共享 ledger。 |
+| `phase-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存阶段回执构造器。 |
+| `physical-budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 物理预算计算与预检。 |
+| `physical-sections.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存 section 编排器；由 physical.ts 持久化。 |
+| `physical.ts` | `producer` | `fragment.json` | yes | `complete-acceptance` | `blocked-reader-first` | `physical` | 精确键 fragment；采用 envelope 前需 reader-first schema 迁移。 |
+| `power-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 操作系统电源证据校验器。 |
+| `power.ts` | `producer` | `power-observation` | no | `physical` | `manual-opt-out` | `physical` | 操作员 suspend/reboot 证据；无法自动化。 |
+| `render-capture.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | PNG 与 JSON 采集 sidecar；不是验收回执。 |
+| `runtime-shared.ts` | `producer` | `runtime.json` | no | `legacy` | `not-applicable` | `local` | 旧版 v1 shared-runtime 生产者；当前无 in-repo caller；legacy reader 仍接受 runtime.json。 |
+| `runtime.ts` | `producer` | `runtime.json` | no | `legacy` | `not-applicable` | `local` | 旧版 v1 runtime 生产者；当前无 in-repo caller；legacy reader 仍接受 runtime.json。 |
+| `scoped-test-files.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | supervisor 内的 scoped 测试文件 worker。 |
+| `setup-appearance-capture.ts` | `producer` | `samples.json` | no | `manual` | `manual-opt-out` | `manual` | 手动 setup 与外观采集；文档证据。 |
+| `setup-appearance-driver.ts` | `driver` | none | no | `none` | `not-applicable` | `none` | 安装版渲染器样例 driver；写入 fixture，不是回执。 |
+| `short-history.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 短历史观察器。 |
+| `showcase-driver.ts` | `driver` | none | no | `none` | `not-applicable` | `none` | showcase 样例数据 driver；写入 fixture 数据，不是回执。 |
+| `showcase-journeys.ts` | `producer` | `journey-receipt.json` | no | `manual` | `manual-opt-out` | `local` | 手动 journey 记录；可能写入进行中和失败状态。 |
+| `showcase-operations.ts` | `producer` | `summary.json` | no | `manual` | `manual-opt-out` | `manual` | 手动操作演示；失败时写入失败摘要。 |
+| `showcase-paid.ts` | `producer` | `receipt.json` | no | `paid` | `manual-opt-out` | `paid` | 付费 showcase 采集；不在 CI 运行。 |
+| `showcase-replay.ts` | `producer` | `replay-receipt.json` | no | `manual` | `manual-opt-out` | `local` | 离线回放；结束时仅写入通过结果。 |
+| `showcase.ts` | `producer` | `receipt.json` | no | `demonstration` | `adopted` | `manual` | 固定样例演示；嵌套 envelope；不是 CI 或发布证据。 |
+| `supervised-node.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | stdout 与 stderr 文件跟踪进程包装器。 |
+| `task-fixture.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 任务存储 fixture 写入器。 |
+| `task-input-pty.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | PTY 任务输入 journey。 |
+| `terminal-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 终端证据评估器。 |
+| `terminal.ts` | `producer` | `interaction.json` | no | `physical` | `manual-opt-out` | `physical` | 操作员真实终端证据；无法自动化。 |
+| `trace-process.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | 可选诊断预加载。 |
+| `version-management-official.ts` | `producer` | `version-history` | yes | `official-host` | `embedded-via-parent` | `official-host` | 临时历史与版本报告，嵌入 physical fragment。 |
+| `version-management.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存版本与历史构造器；仅临时 trace。 |
+| `windows-shell.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存 PowerShell 就绪回执。 |
+<!-- acceptance-producers:end -->
+
 ## 安装包性能尝试
 
 [PERF-01](history/performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。

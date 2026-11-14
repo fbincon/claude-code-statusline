@@ -125,6 +125,93 @@ Promotable, CI-bound evidence may carry the shared acceptance envelope. The enve
 
 `createAcceptanceEnvelope` and `validateAcceptanceEnvelope` live in `tools/checks/receipt.ts`. The `showcase` and `editor-capture` acceptance scripts are the current exemplars: their existing top-level receipts are unchanged and carry the envelope as an additive field. `official-tests` remains a CI-bound receipt with its own schema and validators; adopting the envelope there is a later additive change with a compatibility test.
 
+<a id="acceptance-receipt-producers"></a>
+
+## Acceptance receipt producers
+
+Every non-test top-level TypeScript module under `tools/acceptance` has one registered role. The authoritative registry is the `ACCEPTANCE_PRODUCERS` constant in `tools/checks/acceptance-producers.ts`; the two tables below are checked projections. A new, removed or reclassified module must update the constant and both language tables in one change.
+
+A new or changed release-promotable producer must add the nested `AcceptanceEnvelope` from [Acceptance receipts](#acceptance-receipt-envelope) to its successful report. Fail, diagnostic, manual, paid and physical paths must not carry a pass envelope; demonstration producers may carry it only when their registry entry is `adopted`, as `showcase` and `editor-capture` do. Existing `planned` entries are grandfathered until their next substantive change; new producers cannot use `planned`. `physical` remains `blocked-reader-first` until the promotion readers accept a new fragment schema. Deliberate reclassifications that change a fixed exception must also update `validateKnownExceptions` and, for `planned`, `PLANNED_ALLOWED`.
+
+The strict CI evidence formats remain authoritative and are outside this registry: `ci-fragment` schema 2 exact top-level keys and exact `PhysicalIdentity`, `ci-section-evidence` exact report sections, release and evidence exact receipt sets, the `official-tests` schema embedded in `mods.json`, the `integration-smoke` schema 1 report and the legacy `runtime.json` readers. The registry classifies source files only; it does not duplicate coverage-plan obligations, producer or job identities, receipt file sets or release bindings.
+
+Roles: `producer` owns a primary receipt; `diagnostic` writes a non-promotable diagnostic report; `helper` provides shared in-memory logic; `wrapper` adapts a process or section; `driver` prepares fixtures or capture data.
+
+Evidence classes: `complete-acceptance` is full PR candidate evidence; `additional-smoke` is integration or release smoke that is not complete PR acceptance; `official-host` is fixed-host evidence; `demonstration` is documentation or demo evidence; `diagnostic` is non-promotable diagnostics; `manual`, `paid` and `physical` are operator, paid and physical evidence; `legacy` is legacy v1 evidence; `none` means no acceptance evidence.
+
+Envelope statuses: `adopted` emits the nested envelope; `planned` is a grandfathered promotable producer not yet adopted; `embedded-via-parent` is an in-memory receipt persisted by a parent; `blocked-reader-first` is blocked by an exact-key reader; `diagnostic-opt-out`, `manual-opt-out` and `not-applicable` are explicit non-adoption states.
+
+Validation paths: `ci` is a CI matrix or worker; `official-host` is a fixed official host; `local` is a local or offline run; `manual` is a manual or PTY capture; `paid` is a paid run; `physical` is operator physical evidence; `none` means no acceptance output.
+
+Primary outputs are stable identifiers for the persisted receipt or report; logs, fixtures and media are not enumerated.
+
+The registry is blocking: `npm run docs:check` and `npm run check` fail on drift, and `tools/acceptance/test/acceptance-producers.test.ts` covers the acceptance-family scoped route. Keep the machine columns identical in both languages; `Notes` may be translated. Do not use `|` inside a table cell.
+
+<!-- acceptance-producers:start -->
+| File | Role | Primary outputs | Promotable | Evidence class | Envelope | Validation | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `artifact.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory artifact identity binder; no acceptance receipt. |
+| `budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Paid-call ledger reserve and settle helper; not an acceptance receipt. |
+| `budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Deadline and phase budget constants. |
+| `diagnostics.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Bounded sanitized log writer. |
+| `editor-capture.ts` | `producer` | `editor-capture.json` | no | `demonstration` | `adopted` | `manual` | Manual PTY editor-cell reconstruction; nested envelope; demonstration only. |
+| `editor-shells.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Windows editor shell command and environment builders. |
+| `first-entry.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Child-program first-entry journey helper. |
+| `fixture-processes.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Process ownership and termination helpers. |
+| `git-policy.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Child-program Git policy helper. |
+| `historical-inputs.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Checksum-pinned historical tarball preparation; CI input, not a receipt. |
+| `historical-releases.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Archived release digest registry. |
+| `install.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Isolated installation fixture. |
+| `installed-admission.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Installed budget admission helper. |
+| `installed-case.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Installed node:test case registration. |
+| `installed-commands.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Installed command fixtures. |
+| `installed-language-process.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Fork and IPC worker supervisor. |
+| `installed-language-worker.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | Copied installed-language worker. |
+| `installed-language.ts` | `diagnostic` | `installed-language-sample` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | Optional non-promotable language journey report. |
+| `installed-plan.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Installed phase and selection plan. |
+| `installed-supervisor.ts` | `diagnostic` | `events.jsonl` | no | `diagnostic` | `diagnostic-opt-out` | `local` | Watchdog and supervisor; writes promotable:false phase events. |
+| `installed.ts` | `producer` | `installed.json` | yes | `complete-acceptance` | `planned` | `ci` | Normal mode promotable; diagnostic-pattern mode writes fail and is non-promotable. |
+| `integration-smoke.ts` | `producer` | `smoke.json` | yes | `additional-smoke` | `planned` | `ci` | Required additional three-platform smoke; not complete PR acceptance. |
+| `language-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Language deadlines and admission. |
+| `language-comparison.ts` | `diagnostic` | `installed-language-comparison` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | CI language diagnostic; promotable:false. |
+| `mod-types.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Host declaration preparation; writes metadata, not a receipt. |
+| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `planned` | `official-host` | v1 mods evidence and v2 official-host sections. |
+| `native-capacity-pty.ts` | `producer` | `pty-reports` | no | `manual` | `manual-opt-out` | `manual` | Manual PTY capacity capture; documentation evidence. |
+| `native-capacity.ts` | `producer` | `mods.json:capacity` | yes | `official-host` | `embedded-via-parent` | `official-host` | In-memory capacity receipt persisted in mods.json. |
+| `native-stability.ts` | `producer` | `native-stability.json` | yes | `official-host` | `embedded-via-parent` | `official-host` | Transient stability report embedded in the physical fragment. |
+| `official-tests.ts` | `producer` | `mods.json:official_tests` | yes | `official-host` | `embedded-via-parent` | `official-host` | In-memory official-test batches persisted in mods.json; its own schema remains authoritative. |
+| `paid-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Paid evidence validators. |
+| `paid.ts` | `producer` | `paid-ledger` | no | `paid` | `manual-opt-out` | `paid` | Operator paid acceptance; requires budget and shared ledger. |
+| `phase-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory phase receipt builder. |
+| `physical-budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Physical budget calculations and preflight. |
+| `physical-sections.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory section orchestrator; persists through physical.ts. |
+| `physical.ts` | `producer` | `fragment.json` | yes | `complete-acceptance` | `blocked-reader-first` | `physical` | Exact-key fragment; reader-first schema migration required before envelope adoption. |
+| `power-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | OS power evidence validators. |
+| `power.ts` | `producer` | `power-observation` | no | `physical` | `manual-opt-out` | `physical` | Operator suspend/reboot evidence; cannot be automated. |
+| `render-capture.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | PNG and JSON capture sidecar; not an acceptance receipt. |
+| `runtime-shared.ts` | `producer` | `runtime.json` | no | `legacy` | `not-applicable` | `local` | Legacy v1 shared-runtime producer; no in-repo caller; runtime.json still accepted by legacy readers. |
+| `runtime.ts` | `producer` | `runtime.json` | no | `legacy` | `not-applicable` | `local` | Legacy v1 runtime producer; no in-repo caller; runtime.json still accepted by legacy readers. |
+| `scoped-test-files.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | Scoped test-file worker inside the supervisor. |
+| `setup-appearance-capture.ts` | `producer` | `samples.json` | no | `manual` | `manual-opt-out` | `manual` | Manual setup and appearance capture; documentation evidence. |
+| `setup-appearance-driver.ts` | `driver` | none | no | `none` | `not-applicable` | `none` | Installed-renderer sample driver; writes fixtures, not a receipt. |
+| `short-history.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Short-history observer. |
+| `showcase-driver.ts` | `driver` | none | no | `none` | `not-applicable` | `none` | Showcase sample-data driver; writes fixture data, not a receipt. |
+| `showcase-journeys.ts` | `producer` | `journey-receipt.json` | no | `manual` | `manual-opt-out` | `local` | Manual journey recording; may persist in-progress and failed states. |
+| `showcase-operations.ts` | `producer` | `summary.json` | no | `manual` | `manual-opt-out` | `manual` | Manual operations walkthrough; writes a failure summary when the run fails. |
+| `showcase-paid.ts` | `producer` | `receipt.json` | no | `paid` | `manual-opt-out` | `paid` | Paid showcase capture; never runs in CI. |
+| `showcase-replay.ts` | `producer` | `replay-receipt.json` | no | `manual` | `manual-opt-out` | `local` | Offline replay; pass-only result written at the end. |
+| `showcase.ts` | `producer` | `receipt.json` | no | `demonstration` | `adopted` | `manual` | Fixed-sample demonstration; nested envelope; not CI or release evidence. |
+| `supervised-node.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | stdout and stderr file-tail process wrapper. |
+| `task-fixture.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Task-store fixture writer. |
+| `task-input-pty.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | PTY task-input journey. |
+| `terminal-evidence.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Terminal evidence assessor. |
+| `terminal.ts` | `producer` | `interaction.json` | no | `physical` | `manual-opt-out` | `physical` | Operator real-terminal evidence; cannot be automated. |
+| `trace-process.ts` | `wrapper` | none | no | `none` | `not-applicable` | `none` | Optional diagnostics preload. |
+| `version-management-official.ts` | `producer` | `version-history` | yes | `official-host` | `embedded-via-parent` | `official-host` | Transient history and version report embedded in the physical fragment. |
+| `version-management.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory version and history builder; temporary traces only. |
+| `windows-shell.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory PowerShell readiness receipt. |
+<!-- acceptance-producers:end -->
+
 ## Installed performance experiments
 
 [PERF-01](history/performance/perf-01.md) owns the separately identified installed TS-to-TS

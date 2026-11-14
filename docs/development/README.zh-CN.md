@@ -62,6 +62,7 @@
 | 文档页面 | 本节 | `checkDocumentationPages` · `checkDocumentationRegistration` | 当前已登记页面 |
 | PR 模板 | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | `checkPullRequestTemplate` | 单文件双语模板 |
 | 验收回执 | [回执 envelope](testing.zh-CN.md#acceptance-receipt-envelope) | `validateAcceptanceEnvelope` | 试点脚本；CI 绑定格式不变 |
+| 验收生产者登记 | [生产者登记](testing.zh-CN.md#acceptance-receipt-producers) | `checkAcceptanceProducers` | 覆盖全部非测试 `tools/acceptance/*.ts`；仅源码文件分类 |
 | 技能资源 | [资源骨架](skill-workflows.zh-CN.md#canonical-resource-skeleton) | `checkSkillResources` | `packages/cli/resources/*/SKILL.md` |
 
 ### 迁移与交付记录

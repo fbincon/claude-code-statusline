@@ -54,7 +54,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Images | [Image gallery template and manifest schema](deliveries/image-gallery-governance.md) |
 | Documentation pages | [Documentation page and registration governance](deliveries/documentation-registration-governance.md) |
 | Community templates | [Pull request template and Issue routing governance](deliveries/pr-issue-template-governance.md) |
-| Acceptance | [Acceptance receipt envelope](deliveries/acceptance-receipt-envelope.md) |
+| Acceptance | [Acceptance receipt envelope](deliveries/acceptance-receipt-envelope.md) · [Acceptance producer registry](deliveries/acceptance-producer-registry.md) |
 | Skill resources | [Skill resource skeleton and check](deliveries/skill-resource-skeleton.md) |
 | i18n | [i18n authoring input examples](deliveries/i18n-authoring-examples.md) |
 | Performance | [Future performance report template](deliveries/performance-report-template.md) |
