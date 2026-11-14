@@ -1,6 +1,8 @@
 name: Bug report / 问题报告
 description: Report a reproducible installation or product problem / 报告可复现的安装或产品问题
 title: '[Bug] '
+labels:
+  - bug
 body:
   - type: markdown
     attributes:
