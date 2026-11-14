@@ -47,6 +47,7 @@
 | 针对性措辞与范围调整 | [文档评审针对性调整](deliveries/docs-review-targeted-adjustments.zh-CN.md) |
 | 代理指南 | [项目级代理指南维护](deliveries/agents-guidance-maintenance.zh-CN.md) |
 | 贡献者指南 | [贡献指南维护](deliveries/contributing-maintenance.zh-CN.md) |
+| 社区政策 | [双语行为准则](deliveries/code-of-conduct.zh-CN.md) |
 | 根目录文档 | [根目录文档维护](deliveries/root-docs-maintenance.zh-CN.md) |
 | 变更日志 | [变更日志模板与格式检查](deliveries/changelog-template-maintenance.zh-CN.md) |
 | 交付记录 | [交付记录模板与检查](deliveries/delivery-record-governance.zh-CN.md) |
