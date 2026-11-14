@@ -1,0 +1,35 @@
+name: Feature request / 功能建议
+description: Suggest a new capability or an improvement / 建议新功能或改进
+title: '[Feature] '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the [user guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md) / [用户指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md) and existing [Issues](https://github.com/fbincon/claude-code-statusline/issues) first. For a vulnerability, use [private reporting](https://github.com/fbincon/claude-code-statusline/security/advisories/new). / 请先查看用户指南和已有 Issue。潜在漏洞请使用私有报告。
+        Remove credentials, tokens, private transcripts and unrelated personal data. / 删除凭据、token、私密对话及无关个人信息。
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case / 问题或使用场景
+      description: What problem are you trying to solve? / 你想解决什么问题？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution or desired outcome / 建议方案或期望结果
+      description: Describe the behavior you want. / 描述你期望的行为。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 考虑过的替代方案
+      description: Optional. / 选填。
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context / 补充信息
+      description: Optional sanitized examples, configuration or screenshots. / 可选脱敏示例、配置或截图。

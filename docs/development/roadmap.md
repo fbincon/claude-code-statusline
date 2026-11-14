@@ -45,7 +45,7 @@ The [delivered mainline](history/roadmap-milestones.md#planned-mainline) covers 
 | --- | --- | --- |
 | Migration guidance | Help a user map an existing setup to this product | Verified source/target versions, capability mapping, manual steps and recovery; do not promise lossless automatic conversion |
 
-The [contribution guide](../../CONTRIBUTING.md), [bilingual Bug form](../../.github/ISSUE_TEMPLATE/bug_report.yml) and blank question/feature Issues are already available; see [repository maintenance](repository-governance.md). They are maintained entry points, rather than new development candidates.
+The [contribution guide](../../CONTRIBUTING.md), [bilingual Bug form](../../.github/ISSUE_TEMPLATE/bug_report.yml), [bilingual Feature request form](../../.github/ISSUE_TEMPLATE/feature_request.yml) and blank question Issues are already available; see [repository maintenance](repository-governance.md). They are maintained entry points, rather than new development candidates.
 
 ### Longer-term candidates
 

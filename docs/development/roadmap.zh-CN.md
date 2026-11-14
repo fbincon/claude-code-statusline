@@ -45,7 +45,7 @@ M1–M12 和选定的十八个后续工作包均已交付。[SHOWCASE-01](showca
 | --- | --- | --- |
 | 迁移说明 | 帮助用户将已有配置映射到本产品 | 已验证的来源／目标版本、能力映射、手动步骤和恢复方法，不承诺无损自动转换 |
 
-[贡献指南](../../CONTRIBUTING.zh-CN.md)、[双语 Bug 表单](../../.github/ISSUE_TEMPLATE/bug_report.yml)及空白问题／功能 Issue 已可使用，见[仓库维护](repository-governance.zh-CN.md)。这些属于既有入口维护，不再作为新增开发候选。
+[贡献指南](../../CONTRIBUTING.zh-CN.md)、[双语 Bug 表单](../../.github/ISSUE_TEMPLATE/bug_report.yml)、[双语功能建议表单](../../.github/ISSUE_TEMPLATE/feature_request.yml)及空白问题 Issue 已可使用，见[仓库维护](repository-governance.zh-CN.md)。这些属于既有入口维护，不再作为新增开发候选。
 
 ### 较远方向
 
