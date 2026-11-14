@@ -56,6 +56,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Community templates | [Pull request template and Issue routing governance](deliveries/pr-issue-template-governance.md) |
 | Acceptance | [Acceptance receipt envelope](deliveries/acceptance-receipt-envelope.md) |
 | Skill resources | [Skill resource skeleton and check](deliveries/skill-resource-skeleton.md) |
+| i18n | [i18n authoring input examples](deliveries/i18n-authoring-examples.md) |
 
 <a id="delivery-record-template"></a>
 
