@@ -139,7 +139,7 @@ CI scope 始终在路由前检查 Action 身份。工作流、Dependabot、检�
 
 文档／媒体检查覆盖维护中的 Markdown、社区模板和已登记文档资源，包含截图元数据及 Mod／package README。产品技能指令仍属于执行输入。混合维护合并必要检查，产品行为执行完整矩阵，未知修订或职责阻断。详见[影响归属规则](impact-checks.zh-CN.md#职责与检查)。
 
-`npm run docs:check` 检查 Markdown、单文件双语 PR 模板、Issue 表单 Markdown 内容和入口链接中的本地目标及锚点。根目录政策文件需要独立的英文／中文文件，根目录 `AGENTS.md` 除外：它只维护英文，仍检查链接和锚点；该例外不适用于 `docs/` 下的同名文件。PR 模板和表单在同一文件中包含双语。复用既有仅开发 YAML 解析器，检查表单结构、显式且唯一的字段 ID、必填标志、下拉选项，以及联系入口的名称、HTTP(S) 地址和说明。这是针对本仓库所维护字段的离线检查，不代替 GitHub 渲染；合并后仍应检查实际入口与模板。参见 [GitHub 表单语法](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms)。
+`npm run docs:check` 检查 Markdown、单文件双语 PR 模板、Issue 表单 Markdown 内容和入口链接中的本地目标及锚点。它还校验 PR 模板必需的双语标题、按需事项和指南链接，影响计划将 `.github/ISSUE_TEMPLATE/` 下的任意顶层 `.yml`/`.yaml` 表单按文档路由。根目录政策文件需要独立的英文／中文文件，根目录 `AGENTS.md` 除外：它只维护英文，仍检查链接和锚点；该例外不适用于 `docs/` 下的同名文件。PR 模板和表单在同一文件中包含双语。复用既有仅开发 YAML 解析器，检查表单结构、显式且唯一的字段 ID、必填标志、下拉选项，以及联系入口的名称、HTTP(S) 地址和说明。这是针对本仓库所维护字段的离线检查，不代替 GitHub 渲染；合并后仍应检查实际入口与模板。参见 [GitHub 表单语法](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms)。
 
 `Complete candidate evidence` 继续作为唯一受保护汇总门禁。维护要求选中的专项检查或已核验复用及自身信封；核心验收要求完整产品作业；完整源码晋升要求集成／晋升；维护源码标签要求新发布构建、冒烟和关联作业。意外跳过、草稿及证据缺失均失败。分类器／检查器变化执行专项回归和已验收 base 核验，不自动启动完整产品矩阵。
 

@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { stringify } from 'yaml';
-import { checkCommunity } from '../community.js';
+import { checkCommunity, checkPullRequestTemplate } from '../community.js';
 import { checkDocs } from '../docs.js';
 
 function fixture(t: TestContext) {
@@ -21,6 +21,29 @@ const form = () => ({ name: 'Bug / 问题', description: 'Report a problem / 报
     { type: 'input', id: 'version', attributes: { label: 'Version / 版本' }, validations: { required: true } },
     { type: 'dropdown', id: 'channel', attributes: { label: 'Channel / 渠道', options: ['npm', 'Source / 源码'] } },
 ] });
+const prTemplate = (extra = '') => `## Purpose / 目的
+
+<!-- Explain the problem or use case. / 说明问题或使用场景。 -->
+
+## Changes / 变更
+
+<!-- Describe the resulting behavior and relevant tradeoffs. / 描述变更后的行为及相关取舍。 -->
+
+## Validation / 验证
+
+<!-- Record the impact route, selected tasks, actual results and limitations. / 记录影响路线、选中任务、实际结果及限制。 -->
+
+## Applicable follow-ups / 按需事项
+
+<!-- Complete each item or write N/A. / 逐项说明或填写“不适用”。 -->
+
+- Documentation and English/Chinese consistency / 文档与中英同步:
+- UI screenshots, when relevant / 相关界面截图:
+- CHANGELOG, when relevant / 相关变更日志:
+- Related Issue, if any / 关联 Issue（如有）:
+
+See the [contribution guide](../CONTRIBUTING.md) / [贡献指南](../CONTRIBUTING.zh-CN.md). Share sanitized evidence only; omit credentials, tokens and private transcripts. / 仅提交脱敏证据，不含凭据、token 或私密对话.
+${extra}`;
 
 test('valid bilingual forms and chooser links expose Markdown for link checks', t => {
     const f = fixture(t);
@@ -31,6 +54,30 @@ test('valid bilingual forms and chooser links expose Markdown for link checks', 
     assert.deepEqual(result.errors, []);
     assert(result.markdown.some(item => item.text.includes('../../docs/USER_GUIDE.md')));
     assert(result.markdown.some(item => item.text.includes('https://example.com/guide')));
+});
+
+test('pull request template requires its bilingual sections and guidance', t => {
+    const f = fixture(t);
+    assert.deepEqual(checkPullRequestTemplate(f.root), []);
+    f.write('.github/pull_request_template.md', prTemplate());
+    assert.deepEqual(checkPullRequestTemplate(f.root), []);
+    const cases: [string, string, RegExp][] = [
+        ['missing heading', prTemplate().replace('## Changes / 变更\n', ''), /missing heading ## Changes/u],
+        ['demoted heading', prTemplate().replace('## Changes / 变更', '### Changes / 变更'), /missing heading ## Changes/u],
+        ['duplicate heading', prTemplate() + '\n## Purpose / 目的\n', /duplicate heading/u],
+        ['heading order', prTemplate().replace('## Purpose / 目的', '## TEMP').replace('## Changes / 变更', '## Purpose / 目的').replace('## TEMP', '## Changes / 变更'), /heading order/u],
+        ['missing follow-up', prTemplate().replace('- CHANGELOG, when relevant / 相关变更日志:\n', ''), /missing follow-up/u],
+        ['missing guide', prTemplate().replace('CONTRIBUTING.md', 'CONTRIBUTING.txt'), /missing guide link/u],
+        ['missing sanitization', prTemplate().replace('sanitized evidence', 'evidence').replace('脱敏证据', '证据'), /missing sanitization/u],
+    ];
+    for (const [name, body, expected] of cases) {
+        f.write('.github/pull_request_template.md', body);
+        assert.match(checkPullRequestTemplate(f.root).join('\n'), expected, name);
+    }
+    f.write('.github/pull_request_template.md', prTemplate().replaceAll('\n', '\r\n'));
+    assert.deepEqual(checkPullRequestTemplate(f.root), []);
+    assert.deepEqual(checkCommunity(process.cwd()).errors, []);
+    assert.ok(fs.existsSync(join(process.cwd(), '.github', 'pull_request_template.md')), 'The canonical pull request template must exist');
 });
 
 test('malformed YAML, duplicate keys and invalid form structure fail', t => {
@@ -84,7 +131,9 @@ test('documentation checks validate English-only root agent guidance, paired pol
         f.write(`docs/USER_GUIDE${suffix}.md`, `[Editor](#${editor})\n<a id="${editor}"></a>\n<a id="${legacy}"></a>\n2.1.287 2.1.258 claude-statusline-native.json\n`);
         f.write(`docs/RELEASING${suffix}.md`, `<a id="${release}"></a>\n`);
     }
-    f.write('.github/pull_request_template.md', '# Change / 修改\n[Guide](../docs/USER_GUIDE.md)\n');
+    f.write('CONTRIBUTING.md', '# Contributing\n');
+    f.write('CONTRIBUTING.zh-CN.md', '# 贡献\n');
+    f.write('.github/pull_request_template.md', prTemplate());
     f.yaml('bug_report.yml', form());
     assert.deepEqual(checkDocs(f.root).errors, []);
     f.write('AGENTS.md', '# Repository agents\n[Guide](docs/USER_GUIDE.md#native-configuration-editor)\n');
@@ -101,7 +150,7 @@ test('documentation checks validate English-only root agent guidance, paired pol
     f.write('SECURITY.md', '# Security\n');
     assert.deepEqual(checkDocs(f.root).errors, ['SECURITY.md: missing bilingual counterpart']);
     f.write('SECURITY.zh-CN.md', '# 安全\n');
-    f.write('.github/pull_request_template.md', '[Missing](../CONTRIBUTING.md)\n');
+    f.write('.github/pull_request_template.md', prTemplate() + '\n[Missing](../MISSING.md)\n');
     f.yaml('config.yml', { contact_links: [{ name: 'Missing', url: 'https://github.com/fbincon/claude-code-statusline/blob/main/docs/missing.md', about: 'Unavailable guide' }] });
     f.yaml('bug_report.yml', { ...form(), body: [...form().body, { type: 'markdown', attributes: { value: '[Bad anchor](../../docs/USER_GUIDE.md#missing)' } }] });
     const errors = checkDocs(f.root).errors;

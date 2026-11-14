@@ -46,7 +46,7 @@ Preserve original evidence, commands and results when archiving. Update navigati
 
 1. **Pair and navigation.** Add `docs/<page>.md` and `docs/<page>.zh-CN.md`. Start with one H1 and the existing language-navigation line; do not put an anchor before the H1 except the existing legacy anchors.
 2. **Scope and index.** Add a short scope paragraph, insert the page into the owning index, and use the [documentation ownership](#documentation-ownership) map to choose the guide. Long pages may add `## Contents`; short pages do not need it.
-3. **Registration.** If the page contains source-backed facts or `docs-example` markers, register it in `tools/checks/impact-documentation.ts` and run the content and example tests. If it is current but not yet source-backed, add it to the explicit `UNREGISTERED_CURRENT_PAGES` allowlist in `tools/checks/docs.ts` with a reason. Do not let a new page bypass both.
+3. **Registration.** If the page contains source-backed facts or `docs-example` markers, register it in `tools/checks/impact-documentation.ts` and run the content and example tests. If it is current but not yet source-backed, add it to the explicit allowlist in `checkDocumentationRegistration` in `tools/checks/docs.ts` and record the reason in the delivery record, keeping it out of `DOCUMENT_CONTENT_PATHS` until source-backed checks exist. Do not let a new page bypass both.
 4. **Style.** Keep one fact owner: link [protocol and schema versions](../reference/cli.md#protocol-and-schema-versions) instead of restating versions, and link detailed procedures instead of duplicating them. Use `text` for shell-neutral command blocks, `bash` or `powershell` when the shell matters, and end longer guides with one related-guides line. Use the existing historical/status callout wording for frozen pages.
 5. **Delivery.** Add the bilingual delivery record and history-index entry, then run `docs:check`, the registered content and example tests, and `git diff --check`.
 
@@ -60,6 +60,7 @@ Preserve original evidence, commands and results when archiving. Update navigati
 | Approval decision | [Approval decision template](../RELEASING.md#approval-decision-template) | `checkApprovalData` | Registered decisions |
 | Image gallery | [Gallery template](../images/README.md#gallery-template) · [Manifest schema 2](../images/README.md#capture-manifest-schema-2) | `checkImageGalleries` | New galleries and schema 2 |
 | Documentation page | This section | `checkDocumentationPages` · `checkDocumentationRegistration` | Current registered pages |
+| Pull request template | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | `checkPullRequestTemplate` | Single bilingual template |
 
 ### Migration and delivery records
 

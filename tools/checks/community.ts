@@ -6,10 +6,26 @@ const object = (value: unknown): value is Record<string, unknown> =>
     value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 const TYPES = new Set(['markdown', 'input', 'textarea', 'dropdown', 'checkboxes', 'upload']);
+const PULL_REQUEST_TEMPLATE = '.github/pull_request_template.md';
+const PULL_REQUEST_HEADINGS = [
+    '## Purpose / 目的',
+    '## Changes / 变更',
+    '## Validation / 验证',
+    '## Applicable follow-ups / 按需事项',
+] as const;
+const PULL_REQUEST_FOLLOW_UPS = [
+    'Documentation and English/Chinese consistency / 文档与中英同步:',
+    'UI screenshots, when relevant / 相关界面截图:',
+    'CHANGELOG, when relevant / 相关变更日志:',
+    'Related Issue, if any / 关联 Issue（如有）:',
+] as const;
+const PULL_REQUEST_GUIDES = ['CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md'] as const;
+const PULL_REQUEST_SANITIZATION = ['sanitized evidence', '脱敏证据'] as const;
 
-/** Check the maintained GitHub form fields offline; GitHub remains the final schema authority. */
+/** Check the maintained GitHub community templates offline; GitHub remains the final schema authority. */
 export function checkCommunity(root: string): { errors: string[]; markdown: { file: string; text: string }[] } {
     const errors: string[] = [], markdown: { file: string; text: string }[] = [];
+    errors.push(...checkPullRequestTemplate(root));
     const directory = join(root, '.github', 'ISSUE_TEMPLATE');
     if (!fs.existsSync(directory)) return { errors, markdown };
     for (const name of fs.readdirSync(directory).filter(name => /\.ya?ml$/u.test(name))) {
@@ -87,4 +103,24 @@ export function checkCommunity(root: string): { errors: string[]; markdown: { fi
         if (!inputs) fail('body must contain at least one input field');
     }
     return { errors, markdown };
+}
+
+/** Validate the single bilingual pull request template without duplicating its link checks. */
+export function checkPullRequestTemplate(root: string): string[] {
+    const file = join(root, '.github', 'pull_request_template.md');
+    if (!fs.existsSync(file)) return [];
+    const body = fs.readFileSync(file, 'utf8').replaceAll('\r\n', '\n'), lines = body.split('\n'), errors: string[] = [];
+    const fail = (message: string) => errors.push(PULL_REQUEST_TEMPLATE + ': ' + message);
+    let previous = -1;
+    for (const heading of PULL_REQUEST_HEADINGS) {
+        const indexes = lines.flatMap((line, index) => line.trim() === heading ? [index] : []);
+        if (indexes.length === 0) { fail('missing heading ' + heading); continue; }
+        if (indexes.length > 1) { fail('duplicate heading ' + heading); continue; }
+        if (indexes[0]! <= previous) { fail('heading order differs at ' + heading); continue; }
+        previous = indexes[0]!;
+    }
+    for (const label of PULL_REQUEST_FOLLOW_UPS) if (!body.includes(label)) fail('missing follow-up ' + label);
+    for (const guide of PULL_REQUEST_GUIDES) if (!body.includes(guide)) fail('missing guide link ' + guide);
+    for (const hint of PULL_REQUEST_SANITIZATION) if (!body.includes(hint)) fail('missing sanitization hint ' + hint);
+    return errors;
 }
