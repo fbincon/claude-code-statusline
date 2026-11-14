@@ -101,6 +101,30 @@ Use the branch-only `tiered-probe` dispatch to exercise representative full and 
 
 Use a clean checkout per fixed host when running official Mod diagnostics locally. A previous host can leave ignored declarations under the plugin’s `.claude-plugin/types` directory. Record the exact host and declaration headers before accepting its type or test results. [Measured samples](ci-efficiency.md)
 
+<a id="acceptance-receipt-envelope"></a>
+
+## Acceptance receipts
+
+Promotable, CI-bound evidence may carry the shared acceptance envelope. The envelope is additive: existing formats such as `ci-fragment` schema 2, `impact-product` schema 1 and release bindings remain authoritative and are not wrapped or replaced. Local diagnostics and draft reports may keep their own formats and must not be promoted.
+
+```json
+{
+  "schema_version": 1,
+  "kind": "acceptance-envelope",
+  "status": "pass",
+  "producer": { "kind": "showcase fixed samples" },
+  "source": { "commit": "<40-hex>", "files_sha256": "<64-hex>", "tree": "<40-hex>" },
+  "artifact": { "sha256": "<64-hex>", "filename": "...", "version": "..." },
+  "runtime": { "node": "...", "node_sha256": "<64-hex>", "platform": "...", "arch": "...", "os_release": "...", "host": null },
+  "checks": [{ "name": "...", "status": "pass", "detail": "..." }],
+  "limitations": ["..."]
+}
+```
+
+`source.commit` and `source.files_sha256` identify the accepted source; `tree` is optional. `artifact` may be `null` when no packaged artifact exists. `checks` must be non-empty, use unique names, use `pass` or `skip` statuses and include at least one `pass`. Each `limitations` entry must be non-empty, and the array must contain at least one entry. Unknown extension keys are allowed, and `produced_at` is optional.
+
+`createAcceptanceEnvelope` and `validateAcceptanceEnvelope` live in `tools/checks/receipt.ts`. The `showcase` and `editor-capture` acceptance scripts are the current exemplars: their existing top-level receipts are unchanged and carry the envelope as an additive field. `official-tests` remains a CI-bound receipt with its own schema and validators; adopting the envelope there is a later additive change with a compatibility test.
+
 ## Installed performance experiments
 
 [PERF-01](history/performance/perf-01.md) owns the separately identified installed TS-to-TS

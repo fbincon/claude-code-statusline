@@ -13,6 +13,7 @@ import { Capture } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
 import { SCENES, SAMPLE_SCENARIOS, requireShowcaseVisuals, requireSampleMetadata, requireColorObservation } from './showcase-driver.js';
 import { repoRoot } from '../migration/ts-03/common.js';
+import { createAcceptanceEnvelope, validateAcceptanceEnvelope } from '../checks/receipt.ts';
 
 export const SHOWCASE_BASELINE = { version: '3.16.0', commit: 'c89a2ca088099ccd3ceb76baf59ecf11d84b08f0',
     tarball_sha256: '2030ef2f8d386b2fcb1f616fb49ce6f16eed92ec21ea22486799da68151b8c8a' } as const;
@@ -101,11 +102,13 @@ export function collectShowcase(options: ShowcaseOptions) {
             captures.push({ file: record.language + '/' + file, ...metadata, color_evidence: colorEvidence, rows: cells.rows,
                 width: image.width, height: image.height, png_sha256: sha256(image.png), cells_sha256: sha256(json), ansi_sha256: sha256(raw) });
         }
-        const collectorFiles = ['showcase.ts', 'showcase-driver.ts', 'render-capture.ts', 'install.ts'].map(name => 'tools/acceptance/' + name);
+        const collectorFiles = ['showcase.ts', 'showcase-driver.ts', 'render-capture.ts', 'install.ts']
+            .map(name => 'tools/acceptance/' + name).concat('tools/checks/receipt.ts');
         const collector = { commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
             working_tree_changes: Boolean(execFileSync('git', ['status', '--porcelain=v1', '--', ...collectorFiles], { cwd: repoRoot, encoding: 'utf8' }).trim()),
             files: Object.fromEntries(collectorFiles.map(path => [path, sha256(fs.readFileSync(join(repoRoot, path)))])),
-            compiled_files: Object.fromEntries(['showcase.js', 'showcase-driver.js', 'render-capture.js'].map(name => [name, sha256(fs.readFileSync(fileURLToPath(new URL('./' + name, import.meta.url))))])),
+            compiled_files: { ...Object.fromEntries(['showcase.js', 'showcase-driver.js', 'render-capture.js'].map(name => [name, sha256(fs.readFileSync(fileURLToPath(new URL('./' + name, import.meta.url))))])),
+                '../checks/receipt.js': sha256(fs.readFileSync(fileURLToPath(new URL('../checks/receipt.js', import.meta.url)))) },
             note: 'Collector identity is independent of the unchanged public product. This is demonstration evidence, not a complete product acceptance receipt.' };
         const provenance = { product: SHOWCASE_BASELINE, collector, kind: 'installed fixed-sample terminal-cell reconstruction; not an OS screenshot',
             platform: process.platform, architecture: process.arch, kernel: release(), node: process.version,
@@ -126,9 +129,19 @@ export function collectShowcase(options: ShowcaseOptions) {
         installed.cleanup(); requireRemoved(installed.temporary);
     }
     assert(success);
+    const envelope = createAcceptanceEnvelope({
+        schema_version: 1, kind: 'acceptance-envelope', status: 'pass',
+        producer: { kind: 'showcase fixed samples' },
+        source: { commit: artifact.source.commit, files_sha256: artifact.source.source_manifest_sha256 },
+        artifact: { sha256: artifact.sha256, filename: basename(artifactPath), version: artifact.source.application_version },
+        runtime: { node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, arch: process.arch, os_release: release(), host: null },
+        checks: [{ name: 'fixed samples', status: 'pass', detail: 'Fixed public-package samples rendered in an isolated installation.' }],
+        limitations: ['Synthetic fixed-sample terminal-cell reconstruction; not an OS screenshot or human acceptance.'],
+    });
+    validateAcceptanceEnvelope(envelope);
     const receipt = { status: 'pass', kind: 'showcase fixed samples', product: SHOWCASE_BASELINE, captures: captures.length,
         matrix_cases: SCENES.length * 2 * 3 * 3 * SAMPLE_SCENARIOS.length, profiles: journeys.length,
-        isolated_installation_removed: true, model_calls: 0 };
+        isolated_installation_removed: true, model_calls: 0, envelope };
     fs.writeFileSync(join(output, 'receipt.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
     return { ...receipt, output };
 }

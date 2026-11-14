@@ -61,6 +61,7 @@ Preserve original evidence, commands and results when archiving. Update navigati
 | Image gallery | [Gallery template](../images/README.md#gallery-template) · [Manifest schema 2](../images/README.md#capture-manifest-schema-2) | `checkImageGalleries` | New galleries and schema 2 |
 | Documentation page | This section | `checkDocumentationPages` · `checkDocumentationRegistration` | Current registered pages |
 | Pull request template | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | `checkPullRequestTemplate` | Single bilingual template |
+| Acceptance receipt | [Receipt envelope](testing.md#acceptance-receipt-envelope) | `validateAcceptanceEnvelope` | Exemplar scripts; CI-bound formats unchanged |
 
 ### Migration and delivery records
 
