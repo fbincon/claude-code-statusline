@@ -55,6 +55,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Documentation pages | [Documentation page and registration governance](deliveries/documentation-registration-governance.md) |
 | Community templates | [Pull request template and Issue routing governance](deliveries/pr-issue-template-governance.md) |
 | Acceptance | [Acceptance receipt envelope](deliveries/acceptance-receipt-envelope.md) |
+| Skill resources | [Skill resource skeleton and check](deliveries/skill-resource-skeleton.md) |
 
 <a id="delivery-record-template"></a>
 

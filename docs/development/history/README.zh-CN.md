@@ -55,6 +55,7 @@
 | 文档页面 | [文档页面与登记治理](deliveries/documentation-registration-governance.zh-CN.md) |
 | 社区模板 | [PR 模板与 Issue 路由治理](deliveries/pr-issue-template-governance.zh-CN.md) |
 | 验收 | [验收回执 envelope](deliveries/acceptance-receipt-envelope.zh-CN.md) |
+| 技能资源 | [技能资源骨架与检查](deliveries/skill-resource-skeleton.zh-CN.md) |
 
 <a id="交付记录模板"></a>
 
