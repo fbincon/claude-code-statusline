@@ -47,6 +47,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) |
 | Agent guidance | [Project agent guidance maintenance](deliveries/agents-guidance-maintenance.md) |
 | Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
+| Community policy | [Bilingual Code of Conduct](deliveries/code-of-conduct.md) |
 | Root documentation | [Root documentation maintenance](deliveries/root-docs-maintenance.md) |
 | Changelog | [Changelog template and format check](deliveries/changelog-template-maintenance.md) |
 | Delivery records | [Delivery record template and check](deliveries/delivery-record-governance.md) |
