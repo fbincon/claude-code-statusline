@@ -3,7 +3,7 @@
 [English](README.md) | **简体中文**
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
-[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [MIT License](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@fbincon/claude-code-statusline)](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 适用于 Linux、WSL、Windows 和 macOS 的可配置 Claude Code 状态栏。一眼查看模型与推理强度、项目、Git、上下文、用量和任务计时；通过会话内编辑器、终端编辑器或 CLI 配置主栏与独立的子代理行。
 
@@ -162,7 +162,7 @@ TypeScript workspace 分为纯规则（`packages/core`）、平台副作用（`p
 
 ## 贡献与安全
 
-开发、翻译及反馈参见[贡献指南](CONTRIBUTING.zh-CN.md)。潜在漏洞通过[安全政策](SECURITY.zh-CN.md)私下报告。
+开发、翻译及反馈参见[贡献指南](CONTRIBUTING.zh-CN.md)。潜在漏洞通过[安全政策](SECURITY.zh-CN.md)私下报告。参与本项目即表示同意遵守[行为准则](CODE_OF_CONDUCT.zh-CN.md)。
 
 ## 许可证
 

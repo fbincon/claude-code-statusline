@@ -3,7 +3,7 @@
 **English** | [简体中文](README.zh-CN.md)
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
-[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [MIT License](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@fbincon/claude-code-statusline)](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 A configurable Claude Code status line for Linux, WSL, Windows and macOS. See model and reasoning effort, project, Git, context, usage and task timing at a glance. Configure the main line and individual subagent rows in the current Claude session, a terminal editor or the CLI.
 
@@ -176,7 +176,7 @@ The TypeScript workspace separates pure rules (`packages/core`), platform effect
 
 ## Contributing and security
 
-See [Contributing](CONTRIBUTING.md) for development, translations and feedback. Report vulnerabilities privately through the [security policy](SECURITY.md).
+See [Contributing](CONTRIBUTING.md) for development, translations and feedback. Report vulnerabilities privately through the [security policy](SECURITY.md). By participating, you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 <a id="许可证"></a>
 
