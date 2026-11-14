@@ -44,6 +44,7 @@
 | 内容组织与准确性 | [按阅读顺序整理内容及双语核对](deliveries/documentation-content-organization.zh-CN.md) · [内容更正、完整来源流程及定向回归检查](deliveries/documentation-content-validation.zh-CN.md) · [CLI 参考覆盖、目标与回归检查](deliveries/cli-reference-maintenance.zh-CN.md) · [使用指南入门与编辑器操作](deliveries/user-guide-onboarding.zh-CN.md) · [根目录文档准确性与编排](deliveries/root-documentation-audit.zh-CN.md) · [根目录文档结构与版本归属](deliveries/root-docs-structure.zh-CN.md) · [开发文档事实修正与历史记录冻结](deliveries/development-docs-corrections.zh-CN.md) |
 | 索引、归档与导航 | [开发文档归档与导航刷新](deliveries/development-docs-archive-refresh.zh-CN.md) · [图片索引整理与 Python 时代归档](deliveries/docs-images-organization.zh-CN.md) · [发布说明索引、导航与模板](deliveries/docs-releases-organization.zh-CN.md) |
 | 检查与回归修复 | [开发文档内容检查与登记](deliveries/development-content-checks.zh-CN.md) · [文档内容回归校验修复](deliveries/docs-content-check-fixes.zh-CN.md) |
+| CI 依赖 | [传输 action 依赖固定](deliveries/transfer-artifact-dependencies.zh-CN.md) |
 | 针对性措辞与范围调整 | [文档评审针对性调整](deliveries/docs-review-targeted-adjustments.zh-CN.md) |
 | 代理指南 | [项目级代理指南维护](deliveries/agents-guidance-maintenance.zh-CN.md) |
 | 贡献者指南 | [贡献指南维护](deliveries/contributing-maintenance.zh-CN.md) |
