@@ -57,7 +57,7 @@
 | 发布物 | [发布物模板与检查](deliveries/release-artifact-governance.zh-CN.md) |
 | 图片 | [图片图库模板与清单 schema](deliveries/image-gallery-governance.zh-CN.md) |
 | 文档页面 | [文档页面与登记治理](deliveries/documentation-registration-governance.zh-CN.md) |
-| 社区模板 | [PR 模板与 Issue 路由治理](deliveries/pr-issue-template-governance.zh-CN.md) |
+| 社区模板 | [PR 模板与 Issue 路由治理](deliveries/pr-issue-template-governance.zh-CN.md) · [功能建议表单](deliveries/feature-request-form.zh-CN.md) |
 | 验收 | [验收回执 envelope](deliveries/acceptance-receipt-envelope.zh-CN.md) · [验收生产者登记](deliveries/acceptance-producer-registry.zh-CN.md) |
 | 技能资源 | [技能资源骨架与检查](deliveries/skill-resource-skeleton.zh-CN.md) |
 | i18n | [i18n 维护输入示例](deliveries/i18n-authoring-examples.zh-CN.md) |

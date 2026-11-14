@@ -5,7 +5,8 @@
 ## Choose the right channel
 
 - For a reproducible defect, open a [Bug report](https://github.com/fbincon/claude-code-statusline/issues/new?template=bug_report.yml). Include the version, installation channel, environment, reproduction steps, expected behavior and actual result. If installation failed before a version was available, say unknown.
-- For a question or feature idea, check the [user guide](docs/USER_GUIDE.md) and existing [Issues](https://github.com/fbincon/claude-code-statusline/issues), then use a blank Issue. Describe the use case and desired outcome.
+- For a feature idea, open a [Feature request](https://github.com/fbincon/claude-code-statusline/issues/new?template=feature_request.yml). Describe the use case and desired outcome.
+- For a question, check the [user guide](docs/USER_GUIDE.md) and existing [Issues](https://github.com/fbincon/claude-code-statusline/issues), then use a blank Issue.
 - For a potential vulnerability, follow the [security policy](SECURITY.md) and report privately.
 - For community participation, follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 

@@ -5,7 +5,8 @@
 ## 选择反馈渠道
 
 - 可复现缺陷请填写 [Bug 报告](https://github.com/fbincon/claude-code-statusline/issues/new?template=bug_report.yml)，提供版本、安装渠道、环境、复现步骤、预期行为与实际结果。如果安装失败而无法获得版本，填写“未知”。
-- 使用问题或功能建议请先查看[用户指南](docs/USER_GUIDE.zh-CN.md)和已有 [Issues](https://github.com/fbincon/claude-code-statusline/issues)，再通过空白 Issue 描述使用场景和期望结果。
+- 功能建议请填写[功能建议表单](https://github.com/fbincon/claude-code-statusline/issues/new?template=feature_request.yml)，描述使用场景和期望结果。
+- 使用问题请先查看[用户指南](docs/USER_GUIDE.zh-CN.md)和已有 [Issues](https://github.com/fbincon/claude-code-statusline/issues)，再通过空白 Issue 描述。
 - 潜在漏洞请按[安全政策](SECURITY.zh-CN.md)私密报告。
 - 参与社区时请遵守[行为准则](CODE_OF_CONDUCT.zh-CN.md)。
 
