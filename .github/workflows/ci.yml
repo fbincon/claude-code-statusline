@@ -852,7 +852,7 @@ jobs:
       - name: Restore verified portable test outputs
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
-      - name: Require eight targets, sixteen hosts and all 32 runtime cases for the same artifact
+      - name: Require every installation, host and Node case for the same artifact
         if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         env:
           COVERAGE_BASIS: ${{ steps.evidence.outputs.basis }}

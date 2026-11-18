@@ -27,12 +27,14 @@ I18N-02 将产品验收与语言发布就绪分开。已接受基线导出器包
 | Ubuntu 24.04 x64 | 四个 Node 选择器和开发 Node |
 | Windows 2025 x64 | 22.x、24.0.0 |
 | Windows 11 ARM，x64 Node | 22.0.0、24.x |
-| macOS 14 ARM | 22.0.0 |
-| macOS 15 ARM／Intel | 分别为 24.0.0／22.x |
+| macOS 15 ARM | 22.0.0 和 24.0.0 |
+| macOS 15 Intel | 22.x |
 | macOS 26 ARM／Intel | 均为 24.x |
 | 固定 Claude 宿主（8 条完整／8 条短历史） | Linux 2.1.287、Windows 2.1.288，以及三个系统上的 2.1.289 和 2.1.310 |
 
-按 #198 冻结版本，40 项逻辑安装／Node 义务包含 14 条完整和 26 条短历史，16 个宿主包含 8 条完整和 8 条短历史。精确声明、Mod 测试、容量与 Windows 稳定性仍在适用宿主上验证。Node 别名只有在实际二进制和输入都相同时才共享执行。Windows ARM 的语言、历史、其余安装作业分别使用自己的安装目录、配置与缓存。目录迁移及依赖迁移入口的 shell、编辑器与恢复检查保持同片。每个固定宿主均有能力边界、保护的回归及替换条件，调整清单前先用固定版本探测并评审。[覆盖策略](../../tools/checks/ci-coverage.ts)
+当前 35 项逻辑安装／Node 义务包含 14 条完整和 21 条短历史。16 个宿主沿用表中的历史深度。精确声明、Mod 测试、容量与 Windows 稳定性仍在适用宿主上验证。Node 别名只有在实际二进制和输入都相同时才共享执行。Windows ARM 的语言、历史、其余安装作业分别使用自己的安装目录、配置与缓存。目录迁移及依赖迁移入口的 shell、编辑器与恢复检查保持同片。每个固定宿主均有能力边界、保护的回归及替换条件，调整清单前先用固定版本探测并评审。[覆盖策略](../../tools/checks/ci-coverage.ts)
+
+GitHub 于 2026-11-02 退役 macOS 14 runner。Runner 迁移将原来在该镜像执行的 Node 22.0.0 完整历史移至 macOS 15 ARM，早期证据保留各自的 runner 矩阵、历史深度和策略摘要。[GitHub 退役公告](https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/)
 
 ## CI 耗时与稳定性优化
 

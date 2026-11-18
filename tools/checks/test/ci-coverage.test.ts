@@ -6,11 +6,12 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { baselineObligations, COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, coverageVersionAt, coverageVersionInArchive,
+import { baselineObligations, COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, RUNNER_ACTIVATION, RUNNER_ACTIVATION_PATH, coverageVersionAt, coverageVersionInArchive,
     createCoveragePlan, historyCounts, verifyCoveragePlan } from '../ci-coverage.js';
-import { runtimeInputs } from '../runtime-inputs.js';
+import { runtimeInputs, type RunnerPolicy } from '../runtime-inputs.js';
 
-const inputs = (devShared = false) => runtimeInputs([{ version: 'v22.23.4' }, { version: devShared ? 'v24.21.0' : 'v24.22.2' }], '24.21.0');
+const inputs = (devShared = false, policy: RunnerPolicy = 'legacy') =>
+    runtimeInputs([{ version: 'v22.23.4' }, { version: devShared ? 'v24.21.0' : 'v24.22.2' }], '24.21.0', policy);
 function repository(t: test.TestContext) {
     const previous = process.cwd(), root = fs.mkdtempSync(join(tmpdir(), 'coverage-policy-'));
     t.after(() => { process.chdir(previous); removeTree(root); assert(!fs.existsSync(root)); });
@@ -31,7 +32,7 @@ test('baseline and shared executions have distinct logical and physical history 
     const r = repository(t); r.write('packages/core/src/rendering/layout.ts', 'render'); const head = r.save('Unrelated product work');
     const p = createCoveragePlan(r.activated, head, inputs());
     assert.deepEqual(historyCounts(p.obligations), { installed: { full: 1, short: 7 }, runtime: { full: 13, short: 19 }, host: { full: 8, short: 8 } });
-    assert.deepEqual(p.obligations, baselineObligations(inputs()));
+    assert.deepEqual(p.obligations, baselineObligations(inputs(), 'legacy'));
     assert.equal(p.producers.length, 66); assert.equal(new Set(p.producers.map(s => s.job)).size, 66); assert.equal(new Set(p.producers.map(s => s.receipt)).size, 66);
     for (const row of p.obligations) {
         const fragments = p.producers.filter(spec => spec.obligations.includes(row.id));
@@ -46,6 +47,27 @@ test('baseline and shared executions have distinct logical and physical history 
     assert.deepEqual(owners.map(s => s.stage), ['installed', 'language', 'history']);
     for (const spec of owners) { assert.equal(spec.job_key, 'installed'); assert.deepEqual(spec.obligations, selectors); assert.equal(spec.depth, 'full'); }
     assert.deepEqual(verifyCoveragePlan(shared, r.activated, head, inputs(true)), shared);
+});
+
+test('runner migration moves the Node floor without reinterpreting old v2 receipts', t => {
+    const r = repository(t);
+    r.write('README.md', 'before the runner migration');
+    const oldHead = r.save('Produce historical coverage');
+    const oldPlan = createCoveragePlan(r.activated, oldHead, inputs());
+    assert.equal(oldPlan.obligations.find(row => row.id === 'macos-14-arm64@22.0.0')?.depth, 'full');
+    assert.equal(oldPlan.obligations.find(row => row.id === 'macos-15-arm64@22.0.0')?.depth, 'short');
+    r.write(RUNNER_ACTIVATION_PATH, RUNNER_ACTIVATION);
+    const head = r.save('Migrate the runner grid'), current = inputs(false, 'current');
+    const plan = createCoveragePlan(oldHead, head, current);
+    assert.deepEqual(historyCounts(plan.obligations), { installed: { full: 1, short: 6 }, runtime: { full: 13, short: 15 }, host: { full: 8, short: 8 } });
+    assert.deepEqual(plan.obligations.filter(row => row.os === 'macos-15' && row.kind === 'runtime' && row.depth === 'full').map(row => row.selector), ['22.0.0', '24.0.0']);
+    assert(!plan.producers.some(row => row.os === 'macos-14'));
+    verifyCoveragePlan(oldPlan, r.activated, oldHead, inputs());
+    assert.throws(() => createCoveragePlan(r.activated, oldHead, current), /Frozen runtime/u);
+    assert.throws(() => createCoveragePlan(oldHead, head, inputs()), /Frozen runtime/u);
+    fs.unlinkSync(RUNNER_ACTIVATION_PATH);
+    const reverted = r.save('Remove runner activation');
+    assert.throws(() => createCoveragePlan(head, reverted, inputs()), /Runner activation was removed/u);
 });
 
 test('PR depth uses the unique actual merge base, sees both rename endpoints and rejects reporter-selected reductions', t => {
@@ -102,11 +124,11 @@ test('source activation is immutable across deletion, restoration, tampered arch
 test('unfrozen, incorrect development or contradictory derived Node inputs cannot select acceptance', t => {
     const r = repository(t);
     assert.throws(() => createCoveragePlan(null, r.legacy, inputs()), /not activated/u);
-    const broken = inputs(); broken.shared.push('24.x'); assert.throws(() => baselineObligations(broken));
-    const matrix = inputs(); matrix.matrix.include.pop(); assert.throws(() => baselineObligations(matrix), /Frozen runtime/u);
-    const dev = runtimeInputs([{ version: 'v22.23.4' }, { version: 'v24.22.2' }], '24.20.0');
+    const broken = inputs(); broken.shared.push('24.x'); assert.throws(() => baselineObligations(broken, 'legacy'));
+    const matrix = inputs(); matrix.matrix.include.pop(); assert.throws(() => baselineObligations(matrix, 'legacy'), /Frozen runtime/u);
+    const dev = runtimeInputs([{ version: 'v22.23.4' }, { version: 'v24.22.2' }], '24.20.0', 'legacy');
     assert.throws(() => createCoveragePlan(null, r.activated, dev), /Development Node/u);
-    const floor = inputs(); floor.versions['22.0.0'] = '22.1.0'; assert.throws(() => baselineObligations(floor));
+    const floor = inputs(); floor.versions['22.0.0'] = '22.1.0'; assert.throws(() => baselineObligations(floor, 'legacy'));
 });
 
 test('unknown paths and empty change sets cannot reduce history coverage', t => {

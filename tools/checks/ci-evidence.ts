@@ -8,8 +8,8 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { ghReadBytes, githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { responseError, retryRead } from './ci-transfer-policy.ts';
-import { TARGETS, HOSTS } from './runtime-inputs.ts';
-import { coverageVersionAt, verifyCoveragePlan, type CoveragePlan } from './ci-coverage.ts';
+import { LEGACY_TARGETS, HOSTS, runnerTargets } from './runtime-inputs.ts';
+import { coverageVersionAt, runnerPolicyAt, verifyCoveragePlan, type CoveragePlan } from './ci-coverage.ts';
 import { validateFragmentIdentity, validatePhysicalIdentity, type PhysicalExecution } from './ci-fragment.ts';
 import { sectionInputsAt, sourceCapacityCount, sourceContract, validateSectionEvidence, verifySectionLogBytes } from './ci-section-evidence.ts';
 import { envelopeBytes } from './evidence-zip.ts';
@@ -129,13 +129,14 @@ function validateEnvelope(record: CompleteEvidence, run: any, artifacts: any[], 
     assert.match(record.tree, SHA); assert.match(record.workflow_sha, SHA); assert.match(record.policy_sha256, HASH);
     assert(Date.parse(record.created_at) <= now + 60000 && Date.parse(record.expires_at) > now, 'Evidence envelope is expired or has an invalid creation time');
     assert(Date.parse(record.expires_at) - Date.parse(record.created_at) <= 30 * 86400000);
-    let capacity = 197;
+    let capacity = 197, installations = LEGACY_TARGETS.length;
     if (record.schema_version === 2) {
         const entries = sectionInputsAt(record.source_commit);
         assert.equal(record.version, sourceContract(entries).version, 'Physical envelope names the wrong source version');
         capacity = sourceCapacityCount(entries);
+        installations = runnerTargets(runnerPolicyAt(record.source_commit)).length;
     }
-    assert.deepEqual(record.coverage, { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: capacity });
+    assert.deepEqual(record.coverage, { installations, runtime_installations: installations * 4, hosts: HOSTS.length, native_capacity_cases: capacity });
     assert.match(record.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
     assert.deepEqual(Object.keys(record.delivery).sort(), ['SHA256SUMS', 'build-manifest.json', `fbincon-claude-code-statusline-${record.version}.tgz`, `claude-code-statusline-${record.version}-source.tar.gz`].sort());
     assert(Object.values(record.delivery).every(value => HASH.test(value)));
@@ -155,9 +156,9 @@ function validateEnvelope(record: CompleteEvidence, run: any, artifacts: any[], 
         if (!key.endsWith('.x')) assert.equal(value, key);
     }
     assert.deepEqual(inputs.shared, Object.keys(inputs.versions).filter(key => inputs.versions[key] === inputs.development));
-    const legacyNames = ['ts06-candidate', 'ci-compiled-tests', ...TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
+    const legacyNames = ['ts06-candidate', 'ci-compiled-tests', ...LEGACY_TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
         ...HOSTS.map(host => `ts06-mods-${host.os}-${host.claude}`), ...Object.keys(inputs.versions).filter(key => !inputs.shared.includes(key))
-            .flatMap(key => TARGETS.map(target => `ts06-runtime-${target.os}-${target.arch}-${key}`))];
+            .flatMap(key => LEGACY_TARGETS.map(target => `ts06-runtime-${target.os}-${target.arch}-${key}`))];
     const expectedNames = record.schema_version === 1 ? legacyNames :
         ['ts06-candidate', 'ci-compiled-tests', ...record.coverage_plan.producers.map(producer => producer.artifact)];
     const ids = new Set<number>(), names = new Set<string>();
@@ -194,8 +195,8 @@ function validateLegacyExecutions(record: CompleteEvidenceV1, inputs: any): void
         assert.equal(execution.node.replace(/^v/u, ''), execution.runtime_case ? inputs.versions[execution.runtime_case] : inputs.development);
         if (execution.host) assert.match(execution.host_sha256, HASH);
     }
-    const expectedObligations = [...TARGETS.map(target => `${target.os}-${target.arch}`),
-        ...TARGETS.flatMap(target => Object.keys(inputs.versions).map(key => `${target.os}-${target.arch}@${key}`)),
+    const expectedObligations = [...LEGACY_TARGETS.map(target => `${target.os}-${target.arch}`),
+        ...LEGACY_TARGETS.flatMap(target => Object.keys(inputs.versions).map(key => `${target.os}-${target.arch}@${key}`)),
         ...HOSTS.map(host => `${({ 'ubuntu-24.04': 'linux', 'windows-2025': 'win32', 'macos-15': 'darwin' } as Record<string, string>)[host.os]}-${host.claude}`)];
     assert.deepEqual([...obligations].sort(), expectedObligations.sort(), 'Incomplete execution obligations');
     for (const execution of record.executions.filter(value => value.runtime_case)) {

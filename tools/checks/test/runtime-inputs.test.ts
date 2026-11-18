@@ -4,8 +4,10 @@ import { runtimeInputs, readRuntimeIndex } from '../runtime-inputs.js';
 test('runtime selectors resolve once and only identical development versions share execution', () => {
     const index = ['v24.0.0', 'v22.0.0', 'v22.10.0', 'v22.9.0', 'v24.21.0', 'v26.0.0'].map(version => ({ version }));
     const shared = runtimeInputs(index, '24.21.0'); assert.deepEqual(shared.shared, ['24.x']);
-    assert.equal(shared.versions['22.x'], '22.10.0'); assert.equal(shared.matrix.include.length, 24);
-    const separate = runtimeInputs(index, '24.20.0'); assert.equal(separate.matrix.include.length, 32);
+    assert.equal(shared.versions['22.x'], '22.10.0'); assert.equal(shared.matrix.include.length, 21);
+    const separate = runtimeInputs(index, '24.20.0'); assert.equal(separate.matrix.include.length, 28);
+    assert(!separate.matrix.include.some(row => row.target.os === 'macos-14'));
+    assert.equal(runtimeInputs(index, '24.20.0', 'legacy').matrix.include.length, 32);
     assert.throws(() => runtimeInputs([], '24.21.0'));
 });
 test('runtime input preparation retries transient HTTP failures but never accepts malformed input', async () => {
