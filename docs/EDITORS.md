@@ -78,8 +78,8 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | ← / → | Reorder components or adjust a setting; ordering is disabled while filtered |
 | `/`; printable text; Backspace / Ctrl+U | Enter or update item search; delete/clear it |
 | Ctrl+F | Choose a category |
-| Ctrl+E / Ctrl+G | Open item details / return or cancel input |
-| Ctrl+A / Ctrl+D / Ctrl+X | Add / copy / remove a component on an item page |
+| Ctrl+E / Ctrl+G | Open item details / return, cancel input or clear list filters |
+| Ctrl+A / Ctrl+D / Ctrl+X | Open the catalog / copy / remove an instance on an item page |
 | Enter | Save on Main/Subagents pages and original settings rows; edit or accept advanced fields |
 | Ctrl+S | Save the display draft outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
@@ -96,8 +96,8 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Space / Enter | Toggle components; operate settings or enter/accept field editing |
 | `/`; Ctrl+U; Ctrl+G | Enter search; clear input; cancel and restore its prior state |
 | Ctrl+F | Choose a category |
-| Ctrl+E / Ctrl+G | Open item details / return from the form |
-| A / D / X | Add / copy / remove a component on an item page |
+| Ctrl+E / Ctrl+G | Open item details / return from the form or clear list filters |
+| A / D / X | Open the catalog / copy / remove an instance on an item page |
 | S / F / Q | Save and continue / save and finish / discard unsaved display edits and close |
 | H / A | Expand Claude preferences in Settings / Apply those preferences separately |
 | R / K / V | Discard/reload / check an unknown save outcome / retry sample preview |
@@ -134,7 +134,7 @@ Terminal bracketed paste and recognizable Client multi-character text do not exe
 
 Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it and Ctrl+G restores the previous query. The terminal editor also accepts direct typing; Esc cancels explicit search input. Search matches IDs, names and descriptions in all twelve languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighting identifies the match, including an alternate-language snippet when needed.
 
-Ctrl+F opens the category picker. Select with arrows and accept with Enter; choose **All categories** to remove the category filter. Query and category combine and remain local to the session. Filtered items can be toggled or formatted; ordering is disabled until both filters are cleared. Filters are not saved or exported.
+Ctrl+F opens the category picker. Select with arrows and accept with Enter. **All categories** clears the category. In the configured list, Ctrl+G clears both filters and restores ordering. The catalog inherits the list's query and category when it opens. Use Ctrl+U to clear the catalog query and Ctrl+F to change its category. Catalog filters stay in that view. Enter and Space add or enable the selected type in the draft and keep the catalog open. [Component catalog and instance controls](COMPOSITION.md#use-either-editor)
 
 For an item's source and conditions, press Ctrl+E, select **Sources and requirements** at the start of the form, then Enter. Scroll with arrows or Page Up/Down; return with Ctrl+G (terminal Esc also works). This explains scope, source fields, verified host requirements, optional collectors and unavailable reasons. It does not inspect live data or enable collection. An unobserved item remains selectable and its preview stays a fixed sample.
 

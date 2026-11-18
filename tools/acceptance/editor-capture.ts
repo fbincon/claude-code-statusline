@@ -236,6 +236,7 @@ try {
                     for (const character of 'text') await key(character);
                     await key('\r');
                     await key('\r');
+                    await key('\x07');
                     await key('\x05');
                     await key('\r');
                     await key('\x15');
@@ -252,7 +253,7 @@ try {
                 assert(capture('category')[3]!.includes(t('catalog.search.choose_category', language)));
                 await key('\x1b');
                 await key('\x01');
-                assert(capture('picker').at(-2)!.includes(t('composition.add', language)));
+                assert(capture('picker').at(-2)!.includes(t('ui.hints.add_enable', language)));
                 await key('/');
                 for (const character of 'git') await key(character);
                 await key('\r');

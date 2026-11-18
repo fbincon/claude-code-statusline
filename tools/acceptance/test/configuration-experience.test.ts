@@ -40,7 +40,7 @@ for(const language of LANGUAGES) test(`quick setup, explanation and save/reopen 
     await key('\x10',tr('quick.title',language));
     await key('\r',tr('quick.appearance',language));
     await key('\x1b[F\r',tr('quick.review',language));
-    await key('\r',tr('ui.drawing.main_items',language));
+    await key('\r',tr('composition.configured_title',language));
     await key('\x05\x1b[H\r',tr('explain.title',language));
     await key('\x07',tr('ui.drawing.edit_item_format',language).trim());
     pty.send('\x13');await pty.exited();assert.equal(pty.child.exitCode,0);

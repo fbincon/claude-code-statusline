@@ -1375,11 +1375,11 @@
       "evidence": "v3.14.0-verified-pr"
     },
     "composition.picker": {
-      "source": "1f32d0b6ced1294da07afbe2db73b4640f300bb15912e4ac734bdf96ad6f83fc",
-      "translation": "27a43be4d4ea83d25f4383376eba5f83dfac19d22c3bd2773053b05426a60277",
-      "method": "baseline_accepted",
+      "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+      "translation": "701e65fd24dc92d212e600d0a839bf28995a0e9b4a7d91a30e8ce8651debc530",
+      "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "v3.14.0-verified-pr"
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
     },
     "composition.remove": {
       "source": "80e7e3c21e4d6d79ee903241a4f670ebf5623b7e3efd253a97610aae16623d98",
@@ -16269,6 +16269,76 @@
       "method": "validated_accepted",
       "validation_version": 1,
       "evidence": "bb038c9270fefc35b9d397f9cd1610b25eea5d02d708081dc33d779aee3944b8"
+    },
+    "composition.catalog_enabled": {
+      "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+      "translation": "d0d3b63b195b4cd8090bc176b1169ae5ce65b96dc8ef0d0adc7fb264a62c81dc",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.category_counts": {
+      "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+      "translation": "bf0b1fedc574c05b94aab04c8d78cc7b98e69eb8db2b2c8777b4ca706b8673aa",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.configured_subagents": {
+      "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+      "translation": "1a98f4d564b014d6942d1b40af56ad0b5c38c5af658238d9f70738a185a1e5ca",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.configured_title": {
+      "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+      "translation": "fcff70aeb85d5b5f2868ef16b502744fb1c40725330c759d92fdea3e8139bfd8",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.picker_added": {
+      "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+      "translation": "514231422e9a0dbf2799d76c6d93f69f35495e8449e7e9da16e4b1b7141336b7",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.picker_already_enabled": {
+      "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+      "translation": "0415177796948d0cd79634e7ab4345ef7187cc05f2005c8711a7c4bd5516225c",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "composition.picker_enabled": {
+      "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+      "translation": "bdda4806604703282d64492b89272318bc4c3fbf2c55bee0c15c112eb5c62fa6",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "ui.hints.add_enable": {
+      "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+      "translation": "36975d943300e1ed31f5051ee35ec7ab51e9e58a3ed71a7af8711c935a48b6a9",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "ui.hints.catalog": {
+      "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+      "translation": "fbf43fa3688ece547e8a2eda9dcd7a7b717166b530835a0a502d2db451ffc9e9",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
+    },
+    "ui.hints.clear_filters": {
+      "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+      "translation": "b60f200c2f67c9d370c2ce5b76f01be135772bdcf82d4754d7406a55482a7ab7",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147"
     }
   }
 }

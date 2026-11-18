@@ -6,6 +6,33 @@ let serial = 0;
 export function nodes(draft: Draft, scope: Scope): InstanceDraft[] {
   return scope === 'main' ? draft.display.instances : draft.display.subagents.instances;
 }
+
+export interface ComponentTypeState {
+  count: number;
+  enabled: boolean;
+  firstId: string;
+}
+
+/** Catalog rows describe types. Their instances retain their own IDs and order. */
+export function componentTypes(instances: readonly InstanceDraft[]): Map<string, ComponentTypeState> {
+  const types = new Map<string, ComponentTypeState>();
+  for (const instance of instances) {
+    const state = types.get(instance.type_id);
+    if (state) {
+      state.count++;
+      state.enabled ||= instance.enabled;
+    } else {
+      types.set(instance.type_id, { count: 1, enabled: instance.enabled, firstId: instance.id });
+    }
+  }
+  return types;
+}
+
+export type ComponentMarker = 'x' | '–' | ' ';
+export function catalogMarker(state: ComponentTypeState | undefined): ComponentMarker {
+  return state?.enabled ? 'x' : state ? '–' : ' ';
+}
+
 export function newInstance(type_id: string, existing: InstanceDraft[], copy?: InstanceDraft): InstanceDraft {
   let id: string;
   do { id = `i-${Date.now().toString(36)}-${(++serial).toString(36)}-${Math.random().toString(36).slice(2,14)}`; }

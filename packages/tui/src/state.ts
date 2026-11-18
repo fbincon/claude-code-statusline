@@ -64,6 +64,7 @@ export class State {
     constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current); }
     get scope(): Scope { return this.editor.page === 'subagents' ? 'subagent' : 'main'; }
     get form(): boolean { return !!this.editor.detail || ['settings', 'layout'].includes(this.editor.page); }
+    get listScrollKey(): string { return this.editor.adding ? 'catalog' : this.scope; }
     get detailItem() { return this.editor.detailItem; }
     get detailLabel(): string {
         const e = this.editor, detail = e.detail;
@@ -105,7 +106,7 @@ export class State {
     }
     selectedRow(): Row { const rows = this.rows(); return rows.find(row => row.key === this.editor.setting) ?? rows[0]!; }
     ensureVisible(height: number): void {
-        const e = this.editor, slot = this.form ? e.detail ? 'detail' : e.page : this.scope;
+        const e = this.editor, slot = this.form ? e.detail ? 'detail' : e.page : this.listScrollKey;
         if (this.form) {
             const rows = this.rows(), index = Math.max(0, rows.findIndex(row => row.key === e.setting));
             e.setting = rows[index]?.key ?? '';
@@ -113,8 +114,9 @@ export class State {
             if (!e.detail) this.pageSettings[e.page] = e.setting;
         }
         else {
-            const ids = e.visible(this.scope).map(row => row.id), index = Math.max(0, ids.indexOf(e.selected[this.scope]));
-            e.selected[this.scope] = ids[index] ?? '';
+            const ids: string[] = e.visible(this.scope).map(row => row.id);
+            const index = Math.max(0, ids.indexOf(e.listContext(this.scope).selected));
+            e.selectItem(this.scope, ids[index] ?? '');
             const start = this.scroll[slot] ?? 0;
             this.scroll[slot] = Math.max(0, Math.min(start, index, Math.max(0, ids.length - height)));
             if (index >= this.scroll[slot]! + height)
@@ -128,7 +130,7 @@ export class State {
     inputDisplay(width: number): string {
         const input = this.input;
         if (!input || input.kind === 'category') return '';
-        const value = input.kind === 'search' ? this.editor.search[this.scope] : input.buffer;
+        const value = input.kind === 'search' ? this.editor.listContext(this.scope).search : input.buffer;
         if (input.edit?.value !== value) input.edit = textInput(value);
         return inputView(input.edit, width);
     }
@@ -290,7 +292,7 @@ export class State {
             if (cancel) {
                 if (input.kind === 'search') {
                     e.filter(this.scope, input.original);
-                    e.selected[this.scope] = input.selected;
+                    e.selectItem(this.scope, input.selected);
                 }
                 if (input.kind === 'numeric') {
                     if (input.field === 'padding')
@@ -326,7 +328,7 @@ export class State {
                         if (field && setFormValue(this, field, input.buffer)) { this.input = null; this.notice(''); }
                     }
                 } else {
-                    const value = input.kind === 'search' ? e.search[this.scope] : input.buffer;
+                    const value = input.kind === 'search' ? e.listContext(this.scope).search : input.buffer;
                     const limit = input.kind === 'path' ? 4096 : input.kind === 'numeric' ? 32 : 256;
                     const result = inputKey(value, input.edit, event, limit);
                     input.edit = result.state;
@@ -342,17 +344,24 @@ export class State {
             this.ensureVisible(height);
             return null;
         }
-        if (e.adding && cancel) {
-            e.closePicker(this.scope);
-            return null;
-        }
-        if (ctrl && k === 'g' && e.detail) {
+        if (cancel && k === 'g' && e.detail) {
             e.detail = null;
             return null;
         }
         if (!this.form) {
+            if (e.adding && cancel) {
+                e.closePicker();
+                return null;
+            }
+            if (cancel && k === 'g') {
+                e.clearListFilters(this.scope);
+                this.ensureVisible(height);
+                return null;
+            }
+            const { category, search, selected } = e.listContext(this.scope);
             if (ctrl && k === 'a' && !e.adding) {
                 e.openPicker(this.scope);
+                this.scroll[this.listScrollKey] = 0;
                 return null;
             }
             if (ctrl && (k === 'd' || k === 'x') && !e.adding) {
@@ -362,15 +371,15 @@ export class State {
                 return null;
             }
             if (ctrl && k === 'f') {
-                this.input = { kind: 'category', selected: e.category[this.scope] };
+                this.input = { kind: 'category', selected: category };
                 return null;
             }
             if (k === '/') {
-                this.input = { kind: 'search', original: e.search[this.scope], selected: e.selected[this.scope] };
+                this.input = { kind: 'search', original: search, selected };
                 return null;
             }
-            if (ctrl && k === 'e' && e.selected[this.scope]) {
-                e.detail = { scope: this.scope, id: e.selected[this.scope] };
+            if (ctrl && k === 'e' && selected) {
+                e.detail = { scope: this.scope, id: selected };
                 this.scroll.detail = 0;
                 const keys = this.rows().map(row => row.key);
                 e.setting = ['item:text', 'item:label'].find(key => keys.includes(key)) ?? keys[0] ?? '';
@@ -378,9 +387,8 @@ export class State {
                     e.guidanceScroll = 0;
                 return null;
             }
-            if (e.adding && k === 'return') {
-                if (!e.toggle(this.scope, e.selected[this.scope]))
-                    this.notice(e.compositionError);
+            if (e.adding && (k === 'return' || k === ' ')) {
+                if (!ctrl && !event.meta) e.activatePicker(this.scope, 'Ctrl+D');
                 return null;
             }
         }
@@ -426,7 +434,7 @@ export class State {
         else if (['up', 'down', 'home', 'end', 'pageup', 'pagedown'].includes(k)) {
             this.ensureVisible(height);
             const ids = this.form ? this.rows().map(row => row.key) : e.visible(this.scope).map(row => row.id);
-            let index = Math.max(0, ids.indexOf(this.form ? e.setting : e.selected[this.scope]));
+            let index = Math.max(0, ids.indexOf(this.form ? e.setting : e.listContext(this.scope).selected));
             if (this.form && (k === 'pageup' || k === 'pagedown'))
                 index = formPageIndex(this.rows(), index, this.scroll[e.detail ? 'detail' : e.page] ?? 0, height, k === 'pageup' ? -1 : 1);
             else
@@ -435,7 +443,7 @@ export class State {
             if (this.form)
                 e.setting = next;
             else
-                e.selected[this.scope] = next;
+                e.selectItem(this.scope, next);
         }
         else if (k === 'left' || k === 'right' || k === ' ') {
             if (this.form) {
@@ -452,9 +460,9 @@ export class State {
             if (ctrl && k === 'u')
                 this.search('');
             else if (k === 'backspace')
-                this.search(backspace(e.search[this.scope]));
+                this.search(backspace(e.listContext(this.scope).search));
             else if (printable(event))
-                this.search(e.search[this.scope] + k);
+                this.search(e.listContext(this.scope).search + k);
         }
         else if (!e.detail && e.page === 'settings' && !ctrl) {
             const row = this.selectedRow();

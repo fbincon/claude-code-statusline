@@ -71,8 +71,7 @@ export function contentTitle(state: State): string {
         return tr('ui.drawing.item_format_2') + scope + ': ' +
             state.detailLabel;
     }
-    const key = e.page === 'layout' ? 'layout_rows_and_fitting'
-        : e.page === 'settings' ? 'settings_global_options'
-            : e.page === 'subagents' ? 'subagent_items' : 'main_items';
-    return tr('ui.drawing.' + key);
+    if (e.page === 'layout') return tr('ui.drawing.layout_rows_and_fitting');
+    if (e.page === 'settings') return tr('ui.drawing.settings_global_options');
+    return tr('composition.configured_title');
 }

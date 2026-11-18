@@ -48,7 +48,10 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: '←→ Home/End', label: 'edit' },
     focus,
   ]];
-  if(e.adding)return [[{key:'Enter',label:'add'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'/',label:'search'},{key:'Ctrl+F',label:'category'},{key:'Ctrl+E',label:'details'}]];
+  if (e.adding) return [
+    [{key:'Enter/Space',label:'add enable'}, {key:'Ctrl+G',label:'back'}, focus],
+    [{key:'↑↓',label:'select'}, {key:'/',label:'search'}, {key:'Ctrl+F',label:'category'}, {key:'Ctrl+U',label:'clear'}, {key:'Ctrl+E',label:'details'}],
+  ];
   const pending = e.modified || view.preferences.some(preferenceChanged);
   const actions: Shortcut[] = [
     { key: 'S', label: 'save' },
@@ -60,11 +63,14 @@ export function editorShortcuts(view: View): Shortcut[][] {
   const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
   if(!e.detail) contextual.push({key:'Ctrl+P',label:'quick setup'});
   if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
+    const scope = e.page === 'main' ? 'main' : 'subagent';
+    if (e.filtered(scope)) contextual.unshift({key:'Ctrl+G',label:'clear filters',short:'clear'});
+    if (e.category[scope] !== 'all') contextual.unshift({key:'A',label:'catalog'});
     contextual.push(
       { key: 'A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },
-      { key: 'Space', label: 'toggle' },
+      { key: 'Enter/Space', label: 'toggle' },
       { key: '↑↓', label: 'select' },
-      ...(e.filtered(e.page === 'main' ? 'main' : 'subagent') ? [] : [{ key: '←→', label: 'order' }]),
+      ...(e.filtered(scope) ? [] : [{ key: '←→', label: 'order' }]),
       { key: 'Ctrl+E', label: 'format' },
       { key: '/', label: 'search' },
     );
@@ -93,7 +99,9 @@ export function editorLayout(view: View, columns: number, rows: number) {
   const limit = Math.max(1, rows - (framed ? 10 : 8));
   let footer = shortcutRows(groups, columns);
   if (footer.length > limit) footer = shortcutRows(groups, columns, true);
-  for (const key of ['Ctrl+V/W/N','Ctrl+/','Ctrl+R','Ctrl+T','V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U']) {
+  const optional = ['Ctrl+V/W/N','Ctrl+/','Ctrl+R','Ctrl+T','V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U'];
+  if (view.editor?.adding) optional.push('Ctrl+E', 'Ctrl+F');
+  for (const key of optional) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);

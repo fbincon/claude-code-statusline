@@ -6,8 +6,9 @@ for (const scope of ['main', 'subagent'] as const) {
         const f = await fixture(t), e = f.e, before = f.bytes();
         e.page = scope === 'main' ? 'main' : 'subagents';
         await f.session.key({ key: 'a', ctrl: true });
-        e.selected[scope] = 'text';
+        e.selectItem(scope, 'text');
         await f.session.key({ key: 'return' });
+        await f.session.key({ key: 'g', ctrl: true });
         const id = e.selected[scope];
         await f.session.key({ key: 'e', ctrl: true });
         await f.session.key({ key: 'return' });
@@ -43,7 +44,7 @@ test('picker guidance has no persistence or backend-preview side effects', async
     for (const scope of ['main', 'subagent'] as const) {
         f.e.page = scope === 'main' ? 'main' : 'subagents';
         await f.session.key({ key: 'a', ctrl: true });
-        f.e.selected[scope] = scope === 'main' ? 'task-active-timer' : 'status';
+        f.e.selectItem(scope, scope === 'main' ? 'task-active-timer' : 'status');
         await f.session.key({ key: 'e', ctrl: true });
         frame(f.state, 80, 24);
         await f.session.key({ key: 'escape' });

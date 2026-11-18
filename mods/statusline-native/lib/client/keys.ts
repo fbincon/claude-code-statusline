@@ -31,10 +31,17 @@ export function cancelInput(view: View): void {
   if (!e) return;
   if (e.review) { e.review = null; setMessage(view, 'message', localizedText('review.cancelled')); return; }
   if (e.guidanceScroll !== null) { e.guidanceScroll = null; if(e.adding)e.detail=null; return; }
-  if (!input) { if(e.adding)e.closePicker(e.page==='main'?'main':'subagent'); else e.detail = null; return; }
+  if (!input) {
+    if (e.detail) e.detail = null;
+    else if (e.adding) e.closePicker();
+    else if (!view.uncertain && (e.page === 'main' || e.page === 'subagents')) {
+      e.clearListFilters(e.page === 'main' ? 'main' : 'subagent');
+    }
+    return;
+  }
   if (input.kind === 'search') {
     e.filter(input.scope, input.original);
-    e.selected[input.scope] = input.selected;
+    e.selectItem(input.scope, input.selected);
   } else if (input.kind === 'numeric') e.cancelNumeric(input.field);
   view.input = null;
 }
@@ -150,7 +157,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     if (!event.text && key === 'return') {
       if (input.kind === 'search' || e.acceptNumeric(input.field)) view.input = null;
     } else {
-      const value = input.kind === 'search' ? e.search[input.scope] : e.buffers[input.field];
+      const value = input.kind === 'search' ? e.listContext(input.scope).search : e.buffers[input.field];
       const limit = input.kind === 'search' ? 256 : 32;
       const result = inputKey(value, input.edit, {...event,key}, limit);
       input.edit = result.state;
@@ -170,16 +177,18 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
       return null;
     }
     if(e.adding&&!event.ctrl&&!event.meta&&(key==='return'||key===' ')){
-      if(!e.instanceAction(scope,'add',e.selected[scope]))setMessage(view,'message',e.compositionError);
+      e.activatePicker(scope, 'D');
       return null;
     }
-    if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker(scope);return null;}
+    if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker();return null;}
+    if(event.ctrl&&!event.meta&&shortcut==='u'){e.filter(scope, '');return null;}
     if(e.adding&&['tab','1','2','3','4'].includes(key))return null;
   }
   if (event.ctrl && !event.meta && shortcut === 'e' && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
-    if (e.selected[scope]) {
-      e.detail = { scope, id: e.selected[scope] };
+    const { selected } = e.listContext(scope);
+    if (selected) {
+      e.detail = { scope, id: selected };
       if (e.adding) e.guidanceScroll = 0;
       else e.setting = 'item:label';
     }
@@ -187,7 +196,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   }
   if (event.ctrl && key.toLowerCase() === 'f' && !e.detail && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
-    view.input = {kind: 'category', scope, selected: e.category[scope]};
+    view.input = {kind: 'category', scope, selected: e.listContext(scope).category};
     return null;
   }
   if (event.ctrl || event.meta) return null;
@@ -208,7 +217,8 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   const scope = e.page === 'main' ? 'main' : 'subagent';
   const settings = isSettings ? settingRows(view) : [];
   const keys = isSettings ? settings.map((row) => row.key) : e.visible(scope).map((row) => row.id as string);
-  const selected = isSettings ? e.setting : e.selected[scope];
+  const context = e.listContext(scope);
+  const selected = isSettings ? e.setting : context.selected;
   let index = Math.max(0, keys.indexOf(selected));
   if (key === 'up') index--;
   else if (key === 'down') index++;
@@ -220,7 +230,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   }
   else if (key === 'home') index = 0;
   else if (key === 'end') index = keys.length - 1;
-  else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:e.search[scope],selected:e.selected[scope]}; return null; }
+  else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:context.search,selected}; return null; }
   else if (key === 'left' || key === 'right') {
     if (!isSettings && e.filtered(scope)) { setMessage(view, 'message', localizedText('catalog.search.order_disabled')); return null; }
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1);
@@ -258,6 +268,6 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else return null;
   const next = keys[Math.max(0, Math.min(keys.length - 1, index))] || '';
-  if (isSettings) e.setting = next; else e.selected[scope] = next;
+  if (isSettings) e.setting = next; else e.selectItem(scope, next);
   return null;
 }
