@@ -20,16 +20,22 @@ export async function readRuntimeIndex(request: typeof fetch = fetch, sleep = (m
     }
     throw new Error('Runtime index attempts exhausted');
 }
-export const TARGETS = [
+/** The original runner registry remains available to archived acceptance. */
+export const LEGACY_TARGETS = [
     { os: 'ubuntu-24.04', arch: 'x64' }, { os: 'windows-2025', arch: 'x64' }, { os: 'windows-11-arm', arch: 'x64', host_arch: 'arm64' },
     { os: 'macos-14', arch: 'arm64' }, { os: 'macos-15', arch: 'arm64' }, { os: 'macos-15-intel', arch: 'x64' },
     { os: 'macos-26', arch: 'arm64' }, { os: 'macos-26-intel', arch: 'x64' },
 ];
+export const TARGETS = LEGACY_TARGETS.filter(target => target.os !== 'macos-14');
+export type RunnerPolicy = 'legacy' | 'current';
+export function runnerTargets(policy: RunnerPolicy) {
+    return policy === 'legacy' ? LEGACY_TARGETS : TARGETS;
+}
 export const HOSTS = [
     ...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os: 'ubuntu-24.04', claude })),
     ...['windows-2025', 'macos-15'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os, claude }))),
 ];
-export function runtimeInputs(index: { version: string }[], development: string) {
+export function runtimeInputs(index: { version: string }[], development: string, policy: RunnerPolicy = 'current') {
     const latest = (major: number) => {
         const versions = index.map(row => row.version.replace(/^v/u, '')).filter(version => new RegExp(`^${major}\\.\\d+\\.\\d+$`, 'u').test(version));
         versions.sort((a, b) => { const aa = a.split('.').map(Number), bb = b.split('.').map(Number); return bb[1]! - aa[1]! || bb[2]! - aa[2]!; });
@@ -39,7 +45,8 @@ export function runtimeInputs(index: { version: string }[], development: string)
     // A matching development runtime executes the full source suite, which is
     // a strict superset of --runtime, and the same isolated installed suite.
     const shared = Object.keys(versions).filter(key => versions[key] === development);
-    const include = Object.entries(versions).filter(([key]) => !shared.includes(key)).flatMap(([node, version]) => TARGETS.map(target => ({ node, version, target })));
+    const include = Object.entries(versions).filter(([key]) => !shared.includes(key))
+        .flatMap(([node, version]) => runnerTargets(policy).map(target => ({ node, version, target })));
     return { schema_version: 1, development, versions, shared, matrix: { include } };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

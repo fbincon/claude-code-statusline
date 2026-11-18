@@ -27,12 +27,14 @@ Every logical target installs and exercises the candidate on its own required ru
 | Ubuntu 24.04 x64 | All four Node selectors and the development Node |
 | Windows 2025 x64 | 22.x, 24.0.0 |
 | Windows 11 ARM, x64 Node | 22.0.0, 24.x |
-| macOS 14 ARM | 22.0.0 |
-| macOS 15 ARM / Intel | 24.0.0 / 22.x |
+| macOS 15 ARM | 22.0.0 and 24.0.0 |
+| macOS 15 Intel | 22.x |
 | macOS 26 ARM / Intel | 24.x on both |
 | Fixed Claude hosts (eight full / eight short) | Linux 2.1.287, Windows 2.1.288 and all three OSes for 2.1.289 and 2.1.310 |
 
-Using the versions frozen in #198, the 40 logical installation/Node obligations comprise 14 full and 26 short histories. The 16 fixed hosts comprise eight full and eight short histories. Exact declarations, Mod tests, capacities and Windows stability stay on the relevant host. Node aliases share only when both binaries and inputs match. The Windows ARM language, history and remaining installation jobs each own their prefix, configuration and cache. Relocation and the shell, editor and recovery checks that depend on it stay together. Each fixed host has a recorded capability, regression and replacement criterion. Review a pinned probe before changing the inventory. [Coverage policy](../../tools/checks/ci-coverage.ts)
+The current 35 logical installation and Node obligations comprise 14 full and 21 short histories. The 16 fixed hosts follow the history profile in the table. Exact declarations, Mod tests, capacities and Windows stability stay on the relevant host. Node aliases share only when both binaries and inputs match. The Windows ARM language, history and remaining installation jobs each own their prefix, configuration and cache. Relocation and the shell, editor and recovery checks that depend on it stay together. Each fixed host has a recorded capability, regression and replacement criterion. Review a pinned probe before changing the inventory. [Coverage policy](../../tools/checks/ci-coverage.ts)
+
+GitHub retired the macOS 14 runner image on 2026-11-02. The runner activation moves its full Node 22.0.0 history to macOS 15 ARM. Earlier evidence retains its original runner grid, depths and policy digest. [GitHub runner retirement](https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/)
 
 ## CI latency and stability work
 

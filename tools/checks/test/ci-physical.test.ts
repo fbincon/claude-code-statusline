@@ -5,7 +5,9 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, createCoveragePlan } from '../ci-coverage.js';
+import { COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, RUNNER_ACTIVATION, RUNNER_ACTIVATION_PATH, createCoveragePlan, historyCounts } from '../ci-coverage.js';
+import { originalHistory } from '../ci-reused-coverage.js';
+import { runtimeInputs } from '../runtime-inputs.js';
 import { digest, validateComplete, verifyRecordedFiles, type CompleteEvidenceV2 } from '../ci-evidence.js';
 import { completeSource, verifyExecutionJobs } from '../ci-sources.js';
 import { collectPhysical, eventBasis, probeMode, probePlan, selectPhysicalArtifacts } from '../ci-physical-workflow.js';
@@ -18,7 +20,7 @@ import { v2Fixture } from './fixtures/ci-evidence-v2.js';
 import { writeDelivery } from '../../build/test/fixtures/delivery.js';
 import { assessEvidenceDirectory } from '../../release/prepare.js';
 
-function source(t: TestContext, packageDelivery = false) {
+function source(t: TestContext, packageDelivery = false, currentRunners = false) {
     const original = process.cwd(), root = fs.mkdtempSync(join(tmpdir(), 'physical-evidence-'));
     t.after(() => { process.chdir(original); fs.rmSync(root, { recursive:true, force:true, maxRetries:5,retryDelay:50 }); });
     const write = (path:string, bytes: Uint8Array|string) => { fs.mkdirSync(dirname(join(root,path)),{recursive:true}); fs.writeFileSync(join(root,path),bytes); };
@@ -36,11 +38,13 @@ function source(t: TestContext, packageDelivery = false) {
     const entries=sectionFixtureEntries();
     for(const [path,bytes] of entries)write(path,bytes);
     write(COVERAGE_ACTIVATION_PATH,COVERAGE_ACTIVATION);
+    if (currentRunners) write(RUNNER_ACTIVATION_PATH, RUNNER_ACTIVATION);
     // The candidate cannot replace the verifier used by its already accepted first parent.
     write('tools/checks/ci-section-evidence.ts','export const validateSectionEvidence = () => {};\n');
     git('add','.');git('commit','-m','activate real fixture');const head=git('rev-parse','HEAD');
     process.chdir(root);
-    const inputs=fixture().record.inputs, plan=createCoveragePlan(base,head,inputs);
+    const inputs = currentRunners ? runtimeInputs([{ version: 'v22.23.4' }, { version: 'v24.21.0' }], '24.21.0') : fixture().record.inputs;
+    const plan = createCoveragePlan(base, head, inputs);
     const run={ ...originalRun, head_sha:head, head_branch:'physical', event:'pull_request', run_attempt:1 };
     const directory=join(root,'downloaded');
     const delivery = packageDelivery ? writeDelivery(root, join(directory, 'ts06-candidate'), head,
@@ -48,6 +52,17 @@ function source(t: TestContext, packageDelivery = false) {
     const all=v2Fixture(plan,{run,inputs,directory,delivery,prNumber:23,reportFor:(p,i)=>sectionFixtureReport(p,plan,entries,i),writeLogs:writeSectionLogs});
     return {...all, root,base,head,git,plan,run,directory};
 }
+test('the migrated envelope requires and promotes its own full history for the macOS Node floor', t => {
+    const { record, artifacts, run, directory } = source(t, false, true);
+    assert.deepEqual([record.coverage.installations, record.coverage.runtime_installations, record.coverage.hosts], [7, 28, 16]);
+    validateComplete(record, run, artifacts);
+    verifyRecordedFiles(record, directory);
+    const history = originalHistory(record);
+    assert.deepEqual(history?.logical, historyCounts(record.coverage_plan.obligations));
+    assert(record.executions.some(row => row.identity.obligations.includes('macos-15-arm64@22.0.0') && row.identity.depth === 'full'));
+    const wrong = { ...record, coverage: { ...record.coverage, installations: 8, runtime_installations: 32 } };
+    assert.throws(() => validateComplete(wrong, run, artifacts));
+});
 test('physical evidence requires the exact verified plan, all original stages and the source-bound per-host capacity', async t=>{
     const {record,artifacts,run,plan,base,root,directory,fragments}=source(t);
     assert.doesNotThrow(()=>validateComplete(record,run,artifacts));verifyRecordedFiles(record,directory);

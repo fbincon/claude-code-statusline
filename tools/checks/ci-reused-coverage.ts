@@ -1,7 +1,7 @@
 /** A promotion describes the original run and never manufactures new history receipts. */
 import assert from 'node:assert/strict';
 import { coverageContext, type CompleteEvidence } from './ci-evidence.ts';
-import { baselineObligations, historyCounts } from './ci-coverage.ts';
+import { baselineObligations, historyCounts, runnerPolicyAt } from './ci-coverage.ts';
 
 export function originalContext(record: CompleteEvidence) {
     if (record.schema_version === 1) return undefined;
@@ -17,7 +17,7 @@ export function originalHistory(record: CompleteEvidence, releaseEpoch: 1 | 2 = 
         assert.equal(record.schema_version, 1, 'A v2 product baseline cannot lose its coverage contract');
         return undefined;
     }
-    const baseline = baselineObligations(record.inputs);
+    const baseline = baselineObligations(record.inputs, record.schema_version === 1 ? 'legacy' : runnerPolicyAt(record.source_commit));
     if (record.schema_version === 1) {
         const [major, minor] = record.version.split('.').map(Number);
         assert(major === 3 && minor! >= 16, 'Original v1 product predates the v2 compatibility baseline');
