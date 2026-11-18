@@ -248,9 +248,18 @@ test('compiled record CLI issues complete evidence and rejects changed acceptanc
     const acceptance = save('acceptance.json', accepted);
     const prefix = 'https://api.github.com/repos/' + CI_REPOSITORY;
     const path = '/actions/runs/' + run.id;
+    const pageSize = 25;
+    assert(jobs.length > pageSize);
+    const jobPages: Record<string, { jobs: typeof jobs; total_count: number }> = {};
+    for (let offset = 0; offset < jobs.length; offset += pageSize) {
+        const page = offset / pageSize + 1;
+        jobPages[prefix + path + '/attempts/1/jobs?per_page=' + pageSize + '&page=' + page] = {
+            jobs: jobs.slice(offset, offset + pageSize), total_count: jobs.length,
+        };
+    }
     const responses = save('actions.json', {
         [prefix + path + '/artifacts?per_page=100&page=1']: { artifacts, total_count: artifacts.length },
-        [prefix + path + '/attempts/1/jobs?per_page=100&page=1']: { jobs, total_count: jobs.length },
+        ...jobPages,
         [prefix + path]: { ...run, status: 'in_progress', conclusion: null },
         [prefix + '/contents/.github/workflows/ci.yml?ref=' + head]: { type: 'file', sha: git('rev-parse', head + ':.github/workflows/ci.yml') },
     });

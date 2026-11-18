@@ -24,7 +24,7 @@
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
 | v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](deliveries/runtime-source-save-fixes.zh-CN.md#final-release) |
 | 语言 | [十二语言扩展](deliveries/language-expansion.zh-CN.md) · [I18N-02 生命周期](deliveries/i18n-02-delivery.zh-CN.md) · [Node 与地区语言](deliveries/node-regional-languages.zh-CN.md) |
-| CI 维护 | [macOS runner 迁移](deliveries/macos-runner-migration.zh-CN.md) · [Issue #157 实测](deliveries/ci-maintenance-delivery.zh-CN.md#ci-rollout) · [CI-01 固定 Actions](deliveries/ci-maintenance-delivery.zh-CN.md#ci-01) |
+| CI 维护 | [Actions 任务记录分页](deliveries/ci-attempt-pagination.zh-CN.md) · [macOS runner 迁移](deliveries/macos-runner-migration.zh-CN.md) · [Issue #157 实测](deliveries/ci-maintenance-delivery.zh-CN.md#ci-rollout) · [CI-01 固定 Actions](deliveries/ci-maintenance-delivery.zh-CN.md#ci-01) |
 | 外观、草稿与复用 | [自适应行与场景](deliveries/adaptive-row-scenarios.zh-CN.md) · [草稿历史与复用](deliveries/draft-history-and-reuse.zh-CN.md) · [外观／预览／诊断](deliveries/appearance-preview-diagnosis.zh-CN.md) |
 | 任务、来源与软件包 | [任务／版本审阅](deliveries/task-version-review.zh-CN.md) · [来源／命令／包执行](deliveries/source-command-package-management.zh-CN.md) · [扩展交付](deliveries/extensions.zh-CN.md#已完成的验收与交付) |
 | 设置与配置 | [首次设置／完整方案](deliveries/setup-appearance.zh-CN.md) · [配置体验](deliveries/configuration-experience.zh-CN.md) · [方案／项目／任务](deliveries/profiles-projects-tasks.zh-CN.md) · [真实输入诊断](deliveries/real-input-diagnostics.zh-CN.md) |
