@@ -155,8 +155,13 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await until(text => text.includes('Component catalog') && text.includes('model-with-effort') && marker(text, '–'), 'inherited search and disabled type');
                 await key('\r', 'enable the existing instance');
                 await until(text => text.includes('Enabled in draft') && marker(text, 'x'), 'enabled instance reused');
+                await key('\x15', 'clear the catalog search');
+                const modelTypes = catalog.filter(item => item.group === 'model');
                 for (const id of ['effort', 'model']) {
-                    await query(id);
+                    await key('\x1b[H', 'first catalog type');
+                    const index = modelTypes.findIndex(item => item.id === id);
+                    assert.ok(index >= 0, id + ' is missing from the model category');
+                    for (let i = 0; i < index; i++) await key('\x1b[B', 'next catalog type');
                     await until(text => marker(text, ' '), 'unconfigured ' + id);
                     await key(id === 'effort' ? '\r' : ' ', 'add ' + id + ' to draft');
                     await until(text => text.includes('Component catalog') && text.includes('Added to draft') && marker(text, 'x'), 'selected type updated in place');

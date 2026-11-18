@@ -1,6 +1,6 @@
 import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
-import { clip, dimensions } from '../layout.ts';
+import { clip, dimensions, displayWidth } from '../layout.ts';
 import { shortcutRows } from '../components/shortcuts.ts';
 import type { Shortcut } from '../components/shortcuts.ts';
 import { translatedShortcuts } from '../../lib/i18n/presentation.ts';
@@ -94,6 +94,10 @@ export function editorShortcuts(view: View): Shortcut[][] {
 /** Share footer and viewport budgets between drawing and keyboard paging. */
 export function editorLayout(view: View, columns: number, rows: number) {
   let groups = translatedShortcuts(editorShortcuts(view), view.language);
+  if (view.editor?.adding) {
+    const activation = groups[0]?.find(hint => hint.key === 'Enter/Space');
+    if (activation) activation.short = clip(activation.label, columns - displayWidth(activation.key) - 1);
+  }
   const framed = columns >= 64 && rows >= 20;
   // Keep the header, section edges, filter/selection and one preview row.
   const limit = Math.max(1, rows - (framed ? 10 : 8));
