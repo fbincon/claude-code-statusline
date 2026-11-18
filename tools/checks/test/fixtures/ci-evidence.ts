@@ -1,10 +1,10 @@
 import { artifactIdentity, type CompleteEvidenceV1 } from '../../ci-evidence.js';
-import { TARGETS, HOSTS, runtimeInputs } from '../../runtime-inputs.js';
+import { LEGACY_TARGETS as TARGETS, HOSTS, runtimeInputs } from '../../runtime-inputs.js';
 import { CI_REPOSITORY } from '../../ci-watch.js';
 export const commit = 'a'.repeat(40), hash = 'b'.repeat(64), now = Date.now();
 export const run = { id: 12, run_attempt: 2, head_sha: commit, head_branch: 'main', event: 'push', repository: { full_name: CI_REPOSITORY }, head_repository: { full_name: CI_REPOSITORY }, path: '.github/workflows/ci.yml', status: 'completed', conclusion: 'success' };
 export function fixture() {
-    const inputs = runtimeInputs([{ version: 'v22.23.4' }, { version: 'v24.21.0' }], '24.21.0');
+    const inputs = runtimeInputs([{ version: 'v22.23.4' }, { version: 'v24.21.0' }], '24.21.0', 'legacy');
     const names = ['ts06-candidate', 'ci-compiled-tests', ...TARGETS.map(target => `ts06-installed-${target.os}-${target.arch}`),
         ...HOSTS.map(host => `ts06-mods-${host.os}-${host.claude}`), ...inputs.matrix.include.map(row => `ts06-runtime-${row.target.os}-${row.target.arch}-${row.node}`)];
     const artifacts = names.map((name, index) => ({ id: 100 + index, name, digest: 'sha256:' + hash, expired: false, created_at: new Date(now).toISOString(), expires_at: new Date(now + 86400000).toISOString() }));

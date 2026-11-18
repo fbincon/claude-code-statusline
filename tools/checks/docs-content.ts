@@ -225,6 +225,8 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                     break;
                 case 'docs/development/ci-maintenance':
                     numeric(NUMBER + (zh ? ' 项逻辑' : ' logical'), [facts.logical], 'Logical obligation count differs from the matrix');
+                    numeric(NUMBER + (zh ? ' 条完整和 ' : ' full and ') + NUMBER + (zh ? ' 条短历史' : ' short histories'),
+                        [facts.fullHistory, facts.shortHistory], 'Installation and Node history split differs from the matrix');
                     numeric(NUMBER + (zh ? ' 个宿主' : ' fixed hosts'), [facts.hosts], 'Host count differs from the matrix');
                     numeric(NUMBER + (zh ? ' 条完整／' : ' full / ') + NUMBER + (zh ? ' 条短历史' : ' short'),
                         [facts.fullHosts, facts.shortHosts], 'Host history split differs from the matrix');

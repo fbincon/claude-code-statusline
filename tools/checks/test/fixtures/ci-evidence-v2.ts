@@ -31,7 +31,9 @@ export function v2Fixture(plan: CoveragePlan, options: {
     const record: CompleteEvidenceV2 = { ...legacy, ...(language ? {language} : {}), schema_version: 2, source_commit:plan.head, tree:plan.tree, inputs, version, toolchain,
         run_id:run.id, attempt:run.run_attempt, event:run.event, branch:run.head_branch, workflow_sha:plan.head, policy_sha256:policyDigest(plan.head),
         pr:run.event==='pull_request'?{number:options.prNumber??23,head:plan.head,base:options.prBase??plan.base!,base_ref:'main',draft:false}:null,
-        coverage: { ...legacy.coverage, native_capacity_cases: sourceCapacityCount(entries) },
+        coverage: { installations: plan.obligations.filter(row => row.kind === 'installed').length,
+            runtime_installations: plan.obligations.filter(row => row.kind === 'runtime').length,
+            hosts: plan.obligations.filter(row => row.kind === 'host').length, native_capacity_cases: sourceCapacityCount(entries) },
         coverage_plan:plan, coverage_plan_sha256:digest(JSON.stringify(plan)+'\n'), input_file_sha256:digest(JSON.stringify(inputs)+'\n'),
         delivery, compiled: {'compiled-tests.json':digest('compiled-tests.json'),'compiled-tests.tar':digest('compiled-tests.tar')},
         acceptance_sha256:digest('{}'), receipts:{}, artifacts:artifacts.map(a=>artifactIdentity(a)), executions:[] };

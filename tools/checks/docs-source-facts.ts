@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
-import { FIXED_HOST_POLICY } from './ci-coverage.js';
+import { FIXED_HOST_POLICY, fullHistorySelectors } from './ci-coverage.js';
 import { HOSTS, TARGETS } from './runtime-inputs.js';
 
 export type SourceReader = (path: string) => string;
@@ -107,7 +107,9 @@ export function developmentFacts(root: string, read: SourceReader = sourceReader
     assert.deepEqual(hosts.map(host => host.os + '/' + host.claude).sort(), HOSTS.map(host => host.os + '/' + host.claude).sort(),
         'Fixed host registries disagree');
     const fullHosts = FIXED_HOST_POLICY.reduce((total, host) => total + host.full.length, 0);
+    const logical = TARGETS.length * (selectors.length + 1);
+    const fullHistory = TARGETS.reduce((total, target) => total + fullHistorySelectors(target.os).length, 0);
     return { ...defaults, leaseSeconds: leaseMs / 1000, renewalSeconds: renewalMs / 1000, installedCategories: categories.length,
         installations: TARGETS.length, nodeCases: TARGETS.length * selectors.length,
-        logical: TARGETS.length * (selectors.length + 1), hosts: hosts.length, fullHosts, shortHosts: hosts.length - fullHosts };
+        logical, fullHistory, shortHistory: logical - fullHistory, hosts: hosts.length, fullHosts, shortHosts: hosts.length - fullHosts };
 }

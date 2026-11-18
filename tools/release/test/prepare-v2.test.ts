@@ -24,7 +24,7 @@ function scenario(t: TestContext) {
     git('add','.');git('commit','-qm','initial approved policy');const base=git('rev-parse','HEAD');
     writeFileSync(join(repository,'README.md'),'candidate\n');git('add','.');git('commit','-qm','candidate');const head=git('rev-parse','HEAD');
     process.chdir(repository);
-    const inputs=runtimeInputs([{version:'22.23.4'},{version:'24.22.2'}],'24.21.0'),plan=createCoveragePlan(base,head,inputs);
+    const inputs=runtimeInputs([{version:'22.23.4'},{version:'24.22.2'}],'24.21.0','legacy'),plan=createCoveragePlan(base,head,inputs);
     const context={basis:'pull_request' as const,base,run_id:101,attempt:2,workflow_sha:head};
     const candidate=join(directory,'ts06-candidate');mkdirSync(candidate);
     writeFileSync(join(candidate,'coverage-plan.json'),JSON.stringify(plan));writeFileSync(join(candidate,'runtime-inputs.json'),JSON.stringify(inputs));

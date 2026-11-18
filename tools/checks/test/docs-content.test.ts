@@ -129,16 +129,16 @@ test('development content checks reject changed current facts and historical fra
     for (const suffix of ['', '.zh-CN']) {
         for (const [path, before, after] of [
             [`docs/development/testing${suffix}.md`, suffix ? '27 类检查' : '27 check categories', suffix ? '20 类检查' : '20 check categories'],
-            [`docs/development/testing${suffix}.md`, suffix ? '8 安装目标' : '8 installations', suffix ? '9 安装目标' : '9 installations'],
+            [`docs/development/testing${suffix}.md`, suffix ? '7 安装目标' : '7 installations', suffix ? '9 安装目标' : '9 installations'],
             [`docs/development/contracts${suffix}.md`, suffix ? '全部 41 项' : 'all 41 current `OPERATIONS`', suffix ? '全部 40 项' : 'all 40 current `OPERATIONS`'],
             [`docs/development/contracts${suffix}.md`, suffix ? '67 个主栏类型和 17 个子代理类型' : '67 main and 17 subagent types', suffix ? '66 个主栏类型和 17 个子代理类型' : '66 main and 17 subagent types'],
             [`docs/development/i18n${suffix}.md`, '`pt-BR`', '`xx-XX`'],
             [`docs/development/node-regional-languages${suffix}.md`, '`pt-BR`', '`xx-XX`'],
-            [`docs/development/node-regional-languages${suffix}.md`, suffix ? '八个安装' : 'eight installations', suffix ? '七个安装' : 'nine installations'],
+            [`docs/development/node-regional-languages${suffix}.md`, suffix ? '七个安装' : 'seven installations', suffix ? '八个安装' : 'eight installations'],
             [`docs/development/i18n-workflow${suffix}.md`, suffix ? '144 组语言组合' : '144 language combinations', suffix ? '143 组语言组合' : '143 language combinations'],
             [`docs/development/live${suffix}.md`, suffix ? '1,024 个工具' : '1,024 tools', suffix ? '2,024 个工具' : '2,024 tools'],
             [`docs/development/native${suffix}.md`, 'A/D/X', 'A/X/D'],
-            [`docs/development/ci-maintenance${suffix}.md`, suffix ? '40 项逻辑' : '40 logical', suffix ? '41 项逻辑' : '41 logical'],
+            [`docs/development/ci-maintenance${suffix}.md`, suffix ? '35 项逻辑' : '35 logical', suffix ? '40 项逻辑' : '40 logical'],
             [`docs/development/README${suffix}.md`, 'packages/cli/resources/statusline-config/SKILL.md', 'packages/cli/resources/statusline-config/SKILL-none.md'],
             [`docs/development/adaptive-row-scenarios${suffix}.md`, 'history/deliveries/adaptive-row-scenarios', 'history/missing-record'],
             [`docs/development/architecture${suffix}.md`, 'benchmarks/', 'benchmarkz/'],
@@ -164,15 +164,16 @@ test('numeric declarations reject larger suffix matches, malformed values and co
     for (const suffix of ['', '.zh-CN']) {
         const zh = Boolean(suffix);
         for (const [base, before, after] of [
-            ['testing', zh ? '8 安装目标' : '8 installations', zh ? '18 安装目标' : '18 installations'],
-            ['testing', zh ? '32 个 Node 场景' : '32 Node cases', zh ? '132 个 Node 场景' : '132 Node cases'],
+            ['testing', zh ? '7 安装目标' : '7 installations', zh ? '17 安装目标' : '17 installations'],
+            ['testing', zh ? '28 个 Node 场景' : '28 Node cases', zh ? '128 个 Node 场景' : '128 Node cases'],
             ['testing', zh ? '16 宿主' : '16 hosts', zh ? '116 宿主' : '116 hosts'],
             ['testing', zh ? '27 类检查' : '27 check categories', zh ? '127 类检查' : '127 check categories'],
             ['contracts', zh ? '67 个主栏类型和 17 个子代理类型' : '67 main and 17 subagent types', zh ? '167 个主栏类型和 17 个子代理类型' : '167 main and 17 subagent types'],
             ['i18n-workflow', zh ? '144 组语言组合' : '144 language combinations', zh ? '1144 组语言组合' : '1144 language combinations'],
             ['live', zh ? '1,024 个工具' : '1,024 tools', zh ? '11,024 个工具' : '11,024 tools'],
             ['live', zh ? '1,024 个工具' : '1,024 tools', zh ? '1,02 个工具' : '1,02 tools'],
-            ['ci-maintenance', zh ? '40 项逻辑' : '40 logical', zh ? '140 项逻辑' : '140 logical'],
+            ['ci-maintenance', zh ? '35 项逻辑' : '35 logical', zh ? '135 项逻辑' : '135 logical'],
+            ['ci-maintenance', zh ? '21 条短历史' : '21 short histories', zh ? '26 条短历史' : '26 short histories'],
             ['source-command-package-management', zh ? '300 秒' : '300 seconds', zh ? '1300 秒' : '1300 seconds'],
             ['source-command-package-management', '60–86400', '160–86400'],
             ['source-command-package-management', '60–86400', '60–186400'],
@@ -279,9 +280,10 @@ test('source changes invalidate old docs and accept corrected docs through the s
             ['tools/checks/ci-coverage.ts', "'24.0.0', '24.x'];", "'24.0.0', '24.x', '24.1.0'];"],
             ['tools/checks/runtime-inputs.ts', "'24.x': latest(24)", "'24.x': latest(24), '24.1.0': '24.1.0'"],
         ], documents: [
-            ['testing', '32 Node cases', '40 Node cases', '32 个 Node 场景', '40 个 Node 场景'],
-            ['node-regional-languages', '32 Node cases', '40 Node cases', '32 个 Node 用例', '40 个 Node 用例'],
-            ['ci-maintenance', '40 logical', '48 logical', '40 项逻辑', '48 项逻辑'],
+            ['testing', '28 Node cases', '35 Node cases', '28 个 Node 场景', '35 个 Node 场景'],
+            ['node-regional-languages', '28 Node cases', '35 Node cases', '28 个 Node 用例', '35 个 Node 用例'],
+            ['ci-maintenance', '35 logical', '42 logical', '35 项逻辑', '42 项逻辑'],
+            ['ci-maintenance', '21 short histories', '28 short histories', '21 条短历史', '28 条短历史'],
         ] },
     ];
     for (const { patches, documents } of cases) {

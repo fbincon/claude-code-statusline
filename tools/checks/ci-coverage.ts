@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { canonical, runtimeLock, runtimeManifest, withoutCiScripts } from './impact-lock.ts';
-import { runtimeInputs, TARGETS } from './runtime-inputs.ts';
+import { runnerTargets, runtimeInputs, type RunnerPolicy } from './runtime-inputs.ts';
 
 export const COVERAGE_ACTIVATION_PATH = 'tools/checks/coverage-v2.json';
 export const COVERAGE_ACTIVATION = '{"schema_version":2,"policy":"history-profiles-v2"}\n';
+export const RUNNER_ACTIVATION_PATH = 'tools/checks/runner-macos-15.json';
+export const RUNNER_ACTIVATION = '{"schema_version":1,"retired":"macos-14","replacement":"macos-15"}\n';
 const policyFiles = ['tools/checks/ci-coverage.ts', 'tools/checks/impact-lock.ts', 'tools/checks/runtime-inputs.ts', COVERAGE_ACTIVATION_PATH];
 const selectors = ['22.0.0', '22.x', '24.0.0', '24.x'];
 const versionPattern = /^(?:22|24)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/u;
@@ -35,6 +37,11 @@ const fullNodes: Record<string, readonly string[]> = {
     'macos-14': ['22.0.0'], 'macos-15': ['24.0.0'], 'macos-26': ['24.x'],
     'macos-15-intel': ['22.x'], 'macos-26-intel': ['24.x'],
 };
+export function fullHistorySelectors(os: string, policy: RunnerPolicy = 'current'): readonly string[] {
+    const full = fullNodes[os];
+    assert(full, 'Unregistered installed history target: ' + os);
+    return policy === 'current' && os === 'macos-15' ? ['22.0.0', ...full] : full;
+}
 const linux = 'ubuntu-24.04', windows = 'windows-2025', macos = 'macos-15';
 const officialOS = [linux, windows, macos];
 /** This inventory belongs to v2. A new upstream release does not add a permanent obligation. */
@@ -76,8 +83,23 @@ export function coverageVersionAt(commit: string): 1 | 2 {
     assert.equal(git('rev-parse', '--is-shallow-repository'), 'false', 'Cannot establish absence of coverage activation from shallow history');
     return 1;
 }
+
+/** An older receipt keeps the runner grid and history depth of its own source. */
+export function runnerPolicyAt(commit: string): RunnerPolicy {
+    checkCommit(commit);
+    const marker = blob(commit, RUNNER_ACTIVATION_PATH);
+    assert(!git('log', '--full-history', '--no-renames', '-m', '--diff-filter=DMT', '-1', '--format=%H', commit, '--', RUNNER_ACTIVATION_PATH),
+        'Runner activation was removed or altered in this history');
+    if (marker) {
+        assert(marker.equals(Buffer.from(RUNNER_ACTIVATION)), 'Invalid runner activation marker');
+        return 'current';
+    }
+    assert.equal(git('rev-parse', '--is-shallow-repository'), 'false', 'Cannot establish absence of runner activation from shallow history');
+    return 'legacy';
+}
+
 /** Reconstruct the scheduler's derived matrix from its four frozen exact versions. */
-function frozenInputs(value: unknown): ReturnType<typeof runtimeInputs> {
+function frozenInputs(value: unknown, runnerPolicy: RunnerPolicy): ReturnType<typeof runtimeInputs> {
     assert(value && typeof value === 'object'); const inputs = value as ReturnType<typeof runtimeInputs>;
     assert.equal(inputs.schema_version, 1); assert.match(inputs.development, versionPattern);
     assert.deepEqual(Object.keys(inputs.versions).sort(), [...selectors].sort());
@@ -86,22 +108,23 @@ function frozenInputs(value: unknown): ReturnType<typeof runtimeInputs> {
         assert(typeof node === 'string' && versionPattern.test(node) && node.split('.')[0] === selector.split('.')[0], 'Invalid resolved Node');
         if (!selector.endsWith('.x')) assert.equal(node, selector);
     }
-    const expected = runtimeInputs(Object.values(inputs.versions).map(version => ({ version })), inputs.development);
+    const expected = runtimeInputs(Object.values(inputs.versions).map(version => ({ version })), inputs.development, runnerPolicy);
     assert.deepEqual(inputs.versions, expected.versions); assert.deepEqual(inputs.shared, expected.shared);
     assert.deepEqual(inputs.matrix, expected.matrix, 'Frozen runtime matrix omitted or changed an execution');
     return expected;
 }
-export function baselineObligations(value: unknown): CoverageObligation[] {
-    const inputs = frozenInputs(value), rows: CoverageObligation[] = [];
-    for (const target of TARGETS) {
+export function baselineObligations(value: unknown, runnerPolicy: RunnerPolicy = 'current'): CoverageObligation[] {
+    const inputs = frozenInputs(value, runnerPolicy), rows: CoverageObligation[] = [];
+    const targets = runnerTargets(runnerPolicy);
+    for (const target of targets) {
         const id = target.os + '-' + target.arch, common = { ...target, host_arch: target.host_arch ?? target.arch, target: id, host: null };
-        const full = fullNodes[target.os]; assert(full, 'Unregistered installed history target: ' + target.os);
+        const full = fullHistorySelectors(target.os, runnerPolicy);
         rows.push({ ...common, id, kind: 'installed', selector: null, node: inputs.development, depth: full.includes('development') ? 'full' : 'short' });
         for (const selector of selectors) rows.push({ ...common, id: id + '@' + selector, kind: 'runtime', selector, node: inputs.versions[selector]!,
             depth: full.includes(selector) ? 'full' : 'short' });
     }
     for (const host of FIXED_HOST_POLICY) for (const os of host.os) {
-        const runner = TARGETS.find(target => target.os === os); assert(runner);
+        const runner = targets.find(target => target.os === os); assert(runner);
         const platform = os === linux ? 'linux' : os === windows ? 'win32' : 'darwin', id = platform + '-' + host.version;
         rows.push({ id, target: id, kind: 'host', selector: null, os, arch: runner.arch, host_arch: runner.host_arch ?? runner.arch,
             node: inputs.development, host: host.version, depth: (host.full as readonly string[]).includes(os) ? 'full' : 'short' });
@@ -172,7 +195,8 @@ export function createCoveragePlan(base: string | null, head: string, inputs: un
     assert.equal(coverageVersionAt(head), 2, 'Source has not activated v2 coverage');
     assert(['conservative', 'pull_request', 'accepted-main'].includes(basis));
     assert.equal(base === null, basis === 'conservative');
-    const rows = baselineObligations(inputs);
+    const runnerPolicy = runnerPolicyAt(head);
+    const rows = baselineObligations(inputs, runnerPolicy);
     assert.equal(blob(head, '.node-version')?.toString().trim(), rows.find(row => row.kind === 'installed')!.node, 'Development Node differs from source');
     let comparisonBase: string | null = null;
     if (base !== null) {
@@ -197,7 +221,8 @@ export function createCoveragePlan(base: string | null, head: string, inputs: un
     }
     const risks = comparisonBase === null ? [] : changed.flatMap(path => escalation(path, comparisonBase!, head) ?? []);
     for (const row of rows) if (basis === 'conservative' || risks.some(risk => includesLane(row.kind === 'host' ? risk.hosts : risk.installed, row))) row.depth = 'full';
-    const policy = policyFiles.map(path => { const bytes = blob(head, path); assert(bytes, 'Missing coverage policy input: ' + path);
+    const paths = runnerPolicy === 'current' ? [...policyFiles, RUNNER_ACTIVATION_PATH] : policyFiles;
+    const policy = paths.map(path => { const bytes = blob(head, path); assert(bytes, 'Missing coverage policy input: ' + path);
         return [path, createHash('sha256').update(bytes).digest('hex')]; });
     return { schema_version: 2, kind: 'coverage-plan', basis, base, comparison_base: comparisonBase, head, tree: git('rev-parse', head + '^{tree}'),
         policy_sha256: createHash('sha256').update(canonical(policy)).digest('hex'), runtime_inputs_sha256: createHash('sha256').update(canonical(inputs)).digest('hex'),
