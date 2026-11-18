@@ -20,9 +20,11 @@ export function latestRun(runs: any[], commit: string, branch: string, event = '
 }
 async function attemptJobs(runId: number, attempt: number): Promise<any[]> {
     assert(Number.isSafeInteger(runId) && runId > 0 && Number.isSafeInteger(attempt) && attempt > 0);
+    // Large pages of retained jobs can time out in the Actions API after a rerun.
+    const pageSize = 25, maxJobs = 2000;
     const jobs: any[] = [];
-    for (let page = 1; page <= 20; page++) {
-        const result = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}/attempts/${attempt}/jobs?per_page=100&page=${page}`);
+    for (let page = 1; page <= maxJobs / pageSize; page++) {
+        const result = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${runId}/attempts/${attempt}/jobs?per_page=${pageSize}&page=${page}`);
         jobs.push(...result.jobs); if (jobs.length >= result.total_count) return jobs;
     }
     throw new Error('Original job pagination exceeded');
