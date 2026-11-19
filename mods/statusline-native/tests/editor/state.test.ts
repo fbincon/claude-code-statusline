@@ -26,14 +26,15 @@ test('adding and copying keeps type definitions separate from stable instances',
   expect(editor.instance('main',second)).toBe(undefined);
 });
 
-test('cross-type exclusions refuse additions without losing the current draft', () => {
-  const editor=new Editor(description(),readResult());
-  expect(editor.instanceAction('subagent','add','status')).toBe(false);
-  expect(editor.items('subagent')).toEqual(['status-elapsed','name']);
-  editor.toggle('subagent','status-elapsed');
-  expect(editor.instanceAction('subagent','add','status')).toBe(true);
-  expect(editor.toggle('subagent','status-elapsed')).toBe(false);
-  expect(editor.instance('subagent','status-elapsed')!.enabled).toBe(false);
+test('combined and individual timer components are independent draft edits', () => {
+  const editor = new Editor(description(), readResult());
+  expect(editor.instanceAction('subagent', 'add', 'status')).toBe(true);
+  expect(editor.instanceAction('subagent', 'add', 'elapsed')).toBe(true);
+  expect(editor.draft.display.subagents.instances.filter(item => item.enabled).map(item => item.type_id))
+    .toEqual(['status-elapsed', 'status', 'elapsed', 'name']);
+  expect(editor.toggle('subagent', 'status-elapsed')).toBe(true);
+  expect(editor.draft.display.subagents.instances.filter(item => item.enabled).map(item => item.type_id))
+    .toEqual(['status', 'elapsed', 'name']);
 });
 
 test('numeric edits validate together, keep invalid buffers and commit explicit boundaries', () => {

@@ -1,4 +1,5 @@
 import { GRADIENT_KEYS, parseGradient } from '../editor/gradients.js';
+import { supportsEffortFallback } from '../editor/effort-fallback.js';
 import { reconcileGroups, insertionAfter } from '../editor/groups.js';
 import type { DisplayDraft, InstanceDraft, Scope, LayoutDraft, ItemOptionsDraft, SubagentDraft } from '../contracts/ui.js';
 import { BY_SCOPE, canonicalItem } from './catalog.js';
@@ -82,7 +83,7 @@ export function editedOptions(current: ItemOptionsDraft, option: string, value: 
   } else if (Object.hasOwn(FORMAT_CHOICES, key)) {
     if (value === 'inherit') delete data.formatting[key];
     else data.formatting[key] = value as string;
-  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link', 'presentation', 'bar_width', 'bar_style', 'cost_rate_basis'].includes(key)) {
+  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link', 'presentation', 'bar_width', 'bar_style', 'cost_rate_basis', 'effort_fallback'].includes(key)) {
     if (['priority', 'max_width', 'visibility_threshold', 'bar_width'].includes(key)) {
       if (value === null || value === 'none') value = null;
       else if (typeof value === 'string' && /^[+-]?\d+$/u.test(value.trim())) value = Number(value);
@@ -125,6 +126,7 @@ export function edit(config: DisplayDraft, scope: Scope, request: Edit, nextId: 
     else {
       const capability = BY_SCOPE[scope].get(node!.type_id)?.capabilities, key = option!.replaceAll('-','_');
       if (Object.hasOwn(FORMAT_CHOICES,key) && !supportedFormats(scope,node!.type_id,capability).includes(key) || key === 'link' && !capability?.link) fail('errors.advanced.unknown_item_option');
+      if (key === 'effort_fallback' && !supportsEffortFallback(scope, node!.type_id)) fail('errors.advanced.unknown_item_option');
       node!.options = editedOptions(node!.options, option!, value);
     }
   } else fail('composition.errors.action');

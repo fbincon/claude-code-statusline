@@ -74,7 +74,26 @@ test('tests.config.test_instances.InstanceTests.test_spacers_and_type_exclusions
   const spacer = edit(cfg, 'main', { action: 'add', type_id: 'spacer' }, id);
   assert.throws(() => edit(spacer.config, 'main', { action: 'copy', id: spacer.selected! }, id));
   cfg = updateDisplay(defaultDisplay(), { subagents: updateSubagents(defaultDisplay().subagents, { items: ['status-elapsed'] }) });
-  assert.throws(() => edit(cfg, 'subagent', { action: 'add', type_id: 'status' }, id));
+  // Keep the historical coverage identifier; #222 now allows this composition.
+  cfg = edit(cfg, 'subagent', { action: 'add', type_id: 'status' }, id).config;
+  cfg = edit(cfg, 'subagent', { action: 'add', type_id: 'elapsed' }, id).config;
+  assert.deepEqual(cfg.subagents.instances.filter(node => node.enabled).map(node => node.type_id), ['status-elapsed', 'status', 'elapsed']);
+  const agentSpacer = edit(cfg, 'subagent', { action: 'add', type_id: 'spacer' }, id);
+  assert.throws(() => edit(agentSpacer.config, 'subagent', { action: 'copy', id: agentSpacer.selected! }, id));
+});
+
+test('session effort is an optional subagent model-with-effort instance setting', () => {
+  const base = defaultDisplay();
+  const set = (scope: Scope, id: string, value: string) => edit(base, scope, { action: 'set', id, option: 'effort-fallback', value }, () => assert.fail());
+  assert.equal(set('subagent', 'model-with-effort', 'session').config.subagents.instances.find(node => node.id === 'model-with-effort')!.options.effort_fallback, 'session');
+  assert.deepEqual(set('subagent', 'model-with-effort', 'off').config, base);
+  assert.throws(() => set('subagent', 'model-with-effort', 'unknown'));
+  assert.throws(() => set('main', 'model-with-effort', 'off'));
+  assert.throws(() => set('subagent', 'name', 'session'));
+  assert.deepEqual(validateDisplay(base), base);
+  assert(itemFields('subagent', 'model-with-effort').some(field => field.key === 'effort_fallback'));
+  assert(!itemFields('main', 'model-with-effort').some(field => field.key === 'effort_fallback'));
+  assert(!itemFields('subagent', 'effort').some(field => field.key === 'effort_fallback'));
 });
 
 test('tests.config.test_instances.InstanceTests.test_disabling_keeps_explicit_row_and_identity', () => {

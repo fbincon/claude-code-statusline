@@ -2,6 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { nodes } from '@fbincon/statusline-core/editor/instances';
 import { fixture, plain } from './fixtures.js';
+import { State } from '../src/state.js';
+import { validateDisplay } from '@fbincon/statusline-core/config/display';
+
+test('external editor saves and reopens the timer composition and session effort setting', () => {
+    const state = fixture('zh-CN'), editor = state.editor;
+    editor.page = 'subagents';
+    const ctrl = (key: string) => state.key({ key, ctrl: true });
+    for (const type of ['status', 'elapsed']) {
+        ctrl('a'); state.search(type); state.key({ key: 'return' }); ctrl('g');
+    }
+    const enabled = () => nodes(editor.draft, 'subagent').filter(item => item.enabled).map(item => item.type_id);
+    for (const id of ['status-elapsed', 'status', 'elapsed']) assert(enabled().includes(id));
+    editor.selectItem('subagent', 'model-with-effort');
+    ctrl('e');
+    editor.setting = 'item:effort_fallback';
+    assert(plain(state).some(line => line.includes('会话强度回退')));
+    state.key({ key: 'right' });
+    assert(plain(state).some(line => line.includes('使用会话强度')));
+    assert.equal(editor.instance('subagent', 'model-with-effort')!.options.effort_fallback, 'session');
+    assert.equal(ctrl('s'), 'save');
+    const saved = editor.beginSave();
+    const reopened = new State(editor.description, { ...editor.baseline, draft: { ...saved.draft, display: validateDisplay(saved.draft.display) } });
+    assert.deepEqual(nodes(reopened.editor.draft, 'subagent').filter(item => item.enabled).map(item => item.type_id), enabled());
+    assert.equal(reopened.editor.instance('subagent', 'model-with-effort')!.options.effort_fallback, 'session');
+});
 
 test('terminal catalog shows scoped type states for new, copied and disabled instances', () => {
     for (const scope of ['main', 'subagent'] as const) {

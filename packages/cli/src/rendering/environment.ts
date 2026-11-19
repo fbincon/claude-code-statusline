@@ -6,6 +6,7 @@ import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/conte
 import { Presentation } from '@fbincon/statusline-core/rendering/language';
 import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
+import { sessionEffortEnabled } from '@fbincon/statusline-core/rendering/subagent-effort';
 import { sessionTokenCounts } from '@fbincon/statusline-core/runtime/usage';
 import { truth, string, object } from '@fbincon/statusline-core/runtime/values';
 import { unavailable } from '@fbincon/statusline-core/runtime/live/snapshot';
@@ -68,6 +69,10 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
         };
     }
     if (subagents) {
+        if (sessionEffortEnabled(config) && !overrides.sessionEffort) {
+            const { sessionEffortReader } = await import('../runtime/session-effort.js');
+            env.sessionEffort = sessionEffortReader(await runtime());
+        }
         if (typeof payload.session_id === 'string' && payload.session_id && !overrides.agentEndings && Array.isArray(payload.tasks) && payload.tasks.some(task => object(task) && ['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms'))) {
             const { AgentDurations } = await import('../runtime/live/durations.js'), source = new AgentDurations(await runtime());
             env.agentEndings = session => source.endedAt(session);

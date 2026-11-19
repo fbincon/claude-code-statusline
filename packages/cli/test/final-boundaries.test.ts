@@ -173,9 +173,8 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_curses_expected_snaps
     assert.deepEqual(readFileSync(f.settingsPath), before);
     assert.ok(!existsSync(f.displayPath));
 });
-test('TS-04 wizard and keyboard handoff retains tested core conflicts and spacer moves', () => {
-    assert.equal(conflicts('subagent', ['status-elapsed', 'elapsed']), true);
-    assert.equal(conflicts('subagent', ['status', 'elapsed']), false);
+test('TS-04 wizard and keyboard handoff allows all subagent timer items and retains spacer constraints', () => {
+    assert.equal(conflicts('subagent', ['status-elapsed', 'status', 'elapsed']), false);
     const nodes = ['model', 's1', 'git', 's2'].map(id => ({ id, type_id: id.startsWith('s') ? 'spacer' : id, enabled: true, options: defaultItem(), text: null }));
     const display = updateDisplay(defaultDisplay(), { instances: nodes, layout: { mode: 'explicit', rows: [['model', 's1'], ['git', 's2']] } });
     const before = structuredClone(display);

@@ -11,9 +11,19 @@ import { strip } from '@fbincon/statusline-core/rendering/layout';
 import { ConfigurationProtocol } from '@fbincon/statusline-cli/ui/protocol';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { previewAdapter } from '@fbincon/statusline-cli/rendering/preview';
+import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { legacy } from './final-support.js';
 test('tests.config.test_catalog.CatalogTests.test_scopes_defaults_and_legacy_descriptions', () => {
-    const expected = JSON.parse(readFileSync(join(repo, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))['ui-describe'].value.response.result.catalog;
+    const expected: CatalogItem[] = JSON.parse(readFileSync(join(repo, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))['ui-describe'].value.response.result.catalog;
+    // Keep the frozen catalog as the baseline and allow only the approved subagent differences.
+    for (const item of expected.filter(item => item.scope === 'subagent')) {
+        if (['status-elapsed', 'status', 'elapsed'].includes(item.id)) item.excludes = [];
+        if (item.id === 'name') {
+            item.description = 'Agent name, agent type or task type';
+            item.sources = ['tasks.name', 'tasks.agentType', 'tasks.type'];
+        }
+        if (item.id === 'model-with-effort') item.description = 'Agent model with configured effort or optional session effort';
+    }
     const original = ITEMS.filter(item => !['cache-miss-reason','external-value','github-pr','github-ci','session-cost-rate'].includes(item.id)).map(({ capabilities, ...item }) => item).map(item => item.scope === 'main' && item.id === 'worktree'
         ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);
     assert.deepEqual(original, expected);
@@ -71,10 +81,11 @@ test('tests.ui.test_protocol.ProtocolTests.test_legacy_draft_empty_rows_and_mutu
     assert.equal(result.status, 0);
     assert.deepEqual(result.response.result.main, []);
     assert.deepEqual(result.response.result.subagents, []);
-    display.subagents.instances = [{ ...defaultDisplay().subagents.instances[0]! }, { ...defaultDisplay().subagents.instances[0]!, id: 'elapsed', type_id: 'elapsed' }];
+    // #222 supersedes the exclusion while preserving preview and legacy-draft coverage.
+    display.subagents = agentConfig(['status-elapsed', 'status', 'elapsed']).subagents;
     result = f.call('preview', { draft: { display, host: { ...DEFAULT_HOST } }, width: 80 });
-    assert.equal(result.status, 2);
-    assert.equal(result.response.error.code, 'invalid_configuration');
+    assert.equal(result.status, 0);
+    assert.equal(result.response.result.subagents[0].map((span: { text: string }) => span.text).join(''), '⏱ 1m 18s · ⏱ · 1m 18s');
     assert.deepEqual(readdirSync(f.root), []);
 });
 test('tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_errors_are_json_only', t => {

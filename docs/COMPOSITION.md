@@ -62,9 +62,8 @@ preserve the draft.
 
 Native uses letter keys A/D/X because the host can intercept control chords such as Ctrl+D. Letters remain literal while searching or editing text.
 
-Types with exclusions remain exclusive: for example, disable `status-elapsed`
-before enabling a separate `status` or `elapsed`. A conflicting addition or copy
-leaves the draft unchanged and explains the conflict.
+`status-elapsed`, `status` and `elapsed` can all be enabled in the same subagent template.
+Each renders in its configured position within the available width.
 
 <a id="unicode-text-and-terminal-widths"></a>
 

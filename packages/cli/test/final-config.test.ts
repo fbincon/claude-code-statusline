@@ -42,15 +42,23 @@ test('tests.config.test_display_config.DisplayConfigTests.test_strict_schema_rej
     const invalid: unknown[] = [missing, { ...defaultDisplay(), extra: true }, { ...defaultDisplay(), schema_version: SCHEMA_VERSION + 1 }, { ...defaultDisplay(), use_colors: 1 }, { ...defaultDisplay(), palette: 'theme' }, { ...defaultDisplay(), scope_labels: 'sometimes' }];
     for (const ids of [['git', 'git'], ['clock']])
         invalid.push({ ...defaultDisplay(), items: ids });
-    for (const subagents of [{ enabled: true }, { enabled: true, items: ['status', 'status'] }, { enabled: true, items: ['history'] }, { enabled: true, items: ['status-elapsed', 'status'] }, { enabled: true, items: ['elapsed', 'status-elapsed', 'name'] }])
+    const older = legacy(7);
+    for (const items of [['status', 'status'], ['history']])
+        invalid.push({ ...older, subagents: { ...older.subagents, items } });
+    for (const subagents of [{ enabled: true }, { enabled: true, unknown: true }])
         invalid.push({ ...defaultDisplay(), subagents });
     for (const value of invalid)
         assert.throws(() => validateDisplay(value));
 });
 test('tests.config.test_display_config.DisplayConfigTests.test_subagent_status_elapsed_accepts_alone_rejects_legacy_pairs', () => {
+    // This historical coverage identifier now exercises the accepted combinations from #222.
     assert.deepEqual(validateItems(['status-elapsed', 'name'], 'subagent'), ['status-elapsed', 'name']);
-    for (const ids of [['status-elapsed', 'status'], ['status-elapsed', 'elapsed'], ['status', 'status-elapsed', 'elapsed']])
-        assert.throws(() => validateItems(ids, 'subagent'));
+    for (const ids of [['status-elapsed', 'status'], ['status-elapsed', 'elapsed'], ['status', 'status-elapsed', 'elapsed']]) {
+        assert.deepEqual(validateItems(ids, 'subagent'), ids);
+        const older = legacy(7);
+        const result = validateDisplay({ ...older, subagents: { ...older.subagents, items: ids } });
+        assert.deepEqual(selected(result.subagents), ids);
+    }
 });
 test('tests.config.test_display_config.DisplayConfigTests.test_schema_one_loads_as_current_schema_without_rewriting', t => {
     const f = setup(t), data = { ...legacy(1), items: ['git', 'model-with-effort'], use_colors: false, palette: 'ansi', directory_style: 'home', separator_style: 'compact' }, raw = jsonBytes(data);

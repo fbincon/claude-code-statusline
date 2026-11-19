@@ -6,6 +6,7 @@ import type { SessionTokenCounts } from '../runtime/usage.js';
 import type { DirectoryStyle } from '../contracts/ui.js';
 import type { Presentation } from './language.js';
 import type { DateFormatter } from './preferences.js';
+import type { SessionEffortReader } from './subagent-effort.js';
 export interface UsageObservation {
     hit: string | null;
     miss: string | null;
@@ -23,6 +24,7 @@ export interface RenderEnvironment {
     links?: boolean;
     source?(node: InstanceDraft, input: unknown, agent?: string): SourceView;
     trace?: RenderTrace;
+    sessionEffort?: SessionEffortReader;
     /** Already-attributed task evidence for read-only views; no transcript collection. */
     taskSnapshot?: TaskObservation;
     language: Presentation;

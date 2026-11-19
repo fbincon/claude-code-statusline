@@ -354,8 +354,10 @@ test('tests.config.test_config_commands.DisplayMutationTests.test_subagent_set_e
     selection(f.service, 'subagent', 'order', ['tokens', 'elapsed', 'name']);
     assert.deepEqual(f.service.read().display.subagents.instances.filter(n => n.enabled).map(n => n.id), ['tokens', 'elapsed', 'name']);
     assert.throws(() => selection(f.service, 'subagent', 'order', ['tokens', 'name']), ConfigError);
-    for (const items of [['status-elapsed', 'status'], ['elapsed', 'status-elapsed']])
-        assert.throws(() => selection(f.service, 'subagent', 'set-items', items), ConfigError);
+    selection(f.service, 'subagent', 'set-items', ['status-elapsed']);
+    selection(f.service, 'subagent', 'enable', ['status']);
+    selection(f.service, 'subagent', 'enable', ['elapsed']);
+    assert.deepEqual(f.service.read().display.subagents.instances.filter(n => n.enabled).map(n => n.id), ['status-elapsed', 'status', 'elapsed']);
 });
 test('tests.config.test_config_commands.DisplayMutationTests.test_subagent_context_remaining_selectable_via_config_commands', t => {
     const f = setup(t, false), defaults = itemListing('subagent', f.service.read());

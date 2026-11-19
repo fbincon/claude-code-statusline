@@ -101,7 +101,9 @@ claude-statusline doctor
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
 | 主栏、CLI、终端编辑器、问答向导 | 旧版或未知版本仍可使用，缺失数据省略 |
-| 子代理行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |
+| 自定义子代理行 | 2.1.205–2.1.322 |
+| 子代理生命周期 hooks | 2.1.205+ |
+| 自定义子代理行中的显式强度 | 2.1.214–2.1.322 |
 | 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |
 | 会话内 Client 编辑器 | 2.1.287+ |
 | 原生计时及高级实时指标采集 | 2.1.289+ |
@@ -646,7 +648,9 @@ Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、�
 
 ### 子代理行不显示或发生所有权冲突
 
-先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 低于 2.1.205 或版本不可识别时，主栏可用但子代理设置/hooks 会暂挂；升级并重跑 `claude-statusline install`。如果 `doctor` 报告 `foreign`，选择其一：
+先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 2.1.323 移除了 `subagentStatusLine` 回调。该版本即使保留已配置的命令，也会显示内置子代理行。子代理生命周期 hooks 独立于该回调。[Claude Code 2.1.323 发布说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.323)
+
+如需自定义子代理行，请使用支持该回调的版本，然后重跑 `claude-statusline install`。如果 `doctor` 报告 `foreign`，请选择下面的一条命令。
 
 <a id="明确接管第三方子-agent-行"></a>
 

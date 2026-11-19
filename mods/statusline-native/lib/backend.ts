@@ -4,6 +4,7 @@ import { isScenario } from './editor/preview-settings.ts';
 import { validAlignments } from './editor/alignments.ts';
 import { GRADIENT_KEYS, validGradient } from './editor/gradients.ts';
 import { validCostRateOptions } from './editor/cost-rate.ts';
+import { validEffortFallback } from './editor/effort-fallback.ts';
 import { validGroups } from './editor/groups.ts';
 import { INDICATOR_KEYS, validIndicatorOptions } from './editor/indicators.ts';
 import { STYLE_REASONS, SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from './generated-contracts.ts';
@@ -112,10 +113,10 @@ function formatOverrides(value: unknown): boolean {
 function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
-    exact(option, [...GRADIENT_KEYS.filter(key => Object.hasOwn(option, key)), 'label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : []), ...INDICATOR_KEYS.filter(key => Object.hasOwn(option, key)), ...(Object.hasOwn(option, 'cost_rate_basis') ? ['cost_rate_basis'] : [])]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
+    exact(option, [...GRADIENT_KEYS.filter(key => Object.hasOwn(option, key)), 'label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : []), ...INDICATOR_KEYS.filter(key => Object.hasOwn(option, key)), ...['cost_rate_basis', 'effort_fallback'].filter(key => Object.hasOwn(option, key))]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
     (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
     (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
-    GRADIENT_KEYS.every(key => option[key] === undefined || id !== 'spacer' && validGradient(option[key])) && validIndicatorOptions(option, scope, id) && validCostRateOptions(option, scope, id) && range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
+    GRADIENT_KEYS.every(key => option[key] === undefined || id !== 'spacer' && validGradient(option[key])) && validIndicatorOptions(option, scope, id) && validCostRateOptions(option, scope, id) && validEffortFallback(option, scope, id) && range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
     formatOverrides(option.formatting) && validColor(option.foreground) && validColor(option.background) &&
     typeof option.visibility === "string" && visibilityChoices(scope, id).includes(option.visibility) &&
     range(option.visibility_threshold, 0, 100));
@@ -207,8 +208,6 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (sub.instances.filter(i => i.type_id === 'spacer').length > 1) return false;
-  const types = new Set(sub.instances.filter(i=>i.enabled).map(i=>i.type_id));
-  if (types.has('status-elapsed') && (types.has('status') || types.has('elapsed'))) return false;
   const ids = d.instances.map(i=>i.id);
   const spacers = new Set(d.instances.filter(i=>i.type_id==='spacer').map(i=>i.id));
   const layout = d.layout;

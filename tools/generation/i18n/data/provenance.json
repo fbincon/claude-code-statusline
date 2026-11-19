@@ -59462,6 +59462,291 @@
       },
       "review": "Reviewed catalog status, filters, shortcuts, placeholders and draft feedback in their editor contexts across the registered languages.",
       "validated_inputs_sha256": "17e43a6ee5c3f45c15a169a22327adaf082715d540869b70bbc9a737791df9ad"
+    },
+    "df916550ad255ad0583dc6a50955e472d96982de6dee7d04948a6db99b2ff673": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "a8060c7130f0b244762d6bfbdec6ec301ad303d1b31d6e6297b75dda23c36ce6"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "1df92cde4e821911ed68078b1c0a73f52524c6e6e76153d12b28940ba6784ce7"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "1f71b96edd509bcdb4ceb7ba7a54c6f4d74940c50b96ebe0fb6f3703ad65e6c1"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "5150fd56e60ceba913bb061a2cbaac5b58ca56db24d02efbaf48335380b36bbc"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "c8bd29cc782899acbeb1f4dedcf2795b1f5eb7b328d690fedeeea6628545d891"
+          }
+        },
+        "en": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "1f3f2b01015730f5a78a2ed70b2337479e59605952e3f3831f8c12d829501f16"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "0772f60598304d36d16509fcebd6ba4a1037a069cb0206a93fae87466d4a1ecc"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "8570eddfc1edb5aeeade32270e928555001cd3a05f3e1f4b5f3083e59a491d54"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "399a8cfccb7ea09bc8c31c042c49d0d1d2362441d0b261c01ad1330ecaff9d67"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "d75e0f4264fc4bfce8c02179df86474cc455c971aeeeb70e27297ee8e136473e"
+          }
+        },
+        "es": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "0e37aef448fcc5d3e4c8b7836084309d17b0fd99dc3b3dc33f7acf362c65f594"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "5f68a5e671911ba10e65ffeee8271802135885a606c75a5178b6669b170fb0b9"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "e94be5d3f113cec4c495e49364c5ec2f60b42d839d6a6d1aa1a4c28add071cd8"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "0c12e2e0f54d2af6e02530e9aead0e7990b540da2014afa3fa38b90405a75de2"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "6c99964c207d3c6afd8fd7aad22dcbb548d7de0655889dc2db1b82cd8afebd1e"
+          }
+        },
+        "fr": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "428a42f614b3da5454ad0a78824ea94155d520aea35ea4b49fff5cc45cbc5950"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "2bcdbe72dfeb4f22aa7ec238fffd89d5e9ce7ee4d350f55b2331df839aebfc83"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "8b55cfb1373e8032ba7e3aa449034e1e0ad953ba8c2e7cff5d565a71f3d35e5b"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "e94114e518b1a986714a9253971b202f9a64c4c0d622fcb2b3fd6508469dfdd1"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "9b903683f7befcbd269a04794f15f4bd8c2da2388e3804b7ddb210c475889fff"
+          }
+        },
+        "id": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "87da3e27e4c30e76fcd6714e31fa20cc33dd2c67ec5708f213f88693f630638b"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "39d1af0599775c3a94a6a1b4b6eef0635b16f78e8d9d04c51650b765ff588a0e"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "dad5d42d823d55099a377ffee8e139016931d83f9ea67057cdedcb4e27c9d609"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "fdfb8cc1222d692fe79a3818e72a4dcab0fdc7334e20392201a38fb36f4db4d8"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "6557bb004fc8e3c2715b31a7c59cd9703ebb8a03947beb34e4823a7ea2872eb3"
+          }
+        },
+        "ja": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "433e66f70607ea98c491cf70febf5d0a0511df7f4485aff119affccd3274583f"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "7171f897c6d5491cc7ceedb592c0d52955ca2294d8d50465e4e75514deea4dea"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "1353588d9c4d5a4ac9d05e1bdd2ed74944ece2e1ea7ce64f216e0e3019899ccd"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "6f4505f8ae1594375f19a1737afbca6968c32772b76903520de111d2214bfae4"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "f9c0abfeb7750634b77c9bb707b024b2e3001d218afd8fec9edd1e7b414d790a"
+          }
+        },
+        "ko": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "f6ad7889e3a8f2d9ada8aadf9c83fb82b5d81115a1dee1ec85a4915ee7895e04"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "72f6d8128fb019c876cb9f56c744665261ebf7755911ed13e21416e2a5400aed"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "05a58d59265d67c1e0a5fb03f7ab364ab2c3b546f0a2f8190f28d578245217db"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "c3161e5b3a8ff507d0ee211bcfd3ce060f110e074a448f72536b486dbde8e48c"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "0e688fd5376902efa4d2247f3115ee5d4b035ff41c67155f074f4e62842b4c15"
+          }
+        },
+        "pt-BR": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "d23ca374bf936817fd859898c4f80fc307eea05aa494915549b25862bc6640a7"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "610ed9e348b9b9333d859743206b04aebd7b0a9b7e2ad0e6aa53483bff875d30"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "a4ae4360a35491c0a72998e9ffe5a3b1c0a20cde27d84d3ee11ee9664a55dd28"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "9d85fe911e51594a4d5925b21a717343afb5d7ca6abc0a2e600c2bd4184a3155"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "9b60d798a39f4b30a375d88e92de2d1911b9c0bf3570db309a57a6200d9ace29"
+          }
+        },
+        "ru": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "e168ce7bcd908daf9232120a8863df8d0544f3411d9ad3e8acab67127ff60803"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "bffc022f715fd14ac8ec633fe7e47fbed43c58e8d6b0167b12ae69188e33a6c3"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "a96add72756e57fa85814060b9299adf57722be9a0b5207f42ed2cecd53d163d"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "00e26da0e5a371760244753d723afa805912bae4e09077d8d4dc4afc80e043c6"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "5822a0dc118023825a923d809abbd98c6982fc45b38dfe283be7a553ea22c1a8"
+          }
+        },
+        "zh-CN": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "ffe49b1d9f7adbc2732285f876ac43ffafa555a928d172191b97d56662663c49"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "e7b0cc781408bb5919e7e4d05c16a7c8671cb057515a491d43f621fba58f668a"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "8b6598083f4f19ac71fe8b3c46e6e66dd3a0b8c7d4a5d2a744d96c0494005467"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "5e4b7844ee59f91a063049fa265049e4fab93dee5602e772d8547123849665d4"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "b1a91c383e4dc6b2ba8c2b7131fd052fea96eb15655e2e9a185620ed9c8d05dc"
+          }
+        },
+        "zh-HK": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "79aaac91753944ef52e11fd9283de1c9946112d043b6c4992917c7893d2be9be"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "76cd3f5ac441d7642b68409ba7b5169c9b973ac3b2879554d6a2e4a5b73a64b4"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "94093b6631841ec7bbd36c15ed1a9fc2b18c1b52b45b7ae84879891bc9ec0d44"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "36ae29c9dd98442bff21cd523174b19c0c29eb4c5a94bd68b224fbe8b53b5dd7"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "fd0a3dbdc07313afbf1ca2994f7c4b4f48545edef250143a72f8d1cdde094fd1"
+          }
+        },
+        "zh-TW": {
+          "effort_fallback.session": {
+            "source": "0661b39b67b59d4c97b86079e0f99e00e4838c913fba7607a7c3df7f7a8846eb",
+            "translation": "79aaac91753944ef52e11fd9283de1c9946112d043b6c4992917c7893d2be9be"
+          },
+          "fields.item.effort_fallback.label": {
+            "source": "bcc771e59ca6ba15319f923946314ca5827b0e35d8c9e287c89ab59314962bf4",
+            "translation": "d358590ed004f47e883f0161bf11b94497b8e97c04a0b737b5d2bdc7834d2c41"
+          },
+          "guidance.requirements.agent_effort_optional": {
+            "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
+            "translation": "9a6a949ba7dbc1d4872abf14735cc14e22acedbf5c6683ce3ca5e1f49d4dc466"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
+            "translation": "0d7b90c162a6ecabac3b42b56d30d74deff8fd3681f15296e81e1ecd44e5b188"
+          },
+          "items.subagent.name.description": {
+            "source": "c673f3d6bbbffdf3631f98e8ddf655c866f276d5fb9bf8e9baaf54afca77237c",
+            "translation": "fd0a3dbdc07313afbf1ca2994f7c4b4f48545edef250143a72f8d1cdde094fd1"
+          }
+        }
+      },
+      "review": "Checked that the name, agent type and task type are distinguished, configured and session-derived effort remain distinct, the tilde and host field are literal, and option labels fit the existing terminology.",
+      "validated_inputs_sha256": "16d12ce3d55445e56ea64c995242dc4bc85bd6286e061877617c88af6fc24a82"
     }
   }
 }
