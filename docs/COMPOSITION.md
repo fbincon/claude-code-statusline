@@ -35,18 +35,22 @@ instances of the same type; it follows their current order.
 
 | Action in Main or Subagents | Native / external |
 | --- | --- |
-| Open the component picker | A / Ctrl+A |
+| Open the component catalog | A / Ctrl+A |
 | Copy the selected instance | D / Ctrl+D |
 | Remove the selected instance from the draft | X / Ctrl+X |
 | Enable or disable | Space |
 | Edit the selected instance | Ctrl+E |
 | Move the selected instance | Left / Right |
 | Search / choose category | `/` / Ctrl+F |
+| Clear the list's search and category | Ctrl+G |
 
-The add picker searches names, descriptions and categories in all supported languages.
+In **Configured components**, a category shows its count of configured instances, including disabled ones, and its count of types still to configure. Ctrl+E edits the selected instance. Clear the search and category before reordering.
 
-- **In the add picker:** Enter adds the selected type after the previously selected instance. Ctrl+E opens the type's read-only sources and requirements, whether or not it already has instances. Ctrl+G returns from guidance or cancels the picker.
-- **In the configured list:** Ctrl+E edits the selected instance. A successful addition clears this list's filter so the new instance is visible. Clear the filter before reordering.
+The **Component catalog** opens with the list's category and search. Its rows show `[x]` for at least one enabled instance, `[–]` for disabled instances only and `[ ]` for a type still to configure. A suffix such as `(2)` counts instances of that type. The summary counts enabled types among the catalog matches across all pages.
+
+- Press Enter or Space to add a new type or enable its first disabled instance when all its instances are disabled. For an already enabled type, return to the configured list and use D (Native) or Ctrl+D (external) to make another instance.
+- Keep adding in the same catalog. New instances go after the previously selected instance or its group, in the order you add them. Each accepted change goes into the draft and updates the preview.
+- Ctrl+E opens the type's read-only sources and requirements. Ctrl+G returns from guidance. In the catalog, Ctrl+G returns to the original list filters, as does Esc in the terminal editor or Q in Native. The most recently added or enabled instance is selected if it matches those filters.
 
 Copying retains all options and creates a new identity. Disabling keeps the row
 position. Removing a component updates its row references and removes empty rows.

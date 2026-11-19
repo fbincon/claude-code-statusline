@@ -27,7 +27,7 @@ test('add discovery searches all languages without changing configured instances
     editor.filter('main',query);expect(editor.visible('main').length>0).toBe(true);
   }
   expect(editor.modified).toBe(false);expect(editor.move('main',1)).toBe(false);
-  editor.closePicker('main');expect(editor.order.main).toEqual(order);
+  editor.closePicker();expect(editor.order.main).toEqual(order);
   editor.instanceAction('main','add','model');const id=editor.selected.main;
   editor.instance('main',id)!.options.label='私有🦊引擎';
   editor.filter('main','私有🦊');expect(editor.visible('main').map(i=>i.id)).toEqual([id]);
@@ -37,7 +37,7 @@ test('add discovery searches all languages without changing configured instances
 test('alternate-language highlight shows source evidence and never unrelated Chinese text', () => {
   const item = SEARCH_CATALOG.find(item => item.scope === 'main' && item.id === 'model-with-effort') as CatalogItem;
   const match = matchText(item.id, 'mwe', 'id')!;
-  const spans = itemSpans(item, match, 'mwe', 'zh-CN', 120, true, true);
+  const spans = itemSpans(item, match, 'mwe', 'zh-CN', 120, true, 'x');
   expect(spans.filter(span => span.style?.bold).map(span => span.text).join('')).toBe('mwe');
   expect(spans.map(span => span.text).join('')).toContain('model-with-effort');
 });

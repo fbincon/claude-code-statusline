@@ -58889,6 +58889,579 @@
       },
       "review": "Reviewed the task field recovery instruction in twelve languages, including the order of the focus chord and the visible submit glyph before typing or pasting.",
       "validated_inputs_sha256": "d79ac2155d0abd85c9ffe2cb5b724426a2ba3d40622ced9425836cbaf7bc02b9"
+    },
+    "4469174792d608a1811cdf31c91fda3008aeb24037c49061dd70064ee9d8f147": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "f9baf2ffc7fce7774c92e0aab89b237e8bc3d1c7940e205116b4b32ab5df1655"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "24cd53c7aaf99b7467b8545f118f6a8f6ab04e212572190291567776a2394c41"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "14bad3dba2fcba22e5cbd143d2eeeb41f536598bcfb937c3d4d417d39cd84907"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "5997ab626eeb7bbc3dc0375f19251a5fd6764cb4bce90ae4e7992d8b68d4c6df"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "4087844e61e2752b72f92075a8bfebb64686a3f9ff9883e8a3d3663fa4a25a2e"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "5b9d41bfb0ba88e2f66d97185bad584358987681b83435651f762372f4e68bdf"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "e39fc147a5f0b33862c97f8b0ffb7c0eb92e73a58727ae942bbe18f60fcdbf51"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "35de864fadde2dd7625027b37ee2e69389fab2cda107be74be2a51ca38a138ab"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "1a6ecd60530ece96d6c6798d2e797cce86119125f1d55888ffe98b51aa63fe75"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "1c58e0c512b143b5c036f51c08b4bcc4b849aa9d61d2ff144dbcc5d058024e61"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "476df3c7bb5a163aa5788fc04a3b8f01f0d55316ad7449790c6106e1f6edad5f"
+          }
+        },
+        "en": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "ec9d3606798e3276b1432b0cfa49bc022c8d6444ec87f29658ceffe0a3c62ffd"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "6171bf613257b47e35713f9e36b6af5146f3efe4c13d033a4b7620c456cf0b34"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "1d61a5dfe8af97a0d2c368a2af3ce454a577ed341e3f0f39575bddc9ba61e5d2"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "8f413b336322b46d1b7f7f34b8aeac29e8a0b91a9825cd14f290d9c63d89603a"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "344287dcc1273996f797007087f068156e090d7a5359bc44d119fe4603792d2f"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "9c7c7223db8da0fe2c9f6b5f244fd3c40ff7a006ff3e02c54e2e058e5256d710"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "ceac8ce59156f45b8e0d92b606616d04e1f3c8fa81a43a11115c04be15e5071a"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "17ee258cf855a1e567fae04c502eb4da16a5dace4154900166956a3c757658f0"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "9bc0d7881d129421e23a27c109641b913f3973975b1aa9b5d8bd03ad35fa61d9"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "652f55016243bf1b9f1bbea46d5749ef892dbe394e46de9d66ab1aacf0b4af57"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "a20ecf75b9cff4a0e54521a81141057d5ef3fcb7b3301f87670e55d6c27956ca"
+          }
+        },
+        "es": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "aa10959b2c5ffd92c01bda0b38a588013aca9dfbc256d7fe7dcc5e09101b45f7"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "8f1d343e892bc2ef66ecacb7533db7f71b9e36e47b997068ee7a836217ef7076"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "7e933a2510a06fae97146837b7a26657a402c627ec999d40bdd8ac9595d0e088"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "6be16716cf49e3d4a7d7f826fc16249810e38c90f7daab237d5c6e59f847f3ba"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "cc24b12ceda0bc6ebe26fb73f8666b237cb6b97379d263dbeea7af453acda94e"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "4040f63a680eb8d38fbeec177098a78907ee64960c826ce915bb40154e18b759"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "883be9644cb2b1445b18e55f9748c50fc62ecc7061a273ae26c7c1bec6b5a4fd"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "651c08a86e05115d146533364cf353716be485d8221e2704116f8829b347f7b6"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "42e8e3dc28a19dd7f8126bb28ae186804ed4c0b41f115c1d3aefab9e5303fc09"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "fb00c2bbeb78ffae84ceaa9b8ea08b9ce9fa13e72996491ae4a217f58f29b3fb"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "0a71233f4d6931734ee29266b7c1da0b636de51b481e864a9a2e895f752b14ae"
+          }
+        },
+        "fr": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "73a49f550e0cd9947f54a86d86131ca39b830bde80815e78a0224b5c7af772b5"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "f09ca9ab0b74bb161e9020c1d4b19c7f1c5abd02e71f4fad4339b222a19b5403"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "ce29e9ee08666f86d558869cfe8d65fd89467ad775a32fb4eeba26d8d21dd758"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "78475a2e3a54578258119608e456371a65419966748c1d4bef683bc75af6bb44"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "28a7644fc8dcabebe001b6eeb1737ed66a243b714ffa682aa545b224e676c08a"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "e60c10607b3d6bd5a2007df63b17b5734cb4aa23d1d14ec817bea566ae076f11"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "5fc84fe2ea89dbb68e33337f2907b7ec1ffea50ab435f23aed9c7c5f2b02aaf9"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "025601b4bc0210e18612bd0d9ab87e3ad3cd9fa9c2b43d970512a4c46a4b9a34"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "37604444dd1b630e275c83e1ad0e09f9ba31a1f556258da5f0aa2328a79f7b71"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "d2504e52b8b07484a2b690e7ffaedeabe91320c09012844d0f7c81c2ec72e882"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "7a5981aa903d5384979aa01730b6fbab417cab7e3739a5d1a0154ff112a3fb4e"
+          }
+        },
+        "id": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "0515d16172300a73deaa512b4d825f39cc8a068d5a8ec7a8ac9f851e1b044bc0"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "865c19b80faea0ecc69eca7dd90143d9fbd4ef5f4075588c00765bdad30d56e0"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "af2c6bb5b7ebad8f7c3c893d67029e1c58b16aac57cab3d83d391afedee37ff9"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "13d30042e36d6019afcbfd28cc75e6429b43cd92076ee6b30fd44f4593843fba"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "54db16be142bb62aaeaf6dc7acf0745a6475f02603b92103d986330fe4e33a18"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "7191cdfd74ea49aa658340d0b63d1bc1f9bec9b644ff9cbea1767ea6f071952f"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "a9b262cd15db84c6b54d84af1f27d0cbc09410cac2fb4d01ea98dc983ae3ca78"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "970353e8e1c396cde5f8c0940b231782b8168cf4cc33ac78b13fefa0cc5ab64b"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "454a8c00700c016551e8267b023634e34664f5cf9301f68497373236239399cc"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "282b94cc1bb17f14d5dbb6f758e8723173d01c1e88964fa28ae56fb3301a6e67"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "f68d3eaadfa0a1924fb681aa6b6df53079d42de600089767baa7b7c69706c43f"
+          }
+        },
+        "ja": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "d0d3b63b195b4cd8090bc176b1169ae5ce65b96dc8ef0d0adc7fb264a62c81dc"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "bf0b1fedc574c05b94aab04c8d78cc7b98e69eb8db2b2c8777b4ca706b8673aa"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "1a98f4d564b014d6942d1b40af56ad0b5c38c5af658238d9f70738a185a1e5ca"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "fcff70aeb85d5b5f2868ef16b502744fb1c40725330c759d92fdea3e8139bfd8"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "701e65fd24dc92d212e600d0a839bf28995a0e9b4a7d91a30e8ce8651debc530"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "514231422e9a0dbf2799d76c6d93f69f35495e8449e7e9da16e4b1b7141336b7"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "0415177796948d0cd79634e7ab4345ef7187cc05f2005c8711a7c4bd5516225c"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "bdda4806604703282d64492b89272318bc4c3fbf2c55bee0c15c112eb5c62fa6"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "36975d943300e1ed31f5051ee35ec7ab51e9e58a3ed71a7af8711c935a48b6a9"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "fbf43fa3688ece547e8a2eda9dcd7a7b717166b530835a0a502d2db451ffc9e9"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "b60f200c2f67c9d370c2ce5b76f01be135772bdcf82d4754d7406a55482a7ab7"
+          }
+        },
+        "ko": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "48459c4937ca678bde5df91f075590dfeca28e6444457b5f00bc6c3f2f7ca2c9"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "b0f68fda8a194c78527356741814049435df4da62ea9ad7b4c149afa7d866e81"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "2990ee6772dffa71f75784d322ca0587cf88a4b9cf487d0bbd946e8dea1b1603"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "5971d90b3d1145f422362f2c5431678174e88c7da9f2b172a7c318a4cd0c6be4"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "c3c8e1e482750dcea89e793ad1011a0bebb337196ed43ebfcab5eb46da51636c"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "44cd910ab35dc49b35a39c3b3f54d1438d316e1a96370759774dd9c0aa70addd"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "d160b4eaecce1434d425d3f35536e7da19d979e383fd189af9372e0dd36998d2"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "cc98cc2f02feef5f00223c2926e4366030f7e7bc7f9b99122985c8f60ab72829"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "676aabeffc0ea92af5cd8facd2c2d392d172f38650f4f12b271c198a71e015b8"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "7cff5d670e9b9a97c35ae9f793cae5f2d8a540b80caa3dc99212582fac1eaca1"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "ac59eacff1e37ddfaf4009c9f40dcde00a8b8945f8ffeac52718e8d40f57d8e1"
+          }
+        },
+        "pt-BR": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "95f78fa382fbb1807d346c224703cf26b71eb7899d9482ad8e05673ff7efe8ef"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "cfc0d4d9b2fb204ae6757ab0426b5758a2b34de981247b7108536647e8f82f60"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "45bcedd4c06e4df871ac18febbb4ee7fcb90c43f7978acd2b0f59453723f6b0e"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "6be16716cf49e3d4a7d7f826fc16249810e38c90f7daab237d5c6e59f847f3ba"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "cc24b12ceda0bc6ebe26fb73f8666b237cb6b97379d263dbeea7af453acda94e"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "36f9af2553e4ae10ba8c6a95477a8c688b7bf490578b72a7dd2018aadf14f4a8"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "c34104366ac568b4bf2360241381120f91a68a2b95bca03abb1ee6fe68f134be"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "21e0a66f61aae066cc92b8b8620a0f236f991a626d3077351be8bf966df390b9"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "3cc5a1758c57b2bb8449d86fba3ba10d560562e147398b4be8b2210c465eaf5f"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "fb00c2bbeb78ffae84ceaa9b8ea08b9ce9fa13e72996491ae4a217f58f29b3fb"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "249e04cdd3449aed04e063ad2586c8bd538b4c70f0d3dfc01c89e8509f118431"
+          }
+        },
+        "ru": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "91b06640e2bb06e6c569b3bdf931e0c26ae7f84a185b68e18d2c7f62e4d462a6"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "fece45735c47c5346dd36c0d276eb4ed77f150dfb504ad50ea17894023a438ab"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "185eb99172529bfe50a0c9684a9a7b9fff3d350ba23a45a60847e89d038c34e3"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "bad7d68bbe87053947affe7c0e7a880bdd6b5e37452861d35f2d140dd2367a73"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "e8c4b408c3c74ff9b10726b4421e16eaf10ca2b072d036d5a6d877580e16850d"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "9d6aae915fa6bd5f034b434bff85249a223fc8bb54bfb3e8adcb1435f18bf551"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "b653086e705cde72373fa4a8d6e07cd73979e0d32f81cdf3a4c49a487be72b7f"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "c72f68aa9175c5da415b94f06b79c6dbdeff47d60486fef5e0b3f27df69f36dc"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "b4ed85f8d8edf6ace5c1bf6f5db46e0e02094e80abfa13b1d174a0a2d21bf8b8"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "4ea5ffb9cbc0025983129bf2684ecf2980b7466f82be8b36900c3735861d291a"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "4371991e07cd2799dfca43577bf5995618e4bf206b9aba41ffb6e8c1115dfdb9"
+          }
+        },
+        "zh-CN": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "d782eaee377c4cc05de3cd9c815db3b1103823769d149ded0bd4d340daf962d1"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "39c38f3e573675c439f30e4b88fd27ef7461849ce0d602a7833185e642ceea1f"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "4fa5217546fff4989556325a056b49075911c6bd418f066d44928d0456e8e784"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "54db773db32a480e21fadb3f0b6e3919f0d594c16bd138f7ee390c60f684d62f"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "8eaf97a141060907498df1c9d2a95ce36e64e059fdf76bbedbc713980c486989"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "a25c9c6c15bd2c5cd34f97e3e85f6a8a907882fa85ea65a4255fa351a4ad833c"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "d98fd9d8e49270eeba2fd689d727f0010ff17c7c40dac5c126bc9a6957480ceb"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "d8bf7d6a6c4fba45b72c54397abbfdcf363238eecde51c95b22d1d7d9281b523"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "e40cd43bf5527f20884af656a3adb2d2bb577ee64fbc63902f633d0ca284f975"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "8eaf97a141060907498df1c9d2a95ce36e64e059fdf76bbedbc713980c486989"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "657d9cbf45ec9e6a87298c9327dc6adf5629b023172bb1f466054d68a450b308"
+          }
+        },
+        "zh-HK": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "cc88a0f2f67066f140bfb5c5153994c36833d894a83c80cbeacb261b3c56255f"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "4c1acac4f55dcff6ea4dc2652c4723ffbf83b62deb7f3220086846d3b05bb1d9"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "f0c879fe18f6b5e0c9732eb30c788b6a7d7bb491114e646ce58b088c9f8402df"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "d842a529ccdf2ff94bfc8d8251ddaaffeef30d9a0dd6373634647f4a0e21f89e"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "dacae517ac291bed06eb26532035cdccdb6c3fc9732f2e04a3d4abf435179576"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "f3ea2e36de69ed4e9cedaedbe508111092cbdd9a6eddcca15a2c9bffebd4ff15"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "b2885e2795345ae87a3f4593ed3cf7ace5cb0e6c2788cf18990d59a1b83df548"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "25c9d026a2a1a84744e2bfd76bca8f1a9a3d9ccdea096f792e42d5e39d0f1ce4"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "b75183024e60550a9996714160715177a49fc9bbf23c7cbdf349851f85bbbf15"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "dacae517ac291bed06eb26532035cdccdb6c3fc9732f2e04a3d4abf435179576"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "050605e81eed06768a685592d574f029f9661ea753a359938646af3ee1cc2650"
+          }
+        },
+        "zh-TW": {
+          "composition.catalog_enabled": {
+            "source": "7e7c4f629de00590c68a4d150f439a6c5346959b327c298d9af687599ab4ccb6",
+            "translation": "cc88a0f2f67066f140bfb5c5153994c36833d894a83c80cbeacb261b3c56255f"
+          },
+          "composition.category_counts": {
+            "source": "3508a3f51f5bca9e217e1abb376a5d95e8d998415edfc5ee8f5b9e14bd4a96c3",
+            "translation": "4c1acac4f55dcff6ea4dc2652c4723ffbf83b62deb7f3220086846d3b05bb1d9"
+          },
+          "composition.configured_subagents": {
+            "source": "0b79315116fd405c9d0d2b49bba93f72b0f18304182c1026ef2fd750fb5fc59b",
+            "translation": "f0c879fe18f6b5e0c9732eb30c788b6a7d7bb491114e646ce58b088c9f8402df"
+          },
+          "composition.configured_title": {
+            "source": "4291e0fa3722000436fbf8140da52b531dab8bb3c009d7f52d890ca20dbbd88c",
+            "translation": "d842a529ccdf2ff94bfc8d8251ddaaffeef30d9a0dd6373634647f4a0e21f89e"
+          },
+          "composition.picker": {
+            "source": "e1a7c230b81071602ce79715087be4f3c52126cdb8542a2c32c4574d50204e6c",
+            "translation": "dacae517ac291bed06eb26532035cdccdb6c3fc9732f2e04a3d4abf435179576"
+          },
+          "composition.picker_added": {
+            "source": "bbd12626276f0002c18d5b3a258c94e4680306e69097dec07d51724c5bcf6a51",
+            "translation": "f3ea2e36de69ed4e9cedaedbe508111092cbdd9a6eddcca15a2c9bffebd4ff15"
+          },
+          "composition.picker_already_enabled": {
+            "source": "92e383031f5f58c5b854bd375a44722bb047e7fd0e113b23ce8ca5c25eb54afa",
+            "translation": "b2885e2795345ae87a3f4593ed3cf7ace5cb0e6c2788cf18990d59a1b83df548"
+          },
+          "composition.picker_enabled": {
+            "source": "dc5cd2413dc5c6a24588433d23e390292884c94b4bfb65020f1f00701dd983c7",
+            "translation": "25c9d026a2a1a84744e2bfd76bca8f1a9a3d9ccdea096f792e42d5e39d0f1ce4"
+          },
+          "ui.hints.add_enable": {
+            "source": "69f06c4c8066dbdd20cd51d58dc89cc6d25a4dfbb7b9a0cc7391664a910933d8",
+            "translation": "b75183024e60550a9996714160715177a49fc9bbf23c7cbdf349851f85bbbf15"
+          },
+          "ui.hints.catalog": {
+            "source": "dbc5e4bfb8772ff20f4c924c064f122dad1874084f9c7e69a8717219e7209fc9",
+            "translation": "dacae517ac291bed06eb26532035cdccdb6c3fc9732f2e04a3d4abf435179576"
+          },
+          "ui.hints.clear_filters": {
+            "source": "220b7ba5d9f578fc57a6d4cbae2ce4420486393ccd8015b91c56b3e71ef293c6",
+            "translation": "050605e81eed06768a685592d574f029f9661ea753a359938646af3ee1cc2650"
+          }
+        }
+      },
+      "review": "Reviewed catalog status, filters, shortcuts, placeholders and draft feedback in their editor contexts across the registered languages.",
+      "validated_inputs_sha256": "17e43a6ee5c3f45c15a169a22327adaf082715d540869b70bbc9a737791df9ad"
     }
   }
 }

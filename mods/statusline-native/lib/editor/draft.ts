@@ -10,7 +10,7 @@ import { t, text, type Language } from '../i18n/index.ts';
 import { emptyHistory, remember, snapshot, boundHistory, semantic, type DraftHistory } from './history.ts';
 import { repairStructure, type StructureProposal } from './structure.ts';
 import { openChanges, targetIdentity, type ChangeReview } from './change-review.ts';
-import { nodes, newInstance, reconcileRows } from './instances.ts';
+import { componentTypes, nodes, newInstance, reconcileRows } from './instances.ts';
 import { isDraft } from '../backend.ts';
 import type {
   CatalogItem,
@@ -44,6 +44,19 @@ export interface PendingSave {
   draft: Draft; revision: string; target?: ConfigTarget; installation: ReadResult['installation'];
 }
 
+interface ItemListContext {
+  search: string;
+  category: string;
+  selected: string;
+}
+
+interface Picker extends ItemListContext {
+  scope: Scope;
+  anchor: string;
+  changed: string;
+  notice: LocalizedText | null;
+}
+
 /** Pure tool draft. Persistence and host configuration calls live in the hook. */
 export class Editor {
   draft: Draft;
@@ -58,8 +71,7 @@ export class Editor {
   previewWidth = 'auto';
   previewOffset = 0;
   advanced = false;
-  adding = false;
-  pickerSaved: {search:string;category:string;selected:string} | null = null;
+  picker: Picker | null = null;
   detail: { scope: Scope; id: string } | null = null;
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
@@ -200,12 +212,16 @@ export class Editor {
     const proposal = this.structureProposal;
     if (!proposal || !this.canMutateDraft(proposal.generation) || targetIdentity(this.baseline) !== proposal.target || semantic(this.draft) !== semantic(proposal.base)) return false;
     if (!this.commitDraft(proposal.draft, text('history.structure'))) return false;
+    const addition = proposal.pickerAddition;
+    if (this.picker && addition?.scope === this.picker.scope) this.recordPickerAddition(this.picker, addition.id);
     this.structureProposal = null; this.changeReview = null; this.groupManager = null; this.alignmentManager = null; return true;
   }
   adoptRevision(current: ReadResult, generation: number, target: string): boolean {
     if (!this.canMutateDraft(generation) || targetIdentity(current) !== target || targetIdentity(this.baseline) !== target || !current.installed) return false;
     this.baseline = { ...current, draft: copyDraft(current.draft) }; this.mutationGeneration++; return true;
   }
+
+  get adding(): boolean { return this.picker !== null; }
 
   /** A manager, picker or read-only page owns its input until the user leaves it. */
   get inDraftView(): boolean {
@@ -219,7 +235,7 @@ export class Editor {
     if (!this.detail) return undefined;
     const { scope, id } = this.detail;
     // Catalog type IDs and configured instance IDs are independent namespaces.
-    return this.adding ? this.catalog(scope).find(item => item.id === id) : this.definition(scope, id);
+    return this.picker?.scope === scope ? this.catalog(scope).find(item => item.id === id) : this.definition(scope, id);
   }
 
   get modified(): boolean {
@@ -238,6 +254,20 @@ export class Editor {
     return nodes(this.draft,scope).filter(i=>i.enabled).map(i=>i.id);
   }
 
+  typeStates(scope: Scope) { return componentTypes(nodes(this.draft, scope)); }
+
+  categoryCounts(scope: Scope): { configured: number; unconfigured: number } {
+    const types = this.typeStates(scope);
+    let configured = 0, unconfigured = 0;
+    for (const item of this.catalog(scope)) {
+      if (item.group !== this.category[scope]) continue;
+      const state = types.get(item.id);
+      if (state) configured += state.count;
+      else unconfigured++;
+    }
+    return { configured, unconfigured };
+  }
+
   instance(scope: Scope, id: string) { return nodes(this.draft,scope).find(i=>i.id===id); }
   definition(scope: Scope, id: string): CatalogItem | undefined {
     return this.catalog(scope).find(i=>i.id===(this.instance(scope,id)?.type_id ?? id));
@@ -252,51 +282,113 @@ export class Editor {
 
   visible(scope: Scope): CatalogItem[] { return this.matches(scope).map(result => result.item); }
 
+  listContext(scope: Scope): Readonly<ItemListContext> {
+    if (this.picker?.scope === scope) return this.picker;
+    return { search: this.search[scope], category: this.category[scope], selected: this.selected[scope] };
+  }
+
+  selectItem(scope: Scope, id: string): void {
+    const picker = this.picker;
+    if (picker?.scope === scope) {
+      if (picker.selected !== id) picker.notice = null;
+      picker.selected = id;
+    } else {
+      this.selected[scope] = id;
+    }
+  }
+
   matches(scope: Scope): {item: CatalogItem & {type_id?:string;custom_label?:string|null;ordinal?:number}; match: Match}[] {
     const catalog = new Map(this.catalog(scope).map(item=>[item.id as string,item]));
-    const order = this.adding ? [...catalog.keys()] : this.order[scope];
+    const picker = this.picker?.scope === scope;
+    const { category, search } = this.listContext(scope);
+    const order = picker ? [...catalog.keys()] : this.order[scope];
+    const searching = normalize(search).characters.length > 0;
     return order.flatMap(id=> {
-      const node = this.adding ? undefined : this.instance(scope,id);
+      const node = picker ? undefined : this.instance(scope,id);
       const definition = catalog.get(node?.type_id ?? id);
-      if (!definition || (this.category[scope] !== 'all' && definition.group !== this.category[scope])) return [];
+      if (!definition || (category !== 'all' && definition.group !== category)) return [];
       const peers = node ? nodes(this.draft,scope).filter(i=>i.type_id===node.type_id) : [];
       const item = {...definition,id,type_id:definition.id,custom_label:node?.options.label || (node?.type_id==='text'?node.text:null),ordinal:peers.length>1?peers.indexOf(node!)+1:undefined};
-      const match = normalize(this.search[scope]).characters.length
-        ? bestMatch(fields(definition,item.custom_label),this.search[scope])
+      const match = searching
+        ? bestMatch(fields(definition,item.custom_label),search)
         : {rank:5,positions:[],text:id,field:'id'};
       return match ? [{item,match}] : [];
     }).sort((a,b)=>a.match.rank-b.match.rank);
   }
 
   openPicker(scope: Scope): void {
-    this.pickerSaved={search:this.search[scope],category:this.category[scope],selected:this.selected[scope]};
-    this.adding=true; this.search[scope]='';this.category[scope]='all';this.selected[scope]=this.catalog(scope)[0]?.id ?? '';
+    if (this.picker) return;
+    const { search, category, selected: anchor } = this.listContext(scope);
+    const typeId = this.instance(scope, anchor)?.type_id;
+    this.picker = { scope, search, category, selected: '', anchor, changed: '', notice: null };
+    const visible = this.visible(scope);
+    this.picker.selected = visible.find(item => item.id === typeId)?.id ?? visible[0]?.id ?? '';
   }
-  closePicker(scope: Scope): void {
-    if(this.pickerSaved){this.search[scope]=this.pickerSaved.search;this.category[scope]=this.pickerSaved.category;this.selected[scope]=this.pickerSaved.selected;}
-    this.adding=false;this.pickerSaved=null;
+
+  closePicker(): void {
+    if (!this.picker) return;
+    const { scope, changed } = this.picker;
+    this.picker = null;
+    const visible = this.visible(scope).map(item => item.id as string);
+    this.selected[scope] = [changed, this.selected[scope]].find(id => visible.includes(id)) ?? visible[0] ?? '';
   }
+
+  activatePicker(scope: Scope, copyKey: string): void {
+    const picker = this.picker;
+    if (picker?.scope !== scope || !picker.selected) return;
+    if (!this.canMutateDraft()) { picker.notice = this.compositionError; return; }
+
+    const state = this.typeStates(scope).get(picker.selected);
+    if (state?.enabled) {
+      picker.notice = text('composition.picker_already_enabled', { key: copyKey });
+    } else if (state) {
+      if (this.toggle(scope, state.firstId)) {
+        picker.changed = state.firstId;
+        picker.notice = text('composition.picker_enabled');
+      } else {
+        picker.notice = this.compositionError;
+      }
+    } else {
+      picker.notice = null;
+      if (!this.instanceAction(scope, 'add', picker.selected)) picker.notice = this.compositionError;
+    }
+  }
+
+  private recordPickerAddition(picker: Picker, id: string): void {
+    picker.anchor = id;
+    picker.changed = id;
+    picker.notice = text('composition.picker_added');
+  }
+
   instanceAction(scope: Scope, action:'add'|'copy'|'remove', typeId?:string): boolean {
     if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     const draft=copyDraft(this.draft), list=nodes(draft,scope);
-    const selected=this.adding ? this.pickerSaved?.selected : this.selected[scope];
+    const picker = action === 'add' && this.picker?.scope === scope ? this.picker : null;
+    const selected = picker?.anchor ?? this.selected[scope];
     const index=list.findIndex(i=>i.id===selected);
-    let next=selected ?? '';
+    let next=selected;
     if(action==='remove'){
       if(index<0)return false;
       list.splice(index,1);next=list[Math.min(index,list.length-1)]?.id??'';
     }else{
       if(action==='copy'&&index<0)return false;
-      const node=newInstance(typeId??list[index]!.type_id,list,action==='copy'?list[index]:undefined);
+      const type = typeId ?? list[index]?.type_id;
+      if (!type) return false;
+      const node=newInstance(type,list,action==='copy'?list[index]:undefined);
       list.splice(insertionAfter(list, (scope === 'main' ? draft.display : draft.display.subagents).groups, selected),0,node);next=node.id;
     }
     const target = scope === 'main' ? draft.display : draft.display.subagents;
     target.groups = reconcileGroups(target.groups, list);
     if(scope==='main')reconcileRows(draft);
     if(!this.applyStructure(draft))return false;
-    if(this.adding){this.closePicker(scope);this.search[scope]='';this.category[scope]='all';}
-    if (!this.structureProposal) { this.order[scope]=list.map(i=>i.id);this.selected[scope]=next; }
+    if (this.structureProposal) {
+      if (picker) this.structureProposal.pickerAddition = { scope, id: next };
+    } else if (picker) {
+      this.recordPickerAddition(picker, next);
+    } else {
+      this.selected[scope] = next;
+    }
     return true;
   }
 
@@ -305,27 +397,46 @@ export class Editor {
   }
 
   filtered(scope: Scope): boolean {
-    return this.category[scope] !== 'all' || normalize(this.search[scope]).characters.length > 0;
+    const { category, search } = this.listContext(scope);
+    return category !== 'all' || normalize(search).characters.length > 0;
   }
 
   chooseCategory(scope: Scope, category: string): void {
     if (!this.categories(scope).includes(category)) return;
-    this.category[scope] = category;
-    this.filter(scope, this.search[scope]);
+    const picker = this.picker;
+    if (picker?.scope === scope) {
+      if (picker.category !== category) picker.notice = null;
+      picker.category = category;
+    } else {
+      this.category[scope] = category;
+    }
+    this.filter(scope, this.listContext(scope).search);
+  }
+
+  clearListFilters(scope: Scope): void {
+    if (this.picker?.scope === scope) return;
+    this.category[scope] = 'all';
+    this.filter(scope, '');
   }
 
   filter(scope: Scope, value: string): void {
-    this.search[scope] = value;
-    const matches = this.matches(scope), selected = matches.find(result => result.item.id === this.selected[scope]);
+    const picker = this.picker;
+    if (picker?.scope === scope) {
+      if (picker.search !== value) picker.notice = null;
+      picker.search = value;
+    } else {
+      this.search[scope] = value;
+    }
+    const { selected: id } = this.listContext(scope);
+    const matches = this.matches(scope), selected = matches.find(result => result.item.id === id);
     if (!selected || selected.match.rank > matches[0]!.match.rank) {
-      this.selected[scope] = matches[0]?.item.id || '';
+      this.selectItem(scope, matches[0]?.item.id ?? '');
     }
   }
 
   toggle(scope: Scope, id: string): boolean {
     if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
-    if(this.adding)return this.instanceAction(scope,'add',id);
     const draft=copyDraft(this.draft),node=nodes(draft,scope).find(i=>i.id===id);
     if(!node)return false;
     node.enabled=!node.enabled;
@@ -400,6 +511,7 @@ export class Editor {
     this.numericBefore = null; this.history = emptyHistory(); this.structureProposal = null; this.changeReview = null;
     this.baseline = { ...current, draft: copyDraft(current.draft) };
     this.restoreDraft(current.draft); this.mutationGeneration++;
+    if (this.picker) this.picker.notice = null;
     this.cancelNumeric();
   }
 

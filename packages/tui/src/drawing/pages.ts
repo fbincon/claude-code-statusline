@@ -11,7 +11,8 @@ import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
 import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
-import { displayWidth } from '@fbincon/statusline-core/unicode/index';
+import { clip, displayWidth } from '@fbincon/statusline-core/unicode/index';
+import { catalogMarker } from '@fbincon/statusline-core/editor/instances';
 import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
 import { reviewRows } from '@fbincon/statusline-core/editor/import-review';
 import { matchText, segments, snippet } from '@fbincon/statusline-core/editor/search';
@@ -124,20 +125,24 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     }
 
     const scope = state.scope;
+    const { category, search: query, selected: selectedId } = e.listContext(scope);
     const values = e.matches(scope);
-    const start = state.scroll[scope] ?? 0;
+    const types = e.adding ? e.typeStates(scope) : null;
+    const enabled = types ? null : new Set(e.items(scope));
+    const start = state.scroll[state.listScrollKey] ?? 0;
     const itemWidth = Math.min(30, Math.max(18, Math.floor(width / 3)));
     canvas.content(panel, 0, [paint('  ' + column(tr('ui.drawing.on').trim(), 5) +
         column(tr('ui.drawing.item').trim(), itemWidth) + ' ' + tr('ui.drawing.description').trim(), true)]);
     values.slice(start, start + size.listHeight).forEach(({ item, match }, index) => {
-        const selected = item.id === e.selected[scope];
-        const enabled = e.items(scope).includes(item.id);
-        const label = e.adding ? tr(`items.${scope}.${item.id}.label`) : e.instanceLabel(scope, item.id, state.language);
+        const selected = item.id === selectedId;
+        const type = types?.get(item.id);
+        const marker = types ? catalogMarker(type) : enabled?.has(item.id) ? 'x' : ' ';
+        const label = types ? tr(`items.${scope}.${item.id}.label`) : e.instanceLabel(scope, item.id, state.language);
+        const suffix = type && type.count > 1 ? ` (${type.count})` : '';
+        const shown = column(clip(label, itemWidth - displayWidth(suffix)) + suffix, itemWidth);
         const description = tr(`items.${scope}.${item.type_id ?? item.id}.description`);
-        const query = e.search[scope];
         const labelMatch = query ? matchText(label, query) : null;
         const hint = !!query && (!labelMatch || labelMatch.rank > match.rank);
-        const shown = column(label, itemWidth);
         const points = [...shown];
         const positions = labelMatch?.positions.filter(position => points[position] === [...label][position]) ?? [];
         const styled = (value: string, marked: readonly number[]) => segments(value, [...marked])
@@ -145,7 +150,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         const detail = hint ? snippet(match) : query ? matchText(description, query) : null;
         const prefix = hint ? tr('catalog.search.match') : '';
         canvas.content(panel, index + 1, [
-            paint((selected ? '› ' : '  ') + (enabled ? '[x]  ' : '[ ]  '), false, selected),
+            paint((selected ? '› ' : '  ') + `[${marker}]  `, false, selected),
             ...styled(shown, positions),
             paint(' ' + prefix, false, selected),
             ...styled(hint ? detail!.text : description, detail?.positions ?? []),
@@ -154,10 +159,15 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     if (!values.length) {
         canvas.content(panel, 1, [paint(tr('ui.drawing.no_matching_items'))]);
     }
+    const range = values.length > size.listHeight ? ` · ${start + 1}–${Math.min(values.length, start + size.listHeight)}/${values.length}` : '';
+    if (types) return tr('composition.catalog_enabled', {
+        enabled: values.filter(({ item }) => types.get(item.id)?.enabled).length, total: values.length,
+    }) + range;
+    if (category !== 'all') return tr('composition.category_counts', e.categoryCounts(scope)) + range;
     return tr('ui.drawing.items_enabled', {
         value0: values.length ? start + 1 : 0,
         value1: Math.min(values.length, start + size.listHeight),
         value2: values.length,
-        value3: e.items(scope).length,
+        value3: enabled!.size,
     });
 }

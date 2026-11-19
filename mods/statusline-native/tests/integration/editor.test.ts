@@ -78,7 +78,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   const count = fixture.calls.length;
   await ui.redraw(PANE.props);
   expect(fixture.calls.length).toBe(count);
-  await keys(ui, {key:'a',ctrl:true}, '/', 'g', 'i', 't', 'return', 'return', 'left');
+  await keys(ui, {key:'a',ctrl:true}, '/', 'g', 'i', 't', 'return', 'return', {key:'g',ctrl:true}, 'left');
   await keys(ui, '2', '/', 's', 't', 'a', 't', 'u', 's', 'return', 'down', ' ');
   await keys(ui, '3', ' ');
   for (const field of ['palette', 'directory-style', 'separator-style', 'scope-labels']) {
@@ -342,7 +342,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
     props: { ...PANE.props, bodyColumns: 72 },
   });
   expect(
-    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Main items/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Configured components/ }),
   ).toBeDefined();
   await keys(ui, {key:'a',ctrl:true}, 'end');
   await ui.redraw({
@@ -352,7 +352,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
   });
   await ui.resize({ columns: 32, rows: 12 });
   expect(
-    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Main items/ }),
+    await ui.find({ in: await clientKey(ui), type: 'Text', text: /╭─ Configured components/ }),
   ).toBeUndefined();
   expect(
     {step:'picker-end',found:!!await ui.find({ in: await clientKey(ui), key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] })},

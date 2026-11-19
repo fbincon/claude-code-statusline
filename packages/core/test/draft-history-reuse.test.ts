@@ -13,6 +13,7 @@ import { draftBindings } from '../src/editor/source-manager.js';
 import { changesView, openChanges, performChanges, changesKey } from '../src/editor/change-review.js';
 import { defaultDisplay, defaultItem } from '../src/config/display.js';
 import { DEFAULT_HOST } from '../src/config/draft.js';
+import { nodes } from '../src/editor/instances.js';
 import { ITEMS } from '../src/config/catalog.js';
 import { text } from '../src/i18n/messages.js';
 import type { ConfigTarget, DescribeResult, Draft, ReadResult, Operation, ResultFor, SourceDefinition } from '../src/contracts/ui.js';
@@ -66,6 +67,108 @@ test('structural proposals retain valid columns, reject stale acceptance and app
   const e=editor(d);assert(e.applyStructure(candidate));assert.deepEqual(e.draft,d);assert(e.changeReview);assert(e.acceptProposal());assert.equal(e.history.undo.length,1);assert(e.undo());assert.deepEqual(e.draft,d);
   e.applyStructure(candidate);const edit=copyDraft(e.draft);edit.display.theme='light';e.commitDraft(edit);assert.equal(e.acceptProposal(),false);assert.equal(e.draft.display.instances.length,4);
   assert.throws(()=>repairStructure(d,{...candidate,display:{...candidate.display,groups:[{id:'bad',member_ids:['missing','a'],primary_id:'a',link_visibility:true,shared_powerline:true}]}}));
+});
+
+test('catalog adds after a group in activation order and restores the configured-list context', () => {
+  const opening = grouped(), e = editor(opening);
+  e.chooseCategory('main', 'model');
+  e.filter('main', 'model');
+  e.openPicker('main');
+  const initial = e.listContext('main');
+  assert.equal(initial.category, 'model');
+  assert.equal(initial.search, 'model');
+  assert.equal(initial.selected, 'model');
+
+  e.chooseCategory('main', 'all');
+  e.filter('main', 'session-duration');
+  e.activatePicker('main', 'D');
+  const duration = e.typeStates('main').get('session-duration')!.firstId;
+  e.filter('main', 'text');
+  e.activatePicker('main', 'D');
+  const literal = e.typeStates('main').get('text')!.firstId;
+  assert.match(duration, /^i-/u);
+  assert.deepEqual(e.order.main, ['a', 'b', duration, literal, 'c', 'd']);
+  assert.deepEqual(e.draft.display.layout.rows, [['a', 'b', duration, literal], ['c', 'd']]);
+  assert.deepEqual(e.draft.display.groups, opening.display.groups);
+  assert.equal(e.listContext('main').selected, 'text');
+  assert.equal(e.listContext('main').search, 'text');
+  assert.equal(e.selected.main, 'a');
+  assert.equal(e.history.undo.length, 2);
+
+  e.closePicker();
+  assert.deepEqual(e.listContext('main'), { category: 'model', search: 'model', selected: 'a' });
+  e.clearListFilters('main');
+  assert.deepEqual(e.listContext('main'), { category: 'all', search: '', selected: 'a' });
+  assert(e.undo());
+  assert.deepEqual(e.order.main, ['a', 'b', duration, 'c', 'd']);
+  assert(e.undo(true));
+  assert.deepEqual(e.order.main, ['a', 'b', duration, literal, 'c', 'd']);
+});
+
+test('catalog reuses the first disabled instance in each scope and records only actual edits', () => {
+  for (const scope of ['main', 'subagent'] as const) {
+    const opening = draft(), instances = nodes(opening, scope);
+    instances.push(
+      { id: 'saved-label', type_id: 'effort', enabled: false, text: null, options: { ...defaultItem(), label: 'Keep this label' } },
+      { id: 'saved-second', type_id: 'effort', enabled: false, text: null, options: defaultItem() },
+    );
+    const e = editor(opening);
+    e.openPicker(scope);
+    e.filter(scope, 'effort');
+    assert.deepEqual(e.typeStates(scope).get('effort'), { count: 2, enabled: false, firstId: 'saved-label' });
+    e.activatePicker(scope, 'D');
+    const expected = copyDraft(opening);
+    nodes(expected, scope).find(item => item.id === 'saved-label')!.enabled = true;
+    assert.deepEqual(e.draft, expected);
+    assert.equal(e.picker?.notice?.key, 'composition.picker_enabled');
+    e.activatePicker(scope, 'D');
+    assert.equal(e.picker?.notice?.key, 'composition.picker_already_enabled');
+    assert.deepEqual(e.draft, expected);
+    assert.equal(e.history.undo.length, 1);
+    e.closePicker();
+    assert.equal(e.selected[scope], 'saved-label');
+  }
+});
+
+test('a catalog spacer refusal or cancelled repair preserves the draft and the insertion anchor', () => {
+  const opening = draft();
+  opening.display.instances = ['a', 'b', 'c', 'd'].map(id =>
+    ({ id, type_id: 'model', enabled: true, text: null, options: defaultItem() }));
+  const auto = editor(opening);
+  auto.openPicker('main');
+  auto.filter('main', 'spacer');
+  auto.activatePicker('main', 'D');
+  assert.equal(auto.picker?.notice?.key, 'composition.invalid');
+  assert.deepEqual(auto.draft, opening);
+  assert.equal(auto.history.undo.length, 0);
+  assert.equal(auto.picker?.anchor, 'a');
+
+  opening.display.layout = {
+    mode: 'explicit', rows: [['a', 'b'], ['c', 'd']],
+    alignments: [{ id: 'table', columns: [[{ kind: 'instance', id: 'b' }, { kind: 'instance', id: 'd' }]] }],
+  };
+  const e = editor(opening);
+  e.openPicker('main');
+  e.filter('main', 'spacer');
+  e.activatePicker('main', 'D');
+  assert.equal(e.changeReview?.kind, 'structure');
+  assert.deepEqual(e.draft, opening);
+  changesKey(e, { key: 'g', ctrl: true }, 'en', 80, 18);
+  assert.equal(e.changeReview, null);
+  assert.equal(e.structureProposal, null);
+  assert.equal(e.history.undo.length, 0);
+  assert.equal(e.picker?.anchor, 'a');
+
+  e.activatePicker('main', 'D');
+  assert(e.acceptProposal());
+  const spacer = e.picker!.anchor;
+  assert.deepEqual(e.draft.display.layout.rows, [['a', spacer, 'b'], ['c', 'd']]);
+  assert.deepEqual(e.draft.display.layout.alignments, []);
+  assert.equal(e.picker?.notice?.key, 'composition.picker_added');
+  e.filter('main', 'text');
+  e.activatePicker('main', 'D');
+  assert.deepEqual(e.order.main, ['a', spacer, e.picker!.anchor, 'b', 'c', 'd']);
+  assert.equal(e.history.undo.length, 2);
 });
 test('style reuse changes only selected compatible visual fields, including inheritance and independent scope',()=>{
   const base=draft(),incoming=copyDraft(base),destination=base.display.instances[0]!,origin=incoming.display.instances[0]!;

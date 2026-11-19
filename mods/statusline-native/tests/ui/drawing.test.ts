@@ -14,6 +14,8 @@ import { editorLayout, editorShortcuts } from '../../ui/client/help.ts';
 import { shortcutRows, shortcutSpans } from '../../ui/components/shortcuts.ts';
 import { description, readResult } from '../fixtures.ts';
 import { createReview } from '../../lib/editor/import-review.ts';
+import type { CatalogItem } from '../../lib/generated-contracts.ts';
+import { SEARCH_CATALOG } from '../generated-search-fixtures.ts';
 
 interface Node { type: string; props: any; children: (Node | string)[] }
 const elements = Object.fromEntries(['Box', 'Text'].map((type) => [type, (props: any) => ({ type, props, children: props.children ?? [] })])) as unknown as ClientElements;
@@ -186,7 +188,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'Ctrl+P', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
+      ? ['Tab', 'Ctrl+P', 'A/D/X', 'Enter/Space', '↑↓', '←→', 'Ctrl+E', '/']
       : page === 'settings' ? ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'R']
       : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
@@ -228,7 +230,7 @@ test('picker details use catalog guidance even for missing or colliding instance
       if (collision) instances[0]!.id = id;
       const before = JSON.stringify(e.draft);
       handleKey(state,{key:'a'},80,24);
-      e.selected[scope] = id;
+      e.selectItem(scope, id);
       handleKey(state,{key:'e',ctrl:true},80,24);
       expect(e.detailItem?.id).toBe(id);
       expect(e.guidanceScroll).toBe(0);
@@ -237,11 +239,88 @@ test('picker details use catalog guidance even for missing or colliding instance
       }
       handleKey(state,{key:'end'},80,24);
       handleKey(state,{key:'g',ctrl:true},80,24);
-      expect(e.adding).toBe(true); expect(e.selected[scope]).toBe(id);
+      expect(e.adding).toBe(true); expect(e.listContext(scope).selected).toBe(id);
       expect(e.detail).toBeNull(); expect(e.history.undo.length).toBe(0);
       expect(JSON.stringify(e.draft)).toBe(before);
       handleKey(state,{key:'g',ctrl:true},80,24);
     }
+  }
+});
+
+test('catalog stays open and renders scoped activation, copy counts and disabled instances', () => {
+  for (const scope of ['main', 'subagent'] as const) {
+    const state = view(), e = state.editor!;
+    e.page = scope === 'main' ? 'main' : 'subagents';
+    const type = scope === 'main' ? 'session-duration' : 'effort';
+    const key = (value: string, ctrl?: true) => handleKey(state, { key: value, ...(ctrl ? {ctrl} : {}) }, 96, 28);
+    const rendered = () => render(draw(elements, state, 96, 28) as unknown as Node).join('\n');
+    const selectedMarker = (marker: string) => expect(rendered()).toContain(`› [${marker}]`);
+    key('a');
+    e.filter(scope, type);
+    selectedMarker(' ');
+    key('return');
+    selectedMarker('x');
+    const original = e.typeStates(scope).get(type)!.firstId;
+    expect(original.startsWith('i-')).toBe(true);
+    expect(e.listContext(scope).selected).toBe(type);
+    key('space');
+    expect(rendered()).toContain('Already enabled · D');
+    expect(e.history.undo.length).toBe(1);
+
+    key('q');
+    expect(e.selected[scope]).toBe(original);
+    key('d');
+    const copy = e.selected[scope];
+    key('a');
+    expect(rendered().split('\n').some(line => line.includes('› [x]') && line.includes('(2)'))).toBe(true);
+    key('g', true);
+    e.selectItem(scope, original);
+    key('x');
+    key('a');
+    selectedMarker('x');
+    key('g', true);
+    e.selectItem(scope, copy);
+    key('return');
+    key('a');
+    selectedMarker('–');
+    key('space');
+    selectedMarker('x');
+    expect(e.typeStates(scope).get(type)).toEqual({ count: 1, enabled: true, firstId: copy });
+
+    e.filter(scope, 'text');
+    key('return');
+    selectedMarker('x');
+  }
+});
+
+test('filtered views retain their controls, selected row and real preview at the minimum size', () => {
+  for (const language of LANGUAGES) {
+    const state = view();
+    const e = state.editor = new Editor({ ...description(), catalog: SEARCH_CATALOG as CatalogItem[] }, readResult());
+    state.language = language;
+    state.preview = { sample: true, main: [[{text: 'visible sample', bold: false, foreground: null, background: null}]], subagents: [] };
+    e.chooseCategory('main', 'model');
+    e.filter('main', 'model-with-effort');
+    const key = (value: string, ctrl?: true) => handleKey(state, { key: value, ...(ctrl ? {ctrl} : {}) }, 32, 12);
+    const output = () => render(draw(elements, state, 32, 12) as unknown as Node).join('\n');
+    expect(output()).toContain('Ctrl+G');
+    key('a');
+    expect(e.listContext('main').category).toBe('model');
+    expect(e.listContext('main').search).toBe('model-with-effort');
+    key('u', true);
+    key('down');
+    const type = e.listContext('main').selected;
+    key('return');
+    expect(e.listContext('main').selected).toBe(type);
+    expect(output()).toContain('› [x]');
+    expect(output()).toContain('Enter/Space');
+    expect(output()).toContain('visible sample');
+    key('g', true);
+    expect(e.search.main).toBe('model-with-effort');
+    expect(e.category.main).toBe('model');
+    key('g', true);
+    expect(e.search.main).toBe('');
+    expect(e.category.main).toBe('all');
   }
 });
 

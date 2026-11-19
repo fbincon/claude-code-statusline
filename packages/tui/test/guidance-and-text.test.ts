@@ -12,7 +12,7 @@ test('every picker type opens read-only guidance without requiring an instance',
         const before = JSON.stringify(e.draft), preview = state.preview;
         state.key({ key: 'a', ctrl: true });
         for (const item of e.catalog(scope)) {
-            e.selected[scope] = item.id;
+            e.selectItem(scope, item.id);
             state.key({ key: 'e', ctrl: true });
             assert.doesNotThrow(() => frame(state, 80, 24), `${scope}/${item.id}`);
             assert.deepEqual(state.rows().map(row => row.key), ['item-guidance']);
@@ -39,7 +39,7 @@ test('picker guidance resolves catalog identity even when another instance uses 
             other.id = target;
             const before = JSON.stringify(e.draft);
             state.key({ key: 'a', ctrl: true });
-            e.selected[scope] = target;
+            e.selectItem(scope, target);
             state.key({ key: 'e', ctrl: true });
             for (const [columns, rows] of [[32, 12], [64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]] as const) {
                 const output = plain(state, columns, rows);
@@ -61,8 +61,9 @@ test('new text instances edit their body first and preserve raw Unicode', () => 
         const state = fixture(), e = state.editor;
         e.page = scope === 'main' ? 'main' : 'subagents';
         state.key({ key: 'a', ctrl: true });
-        e.selected[scope] = 'text';
+        e.selectItem(scope, 'text');
         state.key({ key: 'return' });
+        state.key({ key: 'g', ctrl: true });
         const id = e.selected[scope];
         state.key({ key: 'e', ctrl: true });
         assert.equal(e.setting, 'item:text');

@@ -3,7 +3,7 @@ import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
-import { t } from '@fbincon/statusline-core/i18n/messages';
+import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
 import { dimensions } from './layout.js';
 import { paint, heading } from './theme.js';
@@ -54,8 +54,10 @@ export function frame(state: State, columns: number, rows: number): Frame {
 
     state.ensureVisible(size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
-    const description = e.detail
-        ? tr('ui.drawing.edit_item_format') + state.detailLabel
+    const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
+    const description = pickerNotice ? renderMessage(pickerNotice, state.language)
+        : e.detail ? tr('ui.drawing.edit_item_format') + state.detailLabel
+        : e.adding ? ''
         : tr('ui.drawing.' + (e.page === 'layout' ? 'set_explicit_rows_priorities_and_widths'
             : e.page === 'main' ? 'choose_main_status_line_items_and_their'
                 : e.page === 'subagents' ? 'choose_subagent_row_items_and_their_order'

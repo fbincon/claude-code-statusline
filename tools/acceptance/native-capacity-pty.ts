@@ -1,6 +1,6 @@
 import { taskInputJourney } from './task-input-pty.js';
 import { taskFixture } from './task-fixture.js';
-/** Installed, real Claude PTYs for #154/#155; no model calls; one explicitly reviewed controlled-command journey. */
+/** Installed, real Claude PTYs for capacity and editor workflows. All inputs are local. */
 import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -19,8 +19,11 @@ import { Capture } from '../migration/ts-04/capture.js';
 import type { Draft } from '@fbincon/statusline-core/contracts/ui';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 
-const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE]');
+const { values } = parseArgs({ options: {
+    artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
+    claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' },
+} });
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker]');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
 assert.deepEqual(artifact.source.source_hashes, sourceHashes(), 'PTY collector differs from the candidate source');
@@ -72,7 +75,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         fs.writeFileSync(refresh,`import{install,installContext}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-cli/dist/src/integration/install.js')).href)};import{PluginHost}from ${JSON.stringify(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/plugin-host.js')).href)};const directory=process.argv[2];const context=installContext(directory,{executable:process.execPath,args:[${JSON.stringify(shim)}]},${JSON.stringify(version)},undefined,()=>new PluginHost(directory,${JSON.stringify(host)}));const result=install(context,{native:true,external:true,nativeTiming:true,liveMetrics:false});if(result.failed)throw new Error(JSON.stringify(result.messages));`);
         command(installed.node,[refresh,config],{...env,CLAUDE_CONFIG_DIR:config});
     }
-    const before = fs.readFileSync(join(config, 'claude-statusline.json'));
+    const displayPath = join(config, 'claude-statusline.json');
+    const before = fs.readFileSync(displayPath), beforeMode = fs.statSync(displayPath).mode;
+    const pickerSave = action === 'picker-save';
+    const pickerDiscard = action === 'picker-discard';
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
     const nativeTask = action === 'native-task';
@@ -121,7 +127,81 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         if (!nativeTask) capture('before');
-        if(action==='draft-history') {
+        if (pickerSave || pickerDiscard) {
+            const marker = (text: string, value: string) =>
+                text.split('\n').some(line => /›\s+\[/u.test(line) && line.includes('[' + value + ']'));
+            const query = async (id: string) => {
+                await key('/', 'open search');
+                await key('\x15', 'clear search');
+                await key(id, 'type ' + id);
+                await key('\r', 'accept search');
+            };
+            for (const scope of ['main', 'subagent'] as const) {
+                if (scope === 'subagent') await key(external ? '\t' : '2', 'switch to subagents');
+                const catalog = matrix.description.catalog.filter(item => item.scope === scope);
+                const categories = ['all', ...new Set(catalog.map(item => item.group))];
+                await key('\x06', 'choose a category');
+                await until(text => text.includes('› All categories'), 'category choices visible');
+                await key('\x1b[H', 'first category');
+                for (let i = 0; i < categories.indexOf('model'); i++) await key('\x1b[B', 'next category');
+                await key('\r', 'confirm Model category');
+                const totals = t('composition.category_counts', 'en', {
+                    configured: 1, unconfigured: catalog.filter(item => item.group === 'model').length - 1,
+                });
+                await until(text => text.includes(totals), 'configured and unconfigured counts visible');
+                await query('model-with-effort');
+                await key(' ', 'disable the configured model instance');
+                await key(external ? '\x01' : 'a', 'open component catalog');
+                await until(text => text.includes('Component catalog') && text.includes('model-with-effort') && marker(text, '–'), 'inherited search and disabled type');
+                await key('\r', 'enable the existing instance');
+                await until(text => text.includes('Enabled in draft') && marker(text, 'x'), 'enabled instance reused');
+                await key('\x15', 'clear the catalog search');
+                const modelTypes = catalog.filter(item => item.group === 'model');
+                for (const id of ['effort', 'model']) {
+                    await key('\x1b[H', 'first catalog type');
+                    const index = modelTypes.findIndex(item => item.id === id);
+                    assert.ok(index >= 0, id + ' is missing from the model category');
+                    for (let i = 0; i < index; i++) await key('\x1b[B', 'next catalog type');
+                    await until(text => marker(text, ' '), 'unconfigured ' + id);
+                    await key(id === 'effort' ? '\r' : ' ', 'add ' + id + ' to draft');
+                    await until(text => text.includes('Component catalog') && text.includes('Added to draft') && marker(text, 'x'), 'selected type updated in place');
+                }
+                await key('\r', 'activate the enabled type again');
+                await until(text => text.includes('Already enabled') && marker(text, 'x'), 'duplicate prevented');
+                await key('\x07', 'return to the configured list');
+                await until(text => text.includes('Configured components') && text.includes('model-with-effort') && !text.includes('Component catalog'), 'configured filters restored');
+                await key('\x07', 'clear the configured list filters');
+                await until(text => text.includes('All categories') && !text.includes('Filter: model-with-effort'), 'all configured instances visible');
+            }
+            assert.deepEqual(fs.readFileSync(displayPath), before);
+            assert.equal(fs.statSync(displayPath).mode, beforeMode);
+            assert(!records().some(row => row.operation === 'apply'), 'Activating catalog rows saved the draft');
+            await until(text => text.includes('Preview'), 'sample preview visible before save');
+            capture('after');
+            if (pickerSave) {
+                if (external) {
+                    await key('\r', 'save with configured-list Enter');
+                    await p.exited();
+                } else {
+                    await key('s', 'save with Native S');
+                    await until(text => completed('apply') && /saved/iu.test(text), 'saved draft visible');
+                }
+                const saved = JSON.parse(fs.readFileSync(displayPath, 'utf8')) as Draft['display'];
+                for (const scope of ['main', 'subagent'] as const) {
+                    const instances = scope === 'main' ? saved.instances : saved.subagents.instances;
+                    const anchor = instances.findIndex(item => item.id === 'model-with-effort');
+                    assert.ok(anchor >= 0);
+                    assert.deepEqual(instances.slice(anchor, anchor + 3).map(item => item.type_id), ['model-with-effort', 'effort', 'model']);
+                    const listing = JSON.parse(command(installed.node, [shim, 'config', '--config-dir', config,
+                        ...(scope === 'subagent' ? ['subagents'] : []), 'list-items', '--json'], environment));
+                    for (const id of ['model-with-effort', 'effort', 'model']) {
+                        const row = listing.find((item: { id: string }) => item.id === id);
+                        assert.equal(row?.enabled, true);
+                        assert.equal(row?.instance_ids.length, 1);
+                    }
+                }
+            }
+        } else if(action==='draft-history') {
             await key(external?'\x04':'d','one logical copy');await until(text=>text.includes('Configure Status Line *'),'copy retained');
             await key(external?'\x1a':'\x1f',external?'undo copy (Ctrl+Z)':'undo copy (Ctrl+_)');await until(text=>text.includes('Configure Status Line')&&!text.includes('Configure Status Line *'),'undo restored baseline');
             await key('\x12','redo copy');await until(text=>text.includes('Configure Status Line *'),'redo restored draft');
@@ -247,15 +327,18 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(text => text.includes('Configure Status Line *') && text.includes('Preview'), 'draft retained after safe resize'); capture('resized');
         } else { await key('2', 'subagent page'); await key('1', 'main page'); capture('after'); }
         if (external) {
-            p.send('\x1b');
-            if (['version-status', 'package-cleanup', 'external-task'].includes(action)) {
+            if (!pickerSave) p.send('\x1b');
+            if (pickerDiscard || ['version-status', 'package-cleanup', 'external-task'].includes(action)) {
                 await until(text => text.includes(t('ui.exit.unsaved','en')) && text.includes('› ' + t('ui.exit.keep','en')), 'keep dirty draft selected');
                 await key('\x1b[B\r', 'confirm discard');
             }
             await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before);
         }
         else if (!nativeTask) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
-        if (action !== 'save') assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), before, 'Cancelled journey changed display configuration');
+        if (action !== 'save' && !pickerSave) {
+            assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
+            if (pickerDiscard) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
+        }
         assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
         status = 'pass';
     } catch (failure) { error = String(failure); capture('failure'); }
@@ -271,11 +354,17 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
+const expectedJourneys = values['component-picker'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
     fs.copyFileSync(fileURLToPath(new URL('../migration/ts-04/test/installed-driver.js', import.meta.url)), driver);
     command(installed.node, [driver, installed.modules, 'prepare-host', template, join(installed.temporary, 'prepared.json'), request], { ...env, CLAUDE_CONFIG_DIR: template });
+    if (values['component-picker']) {
+        for (const external of [false, true]) for (const action of ['picker-save', 'picker-discard']) {
+            await runCase((external ? 'external-' : 'native-') + action, 'plain-main-w72', action, external);
+        }
+    } else {
     for (const [name, fixture, action] of [
         ['quick-opening','plain-main-w72','quick'], ['import-identical','plain-main-w72','import'],
         ['profiles-two','profiles-list-2','profiles'], ['profiles-select-one','profiles-list-1','profile-actions'],
@@ -291,10 +380,12 @@ try {
     for(const external of [false,true])for(const [name,fixture,action]of [['source-summary','sources-list-30','source-inspect'],['source-bindings','sources-list-30','source-bindings'],['package-cleanup','plain-main-w72','package-cleanup']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
     for(const external of [false,true])for(const [name,fixture,action]of [['draft-history','plain-main-w72','draft-history'],['style-reuse','plain-main-w72','style-reuse'],['group-reuse','draft-reuse-groups-review-w196','group-reuse'],['alignment-repair','draft-reuse-groups-review-w196','alignment-repair']])await runCase((external?'external-':'native-')+name!,fixture!,action!,external);
     await runCase('native-live-command','plain-main-w72','live-command');
-    assert.equal(reports.length, 43); assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
+    }
+    assert.equal(reports.length, expectedJourneys);
+    assert(reports.every(report => report.status === 'pass'), 'Native or external PTY journey failed');
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
-    record(join(output, 'report.json'), { status: reports.length === 43 && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
+    record(join(output, 'report.json'), { status: reports.length === expectedJourneys && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
         platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

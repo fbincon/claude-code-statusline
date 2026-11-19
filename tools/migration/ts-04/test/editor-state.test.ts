@@ -9,12 +9,12 @@ test('tests.ui.test_interactive_config.ItemStateTests.test_initial_order_keeps_e
 });
 test('tests.ui.test_interactive_config.ItemStateTests.test_new_main_items_are_discoverable_and_toggleable', async (t) => {
     const f = await fixture(t);
+    f.keys({ key: 'a', ctrl: true });
     for (const id of ['project-name', 'hostname', 'context-used']) {
-        f.keys({ key: 'a', ctrl: true });
         assert.ok(f.e.visible('main').some(i => i.id === id));
-        f.e.selected.main = id;
+        f.e.selectItem('main', id);
         f.keys('return');
-        assert.equal(f.e.adding, false);
+        assert.equal(f.e.adding, true);
         assert.ok(f.e.draft.display.instances.some(i => i.type_id === id && i.enabled));
     }
     assert.equal(f.calls.filter(c => c.operation === 'apply').length, 0);
@@ -269,6 +269,7 @@ test('tests.ui.test_instance_editor.InstanceEditorTests.test_literal_instance_ca
 });
 test('tests.ui.test_instance_editor.InstanceEditorTests.test_add_picker_guidance_cancel_and_accept_preserve_drafts', async (t) => {
     const f = await fixture(t);
+    f.e.chooseCategory('main', 'model');
     f.state.search('model');
     const before = structuredClone(f.e.draft), selected = f.e.selected.main;
     f.keys({ key: 'a', ctrl: true }, { key: 'e', ctrl: true });
@@ -278,10 +279,15 @@ test('tests.ui.test_instance_editor.InstanceEditorTests.test_add_picker_guidance
     assert.equal(f.e.search.main, 'model');
     assert.equal(f.e.selected.main, selected);
     f.keys({ key: 'a', ctrl: true });
+    f.e.chooseCategory('main', 'layout');
     f.state.search('text');
     f.keys('return');
-    assert.equal(f.e.adding, false);
-    assert.equal(f.e.instance('main', f.e.selected.main)!.type_id, 'text');
+    assert.equal(f.e.adding, true);
+    assert.equal(f.e.listContext('main').selected, 'text');
+    assert.equal(f.e.typeStates('main').get('text')?.enabled, true);
+    f.keys({ key: 'g', ctrl: true });
+    assert.equal(f.e.search.main, 'model');
+    assert.equal(f.e.selected.main, selected);
 });
 test('tests.ui.test_instance_editor.InstanceEditorTests.test_rejected_spacer_move_keeps_order_and_positions', async (t) => {
     const f = await fixture(t);

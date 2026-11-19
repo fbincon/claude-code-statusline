@@ -169,7 +169,7 @@ test('footers follow actual category, numeric, filtered and add actions', () => 
     assert.ok(!plain(state).at(-1)!.includes('Ctrl+U'));
     state.key({ key: 'escape' });
     state.key({ key: 'a', ctrl: true });
-    assert.ok(plain(state).at(-2)!.includes(t('composition.add', 'zh-CN')));
+    assert.ok(plain(state).at(-2)!.includes('Enter/Space ' + t('ui.hints.add_enable', 'zh-CN')));
     state.key({ key: 'escape' });
     state.editor.page = 'settings';
     state.editor.setting = 'padding';

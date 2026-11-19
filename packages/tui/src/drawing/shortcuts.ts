@@ -84,8 +84,8 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     }
     if (e.adding) {
         return {
-            actions: [['Enter', t('composition.add', state.language)], hint('Ctrl+G/Esc', 'back')],
-            help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category')],
+            actions: [hint('Enter/Space', 'add_enable'), hint('Ctrl+G/Esc', 'back')],
+            help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category'), hint('Ctrl+U', 'clear'), hint('Ctrl+E', 'details')],
         };
     }
     const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
@@ -103,7 +103,10 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     }
     const help = [hint('Ctrl+A/D/X', 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
         hint('Space', 'toggle'), hint('Ctrl+E', 'format'), hint('↑↓', 'select')];
-    if (!e.filtered(state.scope)) help.push(hint('←→', 'order'));
+    if (e.filtered(state.scope)) {
+        help.unshift(hint('Ctrl+G', 'clear_filters'));
+        if (e.category[state.scope] !== 'all') help.unshift(hint('Ctrl+A', 'catalog'));
+    } else help.push(hint('←→', 'order'));
     return { actions, help };
 }
 
@@ -126,6 +129,7 @@ export function notice(state: State, width: number): Paint[] {
         const prefix = tr('ui.drawing.use_arrows_to_change_values');
         return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
     }
-    return [paint('Ctrl+F', true), paint(' ' + tr('catalog.categories.' + e.category[state.scope]) + ' · '),
-        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + e.search[state.scope])];
+    const { category, search } = e.listContext(state.scope);
+    return [paint('Ctrl+F', true), paint(' ' + tr('catalog.categories.' + category) + ' · '),
+        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + search)];
 }

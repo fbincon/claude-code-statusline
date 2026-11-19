@@ -1,5 +1,5 @@
 /** A structural edit is staged with reference repairs; persisted validation stays strict. */
-import type { AlignmentDraft, Draft, ImportChange } from '../contracts/ui.js';
+import type { AlignmentDraft, Draft, ImportChange, Scope } from '../contracts/ui.js';
 import { alignmentUnits, refKey, validAlignments } from './alignments.js';
 import { isDraft } from './backend.js';
 import { clone, semantic } from './history.js';
@@ -8,6 +8,7 @@ import { differences } from './import-differences.js';
 export interface AlignmentRepair { id: string; before: AlignmentDraft; after: AlignmentDraft | null }
 export interface StructureProposal {
   generation: number; target: string; base: Draft; draft: Draft; repairs: AlignmentRepair[]; changes: ImportChange[];
+  pickerAddition?: { scope: Scope; id: string };
 }
 export function repairStructure(base: Draft, proposed: Draft): Omit<StructureProposal, 'generation' | 'target'> {
   const draft = clone(proposed), d = draft.display, originals = d.layout.alignments ?? [];

@@ -26,6 +26,7 @@ import { t, renderMessage } from '../../lib/i18n/index.ts';
 import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
 import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
 import { itemSpans } from '../components/catalog.ts';
+import { catalogMarker } from '../../lib/editor/instances.ts';
 import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
@@ -49,15 +50,17 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const inputDisplay = (width: number) => {
     const input = view.input;
     if (!input || input.kind === 'category') return '';
-    const value = input.kind === 'search' ? e.search[input.scope] : input.kind === 'numeric' ? e.buffers[input.field] : input.buffer;
+    const value = input.kind === 'search' ? e.listContext(input.scope).search : input.kind === 'numeric' ? e.buffers[input.field] : input.buffer;
     const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
     return inputView(edit, width);
   };
   const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-  const notice = e.review ? tr(e.review.base ? 'review.selection.help' : 'review.intro') :
+  const pickerNotice = !view.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
+  let notice = e.review ? tr(e.review.base ? 'review.selection.help' : 'review.intro') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
-    viewMessage(view, 'busy') || viewMessage(view, 'error') || viewMessage(view, 'message') ||
+    viewMessage(view, 'busy') || viewMessage(view, 'error') ||
+    (pickerNotice ? renderMessage(pickerNotice, view.language) : '') || viewMessage(view, 'message') ||
     (e.advanced
       ? viewMessage(view, 'preferencesError') ||
         (selectedPreference?.result ? preferenceLabel(selectedPreference, view.language) + ': ' + preferenceResult(selectedPreference, view.language) : '') ||
@@ -152,25 +155,41 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.fields", {value0: settings.length ? window.start + 1 : 0, end: window.end, length: settings.length, page: window.page, pages: window.pages}), styles.muted));
   } else {
     const scope = e.page === 'main' ? 'main' : 'subagent';
+    const { category, search, selected } = e.listContext(scope);
     const matches = e.matches(scope), visible = matches.map(result => result.item);
-    const current = visible.find((item) => item.id === e.selected[scope]);
-    title = e.adding ? tr('composition.picker') : scope === 'main' ? tr("native.ui.client.draw.main_items") : tr("native.ui.client.draw.subagent_items_custom_rows") + tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off'));
+    const current = visible.find(item => item.id === selected);
+    const types = e.adding ? e.typeStates(scope) : null;
+    const enabled = types ? null : new Set(e.items(scope));
+    title = types ? tr('composition.picker') : scope === 'main' ? tr('composition.configured_title')
+      : tr('composition.configured_subagents', { state: tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off')) });
     content.push(shortcuts(ui, [
-      {key: 'Ctrl+F', label: tr('catalog.categories.' + e.category[scope]), short: e.category[scope] === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + e.category[scope]), 8)},
+      {key: 'Ctrl+F', label: tr('catalog.categories.' + category), short: category === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + category), 8)},
       {key: '/', label: tr('native.ui.client.draw.search')},
-    ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + e.search[scope] + '  '));
+    ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + search + '  '));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
-    const window = pageWindow(visible.map((item) => item.id), e.selected[scope], layout.itemCapacity);
-    for (const {item, match} of matches.slice(window.start, window.end))
+    const window = pageWindow(visible.map(item => item.id), selected, layout.itemCapacity);
+    for (const {item, match} of matches.slice(window.start, window.end)) {
+      const type = types?.get(item.id);
+      const marker = types ? catalogMarker(type) : enabled?.has(item.id) ? 'x' : ' ';
+      const active = selected === item.id;
       content.push(ui.Box({
         key: 'item-' + scope + ':' + item.id, flexShrink: 0,
-        children: [spanLine(ui, itemSpans(item, match, e.search[scope], view.language ?? 'en', inner, e.selected[scope] === item.id, e.items(scope).includes(item.id)), inner, rowStyle(e.selected[scope] === item.id))],
+        children: [spanLine(ui, itemSpans(item, match, search, view.language ?? 'en', inner, active, marker, type?.count), inner, rowStyle(active))],
       }));
+    }
     if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
     const gap = layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary) - content.length;
     if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
-    if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
+    const filteredSummary = types ? tr('composition.catalog_enabled', {
+      enabled: visible.filter(item => types.get(item.id)?.enabled).length, total: visible.length,
+    }) : category !== 'all' ? tr('composition.category_counts', e.categoryCounts(scope)) : '';
+    if (layout.showSummary) {
+      const pages = window.pages > 1 ? ` · ${window.page}/${window.pages}` : '';
+      content.push(line(filteredSummary ? filteredSummary + pages : tr('native.ui.client.draw.enabled', {
+        page: window.page, pages: window.pages, length: enabled?.size ?? 0,
+      }), styles.muted));
+    } else if (!notice) notice = filteredSummary;
   }
   if (capacityNotice) title = capacityNotice + ' · ' + title;
   const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
