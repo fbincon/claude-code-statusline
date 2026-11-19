@@ -52,9 +52,26 @@ function subagentCatalogChange(item: CatalogItem): CatalogItem {
   if (item.scope !== 'subagent') return item;
   if (['status-elapsed', 'status', 'elapsed'].includes(item.id)) return { ...item, excludes: [] };
   if (item.id === 'name') return { ...item, description: 'Agent name, agent type or task type', sources: ['tasks.name', 'tasks.agentType', 'tasks.type'] };
-  if (item.id === 'model-with-effort') return { ...item, description: 'Agent model with configured effort or optional session effort' };
+  if (item.id === 'model-with-effort') return { ...item, description: 'Agent model with configured effort or recent session effort' };
+  if (item.id === 'effort') return { ...item, description: 'Configured agent effort or numeric budget, with recent session effort as fallback',
+    guidance: { ...item.guidance, requirements: ['subagent_rows', 'observed_field', 'agent_effort_optional'] } };
   return item;
 }
+
+// The completed preview task uses the session model and can show inherited effort.
+const agentModelStyle = (text: string) => `\x1b[1;38;2;246;226;183m${text}\x1b[0m`;
+const subagentPreviewChanges: Record<string, [unknown, unknown]> = {
+  'preview-subagent-model-with-effort/value/1': [agentModelStyle('haiku-4-5'), agentModelStyle('opus/~high')],
+  'preview-subagent-model/value/1': [agentModelStyle('haiku-4-5'), agentModelStyle('opus')],
+  'preview-subagent-effort/value': [[agentModelStyle('high')], [agentModelStyle('high'), agentModelStyle('~high')]],
+  'ui-preview/value/response/result/subagents/1/4/text': ['haiku-4-5', 'opus/~high'],
+};
+
+function subagentPreviewDifference(id: string, path: string, before: unknown, after: unknown): boolean {
+  const change = subagentPreviewChanges[id + path];
+  return change !== undefined && canonical(before) === canonical(change[0]) && canonical(after) === canonical(change[1]);
+}
+
 const UI_CASES = new Set(['ui-read', 'ui-describe', 'ui-preview', 'ui-read-ui-preferences', 'ui-invalid', 'ui-duplicate', 'ui-nonfinite', 'ui-wrong-version', 'ui-unknown-operation', 'ui-null-draft', 'ui-zero-width']);
 /** v3.1.0's explicit protocol/registry changes, bounded to known frozen fields. */
 export function regionalLanguageDifference(id: string, path: string, before: unknown, after: unknown): boolean {
@@ -87,6 +104,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (runtimeProtocolDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (lifecycleReplayDifference(id, path, a, b)) return;
+    if (subagentPreviewDifference(id, path, a, b)) return;
     if(id==='ui-describe'&&['/value/response/result/editor_fields/global/0/choices','/value/response/result/options/theme/choices'].includes(path)&&canonical(a)===canonical(['classic','dark','light','terminal'])&&canonical(b)===canonical(THEME_VALUES))return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];

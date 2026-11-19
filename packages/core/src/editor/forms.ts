@@ -1,6 +1,6 @@
 import { GRADIENT_KEYS, GRADIENT_DEFAULTS, GRADIENT_PRESETS, parseGradient, gradientName } from './gradients.js';
 import { COST_RATE_DEFAULTS } from './cost-rate.js';
-import { EFFORT_FALLBACK_DEFAULT } from './effort-fallback.js';
+import { effortFallback } from './effort-fallback.js';
 import { INDICATOR_DEFAULTS } from './indicators.js';
 import { nodes } from './instances.js';
 import { text as localizedText, type Language, type LocalizedText } from '../i18n/messages.js';
@@ -67,7 +67,7 @@ export function formRows(view: FormView): FormRow[] {
     if (e.detail) {
         const node = e.instance(e.detail.scope, e.detail.id)!;
         const options = node.options;
-        return itemFields(e.description.editor_fields.item!, e.detail.scope, node.type_id, e.definition(e.detail.scope,node.id)?.capabilities).map((spec) => row(spec, 'item:' + spec.key, spec.key === 'text' ? node.text : spec.key === 'link' ? options.link ?? 'off' : spec.key === 'effort_fallback' ? options.effort_fallback ?? EFFORT_FALLBACK_DEFAULT : spec.key in e.description.formatting_options ? options.formatting[spec.key] ?? 'inherit' :
+        return itemFields(e.description.editor_fields.item!, e.detail.scope, node.type_id, e.definition(e.detail.scope,node.id)?.capabilities).map((spec) => row(spec, 'item:' + spec.key, spec.key === 'text' ? node.text : spec.key === 'link' ? options.link ?? 'off' : spec.key === 'effort_fallback' ? effortFallback(options) : spec.key in e.description.formatting_options ? options.formatting[spec.key] ?? 'inherit' :
             options[spec.key as keyof typeof options] ?? INDICATOR_DEFAULTS[spec.key as keyof typeof INDICATOR_DEFAULTS] ?? COST_RATE_DEFAULTS[spec.key as keyof typeof COST_RATE_DEFAULTS] ?? GRADIENT_DEFAULTS[spec.key as keyof typeof GRADIENT_DEFAULTS] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
             .sort((a, b) => ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(a.group) - ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(b.group));
     }
@@ -149,8 +149,6 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
             else
                 option.formatting[spec.key] = String(value);
         }
-        else if (spec.key === 'effort_fallback' && value === EFFORT_FALLBACK_DEFAULT)
-            delete option.effort_fallback;
         else
             (option as unknown as Record<string, unknown>)[spec.key] = value;
     }

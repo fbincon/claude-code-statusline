@@ -24,7 +24,7 @@ test('native editor saves and reopens independent timer components and session e
   const fixture = setup(on);
   fixture.store.draft.display.subagents.instances = [
     component('status-elapsed'), { ...component('status'), enabled: false },
-    { ...component('elapsed'), enabled: false }, component('model-with-effort'),
+    { ...component('elapsed'), enabled: false }, component('model-with-effort'), component('effort'),
   ];
   await $.session.start(START);
   await $.command.run(RUN);
@@ -33,20 +33,30 @@ test('native editor saves and reopens independent timer components and session e
   await keys(ui, '2', 'home', 'down', ' ', 'down', ' ', 'down', { key: 'e', ctrl: true });
   await selectSetting(ui, 'item:effort_fallback');
   expect(await visibleText(ui)).toContain('Session effort fallback');
-  await keys(ui, 'right');
   expect(await visibleText(ui)).toContain('Use session effort');
+  await keys(ui, 'right', { key: 'g', ctrl: true }, 'end', { key: 'e', ctrl: true });
+  await selectSetting(ui, 'item:effort_fallback');
+  expect(await visibleText(ui)).toContain('Use session effort');
+  await keys(ui, 'right');
   expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
   await keys(ui, 's');
   expect(fixture.store.draft.display.subagents.instances.filter(instance => instance.enabled).map(instance => instance.type_id))
-    .toEqual(['status-elapsed', 'status', 'elapsed', 'model-with-effort']);
-  expect(fixture.store.draft.display.subagents.instances[3]!.options.effort_fallback).toBe('session');
+    .toEqual(['status-elapsed', 'status', 'elapsed', 'model-with-effort', 'effort']);
+  expect(fixture.store.draft.display.subagents.instances.slice(3).map(instance => instance.options.effort_fallback)).toEqual(['off', 'off']);
   await keys(ui, { key: 'g', ctrl: true }, 'q');
   await ui.unmount();
   await $.command.run(RUN);
   const reopened = await $.ui.mount(pane);
   await keys(reopened, '2', 'end', { key: 'e', ctrl: true });
   await selectSetting(reopened, 'item:effort_fallback');
+  expect(await visibleText(reopened)).not.toContain('Use session effort');
+  await keys(reopened, 'right');
   expect(await visibleText(reopened)).toContain('Use session effort');
+  await keys(reopened, { key: 'g', ctrl: true }, 'up', { key: 'e', ctrl: true });
+  await selectSetting(reopened, 'item:effort_fallback');
+  expect(await visibleText(reopened)).not.toContain('Use session effort');
+  await keys(reopened, 'right', 's');
+  expect(fixture.store.draft.display.subagents.instances.slice(3).map(instance => instance.options.effort_fallback)).toEqual(['session', 'session']);
   await reopened.unmount();
 });
 test('native Layout alignment form renders through the Client and persists only after Save', {timeoutMs: 20000}, async ($, on) => {

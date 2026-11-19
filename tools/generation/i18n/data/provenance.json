@@ -60368,6 +60368,426 @@
       },
       "review": "Reviewed the GitHub PR head branch field, follow mode, mismatch guidance, error descriptions and statusline wording in context. Checked that branch names remain literal placeholders and that the wording distinguishes detached and unavailable HEAD.",
       "validated_inputs_sha256": "60682b3a18aaed214ebb0099b1f4924484345a533fb643a88cb14ceb0ca75262"
+    },
+    "9f4e5ed67325bf086af911e5cccb95e1f23dde2552d3b49fb23c7c129d0025d2": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "en": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "bc960d475dfd28e10f34128067768638d5bb76c2d668fe45a341d2772ecf9b6d"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "20a0810980d80775438ca17c582ff27ac05f308ff0f67b7d2996d2d61bb504d6"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "28334b59adeee1876f263bae150819cd167562597ce11f05904fd1ba4ab9e908"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "be8c7f93c13b87b1a44eb69bc4a7d680e6fd12b9d325db9ab951134dd23e7ec2"
+    },
+    "930f8bfd6227e0fa3d6d18d146b11b02d3246d74838e2278624d66befd61fb8a": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "zh-CN": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "a7360e37ef2777e931341c27d6ba8cec51220126264981d04a9b0ed5c92bfbbd"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "feab3547f41f96995c3dd1fb768eb0cec522332b3ab60a8407c8f8baee345542"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "ceada332225c521bcaa51a794591eb7cd37ff04aaa9053b3f7de807fb64371b5"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "afeb4d5527b4d3fd81b51d3e3b3cd612e8047a233719a2d4c7cda69f290ad95b"
+    },
+    "2b23c1f50e982ac82d524a6448359a4584c4dd0cd25346998fd1f82961cee9e4": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "zh-TW": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "b5445c0f3d896619d8b297c131164061a05c854437f0319c7ce9e91f07b4a41d"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "460e40eb4ef2b856d9d355bcf0845bb0a852c8f29b35a2e1dc14272a7970237c"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "4430469c16a20848acd802b988f61a5e125edad530f8527a913f9b463021aed8"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "3b77bf1215cba6630f2252d5de54284d6fd34bc2c7a27bb34fc5f8425ee39f49"
+    },
+    "da09e3b7f2889145ae0ab7c3d3f83cf1080260b78af7ac8bef5a628f6fdec3f6": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "zh-HK": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "82756e303b1f4ec177548c478da214265752b41e5224208a273e1819ecf96985"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "460e40eb4ef2b856d9d355bcf0845bb0a852c8f29b35a2e1dc14272a7970237c"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "a6aa5a21f3627ea3762c194cf6a2848bbad5b027f93197e89472171354163b8e"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "5fb69315846edcb412c4afcbf557dde9b758652b5000080354ea5c782caffad2"
+    },
+    "a4e7cc27da2f33565937efed093a7596b2837f873e5dc7457bc99b91c08d1b12": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "ja": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "665b7aae10de897248f6207ff901958a6667924130a364a90b4211fdd29f75a5"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "d3adeb6b6fdc19534247bfabf55275326dc8c10559cce7cc9b61cf796ad081fe"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "b49f16d3ee8df3dd2306177aa380d946aeb041414e8abbe300a0157e11ede1a4"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "70b9b7e171cbf3598fbca78e93b9d416042035be47f925eab520286023cd6522"
+    },
+    "ad0c696f5b194adeded3adde9f599059c0d9a4e528254bd8306815089c31b892": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "ko": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "9d52720bf89401fecc6f9d409b8337997a7ffd3468485e6b50016e94b5630a3c"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "aa7aa35bae9bae39a13bf028731ba0980f7ba61e77d11306ef8b4f564866c29d"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "1751e9296d4b4828df8cf99288f768bc9cfa29274999e493953e004ffe5ec144"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "292315b53eddb2e42f23631e258b33e98a060001e9ba4889c06c73ebe2a6d960"
+    },
+    "a602e127e9a3f6cbeb366f3056b5244ac85276b7ae3b8bfe1cb6cb3091ee898b": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "es": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "a973364b8e0d880eb8805f73e38f5f312444ee7587e37cd635128724b9d66b31"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "156fa9963ff495dcef5b39fd462b6730e70f8c2585cba68089d566fa489e5862"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "79b8d916d700c93fdb379db471acb7fa11e205489caebbe94b5fca7228bfde36"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "d46a1e0cef2a64e86feef52ba1cc9ce6241a59b88f98965cd9bed8af9c1c6c08"
+    },
+    "e28c33d2445601b6cd48ac8861614bc794623e26eed53abb586d908f236ab717": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "fr": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "d5a0be19fb90f1ad7951f562d9024a8e1fee3166d9fdf342991edbedd6bac5c8"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "6d4ed615d1428d9f3a3094d29d529746e03669328fce769b3901a30906e60cd7"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "9733ebd3c0aee16cb958bdf8cd2ef842b065cfc976797cd8c3444df931ed9398"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "ada717ac42f2660ca8c998649c2e72a150688d8cd1be71c8d0422db8c5220959"
+    },
+    "96829efb59aa17a72d8b24dffd1fc3f5e833e8c446fc79f034ecc8c56f3bb4c0": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "50d346476e3db430ec420940c8ed39b3f7c08326694761bb70a5f0d71bff3915"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "0dd558965b08b0dc4c3c51651a4c62b1d1c640f32d53dcb1a64926e21df0f96f"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "fcacc9b62e0e75eb0d758bb74e55566944ae29cdc0415ea2f0d6b16a92494b46"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "ecad2c65b340d07686eb9df702ffdab3197bf359636822f0cedee416a7e5a51c"
+    },
+    "f0ec55d4df797692b16cf517281c2d473e5d8c9215cef3d9184c1f00be12254d": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "pt-BR": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "e0ca31c9e94e05d922bf6cce05ee852fc4f4c27ebffc50620cd0a324ad83444d"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "c1b7b27a0762f805e53b76b1c40f647a17da787a9ab73289794b0de5e1145bf3"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "f264b9dbb04060ea1e6da236d7f6b54270efac59f581d4748d8b8060f7bd92d6"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "c498c34842f7a266282d55ce0cfe786669800aa724f8b119d9b1b69affb2380b"
+    },
+    "78f94fd9c3c0b4e218e528011e36b4be98fd74d74143b250562f803d56585ab8": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "ru": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "2c10832ba0bb6923c8c244dfc911a1244d2b5da208750060f28ded886a9a7d5d"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "99415926fe5299c383bb8970fb4098a83547f6d539ee5f76eb59be5f2bf1c104"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "8c7370f0300509385771037875e2b312567312d47f5c1b3ff06a252330d9a390"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "6d3e4ba705bb99f08b9f804ae562ab50badb83f520a34169aed467111bdaed0b"
+    },
+    "870b47bf2c5f0ae481f0c1d2c28a2b725edc4363bc6f04fe4af774d575ce30f8": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "id": {
+          "guidance.requirements.agent_effort_optional": {
+            "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+            "translation": "e981567bc417e69b33d96110b78432be0a8de526f02f8764155294764db2b61e"
+          },
+          "items.subagent.effort.description": {
+            "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+            "translation": "37c9fab9978601431f7a06c6e9d3dabfe1f020374feb9b165b655abba8f956fe"
+          },
+          "items.subagent.model-with-effort.description": {
+            "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+            "translation": "775e36199b64977dd47906bb024a57a058cca55bfb72e35c551da8da6439cb44"
+          }
+        }
+      },
+      "review": "Reviewed both subagent component descriptions and the shared guidance for configured effort and numeric budgets, recent same-model fallback, its default and the tilde marker.",
+      "validated_inputs_sha256": "0bf88c6784ca87d45a87c7e1382a0b2cc77a2425d6e38dd60481a233396f6028"
     }
   }
 }

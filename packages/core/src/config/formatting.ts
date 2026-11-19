@@ -54,7 +54,7 @@ export function itemOptions(value: unknown): ItemOptionsDraft {
     ...indicator,
     ...Object.fromEntries(GRADIENT_KEYS.filter(key => Object.hasOwn(value, key)).map(key => { try { return [key, parseGradient(value[key])]; } catch { return fail('gradients.invalid'); } })),
     ...(value.cost_rate_basis === undefined ? {} : { cost_rate_basis: value.cost_rate_basis as 'session' | 'api' }),
-    ...(value.effort_fallback === 'session' ? { effort_fallback: value.effort_fallback } : {}),
+    ...(value.effort_fallback === undefined ? {} : { effort_fallback: value.effort_fallback }),
     ...(value.link !== undefined ? { link: value.link as 'off' | 'auto' | 'on' } : {}),
     label: safeText(value.label, 'label'), icon: safeText(value.icon, 'icon'),
     priority: integer(value.priority, 0, 100, 'priority'), max_width: nullableInteger(value.max_width, 2, 10000, 'max_width'),

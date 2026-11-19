@@ -12,7 +12,7 @@ import { differences } from '../src/config/import-review.js';
 import { exportText, importText } from '../src/config/transfer.js';
 import { DEFAULT_HOST } from '../src/config/draft.js';
 import { ITEMS } from '../src/config/catalog.js';
-import { itemFields, editItem, setField } from '../src/config/editor-fields.js';
+import { itemFields, editItem, fieldValue, setField } from '../src/config/editor-fields.js';
 import { VISIBILITY_ITEMS } from '../src/config/formatting.js';
 import type { Scope } from '../src/contracts/ui.js';
 
@@ -82,18 +82,28 @@ test('tests.config.test_instances.InstanceTests.test_spacers_and_type_exclusions
   assert.throws(() => edit(agentSpacer.config, 'subagent', { action: 'copy', id: agentSpacer.selected! }, id));
 });
 
-test('session effort is an optional subagent model-with-effort instance setting', () => {
+test('each subagent effort display defaults to session and preserves explicit overrides', () => {
   const base = defaultDisplay();
-  const set = (scope: Scope, id: string, value: string) => edit(base, scope, { action: 'set', id, option: 'effort-fallback', value }, () => assert.fail());
-  assert.equal(set('subagent', 'model-with-effort', 'session').config.subagents.instances.find(node => node.id === 'model-with-effort')!.options.effort_fallback, 'session');
-  assert.deepEqual(set('subagent', 'model-with-effort', 'off').config, base);
-  assert.throws(() => set('subagent', 'model-with-effort', 'unknown'));
+  base.subagents = updateSubagents(base.subagents, { items: ['model-with-effort', 'effort'] });
+  const set = (scope: Scope, id: string, value: string) => edit(base, scope, { action: 'set', id, option: 'effort-fallback', value }, () => assert.fail()).config;
+  for (const type of ['model-with-effort', 'effort']) {
+    const restored = validateDisplay(base);
+    assert.equal(fieldValue(restored, 'effort_fallback', 'subagent', type), 'session');
+    assert.equal(find(restored, 'subagent', type)!.options.effort_fallback, undefined);
+    const off = set('subagent', type, 'off'), draft = { display: off, host: DEFAULT_HOST };
+    assert.deepEqual(importText(exportText(draft), draft), draft);
+    assert.equal(find(off, 'subagent', type)!.options.effort_fallback, 'off');
+    const copy = edit(off, 'subagent', { action: 'copy', id: type }, id);
+    assert.equal(fieldValue(copy.config, 'effort_fallback', 'subagent', copy.selected!), 'off');
+    const enabledCopy = setField(copy.config, 'effort_fallback', 'session', 'subagent', copy.selected!);
+    assert.equal(fieldValue(enabledCopy, 'effort_fallback', 'subagent', copy.selected!), 'session');
+    assert.equal(fieldValue(enabledCopy, 'effort_fallback', 'subagent', type), 'off');
+    assert.deepEqual(itemFields('subagent', type).find(field => field.key === 'effort_fallback')!.choices, ['session', 'off']);
+    assert.throws(() => set('subagent', type, 'unknown'));
+  }
   assert.throws(() => set('main', 'model-with-effort', 'off'));
   assert.throws(() => set('subagent', 'name', 'session'));
-  assert.deepEqual(validateDisplay(base), base);
-  assert(itemFields('subagent', 'model-with-effort').some(field => field.key === 'effort_fallback'));
-  assert(!itemFields('main', 'model-with-effort').some(field => field.key === 'effort_fallback'));
-  assert(!itemFields('subagent', 'effort').some(field => field.key === 'effort_fallback'));
+  for (const type of ['model-with-effort', 'effort']) assert(!itemFields('main', type).some(field => field.key === 'effort_fallback'));
 });
 
 test('tests.config.test_instances.InstanceTests.test_disabling_keeps_explicit_row_and_identity', () => {

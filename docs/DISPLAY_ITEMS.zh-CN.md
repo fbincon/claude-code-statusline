@@ -190,7 +190,7 @@
 | `status-elapsed` | 开 | 状态图标和用时，如 `⏱ 1m 18s`。可与 `status`、`elapsed` 同时显示。 |
 | `status` | 关 | 状态图标：`…` 表示 pending、`⏱` running、`✓` completed、`✗` failed、`■` killed、`⏳` paused/waiting；未知状态为 `?` |
 | `name` | 开 | 依次使用显式 `name`、格式化的 `agentType`（2.1.293+）、格式化的 `type`、本地化的“代理” |
-| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID。显式强度显示为 `/effort`，可选的会话强度显示为 `/~effort`。 |
+| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID。显式强度显示为 `/effort`，会话回退值显示为 `/~effort`。 |
 | `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
 | `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
 | `elapsed` | 关 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
@@ -198,13 +198,17 @@
 | `tokens` | 关 | 当前 task 的紧凑 token 数 |
 | `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
 | `model` | 关 | 已解析的 `tasks.model`，沿用去除 `claude-` 前缀的子代理格式。 |
-| `effort` | 关 | 明确配置的 `tasks.effort`，支持数值预算；继承主会话 effort 时字段缺失。不受模型支持的配置等级可能与实际执行值不同。需 Claude Code 2.1.214+。 |
+| `effort` | 关 | 配置的强度等级或数值预算。会话回退值显示为 `~effort`。 |
 | `context-tokens` | 关 | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
 | `context-window-size` | 关 | 已解析的 `tasks.contextWindowSize`。 |
 
-### 可选的会话推理强度
+<a id="可选的会话推理强度"></a>
 
-在子代理 `model-with-effort` 实例的**会话强度回退**中选择**使用会话强度**。默认关闭。显式 `tasks.effort` 优先。字段缺失时，渲染可使用同一会话、模型 ID 完全一致且不超过 15 秒的主栏 `effort.level` 观测。`~` 表示近期会话观测，无法证明子代理启动时的实际强度。主栏仅按事件刷新时，两次刷新之间可能只显示模型。独立的 `effort` 组件显示显式配置值。[CLI 设置](reference/cli.zh-CN.md#实例管理)
+### 会话强度回退
+
+两个子代理组件的**会话强度回退**都默认为**使用会话强度**。在任一编辑器中将某个实例设为**关闭**，即可只显示该实例的显式强度。缺省 `effort_fallback` 字段的旧实例也采用新默认，包括旧版保存 `off` 时省略字段的实例。[CLI 设置](reference/cli.zh-CN.md#实例管理)
+
+显式 `tasks.effort` 优先。Claude Code 从 2.1.214 起提供该字段，配置值可能与实际生效的强度不同。字段缺失或为空白时，渲染可使用同一会话、模型 ID 完全一致且不超过 15 秒的主栏 `effort.level` 观测。`~` 标记近期会话观测，子代理启动时的实际强度仍未知。主栏仅按事件刷新时，观测可能在两次回调间过期，此时组合项只显示模型，独立强度项省略。
 
 ### 已结束代理的时长
 

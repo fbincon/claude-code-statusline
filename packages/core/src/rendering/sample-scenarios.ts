@@ -10,7 +10,7 @@ export function sampleAgents(scenario: PreviewScenario): Data[] {
     const now = SAMPLE_NOW * 1000;
     const tasks: Data[] = [
         { id: 'preview-running', name: 'Explore', type: 'local_agent', status: 'running', label: 'searching auth flow', startTime: now - 78000, model: 'claude-sonnet-5', effort: 'high', contextWindowSize: 200000, tokenCount: 84000, cwd: '/project/src' },
-        { id: 'preview-completed', name: 'Reviewer', type: 'local_agent', status: 'completed', description: 'reviewed lifecycle tests', startTime: now - 42000, _frozen_duration_ms: 42000, model: 'claude-haiku-4-5', contextWindowSize: 200000, tokenCount: 18500, cwd: '/project/tests' },
+        { id: 'preview-completed', name: 'Reviewer', type: 'local_agent', status: 'completed', description: 'reviewed lifecycle tests', startTime: now - 42000, _frozen_duration_ms: 42000, model: SAMPLE_MODEL, contextWindowSize: 200000, tokenCount: 18500, cwd: '/project/tests' },
     ];
     if (scenario === 'many-agents')
         return Array.from({ length: 24 }, (_, i) => ({ ...tasks[i % 2], id: 'preview-agent-' + i, name: 'Agent ' + (i + 1) }));

@@ -7,7 +7,8 @@ import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { configuredRows, liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { coercedInteger } from '@fbincon/statusline-core/rendering/formatters';
-import { sessionEffortEnabled } from '@fbincon/statusline-core/rendering/subagent-effort';
+import { effortIdentity, sessionEffortEnabled } from '@fbincon/statusline-core/rendering/subagent-effort';
+import { object } from '@fbincon/statusline-core/runtime/values';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { renderEnvironment, type EnvironmentOptions } from './environment.js';
 import { resolvedDisplay } from './configuration.js';
@@ -43,7 +44,7 @@ export async function render(read: () => string | Uint8Array, options: Environme
         readDisplay(configDir), directory ? { kind: 'project', path: directory } : { kind: 'user' }).display;
     // An omitted override preserves the host's default agent rows.
     if (subagents && !config.subagents.enabled) return '';
-    if (!subagents && sessionEffortEnabled(config)) {
+    if (!subagents && object(data) && effortIdentity(data.session_id) && sessionEffortEnabled(config)) {
         const [{ runtimeContext }, { publishSessionEffort }] = await Promise.all([
             import('../runtime/context.js'), import('../runtime/session-effort.js'),
         ]);

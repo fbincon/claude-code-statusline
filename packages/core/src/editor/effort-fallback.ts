@@ -1,16 +1,21 @@
-import type { EditorField, Scope } from '../contracts/ui.js';
+import type { EditorField, ItemOptionsDraft, Scope } from '../contracts/ui.js';
 
-export const EFFORT_FALLBACK_DEFAULT = 'off';
+export const EFFORT_FALLBACK_DEFAULT = 'session';
 export const EFFORT_FALLBACK_FIELD: EditorField = {
     key: 'effort_fallback', label: 'Session effort fallback', group: 'Item format',
-    kind: 'choice', choices: [EFFORT_FALLBACK_DEFAULT, 'session'], minimum: 0, maximum: 0, nullable: false,
+    kind: 'choice', choices: [EFFORT_FALLBACK_DEFAULT, 'off'], minimum: 0, maximum: 0, nullable: false,
 };
 
-export function supportsEffortFallback(scope: Scope, id: string): boolean {
-    return scope === 'subagent' && id === 'model-with-effort';
+export function effortFallback(options?: ItemOptionsDraft): NonNullable<ItemOptionsDraft['effort_fallback']> {
+    return options?.effort_fallback ?? EFFORT_FALLBACK_DEFAULT;
 }
 
-export function validEffortFallback(options: Record<string, unknown>, scope?: Scope, id?: string): boolean {
+export function supportsEffortFallback(scope: Scope, id: string): boolean {
+    return scope === 'subagent' && (id === 'model-with-effort' || id === 'effort');
+}
+
+export function validEffortFallback(options: Record<string, unknown>, scope?: Scope, id?: string):
+    options is Record<string, unknown> & Pick<ItemOptionsDraft, 'effort_fallback'> {
     return !Object.hasOwn(options, 'effort_fallback') ||
         (scope === undefined || supportsEffortFallback(scope, id!)) &&
         (options.effort_fallback === 'off' || options.effort_fallback === 'session');
