@@ -209,7 +209,7 @@ Custom subagent rows use the Claude Code 2.1.205–2.1.322 callback. Each row us
 
 ### Session effort fallback
 
-**Session effort fallback** defaults to **Use session effort** for both subagent components. In either editor, set it to **Off** on an instance to show only its configured effort. Existing instances with an omitted `effort_fallback` also use the new default, including instances where an older version omitted the field when saving `off`. [CLI setting](reference/cli.md#instance-management)
+**Session effort fallback** defaults to **Use session effort** for subagent `model-with-effort` and `effort`. In either editor, set it to **off** on an instance to show only its configured effort. Existing instances with an omitted `effort_fallback` also use the new default, including instances where an older version omitted the field when saving `off`. [CLI setting](reference/cli.md#instance-management)
 
 A configured `tasks.effort` takes priority. Claude Code added this field in 2.1.214, and a configured value can differ from the effective effort. When the field is missing or blank, the renderer can use the main status line's latest `effort.level` from the same session and exact model ID, up to 15 seconds old. The `~` identifies a recent session observation. The subagent's launch-time effort remains unknown. With event-only main refreshes, the observation can expire between callbacks, leaving the model alone and the standalone effort absent.
 

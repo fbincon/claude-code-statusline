@@ -604,7 +604,7 @@ Restart Claude Code after changing collector integration. If execution time is s
 
 Each subagent row shows one task. See [display scopes](DISPLAY_ITEMS.md#display-scopes) for how fields with the same name differ between the main line and subagent rows. For missing rows or a third-party override, see [subagent troubleshooting](#subagent-rows-are-missing-or-ownership-conflicts-occur).
 
-Subagent `model-with-effort` and `effort` show a qualifying session observation with `~` when the task supplies no configured effort. Set **Session effort fallback** to **Off** on an instance to display only its configured effort. [Effort sources and time limits](DISPLAY_ITEMS.md#session-effort-fallback)
+Subagent `model-with-effort` and `effort` show a qualifying session observation with `~` when the task supplies no configured effort. Set **Session effort fallback** to **off** on an instance to display only its configured effort. [Effort sources and time limits](DISPLAY_ITEMS.md#session-effort-fallback)
 
 ### Opt-in live state
 
