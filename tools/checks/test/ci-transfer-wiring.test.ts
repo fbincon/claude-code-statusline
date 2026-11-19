@@ -19,6 +19,7 @@ test('the worker verifies the small artifact against the original producer befor
     assert.equal(candidate[light].with.name, 'ci-worker-input'); assert.equal(candidate[create].env.ORIGINAL_ID, '${{ steps.candidate_upload.outputs.artifact-id }}');
     for (const key of ['installed','runtime','mods']) {
         const steps = jobs[key].steps, inputs = steps.filter((s: any) => s.uses === transfer && s.with.operation === 'download');
+        assert.equal(steps[0].with.ref, '${{ github.sha }}');
         assert.equal(inputs.length, 3); assert.equal(inputs[0].with.name, 'ci-worker-input');
         assert.equal(inputs[0].with['artifact-ids'], '${{ needs.candidate.outputs.worker_id }}');
         assert.equal(inputs[1].if, "matrix.history != 'none'"); assert(inputs[1].with.name.includes('ci-historical-380'));
@@ -27,6 +28,7 @@ test('the worker verifies the small artifact against the original producer befor
         assert(prepare.run.indexOf('worker-input.ts restore') < prepare.run.indexOf('test-bundle.ts restore'));
         assert.equal(prepare.env.PRODUCER_ATTEMPT, '${{ needs.candidate.outputs.producer_attempt }}');
     }
+    assert.equal(jobs['windows-probe'].steps[0].with.ref, '${{ github.sha }}');
     for (const key of ['acceptance','tiered-results']) {
         const steps = jobs[key].steps, candidate = stepIndex(steps, s => s.with?.name === 'ts06-candidate');
         const select = stepIndex(steps, s => s.run?.includes('ci-physical-workflow.ts select'));
