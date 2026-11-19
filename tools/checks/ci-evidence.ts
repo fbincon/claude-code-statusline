@@ -15,9 +15,10 @@ import { sectionInputsAt, sourceCapacityCount, sourceContract, validateSectionEv
 import { envelopeBytes } from './evidence-zip.ts';
 import { languageEvidence, type LanguageEvidence } from './i18n-evidence.ts';
 import { validateProductChecks, type ProductCheckReceipt } from './impact-product.ts';
+import { git } from './ci-git.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const git = (...args: string[]) => execFileSync('git', ['--no-replace-objects', ...args], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+export { git };
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 export interface ArtifactIdentity { id: number; name: string; digest: string; expires_at: string }
 interface EvidenceBase {

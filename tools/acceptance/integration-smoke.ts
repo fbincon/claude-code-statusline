@@ -9,7 +9,7 @@ import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { architecture } from '@fbincon/statusline-platform/architecture';
 import { installCandidate } from './install.js';
 import { sha256 } from '../build/files.js';
-import { git } from '../checks/ci-evidence.js';
+import { git } from '../checks/ci-git.js';
 import { retainLog } from './diagnostics.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, source: { type: 'string' }, integration: { type: 'string' }, target: { type: 'string' }, report: { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 assert(values.artifact && values.source && values.integration && values.target && values.report);
