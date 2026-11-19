@@ -98,7 +98,7 @@ core 保持纯消息、搜索、Unicode 与渲染规则；platform 负责文件�
 
 ## CI 分类与 PR → main → tag 复用
 
-使用既有 `ImpactPlan` 和受保护的 `Complete candidate evidence` 聚合；聚合名称不代表维护任务必须跑产品矩阵。[影响检查](impact-checks.zh-CN.md)与 [CI 维护](ci-maintenance.zh-CN.md)继续为准，新输入启用前完成登记及相应回归。
+使用 `ImpactPlan` 选择本地检查。发版使用 `Accept release candidate` 及主线晋升。启用新输入前登记并验证相应回归。 [影响检查](impact-checks.zh-CN.md) · [CI 维护](ci-maintenance.zh-CN.md)。
 
 | 实际变化 | 预期职责与检查 |
 | --- | --- |

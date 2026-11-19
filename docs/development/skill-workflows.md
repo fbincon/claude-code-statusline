@@ -39,7 +39,7 @@ The bundled skill resources under `packages/cli/resources/*/SKILL.md` share one 
 - **Frontmatter.** Use one YAML mapping with `name` equal to the directory name, a non-empty `description`, a string `argument-hint` (empty when the skill has no actions), `disable-model-invocation: true`, and exactly one of `allowed-tools` or `disallowed-tools` as a non-empty string array.
 - **Body.** Keep exactly one H1 and a non-empty instruction body. Preserve the command boundary, literal-argument and quoting rules, the guided workflow or external fallback, and the resource placeholders used by the renderer.
 - **Placeholders.** The installer replaces the known tokens (`ALLOWED_RULES`, `COMMAND`, `ITEM_GROUPS`, `LANGUAGES`, `LANGUAGE_CHOICES`, `THEME_CHOICES`). The internal `statusline-config` skill may contain a standalone known token such as `__CLAUDE_STATUSLINE_ALLOWED_RULES__`; the external `statusline-configure` skill must not contain placeholders. The structural check validates this before parsing YAML.
-- **Check boundary.** `checkSkillResources` validates this structure in `docs:check`. It is a development contract check; `packages/cli/resources` remains a product execution input and keeps the full product matrix when changed.
+- **Check boundary.** `checkSkillResources` validates this structure in `docs:check`. It is a development contract check; `packages/cli/resources` remains a product execution input and requires the local product suite when changed.
 
 ## Source maintenance and regression coverage
 

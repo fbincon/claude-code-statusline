@@ -60,20 +60,7 @@ test('maintenance verifier executes immutable base modules even when head valida
         assert.equal(lock.packages['node_modules/typescript'].integrity, 'sha512-ts'); assert.equal(lock.packages['node_modules/tar'].integrity, 'sha512-tar');
     });
 });
-test('workflow keeps full product obligations and uses separate scoped/release jobs and required aggregation', () => {
-    const workflow = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8')), jobs = workflow.jobs;
-    assert.equal(workflow.on.push['paths-ignore'], undefined); assert.equal(workflow.on.pull_request['paths-ignore'], undefined);
-    for (const name of ['scoped', 'maintenance', 'release-build', 'release-smoke', 'release-binding']) assert(jobs.acceptance.needs.includes(name));
-    assert.equal(jobs.acceptance.if.startsWith('always()'), true);
-    for (const key of ['installed', 'runtime', 'mods']) assert.equal(jobs[key].strategy.matrix, '${{ fromJSON(needs.candidate.outputs.' + key + '_matrix) }}');
-    assert(jobs.scoped.if.includes("outputs.route == 'maintenance'"));
-    assert(!jobs.scoped.if.includes('draft'), 'Maintenance drafts must get their planned checks');
-    assert(jobs.quick.if.includes("outputs.route != 'maintenance'"), 'A documentation draft must not run the complete development suite');
-    assert(jobs.scoped.steps.some((step: any) => step.with?.name?.includes('draft-scoped')));
-    assert(jobs.maintenance.if.includes("outputs.draft != 'true'"), 'Draft feedback cannot become maintenance evidence');
-    assert(jobs.maintenance.steps.some((step: any) => step.run?.includes('impact-workflow.ts record')));
-    assert.equal(jobs['release-smoke'].strategy.matrix.os.length, 3);
-    assert(jobs['release-build'].steps.some((step: any) => step.run?.includes('impact-release-build.js')));
+test('npm workflow downloads the selected original objects', () => {
     const npm = parse(fs.readFileSync('.github/workflows/npm-publish.yml', 'utf8'));
     assert(npm.jobs.prepare.steps.some((step: any) => step.with?.['artifact-ids'] === '${{ steps.resolve.outputs.artifact_ids }}'));
 });

@@ -6,11 +6,12 @@ import { spawnSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { architecture } from '@fbincon/statusline-platform/architecture';
 import { installCandidate } from './install.js';
 import { sha256 } from '../build/files.js';
 import { git } from '../checks/ci-evidence.js';
 import { retainLog } from './diagnostics.js';
-const { values } = parseArgs({ options: { artifact: { type: 'string' }, source: { type: 'string' }, integration: { type: 'string' }, target: { type: 'string' }, report: { type: 'string' } } });
+const { values } = parseArgs({ options: { artifact: { type: 'string' }, source: { type: 'string' }, integration: { type: 'string' }, target: { type: 'string' }, report: { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 assert(values.artifact && values.source && values.integration && values.target && values.report);
 assert.match(values.integration, /^[a-f0-9]{40}$/u);
 assert.equal(git('rev-parse', 'HEAD'), values.integration);
@@ -22,6 +23,7 @@ let installed: ReturnType<typeof installCandidate> | undefined;
 const report: any = { schema_version: 1, kind: 'integration-smoke', status: 'fail', target: values.target, integration_commit: values.integration,
     source_commit: values.source, node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, arch: process.arch,
     checks, phases, model_calls: 0, lifecycle_scripts: false, execution: { run_id: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, job: process.env.GITHUB_JOB } };
+if (values['release-smoke']) Object.assign(report, { host_arch: architecture().host_arch, workflow_sha: process.env.GITHUB_WORKFLOW_SHA });
 try {
     installed = installCandidate(resolve(values.artifact), values.source); report.tarball_sha256 = installed.packed.sha256;
     checks.push('offline-empty-cache-install');

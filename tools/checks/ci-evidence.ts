@@ -306,7 +306,7 @@ export function verifyRecordedFiles(record: CompleteEvidence, directory: string)
     for (const [name, hash] of Object.entries(record.compiled))
         assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
 }
-export async function verifyWorkflowSource(record: CompleteEvidence): Promise<void> {
+export async function verifyWorkflowSource(record: Pick<CompleteEvidence, 'source_commit' | 'workflow' | 'workflow_sha'>): Promise<void> {
     const workflow = await githubRead(`repos/${CI_REPOSITORY}/contents/${record.workflow}?ref=${record.workflow_sha}`);
     assert.equal(workflow.type, 'file');
     assert.equal(workflow.sha, git('rev-parse', record.source_commit + ':' + record.workflow), 'Executed workflow differs from the accepted source');

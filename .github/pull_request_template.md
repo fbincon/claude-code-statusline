@@ -8,7 +8,7 @@
 
 ## Validation / 验证
 
-<!-- Record the impact route, selected tasks, actual results and limitations. Maintenance uses ci:plan/ci:check; product logic, protocols, runtime dependencies and bundled skill instructions use the full product matrix; build/generation inputs use package comparison. Documentation uses docs:check; registered root and current development guides also use the source-backed content and example tests. / 记录影响路线、选中任务、实际结果及限制。维护使用 ci:plan/ci:check；产品逻辑、协议、运行时依赖和内置技能指令使用完整产品矩阵；构建／生成输入使用包比较。文档使用 docs:check；已登记的根文档和当前开发指南还须执行源码内容与示例测试。 -->
+<!-- Record the checked head, local tasks, actual results and limitations. Use ci:plan/ci:check for maintenance, npm run check for product changes, and package comparison for build/generation inputs. Documentation uses docs:check and applicable source-backed content and example tests. On a release PR, link the candidate check and record main integration before tagging. / 记录核验 head、本地任务、实际结果和限制。维护使用 ci:plan/ci:check，产品改动使用 npm run check，构建／生成输入使用包比较。文档使用 docs:check 和适用的源码内容及示例测试。发版 PR 链接候选检查，打标签前记录 main 集成。 -->
 
 ## Applicable follow-ups / 按需事项
 

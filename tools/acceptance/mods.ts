@@ -5,6 +5,7 @@ import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
+import { architecture } from '@fbincon/statusline-platform/architecture';
 import { prepareModTypes, recordModHost, isolatedHostEnvironment } from './mod-types.js';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
@@ -18,9 +19,11 @@ import assert from 'node:assert/strict';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { runOfficialTestBatches, type OfficialTestExecute } from './official-tests.js';
 import { admitOfficialCommand } from './physical-budgets.js';
-const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' }, 'physical-window-ms': { type: 'string' } } });
+const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' }, 'physical-window-ms': { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const windowMs = values['physical-window-ms'] === undefined ? null : Number(values['physical-window-ms']);
+const releaseSmoke = values['release-smoke'] === true;
+assert(!releaseSmoke || windowMs === null, 'Release smoke and physical history are separate profiles');
 if (windowMs !== null) {
     assert(Number.isSafeInteger(windowMs) && windowMs > 0 && windowMs < HOSTED_JOB_MS); phaseEvent('official', 'start');
 }
@@ -32,6 +35,7 @@ function admit(timeout: number) { if (windowMs !== null) admitOfficialCommand(st
 const batch: OfficialTestExecute = (file, args, options) => { admit(options.timeout); return spawnSync(file, args, options); };
 const report: Record<string, any> = { status: 'fail', commit: values.commit, tarball_sha256: candidate.sha256, model_calls: 0, mods: {}, phases: [], node: process.version,
     execution: { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null, runner: process.env.RUNNER_OS ?? process.platform } };
+if (releaseSmoke) Object.assign(report, { schema_version: 1, kind: 'release-host-smoke', host_arch: architecture().host_arch, arch: process.arch, workflow_sha: process.env.GITHUB_WORKFLOW_SHA });
 function run(executable: string, args: string[], env = environment, timeout = 180000) {
     admit(timeout);
     const started = performance.now();
@@ -49,7 +53,7 @@ function run(executable: string, args: string[], env = environment, timeout = 18
 try {
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
     if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].includes(version)) throw new Error('Unsupported unpinned host');
-    if (windowMs !== null) {
+    if (windowMs !== null || releaseSmoke) {
         assert.equal(version, process.env.TS05_PHYSICAL_EXPECT_HOST, 'Actual host differs from the frozen producer');
         assert.equal(host.args.length, 0, 'Physical host acceptance requires the installed native binary');
     }
@@ -70,7 +74,7 @@ try {
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), batch) } : {}) };
+        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' && !releaseSmoke ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), batch) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {
@@ -78,7 +82,8 @@ try {
     }, 600000);
     report.installed = JSON.parse(fs.readFileSync(installedReport, 'utf8'));
     if (report.installed.tarball_sha256 !== candidate.sha256 || report.installed.status !== 'pass') throw new Error('Installed Mod evidence differs from candidate');
-    if (windowMs === null) await legacyHistories(version);
+    if (windowMs === null && !releaseSmoke) await legacyHistories(version);
+    if (releaseSmoke) assert.equal(sha256(fs.readFileSync(host.executable)), report.host_sha256, 'Official binary changed during smoke');
     report.status = 'pass';
 } catch (error) { report.error = sanitizeLog(String(error)); process.exitCode = 1; }
 finally {

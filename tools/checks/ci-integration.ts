@@ -13,7 +13,7 @@ import { originalHistory } from './ci-reused-coverage.ts';
 
 export const SMOKE_TARGETS = ['ubuntu-24.04', 'windows-2025', 'macos-15'];
 type Integration = NonNullable<PromotionSelection['integration']>;
-async function associatedPulls(commit: string): Promise<any[]> {
+export async function associatedPulls(commit: string): Promise<any[]> {
     const result: any[] = [];
     for (let page = 1; page <= 10; page++) {
         const rows = await githubRead(`repos/${CI_REPOSITORY}/commits/${commit}/pulls?per_page=100&page=${page}`);
@@ -21,7 +21,7 @@ async function associatedPulls(commit: string): Promise<any[]> {
     }
     throw new Error('Associated PR pagination limit exceeded');
 }
-function trustedMergedPr(pr: any): boolean {
+export function trustedMergedPr(pr: any): boolean {
     return Boolean(pr.merged_at && pr.state === 'closed' && !pr.draft && pr.base?.ref === 'main' &&
         pr.base.repo?.full_name === CI_REPOSITORY && pr.head?.repo?.full_name === CI_REPOSITORY);
 }

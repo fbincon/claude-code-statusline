@@ -10,9 +10,9 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 
 ## 准备 TypeScript 发布
 
-1. 确认发布范围、渠道及[应用版本](../packages/core/src/release.ts)。使用固定开发工具链，按贡献指南的命名约定从当前 `main` 创建分支。更新双语变更记录和版本说明。规范源变化时重新生成对应资源。参见[贡献指南](../CONTRIBUTING.zh-CN.md)和[开发指南](development/README.zh-CN.md)。
+1. 确认发布范围、渠道及[应用版本](../packages/core/src/release.ts)。使用固定开发工具链，从当前 `main` 创建仓库内的 `release/` 分支。更新双语变更记录和版本说明。规范源变化时重新生成对应资源。参见[贡献指南](../CONTRIBUTING.zh-CN.md)和[开发指南](development/README.zh-CN.md)。
 2. 正式版发布需新增维护者决定 JSON，并登记版本、路径和准确批准日期。校验器从不可变源码归档读取这两份文件。决定仅适用于该版本与六项既有未验证缺口，所有必需的自动化门禁均须通过。参见[审批登记表](releases/approvals/registry.json)和[发布数据规则](development/ci-maintenance.zh-CN.md#发布数据与验收策略)。
-3. 执行影响计划选中的检查。最终审核的 PR head 须通过 **Complete candidate evidence**，合并后等待主分支验证通过。预览版和正式版公开发布均要求 A/B 语言完整就绪。参见[按影响检查](development/impact-checks.zh-CN.md)和[语言发布流程](development/i18n-workflow.zh-CN.md)。
+3. 执行本地检查，等待最终 head 的 `Accept release candidate`，然后采用双父 merge commit。合并后等待 `Accept release integration`。预览及正式版均要求 A/B 语言完整就绪。 [本地检查](development/impact-checks.zh-CN.md) · [语言发布](development/i18n-workflow.zh-CN.md)。
 4. 将版本说明存入 `docs/releases/<tag>.md`；自 v3.10.0 起另存简体中文配对页，更早版本使用一个双语页面。Release 标题使用英文，公开正文包含两种语言。记录用户可见改动、支持的平台及运行时、兼容性、安装方式和已知限制，并与该版本证据及[运行要求](USER_GUIDE.zh-CN.md#运行要求)核对。将新版本加入中英两版[发布说明索引](releases/README.zh-CN.md)。
 
 例行仓库维护走专项检查和已验证主分支同步。产品发布由维护者单独决定。
@@ -86,18 +86,11 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 
 根据已验证的 PR 与主分支记录选择发布源码。下文中 `SOURCE_COMMIT` 是选定源码的完整 SHA，`RELEASE_TAG` 是获批的版本标签，`RELEASE_ROOT` 是存放本次交付文件与报告的隔离目录。将 `DRAFT_TGZ` 设为下载的草稿软件包绝对路径。
 
-| 已接受源码 | 标签与交付证据 |
-| --- | --- |
-| 完整产品源码 | 给经已验证主分支合并可达的已接受 PR 源码打标签。发布原始 CI 软件包和其他三件文件。最终 PR 提供完整产品覆盖，主分支提供独立验证的集成冒烟。 |
-| 维护源码 | 给已在主分支验证的维护源码打标签。构建该源码自己的四件交付文件，核对独立构建和交付源码重建，通过已接受代码验证运行时等价，并对新制品执行三平台安装冒烟。发布绑定关联本次专项证据和原完整产品运行。 |
-
-遵循 [CI 分流与阻塞规则](development/ci-maintenance.zh-CN.md#路由表与阻断条件)和[维护证据规则](development/impact-checks.zh-CN.md#证据与晋升)。
+发版时把 `SOURCE_COMMIT` 固定为已验收、从 `main` 可达的发版 PR head。发布该 PR 的原始软件包、源码归档、manifest 和校验和。main 核对双亲、head、tree 和证据，再用原包执行三系统安装冒烟。标签验证原文件及整个晋升链。见 [CI 路由与阻断规则](development/ci-maintenance.zh-CN.md#路由表与阻断条件)。
 
 ### 跨 CI 版本的发布证据
 
-带标签的源码决定证据格式和历史配置。核对最新适用的主分支／标签关系、原制品 ID 及摘要、原执行与重试身份，以及拆分安装的每个阶段。复用已验证的 v1 基线时保留其原完整历史身份。混合改动还需保留必需的素材或批准回执。参见[完整证据规则](development/ci-maintenance.zh-CN.md#完整证据的版本)。
-
-晋级使用原始完整候选制品。工作作业输入清单、传输探针与手动对照保留各自的执行用途或诊断身份。任何必需证据失败、缺失、过期或损坏时，先通过适用的自动流程解决，再继续发布。参见[制品与证据规则](development/ci-maintenance.zh-CN.md#独立校验与-maintag-专项义务)。
+带标签的源码决定证据格式和覆盖规则。当前路线核验最新适用运行且保留原作业和重试身份。旧完整及维护来源使用各自的历史读取器。证据失败、过期、缺失或摘要不符时先修复并通过适用阶段，再继续发布。
 
 ## 发布身份与不可变附件
 
@@ -133,7 +126,7 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 
 ## 通过 GitHub Actions 可信发布 npm
 
-[Publish npm with OIDC 工作流](../.github/workflows/npm-publish.yml)准备已验证的交付文件并发布其中的 tgz。它解析完整源码晋级记录或维护源码绑定。完整源码路线使用原覆盖上下文重新执行 `release:prepare` 核验。维护源码路线重新验证本次交付包及其与原产品覆盖的关联。
+[Publish npm with OIDC 工作流](../.github/workflows/npm-publish.yml)重新核验选定标签、PR/main/tag 回执、制品摘要和原始四件文件，并将通过验证的 tgz 交给 OIDC 发布作业。历史版本采用源提交对应的读取器。
 
 ### npm 端首次配置
 

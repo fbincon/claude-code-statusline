@@ -10,9 +10,9 @@ GitHub is the primary repository for review, CI and Releases. npm distributes th
 
 ## Prepare a TypeScript release
 
-1. Confirm the release scope, channel and [application version](../packages/core/src/release.ts). Use the pinned development toolchain and branch from current `main` under the contribution branch naming convention. Update the bilingual changelog and versioned notes, and regenerate owned resources when their canonical inputs change. Follow the [contribution guide](../CONTRIBUTING.md) and [development guide](development/README.md).
+1. Confirm the release scope, channel and [application version](../packages/core/src/release.ts). Use the pinned development toolchain and create an owned `release/` branch from current `main`. Update the bilingual changelog and versioned notes, and regenerate owned resources when their canonical inputs change. Follow the [contribution guide](../CONTRIBUTING.md) and [development guide](development/README.md).
 2. For stable publication, add the maintainer's decision JSON and register its version, path and exact approval date. The verifier reads both files from the immutable source archive. The decision covers that version and the six existing unverified gaps, while every required automated gate still applies. Use the [approval registry](releases/approvals/registry.json) and [release data policy](development/ci-maintenance.md#release-data-and-acceptance-policy).
-3. Run the checks selected by the impact plan. Require **Complete candidate evidence** on the final reviewed PR head and wait for successful main verification after merging. Public previews and stable versions both require complete A/B language readiness. Use [impact checks](development/impact-checks.md) and the [language release workflow](development/i18n-workflow.md).
+3. Run the local checks, wait for `Accept release candidate` on the final PR head, and use a two-parent merge commit. Wait for `Accept release integration` before tagging. Both channels require complete A/B language readiness. [Local checks](development/impact-checks.md) · [Language releases](development/i18n-workflow.md).
 4. Store the release notes under `docs/releases/<tag>.md` and, from v3.10.0, its Simplified Chinese companion; earlier releases use one bilingual page. Use an English Release title and combine both languages in the public body. Include user-visible changes, supported platforms and runtimes, compatibility, installation and known limits. Review the notes against the versioned evidence and [user requirements](USER_GUIDE.md#requirements). Add the version to both editions of the [release notes index](releases/README.md).
 
 Routine repository maintenance uses scoped checks and verified main synchronization. A product publication is a separate maintainer decision.
@@ -86,18 +86,11 @@ A stable public release requires one version-limited maintainer decision and its
 
 Choose the release source using the verified PR and main records. In the commands below, `SOURCE_COMMIT` is the full selected source SHA, `RELEASE_TAG` is its approved version tag, and `RELEASE_ROOT` is an isolated directory for the release files and reports. Set `DRAFT_TGZ` to the absolute path of the downloaded draft package.
 
-| Accepted source | Tag and delivery evidence |
-| --- | --- |
-| Complete product source | Tag the accepted PR source reachable through its verified main merge. Publish the original CI package and its three companion files. The final PR supplies the complete product coverage and main adds independently verified integration smoke. |
-| Maintenance source | Tag the accepted maintenance source verified on main. Build its own four delivery files, compare independent and source-archive rebuilds, verify runtime equivalence with accepted code, and pass three-platform installation smoke on the new bytes. The release binding links the scoped evidence and the original complete product run. |
-
-Follow the [CI routing and blocking conditions](development/ci-maintenance.md#route-table-and-blocking-conditions) and [maintenance evidence rules](development/impact-checks.md#evidence-and-promotion).
+Pin `SOURCE_COMMIT` to the accepted release PR head that is reachable from `main`. Publish the original package, source archive, manifest and checksums from that PR. Main verifies the parents, head, tree and original evidence, then installs the original package on three systems. The tag verifies the files and full promotion chain. [CI routes and blocking conditions](development/ci-maintenance.md#route-table-and-blocking-conditions).
 
 ### Release evidence across CI versions
 
-The tagged source selects the evidence schema and history profile. Verify the latest applicable main/tag relationship, the original artifact IDs and digests, and the original executions and attempts, including each stage of split installations. A verified v1 baseline keeps its original full-history identity when reused. Mixed changes also carry any required asset or approval receipt. Use the [complete evidence policy](development/ci-maintenance.md#complete-evidence-versions).
-
-Use the original complete candidate artifact for promotion. Worker-input manifests, transfer probes and manual comparison runs remain diagnostics or execution inputs. Resolve any failed, missing, expired or corrupt required evidence through the applicable automatic route before continuing. Use the [artifact and evidence rules](development/ci-maintenance.md#independent-verification-and-maintag-obligations).
+The tagged source selects the evidence format and coverage. The current route verifies the latest applicable run and preserves original job and retry identities. Historical complete and maintenance sources use their original readers. Resolve failed, expired, missing or corrupt evidence through the applicable stage before publishing.
 
 ## Release identity and immutable assets
 
@@ -133,7 +126,7 @@ The source archive contains `statusline-source/.candidate-source.json` with `sch
 
 ## npm trusted publishing with GitHub Actions
 
-The [Publish npm with OIDC workflow](../.github/workflows/npm-publish.yml) prepares the verified delivery and publishes its exact tgz. It resolves either the complete-source promotion or the maintenance-source binding. For the complete-source route it rechecks `release:prepare` with the original coverage context. The maintenance route rechecks the current-source bundle and its original product coverage linkage.
+The [Publish npm with OIDC workflow](../.github/workflows/npm-publish.yml) rechecks the tag, PR/main/tag receipts, artifact digests and four original files before handing the exact tgz to the OIDC job. Historical versions use the reader selected by their source.
 
 ### One-time npm configuration
 

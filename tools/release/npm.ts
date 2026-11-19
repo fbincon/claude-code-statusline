@@ -15,6 +15,9 @@ import { verifyRecordedFiles, artifactIdentity, newestArtifact, listRunArtifacts
 import { publishedMaintenanceRelease, verifyMaintenanceBundle } from '../checks/impact-release.js';
 import { coverageVersionInArchive } from '../checks/ci-coverage.js';
 import { originalContext } from '../checks/ci-reused-coverage.js';
+import { publishedReleaseTag, verifyDeliveryBytes } from '../checks/release-ci-evidence.js';
+import { candidateCases, releasePolicyAt } from '../checks/release-ci-policy.js';
+import { verifyReleaseDelivery } from './ci-delivery.js';
 
 export function selectCiRun(runs: any[], commit: string, branch: string) {
     const matching = runs.filter(run => run.head_sha === commit && run.head_branch === branch && run.event === 'push'
@@ -31,6 +34,18 @@ export function legacyArtifactIds(artifacts: any[]): number[] {
     assert(names.includes('ts06-candidate') && names.includes('ts06-acceptance'), 'Missing legacy release inputs');
     return names.map(name => artifactIdentity(newestArtifact(artifacts, name)).id);
 }
+
+function releaseReferences(verified: Awaited<ReturnType<typeof publishedReleaseTag>>) {
+    return { candidate: verified.candidate_ref, integration: verified.integration_ref, tag: verified.tag_ref };
+}
+
+function writeSelection(selection: string, result: { ci_run: number; artifact_ids: number[]; release_ci?: unknown }) {
+    fs.writeFileSync(selection, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT,
+        `ci_run=${result.ci_run}\nartifact_ids=${result.artifact_ids.join(',')}\nrelease_ci=${Boolean(result.release_ci)}\n`);
+    console.log(JSON.stringify(result));
+}
+
 export async function resolveRelease(selection: string) {
     assert.equal(process.env.GITHUB_REPOSITORY, REPOSITORY);
     assert.equal(process.env.GITHUB_EVENT_NAME, 'workflow_dispatch');
@@ -45,6 +60,14 @@ export async function resolveRelease(selection: string) {
     const dryRun = process.env.DRY_RUN === 'true';
     if (!dryRun) requirePublishContext({ tag: tag!, commit });
     else assert(['refs/heads/main', 'refs/tags/' + tag].includes(process.env.GITHUB_REF ?? ''), 'Dry-run must use main or the release tag');
+    if (releasePolicyAt(commit)) {
+        const verified = await publishedReleaseTag(tag!, commit);
+        const result = { tag, commit, dry_run: dryRun, version: VERSION, channel: publicChannel(), release_ci: releaseReferences(verified),
+            ci_run: verified.candidate_ref.run_id, tag_ci_run: verified.tag_ref.run_id, main_ci_run: verified.integration_ref.run_id,
+            artifact_ids: [verified.candidate.package.id] };
+        writeSelection(selection, result);
+        return;
+    }
     const runs = await runsFor(commit), tagRun = selectCiRun(runs, commit, tag!);
     const maintenance = await publishedMaintenanceRelease(tag!, commit, runs.find(run => run.id === tagRun));
     const promotion = maintenance ? null : await publishedTagEvidence(tag!, commit, runs.find(run => run.id === tagRun));
@@ -53,16 +76,25 @@ export async function resolveRelease(selection: string) {
     const artifactIds = maintenance ? [maintenance.package_artifact.id] : promotion?.artifacts ?? legacyArtifactIds(await listRunArtifacts(ciRun));
     const result = { tag, commit, ci_run: ciRun, tag_ci_run: tagRun, main_ci_run: mainRun, dry_run: dryRun, version: VERSION, channel: publicChannel(),
         artifact_ids: artifactIds, ...(promotion ? { promotion: promotion.promotion } : {}), ...(maintenance ? { maintenance_release: maintenance } : {}) };
-    fs.writeFileSync(selection, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
-    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `ci_run=${ciRun}\nartifact_ids=${artifactIds.join(',')}\n`);
-    console.log(JSON.stringify(result));
+    writeSelection(selection, result);
 }
 export async function prepareBundle(selectionFile: string, evidence: string, output: string) {
     const selection = JSON.parse(fs.readFileSync(selectionFile, 'utf8'));
     assert.equal(selection.version, VERSION); assert.equal(selection.tag, 'v' + VERSION);
     assert.equal(selection.channel, publicChannel());
-    const directory = join(evidence, selection.maintenance_release ? 'ci-release-package' : 'ts06-candidate'), filename = 'fbincon-claude-code-statusline-' + VERSION + '.tgz';
-    const artifact = join(directory, filename), checked = verifyDelivery(artifact, selection.commit);
+    assert.equal(Boolean(selection.release_ci), releasePolicyAt(selection.commit), 'Release evidence route must match the source');
+    const directory = selection.release_ci ? evidence : join(evidence, selection.maintenance_release ? 'ci-release-package' : 'ts06-candidate');
+    const filename = 'fbincon-claude-code-statusline-' + VERSION + '.tgz', artifact = join(directory, filename);
+    const verifiedRelease = selection.release_ci ? await publishedReleaseTag(selection.tag, selection.commit) : undefined;
+    if (verifiedRelease) {
+        assert.deepEqual(selection.release_ci, releaseReferences(verifiedRelease), 'Selected release evidence changed');
+        assert.equal(selection.ci_run, verifiedRelease.candidate_ref.run_id);
+        assert.equal(selection.main_ci_run, verifiedRelease.integration_ref.run_id);
+        assert.equal(selection.tag_ci_run, verifiedRelease.tag_ref.run_id);
+        assert.deepEqual(selection.artifact_ids, [verifiedRelease.candidate.package.id]);
+        verifyDeliveryBytes(directory, VERSION, verifiedRelease.candidate.delivery);
+    }
+    const checked = verifiedRelease ? verifyReleaseDelivery(directory, selection.commit) : verifyDelivery(artifact, selection.commit);
     let coverage: ReturnType<typeof originalContext>;
     if (selection.promotion) {
         const run = (await runsFor(selection.commit)).find(value => value.id === selection.tag_ci_run);
@@ -74,7 +106,12 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     assert.equal(checked.source.channel, selection.channel);
     fs.mkdirSync(output);
     let matrix: Pick<CompleteEvidence['coverage'], 'installations' | 'runtime_installations' | 'hosts'>;
-    if (selection.maintenance_release) {
+    if (verifiedRelease) {
+        const cases = candidateCases(selection.commit), packages = cases.filter(spec => spec.kind === 'package');
+        matrix = { installations: new Set(packages.map(spec => spec.os)).size, runtime_installations: packages.length, hosts: cases.length - packages.length };
+        fs.writeFileSync(join(output, 'acceptance.json'), JSON.stringify({ kind: 'release-ci', status: 'pass', commit: selection.commit,
+            tarball_sha256: checked.sha256, coverage: matrix, evidence: releaseReferences(verifiedRelease) }, null, 2) + '\n');
+    } else if (selection.maintenance_release) {
         await verifyMaintenanceBundle(selection.maintenance_release, directory);
         matrix = selection.maintenance_release.selection.product.record.coverage;
         fs.writeFileSync(join(output, 'acceptance.json'), JSON.stringify({ kind: 'maintenance-release', status: 'pass', commit: selection.commit,
@@ -107,7 +144,7 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     fs.writeFileSync(join(output, 'package.json'), '{"private":true,"type":"module"}\n', { flag: 'wx' });
     fs.writeFileSync(join(output, 'release-plan.json'), JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
     const sourceRun = selection.maintenance_release?.selection.product.record.run_id ?? selection.ci_run;
-    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.tag_ci_run ?? selection.ci_run}; original complete acceptance ${sourceRun}. The original matrix covered ${matrix.installations} installation targets, ${matrix.runtime_installations} Node cases and ${matrix.hosts} fixed hosts.${selection.maintenance_release ? ' Current maintenance, build and installation checks passed.' : ''} Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
+    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.tag_ci_run ?? selection.ci_run}; original acceptance ${sourceRun}. The original matrix covered ${matrix.installations} installation targets, ${matrix.runtime_installations} Node cases and ${matrix.hosts} fixed hosts.${selection.maintenance_release ? ' Current maintenance, build and installation checks passed.' : ''} Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
     console.log(message);
     const history = selection.maintenance_release?.original_history ?? selection.promotion?.original_history;

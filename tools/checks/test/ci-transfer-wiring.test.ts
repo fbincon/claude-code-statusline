@@ -8,7 +8,7 @@ import { parse } from 'yaml';
 import { acceptedTransfer } from '../ci-transfer-trust.js';
 
 const transfer = './.github/actions/transfer-artifact';
-const workflow = () => parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+const workflow = () => parse(fs.readFileSync('.github/workflows/ci-diagnostics.yml', 'utf8'));
 const stepIndex = (steps: any[], match: (step: any) => boolean) => { const i = steps.findIndex(match); assert(i >= 0); return i; };
 
 test('the worker verifies the small artifact against the original producer before restoring compiled tests', () => {
@@ -35,31 +35,12 @@ test('the worker verifies the small artifact against the original producer befor
     }
 });
 
-test('only proven source code can transport original artifacts before frozen verification, with pinned fallback', () => {
-    const { jobs } = workflow(), selector = jobs.scope.steps.find((s: any) => s.id === 'transfer_source');
-    assert(selector.run.includes('selection.release.verifier_commit')); assert(selector.run.includes('selection.integration.base'));
-    assert(!selector.if.includes("route == 'tag'"));
-    for (const key of ['integration','promotion','release-binding','maintenance']) {
-        const steps = jobs[key].steps, check = stepIndex(steps, s => s.id === 'transport');
-        assert(steps[check].run.includes('git --no-replace-objects cat-file blob')); assert(steps[check].run.includes('node "$RUNNER_TEMP/accepted-transfer-check.mts"'));
-        const protectedReads = steps.filter((s: any) => s.uses === transfer && s.with.operation === 'download' && s.with['run-id']?.includes('needs.scope.outputs.'));
-        assert(protectedReads.length);
-        for (const read of protectedReads) {
-            assert(steps.indexOf(read) > check); assert(read.if.includes("steps.transport.outputs.verified == 'true'"));
-            const fallback = steps.find((s: any) => s.uses?.startsWith('actions/download-artifact@') && s.with['artifact-ids'] === read.with['artifact-ids']);
-            assert(fallback && fallback.if.includes("steps.transport.outputs.verified != 'true'"));
-            assert.equal(fallback.with['run-id'], read.with['run-id']); assert.equal(fallback.with.path, read.with.path);
-        }
-    }
-});
-
 test('transfer probe crosses runners, binds real IDs and never joins an automatic gate', () => {
     const w=workflow(), p=w.jobs['artifact-transfer-probe'], r=w.jobs['artifact-transfer-readback'];
     assert(w.on.workflow_dispatch.inputs.validation.options.includes('artifact-transfer-probe'));
     assert.equal(p.if, "github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'artifact-transfer-probe'");
     assert.equal(r.if,p.if); assert.equal(r.needs,'artifact-transfer-probe');assert.notEqual(p['runs-on'],r['runs-on']);
-    assert(w.jobs.scope.if.includes("inputs.validation != 'artifact-transfer-probe'"));
-    assert(w.jobs.acceptance.if.includes("inputs.validation != 'artifact-transfer-probe'"));
+    assert.equal(w.jobs.acceptance.if, "inputs.validation == 'full'");
     assert(!w.jobs.acceptance.needs.includes('artifact-transfer-probe') && !w.jobs.acceptance.needs.includes('artifact-transfer-readback'));
     const steps = [...p.steps,...r.steps]; assert(steps.some(s=>s.run?.includes('npm run release:build')));
     assert(steps.some(s=>s.run?.includes('worker-input.ts restore')));

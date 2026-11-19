@@ -98,7 +98,7 @@ Keep imported Native modules below the current 1 MiB host limit using the existi
 
 ## CI routing and PR → main → tag reuse
 
-Use the existing `ImpactPlan` and protected `Complete candidate evidence` aggregate. The aggregate name does not require a product matrix for maintenance. [Impact checks](impact-checks.md) and [CI maintenance](ci-maintenance.md) remain authoritative; register new inputs and regression cases before activating them.
+Use `ImpactPlan` to select local checks. Releases use `Accept release candidate` and main integration. Register new inputs and verify the applicable regressions before activation. [Impact checks](impact-checks.md) · [CI maintenance](ci-maintenance.md).
 
 | Actual change | Expected responsibility and checks |
 | --- | --- |

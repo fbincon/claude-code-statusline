@@ -108,7 +108,7 @@ Select checks from the actual responsibilities changed:
 | Core product behavior | `npm run check` and `git diff --check` |
 | Canonical generated resources | `npm run generate` followed by `npm run generate:check`, plus the applicable checks above |
 
-Use immutable commits and new report paths as described in [impact checks](impact-checks.md). Mixed changes combine their obligations; unknown ownership or unresolved comparisons block. Local checks do not replace the final-head `Complete candidate evidence` gate or verified main promotion. [CI routing](ci-maintenance.md).
+Use immutable commits and fresh report paths as described in [impact checks](impact-checks.md). Combine mixed obligations and resolve unknown ownership or comparisons. Use local results for ordinary merges and [PR → main → tag](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) for a release.
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and responsibility ledgers. `tools/generation/` owns current language/Mod outputs and never regenerates the Python archive; it does not own skill outputs. The statusline skill resources are canonical in `packages/cli/resources/statusline-config/SKILL.md` and `packages/cli/resources/statusline-configure/SKILL.md`; they are maintained separately. After building, `npm run test:runtime` tests compiled products under a supported Node without rebuilding.
 
@@ -130,7 +130,7 @@ node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescri
 | `docs:check` | Local links, anchors and bilingual/template structure. |
 | `docs-content.test.js` | Registered facts in root and current development guides agree with their source definitions; malformed or conflicting numeric declarations fail. |
 | `docs-examples.test.js` | Selected marked CLI examples run successfully in isolated temporary directories with their expected effects and refusals. |
-| `Complete candidate evidence` | The final immutable PR head has the evidence selected by the impact plan. Local documentation checks alone do not establish this. |
+| `Accept release candidate` | The final release PR head passed the release validation jobs. |
 
 Content rules compare complete values, including comma-separated, English-word and Chinese counts, rather than looking for expected numeric substrings. Catalog, language, preset, interface and live bounds come from core. Matrix counts, Node selectors and host history splits come from the existing CI registries. For automatic source defaults/ranges, lease expiry, the Mod renewal timer and installed check categories, the suite reads the corresponding execution definitions or acceptance inventory with the existing TypeScript parser. It never executes those source files. Missing, ambiguous, unparsable or inconsistent definitions fail explicitly; there is no fallback to old literal values.
 
