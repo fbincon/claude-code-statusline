@@ -271,17 +271,17 @@ test('task snapshot is attributable without transcript scanning, and no prompt m
     assert.deepEqual(allFiles(f.root), before);
 });
 
-test('task timer diagnosis explains pending reports and cached idle without writes or agent identities', async t => {
-    const f = runtimeSetup(t);
-    f.event('UserPromptSubmit', 1);
-    f.event('SubagentStart', 2, { agent_id: 'private-agent' });
-    f.event('Stop', 3, { background_tasks: [{ id: 'private-agent', type: 'subagent' }] });
-    f.event('SubagentStop', 4, { agent_id: 'private-agent' });
-    f.tasks.idle('s', 'p', 5000000000n);
-    f.clock(6000000000n);
-    const service = new ConfigurationService({ configDir: f.root, launch: { executable: process.execPath, args: [] }, hostVersion: fail });
-    const adapter = await diagnosisAdapter(service, { runtime: f.context });
-    const before = allFiles(f.root);
+test('task timer diagnosis explains pending reports and cached idle without writes or agent identities', async testContext => {
+    const harness = runtimeSetup(testContext);
+    harness.event('UserPromptSubmit', 1);
+    harness.event('SubagentStart', 2, { agent_id: 'private-agent' });
+    harness.event('Stop', 3, { background_tasks: [{ id: 'private-agent', type: 'subagent' }] });
+    harness.event('SubagentStop', 4, { agent_id: 'private-agent' });
+    harness.tasks.idle('s', 'p', 5000000000n);
+    harness.clock(6000000000n);
+    const service = new ConfigurationService({ configDir: harness.root, launch: { executable: process.execPath, args: [] }, hostVersion: fail });
+    const adapter = await diagnosisAdapter(service, { runtime: harness.context });
+    const before = allFiles(harness.root);
     const result = adapter({ draft: draft(['task-timer']), scope: 'main', width: 80, input: { session_id: 's', prompt_id: 'p' } });
     const [timer] = result.instances;
     const lifecycle = timer!.evidence.find(row => row.source === 'task_store.lifecycle')!;
@@ -291,7 +291,7 @@ test('task timer diagnosis explains pending reports and cached idle without writ
     assert.ok(lifecycle.fields.some(field => field.path === 'last_end_evidence.hook_stop'));
     assert.deepEqual(timer!.evidence.find(row => row.source === 'claude_session_registry')!.fields, [{ path: 'status.idle', status: 'observed' }]);
     assert.doesNotMatch(diagnosticText(result, 'en'), /private-agent/u);
-    assert.deepEqual(allFiles(f.root), before);
+    assert.deepEqual(allFiles(harness.root), before);
 });
 
 test('same-session Git cache is read-only, age-checked and never refreshed', async t => {

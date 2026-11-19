@@ -97,12 +97,12 @@ export async function slashHook(read: () => string | Uint8Array, environment: Cl
                 const context = environment.runtime ?? runtimeContext(configDirectory(environment.configDir));
                 timing = { context, began: context.sample().wall_ns };
             }
-            catch { /* Rendering must not change whether expansion blocks. */ }
+            catch {}
         }
         const result = await handlePayload(input, environment);
         if (result !== null && configure && timing) {
             try { new TaskService(timing.context).blockConfiguration(configure.session_id, configure.prompt_id, timing.began); }
-            catch { /* A local timing write never changes the hook decision. */ }
+            catch {}
         }
         return result === null ? '' : result + '\n';
     }

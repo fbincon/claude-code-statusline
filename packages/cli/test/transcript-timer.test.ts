@@ -60,35 +60,35 @@ test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_idle_with
     assert.equal(f.render(collectTask(f.tasks, 'withdrawn', 'A', entry.last_pt, entry)), null);
     assert.equal(f.state('A', 'withdrawn').status, 'withdrawn');
 });
-test('verified idle after inline work can finish a task, but an idle timestamp preceding that work cannot', t => {
-    const f = lifecycle(t);
-    f.rawEvent('UserPromptSubmit', 1);
-    f.rawEvent('SubagentStart', 2, 'p', { agent_id: 'inline' });
-    f.rawEvent('SubagentStop', 3, 'p', { agent_id: 'inline' });
-    const entry = f.feed([promptLine('p', 1), assistantLine(4)]);
-    registry(f, 's', 2.5);
-    f.clock(6000000000n);
-    assert.equal(collectTask(f.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
-    registry(f, 's', 7);
-    assert.equal(collectTask(f.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
-    registry(f, 's', 5);
-    const ended = collectTask(f.tasks, 's', 'p', entry.last_pt, entry);
+test('verified idle after inline work can finish a task, but an idle timestamp preceding that work cannot', testContext => {
+    const harness = lifecycle(testContext);
+    harness.rawEvent('UserPromptSubmit', 1);
+    harness.rawEvent('SubagentStart', 2, 'p', { agent_id: 'inline' });
+    harness.rawEvent('SubagentStop', 3, 'p', { agent_id: 'inline' });
+    const entry = harness.feed([promptLine('p', 1), assistantLine(4)]);
+    registry(harness, 's', 2.5);
+    harness.clock(6000000000n);
+    assert.equal(collectTask(harness.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
+    registry(harness, 's', 7);
+    assert.equal(collectTask(harness.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
+    registry(harness, 's', 5);
+    const ended = collectTask(harness.tasks, 's', 'p', entry.last_pt, entry);
     assert.equal(ended?.end_source, 'registry_idle');
-    assert.equal(f.render(ended), '✓ 0m 04s');
+    assert.equal(harness.render(ended), '✓ 0m 04s');
 });
-test('a prompt-less Stop and unbound transcript ending cannot complete an unverified newer submission', t => {
-    const f = lifecycle(t);
-    f.rawEvent('UserPromptSubmit', 1, 'old');
-    const entry = f.feed([promptLine('old', 1), assistantLine(2)]);
-    f.rawEvent('UserPromptSubmit', 3, 'queued');
-    f.rawEvent('Stop', 4, null, { background_tasks: [] });
-    f.feed([durationLine(4.01, 3000)], entry);
-    assert.equal(f.state('queued').status, 'running');
-    assert.equal(f.state('queued').stop_candidate, null);
-    assert.equal(f.state('old').end_source, 'transcript_duration');
-    f.feed([promptLine('queued', 3), assistantLine(5)], entry);
-    f.rawEvent('Stop', 6, null);
-    assert.equal(f.state('queued').phase, 'stop_pending');
+test('a prompt-less Stop and unbound transcript ending cannot complete an unverified newer submission', testContext => {
+    const harness = lifecycle(testContext);
+    harness.rawEvent('UserPromptSubmit', 1, 'old');
+    const entry = harness.feed([promptLine('old', 1), assistantLine(2)]);
+    harness.rawEvent('UserPromptSubmit', 3, 'queued');
+    harness.rawEvent('Stop', 4, null, { background_tasks: [] });
+    harness.feed([durationLine(4.01, 3000)], entry);
+    assert.equal(harness.state('queued').status, 'running');
+    assert.equal(harness.state('queued').stop_candidate, null);
+    assert.equal(harness.state('old').end_source, 'transcript_duration');
+    harness.feed([promptLine('queued', 3), assistantLine(5)], entry);
+    harness.rawEvent('Stop', 6, null);
+    assert.equal(harness.state('queued').phase, 'stop_pending');
 });
 test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_local_command_preserves_previous_completed_display', t => {
     const f = lifecycle(t), entry = f.feed([promptLine('A', 1000), assistantLine(1064.9), durationLine(1065, 65000), { type: 'user', timestamp: new Date(1066000).toISOString(), promptId: 'LOCAL', message: { role: 'user', content: '<command-name>/cost</command-name>' } }], {}, 'local');
