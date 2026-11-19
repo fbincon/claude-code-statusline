@@ -55,7 +55,7 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .node-version
-          architecture: ${{ matrix.arch || 'x64' }}
+          architecture: ${{ env.DEVELOPMENT_ARCH || 'x64' }}
           cache: npm
       - &dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -106,6 +106,7 @@ jobs:
       RELEASE_VERSION: ${{ needs.build.outputs.version }}
       DELIVERY_HASHES: ${{ needs.build.outputs.delivery }}
       RELEASE_CASE: ${{ matrix.id }}
+      DEVELOPMENT_ARCH: ${{ matrix.arch }}
       HOST_VERSION: '2.1.310'
       DISABLE_AUTOUPDATER: '1'
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
@@ -248,6 +249,7 @@ jobs:
       RELEASE_VERSION: ${{ needs.main-select.outputs.version }}
       DELIVERY_HASHES: ${{ needs.main-select.outputs.delivery }}
       RELEASE_CASE: ${{ matrix.id }}
+      DEVELOPMENT_ARCH: ${{ matrix.arch }}
     steps:
       - *checkout
       - *development-node

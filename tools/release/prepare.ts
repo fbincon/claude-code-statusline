@@ -3,7 +3,7 @@ import { HISTORICAL_RELEASES, type HistoricalRelease } from '../acceptance/histo
 import { VERSION } from '@fbincon/statusline-core/release';
 /** Read-only candidate readiness, never uploads, tags or publishes. */
 import * as fs from 'node:fs';
-import { join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
@@ -14,6 +14,9 @@ import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { NATIVE_CAPACITY_CASES, NATIVE_CAPACITY_TOTAL_CASES, NATIVE_CAPACITY_ADDITIONAL_CASES, NATIVE_CAPACITY_TIMEOUT_MS, nativeCapacitySourceInventory } from '../acceptance/native-capacity.js';
 import { VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS, VERSION_EDITOR_EXECUTION_MS, OFFICIAL_VERSION_EDITOR_EXECUTION_MS } from '../acceptance/budgets.js';
 import { verifyLanguageEvidence } from '../checks/i18n-evidence.ts';
+import { publishedReleaseTag, verifyDeliveryBytes } from '../checks/release-ci-evidence.js';
+import { releaseFilenames, releasePolicyAt, sourceVersion } from '../checks/release-ci-policy.js';
+import { verifyReleaseDelivery } from './ci-delivery.js';
 import { parseOfficialTestSummary, verifyOfficialTestBatches, type OfficialTestReceipt } from '../acceptance/official-tests.js';
 import { sha256 as digestBytes } from '../build/files.js';
 import { coverageVersionAt, coverageVersionInArchive, historyCounts, verifyCoveragePlan, type CoveragePlan } from '../checks/ci-coverage.ts';
@@ -244,28 +247,45 @@ export function assessEvidenceDirectory(directory: string, commit: string, sha25
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' }, stable: { type: 'boolean' }, candidate: { type: 'boolean' },
         'coverage-basis':{type:'string'},'coverage-base':{type:'string'},'coverage-run-id':{type:'string'},'coverage-attempt':{type:'string'},'coverage-workflow-sha':{type:'string'} } });
-    if (!values.artifact || !values.commit || !values.evidence || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE');
+    if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report NEW_FILE');
     assert(!(values.preview && values.stable), 'Choose preview or stable readiness');
     assert(!(values.candidate && (values.preview || values.stable)), 'Candidate acceptance and publication are separate modes');
-    const candidate = verifyDelivery(resolve(values.artifact), values.commit);
-    verifyLanguageEvidence(candidate.language, candidate.sourceEntries, values.commit, values.preview === true || values.stable === true);
-    const basis = values['coverage-basis'];
-    if (Object.keys(values).some(key=>key.startsWith('coverage-'))) assert(basis && ['pull_request','accepted-main','conservative'].includes(basis),'Invalid coverage basis');
-    const context = basis ? {basis:basis as CoveragePlan['basis'],base:values['coverage-base'] ?? null,run_id:Number(values['coverage-run-id']),
-        attempt:Number(values['coverage-attempt']),workflow_sha:values['coverage-workflow-sha'] ?? ''} : undefined;
-    const result = assessEvidenceDirectory(values.evidence, values.commit, candidate.sha256, candidate.sourceEntries, context);
-    if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
-    let approval = null;
-    if (values.stable || values.candidate && candidate.source.channel === 'stable') {
-        assert.equal(candidate.source.channel, 'stable', 'Stable gate requires the stable public package');
-        approval = sourceStableApproval(candidate.sourceEntries, candidate.source.application_version);
+    const artifact = resolve(values.artifact);
+    if ((values.preview || values.stable) && releasePolicyAt(values.commit)) {
+        const version = sourceVersion(values.commit), channel = values.stable ? 'stable' : 'preview';
+        assert.equal(basename(artifact), releaseFilenames(version).package);
+        const source = await publishedReleaseTag('v' + version, values.commit);
+        verifyDeliveryBytes(dirname(artifact), version, source.candidate.delivery);
+        const checked = verifyReleaseDelivery(dirname(artifact), values.commit);
+        assert.equal(checked.channel, channel);
+        const report = { kind: 'release-ci', status: 'pass', commit: values.commit, application_version: version, channel,
+            tarball_sha256: checked.sha256, stable_ready: channel === 'stable', preview_ready: channel === 'preview',
+            candidate: source.candidate_ref, integration: source.integration_ref, tag: source.tag_ref,
+            language: checked.language, maintainer_approval: checked.approval };
+        fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+        console.log(JSON.stringify(report));
+    } else {
+        assert(values.evidence, 'Require --evidence DIRECTORY for a complete diagnostic or historical release');
+        const candidate = verifyDelivery(artifact, values.commit);
+        verifyLanguageEvidence(candidate.language, candidate.sourceEntries, values.commit, values.preview === true || values.stable === true);
+        const basis = values['coverage-basis'];
+        if (Object.keys(values).some(key=>key.startsWith('coverage-'))) assert(basis && ['pull_request','accepted-main','conservative'].includes(basis),'Invalid coverage basis');
+        const context = basis ? {basis:basis as CoveragePlan['basis'],base:values['coverage-base'] ?? null,run_id:Number(values['coverage-run-id']),
+            attempt:Number(values['coverage-attempt']),workflow_sha:values['coverage-workflow-sha'] ?? ''} : undefined;
+        const result = assessEvidenceDirectory(values.evidence, values.commit, candidate.sha256, candidate.sourceEntries, context);
+        if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
+        let approval = null;
+        if (values.stable || values.candidate && candidate.source.channel === 'stable') {
+            assert.equal(candidate.source.channel, 'stable', 'Stable gate requires the stable public package');
+            approval = sourceStableApproval(candidate.sourceEntries, candidate.source.application_version);
+        }
+        const ready = candidate.language?.report.release_ready ?? true;
+        const report = { ...result, ...(candidate.language ? { language: candidate.language } : {}), application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
+            preview_ready: (values.preview === true || values.candidate === true && candidate.source.channel === 'preview') && ready,
+            stable_ready: (values.stable === true || values.candidate === true) && approval !== null && ready,
+            unverified_gates: UNVERIFIED_GATES, maintainer_approval: approval,
+            deferred_to_stable: approval !== null ? [] : UNVERIFIED_GATES };
+        fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+        console.log(JSON.stringify(report));
     }
-    const ready = candidate.language?.report.release_ready ?? true;
-    const report = { ...result, ...(candidate.language ? { language: candidate.language } : {}), application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
-        preview_ready: (values.preview === true || values.candidate === true && candidate.source.channel === 'preview') && ready,
-        stable_ready: (values.stable === true || values.candidate === true) && approval !== null && ready,
-        unverified_gates: UNVERIFIED_GATES, maintainer_approval: approval,
-        deferred_to_stable: approval !== null ? [] : UNVERIFIED_GATES };
-    fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
-    console.log(JSON.stringify(report));
 }

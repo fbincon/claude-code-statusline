@@ -9,7 +9,7 @@ Select validation from the actual change and preserve each result's source/artif
 | Documentation/templates | Accurate current behavior, bilingual agreement, working links/anchors/navigation, `docs:check` and whitespace checks |
 | Images, recordings and demonstrations | Planned media checks plus readable output, matching installed package, input/configuration provenance and reproducible operations; [SHOWCASE-01](showcase.md) records this separately from documentation acceptance |
 | Tools, tests, presentation or CI policy | The applicable `ci:plan`/`ci:check` tasks; package-sensitive classification must resolve its comparison |
-| Core behavior/runtime dependencies | Complete product checks and the applicable installed/runtime/host matrix |
+| Core behavior/runtime dependencies | Local product suite and any targeted diagnostics selected for the change |
 | Terminal, physical or paid work | Explicitly scoped collection, source-bound reports and actual limitations; paid calls need an approved budget and shared ledger |
 
 <a id="known-validation-gaps"></a>
