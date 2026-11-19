@@ -9,6 +9,7 @@ import { SourceService } from '../src/sources/service.js';
 import { contextFor } from '../src/sources/context.js';
 import { checkSummary, refreshGithub, refreshCommand } from '../src/sources/providers.js';
 import { definition } from '@fbincon/statusline-core/extensions/model';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { fileURLToPath } from 'node:url';
 test('manual workers publish observations, reject concurrent refreshes and cancel late commands',async t=>{
     const root=mkdtempSync(join(tmpdir(),'source worker ')), workerEntry=join(root,'worker.mjs'), workers:string[]=[];
@@ -79,14 +80,61 @@ test('GitHub provider binds every query to repository, branch, account and HEAD'
 
 test('real Git discovery distinguishes branch names, object IDs and detached HEAD',async t=>{
     const {execFileSync}=await import('node:child_process');
-    const root=mkdtempSync(join(tmpdir(),'source git 中文 '));t.after(()=>rmSync(root,{recursive:true,force:true}));
+    const root = mkdtempSync(join(tmpdir(), 'source git 中文 '));
+    t.after(() => { removeTree(root); assert.equal(existsSync(root), false); });
     const git=(args:string[])=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
     git(['init','--initial-branch=main']);
     git(['-c','user.name=Source Test','-c','user.email=source@example.invalid','commit','--allow-empty','-m','fixture']);
+    git(['tag', 'main']);
     const context=contextFor(root,'session');
     assert.equal(context.branch,'main');assert.equal(context.head,git(['rev-parse','HEAD']));
     git(['checkout','--detach']);
     assert.equal(contextFor(root).branch,null);assert.equal(contextFor(root).head,context.head);
+});
+
+test('GitHub follows the literal checked-out branch and refuses ambiguous or mismatched PRs', async () => {
+    const branch = 'feat/界面$(literal)', head = 'a'.repeat(40);
+    const context = { project: process.cwd(), session: null, agent: null, branch, head };
+    const source = definition({ id: 'forge', name: 'Forge', kind: 'github', scope: { project: context.project, session: null, agent: null },
+        ttl_seconds: 300, settings: { repository: 'owner/repo', branch: null, account: 'owner' }, enabled: true, revision: 'r1' });
+    const match = { number: 8, url: 'https://github.com/owner/repo/pull/8', headRefName: branch, headRefOid: head };
+    const cases = [
+        { prs: [match], reason: 'valid', ci: 'pending' },
+        { prs: [], reason: 'no_pr', ci: 'no_pr' },
+        { prs: [match, { ...match, number: 9 }], reason: 'ambiguous' },
+        { prs: [{ ...match, headRefName: 'other' }], reason: 'identity' },
+        { prs: [{ ...match, headRefOid: 'b'.repeat(40) }], reason: 'identity' },
+    ];
+    for (const { prs, reason, ci } of cases) {
+        const calls: (readonly string[])[] = [];
+        const result = await refreshGithub(source, context, new AbortController().signal, async ({ args }) => {
+            calls.push(args);
+            const response = args[0] === 'api' ? { login: 'owner' } : args[1] === 'list' ? prs : args[1] === 'checks' ? [{ bucket: 'pending' }] : { headRefOid: head };
+            return { code: 0, reason: 'completed', stdout: JSON.stringify(response) };
+        });
+        assert(calls[1]?.includes('--head=' + branch));
+        assert.equal(calls.length, reason === 'valid' ? 4 : 2);
+        assert.equal(result.reason, reason);
+        assert.equal(result.fields?.ci, ci);
+    }
+
+    const run = async () => assert.fail('An inapplicable checkout must not run gh');
+    for (const [actual, reason] of [[{ ...context, branch: null }, 'detached'], [{ ...context, branch: null, head: null }, 'not_repository']] as const) {
+        const result = await refreshGithub(source, actual, new AbortController().signal, run);
+        assert.equal(result.state, 'unsupported');
+        assert.equal(result.reason, reason);
+    }
+    const fixed = { ...source, settings: { ...source.settings, branch: 'current', pr: 8 } };
+    const mismatch = await refreshGithub(fixed, context, new AbortController().signal, run);
+    assert.equal(mismatch.reason, 'branch_mismatch');
+    const actual = { ...context, branch: 'current' };
+    const pinned = await refreshGithub(fixed, actual, new AbortController().signal, async ({ args }) => {
+        if (args[0] === 'api') return { code: 0, reason: 'completed', stdout: '{"login":"owner"}' };
+        if (args[1] === 'checks') return { code: 0, reason: 'completed', stdout: '[]' };
+        assert.deepEqual(args.slice(0, 3), ['pr', 'view', '8']);
+        return { code: 0, reason: 'completed', stdout: JSON.stringify({ ...match, headRefName: 'current' }) };
+    });
+    assert.equal(pinned.fields?.pr, 8);
 });
 
 test('GitHub no-checks exit is distinct from authentication, permissions and transport failure',async()=>{

@@ -5,7 +5,10 @@ export function sourceSummary(report:SourceInspection,language:Language):string[
     const tr=(key:string,params:Record<string,unknown>={})=>t('sources.'+key,language,params),unknown=t('task.unknown',language);
     const {source,view,automatic}=report;
     const reason=(value:string)=>t('sources.error.'+value,language,{},t('sources.reason.'+value,language,{},value));
-    const lines=[source.name+' · '+tr(source.enabled?'enabled':'disabled'),tr('summary_state',{state:tr('reason.'+automatic.state),reason:reason(automatic.reason)}),tr('summary_scope',{project:source.scope.project??tr('scope_all'),session:source.scope.session??tr('scope_all'),agent:source.scope.agent??tr('scope_all')}),tr('summary_value',{value:view.value===null?unknown:String(view.value),state:tr('reason.'+view.state),freshness:tr('reason.'+view.freshness)}),tr('summary_reason',{reason:reason(view.reason)}),tr('summary_success',{value:report.last_success??automatic.last_success??unknown}),tr('summary_next',{value:automatic.next_at??unknown,interval:automatic.interval_seconds})];
+    const lines=[source.name+' · '+tr(source.enabled?'enabled':'disabled'),tr('summary_state',{state:tr('reason.'+automatic.state),reason:reason(automatic.reason)}),tr('summary_scope',{project:source.scope.project??tr('scope_all'),session:source.scope.session??tr('scope_all'),agent:source.scope.agent??tr('scope_all')}),tr('summary_value',{value:view.value===null?unknown:String(view.value),state:tr('reason.'+view.state),freshness:tr('reason.'+view.freshness)}),tr('summary_reason',{reason:reason(view.reason)})];
+    if (view.reason === 'branch_mismatch' && view.fields)
+        lines.push(tr('github_branch_mismatch_details', { configured: view.fields.configured_branch, current: view.fields.current_branch }));
+    lines.push(tr('summary_success',{value:report.last_success??automatic.last_success??unknown}),tr('summary_next',{value:automatic.next_at??unknown,interval:automatic.interval_seconds}));
     for(const job of report.jobs){
         lines.push(tr('summary_job',{id:job.id,state:tr('reason.'+job.state),reason:reason(job.reason)}));
         lines.push(tr('summary_scope',{project:job.context.project??unknown,session:job.context.session??unknown,agent:job.context.agent??unknown}));
@@ -17,5 +20,9 @@ export function sourceSummary(report:SourceInspection,language:Language):string[
 
 export function sourceReviewLines(source:SourceDefinition,language:Language):string[]{
     const tr=(key:string)=>t('sources.'+key,language),all=tr('scope_all');
-    return [tr('field.id')+': '+source.id,tr('field.name')+': '+source.name,tr(source.kind),tr('field.project')+': '+(source.scope.project??all),tr('field.session')+': '+(source.scope.session??all),tr('field.agent')+': '+(source.scope.agent??all),tr('field.ttl_seconds')+': '+source.ttl_seconds,...Object.entries(source.settings).map(([key,value])=>tr('field.'+key)+': '+(typeof value==='object'?JSON.stringify(value):String(value??'')))];
+    const settings = Object.entries(source.settings).map(([key, value]) => {
+        const display = key === 'branch' && value === null ? tr('github_branch_follow') : typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
+        return tr('field.' + key) + ': ' + display;
+    });
+    return [tr('field.id')+': '+source.id,tr('field.name')+': '+source.name,tr(source.kind),tr('field.project')+': '+(source.scope.project??all),tr('field.session')+': '+(source.scope.session??all),tr('field.agent')+': '+(source.scope.agent??all),tr('field.ttl_seconds')+': '+source.ttl_seconds,...settings];
 }

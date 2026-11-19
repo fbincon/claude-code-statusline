@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import test from 'node:test';
 import { setup, assert, join, writeFileSync, readFileSync, jsonBytes, draft, legacy } from './final-support.js';
 import { invoke } from './final-cli-support.js';
@@ -63,10 +64,12 @@ test('expanded language preferences and displays read without rewriting and old 
     assert.deepEqual(readFileSync(f.displayPath), display);
   }
   const before = readFileSync(f.displayPath);
-  const stale = f.protocol.handle('{"protocol_version":30,"operation":"read","payload":{}}');
-  assert.equal(stale.status, 2);
-  assert.equal((stale.response as any).protocol_version, 31);
-  assert.equal((stale.response as any).error.code, 'unsupported_protocol');
+  for (const protocol_version of [30, 31]) {
+    const stale = f.protocol.handle(JSON.stringify({ protocol_version, operation: 'read', payload: {} }));
+    assert.equal(stale.status, 2);
+    assert.equal((stale.response as any).protocol_version, PROTOCOL_VERSION);
+    assert.equal((stale.response as any).error.code, 'unsupported_protocol');
+  }
   assert.deepEqual(readFileSync(f.displayPath), before);
   for (const unknown of ['es-ES', 'fr-FR', 'de-DE', 'pt', 'pt-br', 'ru-RU', 'id-ID']) {
     assert.equal(resolveLanguage(unknown), null);

@@ -1,4 +1,6 @@
 /** Strict response validation shared by the native and external source managers. */
+import { SOURCE_REGISTRY_VERSION } from '../contracts/ui.js';
+
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string' && v.length <= 16384 && !/[\p{Cc}\p{Cs}]/u.test(v);
 const nullable = (v: unknown) => v === null || text(v);
@@ -7,14 +9,15 @@ const fields = (v: unknown, keys: string[]): v is Record<string, unknown> => obj
 const id = (v: unknown) => text(v) && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(v);
 const scope = (v: unknown) => fields(v, ['project', 'session', 'agent']) && Object.values(v).every(nullable) && (v.agent === null || v.session !== null);
 export const isSourceContext = (v: unknown) => fields(v, ['project', 'session', 'agent', 'branch', 'head']) && Object.values(v).every(nullable);
-function definition(v: unknown): boolean {
+function definition(v: unknown, allowFollow = true): boolean {
     if (!fields(v, ['id', 'name', 'kind', 'scope', 'ttl_seconds', 'settings', 'enabled', 'revision']) || !id(v.id) || !text(v.name) || !['json', 'github', 'command'].includes(String(v.kind)) || !scope(v.scope) || !id(v.revision) || typeof v.enabled !== 'boolean' || typeof v.ttl_seconds !== 'number' || !Number.isInteger(v.ttl_seconds) || v.ttl_seconds < 1 || v.ttl_seconds > 86400 || !object(v.settings))
         return false;
     const s = v.settings;
     if (v.kind === 'json')
         return fields(s, ['path', 'pointer', 'observed_at_pointer', 'unit']) && Object.values(s).every(text);
     if (v.kind === 'github')
-        return fields(s, ['host', 'repository', 'branch', 'account', 'pr']) && ['host', 'repository', 'branch', 'account'].every(key => text(s[key])) && (s.pr === null || typeof s.pr === 'number' && Number.isSafeInteger(s.pr) && s.pr > 0);
+        return fields(s, ['host', 'repository', 'branch', 'account', 'pr']) && ['host', 'repository', 'account'].every(key => text(s[key])) &&
+            (s.branch === null ? allowFollow && s.pr === null : text(s.branch)) && (s.pr === null || typeof s.pr === 'number' && Number.isSafeInteger(s.pr) && s.pr > 0);
     return fields(s, ['executable', 'args', 'cwd', 'input', 'output', 'timeout_ms']) && text(s.executable) && text(s.cwd) && Array.isArray(s.args) && s.args.length <= 128 && s.args.every(arg => typeof arg === 'string' && arg.length <= 8192 && !arg.includes('\0')) && object(s.input) && Object.entries(s.input).every(([key, value]) => /^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(key) && ['project', 'session', 'agent', 'branch', 'head'].includes(String(value))) && ['json', 'text'].includes(String(s.output)) && typeof s.timeout_ms === 'number' && Number.isInteger(s.timeout_ms) && s.timeout_ms >= 100 && s.timeout_ms <= 30000;
 }
 export function validSourceExecution(v:unknown):boolean {
@@ -45,7 +48,7 @@ export function isSourceResult(operation: string, value: unknown): boolean {
         return fields(value, ['source', 'view', 'jobs', 'automatic']) && object(value.automatic) && ['off', 'waiting', 'running', 'backoff', 'paused'].includes(String(value.automatic.state)) && text(value.automatic.reason) && ['next_at', 'last_attempt', 'last_success'].every(k => value.automatic && nullable((value.automatic as Record<string, unknown>)[k])) && typeof value.automatic.interval_seconds === 'number' && value.automatic.interval_seconds >= 60 && value.automatic.interval_seconds <= 86400 && definition(value.source) && view(value.view) && Array.isArray(value.jobs) && value.jobs.every(job);
     if (!['sources_read', 'sources_apply'].includes(operation) || !fields(value, ['version', 'sources', 'bindings', 'automatic', 'revision', ...(operation === 'sources_apply' ? ['backup_dir', ...(Object.hasOwn(value, 'binding') ? ['binding'] : [])] : [])]))
         return false;
-    if (![2,3].includes(Number(value.version)) || !text(value.revision) || !Array.isArray(value.sources) || value.sources.length > 128 || !value.sources.every(definition) || !Array.isArray(value.bindings) || value.bindings.length > 4096)
+    if (![2, 3, SOURCE_REGISTRY_VERSION].includes(Number(value.version)) || !text(value.revision) || !Array.isArray(value.sources) || value.sources.length > 128 || !value.sources.every(source => definition(source, value.version === SOURCE_REGISTRY_VERSION)) || !Array.isArray(value.bindings) || value.bindings.length > 4096)
         return false;
     if (!Array.isArray(value.automatic) || value.automatic.length > value.sources.length || !value.automatic.every(p => fields(p, ['source_id', 'enabled', 'review_revision', 'interval_seconds', 'auth_revision']) && id(p.source_id) && typeof p.enabled === 'boolean' && id(p.review_revision) && typeof p.interval_seconds === 'number' && Number.isInteger(p.interval_seconds) && p.interval_seconds >= 60 && p.interval_seconds <= 86400 && typeof p.auth_revision === 'string' && /^[a-f0-9]{64}$/.test(p.auth_revision))) return false;
     if (!value.bindings.every(b => fields(b, ['id', 'source_id']) && id(b.id) && id(b.source_id)))

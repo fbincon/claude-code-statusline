@@ -118,6 +118,7 @@ export async function collectJourneys(options: { fixture: string; output: string
     }
     const isolation = noNetwork(), load = (workspace: string, file: string) => import(pathToFileURL(join(modules, 'statusline-' + workspace, 'dist/src', file + '.js')).href);
     const { t } = await load('core', 'i18n/messages');
+    const { PROTOCOL_VERSION } = await load('core', 'contracts/ui');
     const version = execFileSync(options.claude, ['--version'], { encoding: 'utf8', timeout: 10000 }).trim();
     assert(version.startsWith('2.1.314 '), 'Capture the named host version');
     fs.mkdirSync(output, { recursive: true, mode: 0o700 });
@@ -145,7 +146,7 @@ export async function collectJourneys(options: { fixture: string; output: string
         fs.appendFileSync(join(output, 'commands.jsonl'), JSON.stringify({ args, status: r.status, stdout: r.stdout, stderr: r.stderr }) + '\n', { mode: 0o600 });
         assert.equal(r.status, 0, 'Installed command failed: ' + args.slice(0, 3).join(' ')); return r.stdout;
     };
-    const ui = (operation: string, payload: unknown = {}) => JSON.parse(run(['ui'], JSON.stringify({ protocol_version: 31, operation, payload }))).result;
+    const ui = (operation: string, payload: unknown = {}) => JSON.parse(run(['ui'], JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation, payload }))).result;
     const request = join(output, 'host-request.json');
     write(request, { host: { executable: options.claude, args: [] }, version: [2, 1, 314], launch: { executable: fixture.node, args: [fixture.entry] } });
     const preparation = spawnSync('/usr/bin/unshare', [...isolation, process.execPath, join(repoRoot, 'dist/typescript/tools/migration/ts-04/test/installed-driver.js'),

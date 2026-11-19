@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compareVersions, compatibility, runtimeCompatibility, PACKAGE_COMPATIBILITY } from '../src/management/compatibility.js';
 import { exactVersion } from '../src/management/package.js';
+import { PROTOCOL_VERSION, SOURCE_REGISTRY_VERSION } from '../src/contracts/ui.js';
 test('package ordering is exact SemVer, including prerelease numeric identifiers', () => {
     for (const [before, after] of [['3.7.0', '3.8.0'], ['3.8.0-beta.2', '3.8.0-beta.10'], ['3.8.0-beta.1', '3.8.0'], ['3.8.0-2', '3.8.0-alpha']]) {
         assert.equal(compareVersions(before!, after!), -1);
@@ -14,7 +15,8 @@ test('package ordering is exact SemVer, including prerelease numeric identifiers
 test('compatibility is explicit, bounded and independent of display/editor schema changes', () => {
     const historical = compatibility(undefined, '3.7.0');
     assert.equal(historical.editor_protocol, 21);
-    assert.equal(PACKAGE_COMPATIBILITY.editor_protocol, 31);
+    assert.equal(PACKAGE_COMPATIBILITY.editor_protocol, PROTOCOL_VERSION);
+    assert.deepEqual(PACKAGE_COMPATIBILITY.read.sources, [1, SOURCE_REGISTRY_VERSION]);
     assert.deepEqual(historical.read.display, [1, 13]);
     assert.throws(() => compatibility(undefined, '3.6.0'));
     assert.throws(() => compatibility(undefined, '3.8.0'));

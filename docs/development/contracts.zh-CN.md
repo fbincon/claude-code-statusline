@@ -30,10 +30,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":31,"operation":"read","payload":{}}
+{"protocol_version":32,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":31,"result":{...}}`；失败为 `{"protocol_version":31,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":32,"result":{...}}`；失败为 `{"protocol_version":32,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 ## 操作清单
 
@@ -82,7 +82,7 @@
 
 ### 结构化格式
 
-协议 v31 返回完整 schema v17 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子代理草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v32 返回完整 schema v17 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子代理草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失当前必需字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ### 实例身份与草稿
 
@@ -90,17 +90,17 @@
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 17 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 17、UI protocol 31、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 17、UI protocol 32、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ### 状态栏语言
 
-显示 schema v17 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko` / `es` / `fr` / `de` / `pt-BR` / `ru` / `id`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v31 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v3 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
+显示 schema v17 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko` / `es` / `fr` / `de` / `pt-BR` / `ru` / `id`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v32 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v3 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
 
 <a id="phase-5-指标迁移"></a>
 
 ### 分支基准与运行兼容
 
-显示 schema v17 保留可空 `metrics.branch_diff_base_ref`；配置协议 v31 在两个编辑器、冲突、预览和便携文件中保留它。兼容显示 v1–v16 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v17 保留可空 `metrics.branch_diff_base_ref`；配置协议 v32 在两个编辑器、冲突、预览和便携文件中保留它。兼容显示 v1–v16 读取不写盘，真实保存才备份迁移；独立运行协议为 v3，兼容接收 v1/v2 观测。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 <a id="revision-与前端生成"></a>
 
@@ -157,7 +157,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 `reasons.origin` 区分草稿配置、本地配置、已知宿主能力和未知证据。安装归属和运行偏好读取失败时返回未知；正常读取缺失的偏好使用既有默认关闭语义。`explain` 不获取安装锁、不创建目录或修复文件，不读取转录、任务/用量缓存或 Git。既有 `read` 仍使用安装锁保护快照，可能创建锁目录；`preview` 继续完全不读取配置或检测宿主。
 
-`describe.presets` 包含 `purpose_key`、`requirements_key` 和 `example`；共享展示顺序保留原四种用途及两个示例，再列八套完整方案，预设 ID 和展开语义保持兼容。协议 31 要求匹配的前后端资源；显示 schema 17、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
+`describe.presets` 包含 `purpose_key`、`requirements_key` 和 `example`；共享展示顺序保留原四种用途及两个示例，再列八套完整方案，预设 ID 和展开语义保持兼容。协议 32 要求匹配的前后端资源；显示 schema 17、运行协议 3、portable 1 和 UI preferences 1 独立保持兼容。
 
 `read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`、`background`，两个颜色通道分别为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..255}`，没有原始 ANSI 转义。返回主行和子代理行；空选择和关闭子代理显示仍返回空行列表。
 
@@ -169,7 +169,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 schema 17 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `ItemOptions` 与作用域规则表是规范定义，生成默认值、类型和共享验证样例供原生编辑器使用。CLI 与两端表单拒绝不适用的规则。生产和固定预览复用条件、样式和色块组合，观测及采集保持分离；portable v1 与 runtime v3 不变。
 
-协议 v31 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 schema v17、便携格式 v1、界面偏好 v1、运行协议 v3 独立演进；切换预览底色不迁移显示文件。
+协议 v32 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 schema v17、便携格式 v1、界面偏好 v1、运行协议 v3 独立演进；切换预览底色不迁移显示文件。
 
 样例及诊断行可包含 `style_reasons:[{code,owner_id}]`。原因码为 `colors_disabled`、`background_gradient_requires_powerline`、`group_background_owned`、`threshold_warning`、`threshold_critical`、`color_quantized`、`contrast_protected`，适用时携带主实例身份。原因来自生产渲染，与缺少观测证据独立。原生展示分别检查 props、Pane 和 Client 树，只传输报告／选择器的可见内容。
 
@@ -213,7 +213,7 @@ schema 17 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `I
 两个编辑器显示可展开分区和候选样例预览。Enter 展开详情，方向键选择分区，Page Up/Down 滚动，Tab 切换预览范围。
 A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取文件，也不改变打开时的 revision；保存仍是独立的冲突检查事务。
 界面偏好、独立宿主偏好及采集开关不属于便携文件。分区选择保留明确的全局白名单及完整主区／子代理区；当前协议还通过 `review_reuse` 提供经审阅的视觉样式与整组复用，见[草稿复用](../DRAFT_HISTORY.zh-CN.md)。未选状态及本地来源绑定保留，参见[选择性导入](#选择性导入契约)。
-原有 `import` 操作继续供匹配协议的客户端使用。协议 v31 与显示 schema v17 独立演进；前后端资源需匹配重装。
+原有 `import` 操作继续供匹配协议的客户端使用。协议 v32 与显示 schema v17 独立演进；前后端资源需匹配重装。
 
 `preset` 接收 `{draft,preset}`，返回共享 core 展开的 `{draft}`；`import` 接收 `{draft,path,selection?}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 core 唯一预设定义生成。
 
@@ -223,7 +223,7 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 ### 设置与完整外观契约
 
-`display.powerline` 对象使用封闭选项与兼容默认值，schema 17 和编辑器协议 31 要求匹配资源。`describe.options` 与 `editor_fields` 从共享描述生成色块控制及连续行背景。相同预设注册表包含六种原有预设和八套完整方案，最初设置交付引入其中前三套。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
+`display.powerline` 对象使用封闭选项与兼容默认值，schema 17 和编辑器协议 32 要求匹配资源。`describe.options` 与 `editor_fields` 从共享描述生成色块控制及连续行背景。相同预设注册表包含六种原有预设和八套完整方案，最初设置交付引入其中前三套。setup 使用独立的只读检查与仅保存显示服务，不在编辑器协议新增安装操作。[实现与验收](setup-appearance.zh-CN.md)。
 
 ### 数据源协议
 
@@ -233,7 +233,9 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 来源检查与包管理还提供 `source_inspect`、`source_bindings_review/cleanup`、`source_draft`、`package_execute_start/status/detach` 和 `package_cleanup_review/apply`。Core 定义有界摘要／分页及共享交互状态，CLI 实施修订、身份、许可和引用规则，平台层承担文件、进程及删除效果；Mod 资源由规范契约生成。
 
-来源注册表 3 扩展命令自动策略。旧表只读兼容，不补授许可。任务 4 增加可选有界执行结果；任务 1–3 缺失信息显示未知。观测保持 1，增加可选检查／执行字段。外部命令输出协议仍为 v1，runtime 仍为 v3，增加可选且已确认归属的本地代理上下文。调度身份包含来源修订、声明范围及实际输入，维持五秒续租、十五秒过期。
+来源注册表 v4 接受 GitHub 来源的 `settings.branch: null`，使用当前检出的分支。GitHub 范围仍指定一个项目或工作树。保存跟随来源时在既有锁及备份事务中升级注册表。已登记的分支字符串继续按字面匹配，v3 及后续版本支持经审核的命令自动策略。读取保留原始字节和授权。任务 4 包含有界执行结果，任务 1–3 缺失的结果显示为未知。当前观测、命令与运行时版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
+
+GitHub 自动刷新租约及观测身份包含实际分支和提交。每个适用的新检出身份拥有独立调度。在途任务发现检出已改变时，以 `context_changed` 结束，保留该身份原有观测和调度。固定来源遇到分支不符时返回 `mismatch`，原因为 `branch_mismatch`，两个分支名称位于 `view.fields`。检查缓存前即可从检出和来源定义得出该状态。
 <a id="workflow-02-automatic-policy"></a>
 
 ### 自动策略与生命周期
@@ -246,11 +248,11 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。其他接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
 
-包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。包历史／未完成事务的 `running` 为 `true`、`false` 或 `null`（无法确认）；未知执行器保留记录，并阻止恢复／替换，直到确认退出或身份不同。清理绑定修订并保守保护。来源注册表 3 或较新显示配置可能无法被旧包读取；回退审核必须在替换前拒绝不兼容配置，禁止修改 schema 数字强行回退。
+包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。包历史／未完成事务的 `running` 为 `true`、`false` 或 `null`（无法确认）；未知执行器保留记录，并阻止恢复／替换，直到确认退出或身份不同。清理绑定修订并保守保护。回退审核在替换前核对每个已存格式是否落在目标包的读取范围内，包括来源注册表 v4。需要恢复旧格式字节时，使用经审核的配置恢复流程。
 
 ### TypeScript 后端绑定
 
-随包编译的 ESM 后端已实现全部 UI v31 操作（含预览 span）、runtime v3 及 v1/v2 observe/read 兼容操作，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
+随包编译的 ESM 后端已实现全部 UI v32 操作（含预览 span）、runtime v3 及 v1/v2 observe/read 兼容操作，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
 
 `/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。集成选择原生终端启动器，将私有结果租约与父进程身份、后端 argv、配置及 nonce 绑定；等待配置锁后在锁内再次检查保存许可。测试同时覆盖隔离的真实 PTY、tmux 弹窗、Windows 控制台与注入启动器。
 
@@ -274,7 +276,7 @@ Client 编辑器首次打开时读取目录和配置，保留完整草稿及数�
 | `io_error` | 文件操作失败，检查消息及回滚诊断 |
 | `internal_error` | 意外后端故障，检查 stderr |
 
-错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v31，UI 偏好 schema v1 与运行协议 v3 保持独立。
+错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v32，UI 偏好 schema v1 与运行协议 v3 保持独立。
 
 见[翻译架构与贡献规则](i18n.zh-CN.md)。
 
@@ -321,6 +323,7 @@ Client 编辑器首次打开时读取目录和配置，保留完整草稿及数�
 | 29 | 16 | [草稿历史、结构审阅与复用](draft-history-and-reuse.zh-CN.md) |
 | 30 | 17 | <a id="schema-17-与编辑器协议-30"></a>[自适应指标与连续行背景](#外观契约) |
 | 31 | 17 | [十二种语言及原始验收](history/deliveries/language-expansion.zh-CN.md#final-release) |
+| 32 | 17 | [跟随当前分支的 GitHub 来源](#数据源协议) |
 
 ### v1.3.0 历史端口
 

@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import { copyDraft } from '../../lib/editor/draft.ts';
 import { setup, START, RUN, PANE, keys, reply, selectSetting, output, previewDraft, visibleText } from '../fixtures.ts';
@@ -54,8 +55,8 @@ test('invalid imports and post-acceptance save conflicts preserve the draft', {t
   imported.host.padding=7;
   let invalid=true;
   fixture.behavior.process=(request,next)=> {
-    if(request.operation==='review_import') return invalid ? {value:output(JSON.stringify({protocol_version:31,error:{code:'invalid_configuration',message:'Invalid file',localization:null}}),2)} : {value:reply({draft:imported,changes:[change]})};
-    if(request.operation==='apply') return {value:output(JSON.stringify({protocol_version:31,error:{code:'configuration_conflict',message:'Changed externally',localization:null}}),2)};
+    if(request.operation==='review_import') return invalid ? {value:output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'invalid_configuration',message:'Invalid file',localization:null}}),2)} : {value:reply({draft:imported,changes:[change]})};
+    if(request.operation==='apply') return {value:output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'configuration_conflict',message:'Changed externally',localization:null}}),2)};
     return next();
   };
   await $.session.start(START); await $.command.run(RUN); const ui=await $.ui.mount(PANE);

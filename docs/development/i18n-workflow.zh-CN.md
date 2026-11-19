@@ -125,7 +125,7 @@ core 保持纯消息、搜索、Unicode 与渲染规则；platform 负责文件�
 
 ## I18N-02 历史设计与验收
 
-[v3.16.0 十二语言扩展](history/deliveries/language-expansion.zh-CN.md#final-release)已交付六种新增界面／输出语言及编辑器协议 31；发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。
+v3.16.0 的编辑器协议 31 引入六种新增界面及输出语言。发布记录保留原始来源身份和 144 组语言组合、313 项容量案例的验收。[十二语言扩展](history/deliveries/language-expansion.zh-CN.md#final-release)
 
 **I18N-02 已随 v3.15.0 交付。** 已接受的兼容基础先于增量生成及严格发布就绪启用。路线图统一维护完成状态；见[实现及实际证据](history/deliveries/i18n-02-delivery.zh-CN.md#final-release)与[维护命令](i18n.zh-CN.md#增量维护)。I18N-02 本身未新增语言，v3.16.0 随后扩展了注册表。
 

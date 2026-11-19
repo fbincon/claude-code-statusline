@@ -26840,6 +26840,143 @@
         "terms": []
       },
       "terms": {}
+    },
+    "c483c76ffd23c0a57551c3f5c341bb61e9fbaeedfc7de2dcda336f94564de717": {
+      "key": "sources.error.ambiguous",
+      "english": "Select a PR number in fixed-branch mode",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.ambiguous",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0cb2510144cdb2c8613e4e06cc197471810329804282da611a2e03d308bc24c3": {
+      "key": "sources.error.branch_mismatch",
+      "english": "The checked-out branch differs from the fixed PR head branch",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.branch_mismatch",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b2ee4188ecd0e1773945c499b6059800a2368d908e155badde6a7f5facdaf7b0": {
+      "key": "sources.error.context_changed",
+      "english": "The checkout changed during refresh",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.context_changed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c1167fa930ba9977f2d38458658d29c13dcbcba704327c9807a111a367e700d8": {
+      "key": "sources.error.detached",
+      "english": "Detached HEAD. Check out a branch to refresh.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.detached",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fb60bfb91c48a0a7dcb43cc9d888e72d0308df21a7b8a05bc24a8cf2aff4d59d": {
+      "key": "sources.error.github_branch_pr",
+      "english": "Set a fixed PR head branch to select a PR by number",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.github_branch_pr",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b41603f29d7e910f471acff161cc70c124c026522e6dc42780680fd129772edc": {
+      "key": "sources.error.not_repository",
+      "english": "No usable Git HEAD",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.not_repository",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4de99561885dea96b88d44d5f880576b7227e0d30e018e26e169449cf7459f0c": {
+      "key": "sources.field.branch",
+      "english": "PR head branch",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.field.branch",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c7b8d540825c0c694a712f0378c848306df47cfc363d3c1b8c2703ee5e945cb7": {
+      "key": "sources.github_branch_follow",
+      "english": "Follow the current branch",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.github_branch_follow",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ca25b5ee00b3130f315f3b51819710694d4c875777288f757ecb38efaefac736": {
+      "key": "sources.github_branch_help",
+      "english": "Blank follows the current branch.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.github_branch_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a18ef89eb2017d8d40d63e5ecf676b3e34d3fe292ded03b31517cf3bf7ccf913": {
+      "key": "sources.github_branch_mismatch_details",
+      "english": "Fixed branch {configured}, current branch {current}. Switch branches or edit this source to follow the checkout.",
+      "placeholders": [
+        "configured",
+        "current"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.github_branch_mismatch_details",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "de4acb82815ac0a134a91a780338789e8d8f765dfc53089e2a8a860aaa35a5eb": {
+      "key": "statusline.source.branch_mismatch",
+      "english": "branch mismatch",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "statusline.source.branch_mismatch",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "13ce07401832fc91212ea06f4c370f2ab597ad4f8cefd6ab3f0b9d0e08c895e9": {
+      "key": "statusline.source.fixed_branch",
+      "english": "fixed to {branch}",
+      "placeholders": [
+        "branch"
+      ],
+      "context": {
+        "version": 1,
+        "description": "statusline.source.fixed_branch",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -26938,6 +27075,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "beae462fe8bacb0e9e6bbea0263d3fa98a8ef263f400f8f8c1b1cc4e26d55aa2",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "d6d33bf0cbd20737fa48a15b56435021ac3bf57be8ebe139442e883654099345",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "52656e8104eef3fddd3d4546903fa0de93c0625abf47b3dd8130f7705d6a513e",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -27043,6 +27198,24 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "cb045d74d32e7ed194d2f6404d2a9720c37ef4e33ca616040406305216a47656",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "ccf328c3b88970d5c76a4781732599fc6ea626841bfb1fb3e808a50595c79af6",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "ko": {
@@ -27140,6 +27313,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "029f043b52e7a37a2c92f0d8e204983684f0be21707ee8f509a513097e0d64a7",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "478993a5bc48d1e4d3d7aa0ff7fe57f8c3f15d75ed8b9a494bbec51e4eef020f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "4cf7027a18893d8bcbf991e866a9c8a53fbe2466b507ebc68aa18d21085b7acd",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -27245,6 +27436,24 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "b2d837c30e517d9a6ed1323f3022c16bed56b16edc8207cc40db978badf2c383",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "a251448a845f061b697a95ef0bb7acd81545149f4a74a393d5e4818e10e5e088",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "zh-HK": {
@@ -27342,6 +27551,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "dc2a23cb62689da2abb2d235567c8dc8c6713fc172b44dbb02458e06a8845782",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "8549085dc7d87a24694ecb8c0ff40dda2e026920474b68994bc64d9db39c383b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "a251448a845f061b697a95ef0bb7acd81545149f4a74a393d5e4818e10e5e088",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -27447,6 +27674,24 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "8549085dc7d87a24694ecb8c0ff40dda2e026920474b68994bc64d9db39c383b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "a251448a845f061b697a95ef0bb7acd81545149f4a74a393d5e4818e10e5e088",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "es": {
@@ -27535,6 +27780,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "06d48030edff217688b64aab28766cf61feacf885e103379802c2b762266dcd2",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "74d32300856226482a1b823a33d276227c7535cab39002f9eec2d0feb072677e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "0fc18a0d301222018aaa20f72f1b4bad47da850bdc63b0931c845d3da432be3a",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
@@ -27631,6 +27894,24 @@
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "c5aeb932211f32717483816ad48985336ab3ef52cb5ef39c7e316c4b77008506",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "52656e8104eef3fddd3d4546903fa0de93c0625abf47b3dd8130f7705d6a513e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
       ]
     },
     "de": {
@@ -27701,6 +27982,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "8845ab6b81e98b98031f5873397bbd91d1f136e17228c8c3a7df95d04f6dd1fd",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "8de27cc13ff4e61a7e68f5a8b7bc6a00b4fe53881ddb531a157e241288253ab4",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "52656e8104eef3fddd3d4546903fa0de93c0625abf47b3dd8130f7705d6a513e",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
@@ -27779,6 +28078,24 @@
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "4dde9894d1a96c4fceb43b312655c19befadefbb4ffc010a79a3c7e24394b40f",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "39acf19f1dff905d1e8bf8b8eef994ebed0c885c42657145787e07123418cc02",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
       ]
     },
     "id": {
@@ -27853,6 +28170,24 @@
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
         }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "6f10c04bcaf395a26a1226b42758671ecbaf72309a11056615665251c802eb59",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "5fd42d783b7b6aee8ca8e89cca4e7363c8ad338957f103337ba10270983b5f52",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
       ]
     },
     "ru": {
@@ -27923,6 +28258,24 @@
         {
           "source": "3f689c0eaa29ad9ff161bbb7a09f689da69e0157e9e0bb31035065483844215b",
           "translation": "116cab7171cb3004107960a5a40496fc883e9a32a043b1b909db600f9a7cc1fc",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.error.ambiguous": [
+        {
+          "source": "2a4db1e820e00b7e7adce6c45a66742392e772f5e8b7ddc1776e585c9cd131d2",
+          "translation": "5bff0e238ebd488f5bd5d5de93b57a40fd16ce16bc08348f06ec3e43b636b5cc",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "sources.field.branch": [
+        {
+          "source": "999db6c47beff4a32e0bb3e64a5bef4bf779ba9ff3f6a2e911cebe33d953b6fd",
+          "translation": "7ab76a2eea0a8973b3a3a372e36b43321532507c5d509d8ea866974068934444",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"

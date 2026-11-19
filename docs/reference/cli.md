@@ -652,6 +652,8 @@ Interrupting a waiting refresh releases only that CLI consumer; other consumers/
 
 Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
 
+For GitHub definitions, `settings.branch: null` follows the checked-out branch of the configured worktree. Omitting `branch` on `source add` uses this default. `source edit` requires an explicit `branch`. A string selects a fixed PR head branch, which is required when `settings.pr` specifies a number. For a fixed-branch mismatch, `source diagnose --json` reports `view.reason` as `branch_mismatch` and the names in `view.fields.configured_branch` and `view.fields.current_branch`.
+
 ### Source binding maintenance
 
 ```text
@@ -1120,7 +1122,7 @@ This chapter is the current source of truth for interface and stored-format vers
 
 | Interface or format | Current version | Read and save compatibility | Specification |
 | --- | --- | --- | --- |
-| Editor UI protocol | `editor protocol 31` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
+| Editor UI protocol | `editor protocol 32` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
 | Display configuration | `display schema 17` | Reads schemas 1–16 in memory without rewriting; an explicit save backs up the old bytes and writes the current schema. | `packages/core/src/config/display.ts`; [display configuration](#display-configuration) |
 | Runtime observation protocol | 3 | Retains v1/v2 `observe`/`read`; `source_lifecycle` requires version 3. | [Live collection](../development/live.md); `packages/core/src/contracts/runtime.ts` |
 | Task lifecycle | 4 | Retains the schema-1 compatibility mirror. | `packages/core/src/runtime/tasks/model.ts`; [timer contracts](../development/timer.md) |
@@ -1130,7 +1132,7 @@ This chapter is the current source of truth for interface and stored-format vers
 | UI preferences | 1 | Future schemas refuse overwrite. | [Shared interface preference](#shared-interface-preference) |
 | Native and external editor preferences | 1 each | Separate files; unsupported hosts suspend without rewriting. | [Editor enablement preferences](#editor-enablement-preferences) |
 | Runtime preferences | 2 | Missing file defaults native timing and live metrics off. | [Live-collection preference](#live-collection-preference) |
-| Source registry | 2; 3 with command-source automatic policies | Reads registries 1–3; older registries are read-only and grant no new permission. | `packages/core/src/extensions/model.ts`; [source management](#source-management) |
+| Source registry | 2 by default, 3 after adding command automation, 4 after saving a following GitHub source | Reads registries 1–4. Reads preserve the stored bytes and grant no new permission. | `packages/core/src/extensions/model.ts`; [source management](#source-management) |
 | Source jobs | 4 | Reads jobs 1–3; missing execution diagnostics are unknown. | [Source management](#source-management) |
 | Source observations | 1 | Optional checks and execution fields. | [Extensions](../EXTENSIONS.md#freshness-sharing-and-links) |
 | Command source output protocol | 1 | JSON object with `valid`, `missing`, `partial`, `error` or `unsupported` states. | [Command sources](../EXTENSIONS.md#command-sources) |
@@ -1146,13 +1148,13 @@ The `statuslineCompatibility` record schema 1 declares these configuration read 
 | --- | --- |
 | Display configuration (`display`) | `[1, 17]` |
 | Profile collection (`profiles`) | `[1, 1]` |
-| Source registry (`sources`) | `[1, 3]` |
+| Source registry (`sources`) | `[1, 4]` |
 | Runtime preferences (`runtime_preferences`) | `[1, 2]` |
 | Native preferences (`native_preferences`) | `[1, 1]` |
 | External preferences (`external_preferences`) | `[1, 1]` |
 | UI preferences (`ui_preferences`) | `[1, 1]` |
 
-The record also declares `editor_protocol` 31, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
+The record also declares `editor_protocol` 32, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
 
 ### Unversioned and host-owned interfaces
 

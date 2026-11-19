@@ -4,6 +4,7 @@ import { contentDocuments, contentErrors, example, sourceExample } from '../docs
 import { ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
 import { SCHEMA_VERSION } from '@fbincon/statusline-core/config/display';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { developmentFacts, sourceReader, type SourceReader } from '../docs-source-facts.js';
 
@@ -42,6 +43,7 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
             [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, (suffix ? '显示 schema 999' : 'display schema 999')],
             [`docs/reference/cli${suffix}.md`, (suffix ? '编辑器协议 ' : 'editor protocol ') + PROTOCOL_VERSION, (suffix ? '编辑器协议 999' : 'editor protocol 999')],
+            [`docs/reference/cli${suffix}.md`, `\`[${PACKAGE_COMPATIBILITY.read.sources.join(', ')}]\``, '`[1, 3]`'],
             [`docs/reference/cli${suffix}.md`, '"schema_version": ' + SCHEMA_VERSION, '"schema_version": ' + (SCHEMA_VERSION - 1)],
         ] as const) {
             const changed = new Map(pages), original = changed.get(path!)!;
@@ -103,6 +105,7 @@ test('documentation examples require unique markers and strict production-compat
             ['<!-- docs-example: github-source -->', ''],
             ['<!-- docs-example: command-workflow -->', '<!-- docs-example: removed -->'],
             ['"kind": "github",', '"kind": "github",,'],
+            ['"branch": null,', '"branch": "feature/example",'],
             ['"ttl_seconds": 300,', '"ttl_seconds": 300, "ttl_seconds": 301,'],
             ['"ttl_seconds": 300,', '"ttl_seconds": NaN,'],
             ['"timeout_ms": 5000', '"unknown_timeout": 5000'],

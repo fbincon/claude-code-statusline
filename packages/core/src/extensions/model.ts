@@ -1,4 +1,5 @@
 import { graphemes, clip } from '../unicode/index.js';
+import { SOURCE_REGISTRY_VERSION } from '../contracts/ui.js';
 import type { AutomaticPolicy, SourceContext, SourceDefinition, SourceObservation, SourceReference, SourceRegistry, SourceScope, SourceSettings, SourceView } from '../contracts/ui.js';
 import { ConfigError, object, exact, integer, isSchema } from '../config/validation.js';
 import { numeric } from '../runtime/values.js';
@@ -36,6 +37,16 @@ export function matchesScope(scope: SourceScope, context: SourceScope): boolean 
 }
 export function sameContext(a: SourceContext, b: SourceContext): boolean {
     return (['project', 'session', 'agent', 'branch', 'head'] as const).every(key => a[key] === b[key]);
+}
+export function githubBranch(source: SourceDefinition, context: SourceContext):
+    { branch: string } | { reason: 'not_repository' | 'detached' | 'branch_mismatch' } {
+    if (!context.head)
+        return { reason: 'not_repository' };
+    if (!context.branch)
+        return { reason: 'detached' };
+    if (source.settings.branch !== null && source.settings.branch !== context.branch)
+        return { reason: 'branch_mismatch' };
+    return { branch: context.branch };
 }
 /** Cache only declared scope and supplied input identities; a project source is
  * reusable across sessions unless it explicitly consumes session/agent input. */
@@ -93,10 +104,13 @@ export function settings(kind: SourceDefinition['kind'], value: unknown): Source
         const host = sourceText(value.host ?? 'github.com', 253).toLowerCase(), repository = sourceText(value.repository, 256);
         if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/u.test(host) || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository))
             sourceError('invalid');
-        const branch = sourceText(value.branch, 256), account = sourceText(value.account, 128);
-        if (branch.startsWith('-') || !/^[A-Za-z0-9_-]+$/u.test(account))
+        const branch = value.branch === null ? null : sourceText(value.branch, 256), account = sourceText(value.account, 128);
+        if (branch?.startsWith('-') || !/^[A-Za-z0-9_-]+$/u.test(account))
             sourceError('invalid');
-        return { host, repository, branch, account, pr: value.pr == null ? null : integer(value.pr, 1, Number.MAX_SAFE_INTEGER, 'PR') };
+        const pr = value.pr == null ? null : integer(value.pr, 1, Number.MAX_SAFE_INTEGER, 'PR');
+        if (branch === null && pr !== null)
+            sourceError('github_branch_pr');
+        return { host, repository, branch, account, pr };
     }
     if (kind !== 'command')
         sourceError('invalid');
@@ -124,12 +138,14 @@ export function definition(value: unknown): SourceDefinition {
 }
 export function registry(value: unknown): SourceRegistry {
     if (!object(value)) sourceError('invalid');
-    const legacy = isSchema(value.version, 1);
+    const legacy = isSchema(value.version, 1), commands = isSchema(value.version, 3), following = isSchema(value.version, SOURCE_REGISTRY_VERSION);
     exact(value, ['version', 'sources', 'bindings', ...(legacy ? [] : ['automatic'])], 'source registry');
-    if (!(legacy || isSchema(value.version, 2) || isSchema(value.version, 3)) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
+    if (!(legacy || isSchema(value.version, 2) || commands || following) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
         sourceError('invalid');
     const sources = value.sources.map(definition), ids = new Set(sources.map(source => source.id));
     if (ids.size !== sources.length)
+        sourceError('invalid');
+    if (!following && sources.some(source => source.kind === 'github' && source.settings.branch === null))
         sourceError('invalid');
     const bindings = value.bindings.map(raw => { exact(raw, ['id', 'source_id'], 'source binding'); return { id: sourceId(raw.id), source_id: sourceId(raw.source_id) }; });
     if (new Set(bindings.map(binding => binding.id)).size !== bindings.length || bindings.some(binding => !ids.has(binding.source_id)))
@@ -139,12 +155,12 @@ export function registry(value: unknown): SourceRegistry {
         return value.automatic.map(raw => {
             exact(raw, ['source_id', 'enabled', 'review_revision', 'interval_seconds', 'auth_revision'], 'automatic policy');
             const source = sources.find(s => s.id === raw.source_id);
-            if (!source || (source.kind !== 'github' && !(isSchema(value.version, 3) && source.kind === 'command')) || typeof raw.enabled !== 'boolean' || raw.review_revision !== source.revision || typeof raw.auth_revision !== 'string' || !/^[a-f0-9]{64}$/.test(raw.auth_revision) || raw.enabled && !source.enabled) sourceError('review');
+            if (!source || (source.kind !== 'github' && !((commands || following) && source.kind === 'command')) || typeof raw.enabled !== 'boolean' || raw.review_revision !== source.revision || typeof raw.auth_revision !== 'string' || !/^[a-f0-9]{64}$/.test(raw.auth_revision) || raw.enabled && !source.enabled) sourceError('review');
             return { source_id: source.id, enabled: raw.enabled, review_revision: source.revision, interval_seconds: integer(raw.interval_seconds, 60, 86400, 'interval_seconds'), auth_revision: raw.auth_revision };
         });
     })();
     if (new Set(automatic.map(p => p.source_id)).size !== automatic.length) sourceError('invalid');
-    return { version: isSchema(value.version, 3) ? 3 : 2, sources, bindings, automatic };
+    return { version: following ? SOURCE_REGISTRY_VERSION : commands ? 3 : 2, sources, bindings, automatic };
 }
 export function stamp(value: unknown): string | null {
     if (value == null)
@@ -232,6 +248,14 @@ export function sourceView(source: SourceDefinition | undefined, context: Source
         return { ...result, state: 'disabled', reason: 'disabled' };
     if (!matchesScope(source.scope, context))
         return { ...result, state: 'mismatch', reason: 'scope' };
+    if (source.kind === 'github') {
+        const lookup = githubBranch(source, context);
+        if ('reason' in lookup) {
+            if (lookup.reason === 'branch_mismatch')
+                return { ...result, state: 'mismatch', reason: lookup.reason, fields: { configured_branch: source.settings.branch ?? null, current_branch: context.branch } };
+            return { ...result, state: 'unsupported', reason: lookup.reason };
+        }
+    }
     if (historicalAt !== undefined) {
         const original = [current, good], eligibleCurrent = observationAt(current, historicalAt), eligibleGood = observationAt(good, historicalAt);
         current = eligibleCurrent ?? eligibleGood;

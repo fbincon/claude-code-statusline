@@ -1,7 +1,7 @@
 import { safeLink } from '@fbincon/statusline-core/terminal/links';
 import { clip } from '@fbincon/statusline-core/unicode/index';
 import type { SourceDefinition, SourceContext, SourceObservation, SourceCheck } from '@fbincon/statusline-core/contracts/ui';
-import { parseObservation, emptyObservation, scalar, sourceError, executionSummary } from '@fbincon/statusline-core/extensions/model';
+import { parseObservation, emptyObservation, scalar, sourceError, executionSummary, githubBranch } from '@fbincon/statusline-core/extensions/model';
 import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
@@ -58,14 +58,11 @@ export function checkSummary(value: unknown): string {
     return buckets.includes('pass') ? 'success' : 'skipped';
 }
 export async function refreshGithub(source: SourceDefinition, context: SourceContext, signal: AbortSignal, run: SourceRunner = runSourceProcess): Promise<SourceObservation> {
+    const lookup = githubBranch(source, context);
+    if ('reason' in lookup)
+        return emptyObservation(source, context, lookup.reason, lookup.reason === 'branch_mismatch' ? 'missing' : 'unsupported');
     const s = source.settings, start = performance.now(), fingerprint = authRevision();
     const result = emptyObservation(source, context, 'not_refreshed');
-    if (!context.head)
-        return { ...result, state: 'unsupported', reason: 'not_repository' };
-    if (!context.branch)
-        return { ...result, state: 'unsupported', reason: 'detached' };
-    if (context.branch !== s.branch)
-        return { ...result, state: 'missing', reason: 'identity' };
     const repo = s.host + '/' + s.repository;
     let gitEnv: NodeJS.ProcessEnv;
     const invoke = async (args: string[], checks = false): Promise<unknown> => {
@@ -93,7 +90,7 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
         if (!object(user) || user.login !== s.account)
             sourceError('account');
         const fields = 'number,url,headRefOid,headRefName,reviewDecision';
-        const data = s.pr ? [await invoke(['pr', 'view', String(s.pr), '--repo', repo, '--json', fields])] : await invoke(['pr', 'list', '--repo', repo, '--head', s.branch!, '--state', 'open', '--limit', '100', '--json', fields]);
+        const data = s.pr ? [await invoke(['pr', 'view', String(s.pr), '--repo', repo, '--json', fields])] : await invoke(['pr', 'list', '--repo', repo, '--head=' + lookup.branch, '--state', 'open', '--limit', '100', '--json', fields]);
         if (!Array.isArray(data) || data.some(pr => !object(pr)))
             sourceError('invalid_output');
         if (authRevision() !== fingerprint)
@@ -103,7 +100,7 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
         if (data.length !== 1)
             sourceError('ambiguous');
         const pr = data[0] as Record<string, unknown>;
-        if (pr.headRefName !== context.branch || pr.headRefOid !== context.head)
+        if (pr.headRefName !== lookup.branch || pr.headRefOid !== context.head)
             sourceError('identity');
         if (typeof pr.number !== 'number' || !Number.isSafeInteger(pr.number) || pr.number < 1)
             sourceError('invalid_output');

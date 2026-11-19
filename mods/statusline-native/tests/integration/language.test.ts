@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '../../lib/generated-contracts.ts';
 import { clientKey } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, selectSetting, output, reply, sample, previewDraft, presentation, selectedSetting, visibleText } from '../fixtures.ts';
@@ -76,7 +77,7 @@ test('language persists immediately across cancel and reopening while display dr
 test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
-    ? {value:output(JSON.stringify({protocol_version:31,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
+    ? {value:output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
@@ -143,7 +144,7 @@ test('saving statusline language persists the complete draft while a refusal ret
   const fixture = setup(on);
   let refused = true;
   fixture.behavior.process = (request, next) => request.operation === 'apply' && refused
-    ? {value: output(JSON.stringify({protocol_version:31,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
+    ? {value: output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);

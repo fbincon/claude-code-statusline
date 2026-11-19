@@ -125,7 +125,7 @@ Use [testing and acceptance](testing.md) to record automated checks, actual host
 
 ## Historical I18N-02 design and acceptance
 
-The [v3.16.0 twelve-language expansion](history/deliveries/language-expansion.md#final-release) delivered six additional UI/output languages and editor protocol 31. Its publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases.
+In v3.16.0, editor protocol 31 introduced six additional UI and output languages. The publication record preserves the original source identities and acceptance of 144 language combinations and 313 capacity cases. [Twelve-language expansion](history/deliveries/language-expansion.md#final-release)
 
 **I18N-02 is delivered in v3.15.0.** The accepted compatibility foundation preceded activation of incremental generation and strict release readiness. The roadmap owns completion status; see the [implementation and actual evidence](history/deliveries/i18n-02-delivery.md#final-release) and [authoring commands](i18n.md#incremental-authoring). I18N-02 itself added no language; v3.16.0 expanded the registry afterward.
 

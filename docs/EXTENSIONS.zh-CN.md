@@ -111,7 +111,7 @@ git branch --show-current
 git rev-parse HEAD
 ```
 
-使用已推送到所选仓库的分支，本地 HEAD 必须与 PR head 一致。将下方 `/absolute/project`、`owner/repository`、`feature/example` 和 `your-gh-login` 替换为该项目绝对根目录、仓库、分支及已认证账号，将完整定义保存为 `forge-source.json`：
+按分支查询时会查找所选仓库中的开放 PR，PR 的 head 提交必须与本地 HEAD 一致。将下方 `/absolute/project`、`owner/repository` 和 `your-gh-login` 替换为工作树的绝对根目录、仓库及已认证账号，将完整定义保存为 `forge-source.json`。
 
 <!-- docs-example: github-source -->
 ```json
@@ -127,12 +127,14 @@ git rev-parse HEAD
   "settings": {
     "host": "github.com",
     "repository": "owner/repository",
-    "branch": "feature/example",
+    "branch": null,
     "account": "your-gh-login",
     "pr": null
   }
 }
 ```
+
+新建来源默认跟随当前检出分支。在 JSON 中填写 `"branch": null`，或在任一编辑器中将「PR 源分支」留空。要固定来源，请填写准确的 PR 源分支名，例如 `feature/example`。源分支是 PR 提交改动的分支。固定为 `main` 时，查询从 `main` 发起的 PR。若多个开放 PR 共用源分支，请固定该分支，并将 `pr` 设为要查看的 PR 编号。
 
 注册后审阅返回的定义，使用准确的 `review_revision` 启用。添加两个主栏组件，分别用返回的实例 ID 绑定：
 
@@ -153,7 +155,9 @@ claude-statusline source diagnose forge --project '/absolute/project' --json
 
 若项目已绑定命名方案，请编辑并绑定该目标，而不是独立的用户默认；参见[编辑目标](PROFILES.zh-CN.md#选择编辑目标)。
 
-刷新前诊断显示 `not_refreshed`。刷新成功后检查诊断中的观测及检查汇总，再在该项目观察状态栏：已绑定组件读取缓存的 PR／检查结果。查询成功也可能返回 `no_pr` 或 `no_checks`，两者均不代表 CI 通过。仅查询指定主机、仓库和分支；多个开放 PR 匹配时，使用 `pr` 明确选择编号。非仓库、detached HEAD、PR head 与上下文分支／HEAD 不符、认证失败及权限拒绝均有独立原因；身份不匹配时隐藏旧值。检查比较 PR head 引用和提交与上下文分支／HEAD，不检查远端跟踪 HEAD。已有宿主 `pr` 保持原义；`github-pr` 和 `github-ci` 是独立的主状态栏组件。
+符合条件的分支和提交首次刷新前，诊断显示 `not_refreshed`。刷新成功后查看观测和检查汇总，再在该项目的状态栏中查看缓存结果。来源在已审核的主机与仓库查询适用分支，并核对 PR 源分支引用和提交是否与本地检出一致。`no_pr` 和 `no_checks` 表示查询成功且无 PR 或无检查。`github-pr` 和 `github-ci` 为独立于宿主 `pr` 的组件。
+
+跟随模式切换分支后，已审核的自动刷新可查询新检出的分支。手动刷新可运行 `claude-statusline source refresh forge --project /absolute/project --json`。检出其他分支时，固定来源会显示分支不匹配及其固定分支。要改用跟随，编辑原来源并将 `branch` 和 `pr` 设为 `null`，审阅并启用新修订。原组件绑定继续有效。若使用自动刷新，请再次审核自动策略。[GitHub 自动刷新](#github-自动刷新)
 
 默认手动刷新，总时限为 30 秒；渲染读取已发布观测，不运行 `gh`。缓存身份包含项目/worktree、账号、主机、仓库、分支、HEAD 和本地认证上下文。身份变化会使旧结果失效。凭据留在 `gh` 的认证机制中，不写入源配置、导出或诊断。
 
@@ -246,7 +250,7 @@ claude-statusline source auto-off forge --json
 
 使用实际返回的审核修订。策略保存在本机且不导出；编辑、停用或删除来源会撤销策略，显式关闭自动刷新也会撤销。策略保存与显示保存及宿主安装分开。如果运行时 Mod 尚未安装或配置自动刷新，执行 `claude-statusline install`（或应用宿主集成），再重启 Claude。要求 Claude 2.1.289 及以上；原生计时、高级实时指标和原生编辑器可继续关闭。
 
-只有项目／会话范围、分支和 HEAD 与来源匹配的活跃会话才会派发工作。多个会话对同一来源和身份共用任务。
+活跃会话需要匹配项目／会话范围，且检出具有可用 HEAD 的分支，才会派发刷新。固定来源还要求分支名相符。跟随来源可以沿用同一次自动授权，刷新活跃会话中检出的各个分支和提交。多个会话对同一来源和身份共用任务。
 
 诊断显示关闭／等待／运行／退避／暂停、间隔、下次尝试、最近尝试和最近成功时间。认证、权限、账户和身份失败暂停自动尝试，需手动重试成功或重新审核。认证环境变化需要重新审核自动策略。编辑来源撤销自动审核；停用、删除会取消任务。“关闭自动刷新”保留已启用来源和缓存；过期／错误标记仍生效，身份不匹配时隐藏旧值。
 
@@ -316,6 +320,8 @@ GitHub 检查详情保留名称、状态、已验证 HTTP(S) 链接、仓库、�
 | 现象 | 含义与下一步 |
 | --- | --- |
 | `not_refreshed` | 尚无成功观测。审查数据源，执行显式刷新，再检查诊断。 |
+| `branch_mismatch` | 固定的 PR 源分支与当前检出分支不符。`view.fields` 提供 `configured_branch` 和 `current_branch`。切回固定分支，或编辑来源以跟随当前分支。 |
+| `detached` / `not_repository` | 当前检出没有关联分支或可用的 HEAD。切换到已有提交的分支后刷新。 |
 | `waiting`（`scheduled` / `no_session`） | `scheduled` 表示下次自动尝试仍在等待，属于正常状态；`no_session` 表示没有适用的活跃会话持有租约，或运行时集成缺失。遇到 `no_session` 时安装并重启运行时 Mod，再检查项目／会话范围。 |
 | `backoff` / `paused` | 临时失败正在退避重试，或认证／身份失败暂停了自动工作。手动重试或重新审核自动策略。 |
 | 陈旧或隐藏的值 | 过期值标记为陈旧，错误标记保留最后值并显示错误，身份不匹配时抑制旧值。检查诊断中的新鲜度和上下文身份。 |

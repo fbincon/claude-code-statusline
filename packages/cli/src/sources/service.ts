@@ -5,8 +5,8 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join, resolve, isAbsolute } from 'node:path';
 import { readdirSync, statSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
-import type { SourceDefinition, SourceContext, SourceReference, SourceJob, SourceObservation, SourcesResult, SourceMutationResult, SourceView, AutomaticStatus } from '@fbincon/statusline-core/contracts/ui';
-import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, executionSummary, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar } from '@fbincon/statusline-core/extensions/model';
+import { SOURCE_REGISTRY_VERSION, type SourceDefinition, type SourceContext, type SourceReference, type SourceJob, type SourceObservation, type SourcesResult, type SourceMutationResult, type SourceView, type AutomaticStatus } from '@fbincon/statusline-core/contracts/ui';
+import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, executionSummary, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar, githubBranch } from '@fbincon/statusline-core/extensions/model';
 import { object, ConfigError, integer } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -83,7 +83,11 @@ export class SourceService {
             if (value.action === 'add' || value.action === 'edit') {
                 if (!object(value.source) || (value.action === 'add' ? selected !== undefined : selected === undefined))
                     sourceError('conflict');
-                const source = this.canonical(definition({ ...value.source, id, enabled: false, revision: randomUUID() }));
+                const spec = value.source, settings = spec.settings;
+                const useDefaultBranch = value.action === 'add' && spec.kind === 'github' && object(settings) && !Object.hasOwn(settings, 'branch');
+                const source = this.canonical(definition({ ...spec, settings: useDefaultBranch ? { ...settings, branch: null } : settings, id, enabled: false, revision: randomUUID() }));
+                if (source.kind === 'github' && source.settings.branch === null)
+                    state.version = SOURCE_REGISTRY_VERSION;
                 state.automatic = state.automatic.filter(p => p.source_id !== id);
                 if (selected) {
                     this.cancelSource(id);
@@ -97,7 +101,7 @@ export class SourceService {
                     sourceError('not_found');
                 if (value.action === 'auto-on' || value.action === 'auto-off') {
                     if (!['github', 'command'].includes(selected.kind)) sourceError('invalid');
-                    if (selected.kind === 'command') state.version = 3;
+                    if (selected.kind === 'command' && state.version === 2) state.version = 3;
                     const prior = state.automatic.find(p => p.source_id === id);
                     if (value.action === 'auto-on') {
                         if (!selected.enabled || value.review_revision !== selected.revision) sourceError('review');
@@ -297,6 +301,8 @@ export class SourceService {
     }
     private observationPath(source: SourceDefinition, context: SourceContext): string { return join(this.root, 'observations', source.id + '-' + revision(context) + '.json'); }
     private stored(source: SourceDefinition, context: SourceContext): Stored | null {
+        if (source.kind === 'github' && 'reason' in githubBranch(source, context))
+            return null;
         try {
             const raw = this.readValue(this.observationPath(source, context));
             if (!object(raw) || raw.version !== 1)
@@ -410,6 +416,7 @@ export class SourceService {
         }
         const abort = new AbortController();
         let stopped: 'cancelled' | 'timeout' | null = null;
+        const checkoutMatches = (source: SourceDefinition) => sameContext(observationContext(source, contextFor(job.context.project, job.context.session, job.context.agent)), job.context);
         const stop = (reason: 'cancelled' | 'timeout') => {
             if (abort.signal.aborted) return;
             stopped = reason;
@@ -433,10 +440,13 @@ export class SourceService {
             const source = this.source(job.source_id), current = this.persistedJob(id);
             if (current.state !== 'running' || !source.enabled || source.revision !== job.source_revision || refreshIdentity(source,job.context)!==job.identity || !this.interestedInResult(current)) return;
             let observation: SourceObservation;
+            let contextChanged = false;
             if (this.now() >= Date.parse(job.deadline_at))
                 observation = emptyObservation(source, job.context, 'timeout');
-            else if (!sameContext(observationContext(source, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
+            else if (!checkoutMatches(source)) {
+                contextChanged = true;
                 observation = emptyObservation(source, job.context, 'identity');
+            }
             else if (this.now() >= Date.parse(job.deadline_at)) // Synchronous project discovery also consumes the remaining budget.
                 observation = emptyObservation(source, job.context, 'timeout');
             else
@@ -450,8 +460,15 @@ export class SourceService {
                     this.write(this.jobPath(id), { ...state, state: 'cancelled', reason: job.trigger==='automatic'?'lease_expired':'no_consumers' });
                     return;
                 }
-                if (refreshIdentity(latest,job.context)!==job.identity || !sameContext(observationContext(latest, contextFor(job.context.project, job.context.session, job.context.agent)), job.context))
+                if (refreshIdentity(latest,job.context)!==job.identity)
                     observation = emptyObservation(source, job.context, 'identity');
+                else if (contextChanged || !checkoutMatches(latest)) {
+                    if (source.kind === 'github') {
+                        this.write(this.jobPath(id), { ...state, state: 'cancelled', reason: 'context_changed' });
+                        return;
+                    }
+                    observation = emptyObservation(source, job.context, 'identity');
+                }
                 const superseded = this.superseded(state);
                 if (!superseded) {
                     if (observation.reason !== 'identity' && observation.reason !== 'account')

@@ -1,7 +1,7 @@
 /** Local scheduling state. Reading it never starts a process or refresh. */
 import { join } from 'node:path';
 import type { AutomaticStatus, SourceContext, SourceDefinition, SourceJob, SourceRegistry } from '@fbincon/statusline-core/contracts/ui';
-import { emptyRegistry, registry, SOURCE_FILENAME, observationContext, MAX_SOURCE_BYTES } from '@fbincon/statusline-core/extensions/model';
+import { emptyRegistry, registry, SOURCE_FILENAME, observationContext, MAX_SOURCE_BYTES, githubBranch, matchesScope } from '@fbincon/statusline-core/extensions/model';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { sourceError } from '@fbincon/statusline-core/extensions/model';
 import { object } from '@fbincon/statusline-core/config/validation';
@@ -21,7 +21,7 @@ const pauseReasons = new Set(['auth', 'authentication', 'forbidden', 'permission
 export function automaticOutcome(job: SourceJob): { kind: 'success'; finished_at: string } | { kind: 'cancelled' } | { kind: 'failure'; paused: string | null } {
     if (job.state === 'completed' && ['valid', 'no_pr', 'unknown_checks'].includes(job.reason))
         return { kind: 'success', finished_at: job.result?.finished_at ?? job.started_at };
-    if (['lease_expired', 'cancelled', 'no_consumers'].includes(job.reason))
+    if (['lease_expired', 'cancelled', 'no_consumers', 'context_changed'].includes(job.reason))
         return { kind: 'cancelled' };
     return { kind: 'failure', paused: pauseReasons.has(job.reason) ? job.reason : null };
 }
@@ -94,8 +94,12 @@ export function automaticStatus(directory: string, source: SourceDefinition, con
     const policy = sourceRegistry(directory).automatic.find(p => p.source_id === source.id);
     const base: AutomaticStatus = { state: 'off', reason: 'off', next_at: null, last_attempt: null, last_success: null, interval_seconds: policy?.interval_seconds ?? (source.kind === 'command' ? 300 : Math.max(60, Math.min(86400, source.ttl_seconds))) };
     if (!policy?.enabled || !source.enabled) return base;
-    if (source.kind === 'github' && policy.auth_revision !== authRevision()) return { ...base, state: 'paused', reason: 'identity' };
-    if (source.kind === 'github' && (!context.head || !context.branch || context.branch !== source.settings.branch)) return { ...base, state: 'paused', reason: 'identity' };
+    if (source.kind === 'github') {
+        if (!matchesScope(source.scope, context)) return { ...base, state: 'paused', reason: 'scope' };
+        const lookup = githubBranch(source, context);
+        if ('reason' in lookup) return { ...base, state: 'paused', reason: lookup.reason };
+        if (policy.auth_revision !== authRevision()) return { ...base, state: 'paused', reason: 'identity' };
+    }
     const identity = refreshIdentity(source, context), state = readAutomatic(directory), schedule = state.schedules.find(s => s.key === identity);
     const result = { ...base, last_attempt: schedule?.last_attempt ?? null, last_success: schedule?.last_success ?? null };
     if (schedule?.paused) return { ...result, state: 'paused', reason: schedule.paused };

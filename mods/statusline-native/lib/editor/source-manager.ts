@@ -57,7 +57,7 @@ function form(editor: Editor, kind: SourceDefinition['kind'], editing = false): 
     const m = editor.sources!, s = editing ? source(editor) : undefined, settings = s?.settings ?? {};
     const common: Record<string, unknown> = { id: s?.id ?? '', name: s?.name ?? '', project: s ? s.scope.project ?? '' : m.context?.project ?? '', session: s?.scope.session ?? '', agent: s?.scope.agent ?? '', ttl_seconds: s?.ttl_seconds ?? 300 };
     const extra = kind === 'json' ? { path: settings.path ?? '', pointer: settings.pointer ?? '/value', observed_at_pointer: settings.observed_at_pointer ?? '/observed_at', unit: settings.unit ?? '' }
-        : kind === 'github' ? { host: settings.host ?? 'github.com', repository: settings.repository ?? '', branch: settings.branch ?? m.context?.branch ?? '', account: settings.account ?? '', pr: settings.pr ?? '' }
+        : kind === 'github' ? { host: settings.host ?? 'github.com', repository: settings.repository ?? '', branch: settings.branch ?? '', account: settings.account ?? '', pr: settings.pr ?? '' }
             : { executable: settings.executable ?? '', args: JSON.stringify(settings.args ?? []), cwd: settings.cwd ?? m.context?.project ?? '', input: JSON.stringify(settings.input ?? {}), output: settings.output ?? 'json', timeout_ms: settings.timeout_ms ?? 5000 };
     m.kind = kind;
     m.editing = editing;
@@ -248,6 +248,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
                 parsed.timeout_ms = Number(parsed.timeout_ms);
             if ('pr' in parsed)
                 parsed.pr = parsed.pr === '' ? null : Number(parsed.pr);
+            if ('branch' in parsed && parsed.branch === '')
+                parsed.branch = null;
             Object.assign(payload, { action: m.editing ? 'edit' : 'add', id, source: { name: name || id, kind: m.kind, scope: { project: project || null, session: session || null, agent: agent || null }, ttl_seconds: Number(ttl_seconds), settings: parsed } });
         }
         if(effect==='bind'){payload.binding=m.target?editor.instance(m.target.scope,m.target.id)?.source?.binding:null;payload.draft_owner=editor.sourceDraftOwner;editor.sourceDraftRegistered=true;await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:draftBindings(editor),close:false});}
@@ -288,6 +290,9 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     add(tr('separate_save'));
     if (m.message)
         add(t(m.message.key, language, m.message.params));
+    if (m.page === 'form' && m.kind === 'github')
+        add(tr('github_branch_help'));
+    const fixedRows = rows.length;
     if (m.page === 'list') {
         m.library?.sources.forEach((s, i) => add(`${s.name} · ${tr(s.kind)} · ${tr(s.enabled ? 'enabled' : 'disabled')}${['github','command'].includes(s.kind) ? ' · ' + tr(m.library!.automatic.some(p => p.source_id === s.id && p.enabled) ? 'automatic_on' : 'automatic_off') : ''}`, m.cursor === i));
         add('+ ' + tr('add'), m.cursor === (m.library?.sources.length ?? 0));
@@ -318,7 +323,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     else if (m.page === 'remove')
         add(tr('remove_confirm') + ' ' + source(editor)?.name, true);
     else {
-        const readable=m.page==='checks'?[tr('checks_help'),...(m.inspection?[[m.inspection.source.settings.repository,m.inspection.source.settings.branch,m.inspection.checks_context?.head].filter(Boolean).join(' · ')]:[]),m.inspection?.checks_observed_at??t('task.unknown',language),...(m.inspection?.checks.flatMap(c=>[`${c.name} · ${c.state} · ${tr('check.'+c.bucket)}`,...(c.url?[c.url]:[])])??[])]:m.page==='binding-cleanup'?[tr('binding_cleanup_confirm'),m.bindingSelection??'']:m.inspection?sourceSummary(m.inspection,language):m.details;
+        const readable=m.page==='checks'?[tr('checks_help'),...(m.inspection?[[m.inspection.source.settings.repository,m.inspection.checks_context?.branch ?? m.inspection.source.settings.branch,m.inspection.checks_context?.head].filter(Boolean).join(' · ')]:[]),m.inspection?.checks_observed_at??t('task.unknown',language),...(m.inspection?.checks.flatMap(c=>[`${c.name} · ${c.state} · ${tr('check.'+c.bucket)}`,...(c.url?[c.url]:[])])??[])]:m.page==='binding-cleanup'?[tr('binding_cleanup_confirm'),m.bindingSelection??'']:m.inspection?sourceSummary(m.inspection,language):m.details;
         const lines = ['review', 'auto-review'].includes(m.page) ? [tr(m.page === 'auto-review' ? 'automatic_review' : 'enable_review'), ...(m.page === 'auto-review' ? [tr('interval') + ': ' + m.automaticInterval + ' s (←/→)'] : []), ...(m.review?sourceReviewLines(m.review.source,language):[])] : m.details.length?m.details:readable;
         const wrapped = lines.flatMap(line => wrapText([line], width));
         const capacity = Math.max(1, height - rows.length);
@@ -326,7 +331,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
         wrapped.slice(start, start + capacity).forEach(line => add(line));
         return rows;
     }
-    const fixed = rows.slice(0, 1 + Number(!!m.message)), entries = rows.slice(fixed.length), capacity = Math.max(1, height - fixed.length);
+    const fixed = rows.slice(0, fixedRows), entries = rows.slice(fixed.length), capacity = Math.max(1, height - fixed.length);
     const selected = Math.max(0, entries.findIndex(row => row.selected)), start = Math.max(0, selected - capacity + 1);
     return [...fixed, ...entries.slice(start, start + capacity)];
 }

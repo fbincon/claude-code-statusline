@@ -11,7 +11,7 @@ import { strip } from '@fbincon/statusline-core/rendering/layout';
 import { ConfigurationProtocol } from '@fbincon/statusline-cli/ui/protocol';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { previewAdapter } from '@fbincon/statusline-cli/rendering/preview';
-import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, type CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { legacy } from './final-support.js';
 test('tests.config.test_catalog.CatalogTests.test_scopes_defaults_and_legacy_descriptions', () => {
     const expected: CatalogItem[] = JSON.parse(readFileSync(join(repo, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))['ui-describe'].value.response.result.catalog;
@@ -89,11 +89,11 @@ test('tests.ui.test_protocol.ProtocolTests.test_legacy_draft_empty_rows_and_mutu
     assert.deepEqual(readdirSync(f.root), []);
 });
 test('tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_errors_are_json_only', t => {
-    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: 31, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
+    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
     for (const [input, status] of [[raw, 0], [Buffer.from([255]), 2], [Buffer.from('{'), 2]] as const) {
         const result = spawnSync(process.execPath, [join(repo, 'packages/cli/dist/src/entry.js'), 'ui', '--config-dir', directory], { input, encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: directory }, timeout: 10000 });
         assert.equal(result.status, status, result.stderr);
-        assert.equal(JSON.parse(result.stdout).protocol_version, 31);
+        assert.equal(JSON.parse(result.stdout).protocol_version, PROTOCOL_VERSION);
         assert.equal(result.stderr, '');
     }
     assert.ok(!existsSync(directory));

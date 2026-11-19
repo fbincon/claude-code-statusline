@@ -1,14 +1,14 @@
 /** Session leases are the only automatic dispatch entry; rendering never calls it. */
 import type { SourceContext, SourceDefinition } from '@fbincon/statusline-core/contracts/ui';
 import { exact, integer, object } from '@fbincon/statusline-core/config/validation';
-import { sourceId, sourceText, matchesScope, observationContext } from '@fbincon/statusline-core/extensions/model';
+import { sourceId, sourceText, matchesScope, observationContext, githubBranch } from '@fbincon/statusline-core/extensions/model';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { revision } from '@fbincon/statusline-platform/hash';
 import { contextFor, authRevision } from './context.js';
 import { readAutomatic, writeAutomatic, refreshIdentity, automaticOutcome, reconcileAutomaticOutcome, LEASE_MS, type Schedule } from './automatic-state.js';
 import { SourceService } from './service.js';
 function applicable(source: SourceDefinition, context: SourceContext): boolean {
-    return matchesScope(source.scope, context) && (source.kind !== 'github' || !!context.head && !!context.branch && context.branch === source.settings.branch);
+    return matchesScope(source.scope, context) && (source.kind !== 'github' || 'branch' in githubBranch(source, context));
 }
 export class AutomaticRefresh {
     constructor(readonly sources: SourceService, readonly context = contextFor) {}
@@ -77,7 +77,8 @@ export class AutomaticRefresh {
                         } else if (outcome.kind === 'failure') {
                             schedule.failures = Math.min(10, schedule.failures + 1); schedule.paused = outcome.paused;
                         }
-                        schedule.next = now + Math.min(86400000, policy.interval_seconds * 1000 * 2 ** schedule.failures);
+                        if (latest.reason !== 'context_changed')
+                            schedule.next = now + Math.min(86400000, policy.interval_seconds * 1000 * 2 ** schedule.failures);
                     } else if (latest && latest.state !== 'running')
                         reconcileAutomaticOutcome(schedule, latest, policy.interval_seconds * 1000, now);
                     if (!schedule.paused && schedule.next <= now) due.push({source,schedule,context,interval:policy.interval_seconds*1000});

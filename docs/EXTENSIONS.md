@@ -136,7 +136,7 @@ git branch --show-current
 git rev-parse HEAD
 ```
 
-Use a branch pushed to the chosen repository. Its local HEAD must match the PR head. Replace `/absolute/project`, `owner/repository`, `feature/example` and `your-gh-login` below with that project's absolute root, repository, branch and authenticated login. Save the complete definition as `forge-source.json`:
+Branch-based lookup finds open PRs in the chosen repository. The PR's head commit must match your local HEAD. Replace `/absolute/project`, `owner/repository` and `your-gh-login` below with your worktree's absolute root, repository and authenticated login. Save the complete definition as `forge-source.json`.
 
 <!-- docs-example: github-source -->
 ```json
@@ -152,12 +152,14 @@ Use a branch pushed to the chosen repository. Its local HEAD must match the PR h
   "settings": {
     "host": "github.com",
     "repository": "owner/repository",
-    "branch": "feature/example",
+    "branch": null,
     "account": "your-gh-login",
     "pr": null
   }
 }
 ```
+
+New sources follow the currently checked-out branch by default. Use `"branch": null` in JSON or leave **PR head branch** blank in either editor. To pin the source, enter an exact PR head branch such as `feature/example`. The head branch is where the PR's changes come from. A fixed branch of `main` looks for PRs opened from `main`. If several open PRs share a head branch, pin the branch and set `pr` to the desired PR number.
 
 Register, inspect the returned definition and enable its exact `review_revision`. Add both main-line components and use each returned instance ID for its binding:
 
@@ -178,7 +180,9 @@ Replace `REVIEW_REVISION`, `PR_INSTANCE_ID` and `CI_INSTANCE_ID` with actual com
 
 If the project is already bound to a named profile, edit and bind that target instead of the independent user default; see [editing targets](PROFILES.md#choose-an-editing-target).
 
-Before refresh, diagnosis reports `not_refreshed`. After a successful refresh, inspect the observation and check summary in diagnosis, then view the statusline in that project: bound components read the cached PR/check result. A successful query can report `no_pr` or `no_checks`; neither means passing CI. The source queries only the specified host/repository/branch. Set `pr` to an explicit number if several open PRs match. Non-repositories, detached HEAD, a PR head that differs from the context branch/HEAD, authentication failure and denied access have distinct reasons; an identity mismatch suppresses old values. The check compares the PR head ref and commit with the context branch and HEAD; it does not inspect a remote-tracking HEAD. Existing host `pr` remains unchanged; `github-pr` and `github-ci` are separate main-line components.
+Before the first refresh for an eligible branch and commit, diagnosis reports `not_refreshed`. After a successful refresh, inspect the observation and check summary, then view the cached result in that project's statusline. The provider queries the reviewed host and repository for the eligible branch and verifies the PR's source ref and commit against the checkout. `no_pr` and `no_checks` represent successful queries with no PR or checks. The `github-pr` and `github-ci` components show these independently of the host's `pr` component.
+
+After switching branches in follow mode, an approved automatic refresh can pick up the new checkout. For manual refresh, run `claude-statusline source refresh forge --project /absolute/project --json`. A fixed source displays a branch mismatch and its configured branch when you check out a different branch. To convert it, edit the same source with `branch` and `pr` set to `null`, review and enable the new revision, then renew automatic approval if you use it. The existing component bindings still refer to the source. [Automatic GitHub refresh](#automatic-github-refresh)
 
 Refresh is manual by default and has a 30-second total deadline. Rendering consumes cached
 observations without running `gh`. Cache identity includes project/worktree,
@@ -297,7 +301,7 @@ claude-statusline source auto-off forge --json
 
 Use the returned review revision. The policy is stored locally and is not exported; editing, disabling or deleting the source revokes it, as does explicit auto-off. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
 
-Only an active session whose project/session scope, branch and HEAD match the source dispatches work. Multiple sessions share one job for the same source and identity.
+An active session dispatches work when its project/session scope matches and its checkout has a branch with a usable HEAD. Fixed sources also require the configured branch. For a following source, an active session can refresh each checked-out branch and commit using the same automatic approval. Multiple sessions share a job for the same source and identity.
 
 Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
 
@@ -385,6 +389,8 @@ GitHub check details retain observed names, state and validated HTTP(S) links, r
 | Symptom | Meaning and next step |
 | --- | --- |
 | `not_refreshed` | No successful observation exists yet. Review the source, run an explicit refresh, then inspect diagnosis. |
+| `branch_mismatch` | The fixed PR head branch differs from the checkout. `view.fields` includes `configured_branch` and `current_branch`. Check out the fixed branch or edit the source to follow the checkout. |
+| `detached` / `not_repository` | The checkout has no attached branch or usable HEAD. Switch to a branch with a commit, then refresh. |
 | `waiting` (`scheduled` / `no_session`) | `scheduled` means the next automatic attempt is pending and is normal; `no_session` means no eligible active session holds a lease or runtime integration is missing. For `no_session`, install and restart the runtime Mod, then check project/session scope. |
 | `backoff` / `paused` | A temporary failure is retrying with backoff, or an authentication/identity failure paused automatic work. Retry manually or renew the automatic review. |
 | Stale or hidden value | An expired value is marked stale, an error marker retains the last value with an error, and an identity mismatch suppresses the old value. Check freshness and context identity in diagnosis. |

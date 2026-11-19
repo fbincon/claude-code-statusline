@@ -8,6 +8,7 @@ import { PluginHost, UnconfirmedOperation } from '@fbincon/statusline-platform/p
 import { binding } from '@fbincon/statusline-core/integration/binding';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 const markerPath = NATIVE.name + '/.claude-statusline-owner.json', external = 'skills/statusline-configure/SKILL.md';
 function oldResources(f: ReturnType<typeof fresh>, extra = false) {
     const marker = f.json(markerPath), name = extra ? 'lib/obsolete/deep/old.ts' : 'hooks/register.ts';
@@ -19,16 +20,16 @@ function oldResources(f: ReturnType<typeof fresh>, extra = false) {
     marker.files['plugins/' + NATIVE.name + '/' + name] = digest(raw);
     f.put(markerPath, marker);
 }
-test('protocol 30 owned resources upgrade to protocol 31 while preserving both language preferences', t => {
+for (const priorProtocol of [30, 31]) test(`protocol ${priorProtocol} owned resources upgrade while preserving both language preferences`, t => {
     const f = fresh(t); f.install(); oldResources(f);
     const marker = f.json(markerPath);
-    marker.protocol_version = 30;
+    marker.protocol_version = priorProtocol;
     f.put(markerPath, marker);
     f.put('statusline-ui.json', { schema_version: 1, ui_language: 'zh-HK' });
     f.put('claude-statusline.json', { ...defaultDisplay(), statusline_language: 'ja' });
     const preferences = f.read('statusline-ui.json'), display = f.read('claude-statusline.json');
     assert.equal(f.install().failed, false);
-    assert.equal(f.json(markerPath).protocol_version, 31);
+    assert.equal(f.json(markerPath).protocol_version, PROTOCOL_VERSION);
     assert.deepEqual(f.read('statusline-ui.json'), preferences);
     assert.deepEqual(f.read('claude-statusline.json'), display);
     for (const language of ['es', 'fr', 'de', 'pt-BR', 'ru', 'id']) {

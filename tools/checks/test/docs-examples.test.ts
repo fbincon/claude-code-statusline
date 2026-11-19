@@ -17,7 +17,7 @@ import { defaultDisplay, defaultItem } from '@fbincon/statusline-core/config/dis
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { Editor, copyDraft } from '@fbincon/statusline-core/editor/draft';
 import { changesKey } from '@fbincon/statusline-core/editor/change-review';
-import type { DescribeResult, ReadResult } from '@fbincon/statusline-core/contracts/ui';
+import { SOURCE_REGISTRY_VERSION, type DescribeResult, type ReadResult } from '@fbincon/statusline-core/contracts/ui';
 import { contentDocuments, example, sourceExample } from '../docs-content.js';
 
 const pages = contentDocuments(process.cwd());
@@ -49,7 +49,10 @@ function fixture(t: TestContext) {
         if (args[0] === 'api') return { code: 0, reason: 'completed', stdout: JSON.stringify({ login: githubResult === 'account' ? 'other-login' : source.settings.account }) };
         assert(args.includes('github.com/owner/repository'), 'Every PR/check query stays bound to the documented repository');
         if (args[1] === 'checks') return { code: 0, reason: 'completed', stdout: JSON.stringify(githubResult === 'no_checks' ? [] : [{ bucket: 'pass', name: 'docs', state: 'SUCCESS', link: 'https://github.com/owner/repository/actions/runs/1' }]) };
-        if (args[1] === 'list') return { code: 0, reason: 'completed', stdout: JSON.stringify(githubResult === 'no_pr' ? [] : [{ number: 7, url: 'https://github.com/owner/repository/pull/7', headRefName: actual.branch, headRefOid: githubResult === 'identity' ? 'f'.repeat(40) : actual.head }]) };
+        if (args[1] === 'list') {
+            assert(args.includes('--head=' + actual.branch), 'The lookup follows the checked-out PR head branch');
+            return { code: 0, reason: 'completed', stdout: JSON.stringify(githubResult === 'no_pr' ? [] : [{ number: 7, url: 'https://github.com/owner/repository/pull/7', headRefName: actual.branch, headRefOid: githubResult === 'identity' ? 'f'.repeat(40) : actual.head }]) };
+        }
         assert.equal(args[1], 'view');
         return { code: 0, reason: 'completed', stdout: JSON.stringify({ headRefOid: actual.head }) };
     }));
@@ -136,6 +139,44 @@ async function workflow(f: ReturnType<typeof fixture>, body: string, kind: 'gith
     return lines;
 }
 
+test('source add defaults to following while edits explicitly choose a GitHub branch mode', async t => {
+    const f = fixture(t);
+    f.git('init', '--initial-branch=main');
+    f.git('-c', 'user.name=Docs Test', '-c', 'user.email=docs@example.invalid', 'commit', '--allow-empty', '-m', 'fixture');
+    const path = f.values.get('forge-source.json')!;
+    saveSource(f, pages.get('docs/EXTENSIONS.md')!, 'github');
+    const spec = JSON.parse(readFileSync(path, 'utf8'));
+    delete spec.settings.branch;
+    writeFileSync(path, JSON.stringify(spec));
+    const added = await f.call(['source', 'add', 'forge', '--file', path, '--json']);
+    assert.equal(added.code, 0, added.out);
+    assert.equal(JSON.parse(added.out).version, SOURCE_REGISTRY_VERSION);
+    assert.equal(f.worker.source('forge').settings.branch, null);
+    const first = f.worker.review('forge').review_revision;
+    const apply = (verb: string) => f.call(['source', verb, 'forge', '--review', first, '--json']);
+    assert.equal((await apply('enable')).code, 0);
+    assert.equal((await apply('auto-on')).code, 0);
+    const change = () => f.call(['source', 'edit', 'forge', '--file', path, '--json']);
+    const before = snapshot(f.configDir);
+    assert.equal(JSON.parse((await change()).out).error.code, 'invalid');
+    assert.deepEqual(snapshot(f.configDir), before);
+
+    spec.settings.branch = null;
+    spec.settings.pr = 7;
+    writeFileSync(path, JSON.stringify(spec));
+    assert.equal(JSON.parse((await change()).out).error.code, 'github_branch_pr');
+    assert.deepEqual(snapshot(f.configDir), before);
+
+    spec.settings.branch = 'current';
+    writeFileSync(path, JSON.stringify(spec));
+    assert.equal((await change()).code, 0);
+    assert.equal(f.worker.source('forge').settings.branch, 'current');
+    assert.equal(f.worker.source('forge').enabled, false);
+    assert.deepEqual(f.worker.read().automatic, []);
+    assert.equal(JSON.parse((await apply('enable')).out).error.code, 'review');
+    assert.equal(f.queries(), 0);
+});
+
 for (const suffix of ['', '.zh-CN']) {
     test(`documented command workflow executes and renders 42 with isolated files (${suffix || 'en'})`, async t => {
         const f = fixture(t), body = pages.get(`docs/EXTENSIONS${suffix}.md`)!;
@@ -152,6 +193,7 @@ for (const suffix of ['', '.zh-CN']) {
         const f = fixture(t); f.git('init', '--initial-branch=feature/example');
         f.git('-c', 'user.name=Docs Test', '-c', 'user.email=docs@example.invalid', 'commit', '--allow-empty', '-m', 'fixture');
         await workflow(f, pages.get(`docs/EXTENSIONS${suffix}.md`)!, 'github');
+        assert.equal(f.worker.source('forge').settings.branch, null);
         assert(f.queries() >= 4);
         for (const [mode, reason, ci] of [['no_checks', 'valid', 'no_checks'], ['no_pr', 'no_pr', undefined], ['account', 'account', undefined], ['identity', 'identity', undefined]] as const) {
             f.result(mode);
