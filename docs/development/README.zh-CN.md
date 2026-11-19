@@ -103,7 +103,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 | 核心产品行为 | `npm run check` 和 `git diff --check` |
 | 规范生成源 | `npm run generate` 后执行 `npm run generate:check`，并执行上方适用检查 |
 
-按[影响检查](impact-checks.zh-CN.md)使用不可变提交和新报告路径。混合变更合并检查要求；归属未知或比较未解决时阻断。本地检查不能替代最终 head 的 `Complete candidate evidence` 门禁及 main 晋级核验。[CI 分流](ci-maintenance.zh-CN.md)。
+按[影响检查](impact-checks.zh-CN.md)使用不可变提交和新报告路径。混合改动合并检查，处理归属未知或比较未解决的情况。普通 PR 合并使用本地结果，发版采用 [PR → main → tag](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)。
 
 `npm run check` 覆盖真实 Node 并发、故障、终端、固定案例、生成资源、文档及职责台账。`tools/generation/` 维护当前语言／Mod 输出，不重新生成 Python 归档，也不维护技能输出。状态栏技能资源以 `packages/cli/resources/statusline-config/SKILL.md` 和 `packages/cli/resources/statusline-configure/SKILL.md` 为规范源，单独维护。构建后可在受支持 Node 下用 `npm run test:runtime` 测试编译产品，无需重新构建。
 
@@ -125,7 +125,7 @@ node --test dist/typescript/tools/checks/test/docs-content.test.js dist/typescri
 | `docs:check` | 本地链接、锚点及双语／模板结构正确。 |
 | `docs-content.test.js` | 根目录及现行开发指南中已登记的事实与来源定义一致；格式错误或相互矛盾的数字声明会失败。 |
 | `docs-examples.test.js` | 选定的标记 CLI 示例在隔离临时目录中成功运行，并满足预期效果及拒绝行为。 |
-| `Complete candidate evidence` | 最终不可变 PR head 具备影响计划要求的证据；本地文档检查本身不能证明这一点。 |
+| `Accept release candidate` | 发版 PR 的最终 head 已通过发布作业。 |
 
 内容规则比较完整数值，支持千分位、英文数字词及中文计数，不查找预期数字子串。目录、语言、预设、接口及实时上限来自 core；矩阵数量、Node 选择器及宿主历史拆分来自现有 CI 注册表。来源自动刷新的默认值／范围、租约期限、Mod 续租定时器及安装检查类别，则使用现有 TypeScript 解析器读取对应执行定义或验收清单，不执行这些源码文件。定义缺失、定位不唯一、语法无法解析或相关定义不一致时明确失败，不回退到旧字面值。
 

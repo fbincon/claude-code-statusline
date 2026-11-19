@@ -39,7 +39,7 @@
 - **Frontmatter。** 使用单个 YAML 映射；`name` 与目录名一致，`description` 非空，`argument-hint` 为字符串（无动作时为空串），`disable-model-invocation: true`，并且 `allowed-tools` 或 `disallowed-tools` 恰好一个、为非空字符串数组。
 - **正文。** 只保留一个 H1 和非空指令正文。保留命令边界、字面参数与引用规则、引导工作流或外部回退，以及渲染器使用的资源占位符。
 - **占位符。** 安装器替换已知 token（`ALLOWED_RULES`、`COMMAND`、`ITEM_GROUPS`、`LANGUAGES`、`LANGUAGE_CHOICES`、`THEME_CHOICES`）。内部 `statusline-config` 技能可以包含独立的已知 token（如 `__CLAUDE_STATUSLINE_ALLOWED_RULES__`）；外部 `statusline-configure` 技能不得包含占位符。结构检查在解析 YAML 前校验这一点。
-- **检查边界。** `checkSkillResources` 在 `docs:check` 中校验该结构。它是开发契约检查；`packages/cli/resources` 仍是产品执行输入，变更时保留完整产品矩阵。
+- **检查边界。** `checkSkillResources` 在 `docs:check` 中校验该结构。它是开发契约检查；`packages/cli/resources` 仍是产品执行输入，变更时执行本地完整产品检查。
 
 ## 源码维护与回归覆盖
 

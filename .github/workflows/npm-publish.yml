@@ -58,7 +58,8 @@ jobs:
           run-id: ${{ steps.resolve.outputs.ci_run }}
           artifact-ids: ${{ steps.resolve.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
-      - name: Verify exact CI package bytes, full acceptance and registry state
+          merge-multiple: ${{ steps.resolve.outputs.release_ci }}
+      - name: Verify exact CI package bytes, acceptance and registry state
         env:
           GH_TOKEN: ${{ github.token }}
         run: node dist/typescript/tools/release/npm.js prepare --selection "$RUNNER_TEMP/selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/npm-bundle"

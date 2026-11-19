@@ -17,6 +17,7 @@ import { checkInterfaceVersions, checkNpmScripts, documentationProse, NUMBER, nu
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 import { NATIVE } from '@fbincon/statusline-cli/integration/model';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
+import { candidateCasesForNode } from './release-ci-policy.js';
 
 export type Documents = ReadonlyMap<string, string>;
 export function contentDocuments(root: string): Documents {
@@ -76,6 +77,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
     const toolDirs = readdirSync(join(root, 'tools'), { withFileTypes: true })
         .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
     const facts = developmentFacts(root, readSource);
+    const releaseCases = candidateCasesForNode(readFileSync(join(root, '.node-version'), 'utf8').trim());
     for (const suffix of ['', '.zh-CN']) {
         const readme = `README${suffix}.md`, metrics = `docs/DISPLAY_ITEMS${suffix}.md`, guide = `docs/USER_GUIDE${suffix}.md`, schemes = `docs/SCHEMES${suffix}.md`;
         for (const path of [readme, metrics, guide]) check(path, body => {
@@ -224,6 +226,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                     expected('A/D/X', 'Missing native control order');
                     break;
                 case 'docs/development/ci-maintenance':
+                    numeric(NUMBER + (zh ? ' 项发版 PR 作业' : ' release PR jobs'), [releaseCases.length + 2], 'Release PR job count differs from the matrix');
                     numeric(NUMBER + (zh ? ' 项逻辑' : ' logical'), [facts.logical], 'Logical obligation count differs from the matrix');
                     numeric(NUMBER + (zh ? ' 条完整和 ' : ' full and ') + NUMBER + (zh ? ' 条短历史' : ' short histories'),
                         [facts.fullHistory, facts.shortHistory], 'Installation and Node history split differs from the matrix');

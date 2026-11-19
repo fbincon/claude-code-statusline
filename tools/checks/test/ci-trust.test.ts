@@ -12,7 +12,7 @@ import { sourcePhases } from '../../acceptance/physical-budgets.js';
 import type { PromotionSelection } from '../ci-promotion.js';
 
 test('hosted installation jobs reserve the actual source and upload step limits', () => {
-    const { jobs } = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+    const { jobs } = parse(fs.readFileSync('.github/workflows/ci-diagnostics.yml', 'utf8'));
     assert(sourcePhases(true).every(phase => phase.budgetMs === PLATFORM_SOURCE_MS));
     assert(jobs.installed.steps.some((step: { run?: string }) => step.run?.includes('tools/acceptance/physical.js --plan')));
     for (const job of [jobs.installed, jobs.runtime]) {
@@ -22,7 +22,7 @@ test('hosted installation jobs reserve the actual source and upload step limits'
 });
 
 test('same-package language comparisons run only on a diagnostic branch dispatch', () => {
-    const workflow = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+    const workflow = parse(fs.readFileSync('.github/workflows/ci-diagnostics.yml', 'utf8'));
     const id = 'language-comparison', jobs = workflow.jobs, comparison = jobs[id];
     assert(workflow.on.workflow_dispatch.inputs.validation.options.includes(id));
     assert.equal(comparison.if, "github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'language-comparison'");
@@ -30,8 +30,7 @@ test('same-package language comparisons run only on a diagnostic branch dispatch
     assert.deepEqual(workflow.on.workflow_dispatch.inputs.language_input.options, ['dispatch-source', 'v3.16.1']);
     assert.equal(jobs['language-input'].if, comparison.if);
     assert.equal(comparison.needs, 'language-input');
-    assert(jobs.scope.if.includes("inputs.validation != 'language-comparison'"));
-    assert(jobs.acceptance.if.includes("inputs.validation != 'language-comparison'"));
+    assert.equal(jobs.acceptance.if, "inputs.validation == 'full'");
     assert(!jobs.acceptance.needs.includes(id) && !jobs.acceptance.needs.includes('language-input'));
     assert.deepEqual(comparison.strategy.matrix.include.map((row: { os: string; node: string; host_arch: string }) =>
         [row.os, row.node, row.host_arch]), [
@@ -91,27 +90,4 @@ export const verifyMerge = async relation => assert.equal(relation.pr, 23, 'OLD 
     await assert.rejects(verifyWithAcceptedBase(selection, join(root, 'evidence')), /OLD verifier rejects wrong PR/u);
     selection.integration!.pr = 23; selection.source_commit = base;
     await assert.rejects(verifyWithAcceptedBase(selection, join(root, 'evidence')));
-});
-
-test('workflow wires independent verification and targeted contracts into promotion, never full-matrix shadow', () => {
-    const workflow = parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
-    assert(workflow.on.workflow_dispatch.inputs.validation.options.includes('promotion-shadow'));
-    assert.equal(workflow.on.workflow_dispatch.inputs.validation.default, 'full');
-    const jobs = workflow.jobs, promotion = jobs.promotion.steps;
-    const trust = promotion.findIndex((step: any) => step.run?.startsWith('node tools/checks/ci-trust.ts '));
-    const restore = promotion.findIndex((step: any) => step.run?.startsWith('node tools/build/test-bundle.ts restore '));
-    const contracts = promotion.findIndex((step: any) => step.run?.includes('ci-{evidence,integration,routing,scope,trust}.test.js'));
-    const verify = promotion.findIndex((step: any) => step.run?.includes('ci-promotion.js verify '));
-    assert(trust >= 0 && trust < restore && restore < contracts && contracts < verify);
-    assert(promotion[verify].run.includes('--trusted-verification '));
-    assert.deepEqual(jobs.integration.strategy.matrix.os, ['ubuntu-24.04', 'windows-2025', 'macos-15']);
-    for (const key of ['installed', 'runtime', 'mods']) assert.equal(jobs[key].strategy.matrix, '${{ fromJSON(needs.candidate.outputs.' + key + '_matrix) }}');
-    for (const name of ['development', 'candidate']) assert(jobs[name].if.includes("needs.scope.outputs.route == 'full'"));
-    assert(!JSON.stringify(jobs).includes('outputs.shadow'));
-    assert(jobs.acceptance.needs.includes('promotion') && jobs.acceptance.needs.includes('integration'));
-    assert(jobs.acceptance.name.includes('Manual validation (not PR evidence)'));
-    assert.equal(jobs.acceptance.steps.find((step: any) => step.uses?.startsWith('actions/checkout@')).with['fetch-depth'], 0, 'Schema activation requires the complete source history');
-    const record = jobs.acceptance.steps.find((step: any) => step.run?.includes('ci-evidence.js record'));
-    assert(record.if.includes("github.event_name != 'workflow_dispatch'"));
-    assert(jobs.scope.steps.find((step: any) => step.id === 'promotion').env.CI_BASE.includes('pull_request.base.sha'));
 });

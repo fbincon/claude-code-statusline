@@ -29,10 +29,10 @@ async function attemptJobs(runId: number, attempt: number): Promise<any[]> {
     }
     throw new Error('Original job pagination exceeded');
 }
-export async function requireGate(run: any): Promise<any> {
+export async function requireGate(run: any, name = 'Complete candidate evidence'): Promise<any> {
     // Pin the observed attempt. The mutable latest-jobs alias can be expensive
     // (and fail with 502 after retries), and may switch attempts while reading.
-    const gates = (await attemptJobs(run.id, run.run_attempt)).filter(job => job.name === 'Complete candidate evidence');
+    const gates = (await attemptJobs(run.id, run.run_attempt)).filter(job => job.name === name);
     assert.equal(gates.length, 1, 'Missing or ambiguous required aggregate');
     assert.equal(gates[0].conclusion, 'success', 'Required aggregate did not pass');
     const fresh = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${run.id}`);

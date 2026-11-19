@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs, promisify } from 'node:util';
 import { isTransient, responseError, retryRead } from './ci-transfer-policy.ts';
 export const CI_REPOSITORY = 'fbincon/claude-code-statusline';
+const observedWorkflows = ['.github/workflows/ci.yml', '.github/workflows/ci-diagnostics.yml'];
 const exec = promisify(execFile);
 /** Local observation uses the caller's existing gh authentication. Keep diagnostics
  * redacted, including signed redirects, and preserve only known transfer errors. */
@@ -89,7 +90,7 @@ export async function collectRun(runId: number, head: string, read = githubRead)
         const jobs = summarizeJobs(await readJobs(runId, 'all',read)), run = await read(path);
         assert.equal(run.head_sha, head, 'CI run belongs to another head');
         assert.equal(run.repository?.full_name, CI_REPOSITORY, 'CI run belongs to another repository');
-        assert.equal(run.path, '.github/workflows/ci.yml', 'Unexpected CI workflow');
+        assert(observedWorkflows.includes(run.path), 'Unexpected CI workflow');
         if (before.run_attempt === run.run_attempt && before.status === run.status &&
             jobs.every(job => job.attempt <= run.run_attempt)) {
             return { schema_version: 1, run_id: runId, head, event: run.event, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion,
@@ -110,7 +111,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
             const run = await githubRead(`repos/${CI_REPOSITORY}/actions/runs/${values.run}`);
             assert.equal(run.head_sha, values.head, 'CI run belongs to another head');
             assert.equal(run.repository?.full_name, CI_REPOSITORY);
-            assert.equal(run.path, '.github/workflows/ci.yml');
+            assert(observedWorkflows.includes(run.path), 'Unexpected CI workflow');
             const state = JSON.stringify({ run: run.id, head: run.head_sha, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion });
             if (state !== previous) { console.log(state); previous = state; }
             if (run.status === 'completed' || !values.watch) {

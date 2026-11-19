@@ -45,9 +45,9 @@ npm run check
 git diff --check
 ```
 
-其他已提交改动使用不可变的已提交输入运行 `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json`，再执行计划选中的 `npm run ci:check` 任务；每次运行使用新的报告路径。涉及包内容的计划须增加 `--compare`；使用新输出路径和符合实际平台的任务，其他平台／宿主由 CI 执行。文档媒体还须通过计划选中的资源检查。
+其他已提交改动使用 `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json` 和适用的本机 `npm run ci:check` 任务。每次使用新报告路径。涉及包内容时加 `--compare`。包含媒体时运行计划选中的素材检查。
 
-CI 对混合维护取检查并集。产品逻辑、协议、运行时依赖与内置技能指令须执行完整产品矩阵；构建／生成输入使用包比较及生成／构建测试与三平台安装冒烟。归属未知或比较未解决会阻断。每条 PR 路线都由 `Complete candidate evidence` 门禁；该名称代表受保护聚合，不代表完整矩阵覆盖。详见[按影响检查](docs/development/impact-checks.zh-CN.md#职责与检查)和 [CI 维护](docs/development/ci-maintenance.zh-CN.md)。测试使用隔离的配置与安装目录；安装、官方宿主、终端、实机和付费检查参见[测试与验收](docs/development/testing.zh-CN.md)。
+普通 PR 根据改动在本地检查。混合维护合并适用检查，涉及构建／生成输入时完成包内容比较。归属未知或比较未解决时先处理。按实际平台运行任务，其他平台、宿主及深度升级回退按需手动验证。发版分支走独立的 [CI 晋升流程](docs/development/ci-maintenance.zh-CN.md)，本地验证使用隔离配置与安装目录。
 
 ## 准备 PR
 
@@ -63,7 +63,7 @@ CI 对混合维护取检查并集。产品逻辑、协议、运行时依赖与�
 
 按需更新文档、截图、CHANGELOG 和关联 Issue；模板中其他项目明确填写“不适用”。项目 README 用于功能介绍和使用说明，发布版本、交付状态和更新叙述放在变更日志、发布说明或开发记录中。
 
-PR 面向 `main`，合并前同步主线，并要求最终审查 head 通过 `Complete candidate evidence`。保留[仓库保护](docs/development/repository-governance.zh-CN.md#主线保护与检查)。单人维护项目不强制第二个人审批，但维护者和自动化账号仍须遵守 PR 与 CI 要求。发布是独立的维护者操作，详见[发布指南](docs/RELEASING.zh-CN.md)。
+PR 面向 `main`。合并前同步主线，并核对 PR 所记录的本地结果对应最终审核 head。发版 PR 须另等 `Accept release candidate`，采用 merge commit，并在打标签前等 `Accept release integration`。遵循[仓库保护](docs/development/repository-governance.zh-CN.md#主线保护与检查)和[发布指南](docs/RELEASING.zh-CN.md)。
 
 ### 分支命名
 

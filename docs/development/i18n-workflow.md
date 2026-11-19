@@ -98,25 +98,24 @@ Keep imported Native modules below the current 1 MiB host limit using the existi
 
 ## CI routing and PR → main → tag reuse
 
-Use the existing `ImpactPlan` and protected `Complete candidate evidence` aggregate. The aggregate name does not require a product matrix for maintenance. [Impact checks](impact-checks.md) and [CI maintenance](ci-maintenance.md) remain authoritative; register new inputs and regression cases before activating them.
+Use `ImpactPlan` to select local checks. Releases use `Accept release candidate` and main integration. Register new inputs and verify the applicable regressions before activation. [Impact checks](impact-checks.md) · [CI maintenance](ci-maintenance.md).
 
 | Actual change | Expected responsibility and checks |
 | --- | --- |
-| Ordinary planning/contribution documentation | Documentation route plus the existing unconditional Action identity check |
+| Ordinary planning/contribution documentation | Local documentation checks |
 | Existing translation values with unchanged keys/placeholders and exact generated copies | Existing presentation checks, including affected frontend/host and package obligations |
 | Reporting tools, acceptance policy or metadata | Registered actual tool/policy/build responsibility; inspect effective runtime impact rather than trusting the filename |
 | Generation, build or packaging rules | Required generation/build checks and actual package comparison; non-equivalent product changes require product acceptance |
-| First fallback/state behavior, runtime logic, language registration, keys/placeholders or defaults | Product acceptance on the final ready-PR source |
+| First fallback/state behavior, runtime logic, language registration, keys/placeholders or defaults | Local product checks on the final PR head |
 | Mixed changes | Union and deduplicate applicable checks |
 | Unknown ownership or unresolved comparison | Block promotion, resolve the classification/comparison and continue; neither skip it nor default to an expensive full matrix |
 
 Essential language reports bind the source messages, raw translations, acceptance/context/policy inputs, generator identity and actual validation results. Attach them to existing relevant artifacts. Compatible report/schema readers and the release gate must work before development fallback is enabled, including complete-source promotion and maintenance-source publication. Incompatible changes require explicit compatibility verification using the accepted-base trust boundary, not a new validator accepting its own output.
 
-Ready product PRs run the required complete acceptance once for the final source, incorporating the affected language cases. Ready maintenance PRs run their selected scoped tasks. Equivalent main merges retain the existing accepted-first-parent verification: complete-source merges also run the existing three-platform integration smoke; maintenance merges reuse scoped receipts without a new product candidate. The verifier's code comes from the actual accepted first parent, never restored candidate outputs.
+Release PRs verify complete A/B readiness from the immutable candidate. Main and tag reuse that package and verified language evidence. Main exports the independent verifier from the actual first parent and runs three package smokes. Historical complete and maintenance records follow their original source policies.
 
-Complete-source tags reuse verified original bytes and evidence. Maintenance-source tags build their own package, source archive, manifest and checksums, retain independent/source rebuilds, accepted-code comparison, three-platform installation smoke and source-bound release checks, and explicitly link original product coverage. Verify current language readiness through matching reports or a lightweight check of their deterministic inputs; do not repeat the full product or language matrix on main/tag. Original report source/execution identities remain unchanged and are linked to the new promotion/release identity.
+Check the latest applicable run and artifact. Missing, expired, failed or incompatible evidence blocks release. Preserve the report's original source and execution identity. Select relevant language scenarios from [language validation](i18n.md#validate-a-change).
 
-Retain latest-applicable-run and newest-artifact selection, expiry and corruption checks. Missing, expired, failed or incompatible evidence blocks; an older green result or manual diagnostic is not a substitute. Repair or refresh only what is required through existing routes. Preserve current logical platform, runtime and host coverage and the [registered UI/output language combinations](i18n.md#validate-a-change), without multiplying every language by every host, platform and viewport. Do not add redundant dependency installation, generation, builds or per-language jobs. Ordinary documentation maintenance does not require downloading an old product candidate.
 
 ## Current language validation
 

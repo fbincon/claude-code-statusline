@@ -15,9 +15,10 @@ import { sectionInputsAt, sourceCapacityCount, sourceContract, validateSectionEv
 import { envelopeBytes } from './evidence-zip.ts';
 import { languageEvidence, type LanguageEvidence } from './i18n-evidence.ts';
 import { validateProductChecks, type ProductCheckReceipt } from './impact-product.ts';
+import { git } from './ci-git.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const git = (...args: string[]) => execFileSync('git', ['--no-replace-objects', ...args], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+export { git };
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 export interface ArtifactIdentity { id: number; name: string; digest: string; expires_at: string }
 interface EvidenceBase {
@@ -306,7 +307,7 @@ export function verifyRecordedFiles(record: CompleteEvidence, directory: string)
     for (const [name, hash] of Object.entries(record.compiled))
         assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
 }
-export async function verifyWorkflowSource(record: CompleteEvidence): Promise<void> {
+export async function verifyWorkflowSource(record: Pick<CompleteEvidence, 'source_commit' | 'workflow' | 'workflow_sha'>): Promise<void> {
     const workflow = await githubRead(`repos/${CI_REPOSITORY}/contents/${record.workflow}?ref=${record.workflow_sha}`);
     assert.equal(workflow.type, 'file');
     assert.equal(workflow.sha, git('rev-parse', record.source_commit + ':' + record.workflow), 'Executed workflow differs from the accepted source');

@@ -10,17 +10,15 @@
 
 ## 主线保护与检查
 
-2026-10-26 核验已启用的 [main-required-ci 规则集](https://github.com/fbincon/claude-code-statusline/rules/25857226)匹配 `refs/heads/main`。所有变更必须经过 PR，分支与主线同步，且来自 GitHub Actions 的 `Complete candidate evidence` 检查成功。包括无法归属的变更在内，必需审批人数均为 0；维护者和自动化账号均无 bypass 条目。禁止强推与删除，保留 merge commit，不要求线性历史。
+[主线规则集](https://github.com/fbincon/claude-code-statusline/rules/25857226)覆盖 `refs/heads/main`，要求经 PR 合并并禁止强推和删除。必需审批人数为零，维护者和自动化没有 bypass 条目。允许 merge commit。
 
-PR 检查依据不可变[影响计划](impact-checks.zh-CN.md)：文档／媒体、呈现数据、测试、工具、CI 及发布数据采用专项检查，核心行为与运行依赖采用完整产品矩阵；混合职责合并检查要求。归属未知或包比较未解决时阻断。草稿快检不能通过 `Complete candidate evidence`。
-
-等价 main 合并通过适用的产品或维护路线复用已验证的最终 PR 证据。已接受 base 独立核验源码、合并／tree、原始执行及产物，产品晋级还要求集成冒烟。改变的集成重新分类；证据不可用、过期、失败、取消及非预期跳过均保持阻断。准确路线和期限由 [CI 维护](ci-maintenance.zh-CN.md)负责。不得为完成失败 PR 而放宽分类、仓库保护或状态来源。
+合并前核对分支已同步主线，PR 记录最终 head 的本地检查。普通 PR 和 `main` 合并分配零个项目 CI runner。发布候选使用仓库内的 `release/` 分支，按 [CI 晋升流程](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)等待最终候选和原包集成验证。
 
 PR 成功合并后，在 GitHub 允许时自动删除其来源分支。2026-11-13 核实时，`origin` 上仅有 `main`。2026-10-26 盘点记录了 131 个可从主线到达及三个不可到达的非 main 分支头；该历史盘点不是删除授权。后续清理前仍须检查活跃 PR、固定提交身份和文档引用。
 
 ## 依赖与发布维护
 
-启用 Dependabot alerts、依赖图与安全更新。安全更新 PR 仍需正常审阅和 CI，不自动合并。既有每周 Actions 版本更新配置保持不变，不增加 npm 定期版本更新。依赖修复可能需要同步修改固定版本清单、lockfile、打包器与验包器。密钥扫描和推送保护继续启用。
+启用 Dependabot alerts、依赖图与安全更新。安全更新 PR 仍需正常审阅和本地检查，不自动合并。既有每周 Actions 版本更新配置保持不变，不增加 npm 定期版本更新。依赖修复可能需要同步修改固定版本清单、lockfile、打包器与验包器。密钥扫描和推送保护继续启用。
 
 2026-10-26 首次扫描在 `tools/acceptance/package-lock.json` 和 `tools/migration/ts-05/reference-requirements.txt` 中发现六条告警（一条高危、两条中危、三条低危）。Dependabot 分别创建了 [setuptools #149](https://github.com/fbincon/claude-code-statusline/pull/149)、[body-parser #150](https://github.com/fbincon/claude-code-statusline/pull/150) 和 [fast-uri #151](https://github.com/fbincon/claude-code-statusline/pull/151) 修复 PR。此前根工作区的 npm audit 未覆盖这些独立依赖文件。这些修复当时安排为单独审阅和检查；该盘点是历史快照，不代表当前告警或 PR 状态。#96 的平台验收豁免不适用于依赖告警。
 
@@ -30,7 +28,7 @@ Release immutability 面向未来 GitHub 正式发布。先在草稿中准备并
 
 ## CodeQL 与代码扫描
 
-已为 GitHub Actions 和 JavaScript/TypeScript 启用 CodeQL 默认配置。Python 保持关闭，因为 Python 实现作为冻结归档保留。配置使用标准 GitHub runner、默认查询集和 remote-sources 威胁模型；扫描推送到 `main` 和受保护分支的变更、针对这些分支的 PR，以及每周计划任务。CodeQL 不属于 `Complete candidate evidence` 聚合门禁；将其设为必需检查需要单独的 ruleset 决策。
+已为 GitHub Actions 和 JavaScript/TypeScript 启用 CodeQL 默认配置。Python 保持关闭，因为 Python 实现作为冻结归档保留。配置使用标准 GitHub runner、默认查询集和 remote-sources 威胁模型；扫描推送到 `main` 和受保护分支的变更、针对这些分支的 PR，以及每周计划任务。CodeQL 按独立安全扫描配置运行。
 
 `2c2044d0` 上的首次扫描无分析错误，产生 29 个告警。全部告警均已分诊并按记录的理由关闭：14 个测试／工具类告警按 used in tests 或 false positive 关闭；15 个 `actions/cache-poisoning` 告警按 false positive 关闭，因为候选任务使用只读权限、Actions 缓存按分支隔离，且工作流由维护者手动派发，不接受任意 commit 输入。当前无开放告警。新告警应在 Security 页面分诊；未核对路径和信任模型前不得关闭。参见 [CodeQL 默认配置交付记录](history/deliveries/codeql-default-setup.zh-CN.md)。
 

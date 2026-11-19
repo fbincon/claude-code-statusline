@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { crc32 } from 'node:zlib';
+import { envelope } from './fixtures/evidence-envelope.js';
 import { selectMain, recordIntegration, SMOKE_TARGETS } from '../ci-integration.js';
 import { selectTag, publishedTagEvidence, predictMain } from '../ci-promotion.js';
 import { digest, policyDigest } from '../ci-evidence.js';
@@ -20,15 +20,6 @@ import { v2Fixture } from './fixtures/ci-evidence-v2.js';
 import { SECTION_INPUT_PATHS } from '../ci-section-evidence.js';
 import { ACCEPTED_GAPS } from '../../release/approval.js';
 
-function envelope(file: string, value: unknown): Buffer {
-    const name = Buffer.from(file), body = Buffer.from(JSON.stringify(value));
-    const local = Buffer.alloc(30); local.writeUInt32LE(0x04034b50); local.writeUInt16LE(name.length, 26);
-    const central = Buffer.alloc(46); central.writeUInt32LE(0x02014b50); central.writeUInt32LE(crc32(body), 16);
-    central.writeUInt32LE(body.length, 20); central.writeUInt32LE(body.length, 24); central.writeUInt16LE(name.length, 28);
-    const end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50); end.writeUInt16LE(1, 8); end.writeUInt16LE(1, 10);
-    end.writeUInt32LE(central.length + name.length, 12); end.writeUInt32LE(local.length + name.length + body.length, 16);
-    return Buffer.concat([local, name, body, central, name, end]);
-}
 
 const changes = [
     'docs/releases/approvals/registry.json', 'packages/core/src/render.ts', 'packages/cli/resources/generated.json',

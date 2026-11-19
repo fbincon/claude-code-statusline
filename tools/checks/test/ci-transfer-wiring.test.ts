@@ -8,7 +8,7 @@ import { parse } from 'yaml';
 import { acceptedTransfer } from '../ci-transfer-trust.js';
 
 const transfer = './.github/actions/transfer-artifact';
-const workflow = () => parse(fs.readFileSync('.github/workflows/ci.yml', 'utf8'));
+const workflow = () => parse(fs.readFileSync('.github/workflows/ci-diagnostics.yml', 'utf8'));
 const stepIndex = (steps: any[], match: (step: any) => boolean) => { const i = steps.findIndex(match); assert(i >= 0); return i; };
 
 test('the worker verifies the small artifact against the original producer before restoring compiled tests', () => {
@@ -19,6 +19,7 @@ test('the worker verifies the small artifact against the original producer befor
     assert.equal(candidate[light].with.name, 'ci-worker-input'); assert.equal(candidate[create].env.ORIGINAL_ID, '${{ steps.candidate_upload.outputs.artifact-id }}');
     for (const key of ['installed','runtime','mods']) {
         const steps = jobs[key].steps, inputs = steps.filter((s: any) => s.uses === transfer && s.with.operation === 'download');
+        assert.equal(steps[0].with.ref, '${{ github.sha }}');
         assert.equal(inputs.length, 3); assert.equal(inputs[0].with.name, 'ci-worker-input');
         assert.equal(inputs[0].with['artifact-ids'], '${{ needs.candidate.outputs.worker_id }}');
         assert.equal(inputs[1].if, "matrix.history != 'none'"); assert(inputs[1].with.name.includes('ci-historical-380'));
@@ -27,6 +28,7 @@ test('the worker verifies the small artifact against the original producer befor
         assert(prepare.run.indexOf('worker-input.ts restore') < prepare.run.indexOf('test-bundle.ts restore'));
         assert.equal(prepare.env.PRODUCER_ATTEMPT, '${{ needs.candidate.outputs.producer_attempt }}');
     }
+    assert.equal(jobs['windows-probe'].steps[0].with.ref, '${{ github.sha }}');
     for (const key of ['acceptance','tiered-results']) {
         const steps = jobs[key].steps, candidate = stepIndex(steps, s => s.with?.name === 'ts06-candidate');
         const select = stepIndex(steps, s => s.run?.includes('ci-physical-workflow.ts select'));
@@ -35,31 +37,12 @@ test('the worker verifies the small artifact against the original producer befor
     }
 });
 
-test('only proven source code can transport original artifacts before frozen verification, with pinned fallback', () => {
-    const { jobs } = workflow(), selector = jobs.scope.steps.find((s: any) => s.id === 'transfer_source');
-    assert(selector.run.includes('selection.release.verifier_commit')); assert(selector.run.includes('selection.integration.base'));
-    assert(!selector.if.includes("route == 'tag'"));
-    for (const key of ['integration','promotion','release-binding','maintenance']) {
-        const steps = jobs[key].steps, check = stepIndex(steps, s => s.id === 'transport');
-        assert(steps[check].run.includes('git --no-replace-objects cat-file blob')); assert(steps[check].run.includes('node "$RUNNER_TEMP/accepted-transfer-check.mts"'));
-        const protectedReads = steps.filter((s: any) => s.uses === transfer && s.with.operation === 'download' && s.with['run-id']?.includes('needs.scope.outputs.'));
-        assert(protectedReads.length);
-        for (const read of protectedReads) {
-            assert(steps.indexOf(read) > check); assert(read.if.includes("steps.transport.outputs.verified == 'true'"));
-            const fallback = steps.find((s: any) => s.uses?.startsWith('actions/download-artifact@') && s.with['artifact-ids'] === read.with['artifact-ids']);
-            assert(fallback && fallback.if.includes("steps.transport.outputs.verified != 'true'"));
-            assert.equal(fallback.with['run-id'], read.with['run-id']); assert.equal(fallback.with.path, read.with.path);
-        }
-    }
-});
-
 test('transfer probe crosses runners, binds real IDs and never joins an automatic gate', () => {
     const w=workflow(), p=w.jobs['artifact-transfer-probe'], r=w.jobs['artifact-transfer-readback'];
     assert(w.on.workflow_dispatch.inputs.validation.options.includes('artifact-transfer-probe'));
     assert.equal(p.if, "github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && inputs.validation == 'artifact-transfer-probe'");
     assert.equal(r.if,p.if); assert.equal(r.needs,'artifact-transfer-probe');assert.notEqual(p['runs-on'],r['runs-on']);
-    assert(w.jobs.scope.if.includes("inputs.validation != 'artifact-transfer-probe'"));
-    assert(w.jobs.acceptance.if.includes("inputs.validation != 'artifact-transfer-probe'"));
+    assert.equal(w.jobs.acceptance.if, "inputs.validation == 'full'");
     assert(!w.jobs.acceptance.needs.includes('artifact-transfer-probe') && !w.jobs.acceptance.needs.includes('artifact-transfer-readback'));
     const steps = [...p.steps,...r.steps]; assert(steps.some(s=>s.run?.includes('npm run release:build')));
     assert(steps.some(s=>s.run?.includes('worker-input.ts restore')));

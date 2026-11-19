@@ -45,9 +45,9 @@ npm run check
 git diff --check
 ```
 
-For other committed changes, use immutable committed inputs with `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json` and the selected `npm run ci:check` tasks; each run uses a new report path. Package-sensitive plans require `--compare`; use a new output path and the task for your actual platform. CI executes the remaining platform/host tasks. Documentation media also requires the asset checks selected by the plan.
+For other committed changes, use `npm run ci:plan -- --base origin/main --head HEAD --output /tmp/impact-plan.json` and the applicable local `npm run ci:check` tasks. Choose a fresh report path each time and add `--compare` for package-sensitive plans. Run the selected asset checks for documentation media.
 
-CI combines checks for mixed maintenance. Product logic, protocols, runtime dependencies and bundled skill instructions require the complete product matrix; build/generation inputs use package comparison plus generation/build tests and three-platform installation smoke. Unknown ownership or unresolved comparisons block. Every PR route is gated by `Complete candidate evidence`; the name identifies the protected aggregate, not full-matrix coverage. See [impact checks](docs/development/impact-checks.md#responsibilities-and-checks) and [CI maintenance](docs/development/ci-maintenance.md). Tests use isolated configuration and installation directories; [testing and acceptance](docs/development/testing.md) describes installed, official-host, terminal, physical and paid checks.
+Ordinary PRs use local checks. Combine applicable checks for mixed changes and resolve package comparison for build or generation inputs. Resolve unknown ownership before delivery. Run tasks for the actual environment and dispatch additional platform, host or deep history diagnostics as needed. Release branches use [CI promotion](docs/development/ci-maintenance.md). Test in isolated configuration and installation directories.
 
 ## Prepare a pull request
 
@@ -63,7 +63,7 @@ When adding or changing screenshots or captures, update the [image gallery index
 
 Update documentation, screenshots, CHANGELOG and related Issue links when relevant; explicitly mark other template items not applicable. The project README introduces features and usage: release versions, delivery status and update narratives belong in the changelog, release notes or development records.
 
-Target `main`, bring the branch up to date and require successful `Complete candidate evidence` for the final reviewed head before merging. Preserve [repository protections](docs/development/repository-governance.md#main-protection-and-checks). A second person's approval is not mandatory for this single-maintainer project; the PR and CI requirements still apply to maintainers and automation. Publication is a separate maintainer operation described in the [release guide](docs/RELEASING.md).
+Target `main` and bring the branch up to date. Before merging, check the local results against the final reviewed head. For release PRs also wait for `Accept release candidate`, use a merge commit, and wait for `Accept release integration` before tagging. Follow [repository protections](docs/development/repository-governance.md#main-protection-and-checks) and the [release guide](docs/RELEASING.md).
 
 ### Branch names
 

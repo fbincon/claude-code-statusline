@@ -4,9 +4,7 @@
 
 ## Staged adoption
 
-Scoped scheduling is enabled after the compatibility foundation passed the complete PR matrix and independently verified main promotion. The required checks now follow the impact plan. This migration creates no product version, release tag, npm publication or installed-product change.
-
-The required check remains **Complete candidate evidence**. Its name identifies the protected aggregate, not a claim that every route executed the complete product matrix. The aggregate verifies each route's required jobs and intentional skips. Drafts and manual diagnostics cannot create promotable acceptance.
+Use the impact plan locally for ordinary merges. The release workflow owns [PR, main and tag acceptance](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag).
 
 ## Responsibilities and checks
 
@@ -20,15 +18,15 @@ The classifier reads both immutable Git trees, including additions, deletions, m
 | Check, workflow, Action and release policy | Workflow identities and check/release contract tests, including failure cases |
 | Benchmarks, acceptance and development tools | Tool-family tests and relevant system checks |
 | Build/generation inputs, development dependencies and export settings | Actual package comparison, generation/build tests and three-platform installation smoke |
-| Product logic, protocols, runtime dependencies and bundled skill instructions | Existing complete product matrix |
+| Product logic, protocols, runtime dependencies and bundled skill instructions | `npm run check` and targeted diagnostics as needed |
 
-Template locations and check boundaries are listed in the [template and check registry](README.md#template-and-check-registry). The PR template structure and any top-level Issue form routing are covered by `docs:check` and the maintenance route, not the product matrix; see [community documentation checks](ci-maintenance.md#community-documentation-checks).
+Template locations and check boundaries are listed in the [template and check registry](README.md#template-and-check-registry). The PR template structure and any top-level Issue form routing are covered by `docs:check` locally; see [community documentation checks](ci-maintenance.md#community-documentation-checks).
 
 Documentation checks run on Linux. Pure core tests run on Linux; platform, application, terminal and tooling families retain Linux, Windows and macOS executions. Mod checks use the existing fixed host inventory for the affected Mod; unsupported Runtime hosts are excluded rather than reported as passes. Scoped host jobs run official validation/tests and available exact-host declarations without running unrelated installation/runtime matrices. The existing Claude 2.1.296 declaration gap remains explicit.
 
 Several categories combine by taking the union of checks. Unknown responsibilities, unsupported file types, ambiguous modes or unreadable revisions block with a classification diagnostic. They never automatically select the expensive product matrix. Frozen archive changes still face archive integrity checks.
 
-Static production imports override a test/tool/document directory label, including inlined compile-time inputs; those changes require actual package comparison. Generated fixtures always select generation checks. Descriptive workspace metadata is compared without ignoring entrypoints, dependencies or executable package contracts. A non-reused batched push checks its actual push range, so an earlier core change cannot hide behind the last documentation commit.
+Static production imports override a test/tool/document directory label, including inlined compile-time inputs; those changes require actual package comparison. Generated fixtures always select generation checks. Descriptive workspace metadata is compared without ignoring entrypoints, dependencies or executable package contracts. Compare the full local base/head range so the plan covers every commit in the PR.
 
 Only existing locale keys/placeholders, registered human-help literal value slots and theme value slots qualify as presentation data. Help command selectors, property keys, control flow, executable expressions and terminal control characters remain significant. Changed language registration, keys or defaults remain product changes. Generated copies must match their canonical sources exactly. Product `SKILL.md` files are executable instructions, not ordinary documentation. Comment/format/type-only changes require equivalent emitted operations and an actual package comparison.
 
@@ -56,23 +54,11 @@ npm run ci:check -- --plan /tmp/impact-compared.json --task linux \
 
 For a plan without packaging, omit `--artifact`. Use the task ID and actual platform from the plan; a Linux execution cannot issue a Windows/macOS receipt. Local receipts have no Actions execution identity and cannot replace CI acceptance. Each run uses a new report path. The complete local `npm run check` remains available and remains required during foundation validation and for core changes.
 
-The package comparison exports each source independently, installs its locked dependencies with lifecycle scripts disabled, builds, verifies generation and packages it. It compares runtime members and modes, allowing only registered documentation, compiler metadata, version identity and presentation differences. Runtime expressions, entrypoints, dependencies and unregistered members remain significant. Neither package's commit or original bytes are rewritten. Comparison errors block; non-equivalent runtime output selects full product acceptance.
+The package comparison exports each source independently, installs its locked dependencies with lifecycle scripts disabled, builds, verifies generation and packages it. It compares runtime members and modes, allowing only registered documentation, compiler metadata, version identity and presentation differences. Runtime expressions, entrypoints, dependencies and unregistered members remain significant. Neither package's commit or original bytes are rewritten. Comparison errors block; non-equivalent runtime output selects the product route.
 
 ## Evidence and promotion
 
-The original `ci-evidence.json`, `sourceHashes()` and `policyDigest()` contracts retain their historical meanings. `ci-maintenance` is a separate envelope containing the impact plan, actual scoped receipts, original artifact identities and a product-baseline ancestry reference. It does not claim a fresh complete matrix. Receipt checks bind the exact commit, plan, target, checks, runtime, Actions run/attempt and execution interval. Artifact selection preserves the newest-artifact and latest-applicable-run rules.
-
-A normal equivalent two-parent main merge reuses the final PR's maintenance evidence. The actual accepted first parent exports its own verifier code into an isolated directory and installs that parent's integrity-pinned parser/archive dependencies. That code rechecks source, merge, checks and any package comparison; current candidate compiler outputs are never restored over the verifier. A changed base/tree or unsupported integration cannot borrow the old receipt: the actual main difference is classified and checked again. Ambiguous provenance blocks.
-
-Ordinary maintenance does not download an old product candidate merely to update documentation or tools. Release reuse follows the recorded maintenance ancestry to an available complete product baseline. Every required envelope, original execution and artifact must still be valid; expired/corrupt/missing evidence or a latest failed run blocks reuse. A previous green run and manual diagnostic cannot substitute. Existing 30-day evidence retention is unchanged.
-
-A maintenance-source tag builds its **own** package, source archive, manifest and checksums. Two independent builds and a source-archive rebuild must agree. Linux/Windows/macOS installation smoke exercises those new bytes. The already accepted first-parent main verifier independently compares original and new runtime payloads; current source-bound release approval is checked separately. Release-selection/binding schema 2 records that verifier commit/run separately from original complete product acceptance. This permits validated policy maintenance without rerunning the product matrix or changing historical per-source input digests. `ci-release-binding` records current checks and original reused coverage, with distinct source/package identities. npm resolves this binding and publishes only the verified current-tag package. The tag, package source and OIDC provenance must agree.
-
-Existing complete-source tags and historical npm releases retain their existing reader. Published tags and assets are never changed to test the new route. A dry-run checks preparation and bytes; it does not establish a new publication or validate a new trusted-publisher binding.
-
-Select the impact route before computing historical depth. The coverage reader uses the original PR base and actual merge base for a core PR. A complete main run can use its accepted first parent. Without that boundary it requires full history on every lane. Maintenance evidence identifies the scoped checks actually executed. It cannot satisfy a missing product obligation.
-
-For core changes, the product coverage policy expands shared npm, recovery, schema and package-layout changes to full history on the affected combinations. Platform-specific paths expand that platform. Shared official-host detection, installation, binding and protocol changes expand the applicable hosts. The planner takes the union across paths. The impact summary identifies the checks already covered by the development, candidate, platform and host jobs. On a mixed change the protected aggregate checks the remaining assets or the entire approval registry against the immutable diff. Its receipt includes the original job and an input digest that the verifier recomputes. Maintenance drafts execute their scoped checks and upload draft feedback.
+Local receipts identify executed tasks, actual platform, commit and plan digest. Record results and limitations in the PR. Historical `ci-maintenance` and `ci-release-binding` readers follow their source-specific rules for the original product baseline, artifacts and jobs. The current release route reuses the original PR package through the equivalent merge and tag. [Release guide](../RELEASING.md#source-bound-ci-evidence-promotion).
 
 ## Validation and operation
 
