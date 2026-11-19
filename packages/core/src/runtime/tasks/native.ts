@@ -1,11 +1,12 @@
 import type { Sample } from '../../timing/sample.js';
 import { StatusTimer } from '../../timing/timer.js';
-import { int, numeric, own, object, truth, string, compareNumbers, type Data } from '../values.js';
+import { int, numeric, own, object, truth, string, maxInt, type Data } from '../values.js';
 import { roundedInteger } from '../transcript.js';
 import type { LiveState } from '../live/state.js';
 import { findTurn, rememberId, type TaskStore, type Turn } from './model.js';
-import { applyPrompt, finishRecord } from './transitions.js';
-import { startSubagent, stopSubagent } from './agents.js';
+import { applyPrompt, endIsCurrent, finishRecord, noteEndEvidence, reopenForContinuation, reconcileNotifications } from './transitions.js';
+import { agentWorkPending, clearSnapshotOnlyAgents, startSubagent, stopSubagent } from './agents.js';
+import { notificationPrompt } from './hooks.js';
 export function nativeSample(wall: bigint, capture: () => Sample): Sample {
     const captured = capture(), delay = captured.wall_ns - wall;
     return captured.boot_id && captured.boot_ns !== null && delay >= 0n && delay <= 2000000000n ? { wall_ns: wall, boot_ns: captured.boot_ns - delay, boot_id: captured.boot_id } : { wall_ns: wall, boot_ns: null, boot_id: null };
@@ -51,11 +52,12 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
         agent: unknown;
     }[] = [];
     const links = () => { for (const [alias, target] of Object.entries(state.prompt_aliases))
-        if (typeof target === 'string')
+        if (typeof target === 'string' && (!notificationPrompt(history, alias) || findTurn(history, alias)) && (!notificationPrompt(history, target) || findTurn(history, target)))
             linkTask(history, alias, target); };
     links();
     for (const [prompt, info] of Object.entries(state.prompts)) {
-        if (info.epoch !== epoch || info.source === 'lifecycle_window')
+        if (info.epoch !== epoch || info.source === 'lifecycle_window' || notificationPrompt(history, prompt) ||
+            Object.entries(state.prompt_links).some(([alias, target]) => target === prompt && notificationPrompt(history, alias)))
             continue;
         const linked = Object.hasOwn(state.prompt_aliases, prompt) || Object.values(state.prompt_aliases).includes(prompt);
         if (info.source === 'native' && history.turns.length && !linked)
@@ -69,38 +71,70 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
         if (turn.epoch !== epoch || turn.prompt_id === null)
             continue;
         const record = findTurn(history, turn.prompt_id);
-        if (!record || record.historical_frozen)
+        if (!record || record.historical_frozen || record.configuration_prompt)
             continue;
         if (Object.values(record.native_turns).some(loop => loop.epoch !== epoch))
             record.active_coverage = 'incomplete';
         const previous = own(record.native_turns, key), started = roundedInteger(numeric(turn.started_at_ms)! * 1e6), agent = turn.agent_id;
         if (turn.start_observed !== true) record.active_coverage = 'incomplete';
-        if (!previous && agent === null && record.status === 'completed' && record.end_source === 'native_turn_end' && started > (int(record.ended_wall_ns) || started) && record.report_aliases.length && history.current_prompt_id === record.prompt_id) {
-            Object.assign(record, { status: 'running', ended_wall_ns: null, ended_boot_ns: null, duration_ns: null, end_source: null, end_reason: null, phase: 'main' });
+        if ((!previous || previous.start_observed !== true) && agent === null && turn.start_observed === true &&
+            own(state.prompts, turn.prompt_id)?.source !== 'lifecycle_window' && !truth(state.invalidated)) {
+            const reopened = reopenForContinuation(history, record, started);
+            if (reopened)
+                record.phase = 'main';
+            const priorMain = Object.values(record.native_turns).some(loop => loop.agent_id === null && loop.start_observed === true &&
+                (numeric(loop.started_at_ms) ?? Infinity) < numeric(turn.started_at_ms)!);
+            const priorStop = object(record.stop_candidate) && started > (int(record.stop_candidate.wall_ns, false) ?? started);
+            if (record.status === 'running' && (reopened || priorMain || priorStop)) {
+                record.continuation_wall_ns = maxInt([int(record.continuation_wall_ns, false) ?? 0n, started]);
+                record.updated_wall_ns = maxInt([int(record.updated_wall_ns, false) ?? 0n, started]);
+            }
         }
         if (!previous || record.active_clock == null) {
             const candidate = record.stop_candidate;
-            if (object(candidate) && started > int(candidate.wall_ns)!) {
+            if (record.status === 'running' && object(candidate) && started > int(candidate.wall_ns)!) {
                 record.stop_candidate = null;
                 record.phase = 'main';
             }
             if (record.active_clock == null)
                 record.active_clock = StatusTimer.start(nativeSample(started, capture)).toDict();
-            else {
+            else if (record.status === 'running') {
                 const timer = StatusTimer.load(record.active_clock);
                 if (timer)
                     record.active_clock = timer.reopen().toDict();
             }
             if (completeTiming && contiguous && record.active_coverage === 'not_observed')
                 record.active_coverage = 'complete';
-            if (truth(agent))
-                startSubagent(history, record.prompt_id, { agent_id: agent }, started);
+            if (truth(agent) && turn.start_observed === true)
+                startSubagent(history, record.prompt_id, { agent_id: agent }, started, true, previous === undefined);
         }
         Object.defineProperty(record.native_turns, key, { value: { ...turn, confirmed_end: previous !== undefined && truth(previous.confirmed_end) }, enumerable: true, configurable: true, writable: true });
         if (!contiguous || truth(state.invalidated) && turn.ended_at_ms === null)
             record.active_coverage = 'incomplete';
         pending.push({ key, record, turn, previous, agent });
     }
+    const snapshotAtMs = numeric(state.agent_snapshot?.observed_at_ms), now = capture().wall_ns, loadedAt = numeric(state.loaded_at_ms) ?? 0;
+    const snapshotAt = snapshotAtMs !== null && snapshotAtMs >= loadedAt ? roundedInteger(snapshotAtMs * 1e6) : null;
+    const snapshot = !truth(state.invalidated) && snapshotAt !== null && snapshotAt <= now && now - snapshotAt <= 15000000000n && Array.isArray(state.agent_snapshot?.agents) ?
+        state.agent_snapshot.agents as Data[] : null;
+    for (const [agent, view] of Object.entries(state.agents)) {
+        const parent = typeof view.parent_turn_key === 'string' ? own(state.turns, view.parent_turn_key) : undefined;
+        const started = numeric(view.started_at_ms), ended = numeric(view.ended_at_ms);
+        const record = parent?.epoch === epoch && parent.prompt_id !== null ? findTurn(history, parent.prompt_id) : null;
+        if (view.epoch !== epoch || !record || started === null || ended !== null && ended < started)
+            continue;
+        startSubagent(history, record.prompt_id, { agent_id: agent }, roundedInteger(started * 1e6), true);
+        const listed = snapshot?.find(row => row.id === agent && row.local === true);
+        const terminal = listed && ['completed', 'failed', 'killed'].includes(String(listed.status)) && snapshotAtMs! >= started && snapshotAtMs! >= (numeric(view.updated_at_ms) ?? started);
+        if (ended !== null || terminal)
+            stopSubagent(history, record.prompt_id, { agent_id: agent }, ended === null ? snapshotAt! : roundedInteger(ended * 1e6), true);
+    }
+    if (snapshot && state.active_prompt_id) {
+        const record = findTurn(history, state.active_prompt_id);
+        if (record?.status === 'running' && snapshotAt! >= (int(record.started_wall_ns, false) ?? 0n))
+            clearSnapshotOnlyAgents(record, snapshotAt!, new Set(snapshot.map(row => row.id as string)));
+    }
+    reconcileNotifications(history);
     const starts = new Map<string, number>();
     const identity = (event: Data) => JSON.stringify([event.epoch, event.agent_id, event.turn_id, event.request_id]);
     for (const event of Object.values(state.wait_events))
@@ -146,35 +180,34 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
     });
     for (const { key, record, turn, previous, agent } of pending) {
         const pendingExit = record.end_source === 'hook_session_end';
-        const laterEnding = agent === null && record.end_source === 'native_turn_end' && turn.ended_at_ms !== null && truth(record.ended_wall_ns) && compareNumbers(numeric(turn.ended_at_ms)! * 1e6, record.ended_wall_ns) > 0;
-        if (turn.ended_at_ms === null || previous?.confirmed_end === true && !pendingExit && !laterEnding)
+        if (turn.ended_at_ms === null || previous?.confirmed_end === true && !pendingExit && (truth(agent) || record.status !== 'running'))
             continue;
         record.native_turns[key]!.confirmed_end = true;
         const ended = roundedInteger(numeric(turn.ended_at_ms)! * 1e6);
         if (truth(agent)) {
             if (!completeTiming || !truth(turn.wait_coverage))
                 record.active_coverage = 'wait_coverage_missing';
-            stopSubagent(history, record.prompt_id, { agent_id: agent }, ended);
+            stopSubagent(history, record.prompt_id, { agent_id: agent }, ended, true);
         }
         else {
             if (Object.values(record.native_turns).some(loop => loop.agent_id === null && numeric(loop.started_at_ms)! > numeric(turn.started_at_ms)!))
                 continue;
-            if (laterEnding) {
-                Object.assign(record, { status: 'running', ended_wall_ns: null, ended_boot_ns: null, duration_ns: null, end_source: null, end_reason: null });
-                const timer = StatusTimer.load(record.active_clock);
-                if (timer)
-                    record.active_clock = timer.reopen().toDict();
-            }
+            const matchedFailure = ['failed', 'interrupted'].includes(record.status) && record.status === turn.status &&
+                ended >= (int(record.started_wall_ns, false) ?? 0n) && ended >= (int(record.continuation_wall_ns, false) ?? 0n);
+            if (!pendingExit && !matchedFailure && !endIsCurrent(record, ended))
+                continue;
             if (Object.hasOwn(turn, 'duration_ms'))
                 record.native_duration_ms = turn.duration_ms;
             if (!completeTiming || !truth(turn.wait_coverage))
                 record.active_coverage = 'wait_coverage_missing';
             else if (['not_observed', 'complete'].includes(String(record.active_coverage)))
                 record.active_coverage = contiguous ? 'complete' : 'incomplete';
-            const reports = record.report_aliases.length && record.pending_agent_reports.length;
             const activeNative = Object.values(record.native_turns).some(loop => loop.agent_id !== null && numeric(loop.started_at_ms)! <= numeric(turn.ended_at_ms)! && (loop.ended_at_ms === null || numeric(loop.ended_at_ms)! > numeric(turn.ended_at_ms)!));
-            if (turn.status === 'completed' && (truth(record.active_agents) || reports || activeNative))
+            if (turn.status === 'completed' && (agentWorkPending(record) || activeNative)) {
+                if (record.status === 'running')
+                    noteEndEvidence(record, ended, 'native_turn_end');
                 continue;
+            }
             const candidate = record.stop_candidate;
             let sample = nativeSample(ended, capture);
             if (object(candidate)) {

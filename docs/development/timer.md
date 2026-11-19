@@ -16,9 +16,13 @@ The [v3.1.3 repair record](history/migration/post-migration-fixes.md) documents 
 
 A classic `Stop` is an attempted ending. Without further confirmation it shows `? <elapsed>+`, the known lower bound. Verified continuation clears that candidate without resetting the submission clock. Duplicate attempts without new activity remain idempotent.
 
-A matched main `turn.complete` confirms a turn. A task completes only when its owned agents and required reports are resolved and the main agent has finished wrap-up. Known background-agent notifications retain the original human task through explicit aliases. Human-message UUID aliases and report aliases are tracked separately: ordinary synchronous agents do not require a background notification.
+A matched main `turn.complete` confirms a turn, not necessarily the whole task. Reconcile active work and expected reports by agent identity; an inline agent's stop does not create a report requirement. A fresh authoritative snapshot can retire entries supported only by an older snapshot. It does not clear a report owed by a corroborated background agent.
 
-Compatible fallback evidence includes a correctly attributed transcript ending or process-verified idle registry. Unowned native turns never attach to the current task. Epoch sequence gaps, old epochs and ambiguous queued identities remain incomplete. No timeout or expired heartbeat fabricates completion.
+Read delivered notifications from the classic hook and attributed transcript user rows. Also recognize queued-command attachments, which can settle a report without proving that the main agent resumed. Never take report evidence from API request bodies. A notification does not become a local command when its owner is missing or ambiguous; wait for an explicit binding or a unique owner.
+
+A first attributable delivery or newer bound main activity can resume the same human task without resetting its start. An enqueue, duplicate delivery, delayed child start, or a bare `Stop` cannot reopen a completed task. Scope implicit ending evidence to the observed execution context, not the newest queued submission.
+
+A correctly attributed transcript ending or process-verified idle registry can finish a task without a `Stop`. An old idle stamp cannot end newer work. The blocked `/statusline-configure` expansion explicitly hides its own clock when the editor exits; it does not end the previous human task or depend on registry availability. Epoch gaps, old epochs and ambiguous identities remain incomplete. No timeout or expired heartbeat fabricates completion.
 
 Failures and user interruptions freeze the accepted result. A native ending demonstrably recorded before a subsequent session exit can correct a session-exit inference; a late batch must not turn a normally completed print-mode run into an interruption. Strong failure evidence still wins over a success claim.
 
@@ -35,5 +39,7 @@ Execution time uses its own accumulated/resume clock. Parallel work is not added
 The storage location and schema-1 mirror remain unchanged. Lifecycle v4 reads v2/v3; old frozen values remain recorded history rather than being reinterpreted into a new metric. Missing execution evidence stays unavailable. Reads and previews do not migrate files; writes occur under the session lock and atomically publish normalized state.
 
 Submission evidence is indexed by transcript identity and complete-line cursor, retaining a bounded set of prompt IDs. Append-only refreshes read the new tail; unchanged files do not trigger a full scan. Truncation/rewrite invalidates the index. A verified submission is reused by ending hooks, and strong frozen starts are not rewritten by later transcript replay.
+
+`diagnose` reports the matched task's phase, active and pending counts, wait reason and last ending evidence. It includes the last process-verified registry observation when one was retained. Diagnosis never scans a transcript, rechecks a process, or changes the task store.
 
 See [runtime contracts](live.md), [testing](testing.md) and [user-facing timer markers](../reference/cli.md#prompt-timer-markers).

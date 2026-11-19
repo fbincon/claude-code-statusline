@@ -49,14 +49,46 @@ test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_real_queu
 test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_missing_stop_uses_verified_idle_after_assistant', t => {
     const f = lifecycle(t), entry = f.feed([promptLine('A', 1000), assistantLine(1060.5)], {}, 'missing-stop');
     registry(f, 'missing-stop', 1060.6);
+    f.clock(1061000000000n);
     assert.equal(f.render(collectTask(f.tasks, 'missing-stop', 'A', entry.last_pt, entry)), '✓ 1m 01s');
     assert.equal(f.state('A', 'missing-stop').end_source, 'registry_idle');
 });
 test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_idle_without_assistant_hides_withdrawn_prompt', t => {
     const f = lifecycle(t), entry = f.feed([promptLine('A', 1000)], {}, 'withdrawn');
     registry(f, 'withdrawn', 1002);
+    f.clock(1003000000000n);
     assert.equal(f.render(collectTask(f.tasks, 'withdrawn', 'A', entry.last_pt, entry)), null);
     assert.equal(f.state('A', 'withdrawn').status, 'withdrawn');
+});
+test('verified idle after inline work can finish a task, but an idle timestamp preceding that work cannot', t => {
+    const f = lifecycle(t);
+    f.rawEvent('UserPromptSubmit', 1);
+    f.rawEvent('SubagentStart', 2, 'p', { agent_id: 'inline' });
+    f.rawEvent('SubagentStop', 3, 'p', { agent_id: 'inline' });
+    const entry = f.feed([promptLine('p', 1), assistantLine(4)]);
+    registry(f, 's', 2.5);
+    f.clock(6000000000n);
+    assert.equal(collectTask(f.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
+    registry(f, 's', 7);
+    assert.equal(collectTask(f.tasks, 's', 'p', entry.last_pt, entry)?.status, 'running');
+    registry(f, 's', 5);
+    const ended = collectTask(f.tasks, 's', 'p', entry.last_pt, entry);
+    assert.equal(ended?.end_source, 'registry_idle');
+    assert.equal(f.render(ended), '✓ 0m 04s');
+});
+test('a prompt-less Stop and unbound transcript ending cannot complete an unverified newer submission', t => {
+    const f = lifecycle(t);
+    f.rawEvent('UserPromptSubmit', 1, 'old');
+    const entry = f.feed([promptLine('old', 1), assistantLine(2)]);
+    f.rawEvent('UserPromptSubmit', 3, 'queued');
+    f.rawEvent('Stop', 4, null, { background_tasks: [] });
+    f.feed([durationLine(4.01, 3000)], entry);
+    assert.equal(f.state('queued').status, 'running');
+    assert.equal(f.state('queued').stop_candidate, null);
+    assert.equal(f.state('old').end_source, 'transcript_duration');
+    f.feed([promptLine('queued', 3), assistantLine(5)], entry);
+    f.rawEvent('Stop', 6, null);
+    assert.equal(f.state('queued').phase, 'stop_pending');
 });
 test('tests.runtime.test_statusline_timer.QueueAndCompletionTests.test_local_command_preserves_previous_completed_display', t => {
     const f = lifecycle(t), entry = f.feed([promptLine('A', 1000), assistantLine(1064.9), durationLine(1065, 65000), { type: 'user', timestamp: new Date(1066000).toISOString(), promptId: 'LOCAL', message: { role: 'user', content: '<command-name>/cost</command-name>' } }], {}, 'local');

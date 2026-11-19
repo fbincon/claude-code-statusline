@@ -1,6 +1,6 @@
 import { LosslessNumber, pythonFloat } from '../json.js';
 import { numeric, object, truth, string, type Data } from './values.js';
-import { agentNotificationId } from './tasks/model.js';
+import { agentNotificationIds, lifecycleId } from './tasks/model.js';
 import { divideIntegers } from '../numbers.js';
 const SPACE = '[\\p{White_Space}\\x1c-\\x1f]';
 const TRIM_SPACE = new RegExp('^' + SPACE + '+|' + SPACE + '+$', 'gu');
@@ -90,38 +90,46 @@ export interface TurnEvents {
     local_command: Data | null;
     assistant_activity: number | null;
     observations: Data[];
+    context_prompt_id: string | null;
 }
 /** Retains compact lifecycle observations, never the parsed transcript rows. */
 export class TurnAccumulator {
-    readonly result: TurnEvents = { prompt: null, interrupt: null, local_command: null, assistant_activity: null, observations: [] };
-    constructor(private promptContext: unknown = null) {}
+    readonly result: TurnEvents;
+    constructor(promptContext: unknown = null) {
+        this.result = { prompt: null, interrupt: null, local_command: null, assistant_activity: null, observations: [], context_prompt_id: lifecycleId(promptContext) };
+    }
     push(row: unknown): void {
         const result = this.result;
         if (!object(row))
             return;
         const ts = timestamp(row.timestamp);
+        const promptId = lifecycleId(row.promptId), identity = { prompt_id: promptId, context_prompt_id: result.context_prompt_id };
+        if (row.type === 'attachment' && object(row.attachment) && row.attachment.type === 'queued_command' && ts !== null) {
+            for (const agent of agentNotificationIds(row.attachment.prompt))
+                result.observations.push({ kind: 'agent_notification', agent_id: agent, prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9), delivered: false });
+            return;
+        }
         if (row.type === 'assistant') {
             if (ts !== null) {
                 if (result.assistant_activity === null || ts > result.assistant_activity)
                     result.assistant_activity = ts;
-                result.observations.push({ kind: 'assistant', wall_ns: roundedInteger(ts * 1e9), prompt_id: truth(row.promptId) ? row.promptId : this.promptContext });
+                result.observations.push({ kind: 'assistant', wall_ns: roundedInteger(ts * 1e9), ...identity });
             }
             return;
         }
         if (row.type === 'system' && row.subtype === 'stop_hook_summary') {
             if (ts !== null && row.preventedContinuation === false && Array.isArray(row.hookErrors) && !row.hookErrors.length && (row.hookAdditionalContext == null || Array.isArray(row.hookAdditionalContext) && !row.hookAdditionalContext.length) && !truth(row.stopReason))
-                result.observations.push({ kind: 'confirmed_stop', wall_ns: roundedInteger(ts * 1e9), prompt_id: truth(row.promptId) ? row.promptId : this.promptContext });
+                result.observations.push({ kind: 'confirmed_stop', wall_ns: roundedInteger(ts * 1e9), ...identity });
             return;
         }
         if (row.type === 'system' && row.subtype === 'turn_duration') {
             const duration = numeric(row.durationMs);
             if (ts !== null && duration !== null && Number.isFinite(duration) && duration >= 0 && duration <= 1e15)
-                result.observations.push({ kind: 'turn_duration', wall_ns: roundedInteger(ts * 1e9), duration_ms: row.durationMs, prompt_id: truth(row.promptId) ? row.promptId : this.promptContext });
+                result.observations.push({ kind: 'turn_duration', wall_ns: roundedInteger(ts * 1e9), duration_ms: row.durationMs, ...identity });
             return;
         }
         if (row.type !== 'user' || !object(row.message) || row.message.role !== 'user')
             return;
-        const promptId = truth(row.promptId) ? string(row.promptId) : null;
         if (truth(row.interruptedMessageId) && ts !== null) {
             const candidate = { ts: float(ts), prompt_id: promptId };
             if (!result.interrupt || ts > numeric(result.interrupt.ts)!)
@@ -135,11 +143,13 @@ export class TurnAccumulator {
                 throw new TypeError('Transcript text part must be a string');
             return value;
         }).join('\n') : content;
-        const agentId = agentNotificationId(notificationText), notification = truth(row.isMeta) || object(row.origin) && row.origin.kind === 'task-notification';
-        if (agentId && ts !== null && notification) {
-            result.observations.push({ kind: 'agent_notification', agent_id: agentId, prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9) });
+        const notification = truth(row.isMeta) || object(row.origin) && row.origin.kind === 'task-notification';
+        const agents = notification ? agentNotificationIds(notificationText) : [];
+        if (agents.length && ts !== null) {
+            for (const agent of agents)
+                result.observations.push({ kind: 'agent_notification', agent_id: agent, prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9), delivered: true });
             if (promptId)
-                this.promptContext = promptId;
+                result.context_prompt_id = promptId;
             return;
         }
         if (ts === null || typeof content !== 'string')
@@ -151,7 +161,7 @@ export class TurnAccumulator {
             result.observations.push({ kind: 'local_command', prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9) });
         }
         else if (realPrompt(row, content)) {
-            this.promptContext = promptId;
+            result.context_prompt_id = promptId;
             if (!result.prompt || ts > numeric(result.prompt.ts)!)
                 result.prompt = candidate;
             result.observations.push({ kind: 'prompt', prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9) });
@@ -167,9 +177,7 @@ export function updateTurnMetadata(entry: Data, lines: readonly unknown[], reset
     return applyTurnMetadata(entry, turnEvents(lines, resetContext ? null : entry.transcript_prompt_id ?? null));
 }
 export function applyTurnMetadata(entry: Data, result: TurnEvents): Data[] {
-    for (const event of result.observations)
-        if (event.kind === 'prompt')
-            entry.transcript_prompt_id = event.prompt_id;
+    entry.transcript_prompt_id = result.context_prompt_id;
     if (result.prompt && numeric(result.prompt.ts)! > (numeric(entry.last_pt) ?? 0)) {
         entry.last_pt = result.prompt.ts;
         entry.last_prompt_id = result.prompt.prompt_id;

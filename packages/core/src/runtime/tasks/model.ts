@@ -3,8 +3,25 @@ import { int, truth, string, object, maxInt, compareInt, numeric, type Data } fr
 import { orderedRecord } from '../../ordered-record.js';
 export const SCHEMA = 1, LIFECYCLE_SCHEMA = 4, MAX_TURNS_PER_SESSION = 32, MAX_AGENT_HISTORY = 256;
 export const TURN_FIELDS = ['prompt_id', 'status', 'started_wall_ns', 'started_boot_ns', 'ended_wall_ns', 'ended_boot_ns', 'duration_ns', 'boot_id', 'start_source', 'end_source', 'end_reason', 'error', 'last_assistant_wall_ns', 'updated_wall_ns', 'phase', 'had_subagents', 'active_agents', 'duration_source', 'agent_ids', 'prompt_aliases', 'report_aliases', 'pending_agent_reports', 'stop_candidate', 'native_duration_ms', 'native_turns', 'active_clock', 'active_coverage', 'submission_verified', 'native_wait_seen', 'historical_frozen'] as const;
+const LIFECYCLE_EVIDENCE = ['agent_evidence', 'background_snapshot_wall_ns', 'continuation_wall_ns', 'configuration_prompt', 'registry_observation', 'last_end_evidence'] as const;
 export const TERMINAL_STATUSES = new Set(['completed', 'failed', 'interrupted', 'withdrawn', 'ignored', 'unknown']);
 export const END_PRIORITY: Readonly<Record<string, number>> = { next_prompt: 10, session_start: 20, registry_withdrawn: 30, registry_idle: 40, transcript_interrupt: 95, local_command: 50, transcript_duration: 60, transcript_stop: 85, session_exit_pending: 50, hook_session_end: 95, hook_stop: 55, native_turn_end: 90, hook_stop_failure: 100 };
+export interface AgentEvidence extends Data {
+    started_wall_ns: bigint | null;
+    stopped_wall_ns: bigint | null;
+    background_wall_ns: bigint | null;
+    queued_wall_ns: bigint | null;
+    delivered_wall_ns: bigint | null;
+    native_owner: boolean;
+    delivery_aliases: string[];
+    previous_delivery_aliases: string[];
+}
+export interface AgentNotice {
+    agent_id: string;
+    prompt_id: string | null;
+    wall_ns: bigint;
+    delivered: boolean;
+}
 export interface Turn extends Data {
     prompt_id: string;
     status: string;
@@ -15,6 +32,8 @@ export interface Turn extends Data {
     prompt_aliases: string[];
     report_aliases: string[];
     pending_agent_reports: string[];
+    agent_evidence: Record<string, AgentEvidence>;
+    configuration_prompt: boolean;
     native_turns: Record<string, Data>;
     native_wait_seen: string[];
     submission_verified: boolean;
@@ -25,6 +44,7 @@ export interface TaskStore extends Data {
     session_id: string;
     current_prompt_id: string | null;
     turns: Turn[];
+    unresolved_notifications?: AgentNotice[];
     updated_wall_ns: bigint;
 }
 export function recordKey(record: Data): bigint { return int(record.updated_wall_ns, false) ?? int(record.started_wall_ns, false) ?? 0n; }
@@ -38,8 +58,35 @@ export function rememberId(record: Data, field: string, value: string): boolean 
         values.splice(0, values.length - MAX_AGENT_HISTORY);
     return true;
 }
-export function agentNotificationId(content: unknown): string | null {
-    return typeof content === 'string' ? content.match(/^[\p{White_Space}\x1c-\x1f]*<task-notification>[\p{White_Space}\x1c-\x1f]*<task-id>([^<>\p{White_Space}\x1c-\x1f]+)<\/task-id>/u)?.[1] ?? null : null;
+export function lifecycleId(value: unknown): string | null {
+    return typeof value === 'string' && value.length <= 256 && /^[^\p{White_Space}\p{Cc}<>]+$/u.test(value) ? value : null;
+}
+export function agentNotificationIds(content: unknown): string[] {
+    if (typeof content !== 'string')
+        return [];
+    const space = /[\p{White_Space}\x1c-\x1f]*/uy, opening = '<task-notification>', closing = '</task-notification>';
+    const header = /<task-notification>[\p{White_Space}\x1c-\x1f]*<task-id>([^<>\p{White_Space}\p{Cc}]{1,256})<\/task-id>/uy;
+    const ids = new Set<string>();
+    while (space.exec(content) && space.lastIndex < content.length) {
+        header.lastIndex = space.lastIndex;
+        const match = header.exec(content), end = match ? content.indexOf(closing, header.lastIndex) : -1;
+        if (!match || end < 0)
+            return [];
+        const nested = content.indexOf(opening, header.lastIndex);
+        if (nested >= 0 && nested < end)
+            return [];
+        if (ids.size < MAX_AGENT_HISTORY)
+            ids.add(match[1]!);
+        space.lastIndex = end + closing.length;
+    }
+    return [...ids];
+}
+const AGENT_TIMES = ['started_wall_ns', 'stopped_wall_ns', 'background_wall_ns', 'queued_wall_ns', 'delivered_wall_ns'] as const;
+export function cleanAgentEvidence(value: unknown): AgentEvidence {
+    const row = object(value) ? value : {};
+    const aliases = (value: unknown) => cleanIds(value).filter(alias => lifecycleId(alias) !== null).slice(-8);
+    return { ...Object.fromEntries(AGENT_TIMES.map(key => [key, int(row[key], false)])), native_owner: row.native_owner === true,
+        delivery_aliases: aliases(row.delivery_aliases), previous_delivery_aliases: aliases(row.previous_delivery_aliases) } as AgentEvidence;
 }
 export function cleanActiveAgents(value: unknown): Record<string, Data> {
     if (!object(value))
@@ -58,7 +105,7 @@ export function elapsedNs(record: Data, wall: unknown, boot: unknown, domain: un
 export function cleanRecord(record: unknown): Turn | null {
     if (!object(record) || !truth(record.prompt_id))
         return null;
-    const cleaned = Object.fromEntries(TURN_FIELDS.map(key => [key, record[key] ?? null])) as Turn;
+    const cleaned = Object.fromEntries([...TURN_FIELDS, ...LIFECYCLE_EVIDENCE].map(key => [key, record[key] ?? null])) as Turn;
     cleaned.prompt_id = string(record.prompt_id);
     cleaned.status = truth(cleaned.status) ? string(cleaned.status) : 'unknown';
     cleaned.phase = ['main', 'waiting_subagents', 'resuming_main', 'stop_pending'].includes(cleaned.phase) ? cleaned.phase : 'main';
@@ -69,6 +116,8 @@ export function cleanRecord(record: unknown): Turn | null {
     cleaned.report_aliases = cleanIds(cleaned.report_aliases ?? record.prompt_aliases);
     for (const agent of Object.keys(cleaned.active_agents))
         rememberId(cleaned, 'agent_ids', agent);
+    cleaned.agent_evidence = object(cleaned.agent_evidence) ? orderedRecord(Object.entries(cleaned.agent_evidence).filter(([id, row]) => lifecycleId(id) !== null && object(row)).slice(-MAX_AGENT_HISTORY).map(([id, row]) => [id, cleanAgentEvidence(row)])) as Record<string, AgentEvidence> : {};
+    cleaned.configuration_prompt = cleaned.configuration_prompt === true;
     cleaned.native_turns = object(cleaned.native_turns) ? cleaned.native_turns : {};
     cleaned.active_coverage = truth(cleaned.active_coverage) ? cleaned.active_coverage : 'not_observed';
     cleaned.native_wait_seen = cleanIds(cleaned.native_wait_seen);
@@ -142,7 +191,7 @@ export function storeFromState(raw: unknown, sessionId: unknown): TaskStore {
                 turns[index] = legacy;
         }
         const top = legacyRecord(state);
-        if (top && recordKey(top) >= (int(lifecycle.updated_wall_ns, false) ?? 0n))
+        if (top && recordKey(top) > (int(lifecycle.updated_wall_ns, false) ?? 0n))
             current = top.prompt_id;
     }
     else {
@@ -156,7 +205,18 @@ export function storeFromState(raw: unknown, sessionId: unknown): TaskStore {
             current = record.prompt_id;
         }
     }
+    const unresolved_notifications: AgentNotice[] = [];
+    if (object(lifecycle) && Array.isArray(lifecycle.unresolved_notifications))
+        for (const row of lifecycle.unresolved_notifications.slice(-MAX_AGENT_HISTORY)) {
+            if (!object(row))
+                continue;
+            const agent_id = lifecycleId(row.agent_id), prompt_id = lifecycleId(row.prompt_id), wall_ns = int(row.wall_ns, false);
+            if (agent_id && wall_ns !== null)
+                unresolved_notifications.push({ agent_id, prompt_id, wall_ns, delivered: row.delivered === true });
+        }
     const store: TaskStore = { schema: LIFECYCLE_SCHEMA, session_id: string(sessionId), current_prompt_id: current, turns, updated_wall_ns: maxInt(turns.map(recordKey)) };
+    if (unresolved_notifications.length)
+        store.unresolved_notifications = unresolved_notifications;
     pruneTurns(store);
     return store;
 }
@@ -166,7 +226,9 @@ export function findTurn(store: TaskStore, promptId: unknown = null): Turn | nul
         promptId = store.current_prompt_id;
     const prompt = truth(promptId) ? string(promptId) : null;
     if (prompt) {
-        const found = store.turns.find(item => item.prompt_id === prompt || item.prompt_aliases.includes(prompt));
+        const exact = store.turns.find(item => item.prompt_id === prompt);
+        const aliases = exact ? [] : store.turns.filter(item => item.prompt_aliases.includes(prompt));
+        const found = exact ?? (aliases.length === 1 ? aliases[0] : null);
         if (found)
             return found;
         if (explicit)
@@ -179,6 +241,7 @@ export function newRecord(promptId: unknown, clocks: Sample, source = 'hook_subm
         prompt_id: string(promptId), status: 'running', started_wall_ns: clocks.wall_ns, started_boot_ns: clocks.boot_ns, ended_wall_ns: null, ended_boot_ns: null,
         duration_ns: null, duration_source: 'task', stop_candidate: null, native_duration_ms: null, native_turns: {}, active_clock: null, active_coverage: 'not_observed',
         submission_verified: source === 'transcript', native_wait_seen: [], historical_frozen: false, agent_ids: [], prompt_aliases: [], report_aliases: [], pending_agent_reports: [],
+        agent_evidence: {}, background_snapshot_wall_ns: null, continuation_wall_ns: null, configuration_prompt: false, registry_observation: null, last_end_evidence: null,
         boot_id: clocks.boot_id, start_source: source, end_source: null, end_reason: null, error: null, last_assistant_wall_ns: null, updated_wall_ns: clocks.wall_ns,
         phase: 'main', had_subagents: false, active_agents: {},
     };
@@ -211,9 +274,12 @@ export function mirrorState(sessionId: unknown, store: TaskStore, preferredPromp
     if (!selected)
         return null;
     store.updated_wall_ns = maxInt(store.turns.map(recordKey));
-    const state: Data = { ...Object.fromEntries(TURN_FIELDS.map(key => [key, selected[key] ?? null])), schema: SCHEMA, session_id: string(sessionId), lifecycle: store };
+    const mirror = (record: Turn) => Object.fromEntries(TURN_FIELDS.map(key => [key, record[key] ?? null]));
+    const turns = store.turns.map(record => ({ ...mirror(record),
+        ...Object.fromEntries(LIFECYCLE_EVIDENCE.filter(key => truth(record[key])).map(key => [key, record[key]])) }));
+    const state: Data = { ...mirror(selected), schema: SCHEMA, session_id: string(sessionId), lifecycle: { ...store, turns } };
     const running = store.turns.filter(item => item.status === 'running' && item.prompt_id !== selected.prompt_id);
     if (['ignored', 'withdrawn'].includes(selected.status) && running.length)
-        state.previous_running = { ...running.reduce((best, item) => recordKey(item) > recordKey(best) ? item : best) };
+        state.previous_running = mirror(running.reduce((best, item) => recordKey(item) > recordKey(best) ? item : best));
     return state;
 }

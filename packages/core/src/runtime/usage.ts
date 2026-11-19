@@ -2,7 +2,7 @@ import { divideIntegers, fixed } from '../numbers.js';
 import { forEachRecord, recordEntries, recordKeys, recordValues } from '../ordered-record.js';
 import { object, int, numeric, own, dictionary, string, type Data } from './values.js';
 import { timestamp, float } from './transcript.js';
-export const BASE = { i: 0n, o: 0n, cc: 0n, cr: 0n }, MAX_IDS = 5000, MAX_SESSIONS = 100, TURN_SCAN_VERSION = 6, USAGE_SCAN_VERSION = 3;
+export const BASE = { i: 0n, o: 0n, cc: 0n, cr: 0n }, MAX_IDS = 5000, MAX_SESSIONS = 100, TURN_SCAN_VERSION = 7, USAGE_SCAN_VERSION = 3;
 export const TOKEN_FIELDS = { hit: ['cr'], miss: ['i', 'cc'], out: ['o'] } as const;
 const FIELDS = ['i', 'o', 'cc', 'cr'] as const;
 const INPUT = ['input_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens'];

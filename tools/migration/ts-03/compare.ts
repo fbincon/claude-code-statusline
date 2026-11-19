@@ -9,6 +9,7 @@ import { THEME_VALUES, PROTOCOL_VERSION, PRESETS, OPERATIONS } from '@fbincon/st
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { appearanceBaseline } from './appearance-compatibility.js';
+import { lifecycleReplayDifference } from './task-lifecycle-compatibility.js';
 
 // TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
 const versionFields = new Set([
@@ -77,6 +78,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (runtimeDefaultDifference(id, path, a, b)) return;
     if (runtimeProtocolDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
+    if (lifecycleReplayDifference(id, path, a, b)) return;
     if(id==='ui-describe'&&['/value/response/result/editor_fields/global/0/choices','/value/response/result/options/theme/choices'].includes(path)&&canonical(a)===canonical(['classic','dark','light','terminal'])&&canonical(b)===canonical(THEME_VALUES))return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];

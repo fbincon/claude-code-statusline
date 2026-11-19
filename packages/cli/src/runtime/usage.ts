@@ -73,14 +73,14 @@ export class UsageCollector {
         });
         return read ? { ...read, ids, observed, turns: turns?.result, snapshot: costs?.finish(sha256) ?? null, post: pending?._post_ids } : null;
     }
-    private metadata(entry: usage.UsageEntry, result: TurnEvents, session: string): void {
+    private metadata(entry: usage.UsageEntry, result: TurnEvents, session: string, unfinishedOnly: boolean): void {
         const observations = applyTurnMetadata(entry, result);
         if (observations.length) {
-            try { this.tasks.transcript(session, observations); }
+            try { this.tasks.transcript(session, observations, unfinishedOnly); }
             catch { /* Accounting survives an unavailable lifecycle ledger. */ }
         }
     }
-    private applyScan(entry: usage.UsageEntry, scan: NonNullable<ReturnType<UsageCollector['scan']>>, session: string | null, cost: boolean, force = false): void {
+    private applyScan(entry: usage.UsageEntry, scan: NonNullable<ReturnType<UsageCollector['scan']>>, session: string | null, cost: boolean, force = false, unfinishedOnly = false): void {
         if (scan.observed && entry.token_observed) Object.assign(entry.token_observed, scan.observed);
         if (scan.ids) {
             if (!this.index) {
@@ -92,7 +92,7 @@ export class UsageCollector {
             }
             this.index.merge(scan.ids, entry);
         }
-        if (scan.turns && session) this.metadata(entry, scan.turns, session);
+        if (scan.turns && session) this.metadata(entry, scan.turns, session, unfinishedOnly);
         if (cost) usage.stageParsedCostSnapshot(entry, scan.snapshot, force);
         else if (scan.post && object(entry._pending_api_snapshot)) {
             const pending = entry._pending_api_snapshot;
@@ -177,13 +177,14 @@ export class UsageCollector {
             entry.token_observed = usage.tokenObservations(entry, true);
             changed = true;
         }
-        if (this.updateFile(entry, path, session, true, true))
+        const turnVersionMatches = equalSettings(entry.turn_scan_version, usage.TURN_SCAN_VERSION);
+        if (this.updateFile(entry, path, session, turnVersionMatches, true))
             changed = true;
-        if (!equalSettings(entry.turn_scan_version, usage.TURN_SCAN_VERSION)) {
-            for (const key of ['last_pt', 'last_prompt_id', 'last_interrupt', 'last_local_command', 'last_assistant_ts'])
+        if (!turnVersionMatches) {
+            for (const key of ['last_pt', 'last_prompt_id', 'last_interrupt', 'last_local_command', 'last_assistant_ts', 'transcript_prompt_id'])
                 delete entry[key];
             const scan = this.scan(entry, path, 0n, 'none', true);
-            if (scan?.count) this.applyScan(entry, scan, session, false);
+            if (scan?.count) this.applyScan(entry, scan, session, false, false, entry.turn_scan_version != null);
             entry.turn_scan_version = usage.TURN_SCAN_VERSION;
             changed = true;
         }
