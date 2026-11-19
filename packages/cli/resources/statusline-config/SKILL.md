@@ -153,6 +153,11 @@ and `visibility-threshold`. Colors accept `inherit`, `default`, `ansi:0`–`ansi
 or a quoted six-digit hex value. Use only the scoped item's supported visibility
 rule; usage thresholds are independent of warning colors.
 
+Subagent `model-with-effort` and `effort` instances default to `effort-fallback session`.
+Use `config instance subagent set ID effort-fallback off` to turn off fallback
+for one instance, or set it to `session` to enable it again. Check the instance ID
+with `config instance subagent list`.
+
 For first integration, recommend `__CLAUDE_STATUSLINE_COMMAND__ setup` in an
 interactive terminal, or `setup --dry-run` for read-only checks. Recommend these
 commands to the user; this skill's tools run only `config` commands. Setup preserves

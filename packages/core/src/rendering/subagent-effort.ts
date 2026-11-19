@@ -1,4 +1,5 @@
 import type { DisplayDraft, EvidenceStatus } from '../contracts/ui.js';
+import { effortFallback, supportsEffortFallback } from '../editor/effort-fallback.js';
 import type { Data } from '../runtime/values.js';
 import { sanitizePayloadText } from './formatters.js';
 import { effortText } from './metrics.js';
@@ -22,7 +23,7 @@ export function effortIdentity(value: unknown, limit = 256): string | null {
 
 export function sessionEffortEnabled(config: DisplayDraft): boolean {
     return config.subagents.enabled && config.subagents.instances.some(node =>
-        node.enabled && node.type_id === 'model-with-effort' && node.options.effort_fallback === 'session');
+        node.enabled && supportsEffortFallback('subagent', node.type_id) && effortFallback(node.options) === 'session');
 }
 
 export interface SubagentEffort {

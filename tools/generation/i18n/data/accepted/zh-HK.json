@@ -5001,11 +5001,11 @@
       "evidence": "v3.14.0-verified-pr"
     },
     "guidance.requirements.agent_effort_optional": {
-      "source": "3144f0f36624a99d965a9a32bc5f40bd118cbf3aedc7eee71af6b33b8becc071",
-      "translation": "94093b6631841ec7bbd36c15ed1a9fc2b18c1b52b45b7ae84879891bc9ec0d44",
+      "source": "44ade21f15879c906167ffc42aa0a60173dd7d244410ea77ad63df65900db7d5",
+      "translation": "82756e303b1f4ec177548c478da214265752b41e5224208a273e1819ecf96985",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "df916550ad255ad0583dc6a50955e472d96982de6dee7d04948a6db99b2ff673"
+      "evidence": "da09e3b7f2889145ae0ab7c3d3f83cf1080260b78af7ac8bef5a628f6fdec3f6"
     },
     "guidance.requirements.agent_mode": {
       "source": "5f88cced3670523d2279227ef88d246fbb7fdb16af4a852879ddcdc9e774d4dd",
@@ -6625,11 +6625,11 @@
       "evidence": "v3.14.0-verified-pr"
     },
     "items.subagent.effort.description": {
-      "source": "40353ea431126aa11ae209604b62fcbe0cb96cd88363cfcd2165d196a192178d",
-      "translation": "007d14f09884b8e511f2731d9f079a1111ae4b57c82f1d0708364dd66a0b508a",
-      "method": "baseline_accepted",
+      "source": "c0d2825cdb7df9b25f20e42788dc572e07c6c70b9b9d4dc99ef50dbb439325ba",
+      "translation": "460e40eb4ef2b856d9d355bcf0845bb0a852c8f29b35a2e1dc14272a7970237c",
+      "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "v3.14.0-verified-pr"
+      "evidence": "da09e3b7f2889145ae0ab7c3d3f83cf1080260b78af7ac8bef5a628f6fdec3f6"
     },
     "items.subagent.effort.label": {
       "source": "7fc7155d0424dd70b3effa08dbe42b2aa9ab0cdffc074b9ef14ca4ef212e835a",
@@ -6667,11 +6667,11 @@
       "evidence": "v3.14.0-verified-pr"
     },
     "items.subagent.model-with-effort.description": {
-      "source": "e98f3e51b4b789f9493cf1f0445715d033cf4d23670f9e4e79efb002951ac8fe",
-      "translation": "36ae29c9dd98442bff21cd523174b19c0c29eb4c5a94bd68b224fbe8b53b5dd7",
+      "source": "a019f5d8081c9b7190297a6da07fe6062386a5577b17e2149ad533022e7495ee",
+      "translation": "a6aa5a21f3627ea3762c194cf6a2848bbad5b027f93197e89472171354163b8e",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "df916550ad255ad0583dc6a50955e472d96982de6dee7d04948a6db99b2ff673"
+      "evidence": "da09e3b7f2889145ae0ab7c3d3f83cf1080260b78af7ac8bef5a628f6fdec3f6"
     },
     "items.subagent.model-with-effort.label": {
       "source": "76d9ed2cdab9b2cf8faaece3bf1d5fd988e5bd37b43eb5b145f8347d86b2552a",

@@ -156,6 +156,8 @@ test('tests.rendering.test_graphemes.GraphemeTests.test_model_only_render_does_n
     assert.deepEqual(modules.filter(url => /koffi|cli\/dist\/src\/(?:runtime|config|integration)\/|i18n\/(?:generated-locales|messages)|i18n\/statusline\/(?!en\.)/u.test(url)), []);
 });
 test('tests.rendering.test_subagent_statusline.SubprocessTests.test_hot_path_does_not_import_heavy_or_stateful_modules', t => {
-    const modules = hotpath('render-subagents', '{"tasks":[]}', t);
-    assert.deepEqual(modules.filter(url => /koffi|cli\/dist\/src\/(?:runtime|config|integration)\/|i18n\/(?:generated-locales|messages)/u.test(url)), []);
+    for (const input of [{ tasks: [] }, { session_id: 'session-1', tasks: [] }, { tasks: [{ id: 'a', model: 'claude-opus' }] }]) {
+        const modules = hotpath('render-subagents', JSON.stringify(input), t);
+        assert.deepEqual(modules.filter(url => /koffi|cli\/dist\/src\/(?:runtime|config|integration)\/|i18n\/(?:generated-locales|messages)/u.test(url)), []);
+    }
 });

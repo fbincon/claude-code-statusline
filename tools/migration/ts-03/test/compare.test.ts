@@ -30,6 +30,19 @@ test('host coverage comparison permits only the exact catalog changes', () => {
   assert.ok(compare(wrap(old),wrap(excluded)).length);
 });
 
+test('frozen subagent preview admits the marked session effort at its original case and style', () => {
+  const caseId = 'preview-subagent-effort';
+  const frozen = JSON.parse(readFileSync(join(fixtures, 'expected.json'), 'utf8'))[caseId];
+  const [configured] = frozen.value as string[];
+  const inherited = configured!.replace('high', '~high');
+  const before = { [caseId]: frozen };
+  const after = { [caseId]: { ...frozen, value: [configured, inherited] } };
+  assert.deepEqual(compare(before, after), []);
+  assert(compare(before, { [caseId]: { ...frozen, value: [configured, inherited.replace('~high', 'high')] } }).length > 0);
+  assert(compare(before, { [caseId]: { ...frozen, value: [configured, inherited.replace('246;226;183', '255;226;183')] } }).length > 0);
+  assert(compare({ other: frozen }, { other: after[caseId] }).length > 0);
+});
+
 test('approved default-collection difference is bound to one frozen stdout and rejects other changes', () => {
   const before = JSON.parse(readFileSync(join(fixtures, 'expected.json'), 'utf8'))['runtime-null-prompt'].value[0].stdout as string;
   const value = JSON.parse(before);

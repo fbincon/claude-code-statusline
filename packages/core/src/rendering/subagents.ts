@@ -2,6 +2,7 @@ import { bounded, type Representation } from './fitting.js';
 import { effortIdentity, sessionEffortEnabled, subagentEffort, type SubagentEffort } from './subagent-effort.js';
 import type { RenderTrace } from './trace.js';
 import { sampleAgents, scenarioSource, SAMPLE_NOW, SAMPLE_MODEL, SAMPLE_EFFORT } from './sample-scenarios.js';
+import { effortFallback } from '../editor/effort-fallback.js';
 import type { PreviewScenario } from '../editor/preview-settings.js';
 import { foregroundPaint } from './gradients.js';
 import { groupedRows } from './groups.js';
@@ -10,7 +11,7 @@ import { externalPresentation } from './extensions.js';
 import { fileLink } from '../terminal/links.js';
 import { withLink } from './layout.js';
 import type { FitObserver } from './trace.js';
-import type { DisplayDraft, InstanceDraft } from '../contracts/ui.js';
+import type { DisplayDraft, InstanceDraft, ItemOptionsDraft } from '../contracts/ui.js';
 import { int, numeric, object, own, type Data } from '../runtime/values.js';
 import { divideIntegers } from '../numbers.js';
 import type { RenderEnvironment } from './context.js';
@@ -123,9 +124,9 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
     const name = () => agentName ??= formatters.sanitizePayloadText(task.name) || formattedAgentType(task.agentType) ||
         formattedAgentType(task.type) || language.text('agent.fallback');
     const taskModel = () => modelName === undefined ? modelName = model(task) : modelName;
-    const effort = (fallback = false) => {
+    const effort = (options: ItemOptionsDraft) => {
         configuredEffort ??= subagentEffort(task, false, session, undefined, now);
-        const selected = fallback && configuredEffort.status === 'not_observed'
+        const selected = effortFallback(options) === 'session' && configuredEffort.status === 'not_observed'
             ? inheritedEffort ??= subagentEffort(task, true, session, env.sessionEffort, Math.round(now))
             : configuredEffort;
         const value = language.value('effort', selected.value) as string | null;
@@ -158,12 +159,12 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
             case 'model': case 'model-with-effort': {
                 value = preferences.modelName(taskModel(), fmt);
                 if (item === 'model-with-effort' && value) {
-                    const selected = effort(options.effort_fallback === 'session');
+                    const selected = effort(options);
                     if (selected) value += '/' + selected;
                 }
                 style = p.model; break;
             }
-            case 'effort': value = effort(); style = p.model; break;
+            case 'effort': value = effort(options); style = p.model; break;
             case 'context-tokens': value = metrics.tokenRatio(task.tokenCount, task.contextWindowSize, language, fmt); style = p.context; break;
             case 'context-window-size': {
                 const capacity = metrics.tokenCount(task.contextWindowSize);
@@ -333,7 +334,6 @@ export function previewRows(config: DisplayDraft, columns: number, env: RenderEn
     const tasks = sampleAgents(scenario);
     const session = 'preview-session';
     if (sessionEffortEnabled(config)) {
-        for (const task of tasks) if (task.effort === undefined) task.model = SAMPLE_MODEL;
         env.sessionEffort = () => ({ status: 'observed', observation: {
             session_id: session, model_id: SAMPLE_MODEL, effort_level: SAMPLE_EFFORT, observed_at_ms: SAMPLE_NOW * 1000,
         } });

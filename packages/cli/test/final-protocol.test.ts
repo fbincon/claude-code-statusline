@@ -22,7 +22,11 @@ test('tests.config.test_catalog.CatalogTests.test_scopes_defaults_and_legacy_des
             item.description = 'Agent name, agent type or task type';
             item.sources = ['tasks.name', 'tasks.agentType', 'tasks.type'];
         }
-        if (item.id === 'model-with-effort') item.description = 'Agent model with configured effort or optional session effort';
+        if (item.id === 'model-with-effort') item.description = 'Agent model with configured effort or recent session effort';
+        if (item.id === 'effort') {
+            item.description = 'Configured agent effort or numeric budget, with recent session effort as fallback';
+            item.guidance.requirements = ['subagent_rows', 'observed_field', 'agent_effort_optional'];
+        }
     }
     const original = ITEMS.filter(item => !['cache-miss-reason','external-value','github-pr','github-ci','session-cost-rate'].includes(item.id)).map(({ capabilities, ...item }) => item).map(item => item.scope === 'main' && item.id === 'worktree'
         ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);

@@ -165,7 +165,10 @@ test('tests.rendering.test_appearance.AppearanceRenderingTests.test_legacy_previ
         const source = { ...env, language: await presentation(row.language) }, data = samplePreviewData('/home/test');
         data.workspace = { current_dir: '/fixture/project/src', project_dir: '/fixture/project' };
         assert.deepEqual(configuredRows(data, cfg, row.width, source, (...args) => new SampleRenderState(...args)), row.main);
-        assert.deepEqual(agentsPreview(cfg, row.width, source), row.subagents);
+        // The completed sample now matches the preview session model for effort fallback.
+        const inherited = row.language === 'zh-CN' ? 'opus/~高' : 'opus/~high';
+        const subagents = row.subagents.map((line: string) => line.replace('haiku-4-5', inherited));
+        assert.deepEqual(agentsPreview(cfg, row.width, source), subagents);
     }
 });
 const clean = { kind: 'ok', branch: 'main', upstream: 'origin/main', upstream_gone: false, staged: 0, unstaged: 0, conflicts: 0, untracked: 0, ahead: 0, behind: 0 };

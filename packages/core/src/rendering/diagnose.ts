@@ -1,5 +1,6 @@
 import type { Draft, Scope, DiagnoseResult, DiagnosticEvidence, ItemOptionsDraft } from '../contracts/ui.js';
 import { BY_SCOPE } from '../config/catalog.js';
+import { effortFallback, supportsEffortFallback } from '../editor/effort-fallback.js';
 import { object, numeric, type Data } from '../runtime/values.js';
 import { sanitizePayloadText } from './formatters.js';
 import { configurationReasons, type ExplanationFacts } from './explain.js';
@@ -125,8 +126,8 @@ export function diagnose(draft: Draft, scope: Scope, width: number, input: Data,
             evidence: [
                 ...inputEvidence(input, scope, node.type_id, options.observedAt, node.options),
                 ...(local.get(node.id) ?? local.get(node.type_id) ?? []),
-                ...(scope === 'subagent' && draft.display.subagents.enabled && node.enabled && ['model-with-effort', 'effort'].includes(node.type_id)
-                    ? effortEvidence(effortTasks, input, node.options.effort_fallback === 'session', env, at, options) : []),
+                ...(draft.display.subagents.enabled && node.enabled && supportsEffortFallback(scope, node.type_id)
+                    ? effortEvidence(effortTasks, input, effortFallback(node.options) === 'session', env, at, options) : []),
             ],
             rows: trace.layouts(scope, node.id),
         })),

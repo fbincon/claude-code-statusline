@@ -365,13 +365,13 @@ With no enabled subagent instances, `render-subagents` still emits valid NDJSON 
 
 `config instance main|subagent` supports `list [--json]`, `add TYPE_ID [--after ID] [--text TEXT]`, `copy ID`, `remove ID`, `enable ID`, `disable ID`, `move ID --before|--after ANCHOR`, and `set ID OPTION VALUE`. Add/copy return the new ID. `config layout --by-instance explicit ROW...` uses comma-separated instance IDs, including all configured disabled instances, in exactly the configured order.
 
-Use this command to enable session effort fallback for the default subagent `model-with-effort` instance.
+Subagent `model-with-effort` and `effort` instances default to `effort-fallback session`. Use this command to turn it off for the default `model-with-effort` instance.
 
 ```text
-claude-statusline config instance subagent set model-with-effort effort-fallback session
+claude-statusline config instance subagent set model-with-effort effort-fallback off
 ```
 
-Use `config instance subagent list` to find the ID of a copied instance. Set the value to `off` to restore the default. The option applies only to subagent `model-with-effort` instances. [Effort sources and time limits](../DISPLAY_ITEMS.md#optional-session-effort)
+Use `config instance subagent list` to find the ID of a standalone `effort` instance or a copy. Set that instance's value to `off` to disable fallback or `session` to enable it again. [Effort sources and time limits](../DISPLAY_ITEMS.md#session-effort-fallback)
 
 Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.
 
@@ -908,7 +908,7 @@ See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clo
 
 ### Subagent rows and the three scopes
 
-Claude Code 2.1.205–2.1.322 passes the official `subagentStatusLine` payload to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. Ordinary payload metrics do not scan transcripts or query the network. Completed-agent timing may read existing local end evidence. The optional session effort fallback reads a private observation published by the main renderer. Enabled, bound external values can read their selected JSON files, inspect local Git identity and publish observation caches. Command/GitHub values read published results without executing the provider during rendering. These source effects are separate from the pure row formatter. [Host compatibility](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
+Claude Code 2.1.205–2.1.322 passes the official `subagentStatusLine` payload to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. Ordinary payload metrics do not scan transcripts or query the network. Completed-agent timing may read existing local end evidence. Session effort fallback can read a private observation when an enabled effort instance uses `session` and needs a fallback value. Enabled, bound external values can read their selected JSON files, inspect local Git identity and publish observation caches. Command/GitHub values read published results without executing the provider during rendering. These source effects are separate from the pure row formatter. [Host compatibility](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
 The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
 

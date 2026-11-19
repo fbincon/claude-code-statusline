@@ -361,13 +361,13 @@ claude-statusline config subagents order status-elapsed name model-with-effort c
 
 `config instance main|subagent` 提供 `list [--json]`、`add TYPE_ID [--after ID] [--text TEXT]`、`copy ID`、`remove ID`、`enable ID`、`disable ID`、`move ID --before|--after ANCHOR` 和 `set ID OPTION VALUE`。新增与复制返回新 ID。`config layout --by-instance explicit ROW...` 以逗号分隔的实例 ID 指定行，包含全部已配置实例（含禁用项），顺序必须一致。
 
-用下面的命令为默认子代理 `model-with-effort` 实例启用会话强度回退。
+子代理 `model-with-effort` 和 `effort` 实例默认为 `effort-fallback session`。用下面的命令关闭默认 `model-with-effort` 实例的回退。
 
 ```text
-claude-statusline config instance subagent set model-with-effort effort-fallback session
+claude-statusline config instance subagent set model-with-effort effort-fallback off
 ```
 
-用 `config instance subagent list` 查询复制实例的 ID。设置为 `off` 可恢复默认行为。此选项仅适用于子代理的 `model-with-effort` 实例。[强度来源及有效期](../DISPLAY_ITEMS.zh-CN.md#可选的会话推理强度)
+用 `config instance subagent list` 查询独立 `effort` 或复制实例的 ID。按实例设置 `off` 关闭回退，设置 `session` 可重新启用。[强度来源及有效期](../DISPLAY_ITEMS.zh-CN.md#会话强度回退)
 
 旧 `item`／启禁用命令仅在类型唯一时解析；旧批量选择、排序及布局操作遇到重复类型、文本或留白时拒绝，不选择首个匹配项，不删除实例。类型目录 JSON 增加 `instance_ids`、`enabled_instance_ids`、`instance_only`。完整示例见[组件与布局](../COMPOSITION.zh-CN.md)。
 
@@ -882,7 +882,7 @@ claude-statusline config enable project-name hostname context-used
 
 ### 子 Agent 行与三种作用域
 
-Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。渲染器保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络。已完成代理计时可以读取已有本地结束证据。可选的会话强度回退读取主栏渲染发布的私有观测。启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存。命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果与纯行格式化器分离。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
+Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。渲染器保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络。已完成代理计时可以读取已有本地结束证据。已启用的强度实例采用 `session` 且需要回退值时，可读取主栏渲染发布的私有观测。启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存。命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果与纯行格式化器分离。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 宽度直接使用 payload 中的正整数 `columns`，无效时回退 80 列。每行使用完整宽度预算，输入文本中的换行、制表符和控制字符会被清理。
 

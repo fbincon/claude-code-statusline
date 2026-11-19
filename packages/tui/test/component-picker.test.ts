@@ -9,23 +9,35 @@ test('external editor saves and reopens the timer composition and session effort
     const state = fixture('zh-CN'), editor = state.editor;
     editor.page = 'subagents';
     const ctrl = (key: string) => state.key({ key, ctrl: true });
-    for (const type of ['status', 'elapsed']) {
+    for (const type of ['status', 'elapsed', 'effort']) {
         ctrl('a'); state.search(type); state.key({ key: 'return' }); ctrl('g');
     }
     const enabled = () => nodes(editor.draft, 'subagent').filter(item => item.enabled).map(item => item.type_id);
     for (const id of ['status-elapsed', 'status', 'elapsed']) assert(enabled().includes(id));
-    editor.selectItem('subagent', 'model-with-effort');
-    ctrl('e');
-    editor.setting = 'item:effort_fallback';
-    assert(plain(state).some(line => line.includes('会话强度回退')));
-    state.key({ key: 'right' });
-    assert(plain(state).some(line => line.includes('使用会话强度')));
-    assert.equal(editor.instance('subagent', 'model-with-effort')!.options.effort_fallback, 'session');
+    const ids = ['model-with-effort', editor.typeStates('subagent').get('effort')!.firstId];
+    for (const id of ids) {
+        editor.selectItem('subagent', id);
+        ctrl('e');
+        editor.setting = 'item:effort_fallback';
+        assert(plain(state).some(line => line.includes('会话强度回退') && line.includes('使用会话强度')));
+        state.key({ key: 'right' });
+        assert.equal(editor.instance('subagent', id)!.options.effort_fallback, 'off');
+        ctrl('g');
+    }
     assert.equal(ctrl('s'), 'save');
     const saved = editor.beginSave();
     const reopened = new State(editor.description, { ...editor.baseline, draft: { ...saved.draft, display: validateDisplay(saved.draft.display) } });
     assert.deepEqual(nodes(reopened.editor.draft, 'subagent').filter(item => item.enabled).map(item => item.type_id), enabled());
-    assert.equal(reopened.editor.instance('subagent', 'model-with-effort')!.options.effort_fallback, 'session');
+    reopened.editor.page = 'subagents';
+    for (const id of ids) {
+        assert.equal(reopened.editor.instance('subagent', id)!.options.effort_fallback, 'off');
+        reopened.editor.selectItem('subagent', id);
+        reopened.key({ key: 'e', ctrl: true });
+        reopened.editor.setting = 'item:effort_fallback';
+        reopened.key({ key: 'right' });
+        assert.equal(reopened.editor.instance('subagent', id)!.options.effort_fallback, 'session');
+        reopened.key({ key: 'g', ctrl: true });
+    }
 });
 
 test('terminal catalog shows scoped type states for new, copied and disabled instances', () => {

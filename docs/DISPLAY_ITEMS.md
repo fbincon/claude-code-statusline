@@ -193,7 +193,7 @@ Custom subagent rows use the Claude Code 2.1.205–2.1.322 callback. Each row us
 | `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`. It can appear alongside `status` and `elapsed`. |
 | `status` | Off | Status icon: `…` pending, `⏱` running, `✓` completed, `✗` failed, `■` killed, `⏳` paused/waiting; unknown status uses `?` |
 | `name` | On | Explicit `name`, then formatted `agentType` (2.1.293+), formatted `type`, and finally the localized `Agent` label |
-| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` for a configured value or `/~effort` for optional session effort |
+| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` for a configured value or `/~effort` for session fallback. |
 | `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
 | `context-used` | Off | `Context N% used`, from `tokenCount / contextWindowSize` rounded to a percentage |
 | `elapsed` | Off | Duration from the task's epoch-millisecond `startTime`; future timestamps count as 0 seconds |
@@ -201,13 +201,17 @@ Custom subagent rows use the Claude Code 2.1.205–2.1.322 callback. Each row us
 | `tokens` | Off | Compact token count for the current task |
 | `current-dir` | Off | Task `cwd`, respecting directory style |
 | `model` | Off | Resolved `tasks.model`, using the existing agent format without the `claude-` prefix. |
-| `effort` | Off | Explicit configured `tasks.effort`, including numeric budgets. Absent when inherited; unsupported configured levels may differ from effective effort. Requires Claude Code 2.1.214+. |
+| `effort` | Off | Configured effort level or numeric budget, with `~effort` for session fallback. |
 | `context-tokens` | Off | `tasks.tokenCount` versus `tasks.contextWindowSize`. |
 | `context-window-size` | Off | Resolved `tasks.contextWindowSize`. |
 
-### Optional session effort
+<a id="optional-session-effort"></a>
 
-Set **Session effort fallback** in a subagent `model-with-effort` instance to **Use session effort**. The default is **Off**. A configured `tasks.effort` takes priority. If the field is absent, the renderer can use the main status line's latest `effort.level` from the same session and exact model ID, up to 15 seconds old. The `~` marks a recent session observation. It cannot establish the effort used when the subagent started. Event-only main refreshes may leave the model alone between updates. The separate `effort` component reports configured values. [CLI setting](reference/cli.md#instance-management)
+### Session effort fallback
+
+**Session effort fallback** defaults to **Use session effort** for subagent `model-with-effort` and `effort`. In either editor, set it to **off** on an instance to show only its configured effort. Existing instances with an omitted `effort_fallback` also use the new default, including instances where an older version omitted the field when saving `off`. [CLI setting](reference/cli.md#instance-management)
+
+A configured `tasks.effort` takes priority. Claude Code added this field in 2.1.214, and a configured value can differ from the effective effort. When the field is missing or blank, the renderer can use the main status line's latest `effort.level` from the same session and exact model ID, up to 15 seconds old. The `~` identifies a recent session observation. The subagent's launch-time effort remains unknown. With event-only main refreshes, the observation can expire between callbacks, leaving the model alone and the standalone effort absent.
 
 ### Ended-agent durations
 

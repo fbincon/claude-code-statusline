@@ -3048,7 +3048,7 @@ export const catalogData = [
     "scope": "subagent",
     "id": "model-with-effort",
     "label": "Agent model and effort",
-    "description": "Agent model with configured effort or optional session effort",
+    "description": "Agent model with configured effort or recent session effort",
     "group": "model",
     "sources": [
       "tasks.model",
@@ -3140,7 +3140,7 @@ export const catalogData = [
     "scope": "subagent",
     "id": "effort",
     "label": "Agent effort",
-    "description": "Explicit configured agent effort or numeric budget; absent when inherited",
+    "description": "Configured agent effort or numeric budget, with recent session effort as fallback",
     "group": "model",
     "sources": [
       "tasks.effort"
@@ -3173,7 +3173,7 @@ export const catalogData = [
       "requirements": [
         "subagent_rows",
         "observed_field",
-        "configured_effort"
+        "agent_effort_optional"
       ],
       "setup": [
         "claude-statusline install",
