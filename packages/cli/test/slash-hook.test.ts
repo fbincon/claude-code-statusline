@@ -10,6 +10,8 @@ import { FEATURE_FILENAME } from '@fbincon/statusline-core/config/backend-prefer
 import { readDisplay } from '../src/rendering/main.js';
 import { CONFIG_FILENAME } from '@fbincon/statusline-core/config/display';
 import { writeFeature } from '../src/config/backend-preferences.js';
+import { lifecycle, promptLine } from './lifecycle-support.js';
+import { collectTask } from '../src/runtime/tasks/collect.js';
 function setup(t: TestContext) {
     const configDir = mkdtempSync(join(tmpdir(), 'ts03-slash-'));
     t.after(() => rmSync(configDir, { recursive: true, force: true }));
@@ -17,6 +19,46 @@ function setup(t: TestContext) {
     return { configDir, launch, hostVersion: () => [2, 1, 288], editor: (() => assert.fail('unexpected editor')) as EditorLauncher };
 }
 const payload = (command_args: unknown = '', command_name = 'statusline-config') => ({ hook_event_name: 'UserPromptExpansion', expansion_type: 'slash_command', command_name, command_args });
+for (const explicit of [true, false]) test(`blocked configuration hides only its own timer, with prompt ID: ${explicit}`, async testContext => {
+    const harness = lifecycle(testContext);
+    harness.rawEvent('UserPromptSubmit', 1, 'human', { prompt: 'A real task' });
+    const entry = harness.feed([promptLine('human', 1)]);
+    harness.rawEvent('UserPromptSubmit', 3, 'configure', { prompt: '/statusline-configure' });
+    let opened!: () => void, complete!: (result: EditorResult) => void;
+    const launch = new Promise<void>(resolve => { opened = resolve; });
+    const result = new Promise<EditorResult>(resolve => { complete = resolve; });
+    const pending = slashHook(() => JSON.stringify({ ...payload('', 'statusline-configure'), session_id: 's', ...(explicit ? { prompt_id: 'configure' } : {}) }), {
+        configDir: harness.root, runtime: harness.context, hostVersion: () => [2, 1, 322], editor: () => { opened(); return result; }
+    });
+    await launch;
+    harness.clock(5000000000n);
+    assert.equal(harness.render(collectTask(harness.tasks, 's', 'human', entry.last_pt, entry)), '⏱ 0m 02s');
+    complete({ outcome: explicit ? 'updated' : 'cancelled', message: 'test outcome' });
+    assert.equal(JSON.parse(await pending).decision, 'block');
+    assert.equal(harness.state('configure').status, 'ignored');
+    assert.equal(harness.state('configure').end_reason, 'blocked_statusline_configure');
+    assert.equal(harness.state('human').status, 'running');
+    for (const id of [null, 'human', 'configure'])
+        assert.equal(harness.render(collectTask(harness.tasks, 's', id, entry.last_pt, entry)), null);
+    harness.rawEvent('UserPromptSubmit', 6, 'next', { prompt: 'Next real task' });
+    assert.equal(collectTask(harness.tasks, 's', 'next', entry.last_pt, entry)?.prompt_id, 'next');
+});
+test('configuration expansion never guesses between candidates or changes an unrelated human record', async testContext => {
+    const harness = lifecycle(testContext), fixture = { configDir: harness.root, runtime: harness.context };
+    harness.rawEvent('UserPromptSubmit', 1, 'human', { prompt: 'A real task' });
+    harness.rawEvent('UserPromptSubmit', 2, 'one', { prompt: '/statusline-configure' });
+    harness.rawEvent('UserPromptSubmit', 3, 'two', { prompt: '/statusline-configure' });
+    const args = { ...payload('--help', 'statusline-configure'), session_id: 's' };
+    for (const event of [args, { ...args, prompt_id: 'human' }])
+        assert.equal(JSON.parse(await slashHook(() => JSON.stringify(event), fixture)).decision, 'block');
+    assert.equal(harness.state('one').status, 'running');
+    assert.equal(harness.state('two').status, 'running');
+    assert.equal(harness.state('human').status, 'running');
+    assert.equal(JSON.parse(await slashHook(() => JSON.stringify({ ...args, prompt_id: 'two' }), fixture)).decision, 'block');
+    assert.equal(harness.state('two').status, 'ignored');
+    assert.equal(harness.state('one').status, 'running');
+    assert.equal(JSON.parse(await slashHook(() => JSON.stringify(args), { ...fixture, runtime: { ...harness.context, sample: () => { throw new Error('clock unavailable'); } } })).decision, 'block');
+});
 test('tests.integration.test_slash_hook.SlashHookTests.test_empty_arguments_pass_through_to_guided_skill', async (t) => {
     assert.equal(await handlePayload(payload('   '), setup(t)), null);
 });

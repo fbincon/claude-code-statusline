@@ -17,6 +17,9 @@ import { ArgumentError } from '../config/arguments.js';
 import { configDirectory, renderInput } from '../rendering/main.js';
 import { localizedError } from '../errors.js';
 import { UNAVAILABLE_MESSAGE } from './editor.js';
+import { runtimeContext } from '../runtime/context.js';
+import { TaskService } from '../runtime/tasks/service.js';
+import { lifecycleId } from '@fbincon/statusline-core/runtime/tasks/model';
 const cut = (value: string, length: number) => [...value].slice(0, length).join('');
 export function safeErrorReason(message: unknown): string | LocalizedText {
     if (typeof message !== 'string')
@@ -85,7 +88,22 @@ export async function handlePayload(data: unknown, environment: CliEnvironment =
 }
 export async function slashHook(read: () => string | Uint8Array, environment: CliEnvironment = {}): Promise<string> {
     try {
-        const result = await handlePayload(renderInput(read), environment);
+        const input = renderInput(read);
+        const configure = object(input) && input.hook_event_name === 'UserPromptExpansion' && input.expansion_type === 'slash_command' &&
+            input.command_name === 'statusline-configure' && lifecycleId(input.session_id) ? input : null;
+        let timing: { context: ReturnType<typeof runtimeContext>; began: bigint } | null = null;
+        if (configure) {
+            try {
+                const context = environment.runtime ?? runtimeContext(configDirectory(environment.configDir));
+                timing = { context, began: context.sample().wall_ns };
+            }
+            catch {}
+        }
+        const result = await handlePayload(input, environment);
+        if (result !== null && configure && timing) {
+            try { new TaskService(timing.context).blockConfiguration(configure.session_id, configure.prompt_id, timing.began); }
+            catch {}
+        }
         return result === null ? '' : result + '\n';
     }
     catch {

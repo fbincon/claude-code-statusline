@@ -1,6 +1,6 @@
 import { int, numeric, object, truth, string, type Data } from '@fbincon/statusline-core/runtime/values';
 import { roundedInteger } from '@fbincon/statusline-core/runtime/transcript';
-import type { Turn } from '@fbincon/statusline-core/runtime/tasks/model';
+import { findTurn, type Turn } from '@fbincon/statusline-core/runtime/tasks/model';
 import { registryStatus } from '../registry.js';
 import { TaskService } from './service.js';
 export function localCommandIsCurrent(local: unknown, payload: string | null, real: string | null, lastPrompt: unknown): boolean {
@@ -21,17 +21,26 @@ export function collectTask(service: TaskService, sessionId: unknown, promptId: 
     const local = localCommandIsCurrent(entry.last_local_command, payload, real, lastPrompt);
     if (local && !real)
         return null;
+    const history = service.store.load(session), timestamp = numeric(lastPrompt);
     let effective = real ?? payload;
-    const timestamp = numeric(lastPrompt);
-    if (payload && payload !== real) {
-        const state = service.store.state(session, payload), started = state ? int(state.started_wall_ns, false) : null;
-        const transcript = timestamp !== null ? BigInt(Math.trunc(timestamp * 1e9)) : null;
-        if (state?.status === 'running' && (transcript === null || started !== null && started > transcript))
+    const realTime = timestamp !== null ? roundedInteger(timestamp * 1e9) : null;
+    const current = history?.current_prompt_id ? findTurn(history, history.current_prompt_id) : null;
+    const latestHuman = int(current?.started_wall_ns, false) ?? realTime;
+    const configure = history?.turns.reduce<Turn | null>((latest, record) => {
+        const started = int(record.started_wall_ns, false);
+        return record.configuration_prompt && started !== null && (latestHuman === null || started > latestHuman) &&
+            (realTime === null || started > realTime) && (!latest || started > (int(latest.started_wall_ns, false) ?? 0n)) ? record : latest;
+    }, null);
+    if (configure)
+        effective = configure.prompt_id;
+    else if (history && payload && payload !== real) {
+        const state = findTurn(history, payload), started = int(state?.started_wall_ns, false);
+        if (state?.status === 'running' && !state.configuration_prompt && (realTime === null || started !== null && started > realTime))
             effective = payload;
     }
     if (!effective)
         return null;
-    let state = service.store.state(session, effective);
+    let state = history ? findTurn(history, effective) : null;
     if (!state && real === effective && timestamp !== null) {
         try {
             service.transcript(session, [{ kind: 'prompt', prompt_id: effective, wall_ns: roundedInteger(timestamp * 1e9) }]);
@@ -45,11 +54,13 @@ export function collectTask(service: TaskService, sessionId: unknown, promptId: 
         return null;
     if (state.status === 'running') {
         const sessionState = registryStatus(service.context, session, service.io);
-        if (sessionState?.status === 'idle') {
+        if (sessionState) {
             const end = int(sessionState.status_updated_wall_ns, false), start = int(state.started_wall_ns, false);
-            if (end !== null && (start === null || end >= start)) {
+            const status = ['idle', 'busy'].includes(String(sessionState.status)) ? String(sessionState.status) : 'other';
+            const previous = object(state.registry_observation) ? int(state.registry_observation.wall_ns, false) : null;
+            if (end !== null && end <= service.context.sample().wall_ns && (start === null || end >= start) && (status === 'idle' || previous === null || end > previous)) {
                 try {
-                    service.idle(session, effective, end);
+                    service.registry(session, effective, end, status);
                     state = service.store.state(session, effective) ?? state;
                 }
                 catch { /* Keep the last trustworthy lifecycle view. */ }

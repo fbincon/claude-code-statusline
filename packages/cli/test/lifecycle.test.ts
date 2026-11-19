@@ -150,9 +150,8 @@ test('tests.runtime.test_subagent_lifecycle.AgentLedgerTests.test_prompt_id_fall
 test('tests.runtime.test_subagent_lifecycle.MainStopTests.test_authoritative_snapshot_filters_non_agents_and_can_reopen', t => {
     const f = lifecycle(t);
     f.event('UserPromptSubmit', 1);
-    f.tasks.transcript('s', [{ kind: 'assistant', prompt_id: 'p', wall_ns: 2000000000n }, { kind: 'turn_duration', wall_ns: 3000000000n, duration_ms: 2 }]);
-    assert.equal(f.state().status, 'completed');
-    f.event('Stop', 4, 'p', { background_tasks: [{ id: 'agent', type: 'subagent', name: 'Explore' }, ...['shell', 'server', 'monitor', 'workflow'].map(type => ({ id: type, type }))] });
+    const snapshot = [{ id: 'agent', type: 'subagent', name: 'Explore' }, ...['shell', 'server', 'monitor', 'workflow'].map(type => ({ id: type, type }))];
+    f.event('Stop', 4, 'p', { background_tasks: snapshot });
     assert.equal(f.state().status, 'running');
     assert.equal(f.state().phase, 'waiting_subagents');
     assert.deepEqual(Object.keys(f.state().active_agents), ['agent']);
@@ -161,6 +160,9 @@ test('tests.runtime.test_subagent_lifecycle.MainStopTests.test_authoritative_sna
     assert.equal(f.state().status, 'completed');
     assert.equal(f.state().ended_wall_ns, 11e9);
     assert.deepEqual(f.state().active_agents, {});
+    const frozen = f.state();
+    f.event('Stop', 12, 'p', { background_tasks: snapshot });
+    assert.deepEqual(f.state(), frozen);
 });
 test('tests.runtime.test_subagent_lifecycle.MainStopTests.test_missing_snapshot_uses_hook_ledger_and_empty_snapshot_finishes', t => {
     const f = lifecycle(t);

@@ -271,6 +271,29 @@ test('task snapshot is attributable without transcript scanning, and no prompt m
     assert.deepEqual(allFiles(f.root), before);
 });
 
+test('task timer diagnosis explains pending reports and cached idle without writes or agent identities', async testContext => {
+    const harness = runtimeSetup(testContext);
+    harness.event('UserPromptSubmit', 1);
+    harness.event('SubagentStart', 2, { agent_id: 'private-agent' });
+    harness.event('Stop', 3, { background_tasks: [{ id: 'private-agent', type: 'subagent' }] });
+    harness.event('SubagentStop', 4, { agent_id: 'private-agent' });
+    harness.tasks.idle('s', 'p', 5000000000n);
+    harness.clock(6000000000n);
+    const service = new ConfigurationService({ configDir: harness.root, launch: { executable: process.execPath, args: [] }, hostVersion: fail });
+    const adapter = await diagnosisAdapter(service, { runtime: harness.context });
+    const before = allFiles(harness.root);
+    const result = adapter({ draft: draft(['task-timer']), scope: 'main', width: 80, input: { session_id: 's', prompt_id: 'p' } });
+    const [timer] = result.instances;
+    const lifecycle = timer!.evidence.find(row => row.source === 'task_store.lifecycle')!;
+    assert.equal(lifecycle.status, 'partial');
+    assert.ok(lifecycle.fields.some(field => field.path === 'pending_agent_reports.count.1'));
+    assert.ok(lifecycle.fields.some(field => field.path === 'waiting_for.background_reports'));
+    assert.ok(lifecycle.fields.some(field => field.path === 'last_end_evidence.hook_stop'));
+    assert.deepEqual(timer!.evidence.find(row => row.source === 'claude_session_registry')!.fields, [{ path: 'status.idle', status: 'observed' }]);
+    assert.doesNotMatch(diagnosticText(result, 'en'), /private-agent/u);
+    assert.deepEqual(allFiles(harness.root), before);
+});
+
 test('same-session Git cache is read-only, age-checked and never refreshed', async t => {
     const f = setup(t), folder = join(f.root, 'git_cache'); mkdirSync(folder);
     const value = { kind: 'ok', branch: 'topic', upstream: null, upstream_gone: false, ahead: 0, behind: 0, staged: 0, unstaged: 0, conflicts: 0, untracked: 0 };

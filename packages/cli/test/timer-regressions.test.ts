@@ -20,8 +20,9 @@ test('tests.runtime.test_timer_regressions.TaskDurationRegressions.test_main_res
     f.duration(6);
     f.tasks.idle('s', 'p', 7000000000n);
     f.tasks.withdraw('s', 'p', 8000000000n);
-    assert.equal(f.state().status, 'running');
-    assert.equal(f.state().ended_wall_ns, null);
+    assert.equal(f.state().status, 'completed');
+    assert.equal(f.state().end_source, 'transcript_duration');
+    assert.equal(f.state().ended_wall_ns, 6e9);
 });
 test('tests.runtime.test_timer_regressions.TaskDurationRegressions.test_missing_agent_start_still_protects_duration', t => {
     const f = lifecycle(t);
@@ -102,14 +103,13 @@ test('tests.runtime.test_timer_regressions.TaskDurationRegressions.test_parallel
 test('tests.runtime.test_timer_regressions.TaskDurationRegressions.test_late_agent_start_reopens_only_inferred_completion', t => {
     const f = lifecycle(t);
     f.event('UserPromptSubmit', 1);
+    f.feed([promptLine('p', 1), assistantLine(2)]);
     f.duration(3);
+    const frozen = f.state();
     f.event('SubagentStart', 4, 'p', { agent_id: 'a' });
-    assert.equal(f.state().status, 'running');
-    assert.equal(f.state().had_subagents, true);
     f.event('SubagentStop', 5, 'p', { agent_id: 'a' });
-    f.event('Stop', 9, 'p', { background_tasks: [] });
-    f.duration(10);
-    assert.equal(f.state().duration_ns, 8e9);
+    assert.equal(frozen.status, 'completed');
+    assert.deepEqual(f.state(), frozen);
 });
 test('tests.runtime.test_timer_regressions.TaskDurationRegressions.test_explicit_old_duration_does_not_finish_new_prompt', t => {
     const f = lifecycle(t);

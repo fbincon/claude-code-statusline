@@ -1,8 +1,8 @@
 import type { Sample } from '../../timing/sample.js';
-import { int, truth, string, object, type Data } from '../values.js';
-import { findTurn, upsertTurn, terminalRecord, agentNotificationId, cleanActiveAgents, rememberId, elapsedNs, TERMINAL_STATUSES, type Turn, type TaskStore } from './model.js';
-import { applyAgentNotification, applyLocalCommand, finishRecord, reopenLowPriority, priority } from './transitions.js';
-import { authoritativeSubagents, startSubagent, stopSubagent } from './agents.js';
+import { int, truth, string, object, maxInt, numeric, type Data } from '../values.js';
+import { findTurn, upsertTurn, terminalRecord, agentNotificationIds, lifecycleId, elapsedNs, recordKey, TERMINAL_STATUSES, type Turn, type TaskStore } from './model.js';
+import { applyAgentNotification, endIsCurrent, finishRecord, noteEndEvidence, priority, reconcileNotifications } from './transitions.js';
+import { agentWorkPending, reconcileBackground, startSubagent, stopSubagent } from './agents.js';
 export interface Evidence {
     submissionNs?: bigint | null;
     modifiedNs?: bigint | null;
@@ -25,62 +25,104 @@ export function refreshStartEvidence(record: Turn, data: Data, source: string, e
     record.started_wall_ns = started;
     record.start_source = 'transcript';
 }
+export function notificationPrompt(store: TaskStore, prompt: string): boolean {
+    return store.unresolved_notifications?.some(row => row.delivered && row.prompt_id === prompt) === true ||
+        store.turns.some(row => row.report_aliases.includes(prompt));
+}
+export function stopTarget(store: TaskStore, prompt: string | null, wall: bigint): string | null {
+    if (prompt)
+        return findTurn(store, prompt)?.prompt_id ??
+            (notificationPrompt(store, prompt) || store.turns.some(row => row.prompt_aliases.includes(prompt)) ? null : prompt);
+    const candidates = store.turns.filter(record => record.status === 'running' && endIsCurrent(record, wall));
+    if (candidates.length !== 1)
+        return null;
+    const record = candidates[0]!, start = int(record.started_wall_ns, false);
+    if (start === null || store.current_prompt_id !== record.prompt_id)
+        return null;
+    const beganMain = (int(record.last_assistant_wall_ns, false) ?? -1n) >= start || Object.values(record.native_turns).some(turn =>
+        turn.agent_id === null && turn.start_observed === true && (numeric(turn.started_at_ms) ?? -1) >= Number(start) / 1e6 &&
+        (numeric(turn.started_at_ms) ?? Infinity) <= Number(wall) / 1e6);
+    const ambiguous = store.turns.some(item => item !== record && (int(item.started_wall_ns, false) ?? start) < start &&
+        (item.end_source === 'next_prompt' && (int(item.ended_wall_ns, false) ?? -1n) >= start ||
+         Object.values(item.native_turns).some(turn => turn.agent_id === null && turn.start_observed === true &&
+            (numeric(turn.started_at_ms) ?? Infinity) <= Number(wall) / 1e6 &&
+            (numeric(turn.ended_at_ms) ?? Infinity) > Number(start) / 1e6)));
+    return ambiguous && !beganMain ? null : record.prompt_id;
+}
+export function blockConfigurationPrompt(store: TaskStore, promptValue: unknown, began: bigint, clocks: Sample): string | null {
+    const prompt = lifecycleId(promptValue);
+    const matches = store.turns.filter(record => record.configuration_prompt && ['running', 'withdrawn'].includes(record.status) &&
+        (prompt === null || prompt === record.prompt_id || record.prompt_aliases.includes(prompt)) &&
+        (int(record.started_wall_ns, false) ?? clocks.wall_ns + 1n) <= clocks.wall_ns);
+    if (matches.length !== 1)
+        return store.current_prompt_id;
+    const record = matches[0]!, start = int(record.started_wall_ns, false)!;
+    if (prompt === null && store.turns.some(item => !item.configuration_prompt && (int(item.started_wall_ns, false) ?? 0n) > start &&
+        (int(item.started_wall_ns, false) ?? 0n) <= began))
+        return store.current_prompt_id;
+    finishRecord(record, 'ignored', clocks.wall_ns, clocks.boot_ns, clocks.boot_id, 'local_command', 'blocked_statusline_configure');
+    return store.current_prompt_id ?? record.prompt_id;
+}
 export function applyHook(store: TaskStore, data: Data, clocks: Sample, evidence: Evidence = {}): string | null {
     const { wall_ns: wall, boot_ns: boot, boot_id: domain } = clocks;
-    const event = data.hook_event_name, prompt = truth(data.prompt_id) ? string(data.prompt_id) : null;
-    if (event === 'SubagentStart')
-        return startSubagent(store, prompt, data, wall);
-    if (event === 'SubagentStop')
-        return stopSubagent(store, prompt, data, wall);
+    const event = data.hook_event_name, prompt = lifecycleId(data.prompt_id);
+    if (event === 'SubagentStart' || event === 'SubagentStop') {
+        (event === 'SubagentStart' ? startSubagent : stopSubagent)(store, prompt, data, wall);
+        reconcileNotifications(store);
+        return store.current_prompt_id;
+    }
     if (truth(data.agent_id))
         return store.current_prompt_id;
     if (event === 'UserPromptSubmit') {
-        if (!prompt)
-            return store.current_prompt_id;
-        const notification = agentNotificationId(data.prompt);
-        if (notification) {
-            if (!applyAgentNotification(store, prompt, notification, wall))
-                applyLocalCommand(store, prompt, wall);
+        const notifications = agentNotificationIds(data.prompt);
+        if (notifications.length) {
+            for (const agent of notifications)
+                applyAgentNotification(store, prompt, agent, wall);
             return store.current_prompt_id;
         }
-        const record = findTurn(store, prompt);
-        if (!record)
-            upsertTurn(store, prompt, clocks, 'hook_submit');
-        const previous = findTurn(store, store.current_prompt_id);
-        if (previous && record && previous !== record && (int(record.started_wall_ns, false) ?? 0n) < (int(previous.started_wall_ns, false) ?? 0n))
+        if (!prompt)
             return store.current_prompt_id;
-        if (previous && previous.prompt_id !== prompt && previous.status === 'running')
+        const existing = findTurn(store, prompt);
+        if (typeof data.prompt === 'string' && /^\s*\/statusline-configure(?:\s|$)/u.test(data.prompt)) {
+            if (!existing)
+                upsertTurn(store, prompt, clocks, 'hook_submit')!.configuration_prompt = true;
+            return store.current_prompt_id ?? prompt;
+        }
+        if (existing?.configuration_prompt || existing?.report_aliases.includes(prompt) && prompt !== existing.prompt_id)
+            return store.current_prompt_id;
+        const previous = store.current_prompt_id ? findTurn(store, store.current_prompt_id) : null;
+        const record = existing ?? upsertTurn(store, prompt, clocks, 'hook_submit')!;
+        if (previous && previous !== record && (int(record.started_wall_ns, false) ?? 0n) < (int(previous.started_wall_ns, false) ?? 0n))
+            return store.current_prompt_id;
+        if (previous && previous !== record && previous.status === 'running')
             finishRecord(previous, 'unknown', wall, boot, domain, 'next_prompt', 'superseded_without_terminal_event');
-        store.current_prompt_id = prompt;
-        return prompt;
+        store.current_prompt_id = record.prompt_id;
+        return record.prompt_id;
     }
     if (event === 'Stop') {
-        const target = prompt ?? store.current_prompt_id;
+        const target = stopTarget(store, prompt, wall);
         if (!target)
             return store.current_prompt_id;
         const current = findTurn(store, store.current_prompt_id), record = terminalRecord(store, target, clocks);
-        if (['failed', 'interrupted', 'ignored'].includes(record.status))
+        if (record.status !== 'running' || !endIsCurrent(record, wall))
             return store.current_prompt_id;
         refreshStartEvidence(record, data, 'hook_stop', evidence);
-        const snapshot = authoritativeSubagents(data.background_tasks, record.active_agents, wall);
-        if (snapshot !== null && (record.status === 'running' || truth(snapshot) && reopenLowPriority(record, wall))) {
-            record.active_agents = snapshot;
-            if (truth(snapshot)) {
-                record.had_subagents = true;
-                for (const agent of Object.keys(snapshot))
-                    if (rememberId(record, 'agent_ids', agent))
-                        rememberId(record, 'pending_agent_reports', agent);
-            }
+        reconcileBackground(store, record, data.background_tasks, wall);
+        reconcileNotifications(store);
+        if (!endIsCurrent(record, wall))
+            return store.current_prompt_id;
+        if (agentWorkPending(record)) {
+            record.phase = truth(record.active_agents) ? 'waiting_subagents' : 'resuming_main';
+            record.stop_candidate = null;
+            record.duration_source = null;
+            noteEndEvidence(record, wall, 'hook_stop');
+            record.updated_wall_ns = maxInt([recordKey(record), wall]);
         }
-        const active = cleanActiveAgents(record.active_agents), pending = record.report_aliases.length > 0 && record.pending_agent_reports.length > 0;
-        if ((truth(active) || pending) && reopenLowPriority(record, wall)) {
-            Object.assign(record, { status: 'running', phase: truth(active) ? 'waiting_subagents' : 'resuming_main', active_agents: active, ended_wall_ns: null, ended_boot_ns: null,
-                duration_ns: null, duration_source: null, end_source: null, end_reason: null, error: null, updated_wall_ns: wall });
-        }
-        else if (record.status === 'running' && !truth(record.stop_candidate)) {
+        else if (!truth(record.stop_candidate)) {
             record.stop_candidate = { wall_ns: wall, boot_ns: boot, boot_id: domain, duration_ns: elapsedNs(record, wall, boot, domain) };
             record.phase = 'stop_pending';
-            record.updated_wall_ns = wall;
+            noteEndEvidence(record, wall, 'hook_stop');
+            record.updated_wall_ns = maxInt([recordKey(record), wall]);
         }
         if (store.current_prompt_id === null || store.current_prompt_id === target || current && ['ignored', 'withdrawn'].includes(current.status))
             store.current_prompt_id = record.prompt_id;

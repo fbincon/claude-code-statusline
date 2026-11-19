@@ -5,7 +5,8 @@ import { evidence, identity } from '@fbincon/statusline-core/rendering/diagnose'
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { object, own, int, numeric, type Data } from '@fbincon/statusline-core/runtime/values';
 import { sessionTokenCounts, usageTokenText, type UsageEntry } from '@fbincon/statusline-core/runtime/usage';
-import { storeFromState, type TaskStore, type Turn } from '@fbincon/statusline-core/runtime/tasks/model';
+import { END_PRIORITY, TERMINAL_STATUSES, storeFromState, type TaskStore, type Turn } from '@fbincon/statusline-core/runtime/tasks/model';
+import { expectedReports } from '@fbincon/statusline-core/runtime/tasks/agents';
 import { activePoint } from '@fbincon/statusline-core/runtime/tasks/view';
 import { fresh, validateState, type LiveState } from '@fbincon/statusline-core/runtime/live/state';
 import { canonicalPrompt } from '@fbincon/statusline-core/runtime/live/ownership';
@@ -91,7 +92,32 @@ export function observations(draft: Draft, scope: Scope, input: Data, context: R
     if (selected.has('task-timer')) {
         put(['task-timer'], report('task_store', 'task', taskStatus, taskTime));
         if (turn) {
-            if (turn.status === 'running') put(['task-timer'], report('task_store', 'task', 'partial', taskTime));
+            const lifecycle = report('task_store.lifecycle', 'task', turn.status === 'running' ? 'partial' : taskStatus, taskTime);
+            const active = Object.keys(turn.active_agents).length, awaiting = expectedReports(turn).length;
+            const reason = active ? 'active_agents' : awaiting ? 'background_reports' : object(turn.stop_candidate) ? 'stop_candidate' :
+                turn.phase === 'resuming_main' ? 'main_continuation' : 'ending_not_observed';
+            const status = turn.status === 'running' || TERMINAL_STATUSES.has(turn.status) ? turn.status : 'unknown';
+            const observed = (path: string): DiagnosticEvidence['fields'][number] => ({ path, status: 'observed' });
+            lifecycle.fields.push(observed('status.' + status), observed('phase.' + turn.phase), observed('had_subagents.' + turn.had_subagents),
+                observed('active_agents.count.' + active), observed('pending_agent_reports.count.' + awaiting));
+            if (status === 'running')
+                lifecycle.fields.push(observed('waiting_for.' + reason));
+            const loops = Object.values(turn.native_turns).filter(row => row.agent_id === null && numeric(row.started_at_ms) !== null && numeric(row.started_at_ms)! <= at);
+            const main = loops.sort((first, second) => numeric(second.started_at_ms)! - numeric(first.started_at_ms)!)[0];
+            if (main)
+                lifecycle.fields.push(observed('native_main.' + (numeric(main.ended_at_ms) !== null && numeric(main.ended_at_ms)! <= at ? 'ended' : 'running')));
+            const list = result.get('task-timer')!;
+            list.push(lifecycle);
+            const ending = object(turn.last_end_evidence) ? turn.last_end_evidence : { source: turn.end_source, wall_ns: turn.ended_wall_ns };
+            const endTime = nsMs(ending.wall_ns), source = typeof ending.source === 'string' && Object.hasOwn(END_PRIORITY, ending.source) ? ending.source : null;
+            if (source && endTime !== null && endTime <= at)
+                lifecycle.fields.push(observed('last_end_evidence.' + source));
+            const registry = object(turn.registry_observation) ? turn.registry_observation : null, registryTime = nsMs(registry?.wall_ns);
+            if (registry && registryTime !== null && registryTime <= at && ['idle', 'busy', 'other'].includes(String(registry.status))) {
+                const cached = report('claude_session_registry', 'session', 'observed', registryTime);
+                cached.fields.push(observed('status.' + String(registry.status)));
+                list.push(cached);
+            }
             env.taskSnapshot = { state: turn, sample: sample() };
         }
     }
