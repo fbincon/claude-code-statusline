@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
 import type { ClientProps } from '../lib/session.ts';
 import type { Frame } from '../ui/frame.ts';
 import { LANGUAGES } from '../lib/i18n/index.ts';
@@ -170,7 +171,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 31, result }));
+  return output(JSON.stringify({ protocol_version: PROTOCOL_VERSION, result }));
 }
 
 export function sample(text: string) {

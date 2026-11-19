@@ -26,7 +26,10 @@ export function externalPresentation(node: InstanceDraft, view: SourceView | und
             text = typeof view.fields.pr === 'number' ? '#' + view.fields.pr + (view.fields.review ? ' · ' + view.fields.review : '') : tr(view.reason);
         target = safeLink(node.type_id === 'github-ci' ? view.fields.ci_url : view.fields.url);
     }
-    const state = value.state === 'valid' ? value.freshness === 'current' ? null : value.freshness : value.state;
+    const branchMismatch = view?.state === 'mismatch' && view.reason === 'branch_mismatch';
+    if (branchMismatch && typeof view.fields?.configured_branch === 'string')
+        text = env.language.text('source.fixed_branch', { branch: view.fields.configured_branch });
+    const state = branchMismatch ? 'branch_mismatch' : value.state === 'valid' ? value.freshness === 'current' ? null : value.freshness : value.state;
     const marker = state ? '! [' + tr(state) + '] ' : '';
     const unit = value.unit ? ' ' + (sanitizePayloadText(value.unit) ?? '') : '';
     // Status is part of the value: hiding labels or overriding an icon cannot conceal it.

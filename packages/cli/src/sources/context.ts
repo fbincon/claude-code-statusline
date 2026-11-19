@@ -11,11 +11,12 @@ export function contextFor(project: string | null, session: string | null = null
         return context;
     try {
         const invocation = new GitInvocation(context.project, 1000);
-        const git = (args: string[]) => { const result = invocation.command(['rev-parse', ...args]); if (result.code !== 0) throw new Error('Git identity unavailable'); return result.stdout.toString('utf8').trim(); };
-        const lines = git(['--show-toplevel', '--abbrev-ref', 'HEAD']).split(/\r?\n/u), head = git(['--verify', 'HEAD']);
+        const git = (args: string[]) => { const result = invocation.command(['rev-parse', ...args]); if (result.code !== 0) throw new Error('Git identity unavailable'); return result.stdout.toString('utf8').replace(/\r?\n$/u, ''); };
+        const lines = git(['--show-toplevel', '--symbolic-full-name', 'HEAD']).split(/\r?\n/u), head = git(['--verify', 'HEAD^{commit}']);
         if (lines.length === 2 && /^[a-f0-9]{40,64}$/u.test(head)) {
             context.project = projectPaths.canonical(lines[0]!) ?? context.project;
-            context.branch = lines[1] === 'HEAD' ? null : lines[1]!;
+            const ref = lines[1]!, prefix = 'refs/heads/';
+            context.branch = ref.startsWith(prefix) ? ref.slice(prefix.length) : null;
             context.head = head;
         }
     }

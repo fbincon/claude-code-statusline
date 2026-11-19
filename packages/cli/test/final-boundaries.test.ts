@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import test from 'node:test';
 import { mkdirSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -129,7 +130,7 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_legacy_draft_error_tr
     assert.ok(!existsSync(f.displayPath));
 });
 test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_bound_entry_uses_its_own_identity', async (t) => {
-    const f = setup(t, true), request = JSON.stringify({ protocol_version: 31, operation: 'read', payload: {} });
+    const f = setup(t, true), request = JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'read', payload: {} });
     const result = await invoke(['ui'], { ...f.context, stdin: () => request });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, '');

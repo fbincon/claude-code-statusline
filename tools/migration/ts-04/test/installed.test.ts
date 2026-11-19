@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { strip } from '@fbincon/statusline-core/rendering/layout';
@@ -81,8 +82,8 @@ const invoke = (...args: Parameters<ColdCommand>) => invokeInstalled(installed, 
 const run: ColdCommand = (...args) => runInstalled(installed, ...args);
 const setup = (name: string) => setupInstalled(installed, name);
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 31, operation, payload }), environment));
-    assert.equal(result.protocol_version, 31);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation, payload }), environment));
+    assert.equal(result.protocol_version, PROTOCOL_VERSION);
     assert.ok(result.result);
     return result.result;
 }
@@ -592,7 +593,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 31, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

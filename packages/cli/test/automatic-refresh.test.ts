@@ -19,9 +19,16 @@ import { emptyObservation } from '@fbincon/statusline-core/extensions/model';
 import { Editor } from '@fbincon/statusline-core/editor/draft';
 import { openSources, closeSources, sourcesKey, sourcesView, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
 import { isSourceResult } from '@fbincon/statusline-core/editor/source-validation';
-import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, SOURCE_REGISTRY_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { ConfigurationProtocol } from '../src/ui/protocol.js';
+import { refreshGithub } from '../src/sources/providers.js';
+import { defaultDisplay } from '@fbincon/statusline-core/config/display';
+import { newInstance } from '@fbincon/statusline-core/editor/instances';
+import { externalPresentation } from '@fbincon/statusline-core/rendering/extensions';
+import { renderEnvironment } from '../src/rendering/environment.js';
+import { sourceSummary } from '@fbincon/statusline-core/editor/source-summary';
+import { textInput } from '@fbincon/statusline-core/editor/text-input';
 
 function fixture(t: TestContext) {
     const root = mkdtempSync(join(tmpdir(), 'automatic refresh ')), directory = join(root, 'config');
@@ -179,6 +186,105 @@ test('unsupported hosts, stale epochs, changed HEAD and local-only readers canno
     assert.equal(f.launched.length, 2);
     f.git(['checkout', '--detach']); f.tick('detached'); assert.equal(f.launched.length, 2);
 });
+
+test('a following GitHub source uses a separate lease and observation for each checked-out branch', async t => {
+    const f = fixture(t);
+    f.change('edit', { source: { ...f.spec, settings: { ...f.spec.settings, branch: null, pr: null } } });
+    f.enable();
+    const binding = f.change('bind').binding!;
+    const first = f.context();
+    let release: (() => void) | undefined, wait = false;
+    const worker = new SourceService(f.configuration, f.now, undefined, async (source, context) => {
+        if (wait) await new Promise<void>(resolve => { release = resolve; });
+        const pr = context.branch === 'main' ? 12 : 42;
+        return { ...emptyObservation(source, context, 'valid', 'valid'), value: pr, observed_at: new Date(f.now()).toISOString(),
+            fields: { pr, ci: pr === 12 ? 'success' : 'pending', url: `https://github.com/owner/repo/pull/${pr}` } };
+    });
+    assert.equal(f.tick().scheduled, 1);
+    await worker.work(f.launched[0]!.id);
+    assert.equal(f.service.view(binding, first).fields?.pr, 12);
+    f.tick();
+    f.advance(60_001);
+    assert.equal(f.tick().scheduled, 1);
+    const old = f.launched[1]!;
+    wait = true;
+    const inflight = worker.work(old.id);
+    assert(release, 'The old branch refresh reached the provider');
+
+    f.git(['switch', '-c', 'feature/second']);
+    const second = f.context();
+    assert.equal(second.head, first.head);
+    assert.equal(f.service.view(binding, second).reason, 'not_refreshed');
+    assert.equal(f.service.view(binding, second).fields, undefined);
+    // The checkout changes before the next session heartbeat sees it.
+    release();
+    await inflight;
+    assert.equal(f.service.job(old.id).state, 'cancelled');
+    assert.equal(f.service.job(old.id).reason, 'context_changed');
+    wait = false;
+
+    assert.equal(f.tick().scheduled, 1);
+    const next = f.launched[2]!;
+    assert.notEqual(next.identity, old.identity);
+    assert.equal(next.context.branch, 'feature/second');
+    await worker.work(next.id);
+    assert.equal(f.service.view(binding, second).fields?.pr, 42);
+    assert.equal(f.service.view(binding, second).fields?.ci, 'pending');
+    assert.equal(f.service.view(binding, { ...second, project: join(f.root, 'other-worktree') }).reason, 'scope');
+
+    f.git(['switch', 'main']);
+    f.tick();
+    assert.equal(f.service.diagnose('github', f.context()).automatic.state, 'waiting');
+    assert.equal(f.service.view(binding, f.context()).fields?.pr, 12);
+    assert.equal(f.service.view(binding, f.context()).fields?.ci, 'success');
+    f.advance(60_001);
+    assert.equal(f.tick().scheduled, 1, 'Context cancellation preserves the original retry time');
+    f.git(['switch', '--detach']);
+    assert.equal(f.tick().scheduled, 0);
+    const detached = f.service.diagnose('github', f.context());
+    assert.equal(detached.view.reason, 'detached');
+    assert.equal(detached.automatic.reason, 'detached');
+});
+
+test('a fixed GitHub source diagnoses its branch before the first refresh on a different branch', async t => {
+    const f = fixture(t);
+    f.enable();
+    const binding = f.change('bind').binding!;
+    f.git(['switch', '-c', 'feature/other']);
+    const context = f.context();
+    const statePath = join(f.service.root, 'automatic.json');
+    const baseline = readFileSync(statePath);
+    const report = f.service.inspect('github', context);
+    assert.equal(report.view.state, 'mismatch');
+    assert.equal(report.view.reason, 'branch_mismatch');
+    assert.equal(report.view.value, null);
+    assert.equal(report.total, 0);
+    assert.deepEqual(report.view.fields, { configured_branch: 'main', current_branch: 'feature/other' });
+    assert.equal(report.automatic.reason, 'branch_mismatch');
+    assert.match(sourceSummary(report, 'en').join('\n'), /Fixed branch main, current branch feature\/other.*edit this source/u);
+
+    const display = defaultDisplay();
+    display.instances = ['github-pr', 'github-ci'].map(type => ({ ...newInstance(type, []), source: binding }));
+    for (const [language, marker, fixed] of [['en', 'branch mismatch', 'fixed to main'], ['zh-CN', '分支不匹配', '固定为 main']] as const) {
+        display.statusline_language = language;
+        const input = { cwd: f.root };
+        const env = await renderEnvironment(display, input, { configDir: f.directory });
+        for (const node of display.instances) {
+            const row = externalPresentation(node, env.source!(node, input), env);
+            assert(row.text.startsWith(`! [${marker}]`), row.text);
+            assert(row.text.endsWith(fixed), row.text);
+            assert.equal(row.target, null);
+        }
+    }
+    assert.deepEqual(readFileSync(statePath), baseline);
+    assert.equal(f.launched.length, 0);
+    assert.equal(f.tick().scheduled, 0);
+    const worker = new SourceService(f.configuration, f.now, undefined, (source, actual, signal) =>
+        refreshGithub(source, actual, signal, async () => assert.fail('The fixed branch does not apply')));
+    const job = f.service.start('github', context, 'manual');
+    await worker.work(job.id);
+    assert.equal(f.service.job(job.id).reason, 'branch_mismatch');
+});
 test('registry v1 migrates read-only and runtime lifecycle v3 is independent of both metric opt-ins', async t => {
     const f = fixture(t), path = join(f.directory, SOURCE_FILENAME), value = f.service.read();
     const legacy = JSON.stringify({ version: 1, sources: value.sources, bindings: value.bindings }); writeFileSync(path, legacy);
@@ -235,6 +341,56 @@ test('shared editors review and cancel automatic choices independently of displa
         assert.equal(f.launched.length, 0);
         assert(!existsSync(join(f.directory, 'settings.json')), 'saving local policy cannot apply host integration');
     }
+});
+
+test('the shared GitHub editor defaults to following and reopens both branch modes faithfully', async t => {
+    const f = fixture(t), protocol = new ConfigurationProtocol(f.configuration);
+    f.enable();
+    const binding = f.change('bind').binding!, original = f.service.read();
+    const request = (operation: string, payload: unknown = {}) => protocol.dispatch({ protocol_version: PROTOCOL_VERSION, operation, payload });
+    const backend = { request } as SourceBackend;
+    const editor = new Editor(request('describe') as never, request('read') as never);
+    openSources(editor);
+    await performSourceAction(editor, backend);
+    const manager = editor.sources!;
+    manager.context = f.context();
+    manager.cursor = manager.library!.sources.length;
+    sourcesKey(editor, { key: 'enter' });
+    sourcesKey(editor, { key: 'down' });
+    sourcesKey(editor, { key: 'enter' });
+    const field = (key: string) => manager.fields.find(field => field.key === key)!;
+    assert.equal(field('branch').input.value, '');
+    assert(sourcesView(editor, 'en', 40, 12).some(row => row.text === 'Blank follows the current branch.'));
+    for (const [key, value] of Object.entries({ id: 'new', project: f.root, repository: 'owner/repo', account: 'owner' }))
+        field(key).input = textInput(value);
+    sourcesKey(editor, { key: 's', ctrl: true });
+    await performSourceAction(editor, backend);
+    assert(isSourceResult('sources_apply', manager.library));
+    assert(isSourceResult('sources_read', request('sources_read')));
+    assert.equal(manager.library?.version, SOURCE_REGISTRY_VERSION);
+    assert.equal(f.service.source('new').settings.branch, null);
+    assert.equal(f.service.source('github').settings.branch, 'main');
+    assert.deepEqual(manager.library?.bindings, original.bindings);
+    assert.deepEqual(manager.library?.automatic, original.automatic);
+    assert.equal(f.service.view(binding, f.context()).reason, 'not_refreshed');
+
+    manager.cursor = 1;
+    sourcesKey(editor, { key: 'enter' });
+    manager.effect = 'review';
+    await performSourceAction(editor, backend);
+    assert(isSourceResult('source_review', manager.review));
+    assert(sourcesView(editor, 'en', 80, 22).some(row => row.text === 'PR head branch: Follow the current branch'));
+    sourcesKey(editor, { key: 'escape' });
+    manager.cursor = 1;
+    sourcesKey(editor, { key: 'enter' });
+    sourcesKey(editor, { key: 'enter' });
+    assert.equal(field('branch').input.value, '');
+    sourcesKey(editor, { key: 'escape' });
+    sourcesKey(editor, { key: 'enter' });
+    sourcesKey(editor, { key: 'enter' });
+    assert.equal(field('branch').input.value, 'main');
+    assert.equal(field('pr').input.value, '12');
+    await closeSources(editor, backend);
 });
 
 test('command scheduling uses separate approval, a 300s default, serial fair contexts and no Git/auth requirement', async t => {

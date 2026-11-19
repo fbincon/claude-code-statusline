@@ -1,5 +1,5 @@
 import { clientKey } from '../fixtures.ts';
-import { MAIN_ITEM_IDS } from '../../lib/generated-contracts.ts';
+import { PROTOCOL_VERSION, MAIN_ITEM_IDS } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ProcessRunResult } from 'claude-code';
 import type { ClientProps } from '../../lib/session.ts';
@@ -68,7 +68,7 @@ test('native Layout alignment form renders through the Client and persists only 
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 31,
+      protocol_version: PROTOCOL_VERSION,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -307,7 +307,7 @@ test(`a scoped native profile conflict permits ordinary close when inspection ${
   fixture.behavior.process=(request,next)=> {
     if(request.operation==='read') {
       expect(request.payload.target).toEqual(target);
-      if(conflict&&readFails)return {value:output(JSON.stringify({protocol_version:31,error:{code:'io_error',message:'Conflict details unavailable'}}),2)};
+      if(conflict&&readFails)return {value:output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'io_error',message:'Conflict details unavailable'}}),2)};
       return {value:reply({...readResult(fixture.store.draft,fixture.store.revision),configuration:{target,profile_id:null,profile_name:null,project_root:null,reason:'user',shared_projects:[]}})};
     }
     if(request.operation==='apply') {applies++;expect(request.payload.target).toEqual(target);return {value:error('profile_conflict')};}

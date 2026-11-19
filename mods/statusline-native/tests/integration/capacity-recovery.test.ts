@@ -3,7 +3,7 @@ import type { Elements } from 'claude-code';
 import type { ClientProps } from '../../lib/session.ts';
 import { withinBudget } from '../../ui/frame.ts';
 import { CAPACITY_DESCRIPTION, CAPACITY_VALUES, CAPACITY_CASES } from '../generated-capacity-fixtures.ts';
-import type { Draft } from '../../lib/generated-contracts.ts';
+import { PROTOCOL_VERSION, type Draft } from '../../lib/generated-contracts.ts';
 import { setup, START, RUN, PANE, keys, reply, output, presentation } from '../fixtures.ts';
 import { HOST_VERSION } from '../../.claude-plugin/types/host-version.ts';
 
@@ -68,7 +68,7 @@ test('presentation recovery checks an unknown save by reading without resubmitti
     const result = next();
     if (request.operation === 'apply') {
       inject = true;
-      return { value: output(JSON.stringify({ protocol_version: 31, error: { code: 'io_error', message: 'Reply lost after commit', localization: null } }), 2) };
+      return { value: output(JSON.stringify({ protocol_version: PROTOCOL_VERSION, error: { code: 'io_error', message: 'Reply lost after commit', localization: null } }), 2) };
     }
     return result;
   };

@@ -188,6 +188,29 @@ test('nested profile schemas, corrupt sources and unknown configuration formats 
     assert.equal(f.state().replacements, 0);
     assert(!fs.existsSync(pendingPath(f.prefix)));
 });
+
+test('downgrade compatibility detects a registry containing a following GitHub source', t => {
+    const f = fixture(t), name = 'claude-statusline-sources.json';
+    const older = structuredClone(PACKAGE_COMPATIBILITY);
+    older.read.sources = [1, 3];
+    const source = {
+        id: 'forge', name: 'Forge', kind: 'github', scope: { project: f.configDir, session: null, agent: null },
+        ttl_seconds: 300, settings: { host: 'github.com', repository: 'owner/repo', account: 'owner', branch: 'current', pr: 12 },
+        enabled: false, revision: 'r1',
+    };
+    const registry = { version: 3, sources: [source], bindings: [], automatic: [] };
+    f.write(name, registry);
+    assert.deepEqual(configurationCompatibility(configurationBytes(f.configDir), older), []);
+    const following = { ...source, settings: { ...source.settings, branch: null, pr: null } };
+    f.write(name, { ...registry, sources: [following] });
+    assert.deepEqual(configurationCompatibility(configurationBytes(f.configDir), PACKAGE_COMPATIBILITY), [name], 'Null is not valid in a v3 registry');
+
+    f.write(name, { ...registry, version: 4, sources: [following] });
+    const path = join(f.configDir, name), before = fs.readFileSync(path);
+    assert.deepEqual(configurationCompatibility(configurationBytes(f.configDir), PACKAGE_COMPATIBILITY), []);
+    assert.deepEqual(configurationCompatibility(configurationBytes(f.configDir), older), [name]);
+    assert.deepEqual(fs.readFileSync(path), before);
+});
 test('a surviving executor blocks recovery after its transaction owner exits', async (t) => {
     const f = fixture(t);
     f.options.checkpoint = stage => {

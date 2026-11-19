@@ -8,7 +8,7 @@ import {
   isDraft,
 } from '../../lib/backend.ts';
 import { description, output, readResult, reply, sample } from '../fixtures.ts';
-import { UNAVAILABLEREASON_VALUES } from '../../lib/generated-contracts.ts';
+import { PROTOCOL_VERSION, UNAVAILABLEREASON_VALUES } from '../../lib/generated-contracts.ts';
 
 test('all generated unavailable reasons are accepted and future unknown reasons refused', () => {
   const value = description();
@@ -33,14 +33,14 @@ test('backend errors and protocol mismatches are explicit', () => {
     '',
     'partial {',
     JSON.stringify({ protocol_version: 6, result: sample('old protocol') }),
-    JSON.stringify({ protocol_version: 31, result: {} }),
+    JSON.stringify({ protocol_version: PROTOCOL_VERSION, result: {} }),
     JSON.stringify({
-      protocol_version: 31,
+      protocol_version: PROTOCOL_VERSION,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 31,
+      protocol_version: PROTOCOL_VERSION,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -52,7 +52,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 31,
+        protocol_version: PROTOCOL_VERSION,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -130,7 +130,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 31,
+            protocol_version: PROTOCOL_VERSION,
             error: { code, message: code },
           }),
           2,
@@ -145,9 +145,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 31, result: sample('safe'), extra: 1 },
-    { protocol_version: 31 },
-    { protocol_version: 31, error: { message: 'missing code' } },
+    { protocol_version: PROTOCOL_VERSION, result: sample('safe'), extra: 1 },
+    { protocol_version: PROTOCOL_VERSION },
+    { protocol_version: PROTOCOL_VERSION, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -169,7 +169,7 @@ test('preview transport refuses control sequences and malformed colors', () => {
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 31,
+          protocol_version: PROTOCOL_VERSION,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',

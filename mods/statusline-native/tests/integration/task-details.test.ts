@@ -1,6 +1,6 @@
 import { expect,test } from 'claude-code/testing';
 import { setup,START,RUN,PANE,reply,output } from '../fixtures.ts';
-import type { TaskDetails } from '../../lib/generated-contracts.ts';
+import { PROTOCOL_VERSION, type TaskDetails } from '../../lib/generated-contracts.ts';
 import { LANGUAGES,t,text } from '../../lib/i18n/index.ts';
 import { withinBudget } from '../../ui/frame.ts';
 
@@ -12,7 +12,7 @@ async function taskClient(ui:any):Promise<string> {
 const languagePane={...PANE,requestId:'statusline-task-details',viewport:{columns:220,rows:30},props:{...PANE.props,bodyColumns:200}};
 for(const language of LANGUAGES)test(`task language initializes before opening, survives failure and reloads on retry/reopen in ${language}`,async($,on)=>{
     const f=setup(on);f.store.uiLanguage=language;let failed=true;
-    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:31,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
+    f.behavior.process=(request,next)=>request.operation==='task_details'?{value:failed?output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'invalid_request',message:t('task.error.input','en'),localization:text('task.error.input')}}),2):reply({...report,session_id:request.payload.session_id})}:next();
     await $.session.start(START);
     expect(f.descriptions['statusline-task']).toBe(t('task.title',language));
     await $.command.run({...RUN,command:'statusline-task'});
@@ -131,7 +131,7 @@ test('large Unicode identities, backend errors and tiny recovery retain bounded 
     const oversized='marker '+('錯👩‍💻'.repeat(2500));
     let fail=false;
     f.behavior.process=(request,next)=>request.operation==='task_details'?{value:fail?
-        output(JSON.stringify({protocol_version:31,error:{code:'probe',message:oversized}}),2):
+        output(JSON.stringify({protocol_version:PROTOCOL_VERSION,error:{code:'probe',message:oversized}}),2):
         reply({...report,session_id:request.payload.session_id})}:next();
     await $.session.start(START);await $.command.run({...RUN,command:'statusline-task'});
     const wide={...languagePane,viewport:{columns:10000,rows:100},props:{...languagePane.props,bodyColumns:9990}};

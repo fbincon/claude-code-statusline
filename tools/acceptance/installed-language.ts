@@ -42,6 +42,7 @@ export async function installedLanguages(installed: InstalledLanguageFixture, ob
     cold(['config', 'set', 'colors', 'off'], config);
     const messages = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/messages.js')).href);
     const dictionaries = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/i18n/generated-locales.js')).href);
+    const { PROTOCOL_VERSION } = await import(pathToFileURL(join(installed.modules, 'statusline-core/dist/src/contracts/ui.js')).href);
     const worker = join(installed.temporary, 'installed-language-worker.mjs');
     if (mode === 'optimized') copyFileSync(fileURLToPath(new URL('./installed-language-worker.js', import.meta.url)), worker);
     const options = { node: installed.node, entry: installed.entry, worker, directory: installed.directory, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } };
@@ -67,8 +68,8 @@ export async function installedLanguages(installed: InstalledLanguageFixture, ob
             const pipe: LanguageCommand = async (_label, args, input) => cold(args, config, input, args[0] === 'render' ? { COLUMNS: '120' } : {});
             const ui = async (call: LanguageCommand, label: string, operation: string, payload: unknown = {}) => {
                 checkStart(label);
-                const raw = await call(active, ['ui', '--config-dir', config], JSON.stringify({ protocol_version: 31, operation, payload }));
-                const reply = JSON.parse(raw); assert.equal(reply.protocol_version, 31); assert.ok(reply.result); return reply.result;
+                const raw = await call(active, ['ui', '--config-dir', config], JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation, payload }));
+                const reply = JSON.parse(raw); assert.equal(reply.protocol_version, PROTOCOL_VERSION); assert.ok(reply.result); return reply.result;
             };
             await ui(pipe, 'set_ui_language', 'set_ui_language', { ui_language: language });
             const row = async (writer: LanguageCommand) => {

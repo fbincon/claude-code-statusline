@@ -648,6 +648,8 @@ claude-statusline source diagnose ID [--offset N] [--project PATH] [--session ID
 
 创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
 
+GitHub 定义中的 `settings.branch: null` 表示跟随指定工作树的当前检出分支。`source add` 省略 `branch` 时采用该默认值。`source edit` 要求显式填写 `branch`。字符串表示固定的 PR 源分支，按 `settings.pr` 编号选择 PR 时必填。分支不匹配时，`source diagnose --json` 的 `view.reason` 为 `branch_mismatch`，分支名称见 `view.fields.configured_branch` 和 `view.fields.current_branch`。
+
 ### 来源绑定维护
 
 ```text
@@ -1086,7 +1088,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 | 接口或格式 | 当前版本 | 读取与保存兼容性 | 规范 |
 | --- | --- | --- | --- |
-| 编辑器 UI 协议 | `编辑器协议 31` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
+| 编辑器 UI 协议 | `编辑器协议 32` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
 | 显示配置 | `显示 schema 17` | 读取 1–16 时在内存中迁移，不改写文件；显式保存先备份旧字节，再写当前 schema。 | `packages/core/src/config/display.ts`；[显示配置](#显示配置) |
 | 运行时观测协议 | 3 | 保留 v1/v2 `observe`/`read`；`source_lifecycle` 要求版本 3。 | [实时采集](../development/live.zh-CN.md)；`packages/core/src/contracts/runtime.ts` |
 | 任务生命周期 | 4 | 保留 schema-1 兼容镜像。 | `packages/core/src/runtime/tasks/model.ts`；[计时契约](../development/timer.zh-CN.md) |
@@ -1096,7 +1098,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | UI 偏好 | 1 | 未来 schema 拒绝覆盖。 | [共享界面偏好](#共享界面偏好) |
 | 原生与外部编辑器偏好 | 各 1 | 独立文件；不支持的宿主暂停但不改写。 | [编辑器启用偏好](#编辑器启用偏好) |
 | 运行时偏好 | 2 | 文件缺失时原生计时和实时指标均关闭。 | [实时采集偏好](#实时采集偏好) |
-| 数据源注册表 | 2；存在命令源自动策略时为 3 | 读取 1–3；旧注册表只读，不授予新权限。 | `packages/core/src/extensions/model.ts`；[数据源管理](#数据源管理) |
+| 数据源注册表 | 默认 2，添加命令自动策略后为 3，保存跟随分支的 GitHub 来源后为 4 | 读取 1–4。读取保留已存字节，不授予新权限。 | `packages/core/src/extensions/model.ts`；[数据源管理](#数据源管理) |
 | 数据源任务 | 4 | 读取 1–3；缺失执行诊断视为未知。 | [数据源管理](#数据源管理) |
 | 数据源观测 | 1 | 可选 checks 与 execution 字段。 | [扩展指南](../EXTENSIONS.zh-CN.md#新鲜度分享与链接) |
 | 命令源输出协议 | 1 | JSON 对象，状态为 `valid`、`missing`、`partial`、`error` 或 `unsupported`。 | [命令数据源](../EXTENSIONS.zh-CN.md#命令数据源) |
@@ -1112,13 +1114,13 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | --- | --- |
 | 显示配置（`display`） | `[1, 17]` |
 | Profile 集合（`profiles`） | `[1, 1]` |
-| 数据源注册表（`sources`） | `[1, 3]` |
+| 数据源注册表（`sources`） | `[1, 4]` |
 | 运行时偏好（`runtime_preferences`） | `[1, 2]` |
 | 原生偏好（`native_preferences`） | `[1, 1]` |
 | 外部偏好（`external_preferences`） | `[1, 1]` |
 | UI 偏好（`ui_preferences`） | `[1, 1]` |
 
-该记录还声明 `editor_protocol` 31、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
+该记录还声明 `editor_protocol` 32、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
 
 ### 未版本化与宿主所有的接口
 

@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import { parseResponse, BackendError } from '../../lib/backend.ts';
 import { LANGUAGES, messageOrigin, t, text, renderMessage } from '../../lib/i18n/index.ts';
@@ -34,7 +35,7 @@ test('preference protocol is strict and carries language-neutral error metadata'
   }
   const localization = text('preferences.unsupported_language', { language: 'ja' });
   try {
-    parseResponse('set_ui_language', output(JSON.stringify({protocol_version: 31, error: {code: 'invalid_configuration', message: localization.fallback, localization}}), 2));
+    parseResponse('set_ui_language', output(JSON.stringify({protocol_version: PROTOCOL_VERSION, error: {code: 'invalid_configuration', message: localization.fallback, localization}}), 2));
     throw new Error('expected rejection');
   } catch (error) {
     expect(error instanceof BackendError).toBe(true);

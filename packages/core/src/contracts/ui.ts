@@ -3,7 +3,7 @@ import { THEME_IDS } from "../editor/themes.js";
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 31 as const;
+export const PROTOCOL_VERSION = 32 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
@@ -702,6 +702,7 @@ export interface Span {
 /** Machine-local source authorization is never part of a portable display. */
 export interface SourceReference { binding: string | null; hint: string }
 export type SourceKind = 'json' | 'github' | 'command';
+export const SOURCE_REGISTRY_VERSION = 4 as const;
 export interface SourceScope { project: string | null; session: string | null; agent: string | null }
 export interface SourceContext extends SourceScope { branch: string | null; head: string | null }
 export interface SourceSettings {
@@ -717,7 +718,7 @@ export interface SourceSettings {
   timeout_ms?: number;
   host?: string;
   repository?: string;
-  branch?: string;
+  branch?: string | null;
   account?: string;
   pr?: number | null;
 }
@@ -728,7 +729,7 @@ export interface SourceDefinition {
 export interface SourceBinding { id: string; source_id: string }
 export interface AutomaticPolicy { source_id: string; enabled: boolean; review_revision: string; interval_seconds: number; auth_revision: string }
 export interface AutomaticStatus { state: 'off' | 'waiting' | 'running' | 'backoff' | 'paused'; reason: string; next_at: string | null; last_attempt: string | null; last_success: string | null; interval_seconds: number }
-export interface SourceRegistry { version: 2 | 3; sources: SourceDefinition[]; bindings: SourceBinding[]; automatic: AutomaticPolicy[] }
+export interface SourceRegistry { version: 2 | 3 | typeof SOURCE_REGISTRY_VERSION; sources: SourceDefinition[]; bindings: SourceBinding[]; automatic: AutomaticPolicy[] }
 export interface SourcesResult extends SourceRegistry { revision: string }
 export type SourceState = 'valid' | 'missing' | 'partial' | 'error' | 'unsupported';
 export interface SourceObservation {

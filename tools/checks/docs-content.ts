@@ -10,6 +10,7 @@ import { PROTOCOL_VERSION as RUNTIME_PROTOCOL_VERSION } from '@fbincon/statuslin
 import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { readJson } from '@fbincon/statusline-core/json-read';
+import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { MAX_REQUESTS, MAX_TASKS, MAX_TOOLS, MAX_TURNS } from '@fbincon/statusline-core/runtime/live/model';
 import { DEVELOPMENT_CONTENT_PATHS, DOCUMENT_CONTENT_PATHS } from './impact-documentation.js';
 import { developmentFacts, sourceReader, type SourceReader } from './docs-source-facts.js';
@@ -39,6 +40,7 @@ export function sourceExample(markdown: string, id: 'local' | 'github' | 'comman
     for (const field of ['id', 'enabled', 'revision']) assert(!Object.hasOwn(value, field), 'Registration owns ' + field);
     const parsed = definition({ ...value, id: 'docs-example', enabled: false, revision: 'docs-review' });
     assert.equal(parsed.kind, id === 'local' ? 'json' : id);
+    if (id === 'github') assert.equal(parsed.settings.branch, null, 'The GitHub example should follow the current branch');
     return value;
 }
 export function displayExample(markdown: string) {
@@ -175,6 +177,10 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
         check(`docs/SETUP${suffix}.md`, body => { example(body, 'setup-powershell', 'powershell'); });
         check(`docs/reference/cli${suffix}.md`, body => {
             displayExample(body);
+            const sourceRange = body.split(/\r?\n/u).filter(row => row.startsWith('| ') && row.includes('`sources`'));
+            assert.equal(sourceRange.length, 1, 'Expected one source registry read range');
+            const bounds = /^\| [^|]+\| `\[(\d+), (\d+)\]` \|$/u.exec(sourceRange[0]!);
+            assert.deepEqual(bounds?.slice(1).map(Number), PACKAGE_COMPATIBILITY.read.sources, 'Source registry read range differs from package compatibility');
             assert.deepEqual(configSetOptions(body).sort(), [...OPTIONS].sort(), 'Set option IDs differ from CLI');
             for (const id of ['cli-order', 'cli-layout', 'cli-profile-target', 'cli-recover', 'cli-style-reuse', 'cli-group-reuse', 'cli-diagnose', 'cli-task'])
                 example(body, id, 'text');
