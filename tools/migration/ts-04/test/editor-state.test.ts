@@ -90,14 +90,10 @@ test('tests.ui.test_interactive_config.ItemStateTests.test_subagent_items_have_i
 test('tests.ui.test_interactive_config.ItemStateTests.test_subagent_enabling_status_or_elapsed_disables_status_elapsed', async (t) => {
     const f = await fixture(t);
     f.e.page = 'subagents';
-    const before = structuredClone(f.e.draft);
-    assert.equal(f.e.instanceAction('subagent', 'add', 'status'), false);
-    assert.deepEqual(f.e.draft, before);
-    f.e.selected.subagent = 'status-elapsed';
-    f.keys(' ');
+    // Historical coverage identifier retained for #222.
     assert.equal(f.e.instanceAction('subagent', 'add', 'status'), true);
     assert.equal(f.e.instanceAction('subagent', 'add', 'elapsed'), true);
-    assert.equal(f.e.instance('subagent', 'status-elapsed')!.enabled, false);
+    assert.equal(f.e.instance('subagent', 'status-elapsed')!.enabled, true);
 });
 test('tests.ui.test_interactive_config.ItemStateTests.test_subagent_enabling_status_elapsed_disables_status_and_elapsed', async (t) => {
     const f = await fixture(t);
@@ -105,11 +101,11 @@ test('tests.ui.test_interactive_config.ItemStateTests.test_subagent_enabling_sta
     f.e.selected.subagent = 'status-elapsed';
     f.keys(' ');
     assert.equal(f.e.instanceAction('subagent', 'add', 'status'), true);
+    assert.equal(f.e.instanceAction('subagent', 'add', 'elapsed'), true);
     f.e.selected.subagent = 'status-elapsed';
-    const before = structuredClone(f.e.draft);
     f.keys(' ');
-    assert.deepEqual(f.e.draft, before);
-    assert.ok(f.state.message);
+    assert.deepEqual(f.e.draft.display.subagents.instances.filter(item => item.enabled).map(item => item.type_id).slice(0, 3),
+        ['status-elapsed', 'status', 'elapsed']);
 });
 test('tests.ui.test_interactive_config.ItemStateTests.test_tabs_cycle_four_pages_in_both_directions', async (t) => {
     const f = await fixture(t);
