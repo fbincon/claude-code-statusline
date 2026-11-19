@@ -1,5 +1,6 @@
 import { GRADIENT_KEYS, parseGradient } from '../editor/gradients.js';
 import { validCostRateOptions } from '../editor/cost-rate.js';
+import { validEffortFallback } from '../editor/effort-fallback.js';
 import { INDICATOR_KEYS, validIndicatorOptions } from '../editor/indicators.js';
 import { POWERLINE_FIELDS, type PowerlineDraft } from '../contracts/ui.js';
 import type { FormattingDraft, ItemOptionsDraft, LayoutDraft, Scope, VisibilityRule } from '../contracts/ui.js';
@@ -44,14 +45,16 @@ export function formatting(value: unknown): FormattingDraft {
   return { ...Object.fromEntries(Object.keys(FORMAT_CHOICES).map(key => [key, choices[key]])), thresholds: { enabled: thresholds.enabled, warning, critical } } as unknown as FormattingDraft;
 }
 export function itemOptions(value: unknown): ItemOptionsDraft {
-  exact(value, [...Object.keys(DEFAULT_ITEM), ...GRADIENT_KEYS.filter(key => object(value) && Object.hasOwn(value, key)), ...(object(value) && Object.hasOwn(value, 'link') ? ['link'] : []), ...INDICATOR_KEYS.filter(key => object(value) && Object.hasOwn(value, key)), ...(object(value) && Object.hasOwn(value, 'cost_rate_basis') ? ['cost_rate_basis'] : [])], 'item options');
+  const optional = ['link', 'cost_rate_basis', 'effort_fallback', ...GRADIENT_KEYS, ...INDICATOR_KEYS];
+  exact(value, [...Object.keys(DEFAULT_ITEM), ...optional.filter(key => object(value) && Object.hasOwn(value, key))], 'item options');
   if (value.link !== undefined && !['off', 'auto', 'on'].includes(value.link as string)) fail('errors.advanced.unknown_item_option');
   const indicator = Object.fromEntries(INDICATOR_KEYS.filter(key => Object.hasOwn(value, key)).map(key => [key, key === 'bar_width' ? integer(value[key], 4, 20, key) : value[key]]));
-  if (!validIndicatorOptions(indicator) || !validCostRateOptions(value)) fail('errors.advanced.unknown_item_option');
+  if (!validIndicatorOptions(indicator) || !validCostRateOptions(value) || !validEffortFallback(value)) fail('errors.advanced.unknown_item_option');
   return {
     ...indicator,
     ...Object.fromEntries(GRADIENT_KEYS.filter(key => Object.hasOwn(value, key)).map(key => { try { return [key, parseGradient(value[key])]; } catch { return fail('gradients.invalid'); } })),
     ...(value.cost_rate_basis === undefined ? {} : { cost_rate_basis: value.cost_rate_basis as 'session' | 'api' }),
+    ...(value.effort_fallback === 'session' ? { effort_fallback: value.effort_fallback } : {}),
     ...(value.link !== undefined ? { link: value.link as 'off' | 'auto' | 'on' } : {}),
     label: safeText(value.label, 'label'), icon: safeText(value.icon, 'icon'),
     priority: integer(value.priority, 0, 100, 'priority'), max_width: nullableInteger(value.max_width, 2, 10000, 'max_width'),
@@ -63,6 +66,7 @@ export function legacyOptions(value: unknown, ids: readonly string[], scope: Sco
   if (!object(value) || Object.keys(value).some(id => !ids.includes(id))) fail('errors.formatting.item_options_must_map_known_scoped_item');
   return Object.fromEntries(Object.entries(value).map(([id, raw]) => {
     if (legacy) { exact(raw, ['label', 'icon', 'priority', 'max_width', 'formatting'], 'item options'); raw = { ...clone(DEFAULT_ITEM), ...raw }; }
+    if (object(raw) && !validEffortFallback(raw, scope, id)) fail('composition.errors.node_options');
     const option = itemOptions(raw); option.visibility = visibility(scope, id, option.visibility);
     return [id, option];
   }));

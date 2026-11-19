@@ -1,4 +1,4 @@
-import { scenarioSource, SAMPLE_NOW } from './sample-scenarios.js';
+import { scenarioSource, SAMPLE_NOW, SAMPLE_MODEL, SAMPLE_EFFORT } from './sample-scenarios.js';
 import type { PreviewScenario } from '../editor/preview-settings.js';
 import type { UsageObservation } from './context.js';
 export { SAMPLE_NOW } from './sample-scenarios.js';
@@ -24,7 +24,7 @@ export class SampleRenderState extends RenderState {
 export function samplePreviewData(home: string): Data {
     const project = home.replace(/\/$/u, '') + '/projects/claude-code-statusline';
     return {
-        model: { id: 'claude-opus' }, effort: { level: 'high' }, fast_mode: true, thinking: { enabled: true },
+        model: { id: SAMPLE_MODEL }, effort: { level: SAMPLE_EFFORT }, fast_mode: true, thinking: { enabled: true },
         workspace: { current_dir: project + '/src', project_dir: project, repo: { owner: 'example', name: 'claude-code-statusline' } },
         pr: { number: 42, review_state: 'approved', url: 'https://github.com/example/project/pull/42' }, worktree: { name: 'statusline-tui' },
         context_window: { remaining_percentage: 73, used_percentage: 27, context_window_size: 200000, total_input_tokens: 54000, current_usage: { input_tokens: 35000, cache_creation_input_tokens: 12000, cache_read_input_tokens: 7000, output_tokens: 2000 } },

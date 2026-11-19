@@ -3,6 +3,7 @@ import type { Data } from '../runtime/values.js';
 import type { SourceView, InstanceDraft } from '../contracts/ui.js';
 import { sampleSource } from './extensions.js';
 export const SAMPLE_NOW = 1788400120;
+export const SAMPLE_MODEL = 'claude-opus', SAMPLE_EFFORT = 'high';
 export function sampleAgents(scenario: PreviewScenario): Data[] {
     if (scenario === 'no-agents' || scenario === 'missing')
         return [];

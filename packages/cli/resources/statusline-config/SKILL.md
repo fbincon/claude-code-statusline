@@ -89,9 +89,8 @@ If the invocation arguments are empty:
    selections. Do not ask for subagent items again. Use at most four questions in
    each AskUserQuestion call; every question in this workflow must have 2–4 options.
 __CLAUDE_STATUSLINE_ITEM_GROUPS__
-4. Respect catalog `excludes`. If the user selects subagent `status-elapsed` with
-   `status` or `elapsed`, retain `status-elapsed`, drop the excluded standalone
-   items, and explain that resolution. Preserve the relative order of currently
+4. Respect catalog `excludes`. If the current catalog lists a conflict in the
+   selections, ask the user which item to retain. Preserve the relative order of currently
    enabled selected items. Append newly enabled items in the catalog order returned
    by `list-items`. An all-None scope produces an empty item list, not an unresolved
    answer or an omitted scope.

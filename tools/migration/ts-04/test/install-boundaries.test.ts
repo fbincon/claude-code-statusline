@@ -57,8 +57,7 @@ test('tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_a
             assert.deepEqual(grouped.flatMap(page => page.ids), expected.filter(item => item.group === group).map(item => item.id));
         }
     }
-    assert.equal(conflicts('subagent', ['status-elapsed', 'elapsed']), true);
-    assert.equal(conflicts('subagent', ['status', 'elapsed']), false);
+    assert.equal(conflicts('subagent', ['status-elapsed', 'status', 'elapsed']), false);
 });
 test('installed skill metadata advertises the shared slash parser and registry-derived theme choices', t => {
     const f = fresh(t); f.install(simple);

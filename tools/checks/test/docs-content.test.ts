@@ -28,6 +28,7 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/USER_GUIDE${suffix}.md`, '^22.0.0 || ^24.0.0', '^20.0.0 || ^24.0.0'],
             [`docs/USER_GUIDE${suffix}.md`, '2.1.205', '2.1.999'],
             [`docs/USER_GUIDE${suffix}.md`, '2.1.214', '2.1.999'],
+            [`docs/USER_GUIDE${suffix}.md`, '2.1.205–2.1.322', '2.1.205+'],
             [`docs/USER_GUIDE${suffix}.md`, '2.1.258', '2.1.999'],
             [`docs/USER_GUIDE${suffix}.md`, '2.1.287', '2.1.999'],
             [`docs/USER_GUIDE${suffix}.md`, '2.1.289', '2.1.999'],
@@ -67,13 +68,17 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
         }
         const gateRows = suffix
             ? [
-                '| 子代理行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |',
+                '| 自定义子代理行 | 2.1.205–2.1.322 |',
+                '| 子代理生命周期 hooks | 2.1.205+ |',
+                '| 自定义子代理行中的显式强度 | 2.1.214–2.1.322 |',
                 '| 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |',
                 '| 会话内 Client 编辑器 | 2.1.287+ |',
                 '| 原生计时及高级实时指标采集 | 2.1.289+ |',
             ]
             : [
-                '| Subagent rows and lifecycle hooks | 2.1.205+; per-task effort 2.1.214+ |',
+                '| Custom subagent rows | 2.1.205–2.1.322 |',
+                '| Subagent lifecycle hooks | 2.1.205+ |',
+                '| Configured effort in custom subagent rows | 2.1.214–2.1.322 |',
                 '| Local argument-based slash commands, external entry | 2.1.258+ |',
                 '| In-session Client editor | 2.1.287+ |',
                 '| Native timing and advanced live-metrics collection | 2.1.289+ |',

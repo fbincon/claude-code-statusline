@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { fixtures } from '../common.js';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 
-test('host coverage comparison permits only the exact additive catalog change', () => {
+test('host coverage comparison permits only the exact catalog changes', () => {
   const old=JSON.parse(readFileSync(join(fixtures,'expected.json'),'utf8'))['ui-describe'].value.response.result.catalog;
   const wrap=(catalog:unknown)=>({'ui-describe':{value:{response:{result:{catalog}}}}});
   assert.deepEqual(compare(wrap(old),wrap(ITEMS)),[]);
@@ -22,6 +22,12 @@ test('host coverage comparison permits only the exact additive catalog change', 
   assert.ok(compare(wrap(old),wrap(changed)).length);
   changed.find((i:any)=>i.id==='cache-miss-reason').default_enabled=true;
   assert.ok(compare(wrap(old),wrap(changed)).length);
+  const wrong=structuredClone(ITEMS);
+  wrong.find(i=>i.scope==='subagent'&&i.id==='name')!.sources=['tasks.name','tasks.type','tasks.agentType'];
+  assert.ok(compare(wrap(old),wrap(wrong)).length);
+  const excluded=structuredClone(ITEMS);
+  excluded.find(i=>i.scope==='subagent'&&i.id==='status')!.excludes=['elapsed'];
+  assert.ok(compare(wrap(old),wrap(excluded)).length);
 });
 
 test('approved default-collection difference is bound to one frozen stdout and rejects other changes', () => {

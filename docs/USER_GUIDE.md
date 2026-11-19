@@ -101,7 +101,9 @@ The six known validation gaps remain unverified; accepted scope and historical r
 | Feature | Claude Code requirement |
 | --- | --- |
 | Main line, CLI, terminal editor, wizard | Available on older/unknown hosts; unavailable data is omitted |
-| Subagent rows and lifecycle hooks | 2.1.205+; per-task effort 2.1.214+ |
+| Custom subagent rows | 2.1.205–2.1.322 |
+| Subagent lifecycle hooks | 2.1.205+ |
+| Configured effort in custom subagent rows | 2.1.214–2.1.322 |
 | Local argument-based slash commands, external entry | 2.1.258+ |
 | In-session Client editor | 2.1.287+ |
 | Native timing and advanced live-metrics collection | 2.1.289+ |
@@ -655,7 +657,9 @@ This warning does not migrate the file: diagnosis and reads preserve its bytes; 
 
 ### Subagent rows are missing or ownership conflicts occur
 
-Run `claude --version` and `claude-statusline doctor` first. Below Claude Code 2.1.205 or with an unrecognized version, the main line works but subagent settings/hooks are suspended; upgrade and rerun `claude-statusline install`. If `doctor` reports `foreign`, choose one:
+Run `claude --version` and `claude-statusline doctor` first. Claude Code 2.1.323 removed the `subagentStatusLine` callback. On that host, Claude displays its built-in agent rows even when a custom command is in the settings. The subagent lifecycle hooks are separate. [Claude Code 2.1.323 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.323)
+
+For custom rows, use a host in the supported range and rerun `claude-statusline install`. If `doctor` reports `foreign`, choose one of the following commands.
 
 ```bash
 # Explicitly take over third-party subagent rows

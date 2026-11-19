@@ -56,8 +56,8 @@
 
 原生界面使用 A／D／X 字母键，避免宿主截获 Ctrl+D 等控制键；搜索和文本输入期间字母仍按原文输入。
 
-类型互斥规则仍然有效，例如启用独立 `status` 或 `elapsed` 前需先禁用 `status-elapsed`。
-发生冲突的添加或复制会说明原因，并保留原草稿。
+同一子代理模板可以同时启用 `status-elapsed`、`status` 和 `elapsed`。
+宽度足够时，各项按配置顺序显示。
 
 <a id="unicode-text-and-terminal-widths"></a>
 

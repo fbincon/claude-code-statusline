@@ -14,8 +14,10 @@ import { runtimeContext, type RuntimeContext } from '../runtime/context.js';
 import { observations } from './observations.js';
 import { resolvedDisplay } from '../rendering/configuration.js';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
+import { sessionEffortEnabled } from '@fbincon/statusline-core/rendering/subagent-effort';
 import { SourceService } from '../sources/service.js';
 import { projectPaths } from '@fbincon/statusline-platform/project-paths';
+import { sessionEffortReader } from '../runtime/session-effort.js';
 
 export type Diagnose = (payload: unknown) => DiagnoseResult;
 export function observedTime(value: unknown): string | null {
@@ -56,6 +58,8 @@ export async function diagnosisAdapter(service: ConfigurationService, options: {
         const context = { ...original, nowMs: () => now };
         const facts = explanationFacts(new ConfigurationService({ ...service.context, hostVersion: () => null }, service.io));
         const env = baseEnvironment(languages.get(draft.display.statusline_language)!, { now: () => (observedAt === null ? now : Date.parse(observedAt)) / 1000 });
+        if (includeLocal && payload.scope === 'subagent' && sessionEffortEnabled(draft.display))
+            env.sessionEffort = sessionEffortReader(context);
         const local = observations(draft, payload.scope as Scope, payload.input, context, options.files ?? diagnosticFiles, facts, includeLocal, observedAt, env);
         const sourceNodes = (payload.scope === 'main' ? draft.display.instances : draft.display.subagents.instances).filter(node => node.enabled && ['external-value','github-pr','github-ci'].includes(node.type_id));
         if (sourceNodes.length) {

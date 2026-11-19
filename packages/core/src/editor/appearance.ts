@@ -1,5 +1,6 @@
 import { GRADIENT_FIELDS } from './gradients.js';
 import { COST_RATE_FIELD } from './cost-rate.js';
+import { EFFORT_FALLBACK_FIELD, supportsEffortFallback } from './effort-fallback.js';
 import { supportsIndicator, INDICATOR_FIELDS } from './indicators.js';
 /** Pure controls/validation from Python's scoped visibility capabilities. */
 import { VISIBILITY_ITEMS, FORMAT_CHOICES } from '../contracts/ui.js';
@@ -33,7 +34,8 @@ export function itemFields(fields: EditorField[], scope: Scope, id: string, capa
   const links: EditorField[] = capability?.link ? [{key:'link',label:'Links',group:'Item format',kind:'choice',choices:['off','auto','on'],minimum:0,maximum:0,nullable:false}] : [];
   const formats = supportedFormats(scope, id, capability);
   fields = fields.filter(field => !Object.hasOwn(FORMAT_CHOICES,field.key) || formats.includes(field.key));
-  return [...GRADIENT_FIELDS, ...(scope === 'main' && id === 'session-cost-rate' ? [COST_RATE_FIELD] : []), ...(supportsIndicator(scope, id) ? INDICATOR_FIELDS : []), ...links, ...fields.filter(spec => (spec.key !== 'visibility' || choices.length > 1) &&
+  return [...GRADIENT_FIELDS, ...(scope === 'main' && id === 'session-cost-rate' ? [COST_RATE_FIELD] : []),
+    ...(supportsEffortFallback(scope, id) ? [EFFORT_FALLBACK_FIELD] : []), ...(supportsIndicator(scope, id) ? INDICATOR_FIELDS : []), ...links, ...fields.filter(spec => (spec.key !== 'visibility' || choices.length > 1) &&
     (spec.key !== 'visibility_threshold' || choices.includes('used-at-least')))
     .map(spec => spec.key === 'visibility' ? {...spec, choices} : spec)];
 }

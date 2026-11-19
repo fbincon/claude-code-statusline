@@ -355,11 +355,19 @@ claude-statusline config subagents order status-elapsed name model-with-effort c
 
 子代理无启用实例时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
 
-`status-elapsed` 与 `status`、`elapsed` 互斥：`set-items`/`enable`/`apply` 组合非法时直接报错（例如已启用 `status` 的旧配置执行 `enable status-elapsed` 会失败，需先 `disable status elapsed`）；交互向导勾选其一时自动取消冲突项。
+`status-elapsed`、`status`、`elapsed` 可以同时显示。执行 `config subagents set-items status-elapsed status elapsed` 可按此顺序配置三项。
 
 ### 实例管理
 
 `config instance main|subagent` 提供 `list [--json]`、`add TYPE_ID [--after ID] [--text TEXT]`、`copy ID`、`remove ID`、`enable ID`、`disable ID`、`move ID --before|--after ANCHOR` 和 `set ID OPTION VALUE`。新增与复制返回新 ID。`config layout --by-instance explicit ROW...` 以逗号分隔的实例 ID 指定行，包含全部已配置实例（含禁用项），顺序必须一致。
+
+用下面的命令为默认子代理 `model-with-effort` 实例启用会话强度回退。
+
+```text
+claude-statusline config instance subagent set model-with-effort effort-fallback session
+```
+
+用 `config instance subagent list` 查询复制实例的 ID。设置为 `off` 可恢复默认行为。此选项仅适用于子代理的 `model-with-effort` 实例。[强度来源及有效期](../DISPLAY_ITEMS.zh-CN.md#可选的会话推理强度)
 
 旧 `item`／启禁用命令仅在类型唯一时解析；旧批量选择、排序及布局操作遇到重复类型、文本或留白时拒绝，不选择首个匹配项，不删除实例。类型目录 JSON 增加 `instance_ids`、`enabled_instance_ids`、`instance_only`。完整示例见[组件与布局](../COMPOSITION.zh-CN.md)。
 
@@ -872,7 +880,7 @@ claude-statusline config enable project-name hostname context-used
 
 ### 子 Agent 行与三种作用域
 
-Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络；已完成代理计时可能读取已有本地结束证据。明确启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存；命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果要求明确的本机启用／绑定，与纯行格式化器分离。
+Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。渲染器保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络。已完成代理计时可以读取已有本地结束证据。可选的会话强度回退读取主栏渲染发布的私有观测。启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存。命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果与纯行格式化器分离。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 宽度直接使用 payload 中的正整数 `columns`，无效时回退 80 列。每行使用完整宽度预算，输入文本中的换行、制表符和控制字符会被清理。
 
@@ -1068,7 +1076,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 其中 `command` 由安装器管理；后三项可以使用 `config set` 或向导修改。设置为默认行为时，某些字段会从 JSON 中省略，例如 `padding 0`、`refresh-interval event` 和 `hide-vim-mode-indicator off`。
 
-兼容版本还会在 `settings.json` 写入独立的 `subagentStatusLine`，严格只含 `type: "command"` 和指向 `render-subagents` 的 `command`；Claude 的该 schema 不接受 `refreshInterval`，本工具不会写入。`subagents.enabled=false` 时重跑 `install` 只移除本工具拥有的这一设置，第三方设置不受影响；两个子 Agent 生命周期 hooks 仍保留用于端到端计时。
+安装器在 `settings.json` 中管理独立的 `subagentStatusLine`，包含 `type: "command"` 和指向 `render-subagents` 的 `command`。支持该回调的宿主会运行此命令。`subagents.enabled=false` 时重跑 `install` 会移除本工具拥有的条目并保留第三方设置。两个子代理生命周期 hooks 仍用于端到端计时。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 ## 协议与 schema 版本
 

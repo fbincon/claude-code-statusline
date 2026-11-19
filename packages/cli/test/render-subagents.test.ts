@@ -79,8 +79,19 @@ test('tests.rendering.test_subagent_statusline.RendererTests.test_name_type_and_
     const cfg = agentConfig(['name', 'task']);
     assert.equal(renderTask(task({ name: null, label: null, description: 'Local Agent' }), cfg, env), 'Local Agent');
     assert.equal(renderTask(task({ name: null, type: null, label: null, description: null }), cfg, env), 'Agent');
+    assert.equal(renderTask(task({ name: null, agentType: 'general-purpose', label: 'Checking fixtures' }), cfg, env), 'General Purpose · Checking fixtures');
+    assert.equal(renderTask(task({ name: null, agentType: 'custom_代理', label: 'CUSTOM 代理' }), cfg, env), 'Custom 代理');
+    assert.equal(renderTask(task({ name: 'Exact-name', agentType: 'Explore', label: 'Exact-name' }), cfg, env), 'Exact-name');
+    for (const agentType of [42, {}, ' --__\t\n', '\u0007']) {
+        assert.equal(renderTask(task({ name: null, agentType, label: 'Local Agent' }), cfg, env), 'Local Agent');
+    }
     for (const [name, description] of [['Straße', 'STRASSE'], ['Σς', 'σσ'], ['Ꭰ', 'ꭰ'], ['İ', 'i̇']])
         assert.equal(renderTask(task({ name, label: null, description }), cfg, env), name);
+});
+test('combined and standalone timer items each render in configured order', () => {
+    const cfg = agentConfig(['status-elapsed', 'status', 'elapsed']);
+    assert.equal(renderTask(task(), cfg, env), '⏱ 1m 18s · ⏱ · 1m 18s');
+    assert.equal(renderTask(task(), cfg, env, 1), '⏱');
 });
 test('tests.rendering.test_subagent_statusline.RendererTests.test_duplicate_and_invalid_ids_are_skipped', () => {
     assert.deepEqual(renderPayload({ columns: 'bad', tasks: [task({ id: 'a' }), task({ id: 'a', name: 'duplicate' }), task({ id: '' }), task({ id: 7 }), { id: 'b', status: 'completed' }, 'broken'] }, config(), env, NOW).map(row => row.id), ['a', 'b']);

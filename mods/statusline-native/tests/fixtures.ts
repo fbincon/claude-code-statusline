@@ -102,12 +102,7 @@ function catalogItem(scope: Scope, id: CatalogItem['id']): CatalogItem {
     default_position: position < 0 ? null : position,
     minimum_version: null,
     format_options: ['colors'],
-    excludes:
-      scope === 'subagent' && id === 'status-elapsed'
-        ? ['status', 'elapsed']
-        : scope === 'subagent' && (id === 'status' || id === 'elapsed')
-          ? ['status-elapsed']
-          : [],
+    excludes: [],
     unavailable_reasons: ['not_observed'],
     default_enabled: position >= 0,
     minimum_version_status: 'unknown',

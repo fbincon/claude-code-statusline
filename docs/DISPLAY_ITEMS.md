@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The catalog contains 65 main metrics and 15 subagent metrics. The tables list defaults and common definitions. Use `config list-items --json` and `config subagents list-items --json` for all IDs. `prompt-timer` is a compatibility alias for `task-timer`. Main compounds can coexist with independent items. Subagent `status-elapsed` excludes `status` and `elapsed`. [Configure display items](USER_GUIDE.md#configurable-display-items)
+The catalog contains 65 main metrics and 15 subagent metrics. The tables list defaults and common definitions. Use `config list-items --json` and `config subagents list-items --json` for all IDs. `prompt-timer` is a compatibility alias for `task-timer`. Combined and individual components can appear together. [Configure display items](USER_GUIDE.md#configurable-display-items)
 
 Examples below primarily use English output; Chinese phrases illustrate `statusline-language=zh-CN`. Backticked samples illustrate displayed values; definition/source and unavailable-data columns explain meaning and prerequisites. Descriptive text is not literal output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
 
@@ -186,14 +186,14 @@ Request-derived latency, throughput and attributed prompt totals. See [request c
 
 ## Subagent items
 
-Subagent rows require Claude Code 2.1.205+. Each field uses the current task's data. Bound external values are described below.
+Custom subagent rows use the Claude Code 2.1.205–2.1.322 callback. Each row uses the current task's data, with optional local observations described below. [Host compatibility](USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
 | ID | Default | Content |
 | --- | --- | --- |
-| `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`; only the icon when `startTime` is missing or invalid. Mutually exclusive with `status` and `elapsed` |
+| `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`. It can appear alongside `status` and `elapsed`. |
 | `status` | Off | Status icon: `…` pending, `⏱` running, `✓` completed, `✗` failed, `■` killed, `⏳` paused/waiting; unknown status uses `?` |
-| `name` | On | `name`, otherwise normalized `type`, otherwise `Agent` |
-| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` when available |
+| `name` | On | Explicit `name`, then formatted `agentType` (2.1.293+), formatted `type`, and finally the localized `Agent` label |
+| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` for a configured value or `/~effort` for optional session effort |
 | `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
 | `context-used` | Off | `Context N% used`, from `tokenCount / contextWindowSize` rounded to a percentage |
 | `elapsed` | Off | Duration from the task's epoch-millisecond `startTime`; future timestamps count as 0 seconds |
@@ -204,6 +204,10 @@ Subagent rows require Claude Code 2.1.205+. Each field uses the current task's d
 | `effort` | Off | Explicit configured `tasks.effort`, including numeric budgets. Absent when inherited; unsupported configured levels may differ from effective effort. Requires Claude Code 2.1.214+. |
 | `context-tokens` | Off | `tasks.tokenCount` versus `tasks.contextWindowSize`. |
 | `context-window-size` | Off | Resolved `tasks.contextWindowSize`. |
+
+### Optional session effort
+
+Set **Session effort fallback** in a subagent `model-with-effort` instance to **Use session effort**. The default is **Off**. A configured `tasks.effort` takes priority. If the field is absent, the renderer can use the main status line's latest `effort.level` from the same session and exact model ID, up to 15 seconds old. The `~` marks a recent session observation. It cannot establish the effort used when the subagent started. Event-only main refreshes may leave the model alone between updates. The separate `effort` component reports configured values. [CLI setting](reference/cli.md#instance-management)
 
 ### Ended-agent durations
 

@@ -1,6 +1,7 @@
 import { bounded, type Representation } from './fitting.js';
+import { effortIdentity, sessionEffortEnabled, subagentEffort, type SubagentEffort } from './subagent-effort.js';
 import type { RenderTrace } from './trace.js';
-import { sampleAgents, scenarioSource, SAMPLE_NOW } from './sample-scenarios.js';
+import { sampleAgents, scenarioSource, SAMPLE_NOW, SAMPLE_MODEL, SAMPLE_EFFORT } from './sample-scenarios.js';
 import type { PreviewScenario } from '../editor/preview-settings.js';
 import { foregroundPaint } from './gradients.js';
 import { groupedRows } from './groups.js';
@@ -94,6 +95,9 @@ export function upperFirst(text: string): string {
     return (unchanged ? chars[0]! : chars[0]!.toUpperCase()) + chars.slice(1).join('');
 }
 function model(task: Data): string | null { const value = formatters.sanitizePayloadText(task.model); return value?.replace(/^claude-/u, '') || null; }
+function formattedAgentType(value: unknown): string {
+    return formatters.sanitizePayloadText(value)?.replace(/[_-]+/gu, ' ').split(/\s+/u).filter(Boolean).map(upperFirst).join(' ') ?? '';
+}
 function elapsed(task: Data, now: number): string | null {
     if (!['pending', 'running', 'waiting', 'paused'].includes(task.status as string)) {
         const duration = finite(task._frozen_duration_ms);
@@ -112,12 +116,21 @@ function context(task: Data, remaining: boolean, env: RenderEnvironment): string
     const used = BigInt(Math.trunc(ratio + 0.5)), left = 100n - used;
     return env.language.text(remaining ? 'context.remaining' : 'context.used', { percentage: remaining ? left < 0n ? 0n : left > 100n ? 100n : left : used });
 }
-function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvironment, prepared: Prepared): Part[] {
+function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvironment, prepared: Prepared, session: string | null): Part[] {
     const p = prepared.palette, language = env.language, text = (key: string, params: Data) => language.text(key, params);
-    let agentName: string | undefined, modelName: string | null | undefined, agentEffort: string | null | undefined, duration: string | null | undefined;
-    const name = () => agentName ??= formatters.sanitizePayloadText(task.name) || formatters.sanitizePayloadText(task.type)?.replace(/[_-]+/gu, ' ').split(/\s+/u).filter(Boolean).map(upperFirst).join(' ') || language.text('agent.fallback');
+    let agentName: string | undefined, modelName: string | null | undefined, duration: string | null | undefined;
+    let configuredEffort: SubagentEffort | undefined, inheritedEffort: SubagentEffort | undefined;
+    const name = () => agentName ??= formatters.sanitizePayloadText(task.name) || formattedAgentType(task.agentType) ||
+        formattedAgentType(task.type) || language.text('agent.fallback');
     const taskModel = () => modelName === undefined ? modelName = model(task) : modelName;
-    const effort = () => agentEffort === undefined ? agentEffort = language.value('effort', metrics.effortText(task.effort)) as string | null : agentEffort;
+    const effort = (fallback = false) => {
+        configuredEffort ??= subagentEffort(task, false, session, undefined, now);
+        const selected = fallback && configuredEffort.status === 'not_observed'
+            ? inheritedEffort ??= subagentEffort(task, true, session, env.sessionEffort, Math.round(now))
+            : configuredEffort;
+        const value = language.value('effort', selected.value) as string | null;
+        return value && selected.source === 'inherited_session' ? '~' + value : value;
+    };
     const taskElapsed = () => duration === undefined ? duration = elapsed(task, now) : duration;
     const status = () => ICONS.get(caseFold(formatters.sanitizePayloadText(task.status) ?? '')) ?? '?';
     const result: Part[] = [];
@@ -144,7 +157,10 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
             case 'name': value = name(); style = p.name; break;
             case 'model': case 'model-with-effort': {
                 value = preferences.modelName(taskModel(), fmt);
-                if (item === 'model-with-effort' && value && effort()) value += '/' + effort();
+                if (item === 'model-with-effort' && value) {
+                    const selected = effort(options.effort_fallback === 'session');
+                    if (selected) value += '/' + selected;
+                }
                 style = p.model; break;
             }
             case 'effort': value = effort(); style = p.model; break;
@@ -236,11 +252,11 @@ function fit(parts: Part[], columns: number, measure: Prepared['measure'], obser
     return parts;
 }
 export function renderTask(task: Data, config: DisplayDraft, env: RenderEnvironment, columns = DEFAULT_COLUMNS, nowMs = env.now() * 1000): string {
-    return renderPrepared(task, config, env, columns, nowMs, prepare(config, env.trace));
+    return renderPrepared(task, config, env, columns, nowMs, prepare(config, env.trace), null);
 }
-function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment, columns: number, nowMs: number, prepared: Prepared): string {
+function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment, columns: number, nowMs: number, prepared: Prepared, session: string | null): string {
     if (!prepared.enabled.length) return '';
-    let parts = partsFor(task, config, nowMs, env, prepared);
+    let parts = partsFor(task, config, nowMs, env, prepared, session);
     const p = prepared.palette, separator = p.separator ? p.separator + ' · ' + p.reset : ' · ';
     const styled = (part: Part) => part.style + part.text + (part.style ? p.reset : '');
     if (config.subagents.groups.length || config.subagents.instances.some(node => node.options.presentation === 'adaptive')) {
@@ -284,6 +300,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
     if (!object(data) || !Array.isArray(data.tasks))
         return [];
     const width = int(data.columns), columns = width !== null && width > 0n ? Number(width) : DEFAULT_COLUMNS, seen = new Set<string>(), result = [];
+    const session = env.sessionEffort ? effortIdentity(data.session_id) : null;
     let visible = 0, endings: Data | null = null, prepared: Prepared | undefined;
     for (let task of data.tasks) {
         if (!object(task) || typeof task.id !== 'string' || !trim(task.id) || seen.has(task.id))
@@ -302,7 +319,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
                     task = { ...task, _frozen_duration_ms: end - start };
             }
             if (!hidden)
-                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, env.trace));
+                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, env.trace), session);
         }
         catch { /* A malformed task must not break the remaining NDJSON records. */ }
         if (content)
@@ -313,5 +330,13 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
 }
 export function previewRows(config: DisplayDraft, columns: number, env: RenderEnvironment, scenario: PreviewScenario = 'normal'): string[] {
     env={...env,source:scenarioSource(scenario),links:true};
-    return renderPayload({columns,tasks:sampleAgents(scenario)},config,env,SAMPLE_NOW*1000).map(item=>item.content).filter(Boolean);
+    const tasks = sampleAgents(scenario);
+    const session = 'preview-session';
+    if (sessionEffortEnabled(config)) {
+        for (const task of tasks) if (task.effort === undefined) task.model = SAMPLE_MODEL;
+        env.sessionEffort = () => ({ status: 'observed', observation: {
+            session_id: session, model_id: SAMPLE_MODEL, effort_level: SAMPLE_EFFORT, observed_at_ms: SAMPLE_NOW * 1000,
+        } });
+    }
+    return renderPayload({columns,tasks,session_id:session},config,env,SAMPLE_NOW*1000).map(item=>item.content).filter(Boolean);
 }

@@ -22,6 +22,7 @@ export function fieldValue(row: Row, state: State): string {
         return input.buffer + ' _';
     }
     if (row.key === 'item:cost_rate_basis') return t('cost_rate.basis.' + row.value, language);
+    if (row.key === 'item:effort_fallback' && row.value === 'session') return t('effort_fallback.session', language);
     if(row.key==='preview-scenario')return t('preview.scenario.'+row.value,language);
     if(row.key==='preview-width')return row.value==='auto'?t('preview.auto',language):row.value;
     if (row.key === 'item:presentation') return t('indicators.presentation.' + row.value, language);

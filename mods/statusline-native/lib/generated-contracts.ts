@@ -605,6 +605,7 @@ export interface ItemOptionsDraft {
   presentation?: "numeric" | "bar" | "adaptive";
   bar_width?: number;
   cost_rate_basis?: 'session' | 'api';
+  effort_fallback?: 'off' | 'session';
   bar_style?: "auto" | "unicode" | "ascii";
   link?: 'off' | 'auto' | 'on';
   label: string | null;

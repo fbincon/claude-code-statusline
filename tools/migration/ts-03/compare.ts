@@ -6,6 +6,7 @@ import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { THEME_VALUES, PROTOCOL_VERSION, PRESETS, OPERATIONS } from '@fbincon/statusline-core/contracts/ui';
+import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { appearanceBaseline } from './appearance-compatibility.js';
@@ -47,6 +48,13 @@ export function runtimeProtocolDifference(id: string, path: string, before: unkn
 }
 
 export interface Difference { case: string; path: string; before_sha256: string; after_sha256: string; reason: string }
+function subagentCatalogChange(item: CatalogItem): CatalogItem {
+  if (item.scope !== 'subagent') return item;
+  if (['status-elapsed', 'status', 'elapsed'].includes(item.id)) return { ...item, excludes: [] };
+  if (item.id === 'name') return { ...item, description: 'Agent name, agent type or task type', sources: ['tasks.name', 'tasks.agentType', 'tasks.type'] };
+  if (item.id === 'model-with-effort') return { ...item, description: 'Agent model with configured effort or optional session effort' };
+  return item;
+}
 const UI_CASES = new Set(['ui-read', 'ui-describe', 'ui-preview', 'ui-read-ui-preferences', 'ui-invalid', 'ui-duplicate', 'ui-nonfinite', 'ui-wrong-version', 'ui-unknown-operation', 'ui-null-draft', 'ui-zero-width']);
 /** v3.1.0's explicit protocol/registry changes, bounded to known frozen fields. */
 export function regionalLanguageDifference(id: string, path: string, before: unknown, after: unknown): boolean {
@@ -97,7 +105,9 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
       const expectedTree = ITEMS.find(item => item.scope === 'main' && item.id === 'worktree');
       const original = b.filter(item => !['cache-miss-reason',...extensionIds].includes(item.id)).map(({capabilities,...item})=>item).map(item => item.scope === 'main' && item.id === 'worktree'
         ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);
-      if (canonical(worktree) === canonical(expectedTree) && cause.length === 1 && canonical(cause[0]) === canonical(ITEMS.find(item => item.id === 'cache-miss-reason')) && canonical(a) === canonical(original)) return;
+      const catalog = canonical(original);
+      const catalogMatches = catalog === canonical(a) || catalog === canonical(a.map(subagentCatalogChange));
+      if (canonical(worktree) === canonical(expectedTree) && cause.length === 1 && canonical(cause[0]) === canonical(ITEMS.find(item => item.id === 'cache-miss-reason')) && catalogMatches) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/presets') {
       const order=['left-right','repeated-metrics','minimal','developer','monitoring','multi-agent'];

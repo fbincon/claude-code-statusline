@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-目录包含 65 个主栏指标和 15 个子代理指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。主栏组合项可以与独立项并存，子代理的 `status-elapsed` 与 `status`、`elapsed` 互斥。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
+目录包含 65 个主栏指标和 15 个子代理指标。下表记录默认选择和常用定义，完整 ID 可通过 `config list-items --json` 与 `config subagents list-items --json` 查看。`prompt-timer` 是 `task-timer` 的兼容别名。组合项可以与独立项同时显示。[配置显示项](USER_GUIDE.zh-CN.md#可配置显示项)
 
 下列样例以英文输出为主，中文短语展示 `statusline-language=zh-CN` 的本地化效果。反引号中的样例表示示意显示值；定义／来源和不可用行为列解释含义与前提，说明文字不代表原样输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -183,14 +183,14 @@
 
 ## 子 Agent 显示项
 
-子代理独立行需 Claude Code 2.1.205+。每项使用当前任务的数据。绑定的外部值见下文。
+自定义子代理行使用 Claude Code 2.1.205–2.1.322 的回调。每行使用当前任务的数据，也可按下文读取已启用的本地观测。[宿主兼容性](USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 | ID | 默认 | 内容 |
 | --- | --- | --- |
-| `status-elapsed` | 开 | 状态图标 + 用时，如 `⏱ 1m 18s`；缺失或非法 `startTime` 时只显示图标。与 `status`、`elapsed` 互斥 |
+| `status-elapsed` | 开 | 状态图标和用时，如 `⏱ 1m 18s`。可与 `status`、`elapsed` 同时显示。 |
 | `status` | 关 | 状态图标：`…` 表示 pending、`⏱` running、`✓` completed、`✗` failed、`■` killed、`⏳` paused/waiting；未知状态为 `?` |
-| `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
-| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
+| `name` | 开 | 依次使用显式 `name`、格式化的 `agentType`（2.1.293+）、格式化的 `type`、本地化的“代理” |
+| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID。显式强度显示为 `/effort`，可选的会话强度显示为 `/~effort`。 |
 | `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
 | `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
 | `elapsed` | 关 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
@@ -201,6 +201,10 @@
 | `effort` | 关 | 明确配置的 `tasks.effort`，支持数值预算；继承主会话 effort 时字段缺失。不受模型支持的配置等级可能与实际执行值不同。需 Claude Code 2.1.214+。 |
 | `context-tokens` | 关 | `tasks.tokenCount`／`tasks.contextWindowSize`。 |
 | `context-window-size` | 关 | 已解析的 `tasks.contextWindowSize`。 |
+
+### 可选的会话推理强度
+
+在子代理 `model-with-effort` 实例的**会话强度回退**中选择**使用会话强度**。默认关闭。显式 `tasks.effort` 优先。字段缺失时，渲染可使用同一会话、模型 ID 完全一致且不超过 15 秒的主栏 `effort.level` 观测。`~` 表示近期会话观测，无法证明子代理启动时的实际强度。主栏仅按事件刷新时，两次刷新之间可能只显示模型。独立的 `effort` 组件显示显式配置值。[CLI 设置](reference/cli.zh-CN.md#实例管理)
 
 ### 已结束代理的时长
 

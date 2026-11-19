@@ -4,7 +4,8 @@ import { object, numeric, type Data } from '../runtime/values.js';
 import { sanitizePayloadText } from './formatters.js';
 import { configurationReasons, type ExplanationFacts } from './explain.js';
 import { cacheMissEvidence, worktreeEvidence } from './host-fields.js';
-import { costRateValue } from './metrics.js';
+import { costRateValue, effortText } from './metrics.js';
+import { effortIdentity, subagentEffort } from './subagent-effort.js';
 import { configuredRows } from './items.js';
 import { renderPayload } from './subagents.js';
 import { RenderTrace } from './trace.js';
@@ -25,7 +26,7 @@ export function evidence(source: string, scope: string, status: DiagnosticEviden
     return { source, scope, status, observed_at, freshness, fields: [] };
 }
 const BOOLEANS = new Set(['fast_mode', 'thinking.enabled', 'prompt_cache.warm', 'prompt_cache.caching_observed']);
-const TEXT = /(?:^cwd$|^version$|^session_|^workspace\.|^worktree\.|^model\.|^effort\.|^agent\.|^vim\.|^output_style\.|pr\.(?:review_state|kind|url)$|spend_limit.period$|tasks\.(?:name|type|model|effort|label|description|cwd|status)$)/u;
+const TEXT = /(?:^cwd$|^version$|^session_|^workspace\.|^worktree\.|^model\.|^effort\.|^agent\.|^vim\.|^output_style\.|pr\.(?:review_state|kind|url)$|spend_limit.period$|tasks\.(?:name|agentType|type|model|label|description|cwd|status)$)/u;
 function fieldStatus(input: unknown, path: string): 'observed' | 'not_observed' | 'invalid_field' {
     let value: unknown = input;
     for (const key of path.split('.')) {
@@ -34,6 +35,8 @@ function fieldStatus(input: unknown, path: string): 'observed' | 'not_observed' 
         value = Object.hasOwn(value, key) ? value[key] : undefined;
     }
     if (value == null || value === '') return 'not_observed';
+    if (path === 'tasks.effort') return effortText(value) !== null ? 'observed' :
+        typeof value === 'string' && !value.trim() ? 'not_observed' : 'invalid_field';
     if (BOOLEANS.has(path)) return typeof value === 'boolean' ? 'observed' : 'invalid_field';
     if (path === 'prompt_cache.last_miss_cause') return object(value) ? 'observed' : 'invalid_field';
     if (path === 'context_window.current_usage') {
@@ -76,18 +79,41 @@ export function inputEvidence(input: Data, scope: Scope, type: string, observedA
     });
 }
 
-/** All I/O is completed by the adapter. Layout and reasons share the production renderer. */
+function effortEvidence(tasks: ReadonlyMap<string, Data>, input: Data, enabled: boolean, env: RenderEnvironment,
+    at: number, options: DiagnosisOptions): DiagnosticEvidence[] {
+    const session = effortIdentity(input.session_id);
+    return [...tasks].map(([id, task]) => {
+        const selected = subagentEffort(task, enabled, session, env.sessionEffort, at, options.includeLocal);
+        const observedAt = selected.observedAt === null
+            ? selected.source === 'configured' ? options.observedAt : null
+            : new Date(selected.observedAt).toISOString();
+        const freshness = selected.status === 'newer_than_input' || selected.status === 'stale' ? selected.status :
+            selected.source === 'inherited_session' ? 'current' : 'unknown';
+        const result = evidence(selected.source, 'subagent:' + id, selected.status, observedAt, freshness);
+        if (selected.value !== null)
+            result.fields = [{ path: selected.source === 'configured' ? 'tasks.effort' : 'statusLine.effort.level', status: 'observed' }];
+        return result;
+    });
+}
+
+/** The adapter owns observation reads. Layout and reasons share the production renderer. */
 export function diagnose(draft: Draft, scope: Scope, width: number, input: Data, env: RenderEnvironment,
     facts: ExplanationFacts, local: ReadonlyMap<string, DiagnosticEvidence[]>, options: DiagnosisOptions): DiagnoseResult {
     const trace = new RenderTrace(draft.display), rendering = { ...env, trace };
     const padding = Math.min(draft.host.padding, width - 2);
+    const at = Date.parse(options.observedAt ?? options.diagnosedAt);
+    const effortTasks = new Map<string, Data>();
     let output: DiagnoseResult['output'];
     if (scope === 'main') {
         trace.begin('main', 'main');
         output = configuredRows(input, draft.display, width - padding, rendering).map((row, i) => ({ id: 'main:' + i, spans: rowSpans(' '.repeat(padding) + row) }));
     } else {
         const tasks = Array.isArray(input.tasks) ? input.tasks.filter(task => object(task) && identity(task.id)) : input.tasks;
-        output = renderPayload({ ...input, tasks, columns: width }, draft.display, rendering).map(row => ({ id: row.id, spans: rowSpans(row.content) }));
+        output = renderPayload({ ...input, tasks, columns: width }, draft.display, rendering, at).map(row => ({ id: row.id, spans: rowSpans(row.content) }));
+        if (Array.isArray(tasks)) for (const task of tasks) {
+            const id = task.id as string;
+            if (!effortTasks.has(id)) effortTasks.set(id, task);
+        }
     }
     const host = typeof input.version === 'string' && /^\d+\.\d+\.\d+(?:[-+].*)?$/u.test(input.version) ? input.version : null;
     const observedFacts = { ...facts, host_version: host ? host.split(/[.+-]/u).slice(0, 3).map(Number) : null };
@@ -96,7 +122,12 @@ export function diagnose(draft: Draft, scope: Scope, width: number, input: Data,
         instances: (scope === 'main' ? draft.display.instances : draft.display.subagents.instances).map(node => ({
             id: node.id, type_id: node.type_id, enabled: node.enabled,
             reasons: [...configurationReasons(draft, scope, node, observedFacts).filter(r=>r.code!=='collector_session_unobserved'), ...(!identity(input.session_id)&&(BY_SCOPE[scope].get(node.type_id)?.guidance.requirements??[]).some(r=>['native_timing','live_metrics','task_observation'].includes(r))?[{code:'diagnostic_input_missing_session',origin:'unknown' as const}]:[]), ...(scope === 'main' && trace.alignmentCollapsed(node.id) !== undefined ? [{ code: trace.alignmentCollapsed(node.id) ? 'alignment_collapsed' : 'alignment_active', origin: 'configuration' as const }] : [])],
-            evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt, node.options), ...(local.get(node.id) ?? local.get(node.type_id) ?? [])],
+            evidence: [
+                ...inputEvidence(input, scope, node.type_id, options.observedAt, node.options),
+                ...(local.get(node.id) ?? local.get(node.type_id) ?? []),
+                ...(scope === 'subagent' && draft.display.subagents.enabled && node.enabled && ['model-with-effort', 'effort'].includes(node.type_id)
+                    ? effortEvidence(effortTasks, input, node.options.effort_fallback === 'session', env, at, options) : []),
+            ],
             rows: trace.layouts(scope, node.id),
         })),
         host_fields: { worktree: worktreeEvidence(input), cache_miss: cacheMissEvidence(input.prompt_cache) },

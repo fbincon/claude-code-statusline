@@ -89,11 +89,12 @@ test('tests.integration.test_cli.CliTests.test_config_validation_error_has_no_tr
     assert.ok(!existsSync(f.displayPath));
 });
 test('tests.integration.test_cli.CliTests.test_config_rejects_status_elapsed_with_status_or_elapsed', t => {
-    const f = setup(t), result = subprocess(f.root, ['config', 'subagents', 'set-items', 'status-elapsed', 'status']);
-    assert.equal(result.status, 2);
-    assert.equal(result.stdout, '');
-    assert.match(result.stderr, /cannot combine status-elapsed with status or elapsed/u);
-    assert.ok(!existsSync(f.displayPath));
+    // Historical coverage identifier retained for the #222 behavior change.
+    const f = setup(t), ids = ['status-elapsed', 'status', 'elapsed'];
+    const result = subprocess(f.root, ['config', 'subagents', 'set-items', ...ids]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stderr, '');
+    assert.deepEqual(selected(f.display().subagents), ids);
 });
 test('tests.integration.test_cli.CliTests.test_config_apply_updates_display_and_host_settings', t => {
     const f = setup(t, true), result = subprocess(f.root, ['config', 'apply', '--items', 'git', 'tokens', '--subagent-items', 'status', 'tokens', '--subagent-statusline', 'off', '--scope-labels', 'always', '--colors', 'off', '--palette', 'ansi', '--directory-style', 'home', '--separator-style', 'compact', '--padding', '2', '--refresh-interval', '5', '--hide-vim-mode-indicator', 'on']);

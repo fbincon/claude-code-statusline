@@ -1,6 +1,7 @@
 import { THEME_IDS } from '../editor/themes.js';
 import { validAlignments, alignmentConflicts } from '../editor/alignments.js';
 import { validCostRateOptions } from '../editor/cost-rate.js';
+import { validEffortFallback } from '../editor/effort-fallback.js';
 import { validGroups } from '../editor/groups.js';
 import { validIndicatorOptions } from '../editor/indicators.js';
 import type { DisplayDraft, SubagentDraft, InstanceDraft, ItemOptionsDraft, Scope, MetricsDraft } from '../contracts/ui.js';
@@ -61,7 +62,7 @@ export function validateItems(value: unknown, scope: Scope): string[] {
     if (seen.has(id)) fail(main ? 'errors.display.duplicate_status_line_item' : 'errors.display.duplicate_subagent_status_line_item', { item: id });
     seen.add(id); return id;
   });
-  if (!main && conflicts(scope, result)) fail('errors.display.subagents_items_cannot_combine_status_elapsed_with');
+  if (conflicts(scope, result)) fail('composition.errors.conflict');
   return result;
 }
 export function legacyInstances(scope: Scope, items: readonly string[], values: Record<string, ItemOptionsDraft>): InstanceDraft[] {
@@ -78,6 +79,7 @@ export function validateInstances(value: unknown, scope: Scope): InstanceDraft[]
     if (typeof id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(id)) fail('composition.errors.id');
     if (typeof type_id !== 'string' || !BY_SCOPE[scope].has(type_id)) fail('composition.errors.unknown_type');
     if (typeof enabled !== 'boolean') fail('composition.errors.enabled');
+    if (object(raw.options) && !validEffortFallback(raw.options, scope, type_id)) fail('composition.errors.node_options');
     const parsed = options.itemOptions(raw.options);
     if (!validIndicatorOptions(parsed as unknown as Record<string, unknown>, scope, type_id) || !validCostRateOptions(parsed as unknown as Record<string, unknown>, scope, type_id)) fail('composition.errors.node_options');
     const capability = BY_SCOPE[scope].get(type_id)?.capabilities;

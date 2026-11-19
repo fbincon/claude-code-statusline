@@ -2926,10 +2926,7 @@ export const catalogData = [
       "palette",
       "separator-style"
     ],
-    "excludes": [
-      "status",
-      "elapsed"
-    ],
+    "excludes": [],
     "unavailable_reasons": [
       "not_observed",
       "unsupported_host",
@@ -2974,9 +2971,7 @@ export const catalogData = [
       "palette",
       "separator-style"
     ],
-    "excludes": [
-      "status-elapsed"
-    ],
+    "excludes": [],
     "unavailable_reasons": [
       "not_observed",
       "unsupported_host",
@@ -3006,10 +3001,11 @@ export const catalogData = [
     "scope": "subagent",
     "id": "name",
     "label": "Agent name",
-    "description": "Agent name or normalized task type",
+    "description": "Agent name, agent type or task type",
     "group": "task",
     "sources": [
       "tasks.name",
+      "tasks.agentType",
       "tasks.type"
     ],
     "examples": [
@@ -3052,7 +3048,7 @@ export const catalogData = [
     "scope": "subagent",
     "id": "model-with-effort",
     "label": "Agent model and effort",
-    "description": "Agent model identifier with reasoning effort",
+    "description": "Agent model with configured effort or optional session effort",
     "group": "model",
     "sources": [
       "tasks.model",
@@ -3422,9 +3418,7 @@ export const catalogData = [
       "palette",
       "separator-style"
     ],
-    "excludes": [
-      "status-elapsed"
-    ],
+    "excludes": [],
     "unavailable_reasons": [
       "not_observed",
       "unsupported_host",
