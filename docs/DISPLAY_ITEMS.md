@@ -167,7 +167,7 @@ Verified task and agent state for the current main execution. See [live state it
 | ID | Example | Definition and source |
 | --- | --- | --- |
 | `run-state` | `State waiting agents` | Verified main execution, queued, agent wait, wrap-up and terminal state of the user task. Reliable lifecycle evidence wins; expired or ambiguous sources render `—`. |
-| `permission-mode` | `Mode plan*` | Actual event mode. Hook snapshots are marked `*` as recent observations and expire after 15 seconds; settings defaults are never treated as live mode. |
+| `permission-mode` | `Mode plan*` | Actual event mode. With a fresh runtime heartbeat, the main session's `UserPromptSubmit` hook can supply the mode even when the host skips the Mod's classic hook. A hook snapshot carries `*` and expires after 15 seconds. |
 | `active-agents` | `Agents 2` | Verified active agents owned by this task, nested agents included and IDs deduplicated. Excludes background shells/servers/workflows. Uncertain ownership marks the known subtotal `*`. |
 | `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
 | `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. A started-but-unfinished tool renders `started`. |

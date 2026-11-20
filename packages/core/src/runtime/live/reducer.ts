@@ -9,6 +9,18 @@ export function trimTable(values: Record<string, Data>, maximum: number, stamp =
         for (const key of keys.sort((a, b) => (numeric(values[a]![stamp]) ?? 0) - (numeric(values[b]![stamp]) ?? 0)).slice(0, -maximum))
             delete values[key];
 }
+/** Merge observations in the current session epoch. A verified change feed is authoritative. */
+export function mergePermission(state: LiveState, payload: Data, stamp: unknown, source: string): boolean {
+    const previous = state.permission;
+    const live = payload.live === true;
+    if (previous !== null) {
+        const wasLive = previous.live === true;
+        if (wasLive && !live || wasLive === live && (numeric(previous.observed_at_ms) ?? -1) >= numeric(stamp)!)
+            return false;
+    }
+    state.permission = { mode: payload.mode, live, observed_at_ms: stamp, source };
+    return true;
+}
 export function applyObservation(state: LiveState, o: model.Observation, metadataOnly = false): boolean {
     const epoch = o.epoch, kind = o.kind, stamp = o.observed_at_ms;
     if (!Object.hasOwn(state.epochs, epoch)) {
@@ -64,9 +76,8 @@ export function applyObservation(state: LiveState, o: model.Observation, metadat
         trimTable(state.prompts, model.MAX_PROMPTS);
     }
     else if (kind === 'permission') {
-        const previous = state.permission;
-        if (current && o.agent_id === null && (previous === null || numeric(stamp)! >= numeric(previous.observed_at_ms)!))
-            state.permission = { ...o.payload, observed_at_ms: stamp, source: o.source };
+        if (current && o.agent_id === null)
+            mergePermission(state, o.payload, stamp, o.source);
     }
     else if (kind === 'prompt_link') {
         const target = o.payload.message_id as string;

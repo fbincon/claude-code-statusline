@@ -34,6 +34,14 @@ permission snapshot and agent start/end. Only a verified change feed can claim a
 live permission value. A hook snapshot is explicitly an observation, not settings
 `defaultMode` or proof that the mode has remained unchanged.
 
+With advanced live metrics enabled, the existing settings `UserPromptSubmit`
+hook can record the main session's `permission_mode` as a `classic_hook`
+snapshot. It updates the permission record under the existing session lock
+when the native epoch and heartbeat are current. The newest snapshot wins,
+and a verified live observation has priority. The snapshot expires after 15
+seconds and follows the same invalidation rules as the Mod's classic snapshot.
+Claude Code's managed policy determines whether the settings hook can run.
+
 The observer preserves `turn.start.agentId` in `turn_start.agent_id` and tracks
 the active turn separately for each agent. An agent turn cannot replace the
 active main turn. Start, request/step, usage and completion therefore refer to

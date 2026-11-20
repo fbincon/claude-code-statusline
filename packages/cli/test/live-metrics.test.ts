@@ -1,5 +1,9 @@
 import test, { type TestContext } from 'node:test';
-import { setup, observation as o, plain, assert } from './runtime-support.js';
+import { setup, observation as o, plain, assert, fs, join } from './runtime-support.js';
+import { main } from '../src/main.js';
+import { CONFIG_FILENAME } from '@fbincon/statusline-core/config/display';
+import { lock } from '@fbincon/statusline-platform/files';
+import { config } from './render-support.js';
 function metrics(t: TestContext) { const f = setup(t); f.apply(o(), o('prompt', 1, 1010, { prompt: 'p' }), o('turn_start', 2, 1020, { turn_id: 't' })); return f; }
 test('tests.runtime.live.test_metrics.LiveMetricsTests.test_queued_prompt_does_not_steal_tools_or_nested_agents', t => {
     const f = metrics(t);
@@ -50,4 +54,101 @@ test('tests.runtime.live.test_metrics.LiveMetricsTests.test_duplicate_snapshot_i
     assert.throws(() => f.apply(o('agents', 3, 1030, { payload: { agents: [row, row] } })), /duplicate/);
     assert.throws(() => f.apply(o('agents', 3, 1030, { payload: { agents: [{ ...row, status: 'invalid' }] } })), /invalid/);
     assert.deepEqual(plain(f.store.load('s')), before);
+});
+
+async function command(f: ReturnType<typeof setup>, name: string, input: unknown) {
+    let stdout = '', stderr = '';
+    const code = await main([name], { configDir: f.root, runtime: f.context, now: () => new Date(f.context.nowMs()),
+        stdin: () => JSON.stringify(input), stdout: text => { stdout += text; }, stderr: text => { stderr += text; } });
+    assert.equal(code, 0);
+    assert.equal(stderr, '');
+    return stdout;
+}
+const submit = { hook_event_name: 'UserPromptSubmit', session_id: 's', prompt_id: 'p', permission_mode: 'plan' };
+
+test('settings UserPromptSubmit provides a recent permission snapshot without a Mod classic hook', async t => {
+    const f = setup(t);
+    f.preferences(true, false);
+    f.apply(o());
+    const before = plain(f.store.load('s'));
+    fs.writeFileSync(join(f.root, CONFIG_FILENAME), JSON.stringify(config(['permission-mode'], { statusline_language: 'en' })));
+    f.clock(1100000000n);
+    assert.equal(await command(f, 'hook', { ...submit, prompt: 'A real task' }), '');
+    const permission = { mode: 'plan', live: false, observed_at_ms: 1100, source: 'classic_hook' };
+    assert.deepEqual(plain(f.store.load('s')), { ...before, permission });
+    assert.equal(f.tasks.store.state('s', 'p')?.status, 'running');
+
+    const input = { session_id: 's', prompt_id: 'p' };
+    const read = async () => JSON.parse(await command(f, 'runtime', { protocol_version: 3, operation: 'read', payload: input })).result.metrics['permission-mode'];
+    const observed = await read();
+    assert.deepEqual([observed.value, observed.partial, observed.reason, observed.source, observed.observed_at_ms], ['plan', true, 'observed_only', 'classic_hook', 1100]);
+    assert.equal(await command(f, 'render', input), 'Mode plan*\n');
+
+    f.apply(o('heartbeat', 1, 15500));
+    f.clock(16099000000n);
+    assert.equal(await command(f, 'render', input), 'Mode plan*\n');
+    f.clock(16100000000n);
+    assert.equal((await read()).value, 'plan');
+    f.clock(16101000000n);
+    assert.equal((await read()).value, null);
+    assert.equal(await command(f, 'render', input), 'Mode —\n');
+});
+
+test('settings permission snapshots respect collection, session ownership, and native reload', async t => {
+    const f = setup(t);
+    const run = (input: unknown) => command(f, 'hook', input);
+    f.apply(o());
+    const path = f.store.path('s'), before = fs.readFileSync(path);
+    f.clock(1100000000n);
+    f.preferences(false, true);
+    assert.equal(await run(submit), '');
+    f.preferences(true, false);
+    for (const input of [
+        { ...submit, hook_event_name: 'Stop' }, { ...submit, agent_id: 'worker' }, { ...submit, session_id: '' },
+        { ...submit, session_id: 'another' },
+        ...[undefined, '', ' ', 3, 'x'.repeat(65), 'plan\u001b[31m'].map(permission_mode => ({ ...submit, permission_mode })),
+    ]) assert.equal(await run(input), '');
+    assert.deepEqual(fs.readFileSync(path), before);
+    assert.equal(fs.existsSync(f.store.path('another')), false);
+    assert.equal(fs.readdirSync(f.store.directory()).length, 2);
+
+    const release = lock(path.slice(0, -5) + '.lock');
+    try { assert.equal(await run(submit), ''); }
+    finally { release(); }
+    assert.deepEqual(fs.readFileSync(path), before);
+
+    f.apply(o('invalidate', 1, 1150));
+    f.clock(1200000000n);
+    assert.equal(await run(submit), '');
+    assert.equal(f.store.load('s')!.permission, null);
+    f.apply(o('heartbeat', 0, 1250, { epoch: 'new', payload: { host_version: '2.1.319', loaded_at_ms: 1250 } }));
+    assert.equal(await run(submit), '');
+    assert.equal(f.store.load('s')!.permission, null);
+    f.clock(1300000000n);
+    assert.equal(await run(submit), '');
+    assert.equal(f.points(null, 1300)['permission-mode'].value, 'plan');
+});
+
+test('settings and Mod permission snapshots preserve the latest evidence and a verified feed', async t => {
+    const f = setup(t);
+    f.preferences(true, false);
+    f.apply(o());
+    f.clock(1200000000n);
+    assert.equal(await command(f, 'hook', submit), '');
+    f.apply(o('permission', 1, 1100, { source: 'classic_hook', payload: { mode: 'default', live: false } }),
+        o('permission', 2, 1200, { source: 'classic_hook', payload: { mode: 'default', live: false } }));
+    assert.equal(f.points(null, 1250)['permission-mode'].value, 'plan');
+
+    f.apply(o('permission', 3, 1260, { source: 'classic_hook', payload: { mode: 'acceptEdits', live: false } }));
+    const path = f.store.path('s'), before = fs.statSync(path, { bigint: true });
+    assert.equal(await command(f, 'hook', submit), '');
+    assert.equal(fs.statSync(path, { bigint: true }).ino, before.ino);
+    assert.equal(f.points(null, 1300)['permission-mode'].value, 'acceptEdits');
+
+    f.apply(o('permission', 4, 1260, { source: 'otel', payload: { mode: 'default', live: true } }));
+    f.clock(1320000000n);
+    assert.equal(await command(f, 'hook', submit), '');
+    f.apply(o('permission', 5, 1310, { source: 'classic_hook' }));
+    const point = f.points(null, 1400)['permission-mode'];
+    assert.deepEqual([point.value, point.partial, point.source], ['default', false, 'otel']);
 });
