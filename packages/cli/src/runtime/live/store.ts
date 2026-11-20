@@ -1,21 +1,31 @@
 import { join } from 'node:path';
 import { sha256 } from '@fbincon/statusline-platform/hash';
+import { lock } from '@fbincon/statusline-platform/files';
+import { readPrivateState } from '@fbincon/statusline-platform/private-state';
+import { decodeJsonBytes } from '@fbincon/statusline-platform/utf8';
+import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
-import { object } from '@fbincon/statusline-core/runtime/values';
-import { empty, validateState, type LiveState } from '@fbincon/statusline-core/runtime/live/state';
-import { applyObservation } from '@fbincon/statusline-core/runtime/live/reducer';
+import { numeric, object } from '@fbincon/statusline-core/runtime/values';
+import { empty, fresh, validateState, type LiveState } from '@fbincon/statusline-core/runtime/live/state';
+import { applyObservation, mergePermission } from '@fbincon/statusline-core/runtime/live/reducer';
 import { reconcileBindings } from '@fbincon/statusline-core/runtime/live/bindings';
-import { MAX_SESSIONS, TIMING_KINDS, type Observation } from '@fbincon/statusline-core/runtime/live/model';
+import { MAX_SESSIONS, STALE_MS, TIMING_KINDS, number, text, type Observation } from '@fbincon/statusline-core/runtime/live/model';
 import { storeFromState, type TaskStore as History } from '@fbincon/statusline-core/runtime/tasks/model';
 import { observeNative } from '@fbincon/statusline-core/runtime/tasks/native';
 import type { RuntimeContext } from '../context.js';
 import { runtimeIO, readStored, type RuntimeIO } from '../io.js';
 import { TaskStore } from '../tasks/store.js';
+
+const MAX_HOOK_STATE_BYTES = 32 * 1024 * 1024;
+
 export class LiveStore {
     readonly tasks: TaskStore;
     constructor(public readonly context: RuntimeContext, public readonly io: RuntimeIO = runtimeIO()) { this.tasks = new TaskStore(context, io); }
     directory(): string { return join(this.context.runtimeRoot, 'live'); }
     path(session: string): string { return join(this.directory(), sha256(session) + '.json'); }
+    private publish(target: string, state: LiveState): void {
+        this.io.write(target, Buffer.from(pythonJson(state, { ensureAscii: false, compact: true })));
+    }
     load(session: string): LiveState | null {
         try {
             const path = this.path(session);
@@ -33,6 +43,26 @@ export class LiveStore {
         catch {
             return null;
         }
+    }
+    /** Settings hooks supplement the current native epoch without joining the Mod's sequence ledger. */
+    observeHookPermission(session: string, mode: string, observedAt: number): void {
+        text(session, 'session_id');
+        text(mode, 'mode', false, 64);
+        number(observedAt, 'permission observation time');
+        const target = this.path(session);
+        this.io.stat(target, false);
+        const release = lock(target.slice(0, -5) + '.lock', true);
+        try {
+            const size = Number(this.io.stat(target, false).size);
+            if (size < 1 || size > MAX_HOOK_STATE_BYTES) return;
+            const state = validateState(readJson(decodeJsonBytes(readPrivateState(target, size))), session);
+            if (!state?.epoch) return;
+            const now = this.context.nowMs();
+            if (!fresh(state, now) || observedAt < (numeric(state.loaded_at_ms) ?? Infinity) || now < observedAt || now - observedAt > STALE_MS)
+                return;
+            if (mergePermission(state, { mode, live: false }, observedAt, 'classic_hook'))
+                this.publish(target, state);
+        } finally { release(); }
     }
     observe(observations: readonly Observation[], { timing = false, completeTiming = true, advanced = true } = {}): {
         accepted: number;
@@ -59,7 +89,7 @@ export class LiveStore {
                 // Always acquire live before task. Task writers never acquire a live lock.
                 if (timing)
                     this.tasks.mutate(session, history => observeNative(history, state, this.context.sample, completeTiming));
-                this.io.write(target, Buffer.from(pythonJson(state, { ensureAscii: false, compact: true })));
+                this.publish(target, state);
             });
         }
         this.prune();

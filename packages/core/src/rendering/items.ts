@@ -305,22 +305,25 @@ export class RenderState {
         const external = node && ['external-value','github-pr','github-ci'].includes(item) ? externalPresentation(node, this.env.source?.(node, this.data), this.env, fmt) : null;
         const adaptive = options.presentation === 'adaptive' ? adaptiveIndicator(this.data, item, 'main', options, fmt, this.env.language, this.now()) : null;
         if (options.presentation === 'adaptive' && !adaptive) return null;
-        const indicatorGroup = adaptive || options.presentation === 'bar' ? BY_SCOPE.main.get(item)?.group : undefined;
-        const rendered = adaptive ? { text: adaptive.text, group: indicatorGroup }
-            : external ? { text: external.text }
+        const graphical = adaptive !== null || options.presentation === 'bar';
+        const rendered = graphical
+            ? this.styled(adaptive?.text ?? indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage, BY_SCOPE.main.get(item)?.group)
+            : external ? this.styled(external.text, this.palette[appearance.itemRole(item, 'main')]!)
             : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage')
-            : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage, indicatorGroup)
             : this.renderType(item);
         if (!rendered)
             return null;
         const style = (value: string) => {
-        let text = preferences.threshold(value, used, fmt, this.config, this.palette.percentage,this.env.trace,id);
-        if (!external && !['bar', 'adaptive'].includes(options.presentation ?? 'numeric')) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
-        if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
-            text = appearance.apply(text, this.config, item, options, 'main', used,this.env.trace,id);
-        return text;
+            let text = preferences.threshold(value, used, fmt, this.config, this.palette.percentage, this.env.trace, id);
+            if (!external && !graphical) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
+            if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
+                text = appearance.apply(text, this.config, item, options, 'main', used, this.env.trace, id);
+            return text;
         };
-        const result = { text: style(rendered.text), ...(adaptive ? { adaptive: adaptive.adaptive.map(part => ({ ...part, text: style(part.text) })), onAdapt: this.env.trace?.adapt('main', id) } : {}) };
+        const result = { text: style(rendered.text), ...(adaptive ? {
+            adaptive: adaptive.adaptive.map(part => ({ ...part, text: style(this.palette.percentage + part.text + this.palette.reset) })),
+            onAdapt: this.env.trace?.adapt('main', id),
+        } : {}) };
         if (options.max_width !== null) {
             if (adaptive) { bounded(result, options.max_width); if (!result.text) this.env.trace?.mark('main',id,'width_omitted'); }
             else { if(layout.displayWidth(result.text)>options.max_width) this.env.trace?.mark('main',id,'truncated'); result.text = layout.truncateStyled(result.text, options.max_width); }

@@ -1,5 +1,5 @@
 import { riskColor } from './appearance.js';
-import { serialize } from './styles.js';
+import { RESET, serialize } from './styles.js';
 import type { RenderTrace } from './trace.js';
 import type { DisplayDraft, FormattingDraft, ItemOptionsDraft, Scope } from '../contracts/ui.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
@@ -67,18 +67,21 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
         return null;
     };
     const label = custom ? options.label! : fmt.labels === 'short' ? language.shortLabel(scope, item) : '';
+    const icon = getIcon();
     if (indicator) {
         const legacy = !custom && fmt.labels === 'legacy';
-        return [getIcon(), ...(legacy ? [indicator.bar, indicator.label] : [label, indicator.bar]), text].filter(Boolean).join(' ');
+        return [icon, ...(legacy ? [indicator.bar, indicator.label] : [label, indicator.bar]), text].filter(Boolean).join(' ');
     }
+    const decoration = (icon ? icon + ' ' : '') + (label ? label + ' ' : '');
     if (!removesIcon && !removesLabel) {
-        const icon = getIcon();
-        let value = (icon ? icon + ' ' : '') + (label ? label + ' ' : '') + text;
-        if (text.includes('\x1b[') && !text.endsWith('\x1b[0m'))
-            value += '\x1b[0m';
+        const leadingStyle = scope === 'main' && decoration ? layout.styledUnits(text)[0]?.style : undefined;
+        let value = (leadingStyle ? leadingStyle + decoration + RESET : decoration) + text;
+        if (text.includes('\x1b[') && !text.endsWith(RESET))
+            value += RESET;
         return value;
     }
     let units = layout.styledUnits(text);
+    const leadingStyle = scope === 'main' ? units[0]?.style ?? '' : '';
     if (removesIcon) {
         units = units.slice(1 + Number([...plain][1] === ' '));
         plain = units.map(u => u.text).join('');
@@ -86,14 +89,9 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
     if (custom || fmt.labels !== 'legacy') {
         const owned = language.prefix(scope, item);
         if (owned && plain.startsWith(owned + ' '))
-            units = units.slice([...owned].length + 1);
-        if (label)
-            units = [...layout.styledUnits(label + ' '), ...units];
+            units = units.slice(layout.styledUnits(owned + ' ').length);
     }
-    const icon = getIcon();
-    if (icon)
-        units = [...layout.styledUnits(icon + ' '), ...units];
-    return layout.renderStyledUnits(units);
+    return layout.renderStyledUnits([...layout.styledUnits(leadingStyle + decoration), ...units]);
 }
 export function threshold(text: string, used: number | null, fmt: FormattingDraft, config: DisplayDraft, normal: string, trace?:RenderTrace,id?:string,scope:Scope='main'): string {
     if (!config.use_colors || !fmt.thresholds.enabled || used === null)

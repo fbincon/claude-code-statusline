@@ -164,7 +164,7 @@
 | ID | 示例 | 定义与来源 |
 | --- | --- | --- |
 | `run-state` | `State waiting agents` | 用户任务的主线程执行、排队、等待代理、收尾及终止状态；来源失效或归属不明显示 `—`。 |
-| `permission-mode` | `Mode plan*` | 事件实际观测的权限模式；hook 快照附 `*` 表示最近观测，15 秒后过期，不以设置默认值推断。 |
+| `permission-mode` | `Mode plan*` | 事件实际观测的权限模式。运行时心跳有效时，即使宿主跳过 Mod 的 classic hook，主会话的 `UserPromptSubmit` 设置 hook 也可提供模式。hook 快照附 `*`，15 秒后过期。 |
 | `active-agents` | `Agents 2` | 本任务已验证的活跃代理数，包含嵌套代理并按 ID 去重；不统计后台 shell/server/workflow，归属不确定时标记已知小计 `*`。 |
 | `task-progress` | `Tasks 3/5` | 成功的结构化 Task/Todo 操作维护的完成数/总数，完整快照优先；不是耗时百分比。有限覆盖附 `*`。 |
 | `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果；已开始但未完成的工具显示 `started`。 |

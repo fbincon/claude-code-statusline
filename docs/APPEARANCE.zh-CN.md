@@ -27,6 +27,8 @@ claude-statusline config item main model background inherit
 
 启用阈值变色时，警告／危险前景色覆盖逐项前景色，逐项背景保持。沿用 `threshold-colors`、`warning-threshold` 和 `critical-threshold` 控制这一行为。关闭颜色会同时关闭前景与背景；`palette ansi` 将自定义 RGB／扩展色量化为基础 ANSI 色槽，实际色槽颜色由终端决定。终端编辑器按终端报告的颜色能力适配预览。
 
+启用颜色时，主栏标签和图标继承组件的字重和前景色，包括阈值颜色。数据源项（`external-value`、`github-pr`、`github-ci`）使用主题配色，覆盖前景色或使用渐变时仍保持加粗。
+
 <a id="terminal-color-capability"></a>
 
 ## 终端颜色能力
@@ -80,6 +82,8 @@ claude-statusline config instance main set context-remaining bar-style ascii
 ### 自适应指标
 
 选择 `presentation adaptive` 时，固定行先缩短内置标签，再将短条缩至四格，随后退回数字，最后才按原有优先级省略。自定义标签和图标保持完整；数字仍放不下时省略整个指标。逐项 `max_width`、组件组和两个作用域使用相同规则。自动布局保留正常换行，仅对超出完整行宽的单位进行自适应。
+
+自适应进度条及其数字回退沿用普通进度条的配色和警告／危险颜色。
 
 ```sh
 claude-statusline config instance main set context-remaining presentation adaptive

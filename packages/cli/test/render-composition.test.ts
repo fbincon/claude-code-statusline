@@ -7,6 +7,7 @@ import { defaultDisplay, defaultItem } from '@fbincon/statusline-core/config/dis
 import { edit } from '@fbincon/statusline-core/config/instances';
 import { configuredRows } from '@fbincon/statusline-core/rendering/items';
 import { previewRows, samplePreviewData, SampleRenderState } from '@fbincon/statusline-core/rendering/preview';
+import { sampleSource } from '@fbincon/statusline-core/rendering/extensions';
 import { previewRows as agentsPreview, renderTask, renderPayload } from '@fbincon/statusline-core/rendering/subagents';
 import { displayWidth, strip, truncateStyled } from '@fbincon/statusline-core/rendering/layout';
 import { rowSpans } from '@fbincon/statusline-core/rendering/spans';
@@ -224,6 +225,69 @@ test('tests.rendering.test_appearance.AppearanceRenderingTests.test_risk_wins_fo
             assert.equal(span.foreground!.value, fg);
             assert.equal(span.background!.value, '#102030');
         }
+    }
+});
+test('main external items keep palette emphasis and links through foreground painting', () => {
+    for (const id of ['external-value', 'github-pr', 'github-ci']) {
+        const base = exact([id], { use_colors: true });
+        const renderEnv = { ...env, source: sampleSource };
+        const cfg = options(base, 'main', { [id]: { label: '预算', icon: '👩🏽‍💻', ...(id !== 'external-value' ? { link: 'on' } : {}) } });
+        const render = (draft: DisplayDraft) => configuredRows({}, draft, 100, renderEnv)[0]!;
+        const baseline = render(cfg), spans = rowSpans(baseline);
+        assert.match(strip(baseline), /^👩🏽‍💻 预算: /u);
+        assert.ok(spans.every(span => span.bold && span.foreground?.value === '#8ed3d3'), id);
+        const link = id === 'external-value' ? undefined : id === 'github-pr' ? 'https://github.com/example/project/pull/42' : 'https://github.com/example/project/pull/42/checks';
+        assert.ok(spans.every(span => span.link === link), id);
+
+        const gradient = options(cfg, 'main', { [id]: { foreground_gradient: ['#34d399', '#2563eb'] } });
+        const painted = rowSpans(render(gradient));
+        assert.equal(painted[0]!.foreground?.value, '#34d399');
+        assert.equal(painted.at(-1)!.foreground?.value, '#2563eb');
+        assert.ok(painted.every(span => span.bold && span.link === link), id);
+        const explicitColor = render(options(cfg, 'main', { [id]: { foreground: '#34d399' } }));
+        assert.ok(rowSpans(explicitColor).every(span => span.bold && span.foreground?.value === '#34d399' && span.link === link), id);
+        assert.equal(strip(render(updateDisplay(gradient, { use_colors: false }))), strip(baseline));
+        assert.ok(rowSpans(render(updateDisplay(gradient, { use_colors: false }))).every(span => !span.bold && span.foreground === null));
+        assert.ok(rowSpans(render(updateDisplay(cfg, { palette: 'ansi' }))).every(span => span.bold && span.foreground?.value === 6));
+    }
+});
+
+test('every main adaptive indicator has bar and numeric palette and threshold parity', () => {
+    for (const id of ['context-used', 'context-remaining', 'five-hour-limit', 'weekly-limit', 'spend-limit']) {
+        const base = exact([id], { use_colors: true });
+        const cfg = updateDisplay(base, { formatting: { ...base.formatting, labels: 'off', allowance: 'used', thresholds: { enabled: true, warning: 70, critical: 90 } } });
+        for (const [used, color] of [[45, '#f2b590'], [75, '#f2b550'], [95, '#f28686']] as const) {
+            const quota = { used_percentage: used, resets_at: env.now() + 60 };
+            const data = { context_window: { used_percentage: used, remaining_percentage: 100 - used }, rate_limits: { five_hour: quota, seven_day: quota, spend_limit: quota } };
+            const render = (view: Partial<ItemOptionsDraft>) => configuredRows(data, options(cfg, 'main', { [id]: view }), 100, env)[0]!;
+            const full = render({ presentation: 'adaptive', bar_width: 10 });
+            assert.equal(full, render({ presentation: 'bar', bar_width: 10 }));
+            const numeric = strip(full).slice(13);
+            const shorter = render({ presentation: 'adaptive', bar_width: 10, max_width: displayWidth(numeric) + 7 });
+            assert.match(strip(shorter), /^\[[█░]{4}\] /u);
+            const fallback = render({ presentation: 'adaptive', bar_width: 10, max_width: displayWidth(numeric) });
+            assert.equal(strip(fallback), numeric);
+            for (const row of [full, shorter, fallback, render({ presentation: 'numeric' })]) {
+                assert.ok(row.length, id);
+                assert.ok(rowSpans(row).every(span => span.bold && span.foreground?.value === color), id);
+            }
+        }
+    }
+});
+
+test('main prefixes inherit the value style in the renderer and the editor preview', () => {
+    const base = exact(['context-used'], { use_colors: true });
+    const cfg = updateDisplay(base, { formatting: { ...base.formatting, labels: 'short', thresholds: { enabled: true, warning: 70, critical: 90 } } });
+    const customized = options(cfg, 'main', { 'context-used': { label: '上下文', icon: '👩🏽‍💻' } });
+    const data = { context_window: { used_percentage: 95 } };
+    for (const draft of [cfg, customized, options(customized, 'main', { 'context-used': { presentation: 'adaptive', foreground_gradient: ['#34d399', '#2563eb'] } })]) {
+        const rendered = configuredRows(data, draft, 100, env)[0]!;
+        const preview = previewRows(draft, 100, env, '/sample', 0, 'critical')[0]!;
+        assert.equal(rendered, preview);
+        assert.ok(strip(rendered).endsWith('95% used'));
+        assert.equal(rowSpans(rendered).length, 1);
+        assert.equal(rowSpans(rendered)[0]!.foreground?.value, '#f28686');
+        assert.equal(rowSpans(rendered)[0]!.bold, true);
     }
 });
 test('tests.rendering.test_appearance.AppearanceRenderingTests.test_terminal_default_differs_from_inherit', () => {

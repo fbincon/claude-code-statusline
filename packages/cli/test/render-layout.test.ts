@@ -88,7 +88,7 @@ test('tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_tiny_width
 test('tests.rendering.test_styles.StyleTests.test_decorations_preserve_body_styles_and_isolate_prefix', () => {
     const value = decorate('\x1b[1;31;48;5;200m👩🏽‍💻\x1b[22;39mB', 'current-dir', 'main', DEFAULT_FORMATTING, { ...DEFAULT_ITEM, label: '目录', icon: 'D' }, env.language), units = layout.styledUnits(value);
     assert.equal(units.map(u => u.text).join(''), 'D 目录 👩🏽‍💻B');
-    assert.ok(units.slice(0, -2).every(u => !u.style));
+    assert.ok(units.slice(0, -2).every(u => u.style === units.at(-2)!.style));
     assert.deepEqual(styles.parse(units.at(-2)!.style), { bold: true, foreground: ['ansi', 1], background: ['ansi', 200] });
     assert.deepEqual(styles.parse(units.at(-1)!.style), { bold: false, foreground: null, background: ['ansi', 200] });
     assert.deepEqual(styles.parse(value), styles.DEFAULT);

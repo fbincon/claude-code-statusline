@@ -27,6 +27,8 @@ Colors accept `inherit`, `default`, `ansi:N` (0–255), or six-digit `#RRGGBB`; 
 
 If threshold colors are enabled, warning/critical foregrounds override an explicit foreground while retaining its background. The existing `threshold-colors`, `warning-threshold` and `critical-threshold` settings control this behavior. Turning colors off removes both channels. `palette ansi` quantizes custom RGB/extended colors to basic ANSI slots; the terminal chooses the actual slot colors. The terminal editor adapts its preview to the reported terminal color capacity.
 
+With colors enabled, main-line labels and icons follow the component's weight and foreground, including threshold colors. Source items (`external-value`, `github-pr`, `github-ci`) use the theme's palette and keep their bold weight with a foreground override or gradient.
+
 <a id="terminal-color-capability"></a>
 
 ## Terminal color capability
@@ -80,6 +82,8 @@ Copies, profiles and portable exports retain these display options without enabl
 ### Adaptive indicators
 
 Choose `presentation adaptive` to let fixed rows shorten built-in labels, reduce bars to four cells, then fall back to numbers before ordinary priority omission. Custom labels and icons remain whole; a numeric representation that cannot fit is omitted. Per-instance `max_width`, groups and both scopes use the same rule. Automatic layout retains normal wrapping and adapts only units wider than a complete row.
+
+Adaptive bars and their numeric fallbacks keep the same palette and warning or critical colors as regular bars.
 
 ```sh
 claude-statusline config instance main set context-remaining presentation adaptive

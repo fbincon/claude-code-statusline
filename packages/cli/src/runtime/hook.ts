@@ -8,7 +8,19 @@ import { float } from '@fbincon/statusline-core/runtime/transcript';
 export async function hook(read: () => string | Uint8Array, context: RuntimeContext): Promise<void> {
     try {
         const raw = read(), data = readJson(typeof raw === 'string' ? raw : decodeUtf8(raw), { allowBom: true });
-        new TaskService(context).handle(data);
+        const permission = object(data) && data.hook_event_name === 'UserPromptSubmit' && data.agent_id == null &&
+            typeof data.session_id === 'string' && typeof data.permission_mode === 'string'
+            ? { session: data.session_id, mode: data.permission_mode, at: context.nowMs() } : null;
+        try { new TaskService(context).handle(data); }
+        finally {
+            if (permission) {
+                const { loadRuntime } = await import('../config/runtime-preferences.js');
+                if (loadRuntime(context.configDir).live_metrics) {
+                    const { LiveStore } = await import('./live/store.js');
+                    new LiveStore(context).observeHookPermission(permission.session, permission.mode, permission.at);
+                }
+            }
+        }
         if (object(data) && ['SubagentStart', 'SubagentStop'].includes(data.hook_event_name as string)) {
             const now = float(context.nowMs());
             const { AgentDurations } = await import('./live/durations.js');
