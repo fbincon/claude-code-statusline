@@ -8,16 +8,17 @@ This 2026-11-21 feature delivery normalizes `zh-HK` to the documented Hong Kong 
 
 | Area | Result |
 | --- | --- |
-| Terminology | All 68 affected keys now use the documented Hong Kong terms: `用戶`, `數據`, `網絡` and `狀態欄`. Source data uses `數據來源`, metadata uses `元數據`, identity data uses `識別資訊`, and the consumer-sense message uses `使用方`. |
+| Terminology | All 68 affected keys follow the documented Hong Kong conventions. Source data uses `數據來源`, metadata uses `元數據`, identity data uses `識別資訊` and consumers use `使用方`. The JSON caption and the truncated check-list notice use `詳情`. |
 | Acceptance | The 68 changed translations were structurally validated, reviewed in context, and accepted; `zh-HK` remains 2,345/2,345 accepted with no English fallback. |
 | Regeneration | The canonical Resource pack, generated Node/Native dictionaries and acceptance/history/provenance evidence were regenerated together; `zh-TW` and baseline snapshots are unchanged. |
 | Regression coverage | A generation test rejects the four Taiwan variants in `zh-HK` and asserts that `zh-TW` keeps its own terminology; CLI regional-language tests cover representative messages. |
 | Documentation | The translation guide records the consistent Hong Kong convention, the standard alternatives and the unchanged native-speaker caveat. |
+| Scoped checks | Oversized maintenance tasks split at check-family boundaries. Each task retains its planned platform and host, and earlier source revisions retain their original task lists. |
 
 ## Source identities
 
-- Baseline before the task: `db5a0b9f71b2ac355f495e265c85b0ae3b856e3b`.
-- Implementation commit and final head are recorded in the PR description after CI.
+- The initial checks below ran on head `6f7b7ec06216c087c05a709a1845fbb2054dfe56` against baseline `db5a0b9f71b2ac355f495e265c85b0ae3b856e3b`.
+- The completion update integrates `main` at `cf6d115ab07d0e362805e5446368e3cd28ee43dc`. The final head, package comparison identities and scoped results are recorded in [PR #285](https://github.com/fbincon/claude-code-statusline/pull/285).
 
 ## Validation and limits
 
@@ -31,7 +32,9 @@ This 2026-11-21 feature delivery normalizes `zh-HK` to the documented Hong Kong 
 | `claude plugin test mods/statusline-native` | 357 tests passed across 45 files, including the registered language cycling. |
 | External language tests | 34 tests passed, including all 144 interface/statusline combinations and actual rendering. |
 | `npm run docs:check` / registered content tests | 7,436 links with zero errors; 37 content/example tests passed. |
-| `npm run ci:plan -- --compare` | Package comparison reported equivalent with zero changed runtime members. The maintenance scoped task was rejected as oversized (377 minutes), so no `ci:check` receipt was issued; the applicable checks above were run directly. |
+| Initial `npm run ci:plan -- --compare` | The package comparison reported equivalence. The original Linux task budget was 377 minutes and scheduling rejected it. |
 | `git diff --check` | Clean. |
+
+The completion update explicitly validated and accepted the two wording refinements and verified 119 generated resources. The planner, historical evidence, bilingual documentation and regional-language suites passed 69 tests before the final commits.
 
 The acceptance record is structural and contextual only; it does not establish native-speaker review. Automated editor tests cover both editors, but no human visual or physical desktop sample was made. `zh-TW` terminology was not changed. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified, and no paid model calls were made.

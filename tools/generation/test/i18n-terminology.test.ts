@@ -21,6 +21,8 @@ test('zh-HK applies the documented Hong Kong terminology consistently', () => {
   assert.match(hk['package.reason_metadata']!, /元數據/);
   assert.match(hk['task.controls.identity']!, /識別資訊/);
   assert.match(hk['sources.reason.no_consumers']!, /使用方/);
+  assert.match(hk['sources.raw']!, /JSON 詳情/u);
+  assert.match(hk['sources.reason.check_details_truncated']!, /檢查詳情/u);
 });
 
 test('zh-TW keeps its own regional terminology', () => {

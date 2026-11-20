@@ -61083,6 +61083,37 @@
       },
       "review": "Normalized Hong Kong terminology against the documented convention, including 數據來源, 元數據, 識別資訊 and 使用方; placeholders, commands and technical units retained; structural and contextual checks only, no native-speaker claim.",
       "validated_inputs_sha256": "6f7ee39ba758b336d7396955bd072fabb0923316480f8bceb6d10b7fea89f642"
+    },
+    "10d2b71c5eba1db45e93c98347b58c15eac2505980a61e5fcbb6401a481b8507": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "zh-HK": {
+          "sources.raw": {
+            "source": "92d9ac5cccde0ca17f658a2b18e66740e01818f43af46a23d58bc90c9d60528c",
+            "translation": "f7c1c0cb5910313a896cc1da513501d6a559779072a9e560fbc61a7d2c12bd5c"
+          },
+          "sources.reason.check_details_truncated": {
+            "source": "d3a1df0d468c2428dc59d264a7b55b58fddb774d7f33ef0c3800c854fe2a92a1",
+            "translation": "745205324cfa08ec9d934f9f05ab1cc02c1206938b7568173de84b77f9ba3e27"
+          }
+        }
+      },
+      "review": "Checked the source inspection caption and the provider check-list limit against the English messages. Used 詳情 for the two details messages and retained the JSON identifier and truncation meaning.",
+      "validated_inputs_sha256": "56fb1e7e8776a83d3043df04e6f4b8c59948c8a7ab7e02c00d0875dfed2591fc"
     }
   }
 }
