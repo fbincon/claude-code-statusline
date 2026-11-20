@@ -1,6 +1,6 @@
 /** Verify public GitHub/npm bytes and both registry installation selectors. Never publishes. */
 import * as fs from 'node:fs';
-import { join, resolve } from 'node:path';
+import { delimiter, dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -10,6 +10,7 @@ import { VERSION, PACKAGE_NAME, REPOSITORY_URL } from '@fbincon/statusline-core/
 import { identity, sourceFilename, publicChannel } from '../build/model.js';
 import { npmEntry, sha256 } from '../build/files.js';
 import { verifyDelivery } from '../build/verify.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 
 const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, 'verifier-commit': { type: 'string' }, tag: { type: 'string' } } });
 if (!values.commit || !values.output) throw new Error('Require --commit FULL_SHA --output NEW_DIRECTORY');
@@ -61,8 +62,25 @@ for (const selector of [VERSION, distTag]) {
         assert.equal(run(['--version']), `claude-statusline ${VERSION}\n`);
         assert(run(['config', 'show']).trim());
         assert(run(['render'], '{"model":{"id":"registry-smoke"},"context_window":{"remaining_percentage":50}}').includes('registry-smoke'));
-        installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false });
-    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+        const npx = checked.source.dependency_manifests === 'sanitized';
+        if (npx) {
+            const cache = join(root, 'empty-npx-cache'), defaultPrefix = join(root, 'npx-prefix');
+            const user = join(root, 'user.npmrc'), global = join(root, 'global.npmrc');
+            fs.writeFileSync(user, ''); fs.writeFileSync(global, '');
+            const review = execFileSync(process.execPath, [npmEntry(), 'exec', '--yes', '--', PACKAGE_NAME + '@' + selector, '--dry-run'], {
+                cwd: root, encoding: 'utf8', timeout: 180000, env: { ...process.env,
+                    PATH: [dirname(process.execPath), ...(process.platform === 'win32' ? [] : ['/usr/bin', '/bin'])].join(delimiter),
+                    CLAUDE_CONFIG_DIR: config, npm_config_prefix: defaultPrefix, npm_config_cache: cache,
+                    npm_config_userconfig: user, npm_config_globalconfig: global, npm_config_ignore_scripts: 'false',
+                    npm_config_registry: 'https://registry.npmjs.org/', npm_config_audit: 'false', npm_config_fund: 'false',
+                },
+            });
+            assert(review.includes(PACKAGE_NAME + '@' + VERSION) && review.includes(defaultPrefix), review);
+            assert(fs.existsSync(join(cache, '_npx')) && !fs.existsSync(defaultPrefix) && !fs.existsSync(config));
+        }
+        installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false,
+            ...(npx ? { npx_review: { status: 'pass', lifecycle_scripts: true, initially_empty_cache: true } } : {}) });
+    } finally { removeTree(root); }
 }
 fs.writeFileSync(join(output, 'public-downloads.json'), JSON.stringify({ status: 'pass', commit: values.commit, verifier_commit: values['verifier-commit'] ?? null, tag, channel: kind, dist_tags: metadata['dist-tags'], platform: process.platform, arch: process.arch, node: process.version, tarball_sha256: checked.sha256, registry_integrity: published.dist.integrity, installations: installed }, null, 2) + '\n');
 console.log(JSON.stringify({ status: 'pass', tag, tarball_sha256: checked.sha256, installations: installed }));

@@ -1,11 +1,12 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, delimiter, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { VERSION, PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { Npm, productIdentity, type NpmLayout } from '@fbincon/statusline-platform/npm';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { firstEntry, type FirstEntryOptions } from '../src/management/first-entry.js';
 import { pendingPath, MANAGEMENT_ROOT } from '../src/management/store.js';
@@ -14,17 +15,17 @@ function product(root: string, version = VERSION): void {
     fs.mkdirSync(root, { recursive: true });
     fs.writeFileSync(join(root, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version, type: 'module', bin: { 'claude-statusline': 'bin/claude-statusline.js' } }));
     const files: Record<string, string> = {};
-    for (const [path, content] of [['bin/claude-statusline.js', '// bootstrap'], ['node_modules/@fbincon/statusline-cli/dist/src/entry.js', `process.stdout.write('claude-statusline ${version}\\n')`], ['node_modules/@fbincon/statusline-core/dist/src/release.js', `export const VERSION='${version}';`]]) {
+    for (const [path, content] of [['bin/claude-statusline.js', '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n'], ['node_modules/@fbincon/statusline-cli/dist/src/entry.js', `process.stdout.write('claude-statusline ${version}\\n')`], ['node_modules/@fbincon/statusline-core/dist/src/release.js', `export const VERSION='${version}';`]]) {
         const absolute = join(root, path!);
         fs.mkdirSync(dirname(absolute), { recursive: true });
-        fs.writeFileSync(absolute, content!);
+        fs.writeFileSync(absolute, content!, { mode: 0o755 });
         files[path!] = createHash('sha256').update(content!).digest('hex');
     }
     fs.writeFileSync(join(root, 'candidate.json'), JSON.stringify({ name: PACKAGE_NAME, version, application_version: version, files }));
 }
 function fixture(t: TestContext) {
     const root = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'first entry 中文 ')));
-    t.after(() => fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
+    t.after(() => removeTree(root));
     const prefix = join(root, 'persistent prefix'), origin = join(root, 'cache', '_npx', 'run', 'node_modules', PACKAGE_NAME), configDir = join(root, 'config');
     product(origin);
     const layout: NpmLayout = { prefix, root: join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules', PACKAGE_NAME), bin: join(prefix, 'bin/claude-statusline'), registry: 'https://registry.npmjs.org/', npmVersion: '11.19.0', cache: join(root, 'cache') };
@@ -46,11 +47,38 @@ test('first entry reviews exact installation, verifies a durable entry and survi
     assert(f.state().output.includes(join(f.layout.root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js')));
     assert(f.state().output.includes(f.configDir));
     assert(!fs.existsSync(pendingPath(f.prefix)));
-    fs.rmSync(join(f.root, 'cache'), { recursive: true });
+    removeTree(join(f.root, 'cache'));
+    assert(!fs.existsSync(join(f.root, 'cache')));
     assert.equal(productIdentity(f.layout.root)?.version, VERSION);
     assert(fs.existsSync(join(f.configDir, MANAGEMENT_ROOT, 'installations')));
     assert(!fs.existsSync(join(f.configDir, 'settings.json')));
     assert(!fs.existsSync(join(f.configDir, 'claude-statusline.json')));
+});
+test('automatic first entry skips only the current npm-exec shim and still checks later entries', async t => {
+    const f = fixture(t), bin = join(dirname(dirname(f.origin)), '.bin');
+    const shim = join(bin, 'claude-statusline' + (process.platform === 'win32' ? '.cmd' : ''));
+    const another = join(f.root, 'other-bin');
+    fs.mkdirSync(bin);
+    fs.mkdirSync(another);
+    const bootstrap = join(f.origin, 'bin/claude-statusline.js');
+    if (process.platform === 'win32') {
+        fs.writeFileSync(shim, `"%dp0%\\${relative(bin, bootstrap)}" %*\r\n`);
+    } else {
+        fs.symlinkSync(bootstrap, shim);
+    }
+    f.npm.environment.PATH = [bin, another].join(delimiter);
+    assert.equal(await firstEntry(['--dry-run'], f.options), 0);
+    const otherShim = join(another, process.platform === 'win32' ? 'claude-statusline.exe' : 'claude-statusline');
+    fs.writeFileSync(otherShim, 'different entry', { mode: 0o755 });
+    assert.equal(await firstEntry(['--dry-run'], f.options), 2);
+    assert.match(f.state().output, /different prefix/);
+    assert.equal(await firstEntry([...f.args, '--dry-run'], f.options), 0);
+    fs.unlinkSync(shim);
+    f.npm.environment.PATH = bin;
+    fs.writeFileSync(shim, 'different entry', { mode: 0o755 });
+    assert.equal(await firstEntry(['--dry-run'], f.options), 2);
+    assert.equal(f.state().calls, 0);
+    assert(!fs.existsSync(f.configDir));
 });
 test('cancellation, non-TTY and dry-run never create installation or configuration', async (t) => {
     const f = fixture(t);
