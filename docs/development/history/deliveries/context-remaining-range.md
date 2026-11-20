@@ -25,6 +25,7 @@ This 2026-11-21 feature delivery omits invalid `context-remaining` percentages a
 | CLI reproduction | `-5`, `150` and `true` render no context item; `42` renders `Context 42% left`. |
 | `npm run check` | Passed; 597 tests with six platform-specific skips, generated resources verified and documentation links/anchors clean. |
 | `npm run docs:check` | 7,436 links checked with zero errors. |
+| `npm run ci:plan` / `ci:check --task linux` | Product route selected; the Linux task passed with actions, checks, CLI and documentation coverage. |
 | `git diff --check` | Clean. |
 
 The behavior is verified on Linux x64 with Node 24.21.0. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified. No paid model calls were made.

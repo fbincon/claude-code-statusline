@@ -25,6 +25,7 @@
 | CLI 复现 | `-5`、`150` 和 `true` 不渲染上下文条目；`42` 渲染 `Context 42% left`。 |
 | `npm run check` | 通过；597 项测试，六项平台相关跳过，生成资源已验证，文档链接和锚点无错误。 |
 | `npm run docs:check` | 检查 7,436 个链接，零错误。 |
+| `npm run ci:plan` / `ci:check --task linux` | 选择产品路线；Linux 任务通过 actions、checks、CLI 和文档覆盖。 |
 | `git diff --check` | 无错误。 |
 
 行为在 Linux x64 和 Node 24.21.0 上验证。既有 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项平台缺口仍未验证。未进行付费模型调用。
