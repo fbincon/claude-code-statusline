@@ -67,6 +67,8 @@ for (const selector of [VERSION, distTag]) {
             const cache = join(root, 'empty-npx-cache'), defaultPrefix = join(root, 'npx-prefix');
             const user = join(root, 'user.npmrc'), global = join(root, 'global.npmrc');
             fs.writeFileSync(user, ''); fs.writeFileSync(global, '');
+            const globalModules = join(defaultPrefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
+            fs.mkdirSync(globalModules, { recursive: true });
             const review = execFileSync(process.execPath, [npmEntry(), 'exec', '--yes', '--', PACKAGE_NAME + '@' + selector, '--dry-run'], {
                 cwd: root, encoding: 'utf8', timeout: 180000, env: { ...process.env,
                     PATH: [dirname(process.execPath), ...(process.platform === 'win32' ? [] : ['/usr/bin', '/bin'])].join(delimiter),
@@ -76,7 +78,7 @@ for (const selector of [VERSION, distTag]) {
                 },
             });
             assert(review.includes(PACKAGE_NAME + '@' + VERSION) && review.includes(defaultPrefix), review);
-            assert(fs.existsSync(join(cache, '_npx')) && !fs.existsSync(defaultPrefix) && !fs.existsSync(config));
+            assert(fs.existsSync(join(cache, '_npx')) && fs.readdirSync(globalModules).length === 0 && !fs.existsSync(config));
         }
         installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false,
             ...(npx ? { npx_review: { status: 'pass', lifecycle_scripts: true, initially_empty_cache: true } } : {}) });

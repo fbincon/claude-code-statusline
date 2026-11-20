@@ -161,7 +161,10 @@ export async function smokeNpxFirstEntry(installed: ReturnType<typeof installCan
     const user = join(directory, 'user.npmrc'), global = join(directory, 'global.npmrc');
     fs.writeFileSync(user, '');
     fs.writeFileSync(global, '');
-    assert(!fs.existsSync(cache) && !fs.existsSync(prefix));
+    // npm 10 walks the global module root before creating the exec cache.
+    const globalModules = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
+    fs.mkdirSync(globalModules, { recursive: true });
+    assert(!fs.existsSync(cache) && fs.readdirSync(globalModules).length === 0);
     const env = { ...installed.env, CLAUDE_CONFIG_DIR: config, LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8',
         PATH: [dirname(process.execPath), ...(process.platform === 'win32' ? [] : ['/usr/bin', '/bin'])].join(delimiter),
         npm_execpath: npmEntry(), npm_config_cache: cache, npm_config_prefix: prefix, npm_config_userconfig: user,
@@ -191,7 +194,7 @@ export async function smokeNpxFirstEntry(installed: ReturnType<typeof installCan
         return 'npx-first-entry.log';
     });
     assert(!fs.existsSync(join(config, 'settings.json')) && !fs.existsSync(join(config, 'claude-statusline.json')));
-    const globalPackage = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules', PACKAGE_NAME);
+    const globalPackage = join(globalModules, PACKAGE_NAME);
     assert.deepEqual(fs.readFileSync(join(globalPackage, 'candidate.json')), fs.readFileSync(join(installed.root, 'candidate.json')));
     assert(fs.existsSync(join(cache, '_npx')));
     removeTree(cache);
