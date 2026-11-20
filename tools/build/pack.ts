@@ -100,7 +100,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
             files: Object.fromEntries([...listed].sort().map(name => [name, sha256(fs.readFileSync(join(stage, name)))])) };
         fs.writeFileSync(join(stage, 'candidate.json'), JSON.stringify(source, null, 2) + '\n');
         const result = pack(), tarball = join(destination, result.filename);
-        const checked = verifyContents(readTar(tarball), commit);
+        const checked = verifyContents(readTar(tarball), commit, true);
         return { tarball, sha256: sha256(fs.readFileSync(tarball)), ...checked };
     } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }

@@ -11,13 +11,13 @@ import assert from 'node:assert/strict';
 import { readTar, sha256, sums, verifyChecksums } from './files.js';
 import { BUSINESS, EXTERNAL, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
 import { languageEvidence, verifyPackLanguages } from '../checks/i18n-evidence.ts';
-export function verifyContents(entries: Map<string, Buffer>, commit: string) {
+export function verifyContents(entries: Map<string, Buffer>, commit: string, requireSanitized = false) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
     const source = read('candidate.json') as Candidate, manifest = read('package.json');
     assert.match(commit, /^[a-f0-9]{40}$/u, 'Fixed source SHA required');
     assert.equal(source.commit, commit, 'Wrong source commit');
     assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
-    assert(source.dependency_manifests === undefined || source.dependency_manifests === 'sanitized');
+    assert(source.dependency_manifests === 'sanitized' || (!requireSanitized && source.dependency_manifests === undefined), 'Invalid dependency manifest policy');
     const kind = channel(source.channel ?? 'candidate'), product = identity(commit, kind);
     assert(source.channel === undefined || source.channel === kind, 'Artifact channel must be canonical');
     assert.equal(source.name, product.name); assert.equal(manifest.name, product.name);
@@ -54,7 +54,9 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     for (const name of ['LICENSE', 'LICENSE-Unicode.txt', 'LICENSE-Wcwidth.txt']) assert(entries.get(name)?.length, 'Missing license');
     for (const short of BUSINESS) {
         const name = '@fbincon/statusline-' + short, root = 'node_modules/' + name;
-        assert.equal(read(root + '/package.json').name, name);
+        const workspace = read(root + '/package.json');
+        assert.equal(workspace.name, name);
+        if (source.dependency_manifests === 'sanitized') assert.equal(workspace.scripts, undefined, 'Bundled dependency scripts: ' + name);
         assert([...entries.keys()].some(file => file.startsWith(root + '/dist/src/') && file.endsWith('.js')), 'Missing business package');
         for (const file of entries.keys()) if (file.startsWith(root + '/') && file !== root + '/package.json') {
             const path = file.slice(root.length + 1);

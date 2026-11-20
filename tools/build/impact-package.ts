@@ -7,10 +7,6 @@ import { tmpdir } from 'node:os';
 import * as tar from 'tar';
 import { canonical, emitted, hash, git, languagePresentation, messageShape, runtimeManifest } from '../checks/impact-content.ts';
 import { extractFiles, readTar, npmEntry } from './files.ts';
-import { sanitizeDependencyManifest } from './dependencies.ts';
-import { EXTERNAL } from './model.ts';
-
-const EXTERNAL_MANIFESTS = new Set(EXTERNAL.map(name => 'node_modules/' + name + '/package.json'));
 
 export interface PackageComparison { schema_version: 1; kind: 'package-comparison'; base: string; head: string; base_sha256: string; head_sha256: string; equivalent: boolean; changed_members: string[] }
 function projection(entries: ReadonlyMap<string, Buffer>): Record<string, string> {
@@ -24,8 +20,7 @@ function projection(entries: ReadonlyMap<string, Buffer>): Record<string, string
             const item = JSON.parse(raw.toString());
             value = { ...item, backend_version: '<version>', mod_version: '<version>', files: Object.keys(item.files).sort() };
             for (const [path, digest] of Object.entries(item.files)) assert.equal(hash(entries.get(dirname(name) + '/' + path)!), digest);
-        } else if (EXTERNAL_MANIFESTS.has(name)) value = JSON.parse(sanitizeDependencyManifest(raw).toString());
-        else if (/^node_modules\/@fbincon\/statusline-(?:core|platform|cli|tui)\/package\.json$/u.test(name)) value = runtimeManifest(sanitizeDependencyManifest(raw));
+        } else if (/^node_modules\/@fbincon\/statusline-(?:core|platform|cli|tui)\/package\.json$/u.test(name)) value = runtimeManifest(raw);
         else if (name === 'package.json' || name.endsWith('/.claude-plugin/plugin.json')) {
             const item = JSON.parse(raw.toString()); value = { ...item, version: '<version>' };
         } else if (/\.(?:js|ts)$/u.test(name)) {

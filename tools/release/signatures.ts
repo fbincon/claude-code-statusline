@@ -42,6 +42,7 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
   assert.equal(source.application_version, options.version); assert.equal(source.commit, options.commit);
   assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
   assert(source.dependency_manifests === undefined || source.dependency_manifests === 'sanitized');
+    if (source.dependency_manifests === 'sanitized') assert.equal(manifest.scripts, undefined, 'Product manifest scripts');
   assert.deepEqual(Object.keys(source.files).sort(), [...entries.keys()].filter(name => name !== 'candidate.json').sort(), 'Incomplete package inventory');
   for (const [name, hash] of Object.entries(source.files)) assert.equal(sha256(entries.get(name)!), hash, 'Changed package file: ' + name);
   const internal = BUSINESS.map(name => '@fbincon/statusline-' + name);
@@ -51,6 +52,7 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
     assert.equal(dependencies[name], '0.0.0');
     const workspace = json('node_modules/' + name + '/package.json');
     assert.equal(workspace.name, name); assert.equal(workspace.version, '0.0.0'); assert.equal(workspace.private, true);
+    if (source.dependency_manifests === 'sanitized') assert.equal(workspace.scripts, undefined, 'Bundled dependency scripts: ' + name);
   }
   assert.deepEqual(Object.keys(source.dependencies).sort(), Object.keys(dependencies).filter(name => !internal.includes(name)).sort(), 'Incomplete public dependency inventory');
   for (const [name, record] of Object.entries(source.dependencies) as [string, any][]) {
