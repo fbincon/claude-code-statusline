@@ -75,7 +75,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Tab / Shift+Tab | Cycle Main, Subagents, Settings and Layout outside input editing |
 | Space | Toggle the selected component |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
-| ← / → | Reorder components or adjust a setting; ordering is disabled while filtered |
+| ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
 | `/`; printable text; Backspace / Ctrl+U | Enter or update item search; delete/clear it |
 | Ctrl+F | Choose a category |
 | Ctrl+E / Ctrl+G | Open item details / return, cancel input or clear list filters |
@@ -92,7 +92,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | --- | --- |
 | Tab / Shift+Tab; 1 / 2 / 3 / 4 | Switch Main, Subagents, Settings and Layout outside input editing |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
-| ← / → | Reorder components or adjust a setting; ordering is disabled while filtered |
+| ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
 | Space / Enter | Toggle components; operate settings or enter/accept field editing |
 | `/`; Ctrl+U; Ctrl+G | Enter search; clear input; cancel and restore its prior state |
 | Ctrl+F | Choose a category |

@@ -2,6 +2,7 @@
 import type { AlignmentDraft, Draft, ImportChange, Scope } from '../contracts/ui.js';
 import { alignmentUnits, refKey, validAlignments } from './alignments.js';
 import { isDraft } from './backend.js';
+import { validGroups } from './groups.js';
 import { clone, semantic } from './history.js';
 import { differences } from './import-differences.js';
 
@@ -25,6 +26,9 @@ export function repairStructure(base: Draft, proposed: Draft): Omit<StructurePro
     const after = kept.get(before.id) ?? null;
     return semantic(before) === semantic(after) ? [] : [{ id: before.id, before: clone(before), after: clone(after) }];
   });
-  if (!isDraft(draft)) throw new Error('composition.invalid');
+  if (!isDraft(draft)) {
+    const groupsValid = validGroups(d.groups, d.instances, d.layout) && validGroups(d.subagents.groups, d.subagents.instances);
+    throw new Error(groupsValid ? 'composition.invalid' : 'composition.groups.invalid');
+  }
   return { base: clone(base), draft, repairs, changes: differences(base, draft) };
 }

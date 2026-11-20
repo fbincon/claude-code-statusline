@@ -20,7 +20,7 @@
 
 | 领域 | 交付记录 |
 | --- | --- |
-| 组件编辑 | [目录状态与连续添加](deliveries/component-catalog.zh-CN.md) |
+| 组件编辑 | [分组移动](deliveries/editor-group-movement.zh-CN.md) · [目录状态与连续添加](deliveries/component-catalog.zh-CN.md) |
 | v3.16.3 配置技能 | [问答分页、范围与回退流程](deliveries/skill-workflows.zh-CN.md#final-release) |
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
 | v3.16.1 正确性修复 | [运行身份、来源超时与保存冲突](deliveries/runtime-source-save-fixes.zh-CN.md#final-release) |

@@ -74,6 +74,29 @@ test('a rejected move preserves both the configured order and the row boundaries
   expect(e.draft).toEqual(before); expect(e.order.main).toEqual(order);
 });
 
+test('Native arrows move whole groups across rows and stop at the list edge', () => {
+  const current = readResult();
+  const members = ['context-tokens', 'text', 'context-used'];
+  const display = current.draft.display;
+  display.instances = ['worktree', ...members, 'tokens'].map(id => component(id));
+  display.groups = [{ id: 'context-block', member_ids: members, primary_id: 'context-tokens', link_visibility: true, shared_powerline: false }];
+  const openingRows = [['worktree'], [...members, 'tokens']];
+  display.layout = { mode: 'explicit', rows: openingRows };
+  const e = new Editor(description(), current);
+  const view = { editor: e, input: null, preferences: [], busy: '', uncertain: false, message: '', error: '', preview: null } as unknown as View;
+
+  handleKey(view, { key: 'right' }, 100, 30);
+  expect(e.draft.display.layout.rows).toEqual([members, ['worktree', 'tokens']]);
+  expect(e.selected.main).toBe('worktree');
+  e.selectItem('main', 'text');
+  handleKey(view, { key: 'left' }, 100, 30);
+  expect(view.message).toBe('');
+  expect(e.history.undo.length).toBe(1);
+  handleKey(view, { key: 'right' }, 100, 30);
+  expect(e.draft.display.layout.rows).toEqual(openingRows);
+  expect(e.selected.main).toBe('text');
+});
+
 
 test('native letter actions work outside inputs without depending on reserved control chords', () => {
   const e = editor();

@@ -40,7 +40,7 @@ instances of the same type; it follows their current order.
 | Remove the selected instance from the draft | X / Ctrl+X |
 | Enable or disable | Space |
 | Edit the selected instance | Ctrl+E |
-| Move the selected instance | Left / Right |
+| Reorder the selected component or its group | Left / Right |
 | Search / choose category | `/` / Ctrl+F |
 | Clear the list's search and category | Ctrl+G |
 
@@ -109,6 +109,8 @@ copying a component does not duplicate transcript scans, Git calls or usage tota
 Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
 
 Groups contain at least two consecutive instances in one scope; explicit layouts must place the whole group on one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
+
+In the Main and Subagents lists, Left and Right swap the selected component with its neighbor. Selecting any group member moves the whole group. A neighboring group also moves as a whole, preserving its member order. Across an explicit row boundary, the two components or groups trade rows and the number of rows stays the same. For example, moving `A` right in `X A │ [B C] D` gives `X [B C] │ A D`, where `[B C]` is a group.
 
 Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances; affected alignments require structural review. Copying an individual member inserts a standalone copy after its group. Operations without a valid candidate retain the draft.
 
