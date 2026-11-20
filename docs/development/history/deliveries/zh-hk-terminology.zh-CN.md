@@ -31,6 +31,7 @@
 | `claude plugin test mods/statusline-native` | 45 个文件中的 357 项测试通过，包括已注册的语言循环。 |
 | 外部语言测试 | 34 项测试通过，包括全部 144 个界面／状态栏语言组合和实际渲染。 |
 | `npm run docs:check` / 已注册内容测试 | 7,436 个链接零错误；37 项内容和示例测试通过。 |
+| `npm run ci:plan -- --compare` | 包比较显示等价，运行时成员零变更。维护性作用域任务因超出预算（377 分钟）被拒绝，因此未签发 `ci:check` 回执；上述适用检查已直接运行。 |
 | `git diff --check` | 无错误。 |
 
 验收记录仅为结构化和上下文审阅，不代表母语审阅。自动化编辑器测试覆盖两个编辑器，但未进行真人视觉或实体桌面采样。`zh-TW` 术语未改变。既有 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项平台缺口仍未验证，未进行付费模型调用。

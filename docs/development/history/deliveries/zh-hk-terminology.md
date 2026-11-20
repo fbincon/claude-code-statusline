@@ -31,6 +31,7 @@ This 2026-11-21 feature delivery normalizes `zh-HK` to the documented Hong Kong 
 | `claude plugin test mods/statusline-native` | 357 tests passed across 45 files, including the registered language cycling. |
 | External language tests | 34 tests passed, including all 144 interface/statusline combinations and actual rendering. |
 | `npm run docs:check` / registered content tests | 7,436 links with zero errors; 37 content/example tests passed. |
+| `npm run ci:plan -- --compare` | Package comparison reported equivalent with zero changed runtime members. The maintenance scoped task was rejected as oversized (377 minutes), so no `ci:check` receipt was issued; the applicable checks above were run directly. |
 | `git diff --check` | Clean. |
 
 The acceptance record is structural and contextual only; it does not establish native-speaker review. Automated editor tests cover both editors, but no human visual or physical desktop sample was made. `zh-TW` terminology was not changed. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified, and no paid model calls were made.
