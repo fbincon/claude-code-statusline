@@ -4,6 +4,7 @@ import { alignedRows } from './alignment.js';
 import { groupedRows, SCOPE_LABEL_ID } from './groups.js';
 import { indicator, adaptiveIndicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
+import { BY_SCOPE } from '../config/catalog.js';
 import { fileLink, safeLink } from '../terminal/links.js';
 import type { DisplayDraft, FormattingDraft, InstanceDraft } from '../contracts/ui.js';
 import { int, numeric, truth, string, object, own, type Data } from '../runtime/values.js';
@@ -22,7 +23,7 @@ import * as live from './live.js';
 import * as appearance from './appearance.js';
 import * as layout from './layout.js';
 import * as powerline from './powerline.js';
-import { literal, fitRow, type Cell } from './components.js';
+import { literal, fitRow, sameSemanticGroup, type Cell } from './components.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
 import { coercedFloat } from './coercion.js';
 export interface RenderedItem {
@@ -304,7 +305,12 @@ export class RenderState {
         const external = node && ['external-value','github-pr','github-ci'].includes(item) ? externalPresentation(node, this.env.source?.(node, this.data), this.env, fmt) : null;
         const adaptive = options.presentation === 'adaptive' ? adaptiveIndicator(this.data, item, 'main', options, fmt, this.env.language, this.now()) : null;
         if (options.presentation === 'adaptive' && !adaptive) return null;
-        const rendered = adaptive ? { text: adaptive.text } : external ? { text: external.text } : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage') : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
+        const indicatorGroup = adaptive || options.presentation === 'bar' ? BY_SCOPE.main.get(item)?.group : undefined;
+        const rendered = adaptive ? { text: adaptive.text, group: indicatorGroup }
+            : external ? { text: external.text }
+            : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage')
+            : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage, indicatorGroup)
+            : this.renderType(item);
         if (!rendered)
             return null;
         const style = (value: string) => {
@@ -333,7 +339,7 @@ export function coalesce(items: readonly RenderedItem[], inner: string): layout.
     let current: RenderedItem | null = null, parts: PaintedPart[] = [];
     const emit = () => { if (!current) return; const paint = segmentPaint(parts); segments.push({ text: current.text, prefer_slash_breaks: current.prefer_slash_breaks, ...(paint ? { paint } : {}) }); };
     for (const item of items) {
-        if (current !== null && item.group && item.group === current.group) {
+        if (current !== null && sameSemanticGroup(current.group, item.group)) {
             current.text += inner + item.text; parts.push({ text: inner }, item);
         } else { emit(); current = { ...item }; parts = [item]; }
     }
@@ -341,7 +347,8 @@ export function coalesce(items: readonly RenderedItem[], inner: string): layout.
 }
 const paintSegment = (segment: layout.LayoutSegment) => segment.paint?.(segment.text, 0) ?? segment.text;
 export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e), colors = powerline.cursor('main',env.trace)): string[] {
-    const palette = paletteFor(config), [outer, inner] = separators(config, palette), state = factory(data, config, palette, inner, env), rows: string[] = [];
+    const palette = paletteFor(config), rowSeparators = separators(config, palette), [outer, inner] = rowSeparators;
+    const state = factory(data, config, palette, inner, env), rows: string[] = [];
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
     const label = () => ({ text: palette.timer + env.language.text('scope.main') + palette.reset });
     const nodes = new Map(config.instances.map(node => [node.id, node]));
@@ -359,16 +366,26 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             prefixBody = prefix;
             prefix=powerline.row([{text:prefix,sequence:false}],unitConfig,true,true,{...colors});
         }
-        return alignedRows(config,Math.max(2,width),outer,prefix,colors,
-            (ids,cursor)=>configuredRows(data,{...unitConfig,layout:{...unitConfig.layout,rows:[ids]}},10000,env,()=>cached,cursor).join(''),
+        return alignedRows(config,Math.max(2,width),rowSeparators,prefix,colors,
+            (ids, cursor) => {
+                const text = configuredRows(data, { ...unitConfig, layout: { ...unitConfig.layout, rows: [ids] } }, 10000, env, () => cached, cursor).join('');
+                return { text, semanticGroup: ids.length === 1 ? cache.get(ids[0]!)?.group : undefined };
+            },
             (ids,first,cursor)=>configuredRows(data,{...plain,scope_labels:first?plain.scope_labels:'off',layout:{...plain.layout,rows:[ids]}},width,env,()=>cached,cursor),
             (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)), prefixBody);
     }
     if (config.groups.length || config.instances.some(node => node.options.presentation === 'adaptive')) {
         for (const ids of config.layout.mode === 'auto' ? [config.instances.map(n => n.id)] : config.layout.rows) {
-            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null; return { id, text: item?.text ?? '', paint: item?.paint, adaptive: item?.adaptive, onAdapt: item?.onAdapt, priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
+            const cells: Cell[] = ids.map(id => {
+                const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null;
+                return {
+                    id, text: item?.text ?? '', semanticGroup: item?.group, paint: item?.paint,
+                    adaptive: item?.adaptive, onAdapt: item?.onAdapt, priority: node.options.priority,
+                    spacer: node.type_id === 'spacer' && node.enabled,
+                };
+            });
             if (cells.some(c => c.text) && scope() && !rows.length) cells.unshift({ id: SCOPE_LABEL_ID, text: label().text, priority: -1, sequence: false });
-            rows.push(...groupedRows(cells, config.groups, config, 'main', width, outer, config.layout.mode === 'auto', env.trace?.fit('main'), colors));
+            rows.push(...groupedRows(cells, config.groups, config, 'main', width, rowSeparators, config.layout.mode === 'auto', env.trace?.fit('main'), colors));
         }
         return rows;
     }

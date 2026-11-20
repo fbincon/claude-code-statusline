@@ -112,7 +112,9 @@ Groups contain at least two consecutive instances in one scope; explicit layouts
 
 In the Main and Subagents lists, Left and Right swap the selected component with its neighbor. Selecting any group member moves the whole group. A neighboring group also moves as a whole, preserving its member order. Across an explicit row boundary, the two components or groups trade rows and the number of rows stays the same. For example, moving `A` right in `X A │ [B C] D` gives `X [B C] │ A D`, where `[B C]` is a group.
 
-Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances; affected alignments require structural review. Copying an individual member inserts a standalone copy after its group. Operations without a valid candidate retain the draft.
+With classic and compact separators, a group uses spaces between its members. Visible standalone neighbors still use their semantic separators on the main row, including when columns are aligned. Sharing Powerline creates one block with the primary's background. Members retain their foreground and threshold colors, and their saved backgrounds are used again when sharing is disabled. [Separators and semantic groups](reference/cli.md#separators-and-semantic-groups)
+
+Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances. Affected alignments require structural review. Copying an individual member inserts a standalone copy after its group. Operations without a valid candidate retain the draft.
 
 ```bash
 claude-statusline config group main list --json

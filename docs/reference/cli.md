@@ -783,16 +783,26 @@ Windows drive paths, paths with spaces or Chinese characters, UNC paths, and cas
 
 #### Separators and semantic groups
 
-`classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items. `powerline` treats every visible item as a separate block; padding and boundaries count toward width. See [Powerline behavior](../APPEARANCE.md#basic-powerline).
+`classic` uses ` | ` between top-level units, and `compact` uses ` · `. Powerline uses separate blocks for visible items and can share one block across an explicit group. Block padding and boundaries count toward width. [Powerline behavior](../APPEARANCE.md#basic-powerline)
 
-With the ordinary separators, adjacent items in the following semantic groups join with ` · `. Color names below describe the default classic theme; themes and item overrides can change them:
+With either ordinary separator style, adjacent visible standalone items in the same semantic group join with ` · ` within a row. Each side of a spacer is handled separately. The same rule applies in aligned rows, with column padding and reserved slots for hidden members. An explicit group uses spaces between its visible members and the top-level separator between the group and its neighbors. Numeric, bar and adaptive indicators use the same semantic group.
 
-- `model-with-effort`, `fast-mode`, and `thinking` (model group, ivory)
+Common semantic neighbors in the default classic theme include the following items.
+
+- `model`, `model-with-effort`, `effort`, `fast-mode`, and `thinking` (model group, ivory)
 - `current-dir`, `project-name`, and `hostname` (location group, green)
 - `git`, `pr`, and `repo` (repository group, purple)
-- `tokens` and `prompt-cache` (usage group, pink)
-- `context-remaining`, `context-used`, and `context-window-size`
-- `five-hour-limit`, `weekly-limit`, and `spend-limit`
+- `tokens`, `session-cost`, `prompt-cache`, `cache-state`, and `cache-expires` (usage group)
+- `context-tokens`, `context-remaining`, `context-used`, and `context-window-size` (context group)
+- `five-hour-limit`, `weekly-limit`, `spend-limit`, and `five-hour-reset` (limits group)
+- `run-state`, `last-tool`, `task-progress`, `output-rate`, and `active-agents` (activity group)
+
+This `classic` row includes an explicit group containing `context-tokens` and a bar for `context-used`.
+
+<!-- docs-example: cli-semantic-separators -->
+```text
+Sonnet · thinking · fast | Context 50K / 200K [██░░░░░░] Context 25% used
+```
 
 `version`, `session`, `cost`, `agent`, `vim-mode`, and `worktree` remain independent and do not merge with neighbors. The catalog is grouped as model → location → repository → context → limits → usage → timer → independent items, but `enable` simply appends new items in argument order. Use `order`, `set-items`, or the TUI to place group members together. Separating them through reordering restores independent top-level items. Internal fields in `tokens` (`hit`, `miss`, `out`), `cost` (amount, duration, line changes), and `prompt-cache` (hit rate, written tokens) always use ` · `.
 

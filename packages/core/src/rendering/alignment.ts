@@ -1,19 +1,23 @@
 import { row as powerlineRow, finishRow, type RowChunk } from './powerline.js';
 import type { DisplayDraft } from '../contracts/ui.js';
 import { alignmentUnits, refKey, type AlignmentUnit } from '../editor/alignments.js';
+import { sameSemanticGroup } from './components.js';
 import { displayWidth, strip, ensureReset } from './layout.js';
 import { RESET } from './styles.js';
 import type { ColorCursor } from './powerline.js';
 
-interface Unit extends AlignmentUnit { width:number; before:number; after:number; label?:string }
-export function alignedRows(config:DisplayDraft,columns:number,separator:string,label:string|null,colors:ColorCursor,
-  renderUnit:(ids:string[],colors:ColorCursor)=>string,
+interface RenderedUnit { text: string; semanticGroup?: string | null }
+interface Unit extends AlignmentUnit { width:number; before:number; after:number; label?:string; semanticGroup?: string | null }
+export function alignedRows(config:DisplayDraft,columns:number,[outer, inner]: readonly [string, string],label:string|null,colors:ColorCursor,
+  renderUnit:(ids:string[],colors:ColorCursor)=>RenderedUnit,
   renderRow:(ids:string[],first:boolean,colors:ColorCursor)=>string[],
   observe?:(ids:string[],collapsed:boolean)=>void, labelBody?:string|null):string[] {
-  const reset=config.use_colors?RESET:'', gap=config.separator_style==='powerline'?' ':separator, gapWidth=displayWidth(gap);
+  const isPowerline = config.separator_style === 'powerline';
+  // The two ordinary separators occupy the same number of cells.
+  const reset=config.use_colors?RESET:'', gap=isPowerline?' ':outer, gapWidth=displayWidth(gap);
   const units:Unit[]=alignmentUnits(config.layout,config.instances,config.groups).map(unit=>{
-    const text=renderUnit(unit.ids,{...colors,index:0,capture:undefined});
-    return {...unit,width:strip(text).trim()?displayWidth(text):0,before:0,after:0};
+    const { text, semanticGroup } = renderUnit(unit.ids, { ...colors, index: 0, capture: undefined });
+    return {...unit,semanticGroup,width:strip(text).trim()?displayWidth(text):0,before:0,after:0};
   });
   const byKey=new Map(units.map(unit=>[refKey(unit.ref),unit])), nodes=new Map(config.instances.map(node=>[node.id,node]));
   const rows=config.layout.rows.map((ids,row)=>({
@@ -59,11 +63,15 @@ export function alignedRows(config:DisplayDraft,columns:number,separator:string,
   const draw=(values:Unit[])=>{
     const active=values.filter(unit=>size(unit)>0);let previous:Unit|undefined;
     return active.map(unit=>{
-      const join=previous?(previous.width&&unit.width?gap:' '.repeat(gapWidth)):'';
+      let join = '';
+      if (previous) {
+        if (!previous.width || !unit.width) join = ' '.repeat(gapWidth);
+        else join = !isPowerline && sameSemanticGroup(previous.semanticGroup, unit.semanticGroup) ? inner : gap;
+      }
       previous=unit;
       if (join) colors.capture?.push({gap:join});
       if (unit.before) colors.capture?.push({gap:reset+' '.repeat(unit.before)});
-      const text=unit.label??(unit.width?renderUnit(unit.ids,colors):'');
+      const text=unit.label??(unit.width?renderUnit(unit.ids,colors).text:'');
       if (unit.label && colors.capture) powerlineRow([{text:labelBody ?? unit.label,sequence:false}],config,true,true,colors,true);
       if (unit.after) colors.capture?.push({gap:reset+' '.repeat(unit.after)});
       return join+(unit.before?reset+' '.repeat(unit.before):'')+text+(unit.after?reset+' '.repeat(unit.after):'');

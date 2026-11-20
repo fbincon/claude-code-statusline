@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { main } from '@fbincon/statusline-cli/main';
+import { baseEnvironment, presentation } from '@fbincon/statusline-cli/rendering/environment';
 import { ProfileService } from '@fbincon/statusline-cli/config/profiles';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { createStorage, jsonBytes } from '@fbincon/statusline-cli/config/storage';
@@ -17,6 +18,8 @@ import { defaultDisplay, defaultItem } from '@fbincon/statusline-core/config/dis
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { Editor, copyDraft } from '@fbincon/statusline-core/editor/draft';
 import { changesKey } from '@fbincon/statusline-core/editor/change-review';
+import { editGroup } from '@fbincon/statusline-core/editor/groups';
+import { configuredRows } from '@fbincon/statusline-core/rendering/items';
 import { SOURCE_REGISTRY_VERSION, type DescribeResult, type ReadResult } from '@fbincon/statusline-core/contracts/ui';
 import { contentDocuments, example, sourceExample } from '../docs-content.js';
 
@@ -281,6 +284,24 @@ for (const suffix of ['', '.zh-CN']) {
 for (const suffix of ['', '.zh-CN']) {
     const body = pages.get(`docs/reference/cli${suffix}.md`)!;
     const lines = (id: string) => example(body, id, 'text').split('\n');
+    test(`documented separator example matches production rendering (${suffix || 'en'})`, async () => {
+        const display = defaultDisplay(), ids = ['model', 'thinking', 'fast-mode', 'context-tokens', 'context-used'];
+        display.statusline_language = suffix ? 'zh-CN' : 'en';
+        display.use_colors = false;
+        display.scope_labels = 'off';
+        display.instances = ids.map(id => ({ id, type_id: id, enabled: true, text: null, options: defaultItem() }));
+        display.instances.find(node => node.id === 'context-used')!.options.presentation = 'bar';
+        display.layout = { mode: 'explicit', rows: [ids] };
+        const grouped = editGroup(display, 'main', {
+            action: 'create', member_ids: ['context-tokens', 'context-used'], primary_id: 'context-tokens',
+        }, () => 'context-block');
+        const input = {
+            model: { id: 'Sonnet' }, thinking: { enabled: true }, fast_mode: true,
+            context_window: { total_input_tokens: 50000, context_window_size: 200000, used_percentage: 25 },
+        };
+        const env = baseEnvironment(await presentation(display.statusline_language));
+        assert.deepEqual(configuredRows(input, grouped, 120, env), lines('cli-semantic-separators'));
+    });
     test(`CLI reference sorting and compatible layouts preserve configured disabled instances (${suffix || 'en'})`, async t => {
         const f = fixture(t), initial = f.configuration.read();
         f.configuration.apply({ display: defaultDisplay(), host: initial.host }, initial.revision);
