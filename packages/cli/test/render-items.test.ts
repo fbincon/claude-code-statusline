@@ -87,6 +87,14 @@ test('tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_conte
     for (const used_percentage of [null, true, false, '27', NaN, Infinity, -Infinity, -0.1, 100.1, 10n ** 1000n])
         assert.equal(items({ context_window: { used_percentage } }, 'context-used'), '');
 });
+test('tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_remaining_rounding', () => {
+    for (const [remaining_percentage, expected] of [[27, 27], [27.4, 27], [27.6, 28], [0, 0], [100, 100]])
+        assert.equal(items({ context_window: { remaining_percentage } }, 'context-remaining'), `Context ${expected}% left`);
+});
+test('tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_remaining_rejects_invalid_values', () => {
+    for (const remaining_percentage of [null, true, false, '27', NaN, Infinity, -Infinity, -0.1, 100.1, 10n ** 1000n])
+        assert.equal(items({ context_window: { remaining_percentage } }, 'context-remaining'), '');
+});
 test('tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_items_coexist_in_configured_order', () => {
     assert.equal(items({ context_window: { remaining_percentage: 73, used_percentage: 27, context_window_size: 200000 } }, 'context-remaining', 'context-used', 'context-window-size'), 'Context 73% left · Context 27% used · 200K window');
 });

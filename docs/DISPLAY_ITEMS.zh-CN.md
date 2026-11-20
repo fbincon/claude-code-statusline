@@ -72,7 +72,7 @@
 | `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
 | `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
 | `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如原生 Linux/macOS 的 `Git main ↑1● 2` 或 Windows/WSL 的 `Git main ↑1●2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
-| `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略。宿主提供的有限数值按原值渲染；当前不对越界值做夹取。 |
+| `context-remaining` | `Context N% left` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
 | `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
 | `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
 | `weekly-limit` | 7 天窗口的剩余百分比，显示为 `weekly` | 未提供该窗口时省略 |

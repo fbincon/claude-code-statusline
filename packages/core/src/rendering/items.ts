@@ -25,7 +25,6 @@ import * as layout from './layout.js';
 import * as powerline from './powerline.js';
 import { literal, fitRow, sameSemanticGroup, type Cell } from './components.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
-import { coercedFloat } from './coercion.js';
 export interface RenderedItem {
     adaptive?: Representation[];
     onAdapt?: (stage: Representation['stage']) => void;
@@ -166,13 +165,8 @@ export class RenderState {
             return this.styled(value === null ? this.text('diff.empty') : this.text('diff', value as Data), p.branch, 'repo');
         }
         if (item === 'context-remaining') {
-            const value = deepGet(data, ['context_window', 'remaining_percentage']);
-            if (value === null)
-                return null;
-            const number = coercedFloat(value);
-            if (number === null || Number.isNaN(number))
-                return null;
-            return this.styled(this.text('context.remaining', { percentage: roundedInteger(number) }), p.percentage, 'context');
+            const value = metrics.finiteNumber(deepGet(data, ['context_window', 'remaining_percentage']));
+            return value !== null && value <= 100 ? this.styled(this.text('context.remaining', { percentage: roundedInteger(value) }), p.percentage, 'context') : null;
         }
         if (item === 'context-used') {
             const value = metrics.finiteNumber(deepGet(data, ['context_window', 'used_percentage']));
