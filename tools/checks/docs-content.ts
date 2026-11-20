@@ -19,6 +19,7 @@ import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 import { NATIVE } from '@fbincon/statusline-cli/integration/model';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 import { candidateCasesForNode } from './release-ci-policy.js';
+import { SCOPED_HOSTED_JOB_MS } from './impact-budget.js';
 
 export type Documents = ReadonlyMap<string, string>;
 export function contentDocuments(root: string): Documents {
@@ -225,6 +226,10 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                     break;
                 case 'docs/development/i18n-workflow':
                     numeric(NUMBER + (zh ? ' 组语言组合' : ' language combinations'), [LANGUAGES.length ** 2], 'Language combination count differs from registry');
+                    break;
+                case 'docs/development/impact-checks':
+                    numeric(zh ? NUMBER + ' 分钟的托管作业上限' : 'hosted job limit of ' + NUMBER + ' minutes',
+                        [SCOPED_HOSTED_JOB_MS / 60_000], 'Scoped job limit differs from the scheduling policy');
                     break;
                 case 'docs/development/live':
                     for (const [unit, bound] of [[zh ? ' 个 turn' : ' turns', MAX_TURNS], [zh ? ' 个工具' : ' tools', MAX_TOOLS],

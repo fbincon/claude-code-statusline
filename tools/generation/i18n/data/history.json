@@ -27721,6 +27721,632 @@
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
         }
+      ],
+      "catalog.categories.extensions": [
+        {
+          "source": "8846ae4dddce6049c964734831aa7e13501f34730da78b748613d50624c25a2e",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "cli.help.diagnose_supplied_input": [
+        {
+          "source": "023dacf131dde2bba68f151741d1f7aa97a4f94b608ed0fabdbf5d1bbea455dc",
+          "translation": "431825c7711fcf0694984d7e33ff7999497eee57a5cd345ea4bc45b81efc1657",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "cli.help.guided_setup": [
+        {
+          "source": "2aff342a2a485a4923a3cdee6de538816f865f0127336bd892214281f791b89e",
+          "translation": "75141ccbcee0830f3891dd648dcfb03510eb08125b273687006713ecc5d9338f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "cli.help.source_management": [
+        {
+          "source": "e6c12397f24a00a62ea9cf1b3461c204102f665a6a823b0854e2a58bba49f7b0",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "composition.errors.main_spacer": [
+        {
+          "source": "587e8c5606cc77c1dd0ef563a2c27203204c9f6afdcc9a1da4a192625956ef3d",
+          "translation": "f998d7110f2ae200e1e0c744fb0ae911dff9861b0df0418cc4240c25796d1973",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "composition.groups.main": [
+        {
+          "source": "564f14232580d1317811463650ffb4334ecd82324d42bc1d91da63d9bbfea29b",
+          "translation": "1b98b44612e9530fa91d3baae2f87978479cf0e63ba5420bb8ecb5c26da2e635",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "composition.invalid": [
+        {
+          "source": "3f0e5f0bbfd94ecf56bf341e753527066638003fa0bb0b594e48c2cada9ed580",
+          "translation": "2a7e6fb4c96ee5d9b602cbca1b756631c66dd0182218d8f97005e289f223d5b1",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnose.help": [
+        {
+          "source": "f642900a2714950f5ebd67a88ee3640443191a261de4f4b812b2950f1d5ae443",
+          "translation": "90f5f4e0f74622a3f94bc30b00382a490631c2c666e0b0d5bd086a2552c77c5c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnose.limits": [
+        {
+          "source": "7638b855d8163d15fbcd36d86650819040ac41fc4c42e8f37bd1f59457aeeded",
+          "translation": "4346b25a85837ce403ed39481dcc50fc7ab94706a76f2265c7c60ff677b06a9f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "explain.reason.sample_empty": [
+        {
+          "source": "2a00956587eca231d3bb02e047b8650e89928792c1b8e13c57b088b425d6b412",
+          "translation": "6d3c4b92fec152cfc52e012101db8669d79548667e0c7431a87bfec32e5b3882",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "explain.reason.source_bound": [
+        {
+          "source": "20bcadd1111239a6f98fe1041884af9c1bc352bad672121ec580c89ff45e61ff",
+          "translation": "4735cb87665d80c33d892d5d39517bdc167c7302020c110cd9ceb6e00d834e9f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "explain.reason.source_unbound": [
+        {
+          "source": "46365c213d09b98e3d10cccb11db1b216a1455c0ddee866d47bc577aa2281cac",
+          "translation": "69168ae0586ecae050dbc349b5c3ef073629f6926f85424a78f12ef342685a23",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "explain.row.main": [
+        {
+          "source": "db64038fc61ff11e573eaf7ebe4bc0764cc1c9823e5d71febec04a6c7755bb5b",
+          "translation": "42a58c81fb3818c0bbf2b9394e5ec6472e31064da8e9a901f93efeb75a3cf29b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "items.main.external-value.description": [
+        {
+          "source": "7c0974ec0ff28a53133a4c34c67a47afb1eda07d6922182c4257b59dc335e925",
+          "translation": "1ea87f5febccb35376379d6019db80b34e0651b8c1d297095c0a41348b9b1eef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "items.main.github-ci.description": [
+        {
+          "source": "18f6ec93961c1de2e79b6e11426a6dfc94e12d1fdee51985e991945438969d64",
+          "translation": "1ea87f5febccb35376379d6019db80b34e0651b8c1d297095c0a41348b9b1eef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "items.main.github-pr.description": [
+        {
+          "source": "3d1e9e059fded68aaaa385d5d89f743953cf5d4e8b7b76a865d2dc5c1b50841d",
+          "translation": "1ea87f5febccb35376379d6019db80b34e0651b8c1d297095c0a41348b9b1eef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "items.subagent.external-value.description": [
+        {
+          "source": "579870220908ae101315d1c66496d09669a63254ef95bd6b9810ba62ce0d5608",
+          "translation": "1ea87f5febccb35376379d6019db80b34e0651b8c1d297095c0a41348b9b1eef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "native.settings.sources": [
+        {
+          "source": "3251274fc5fbd584d158cd01eb76b8aa3cb7c69c0fecadba90ae5082de3cbdde",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.reason_metadata": [
+        {
+          "source": "8751ee1c4a6215d113948561548e93850e2901e08aa3f3ef142fcde9570e83b9",
+          "translation": "d4a24a425a2fbda8140599ecdd3d23b2a253401a7087f3376236c135048ded1d",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.reason_npm_failed": [
+        {
+          "source": "59ba7ad5bb37bec283adf5636b7d3d9970516d78e8cedd701c8a39e5c363be08",
+          "translation": "b60b6546c22d06b7a27cb3b9972a8ff4141c4c0c3f711864e423fa1e2eab9529",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.reason_permissions": [
+        {
+          "source": "5efeddcec32a6eb21e4e91268eca359d9c6cdced0b6e555c90aa8abbb4222930",
+          "translation": "8f1277e5ce95b3679e53c978796550f3af027913504b26a59235b57228c5266a",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.ui.check": [
+        {
+          "source": "456a7f1742ac29beb52099674417f28d159427b5af5e0df6126f4b62d9516f85",
+          "translation": "2c3fbd53ef208f4c29c596ae6d2aa3b2e30210285a52695d0bce3d0765d7659c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.ui.unverified": [
+        {
+          "source": "d33d27ebe044c07c82f1cdb8f3e20342f8457bfa703d3d27a13f85485401e7a7",
+          "translation": "9bbfbe6d035d340be6e90f7c05363ba09ca9780ef4bd3ed2611671855edd548e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.help": [
+        {
+          "source": "52354fead5e26753cb17dcf6fceffc2567447314847b74a7424011841a9e8321",
+          "translation": "2aa6b21c53d29afb02f8246384858604f32441b787bda1646267cfc27ee6b579",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.ambiguous_binding": [
+        {
+          "source": "f61bcea1e50250999a8d9d7260de56d4c1317edb5d4b162e65bc578f8511e09d",
+          "translation": "c8fc038788833654af342b09b3fcdac0cab329ee70c37a1ef0d22d84a23251f8",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.invalid_collection": [
+        {
+          "source": "9f95074a5d4965b7fbc31191638eb0be92584c5079492ff71f4a1f8a897bae42",
+          "translation": "4143f36cbbe00805e965c4a4a7ea990053e03fa0b86e7285b35aad0ecefcd7df",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.missing_profile": [
+        {
+          "source": "9742ecbb7d2044e89ede18b18151f196d8c7d3fb0dc6d9a8013daa0d929508fd",
+          "translation": "1f666c91e4988c8c4df85658781a49cc8d9dba82e65a154c0949169b442471e9",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.path_unavailable": [
+        {
+          "source": "943ef3485fe53a15ebecc7773941a176d0371f9542448426866cd22ad6d796aa",
+          "translation": "ca3e6cb756ec00f8a9e2090ccdfb3e93a3e2fe4051bb1fd45efb274dbabaab08",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.unbound": [
+        {
+          "source": "d613ac61b6fed006b13d0e7ca8b4e97ffb8ca720ba8d4facb16590cd938e032c",
+          "translation": "66aa073cc29d5ff111b701837f5c8218e2c345a171de6ea650ef00fb6ff8df8c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.reason.user_default": [
+        {
+          "source": "b7034d3e70785f16652b2247114782f79953343b076a517fb7cb5459789e7185",
+          "translation": "9992a0aeef76be240a745cde1744b52f441660649f4328abdaa875b35d087c76",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "profiles.user": [
+        {
+          "source": "d724e83ba5358230827a0979c8a1985deb407c9cad8971930485676c50c79297",
+          "translation": "9992a0aeef76be240a745cde1744b52f441660649f4328abdaa875b35d087c76",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "quick.requirements.agent-workbench": [
+        {
+          "source": "7d0ce6d271d194e1996956f48d04e21dfaa9f40248c009dca2bfb3daf315303d",
+          "translation": "eb25d2ca91a7bb7bdc8bc18cc3cf18bdeab7afc1a0cd73d3527f3e0d7720dd3e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "quick.requirements.left-right": [
+        {
+          "source": "9dc7fb0b29371dba365e6c4b25b77e569f6e01d336816b5ce098a21beda30019",
+          "translation": "adfb094dd4e870a274eaa0f533eea634f56774c7e6c63216393ab8c33d68db4c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "quick.requirements.multi-agent": [
+        {
+          "source": "eafa3b0a8c74a78597a3abdedd322081f06397cd16e9927b52a5b4568033cfd7",
+          "translation": "971c1e58d1d13d9d0c0247788e317eb4bc7e8033b4187eebc0f3b1c3c64cf6ef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "quick.requirements.quota-watch": [
+        {
+          "source": "5d34e48149f10134f09a98c160918bed77716ffd87fa4ec4fb437792c3bd069c",
+          "translation": "374b18d3634c598f5a55c35686b79b805df494b251011b774e0075ce3c829aa7",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "quick.sample": [
+        {
+          "source": "a1f2fffdf96796ed2011033e74f2642ce931a06ed51d8c0131fb74a24f267030",
+          "translation": "88fa7048136cbe1b050f075d49dd995d7b997c2e9457b33c93c07cec455aa1e3",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "settings.sources": [
+        {
+          "source": "01d1c01feb89a49c79a5feb0fbe79afdb7be0ebc47d55006884e364809d0a17e",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "setup.bound_project": [
+        {
+          "source": "390e3d2a061c6b05bf5bd2c9c69d0cb435d0ea444946e62be51c53639db76b5f",
+          "translation": "2cd5a0ba997a133dcb52d2a8970e386aa9026127207f9d3f7c11cbe1c37572f0",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "setup.target": [
+        {
+          "source": "1db9f54ccbae60a4d0022ac78d113daa8b5608c038a00820daeb4a12f52cc536",
+          "translation": "53b6c79cebab5c2fc0b645f461b1b317d418c8ca23fe317275544c0ebd96e65e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "setup.title": [
+        {
+          "source": "e0c391cfcba4dea695b4e883854ae185a8e98cd42c01b9c434c7f64b0ba0a385",
+          "translation": "d4eb29f5106c95f63abde9f241b36dd0f96d79b49377364c423d2b1458281169",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.add": [
+        {
+          "source": "228b6e1516b38a6e717bbffeb920e10db55c5e95c56c021e9a4cc6cf70453308",
+          "translation": "2535a918c4b40ab7ddc24a440a1d370d97f749f97669e420c62f5ee38ec5f341",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.edit": [
+        {
+          "source": "728146ba4e410217ef9ee39c1dff73fb523c436b2028843ec4bbf1e8b6723234",
+          "translation": "caa5fccfc0bf7c913a56716d272f245a96b033e3a1cdc9c16aa7c7e24ceb3844",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.empty": [
+        {
+          "source": "c3f8958f0ba9f800bb5d925cc3ca60ae6af65142154a39c709383fa8bbdacffc",
+          "translation": "43d00a7fb87a9da79f7bf8a3839cfcf7914a6522e5fb61a9604bdacbef305be5",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.conflict": [
+        {
+          "source": "663d946871b151cdeff1d6c4f39821ac4209b269eca2bb33dc84fbb0e56f15da",
+          "translation": "8cb32b01dca9ec531f87836f56eb16a42babdaba2e1fe840183f6b3a33ffb053",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.disabled": [
+        {
+          "source": "55864988ae93e6888d969604ef8b669a77005d0b6d7a4325f55445c5b6d4cd82",
+          "translation": "2142c942616810aa40d505a1a12d2a08fe3c6543e94acc8906ab719391d6ec57",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.invalid": [
+        {
+          "source": "7b272270fc91ed9426a12ee974950654f810aa8a98d7a2c29bb78f3529df374d",
+          "translation": "549f55bed0ec680621d9432ac8394fb4e199776d16805a4141210328ffed9db4",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.invalid_output": [
+        {
+          "source": "998ae5dbc9e49990c6f6a555c8b47f02d4e71fe2a219d8983fcfe7ad4c33f03f",
+          "translation": "a9ed1d825c0d1cf406cb87b3a22b192de64eacee1f648999d99ebdb4095ae80c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.network": [
+        {
+          "source": "7c8b90015a6516dfeac0250338d9bc25ceefecbabb31d5f3394a6febb91dfc26",
+          "translation": "24755e79be37c30531e41b29c5c55c84735bcd3596eb767c8c71bf51e321ee48",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.not_found": [
+        {
+          "source": "1b8b2ecaa4735848e42ee04f9bbc47320c288c16a6b4a5be725eda3a2abd32d6",
+          "translation": "71e7e036ea2c76d873c720eee65d9b2694a5005b8e885d9a477197c5dfeb8ee9",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.read_error": [
+        {
+          "source": "35618564405a61d1450b9a8b7f34cecc45a0f22012d45012f1bc0685244b14ea",
+          "translation": "85c6c2524b52c13eefb9793e00fd4d519093ea089f1d374f9dad028b5dba1a85",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.error.scope": [
+        {
+          "source": "461e3ee6dfe53898d46bd5f9b890901109373357bbb7390fb641a61f5e45bcea",
+          "translation": "656e1d386752f2818737f2bead48fd42c67daa7d4ee691f1d22a6dc44a8becbb",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.failed": [
+        {
+          "source": "679ed265ad2d72981cbe1d7cbe4e004c7ce5bd4e9121387b55d20777ea8569f8",
+          "translation": "793697e0ed18185ace577ba5fbd6eea29a0edf821004de8f88c2dd815f59760e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.field.id": [
+        {
+          "source": "f6f07c230987e64ef57ef97d8ba2fd6055c50a649dd42743e0ecd8ca46f8e1e8",
+          "translation": "5d96a0078d8929882e0c478e1d83190425614ce469a72a994151f4814f9cd038",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.help": [
+        {
+          "source": "e742a0abfeb360ef1dab0d96caf84ee5f33e50e7f19ad8956d0c70d6c6a301d7",
+          "translation": "1ea87f5febccb35376379d6019db80b34e0651b8c1d297095c0a41348b9b1eef",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.no_components": [
+        {
+          "source": "8f3de62b87d6b09610f4297a3c6347cf6c3f4cbdb064bcc0b679993d31a5d62d",
+          "translation": "a450f8fb929bdb6c902ff2868bb52736664baa20f11527b240dca7abefa48b85",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.raw": [
+        {
+          "source": "92d9ac5cccde0ca17f658a2b18e66740e01818f43af46a23d58bc90c9d60528c",
+          "translation": "cf0c256db7aa5c09968c78c60515b6c54a9300ab64a2825296e6c56fa4f257e3",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "92d9ac5cccde0ca17f658a2b18e66740e01818f43af46a23d58bc90c9d60528c",
+          "translation": "37fb46a5ada517dd251d4a579cea3fc9fb9a47ad6f158801718fbce5d4188636",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "85d47aebe9845a66257c2850a74f1301238f30244a74a5cc82ea20597483a911"
+        }
+      ],
+      "sources.reason.check_details_truncated": [
+        {
+          "source": "d3a1df0d468c2428dc59d264a7b55b58fddb774d7f33ef0c3800c854fe2a92a1",
+          "translation": "2da19c96fdee101df76732b3ace4d4c2ed92dc19ffa8248f71eafd4f2fc3910a",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "d3a1df0d468c2428dc59d264a7b55b58fddb774d7f33ef0c3800c854fe2a92a1",
+          "translation": "ba634b9c04ce1fad576d7e79fbfb06ac1484d5410fbf1e567a5e1ee5d3e41a0f",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "85d47aebe9845a66257c2850a74f1301238f30244a74a5cc82ea20597483a911"
+        }
+      ],
+      "sources.reason.no_consumers": [
+        {
+          "source": "5d6ea01019a664013874f7b3e84d9283fedd12d9b88c4409f08036957d4641f9",
+          "translation": "dbe8982079cd61b37087f1190aada82121d6ca0b81ff1bbe2e7f05fc9861620c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.reload": [
+        {
+          "source": "944a6fd020aa75151fc87b6d5d1d4f55aa0972c097bc43b1967b008c84a131ce",
+          "translation": "2edc0af74d6bcc44032f988640421597d48b8daf5732097935e7546ec453295a",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.remove": [
+        {
+          "source": "5b9e06922ad2542e7254656b5e87e3439f7a5cfd3c3f3e3b5e9ac7f0d57f8ca9",
+          "translation": "a164d74a5d24d398bfba6696bde2db23cec74218a12ca9e22537f50f58990621",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.remove_confirm": [
+        {
+          "source": "f5bce19a426b52b49f733d1fd5b53f634c7f0c2447245b5ef85a83129f908289",
+          "translation": "1312fbe1f25d132a088a4e557b6b8d5fcffa6feb464b633b4bbb59896eec764d",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.save": [
+        {
+          "source": "f9edd26a63e753f5b9955281f86b34337cb31c8bca12e7fbec5b5974bbdc3113",
+          "translation": "c268899c44bb186de3a54c68bbfd5800f28978836781103f1778dabcceee60ee",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.saved": [
+        {
+          "source": "bb99c3b738e0ad62f489fb49306705c7fed96b9c7b877159936e3aa3615dfa7c",
+          "translation": "7fa0ce817d6ab363763f1f22fc2bb944532147cff6b0d37bd28fc87b1fb771b0",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.separate_save": [
+        {
+          "source": "aba13e266f56f6be34398b1cef9b456daec886127b469f345bf081052b8217a6",
+          "translation": "1d5774a6676477ee4f2bcdb87975b4fb50c28b48157f591bdab0262a883da47b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.title": [
+        {
+          "source": "f6c0598af2d288f906c959ee94d8fba7fef7675ddf56f16eb4c71fe3b692ecb7",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "task.controls.identity": [
+        {
+          "source": "6aa00d2894ba0ae0dc9bcf8772eca1eda0e4a45b188b45cc0d086a4e5c43a847",
+          "translation": "f1d7f250bff582435245431777a811b73fddaf08de3f9392cfb935ed3314b9bf",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "0a4eb857231eaca2b258f0ceb2474d972ac14b62aed61bd2926f1debc383405e"
+        }
+      ],
+      "task.limit.ambiguous_parent": [
+        {
+          "source": "111ff4ee02a3817e3014ebadd26d7fb022dc92e7d46872500bae8986550136f4",
+          "translation": "a143dd92711078aff0011d7d6fc7531dd81159c21d8f839f2a9ceef3252f440b",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "ui.actions.sources": [
+        {
+          "source": "fbd49933a33e3de395efac99f9921b05c21c87fdf3fc17557e474e667ddc17f7",
+          "translation": "f4aa7ec53e29d031ccbc43d62e37d06ccd54d13b741edcf4a650cd0364265a7f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
       ]
     },
     "zh-TW": {

@@ -75,7 +75,7 @@ Enabled in the order shown. Remaining limits are calculated from the host's `use
 | `model-with-effort` | Current model ID, falling back to display name; appends effort level when present | Omitted without model fields |
 | `current-dir` | Claude Code's current working directory | Omitted without a directory field |
 | `git` | `Git ` plus branch, upstream differences, and working-tree changes, such as `Git main ↑1● 2` on native Linux/macOS or `Git main ↑1●2` on Windows/WSL | Omitted outside Git repositories; displays `Git!` on query errors |
-| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage. A finite supplied percentage is rendered as provided; out-of-range values are not currently clamped. |
+| `context-remaining` | `Context N% left` | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
 | `context-window-size` | Total context window, such as `1M window` | Omitted when Claude Code provides no window size |
 | `five-hour-limit` | Remaining percentage of the 5-hour window | Omitted without this window |
 | `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |

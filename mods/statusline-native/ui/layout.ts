@@ -1,9 +1,17 @@
 export const MIN_COLUMNS = 32;
 export const MIN_ROWS = 12;
 
+/** Width reserved by the host-level Retry/Close recovery controls. */
+export const RECOVERY_CONTROLS_WIDTH = 20;
+
 /** Columns available inside the same frame used by editor drawing. */
 export function contentColumns(columns: number, rows: number): number {
   return Math.max(1, columns - (columns >= 64 && rows >= 20 ? 2 : 0));
+}
+
+/** Header budget that keeps the title clear of the recovery controls. */
+export function headerColumns(columns: number, rows: number): number {
+  return Math.min(contentColumns(columns, rows), Math.max(0, columns - RECOVERY_CONTROLS_WIDTH));
 }
 
 /** Budget a paged body between the header, preview and action rows. */

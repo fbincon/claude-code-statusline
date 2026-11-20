@@ -52,7 +52,7 @@ npm run ci:check -- --plan /tmp/impact-compared.json --task linux \
   --artifact /tmp/impact-compared.json.package/head.tgz --report /tmp/impact-linux.json
 ```
 
-For a plan without packaging, omit `--artifact`. Use the task ID and actual platform from the plan; a Linux execution cannot issue a Windows/macOS receipt. Local receipts have no Actions execution identity and cannot replace CI acceptance. Each run uses a new report path. The complete local `npm run check` remains available and remains required during foundation validation and for core changes.
+Run `ci:check` for each task ID that matches the actual platform and host. Pass `--artifact` for tasks that select `packaging`. Each task uses a new report path. CI acceptance requires an Actions execution identity. The complete local `npm run check` remains available and remains required during foundation validation and for core changes.
 
 The package comparison exports each source independently, installs its locked dependencies with lifecycle scripts disabled, builds, verifies generation and packages it. It compares bundled dependency manifests after the deterministic lifecycle-scripts removal; other manifest fields remain significant. It compares runtime members and modes, allowing only registered documentation, compiler metadata, version identity and presentation differences. Runtime expressions, entrypoints, dependencies and unregistered members remain significant. Neither package's commit or original bytes are rewritten. Comparison errors block; non-equivalent runtime output selects the product route.
 
@@ -62,7 +62,9 @@ Local receipts identify executed tasks, actual platform, commit and plan digest.
 
 ## Validation and operation
 
-For a newly scheduled scoped task the planner budgets the test files in the immutable head tree. Execution checks that the compiled file list matches. A serial family can start files for 15 minutes plus five seconds per file. Each admitted file gets its own 15-minute limit. The planning check also reserves build, setup, upload and cleanup time under the hosted job limit. An oversized task must be partitioned before it runs. Reuse continues to check the original receipts under their recorded policy.
+For a newly scheduled scoped task the planner budgets the test files in the immutable head tree. Execution checks that the compiled file list matches. A serial family can start files for 15 minutes plus five seconds per file. Each admitted file gets its own 15-minute limit. Each task reserves build, setup, upload and cleanup time within the hosted job limit of 360 minutes.
+
+The maintenance planner splits oversized tasks at check-family boundaries in the plan's original order. The first part keeps its task ID. Later parts get numbered suffixes such as `linux-2`. Every part keeps the original platform and host, with a receipt for its own checks. A check that exceeds the limit on its own blocks the plan. The immutable head selects the scheduling policy, so earlier sources retain their original task lists and receipt identities.
 
 For changes to the installed acceptance runner, exercise the affected candidate in addition to the planned tool-family checks. Use the Windows ARM host with an x64 process when investigating emulation or shell startup. Record the actual package SHA-256 separately from the revision of the harness used for a comparison. [Installed language combinations](testing.md#installed-language-combinations).
 
