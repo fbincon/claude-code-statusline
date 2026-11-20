@@ -5,6 +5,7 @@ import { configuredRows } from '@fbincon/statusline-core/rendering/items';
 import { displayWidth, strip, styledUnits } from '@fbincon/statusline-core/rendering/layout';
 import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { editAlignment } from '@fbincon/statusline-core/editor/alignments';
+import { editGroup } from '@fbincon/statusline-core/editor/groups';
 import type { AlignmentRef } from '@fbincon/statusline-core/contracts/ui';
 import { env } from './render-support.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
@@ -22,6 +23,49 @@ function fixture(right=false){
   return editAlignment(d,'table',[[ref('a'),ref('c')],[ref('b'),ref('d')]]);
 }
 const offset=(text:string,token:string)=>displayWidth(text.slice(0,text.indexOf(token)));
+test('active alignment retains semantic separators alongside group boundaries and hidden slots', () => {
+  const ids = ['model', 'thinking', 'fast-mode', 'decoration', 'effort'];
+  const rows = ['top', 'bottom'].map(prefix => ids.map(id => prefix + '-' + id));
+  const display = defaultDisplay();
+  display.scope_labels = 'off';
+  display.use_colors = false;
+  display.instances = rows.flatMap(row => row.map((id, index) => {
+    const type = ids[index]!;
+    return { id, type_id: type === 'decoration' ? 'text' : type, enabled: true,
+      text: type === 'decoration' ? 'DEC' : null, options: defaultItem() };
+  }));
+  display.instances.find(n => n.id === 'bottom-model')!.options.label = 'Wider';
+  display.layout = { mode: 'explicit', rows };
+  let grouped = display;
+  for (const row of rows) {
+    const [decoration, primary] = row.slice(3);
+    grouped.instances.find(n => n.id === primary)!.options.priority = 0;
+    grouped = editGroup(grouped, 'main', { action: 'create', id: 'group-' + decoration,
+      member_ids: [decoration!, primary!], primary_id: primary! }, () => 'unused');
+  }
+  const aligned = editAlignment(grouped, 'columns', ids.slice(0, 3).map((_, index) => rows.map(row => ref(row[index]!))));
+  const input = { model: { id: 'M' }, effort: { level: 'high' }, thinking: { enabled: true }, fast_mode: true };
+  const trace = new RenderTrace(aligned);
+  const draw = (width: number) => configuredRows(input, aligned, width, { ...env, trace }).map(strip);
+  const wide = draw(80);
+  assert.match(wide[0]!, /^M +· thinking · fast \| DEC high$/u);
+  assert.equal(wide[1], 'Wider M · thinking · fast | DEC high');
+  for (const text of ['thinking', 'fast', 'DEC']) assert.equal(offset(wide[0]!, text), offset(wide[1]!, text));
+  assert.equal(trace.alignmentCollapsed('top-thinking'), false);
+
+  const hidden = aligned.instances.find(n => n.id === 'top-thinking')!;
+  hidden.enabled = false;
+  const missing = draw(80);
+  assert.match(missing[0]!, /^M +fast \| DEC high$/u);
+  assert.equal(offset(missing[0]!, 'fast'), offset(wide[0]!, 'fast'));
+  hidden.enabled = true;
+
+  const narrow = draw(16);
+  assert.equal(narrow[0], 'M · thinking');
+  assert.deepEqual(narrow, configuredRows(input, grouped, 16, env).map(strip));
+  assert.equal(trace.alignmentCollapsed('top-thinking'), true);
+});
+
 test('explicit rows align visible starts and preserve column positions through hiding and resizing',()=>{
   for(const right of [false,true])for(const separator of ['classic','powerline'] as const){
     const d=fixture(right);d.separator_style=separator;

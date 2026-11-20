@@ -7,7 +7,7 @@ import { isDraft } from '@fbincon/statusline-core/editor/backend';
 import { Editor } from '@fbincon/statusline-core/editor/draft';
 import { openGroups, groupsKey, groupsView } from '@fbincon/statusline-core/editor/group-manager';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
-import { displayWidth, styledUnits } from '@fbincon/statusline-core/rendering/layout';
+import { displayWidth, strip, styledUnits } from '@fbincon/statusline-core/rendering/layout';
 import { parse } from '@fbincon/statusline-core/rendering/styles';
 import { configuredRows } from '@fbincon/statusline-core/rendering/items';
 import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
@@ -16,7 +16,7 @@ import { exportFile, importFile } from '../src/config/transfer.js';
 import { configCommand } from '../src/config/commands.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import type { DisplayDraft, InstanceDraft } from '@fbincon/statusline-core/contracts/ui';
-import { config, env, rendered, task } from './render-support.js';
+import { config, env, NOW, rendered, task } from './render-support.js';
 import { setup, join, readFileSync } from './final-support.js';
 
 const node = (id: string, type_id: string, text: string | null = null): InstanceDraft => ({ id, type_id, enabled: true, text, options: defaultItem() });
@@ -88,6 +88,103 @@ test('groups remain atomic in auto, explicit, spacer and narrow Powerline layout
         }
       }
 });
+
+test('explicit groups preserve semantic separators for adjacent standalone components on every main row', () => {
+  const layout = { mode: 'explicit' as const, rows: [
+    ['model-with-effort', 'thinking', 'fast-mode', 'hostname', 'project-name', 'current-dir'],
+    ['context-tokens', 'context-used', 'context-window-size', 'tokens', 'session-cost', 'cache-state', 'cache-expires'],
+    ['run-state', 'last-tool', 'task-progress', 'output-rate', 'active-agents'],
+  ] };
+  const input = {
+    model: { id: 'claude-sonnet-5-5' }, effort: { level: 'high' }, thinking: { enabled: true }, fast_mode: true,
+    workspace: { current_dir: '/test/sample/subdir', project_dir: '/test/sample' },
+    context_window: { used_percentage: 34, context_window_size: 1000000, total_input_tokens: 343100 },
+    cost: { total_cost_usd: 0.23 }, prompt_cache: { warm: true, expires_at: NOW / 1000 + 300 },
+  };
+  const sources = {
+    ...env, hostname: () => 'test-host', live: () => ({}),
+    usage: () => ({ hit: '0', miss: '0', out: '0', last_prompt: null, entry: {}, counts: null }),
+  };
+  for (const separator_style of ['classic', 'compact'] as const) for (const use_colors of [false, true]) {
+    let display = config(layout.rows.flat(), { layout, separator_style, use_colors });
+    display.instances.find(n => n.id === 'context-used')!.options.presentation = 'bar';
+    display = editGroup(display, 'main', {
+      action: 'create', id: 'context-block', member_ids: ['context-tokens', 'context-used'], primary_id: 'context-tokens',
+    }, () => 'unused');
+    const outer = separator_style === 'classic' ? ' | ' : ' · ';
+    const rows = configuredRows(input, display, 150, sources);
+    assert.deepEqual(rows.map(strip), [
+      ['claude-sonnet-5-5 high · thinking · fast', 'Host test-host · Project sample · /test/sample/subdir'].join(outer),
+      ['Context 343.1K / 1M [███░░░░░] Context 34% used', '1M window', 'hit 0 · miss 0 · out 0 · Cost $0.23 · Cache warm · Cache TTL 5m 0s'].join(outer),
+      'State — · Tool — · Tasks — · Rate — · Agents —',
+    ]);
+    assert(rows.every(row => displayWidth(row) <= 150));
+    if (use_colors) {
+      assert(rows.every(row => row.endsWith('\x1b[0m')));
+      for (const dot of styledUnits(rows[0]!).filter(unit => unit.text === '·'))
+        assert.deepEqual(parse(dot.style).foreground, ['ansi', 8]);
+    } else assert.deepEqual(rows, rows.map(strip));
+  }
+});
+
+test('ordinary grouped rows join surviving standalone neighbors after fitting and respect physical boundaries', () => {
+  const instances = [
+    node('model', 'model'), node('decoration', 'text', 'DEC'), node('context', 'context-used'),
+    node('thinking', 'thinking'), node('fast', 'fast-mode'),
+  ];
+  instances[2]!.options.priority = 0;
+  instances[2]!.options.formatting.labels = 'off';
+  const output = 'M · thinking · fast';
+  const ids = instances.map(n => n.id);
+  const display = grouped(updateDisplay(config([]), { instances, layout: { mode: 'explicit', rows: [ids] } }));
+  const input = { model: { id: 'M' }, thinking: { enabled: true }, fast_mode: true, context_window: { used_percentage: 50 } };
+  const trace = new RenderTrace(display);
+  trace.begin('main', 'main');
+  assert.equal(rendered(input, display, { trace }, 19), output);
+  for (const id of ['context', 'decoration']) assert.equal(trace.layouts('main', id)[0]!.outcome, 'priority_omitted');
+  for (const id of ['model', 'thinking', 'fast']) assert.equal(trace.layouts('main', id)[0]!.outcome, 'visible');
+  const automatic = updateDisplay(display, { layout: { mode: 'auto', rows: [] } });
+  assert.equal(rendered(input, automatic, {}, 19), 'M | DEC 50% used\nthinking · fast');
+  const spaced = updateDisplay(display, {
+    instances: [...instances.slice(0, 3), node('gap', 'spacer'), ...instances.slice(3)],
+    layout: { mode: 'explicit', rows: [['model', 'decoration', 'context', 'gap', 'thinking', 'fast']] },
+  });
+  assert.equal(rendered({ ...input, context_window: {} }, spaced, {}, 32), 'M' + ' '.repeat(16) + 'thinking · fast');
+});
+
+test('an adaptive unit that cannot fit leaves neither separators nor a scope-only row', () => {
+  const context = node('context', 'context-used');
+  context.options.presentation = 'adaptive';
+  const instances = [node('left', 'model'), context, node('right', 'model')];
+  const input = { model: { id: 'M' }, context_window: { used_percentage: 50 } };
+  for (const mode of ['auto', 'explicit'] as const) {
+    const display = updateDisplay(config([]), {
+      instances, layout: { mode, rows: mode === 'auto' ? [] : [['left', 'context', 'right']] },
+    });
+    const trace = new RenderTrace(display);
+    trace.begin('main', 'main');
+    assert.equal(rendered(input, display, { trace }, 5), 'M · M');
+    assert.equal(trace.layouts('main', 'context')[0]!.outcome, 'width_omitted');
+    assert.equal(trace.layouts('main', 'right')[0]!.outcome, 'visible');
+    const onlyIndicator = updateDisplay(display, {
+      scope_labels: 'always', instances: [context], layout: { mode, rows: mode === 'auto' ? [] : [['context']] },
+    });
+    assert.deepEqual(configuredRows(input, onlyIndicator, 5, env), []);
+  }
+});
+
+test('Powerline keeps standalone semantic neighbors separate and shares only explicit groups', () => {
+  const instances = [node('model', 'model'), node('thinking', 'thinking'), node('decoration', 'text', 'DECOR'), node('context', 'context-used')];
+  const layout = { mode: 'explicit' as const, rows: [instances.map(n => n.id)] };
+  const input = { model: { id: 'M' }, thinking: { enabled: true }, context_window: { used_percentage: 50 } };
+  for (const use_colors of [false, true]) for (const shared of [false, true]) {
+    const display = grouped(updateDisplay(config([]), { instances, layout, separator_style: 'powerline', use_colors }), shared);
+    display.powerline.padding = 'none';
+    display.powerline.end_cap = false;
+    assert.equal(rendered(input, display), shared ? 'M>thinking>DECOR Context 50% used' : 'M>thinking>DECOR>Context 50% used');
+  }
+});
+
 test('shared Powerline changes only backgrounds and preserves member foregrounds and saved backgrounds', () => {
   let display = grouped(); display.separator_style = 'powerline'; display.use_colors = true;
   display.instances[0]!.options.foreground = '#123456'; display.instances[0]!.options.background = '#654321';

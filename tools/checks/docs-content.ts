@@ -182,7 +182,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             const bounds = /^\| [^|]+\| `\[(\d+), (\d+)\]` \|$/u.exec(sourceRange[0]!);
             assert.deepEqual(bounds?.slice(1).map(Number), PACKAGE_COMPATIBILITY.read.sources, 'Source registry read range differs from package compatibility');
             assert.deepEqual(configSetOptions(body).sort(), [...OPTIONS].sort(), 'Set option IDs differ from CLI');
-            for (const id of ['cli-order', 'cli-layout', 'cli-profile-target', 'cli-recover', 'cli-style-reuse', 'cli-group-reuse', 'cli-diagnose', 'cli-task'])
+            for (const id of ['cli-order', 'cli-layout', 'cli-semantic-separators', 'cli-profile-target', 'cli-recover', 'cli-style-reuse', 'cli-group-reuse', 'cli-diagnose', 'cli-task'])
                 example(body, id, 'text');
         });
     }

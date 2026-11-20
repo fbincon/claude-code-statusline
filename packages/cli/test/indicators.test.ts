@@ -7,6 +7,7 @@ import { isDraft } from '@fbincon/statusline-core/editor/backend';
 import { indicator } from '@fbincon/statusline-core/rendering/indicators';
 import { renderTask } from '@fbincon/statusline-core/rendering/subagents';
 import { displayWidth } from '@fbincon/statusline-core/rendering/layout';
+import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { Presentation } from '@fbincon/statusline-core/rendering/language';
 import { config, env, rendered, agentConfig, task, NOW } from './render-support.js';
@@ -194,4 +195,39 @@ test('adaptive fixed rows degrade semantics before priority omission and auto ro
   const single = updateDisplay(cfg, { instances: cfg.instances.filter(n=>n.type_id==='context-remaining') });
   const auto = rendered(input, cfg, {}, displayWidth(rendered(input,single)));
   assert(auto.includes('\n')); assert(auto.includes('50%'));
+});
+
+test('all main indicators join their semantic neighbors in every presentation without explicit groups', () => {
+  const rows = [
+    ['context-tokens', 'context-used', 'context-remaining', 'context-window-size'],
+    ['five-hour-limit', 'weekly-limit', 'spend-limit', 'five-hour-reset'],
+  ];
+  const input = {
+    context_window: { total_input_tokens: 50000, context_window_size: 200000, used_percentage: 25, remaining_percentage: 75 },
+    rate_limits: { five_hour: { used_percentage: 20, resets_at: NOW / 1000 + 3600 }, seven_day: { used_percentage: 30 }, spend_limit: { used_percentage: 40 } },
+  };
+  const indicators = ['context-used', 'context-remaining', 'five-hour-limit', 'weekly-limit', 'spend-limit'];
+  for (const presentation of ['numeric', 'bar', 'adaptive'] as const) {
+    let display = config(rows.flat(), { layout: { mode: 'explicit', rows } });
+    for (const id of indicators) display = setField(display, 'presentation', presentation, 'main', id);
+    const result = rendered(input, display, {}, 160).split('\n');
+    assert.equal(result.length, 2);
+    assert.deepEqual(result.map(row => row.split(' · ').length), [4, 4], presentation);
+    assert(result.every(row => !row.includes('|') && displayWidth(row) <= 160), presentation);
+    assert.equal(result.join('').split('[').length - 1, presentation === 'numeric' ? 0 : indicators.length);
+  }
+});
+
+test('adaptive fitting retains the inner separator at the numeric stage', () => {
+  const ids = ['context-tokens', 'context-used'];
+  let display = config(ids, { layout: { mode: 'explicit', rows: [ids] } });
+  display = setField(display, 'presentation', 'adaptive', 'main', 'context-used');
+  const input = { context_window: { total_input_tokens: 50000, context_window_size: 200000, used_percentage: 25 } };
+  const expected = 'Context 50K / 200K · 25% used';
+  const trace = new RenderTrace(display);
+  trace.begin('main', 'main');
+  assert.equal(rendered(input, display, { trace }, displayWidth(expected)), expected);
+  const fit = trace.layouts('main', 'context-used')[0]!;
+  assert.equal(fit.outcome, 'visible');
+  assert(fit.style_reasons?.some(reason => reason.code === 'adaptive_numeric'));
 });

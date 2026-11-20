@@ -266,7 +266,7 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
             const part = byId.get(node.id);
             return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used,env.trace,node.id) : '', onAdapt: env.trace?.adapt('subagent', node.id), adaptive: part?.adaptive?.map(v => ({ ...v, text: appearance.apply(part.style + v.text + p.reset, config, node.type_id, node.options, 'subagent', part.used) })), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
         });
-        return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
+        return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, [separator, separator], false, env.trace?.fit('subagent'), prepared.colors).join('');
     }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;

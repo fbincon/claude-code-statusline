@@ -771,16 +771,26 @@ Windows drive path、含空格或中文的路径、UNC path 与大小写归一�
 
 #### 分隔符和语义分组
 
-`classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。`powerline` 将每个可见项目作为独立色块，内边距和边界计入宽度；详见[基础 Powerline](../APPEARANCE.zh-CN.md#基础-powerline)。普通分隔符继续遵循下面的语义分组。
+`classic` 使用 ` | ` 分隔顶层单元，`compact` 使用 ` · `。Powerline 为可见条目绘制独立色块，显式组可共享一个色块。内边距和边界计入宽度。[基础 Powerline](../APPEARANCE.zh-CN.md#基础-powerline)
 
-以下条目在相邻时属于同一语义组，并用 ` · ` 连接；下列颜色描述默认 classic 主题，主题和逐项覆盖可改变颜色：
+使用两种普通分隔样式时，同一行中相邻、可见且独立的条目，若属于同一语义组，则用 ` · ` 连接。弹性留白两侧独立判断。列对齐时也采用此规则，并保留列填充和隐藏成员的占位。显式组内可见成员之间用空格，组与相邻单元之间用顶层分隔符。数值、条形和自适应指标采用相同的语义组。
 
-- `model-with-effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
+默认 classic 主题下，常见的同组条目如下。
+
+- `model`、`model-with-effort`、`effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
 - `current-dir`、`project-name` 与 `hostname`（位置组，绿色）
 - `git`、`pr` 与 `repo`（仓库组，紫）
-- `tokens` 与 `prompt-cache`（用量组，粉）
-- `context-remaining`、`context-used` 与 `context-window-size`
-- `five-hour-limit`、`weekly-limit` 与 `spend-limit`
+- `tokens`、`session-cost`、`prompt-cache`、`cache-state` 与 `cache-expires`（用量组）
+- `context-tokens`、`context-remaining`、`context-used` 与 `context-window-size`（上下文组）
+- `five-hour-limit`、`weekly-limit`、`spend-limit` 与 `five-hour-reset`（配额组）
+- `run-state`、`last-tool`、`task-progress`、`output-rate` 与 `active-agents`（活动组）
+
+下例使用 `classic`，显式组包含 `context-tokens` 和采用条形的 `context-used`。
+
+<!-- docs-example: cli-semantic-separators -->
+```text
+Sonnet · 思考 · 快速 | 上下文 50K / 200K [██░░░░░░] 上下文 已用 25%
+```
 
 `version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立，不与相邻条目合并。条目目录按组排列（模型组 → 位置组 → 仓库组 → 上下文 → 限额 → 用量组 → 计时 → 独立项），但 `enable` 只按参数顺序把新条目追加到当前列表末尾。需要把同组条目放在一起时，使用 `order`、`set-items` 或 TUI 调整顺序。如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
 

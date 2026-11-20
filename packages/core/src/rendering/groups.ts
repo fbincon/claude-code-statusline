@@ -1,7 +1,6 @@
-import { adapt } from './fitting.js';
-/** Group-aware layout is opt-in; ungrouped configurations keep their old path. */
 import type { DisplayDraft, GroupDraft, Scope } from '../contracts/ui.js';
-import type { Cell } from './components.js';
+import { sameSemanticGroup, type Cell } from './components.js';
+import { adapt } from './fitting.js';
 import type { FitObserver } from './trace.js';
 import * as layout from './layout.js';
 import * as powerline from './powerline.js';
@@ -11,8 +10,9 @@ import * as styles from './styles.js';
 interface Unit { id: string; priority: number; cells: Cell[]; group?: GroupDraft; spacer?: boolean }
 // '$' cannot occur in user instance/group identifiers.
 export const SCOPE_LABEL_ID = '$scope';
+const isContent = (unit: Unit) => unit.id !== SCOPE_LABEL_ID && !unit.spacer;
 export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[], config: DisplayDraft, scope: Scope,
-  columns: number, separator: string, auto: boolean, observe?: FitObserver, colors = powerline.cursor(scope)): string[] {
+  columns: number, [outer, inner]: readonly [string, string], auto: boolean, observe?: FitObserver, colors = powerline.cursor(scope)): string[] {
   columns = Math.max(2, Math.trunc(columns));
   const nodes = new Map((scope === 'main' ? config.instances : config.subagents.instances).map(n => [n.id, n]));
   const byId = new Map(cells.map(c => [c.id, c])), membership = new Map(groups.flatMap(g => g.member_ids.map(id => [id, g] as const)));
@@ -32,10 +32,20 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
     });
     if (members.length) units.push({ id: group.id, priority: nodes.get(group.primary_id)!.options.priority, cells: members, group });
   }
-  if (!units.some(unit => unit.id !== SCOPE_LABEL_ID && !unit.spacer)) return [];
+  if (!units.some(isContent)) return [];
   const isPowerline = config.separator_style === 'powerline';
   const draw = (values: readonly Unit[], padding: boolean, caps: boolean, start: number, capture = false): { text: string; next: number } => {
-    if (!isPowerline) return { text: values.map(u => u.cells.map(c => c.paint?.(c.text) ?? c.text).join(u.group ? ' ' : separator)).join(separator), next: start };
+    if (!isPowerline) {
+      let text = '';
+      let previousGroup: Cell['semanticGroup'];
+      for (const unit of values) {
+        const group = unit.group ? undefined : unit.cells[0]!.semanticGroup;
+        if (text) text += sameSemanticGroup(previousGroup, group) ? inner : outer;
+        text += unit.cells.map(cell => cell.paint?.(cell.text) ?? cell.text).join(' ');
+        previousGroup = group;
+      }
+      return { text, next: start };
+    }
     const blocks: powerline.Block[] = [];
     let index = start;
     for (const unit of values) {
@@ -73,14 +83,22 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
   };
   const emit = (input: Unit[]): string => {
     if (config.powerline.color_mode === 'restart') colors.index = 0;
-    const divider = input.findIndex(u => u.spacer), left = input.slice(0, divider < 0 ? input.length : divider), right = divider < 0 ? [] : input.slice(divider + 1);
+    const divider = input.findIndex(u => u.spacer);
+    let left = input.slice(0, divider < 0 ? input.length : divider);
+    let right = divider < 0 ? [] : input.slice(divider + 1);
     let padding = true, caps = true;
     const drawing = () => { const a = draw(left, padding, caps, colors.index), b = draw(right, padding, caps, a.next); return { a, b, width: layout.displayWidth(a.text) + layout.displayWidth(b.text) }; };
     if (isPowerline && drawing().width > columns) padding = false;
     if (isPowerline && drawing().width > columns) caps = false;
     adapt([...left, ...right].flatMap(unit => unit.cells), columns, () => drawing().width);
     // Make an over-wide group a usable unit before comparing row priorities.
-    for (const u of [...left, ...right]) if (measure([u], padding, caps) > columns) trim(u, columns, padding, caps);
+    const fitUnits = (side: Unit[]) => side.filter(unit => {
+      if (measure([unit], padding, caps) > columns) trim(unit, columns, padding, caps);
+      return unit.cells.length > 0;
+    });
+    left = fitUnits(left);
+    right = fitUnits(right);
+    if (!left.some(isContent) && !right.some(isContent)) return '';
     while (left.length + right.length > 1 && drawing().width > columns) {
       const candidates = [...left, ...right];
       const victim = candidates.reduce((a, b) => a.priority < b.priority ? a : b);
@@ -98,7 +116,8 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
   const rows: string[] = []; let line: Unit[] = [];
   for (const unit of units) {
     if (measure([unit]) > columns) trim(unit, columns, true, true);
-    if (line.some(u => u.id !== SCOPE_LABEL_ID && !u.spacer) && measure([...line, unit]) > columns) { rows.push(emit(line)); line = []; }
+    if (!unit.cells.length) continue;
+    if (line.some(isContent) && measure([...line, unit]) > columns) { rows.push(emit(line)); line = []; }
     line.push(unit);
   }
   if (line.length) rows.push(emit(line));
