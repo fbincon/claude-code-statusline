@@ -9,6 +9,7 @@ import { withoutCiScripts } from './impact-lock.ts';
 import { productionOwners } from './impact-ownership.ts';
 import { HOSTS } from './runtime-inputs.ts';
 import { checkScopedSchedule } from './impact-budget.ts';
+import { partitionScopedTasks } from './impact-schedule.ts';
 import { extraCheck, productResponsibilities } from './impact-product.ts';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.ts';
 
@@ -106,9 +107,13 @@ export function createImpactPlan(base: string, head: string): ImpactPlan {
     assert(changes.length, 'Empty comparison cannot establish an impact plan');
     const unknown = changes.filter(change => change.category === 'unknown').map(change => change.path);
     const selected = [...checks].sort();
+    const route = unknown.length ? 'blocked' : changes.some(change => change.category === 'product') ? 'product'
+        : changes.some(change => change.category === 'build') ? 'compare' : 'maintenance';
+    const tasks = tasksFor(selected);
+    // Historical plans keep the task identities of the source that issued them.
+    const partition = (route === 'maintenance' || route === 'compare') && current.has('tools/checks/impact-schedule.ts');
     return { schema_version: 1, kind: 'impact-plan', base, head, tree: git('rev-parse', head + '^{tree}'), policy_sha256: impactPolicy(head),
-        route: unknown.length ? 'blocked' : changes.some(change => change.category === 'product') ? 'product' : changes.some(change => change.category === 'build') ? 'compare' : 'maintenance',
-        changes, checks: selected, tasks: tasksFor(selected), unknown };
+        route, changes, checks: selected, tasks: partition ? partitionScopedTasks(tasks, [...current.keys()]) : tasks, unknown };
 }
 export function assertPlan(value: ImpactPlan): void {
     assert.equal(value.schema_version, 1); assert.equal(value.kind, 'impact-plan');

@@ -4,7 +4,8 @@ import type { Check, ImpactPlan, ImpactTask } from './impact-plan.ts';
 
 const MINUTE = 60_000;
 export const SCOPED_COMMAND_MS = 15 * MINUTE;
-const HOSTED_JOB_MS = 360 * MINUTE, SETUP_UPLOAD_MS = 25 * MINUTE;
+export const SCOPED_HOSTED_JOB_MS = 360 * MINUTE;
+const SETUP_UPLOAD_MS = 25 * MINUTE;
 export function familyAdmissionMs(files: number): number {
     assert(Number.isSafeInteger(files) && files > 0, 'Empty scoped test family');
     // The previously accepted family window plus dispatch allowance for the
@@ -20,7 +21,7 @@ export function scopedSourceFiles(check: Check, paths: readonly string[]): strin
     return paths.filter(path => path.startsWith(prefix) && path.endsWith('.test.ts') && path !== 'tools/migration/ts-04/test/installed.test.ts')
         .map(path => (pkg ? path.replace('/test/', '/dist/test/') : 'dist/typescript/' + path).slice(0, -3) + '.js').sort();
 }
-export function scopedTaskBudget(task: ImpactTask, files: readonly string[]): number {
+export function estimatedScopedTaskMs(task: ImpactTask, files: readonly string[]): number {
     let total = SETUP_UPLOAD_MS;
     if (task.checks.some(check => !['actions', 'docs', 'assets'].includes(check))) total += SCOPED_COMMAND_MS; // build, once
     for (const check of task.checks) {
@@ -32,7 +33,11 @@ export function scopedTaskBudget(task: ImpactTask, files: readonly string[]): nu
             total += familyEnvelopeMs(scopedSourceFiles(check, files).length);
         }
     }
-    assert(total <= HOSTED_JOB_MS, 'Scoped task ' + task.id + ' needs ' + Math.ceil(total / MINUTE) +
+    return total;
+}
+export function scopedTaskBudget(task: ImpactTask, files: readonly string[]): number {
+    const total = estimatedScopedTaskMs(task, files);
+    assert(total <= SCOPED_HOSTED_JOB_MS, 'Scoped task ' + task.id + ' needs ' + Math.ceil(total / MINUTE) +
         ' minutes including setup and upload; partition the task before scheduling');
     return total;
 }

@@ -7,12 +7,13 @@ import { execFileSync } from 'node:child_process';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { createImpactPlan, tasksFor, assertPlan, impactPolicy } from '../impact-plan.js';
 import { DOCUMENT_CONTENT_PATHS } from '../impact-documentation.js';
-import { emitted, productInputs, runtimeLock, canonical, hash } from '../impact-content.js';
+import { emitted, productInputs, runtimeLock, canonical, hash, tree } from '../impact-content.js';
 import { checkAssets, pngDimensions } from '../impact-assets.js';
 import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
 import { assessImpactNeeds, selectImpact } from '../impact-workflow.js';
 import { runScopedTestFiles, scopedTests } from '../impact-runner.js';
-import { familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
+import { checkScopedSchedule, familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
+import { partitionScopedTasks } from '../impact-schedule.js';
 import { productResponsibilities, runProductChecks, supplementPlan, validateProductChecks, type ProductCheckReceipt } from '../impact-product.js';
 
 function repository(t: any) {
@@ -252,6 +253,40 @@ test('scheduling budgets use the selected Git source inventory and reject an inf
     assert.equal(scopedTaskBudget(task, files), 25 * 60_000 + 15 * 60_000 + 15 * 60_000 + familyEnvelopeMs(57));
     const oversized = Array.from({ length: 4500 }, (_, i) => 'packages/cli/test/large-' + i + '.test.ts');
     assert.throws(() => scopedTaskBudget(task, oversized), /partition the task/);
+    assert.throws(() => partitionScopedTasks([task], oversized), /partition the task/);
+});
+test('oversized package-sensitive plans split complete checks while historical tasks keep their identities', t => {
+    const { write, commit } = repository(t);
+    for (const path of ['packages/cli', 'packages/core', 'packages/tui', 'tools/build', 'tools/checks', 'tools/generation', 'tools/release'])
+        write(path + '/test/sample.test.ts', '// Existing scoped tests');
+    const base = commit();
+    write('docs/new.md', '# Language update');
+    write('packages/cli/test/sample.test.ts', '// Regional regressions');
+    write('tools/generation/i18n/data/fixture.json', '{}');
+    const originalHead = commit();
+    const original = createImpactPlan(base, originalHead);
+    assert.equal(original.route, 'compare');
+    assert.deepEqual(original.tasks, tasksFor(original.checks));
+    assert.throws(() => scopedTaskBudget(original.tasks[0]!, [...tree(originalHead).keys()]), /partition the task/);
+    const comparison = { route: 'maintenance' as const, comparison_sha256: 'a'.repeat(64) };
+    assertPlan({ ...original, ...comparison });
+
+    write('tools/checks/impact-schedule.ts', '// Partition scheduling policy');
+    const head = commit();
+    const plan = createImpactPlan(base, head);
+    assert.equal(plan.route, 'compare');
+    assert.deepEqual(plan.checks, original.checks);
+    const [linux, ...otherTasks] = original.tasks;
+    assert.deepEqual(plan.tasks, [
+        { ...linux!, checks: linux!.checks.slice(0, -1) },
+        { ...linux!, id: 'linux-2', checks: ['tui'] },
+        ...otherTasks,
+    ]);
+    const resolved = { ...plan, ...comparison };
+    checkScopedSchedule(resolved, [...tree(head).keys()]);
+    assertPlan(resolved);
+    assert.throws(() => assertPlan({ ...resolved, tasks: original.tasks }));
+    assert.throws(() => assertPlan({ ...resolved, tasks: resolved.tasks.filter(task => task.id !== 'linux-2') }));
 });
 test('scoped receipt cannot substitute another commit, task, plan, result or execution', t => {
     const { git, write, commit } = repository(t), base = git('rev-parse', 'HEAD'); write('docs/test.md', '# Text');

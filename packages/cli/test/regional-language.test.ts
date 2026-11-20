@@ -50,6 +50,14 @@ test('Taiwan and Hong Kong use distinct regional terminology and preserve techni
   assert.match(message(key, 'zh-TW'), /軟體/u);
   assert.match(message(key, 'zh-HK'), /軟件/u);
   assert.match(message('cli.language', 'zh-TW', { language: 'English' }), /介面語言/u);
+  assert.match(message('profiles.user', 'zh-TW'), /使用者/u);
+  assert.match(message('profiles.user', 'zh-HK'), /用戶/u);
+  assert.match(message('sources.error.network', 'zh-TW'), /網路/u);
+  assert.match(message('sources.error.network', 'zh-HK'), /網絡/u);
+  assert.match(message('setup.title', 'zh-TW'), /狀態列/u);
+  assert.match(message('setup.title', 'zh-HK'), /狀態欄/u);
+  assert.match(message('package.reason_metadata', 'zh-TW'), /中繼資料/u);
+  assert.match(message('package.reason_metadata', 'zh-HK'), /元數據/u);
 });
 
 test('expanded language preferences and displays read without rewriting and old frontends require reinstall', t => {
