@@ -15,7 +15,7 @@ import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
 import { settingRows } from '../../lib/client/settings.ts';
 import { formWindow, pageWindow } from '../../lib/editor/navigation.ts';
-import { clip, column, displayWidth, contentColumns } from '../layout.ts';
+import { clip, column, displayWidth, contentColumns, headerColumns } from '../layout.ts';
 import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
@@ -36,8 +36,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
   const inner = contentColumns(columns, rows);
-  const line = (label: string, style: TextProps = {}) =>
-    ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(label, inner)] });
+  const line = (label: string, style: TextProps = {}, width = inner) =>
+    ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(label, width)] });
   if (!layout.available || !e)
     return ui.Box({
       backgroundColor: styles.text.backgroundColor,
@@ -224,7 +224,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }), columns),
+      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }, headerColumns(columns, rows)), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(capacityNotice || focusHint, styles.muted), columns),
