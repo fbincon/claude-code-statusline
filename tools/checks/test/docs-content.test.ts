@@ -39,6 +39,8 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/EDITORS${suffix}.md`, '64×18', '63×18'],
             [`docs/EDITORS${suffix}.md`, '2.1.287+', '2.1.999+'],
             [`docs/development/ci-maintenance${suffix}.md`, suffix ? '11 项发版 PR 作业' : '11 release PR jobs', suffix ? '65 项发版 PR 作业' : '65 release PR jobs'],
+            [`docs/development/impact-checks${suffix}.md`, suffix ? '360 分钟的托管作业上限' : 'hosted job limit of 360 minutes',
+                suffix ? '377 分钟的托管作业上限' : 'hosted job limit of 377 minutes'],
             [`docs/SCHEMES${suffix}.md`, '`quota-cost`', '`wrong-scheme`'],
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
             [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, (suffix ? '显示 schema 999' : 'display schema 999')],
