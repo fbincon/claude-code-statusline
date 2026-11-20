@@ -27,6 +27,7 @@ This 2026-11-21 feature delivery keeps the Native editor header clear of the hos
 | `npm run check` | Passed; 597 tests with 591 passes and six platform-specific skips. |
 | `npm run docs:check` | 7,436 links checked with zero errors. |
 | Registered documentation content/example tests | 37 tests passed. |
+| `npm run ci:plan` / `ci:check --task linux` | Product route selected; the Linux task passed with actions, checks, documentation and Native coverage. |
 | `git diff --check` | Clean. |
 
 Evidence is host-engine, drawing-layer and PTY-capacity evidence, not a physical desktop capture. Historical native-capacity and draft-history galleries retain their original #241 notes because they describe the recorded v3.9.1/v3.13.0 versions. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified. No paid model calls were made.

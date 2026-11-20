@@ -27,6 +27,7 @@
 | `npm run check` | 通过；597 项测试，591 项通过，六项平台相关跳过。 |
 | `npm run docs:check` | 检查 7,436 个链接，零错误。 |
 | 已注册的文档内容和示例测试 | 37 项通过。 |
+| `npm run ci:plan` / `ci:check --task linux` | 选择产品路线；Linux 任务通过 actions、checks、文档和原生覆盖。 |
 | `git diff --check` | 无错误。 |
 
 证据为宿主测试引擎、绘制层和 PTY 容量证据，不是实体桌面截图。历史 native-capacity 与 draft-history 图库保留原有 #241 说明，因为它们描述记录的 v3.9.1/v3.13.0 版本。既有 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项平台缺口仍未验证。未进行付费模型调用。
