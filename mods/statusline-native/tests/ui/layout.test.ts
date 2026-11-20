@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing';
-import { dimensions, clip, cellWidth } from '../../ui/layout.ts';
+import { dimensions, clip, cellWidth, headerColumns } from '../../ui/layout.ts';
 import { formPages, formSelection, formWindow, pageSelection, pageWindow } from '../../lib/editor/navigation.ts';
 
 test('smallest usable pane budgets all sections and resizing keeps selection visible', () => {
@@ -20,6 +20,15 @@ test('smallest usable pane budgets all sections and resizing keeps selection vis
   const window = pageWindow(keys, '23', 2);
   expect(keys.slice(window.start, window.end)).toContain('23');
   expect(pageSelection([], '', 1, 1)).toBe('');
+});
+
+test('header budget keeps width for the host recovery controls', () => {
+  expect(headerColumns(32, 12)).toBe(12);
+  expect(headerColumns(64, 18)).toBe(44);
+  expect(headerColumns(64, 20)).toBe(44);
+  expect(headerColumns(72, 24)).toBe(52);
+  expect(headerColumns(73, 24)).toBe(53);
+  expect(headerColumns(120, 30)).toBe(100);
 });
 
 test('grouped pages fill actual rows, repeat context and never orphan headings', () => {

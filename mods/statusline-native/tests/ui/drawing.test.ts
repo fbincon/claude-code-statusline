@@ -9,7 +9,7 @@ import { settingRows } from '../../lib/client/settings.ts';
 import { handleKey } from '../../lib/client/keys.ts';
 import type { View } from '../../lib/session.ts';
 import { draw } from '../../ui/client/draw.ts';
-import { clip, displayWidth } from '../../ui/layout.ts';
+import { clip, displayWidth, headerColumns } from '../../ui/layout.ts';
 import { editorLayout, editorShortcuts } from '../../ui/client/help.ts';
 import { shortcutRows, shortcutSpans } from '../../ui/components/shortcuts.ts';
 import { description, readResult } from '../fixtures.ts';
@@ -206,6 +206,27 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     expect(footer.props.key).toBe('shortcut-region');
     expect(text(footer)).toContain('S save');
     expect(text(footer)).toContain('Esc focus');
+  }
+});
+
+test('the header reserves the recovery control area at narrow widths', () => {
+  const state = view();
+  state.editor!.baseline.configuration = {
+    target: { kind: 'user' },
+    profile_id: null,
+    profile_name: null,
+    project_root: 'root',
+    reason: 'user',
+    shared_projects: [],
+  };
+  const full = t('native.ui.client.draw.configure_status_line', 'en') + ' · ' +
+    t('profiles.target', 'en', { name: t('profiles.user', 'en'), root: 'root', count: 0 });
+  for (const columns of [32, 72, 73, 120]) {
+    const tree = draw(elements, state, columns, 24) as unknown as Node;
+    const heading = (tree.children[0] as Node).children[0] as Node;
+    const budget = headerColumns(columns, 24);
+    expect(displayWidth(text(heading)) <= budget).toBe(true);
+    expect(text(heading)).toBe(clip(full, budget));
   }
 });
 
@@ -454,7 +475,7 @@ test('all registered languages keep every page, form, numeric error and footer i
         if(page==='detail') {e.detail={scope:'main',id:'model-with-effort'};e.setting='item:label';}
         else e.page=page as typeof e.page;
         const output=render(draw(elements,state,columns!,rows!) as unknown as Node).join('\n');
-        expect(output).toContain(t('native.ui.client.draw.configure_status_line', language));
+        expect(output).toContain(clip(t('native.ui.client.draw.configure_status_line', language), headerColumns(columns!, rows!)));
         expect(output.includes('native.')).toBe(false);
         expect(output.includes('fields.')).toBe(false);
       }

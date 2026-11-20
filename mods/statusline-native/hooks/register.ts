@@ -31,7 +31,7 @@ import type {
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS, contentColumns, clip } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, RECOVERY_CONTROLS_WIDTH, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
@@ -1079,7 +1079,7 @@ export const register: Register = (on, options) => {
             position: 'absolute',
             top: 0,
             right: 0,
-            width: 20,
+            width: RECOVERY_CONTROLS_WIDTH,
             height: 1,
             flexDirection: 'row',
             columnGap: 1,

@@ -192,7 +192,7 @@ Enter inside a field accepts the field, and A inside import review accepts the c
 
 Two editors can stay open. The first save succeeds; a stale revision is refused without overwriting newer settings. Conflict review retains the draft and supports comparison, export and explicitly reviewed retry or discard/reload. Use the [concurrent-edit workflow](DRAFT_HISTORY.md#concurrent-edits-and-unknown-saves); ordinary reload discards the draft rather than merging it.
 
-While a save is pending or unknown, display/history mutations and ordinary closure are blocked, including already-open source/profile managers. Saved-state checks read the submitted snapshot without saving again. A definitive result unlocks editing; a conflict retains the draft. Read-only source inspection remains available. On Client failure, Retry/Close buttons outside the pane recover while retaining drafts already received by the host. [Troubleshooting](USER_GUIDE.md#troubleshooting).
+While a save is pending or unknown, display/history mutations and ordinary closure are blocked, including already-open source/profile managers. Saved-state checks read the submitted snapshot without saving again. A definitive result unlocks editing; a conflict retains the draft. Read-only source inspection remains available. On Client failure, Retry/Close buttons outside the pane recover while retaining drafts already received by the host. At narrow widths the header ellipsizes the editing target before those controls. [Troubleshooting](USER_GUIDE.md#troubleshooting).
 
 <a id="claude-preferences-apply-separately"></a>
 
