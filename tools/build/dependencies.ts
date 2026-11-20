@@ -1,4 +1,4 @@
-import { sha256 } from './files.js';
+import { sha256 } from './files.ts';
 
 /** Remove lifecycle scripts from a bundled dependency manifest.
  *  Bundled runtime files are never built or installed as standalone packages,
