@@ -28,6 +28,14 @@ test('maintenance packages retain distinct source hashes while equivalent produc
     const result = comparePackages(base, head, before, after); assert.equal(result.equivalent, true); assert.notEqual(result.base_sha256, result.head_sha256);
     assert.throws(() => comparePackages(base, head, before, before), /commit|equal/u);
 });
+test('dependency lifecycle scripts are normalized while other manifest changes remain significant', t => {
+    const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40);
+    const before = pack(base, { 'node_modules/koffi/package.json': '{"name":"koffi","version":"3.3.3","scripts":{"install":"node ./cnoke.cjs"}}' });
+    const after = pack(head, { 'node_modules/koffi/package.json': '{"name":"koffi","version":"3.3.3"}' });
+    assert.equal(comparePackages(base, head, before, after).equivalent, true);
+    const changed = pack(head, { 'node_modules/koffi/package.json': '{"name":"koffi","version":"3.3.4"}' });
+    assert.equal(comparePackages(base, head, before, changed).equivalent, false);
+});
 test('runtime changes, new executable files disguised as licenses and package entrypoint changes are not equivalent', t => {
     const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40), before = pack(base);
     const changes: Record<string, string>[] = [{ 'node_modules/@fbincon/statusline-core/dist/src/render.js': 'export const render = () => "other";' },

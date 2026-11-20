@@ -9,7 +9,7 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { readTar, sha256, sums, verifyChecksums } from './files.js';
-import { BUSINESS, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
+import { BUSINESS, EXTERNAL, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
 import { languageEvidence, verifyPackLanguages } from '../checks/i18n-evidence.ts';
 export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
@@ -17,6 +17,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     assert.match(commit, /^[a-f0-9]{40}$/u, 'Fixed source SHA required');
     assert.equal(source.commit, commit, 'Wrong source commit');
     assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
+    assert(source.dependency_manifests === undefined || source.dependency_manifests === 'sanitized');
     const kind = channel(source.channel ?? 'candidate'), product = identity(commit, kind);
     assert(source.channel === undefined || source.channel === kind, 'Artifact channel must be canonical');
     assert.equal(source.name, product.name); assert.equal(manifest.name, product.name);
@@ -35,13 +36,13 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     assert.equal(source.node, 'v24.21.0'); assert.equal(source.npm, '11.19.0'); assert.equal(source.typescript, '5.9.3');
     assert.equal(source.application_version, VERSION);
     assert.deepEqual(source.targets, TARGETS);
-    const dependencies = [...BUSINESS.map(name => '@fbincon/statusline-' + name), 'koffi', 'lossless-json', ...NATIVE];
+    const dependencies = [...BUSINESS.map(name => '@fbincon/statusline-' + name), ...EXTERNAL];
     assert.deepEqual([...manifest.bundleDependencies].sort(), [...dependencies].sort());
     assert.deepEqual(Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies }).sort(), [...dependencies].sort());
     for (const name of BUSINESS.map(short => '@fbincon/statusline-' + short)) assert.equal(manifest.dependencies[name], '0.0.0');
     assert.equal(manifest.dependencies.koffi, '3.3.3'); assert.equal(manifest.dependencies['lossless-json'], '4.3.1');
     for (const name of NATIVE) assert.equal(manifest.optionalDependencies[name], '3.3.3');
-    assert.deepEqual(Object.keys(source.dependencies).sort(), ['koffi', 'lossless-json', ...NATIVE].sort());
+    assert.deepEqual(Object.keys(source.dependencies).sort(), [...EXTERNAL].sort());
     assert.match(source.source_manifest_sha256, /^[a-f0-9]{64}$/u);
     assert.equal(source.lock_sha256, source.source_hashes['package-lock.json']);
     assert.deepEqual(Object.keys(source.files).sort(), [...entries.keys()].filter(name => name !== 'candidate.json').sort(), 'Candidate inventory mismatch');
@@ -86,7 +87,9 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     }
     for (const [name, dependency] of Object.entries(source.dependencies)) {
         assert.match(dependency.integrity, /^sha512-[A-Za-z0-9+/]+=*$/u);
-        assert.equal(read('node_modules/' + name + '/package.json').version, dependency.version);
+        const manifest = read('node_modules/' + name + '/package.json');
+        assert.equal(manifest.version, dependency.version);
+        if (source.dependency_manifests === 'sanitized') assert.equal(manifest.scripts, undefined, 'Bundled dependency scripts: ' + name);
         assert.deepEqual(Object.keys(dependency.files).sort(), [...entries.keys()].filter(path => path.startsWith('node_modules/' + name + '/')).map(path => path.slice(('node_modules/' + name + '/').length)).sort(), 'Incomplete dependency inventory');
         for (const [path, hash] of Object.entries(dependency.files)) assert.equal(source.files['node_modules/' + name + '/' + path], hash, 'Dependency digest differs');
     }

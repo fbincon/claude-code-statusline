@@ -42,7 +42,7 @@ Core 定义统一供安装引导、双编辑器、CLI 及[可移植示例](../..
 npm run release:signatures -- --version 3.14.0 --commit FULL_SOURCE_SHA --artifact /path/to/fbincon-claude-code-statusline-3.14.0.tgz --output /path/to/new-signatures.json
 ```
 
-工具复用 npm 11.19.0 的 TUF、registry 签名和 Sigstore 验证，检查包 SHA-512 与所有文件，并把 provenance 绑定到精确仓库、源提交、tag 和发布工作流。六个内置公开依赖分别验证签名和完整性，所带文件与签名上游归档逐项比较。四个私有工作区包由签名外层归档和完整文件清单覆盖，不将它们当作未发布 registry 版本查询。依赖未发布 provenance 时明确记录缺失，外层产品包则必须有源证明。
+工具复用 npm 11.19.0 的 TUF、registry 签名和 Sigstore 验证，检查包 SHA-512 与所有文件，并把 provenance 绑定到精确仓库、源提交、tag 和发布工作流。六个内置公开依赖分别验证签名和完整性；所带文件与签名上游归档逐字节一致，或经过新包使用的确定性生命周期脚本移除，因此历史产物仍可验证。四个私有工作区包由签名外层归档和完整文件清单覆盖，不将它们当作未发布 registry 版本查询。依赖未发布 provenance 时明确记录缺失，外层产品包则必须有源证明。
 
 这是明确限定范围的专用流程。原生 `npm audit signatures` 仍会遍历私有内置工作区依赖，可能返回 E404，不记作通过。公开发布新增固定工具链签名任务，与原六项公开下载任务并列。
 

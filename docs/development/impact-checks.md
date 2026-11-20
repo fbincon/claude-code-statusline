@@ -54,7 +54,7 @@ npm run ci:check -- --plan /tmp/impact-compared.json --task linux \
 
 For a plan without packaging, omit `--artifact`. Use the task ID and actual platform from the plan; a Linux execution cannot issue a Windows/macOS receipt. Local receipts have no Actions execution identity and cannot replace CI acceptance. Each run uses a new report path. The complete local `npm run check` remains available and remains required during foundation validation and for core changes.
 
-The package comparison exports each source independently, installs its locked dependencies with lifecycle scripts disabled, builds, verifies generation and packages it. It compares runtime members and modes, allowing only registered documentation, compiler metadata, version identity and presentation differences. Runtime expressions, entrypoints, dependencies and unregistered members remain significant. Neither package's commit or original bytes are rewritten. Comparison errors block; non-equivalent runtime output selects the product route.
+The package comparison exports each source independently, installs its locked dependencies with lifecycle scripts disabled, builds, verifies generation and packages it. It compares bundled dependency manifests after the deterministic lifecycle-scripts removal; other manifest fields remain significant. It compares runtime members and modes, allowing only registered documentation, compiler metadata, version identity and presentation differences. Runtime expressions, entrypoints, dependencies and unregistered members remain significant. Neither package's commit or original bytes are rewritten. Comparison errors block; non-equivalent runtime output selects the product route.
 
 ## Evidence and promotion
 

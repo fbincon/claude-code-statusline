@@ -9,7 +9,8 @@ import { NATIVE as EDITOR, RUNTIME, VERSION } from '@fbincon/statusline-cli/inte
 import { bundledFiles } from '@fbincon/statusline-cli/integration/resources';
 import { repoRoot, sourceHashes } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
-import { BUSINESS, NATIVE, TARGETS, identity, channel, type Channel, type Candidate } from './model.js';
+import { BUSINESS, EXTERNAL, NATIVE, TARGETS, identity, channel, type Channel, type Candidate } from './model.js';
+import { sanitizeDependencyManifest } from './dependencies.js';
 import { REPOSITORY_URL } from '@fbincon/statusline-core/release';
 import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
@@ -36,6 +37,8 @@ export async function dependency(name: string, lock: any, destination: string, t
     const entries = readTar(archive), manifest = JSON.parse(entries.get('package.json')!.toString());
     if (manifest.name !== name || manifest.version !== record.version) throw new Error('Unexpected locked dependency identity');
     const selected = new Map([...entries].filter(([path]) => runtimeFile(name, path)));
+    const manifestBytes = selected.get('package.json');
+    if (manifestBytes) selected.set('package.json', sanitizeDependencyManifest(manifestBytes));
     extractFiles(selected, destination);
     return { version: record.version as string, integrity: record.integrity as string,
         files: Object.fromEntries([...selected].sort(([a], [b]) => a < b ? -1 : 1).map(([path, bytes]) => [path, sha256(bytes)])) };
@@ -55,7 +58,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
             const source = join(repoRoot, 'packages', short), target = join(stage, 'node_modules/@fbincon/statusline-' + short);
             fs.mkdirSync(join(target, 'dist'), { recursive: true });
             fs.cpSync(join(source, 'dist/src'), join(target, 'dist/src'), { recursive: true });
-            fs.copyFileSync(join(source, 'package.json'), join(target, 'package.json'));
+            fs.writeFileSync(join(target, 'package.json'), sanitizeDependencyManifest(fs.readFileSync(join(source, 'package.json'))));
             if (fs.existsSync(join(source, 'resources'))) fs.cpSync(join(source, 'resources'), join(target, 'resources'), { recursive: true });
         }
         const languageInputs = readLanguageInputs(repoRoot);
@@ -64,7 +67,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
             for (const { code } of language.registry) fs.writeFileSync(join(stage, 'node_modules/@fbincon/statusline-core/resources/i18n/locales', code + '.json'), JSON.stringify(language.effective[code], null, 2) + '\n');
         }
         const dependencies: Candidate['dependencies'] = {};
-        for (const name of ['koffi', 'lossless-json', ...NATIVE]) dependencies[name] = await dependency(name, lock, join(stage, 'node_modules', name), temporary);
+        for (const name of EXTERNAL) dependencies[name] = await dependency(name, lock, join(stage, 'node_modules', name), temporary);
         for (const spec of [EDITOR, RUNTIME]) for (const [name, raw] of bundledFiles(spec).files) {
             const path = join(stage, 'node_modules/@fbincon/statusline-cli/resources', spec.name, name);
             fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, raw);
@@ -75,7 +78,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
         const manifest = { ...product, type: 'module', description: 'Configurable Claude Code statusline and terminal editors', license: 'MIT AND Unicode-3.0', engines: { node: NODE_RUNTIME_RANGE }, statuslineCompatibility: PACKAGE_COMPATIBILITY,
             ...(kind !== 'candidate' ? { repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, homepage: REPOSITORY_URL, bugs: { url: REPOSITORY_URL + '/issues' }, publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' } } : {}),
             bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies: { ...Object.fromEntries(business.map(name => [name, '0.0.0'])), koffi: '3.3.3', 'lossless-json': '4.3.1' },
-            optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...business, 'koffi', 'lossless-json', ...NATIVE], files: ['bin', 'candidate.json', 'LICENSE*', ...(kind !== 'candidate' ? ['README.md'] : [])] };
+            optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...business, ...EXTERNAL], files: ['bin', 'candidate.json', 'LICENSE*', ...(kind !== 'candidate' ? ['README.md'] : [])] };
         fs.writeFileSync(join(stage, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
         if (kind !== 'candidate') {
             const readme = kind === 'stable' ? packageReadme(fs.readFileSync(join(repoRoot, 'README.md'), 'utf8'), 'v' + VERSION) : rewriteLinks(fs.readFileSync(join(repoRoot, 'docs/PREVIEW.md'), 'utf8'), target => {
@@ -93,7 +96,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
         const intended = files(stage), listed: string[] = pack(true).files.map((row: any) => row.path);
         if (JSON.stringify([...listed].sort()) !== JSON.stringify([...intended].sort())) throw new Error('npm omitted staged runtime files: ' + intended.filter(name => !listed.includes(name)).join(', '));
         const source: Candidate = { schema_version: 1, channel: kind, name: product.name, version: product.version, application_version: VERSION, commit, dirty: false, node: process.version, npm, typescript: '5.9.3',
-            lock_sha256: sha256(lockBytes), source_manifest_sha256: sha256(sourceBytes), source_hashes: sourceHashes(), targets: TARGETS, dependencies,
+            lock_sha256: sha256(lockBytes), source_manifest_sha256: sha256(sourceBytes), source_hashes: sourceHashes(), targets: TARGETS, dependency_manifests: 'sanitized', dependencies,
             files: Object.fromEntries([...listed].sort().map(name => [name, sha256(fs.readFileSync(join(stage, name)))])) };
         fs.writeFileSync(join(stage, 'candidate.json'), JSON.stringify(source, null, 2) + '\n');
         const result = pack(), tarball = join(destination, result.filename);

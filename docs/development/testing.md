@@ -60,6 +60,8 @@ node "$CANDIDATE_JS" install --config-dir "$CHECK_ROOT/claude-config" --dry-run
 
 In PowerShell, assign absolute paths to the equivalent variables and invoke the installed JavaScript entry with `node`. For integration testing, bind the matching Node executable and JavaScript entry. Inspect pending transactions with `doctor` and `recover --dry-run` against the same test configuration. See [installation and recovery](contracts.md#candidate-installation-and-recovery).
 
+Current candidate artifacts mark sanitized dependency manifests with `dependency_manifests: "sanitized"`; verification rejects lifecycle scripts on those artifacts, while historical artifacts without the marker remain verifiable. The isolated acceptance installs use `--ignore-scripts`, and the packaging regression separately installs the candidate with lifecycle scripts enabled to reproduce an `npx`-style install without executing trimmed build scripts.
+
 For acceptance, pass the same artifact and commit to each runner, with a fresh report path for each platform and fixed host. Replace the example host path with the selected Claude executable. The installed runner uses an isolated prefix and configuration with lifecycle scripts disabled. Official-host checks record the exact host and the availability of matching declarations.
 
 ```bash

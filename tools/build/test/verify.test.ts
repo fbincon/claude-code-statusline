@@ -10,7 +10,29 @@ import { verifyCandidate, verifyContents } from '../verify.js';
 import { PACKAGE, version, identity, publicChannel, channel } from '../model.js';
 import { candidateEntries as fixture } from './fixtures/delivery.js';
 const commit = 'a'.repeat(40);
+function replaceDependencyManifest(entries: Map<string, Buffer>, name: string, manifest: unknown) {
+    const raw = Buffer.from(JSON.stringify(manifest));
+    entries.set('node_modules/' + name + '/package.json', raw);
+    const candidate = JSON.parse(entries.get('candidate.json')!.toString());
+    candidate.dependencies[name].files['package.json'] = sha256(raw);
+    candidate.files['node_modules/' + name + '/package.json'] = sha256(raw);
+    entries.set('candidate.json', Buffer.from(JSON.stringify(candidate)));
+    return entries;
+}
 test('tests.integration.test_publish_package.DistributionTests.test_accepts_only_the_expected_packages_and_entry_point', () => { assert.equal(verifyContents(fixture(), commit).source.commit, commit); });
+test('tests.integration.test_publish_package.DistributionTests.test_sanitized_candidates_reject_dependency_lifecycle_scripts', () => {
+    const sanitized = fixture();
+    assert.equal(JSON.parse(sanitized.get('node_modules/koffi/package.json')!.toString()).scripts, undefined);
+    assert.doesNotThrow(() => verifyContents(sanitized, commit));
+    const entries = replaceDependencyManifest(fixture(), 'koffi', { name: 'koffi', version: '3.3.3', scripts: { install: 'node ./cnoke.cjs' } });
+    assert.throws(() => verifyContents(entries, commit), /scripts/);
+});
+test('tests.integration.test_publish_package.DistributionTests.test_historical_candidates_remain_verifiable_without_the_marker', () => {
+    const entries = replaceDependencyManifest(fixture(), 'koffi', { name: 'koffi', version: '3.3.3', scripts: { install: 'node ./cnoke.cjs' } });
+    const candidate = JSON.parse(entries.get('candidate.json')!.toString()); delete candidate.dependency_manifests;
+    entries.set('candidate.json', Buffer.from(JSON.stringify(candidate)));
+    assert.doesNotThrow(() => verifyContents(entries, commit));
+});
 test('tests.integration.test_publish_package.DistributionTests.test_wrong_distribution_names_versions_and_entry_points_fail', () => {
     for (const mutate of [(p: any) => p.name = 'other', (p: any) => p.version = '1.0.0', (p: any) => p.bin.other = 'a.js', (p: any) => p.dependencies.koffi = '3.3.2']) {
         const entries = fixture(), manifest = JSON.parse(entries.get('package.json')!.toString()); mutate(manifest); entries.set('package.json', Buffer.from(JSON.stringify(manifest))); assert.throws(() => verifyContents(entries, commit));

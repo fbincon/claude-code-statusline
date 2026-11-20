@@ -22,6 +22,7 @@ export const sourceFilename = (commit: string, kind: Channel) => kind !== 'candi
 export const BUSINESS = ['core', 'platform', 'cli', 'tui'] as const;
 export const TARGETS = ['linux-x64', 'win32-x64', 'darwin-x64', 'darwin-arm64'] as const;
 export const NATIVE = TARGETS.map(target => '@koromix/koffi-' + target);
+export const EXTERNAL = ['koffi', 'lossless-json', ...NATIVE] as const;
 export const version = (commit: string) => '0.0.0-ts05.g' + commit.slice(0, 12);
 export interface Candidate {
     schema_version: 1;
@@ -40,4 +41,5 @@ export interface Candidate {
     targets: readonly string[];
     dependencies: Record<string, { version: string; integrity: string; files: Record<string, string> }>;
     files: Record<string, string>;
+    dependency_manifests?: 'sanitized';
 }

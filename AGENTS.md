@@ -66,6 +66,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - Use the platform tree-removal adapter for owned fixture state changes too; assert actual removal before testing dependent behavior.
 - Route accepted draft edits through the shared history transition; previews and cancelled inputs never create history. Keep independent persistent effects outside undo, and bind reviewed structural candidates to the current target and draft generation.
 - Preserve read-only operations, previews and dry-run contracts. Explicit configuration writes retain ownership/revision checks, locks, backups, atomic publication and recovery.
+- Keep bundled npm dependency manifests free of lifecycle scripts: the packer removes them and marked artifacts reject them during verification; bundled runtime files must not execute install or build scripts.
 - Use the production rendering pipeline for previews with injected observations; keep live collection separate from pure rendering.
 - Preserve complete graphemes, terminal-cell budgets and ANSI styling through shared Unicode/rendering helpers.
 - Pass executable paths and literal argv through existing platform adapters, including spaces, Unicode and shell metacharacters.

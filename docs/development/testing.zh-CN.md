@@ -60,6 +60,8 @@ node "$CANDIDATE_JS" install --config-dir "$CHECK_ROOT/claude-config" --dry-run
 
 在 PowerShell 中为对应变量设置绝对路径，并使用 `node` 调用已安装的 JavaScript 入口。测试接入时绑定匹配的 Node 可执行文件和 JavaScript 入口。使用 `doctor` 和 `recover --dry-run` 在同一测试配置下查看待处理事务。参见[安装与恢复](contracts.zh-CN.md#候选安装与恢复)。
 
+当前候选产物在 `candidate.json` 中以 `dependency_manifests: "sanitized"` 标记已清理的依赖清单；验证器会拒绝这些产物中的生命周期脚本，没有标记的历史产物仍可验证。隔离安装验收使用 `--ignore-scripts`，打包回归另以启用生命周期脚本的方式安装候选包，以复现 `npx` 式安装且不执行已裁剪的构建脚本。
+
 验收时向各执行器提供同一产物和提交，每个平台和固定宿主使用新的报告路径。将示例宿主路径替换为选定的 Claude 可执行文件。安装验收使用隔离 prefix 和配置，并禁用生命周期脚本。官方宿主检查记录准确宿主和对应声明的可用性。
 
 ```bash
