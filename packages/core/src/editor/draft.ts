@@ -1,6 +1,6 @@
 import type { AlignmentManager } from './alignment-manager.js';
 import type { GroupManager } from './group-manager.js';
-import { reconcileGroups, insertionAfter } from './groups.js';
+import { groupScope, reconcileGroups, insertionAfter } from './groups.js';
 import type { ExplanationView } from './explanation.js';
 import type { SourceManager } from './source-manager.js';
 import type { ProfileManager } from './profile-manager.js';
@@ -9,7 +9,7 @@ import { t, text, type Language } from '../i18n/messages.js';
 import { emptyHistory, remember, snapshot, boundHistory, semantic, type DraftHistory } from './history.js';
 import { repairStructure, type StructureProposal } from './structure.js';
 import { openChanges, targetIdentity, type ChangeReview } from './change-review.js';
-import { componentTypes, nodes, newInstance, reconcileRows } from './instances.js';
+import { componentTypes, instanceUnit, nodes, newInstance, reconcileRows, swapAdjacentUnits } from './instances.js';
 import { isDraft } from './backend.js';
 import type {
   CatalogItem,
@@ -205,7 +205,11 @@ export class Editor {
       if (!proposal.repairs.length) return this.commitDraft(proposal.draft, text('history.structure'));
       this.structureProposal = { ...proposal, generation: this.mutationGeneration, target: targetIdentity(this.baseline) };
       openChanges(this, true); return true;
-    } catch { this.compositionError = text('composition.invalid'); return false; }
+    } catch (error) {
+      this.compositionError = text(error instanceof Error && error.message === 'composition.groups.invalid'
+        ? 'composition.groups.invalid' : 'composition.invalid');
+      return false;
+    }
   }
   acceptProposal(): boolean {
     const proposal = this.structureProposal;
@@ -447,20 +451,16 @@ export class Editor {
     if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     if (this.adding || this.filtered(scope)) return false;
-    const visible = this.visible(scope).map((item) => item.id as string);
-    const id = this.selected[scope];
-    const index = visible.indexOf(id);
-    const target = visible[index + delta];
-    if (index < 0 || !target) return false;
+    const { instances, groups } = groupScope(this.draft.display, scope);
+    const selected = instanceUnit(instances, groups, this.selected[scope]);
+    if (!selected) return false;
+    const neighbor = instances[delta < 0 ? selected.start - 1 : selected.end];
+    if (!neighbor) return true; // The arrow is handled at the list edge without changing the draft.
+    const adjacent = instanceUnit(instances, groups, neighbor.id)!;
+    const [left, right] = delta < 0 ? [adjacent, selected] : [selected, adjacent];
     const draft = copyDraft(this.draft);
-    const ordered = nodes(draft, scope);
-    const sourceIndex = ordered.findIndex(node => node.id === id);
-    const [moving] = ordered.splice(sourceIndex, 1);
-    ordered.splice(ordered.findIndex(node => node.id === target) + (delta > 0 ? 1 : 0), 0, moving!);
-    if (scope === 'main') reconcileRows(draft);
-    if (!this.applyStructure(draft)) return false;
-    if (!this.structureProposal) this.order[scope] = ordered.map(node => node.id);
-    return true;
+    swapAdjacentUnits(nodes(draft, scope), left, right, scope === 'main' ? draft.display.layout : undefined);
+    return this.applyStructure(draft);
   }
 
   setBuffer(field: NumericField, value: string): void {

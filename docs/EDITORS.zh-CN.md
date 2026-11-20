@@ -75,7 +75,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | Tab / Shift+Tab | 非输入状态下循环 Main、Subagents、Settings、Layout |
 | Space | 勾选或取消当前组件 |
 | ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾条目或字段 |
-| ← / → | 组件排序或调整设置；筛选时禁止排序 |
+| ← / → | 调整组件和整组的顺序，或调整设置。排序前请清除筛选。 |
 | `/`；可打印字符；Backspace / Ctrl+U | 进入或更新项目搜索；删除／清空 |
 | Ctrl+F | 选择分类 |
 | Ctrl+E / Ctrl+G | 打开逐项详情／返回、取消输入或清除列表筛选 |
@@ -92,7 +92,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | --- | --- |
 | Tab / Shift+Tab；1 / 2 / 3 / 4 | 非输入状态下切换 Main、Subagents、Settings、Layout |
 | ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾条目或字段 |
-| ← / → | 组件排序或调整设置；筛选时禁止排序 |
+| ← / → | 调整组件和整组的顺序，或调整设置。排序前请清除筛选。 |
 | Space / Enter | 勾选组件；操作设置或进入／接受字段编辑 |
 | `/`；Ctrl+U；Ctrl+G | 进入搜索；清空输入；取消并恢复原状态 |
 | Ctrl+F | 选择分类 |
