@@ -25,7 +25,10 @@
 | --- | --- |
 | 打包专项测试 | 依赖、验证器、影响比较和签名测试共 21 项通过。 |
 | `npm run check` | 清理陈旧编译输出后通过；602 项产品测试，596 项通过，六项平台相关跳过；1,247 项工具测试。 |
+| 实现 head 候选包构建 | 两个独立构建逐字节一致；SHA-256 为 `eb0613840270d8bdca7ac40e9ca5af84cc5a41ba95ee456a511a678d1b49f69c`；`candidate:verify` 检查全部 1,102 个文件通过。后续仅文档更新不改变运行时字节。 |
+| 无 `--ignore-scripts` 安装 | 在 Linux x64 上成功；内置 `koffi/package.json` 无 `scripts`，`candidate.json` 标记为 `sanitized`，安装后的 CLI 报告 3.16.3。 |
+| `npm run ci:plan -- --compare` / `ci:check --task linux` | 维护路线；包比较等价，零变更成员；Linux 任务通过 actions、build、checks、文档、生成、打包和发布覆盖。 |
 | `npm run docs:check` / 已注册内容测试 | 7,436 个链接零错误；37 项内容和示例测试通过。 |
 | `git diff --check` | 无错误。 |
 
-Linux x64 的无 `--ignore-scripts` 安装和候选包验证结果记录在 PR 描述中。本机无法执行 Windows `npx` 本身；原失败是缺失的 `cnoke.cjs` 生命周期目标，本地安装复现了同一生命周期路径。后续发布必须按产品／载荷改动处理，而不是复用维护性发布，因为内置清单字节有意不同。既有 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项平台缺口仍未验证。未进行付费模型调用。
+本机无法执行 Windows `npx` 本身；原失败是缺失的 `cnoke.cjs` 生命周期目标，本地安装复现了同一生命周期路径。后续发布必须按产品／载荷改动处理，而不是复用维护性发布，因为内置清单字节有意不同。既有 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项平台缺口仍未验证。未进行付费模型调用。

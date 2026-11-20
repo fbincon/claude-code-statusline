@@ -25,7 +25,10 @@ This 2026-11-21 feature delivery removes lifecycle scripts from bundled npm depe
 | --- | --- |
 | Targeted packaging tests | 21 tests passed across dependency, verifier, impact and signature suites. |
 | `npm run check` | Passed after cleaning stale compiled outputs; 602 product tests with 596 passes and six platform-specific skips, and 1,247 tool tests. |
+| Candidate build at implementation head | Two independent builds were byte-identical; SHA-256 `eb0613840270d8bdca7ac40e9ca5af84cc5a41ba95ee456a511a678d1b49f69c`; `candidate:verify` passed all 1,102 files. The later documentation-only follow-up does not change runtime bytes. |
+| No-`--ignore-scripts` install | Succeeded on Linux x64; the bundled `koffi/package.json` has no `scripts`, `candidate.json` is marked `sanitized`, and the installed CLI reports 3.16.3. |
+| `npm run ci:plan -- --compare` / `ci:check --task linux` | Maintenance route; package comparison equivalent with zero changed members; the Linux task passed actions, build, checks, documentation, generation, packaging and release coverage. |
 | `npm run docs:check` / registered content tests | 7,436 links with zero errors; 37 content/example tests passed. |
 | `git diff --check` | Clean. |
 
-The Linux x64 no-`--ignore-scripts` install and candidate verification results are recorded in the PR description. Windows `npx` itself cannot be exercised on this machine; the failure was the missing `cnoke.cjs` lifecycle target, and the local install reproduces the same lifecycle path. A later release must be handled as a product/payload change rather than a maintenance-release reuse because the bundled manifest bytes intentionally differ. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified. No paid model calls were made.
+Windows `npx` itself cannot be exercised on this machine; the failure was the missing `cnoke.cjs` lifecycle target, and the local install reproduces the same lifecycle path. A later release must be handled as a product/payload change rather than a maintenance-release reuse because the bundled manifest bytes intentionally differ. The six existing [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) platform gaps remain unverified. No paid model calls were made.
