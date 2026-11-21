@@ -3,11 +3,13 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { globalPackageRoot, productIdentity } from '@fbincon/statusline-platform/npm';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { npmEntry, readTar, sha256 } from '../../build/files.js';
 import { officialEnvironment, type installCandidate } from '../install.js';
 import { verifyHistorical } from '../historical-inputs.js';
@@ -178,10 +180,18 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
         const recover = [join(dirname(npm), 'npx-cli.js'), '--yes', '--package', packageName + '@' + identity.version, '--',
             'claude-statusline', '--language', 'en', 'recover', '--package', '--version', '3.16.4', '--prefix', prefix, '--config-dir', config];
         const prior = fs.readFileSync(failedOperation);
-        const npxEnv = process.platform === 'win32' ? env : { ...env, npm_config_script_shell: '/bin/sh' };
-        await call('preview the retained transaction using npx', installed.node, [...recover, '--dry-run'], npxEnv);
-        assert.deepEqual(fs.readFileSync(failedOperation), prior);
-        await call('resume the original transaction using npx', installed.node, [...recover, '--yes'], npxEnv);
+        // npm's generated .cmd launcher expands its own cache directory in cmd.exe.
+        // Keep that cache separate from the literal paths passed to the product.
+        const npxCache = fs.mkdtempSync(join(tmpdir(), 'statusline-recovery-npx-'));
+        try {
+            const npxEnv = { ...env, npm_config_cache: npxCache, ...(process.platform === 'win32' ? {} : { npm_config_script_shell: '/bin/sh' }) };
+            await call('preview the retained transaction using npx', installed.node, [...recover, '--dry-run'], npxEnv);
+            assert.deepEqual(fs.readFileSync(failedOperation), prior);
+            await call('resume the original transaction using npx', installed.node, [...recover, '--yes'], npxEnv);
+        } finally {
+            removeTree(npxCache);
+            assert(!fs.existsSync(npxCache));
+        }
         assert(!fs.existsSync(marker));
         assert.equal(read(failedOperation).stage, 'complete');
         assert.deepEqual(read(failedOperation).results, { package: true, integration: true });
