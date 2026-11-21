@@ -75,7 +75,7 @@ export function registered(directory: string, spec: ModSpec, markets: Record<str
         throw new Error('Foreign or ambiguous plugin: ' + spec.plugin);
     return [!!matches.length, rows[0] ?? null];
 }
-export function cacheOwned(directory: string, spec: ModSpec, row: Record<string, unknown>, marker: Marker, io: Storage, current = false): string {
+export function cacheOwned(directory: string, spec: ModSpec, row: Record<string, unknown>, marker: Marker, io: Storage, current = false): Snapshot {
     if (typeof row.installPath !== 'string')
         throw new Error('Missing plugin installPath');
     // Canonicalize the explicitly selected configuration prefix only. Resolving
@@ -100,7 +100,7 @@ export function cacheOwned(directory: string, spec: ModSpec, row: Record<string,
             const raw = io.read(ownedPath(path, name.slice(prefix.length)));
             return raw !== null && digest(raw) === hash;
         }))
-            return path;
+            return snapshot;
     }
     throw new Error('Installed Mod cache changed; restore or inspect before changing it: ' + path);
 }

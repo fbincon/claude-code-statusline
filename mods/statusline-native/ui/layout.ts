@@ -1,8 +1,29 @@
+import { t, type Language } from '../lib/i18n/index.ts';
+import { displayWidth, clip as clipGraphemes } from '../lib/unicode.ts';
+
 export const MIN_COLUMNS = 32;
 export const MIN_ROWS = 12;
 
-/** Width reserved by the host-level Retry/Close recovery controls. */
-export const RECOVERY_CONTROLS_WIDTH = 20;
+export const RECOVERY_CONTROL_GAP = 1;
+const TITLE_GAP = 1;
+const MIN_TITLE_COLUMNS = 12;
+const BUTTON_DECORATION = displayWidth('[  ]');
+
+export function recoveryControls(columns: number, language: Language = 'en') {
+  const retry = t('native.hooks.register.retry', language);
+  const close = t('native.hooks.register.close', language);
+  const available = columns - MIN_TITLE_COLUMNS - TITLE_GAP;
+  const fullWidth = displayWidth(retry) + displayWidth(close) + 2 * BUTTON_DECORATION + RECOVERY_CONTROL_GAP;
+  if (fullWidth <= available || columns < MIN_COLUMNS)
+    return { retry, close, width: fullWidth, plain: false };
+
+  const labels = available - RECOVERY_CONTROL_GAP;
+  const retryWidth = Math.min(displayWidth(retry), Math.max(4, labels - displayWidth(close)));
+  const compactRetry = clip(retry, retryWidth);
+  const compactClose = clip(close, labels - displayWidth(compactRetry));
+  return { retry: compactRetry, close: compactClose,
+    width: displayWidth(compactRetry) + displayWidth(compactClose) + RECOVERY_CONTROL_GAP, plain: true };
+}
 
 /** Columns available inside the same frame used by editor drawing. */
 export function contentColumns(columns: number, rows: number): number {
@@ -10,8 +31,8 @@ export function contentColumns(columns: number, rows: number): number {
 }
 
 /** Header budget that keeps the title clear of the recovery controls. */
-export function headerColumns(columns: number, rows: number): number {
-  return Math.min(contentColumns(columns, rows), Math.max(0, columns - RECOVERY_CONTROLS_WIDTH));
+export function headerColumns(columns: number, rows: number, language: Language = 'en', paneColumns = columns): number {
+  return Math.min(contentColumns(columns, rows), Math.max(0, paneColumns - recoveryControls(paneColumns, language).width - TITLE_GAP));
 }
 
 /** Budget a paged body between the header, preview and action rows. */
@@ -43,7 +64,6 @@ export function dimensions(columns: number, rows: number, footerRows = 2) {
 }
 
 export { cellWidth, displayWidth } from '../lib/unicode.ts';
-import { displayWidth, clip as clipGraphemes } from '../lib/unicode.ts';
 
 /** Clip at complete graphemes after replacing single-line control input. */
 export function clip(text: string, width: number): string {

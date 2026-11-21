@@ -475,7 +475,7 @@ test('all registered languages keep every page, form, numeric error and footer i
         if(page==='detail') {e.detail={scope:'main',id:'model-with-effort'};e.setting='item:label';}
         else e.page=page as typeof e.page;
         const output=render(draw(elements,state,columns!,rows!) as unknown as Node).join('\n');
-        expect(output).toContain(clip(t('native.ui.client.draw.configure_status_line', language), headerColumns(columns!, rows!)));
+        expect(output).toContain(clip(t('native.ui.client.draw.configure_status_line', language), headerColumns(columns!, rows!, language)));
         expect(output.includes('native.')).toBe(false);
         expect(output.includes('fields.')).toBe(false);
       }

@@ -16,15 +16,8 @@ interface Observed {
 function inspect(context: InstallContext, spec: ModSpec, host: Host, args: readonly string[]): Observed {
     const marker = owner(context.configDir, spec, context.io, true), [markets, plugins] = host.listing();
     const [registeredMarket, row] = registered(context.configDir, spec, markets, plugins, marker);
-    let currentCache = false;
-    if (row) {
-        cacheOwned(context.configDir, spec, row, marker!, context.io);
-        try {
-            cacheOwned(context.configDir, spec, row, marker!, context.io, true);
-            currentCache = true;
-        }
-        catch { /* A verified historical cache is distinguishable from the new one. */ }
-    }
+    const cache = row ? cacheOwned(context.configDir, spec, row, marker!, context.io) : null;
+    const currentCache = cache !== null && cache.mod_version === marker!.mod_version && cache.files === marker!.files;
     const plugin = row ? Object.fromEntries(['id', 'scope', 'version', 'installPath', 'enabled'].map(key => [key, key === 'installPath' && typeof row[key] === 'string' ? resolvedPath(row[key]) : row[key] ?? null])) : null;
     const configured = row && ['configure', 'install', 'update'].includes(args[0] ?? '') ? host.run(['configure', spec.plugin, '--json'], undefined, true) : null;
     return { market: registeredMarket ? { name: spec.marketplace, path: resolvedPath(join(context.configDir, spec.name)), source: 'directory' } : null, plugin, inputs: object(configured) ? configured.inputs ?? null : null, currentCache };

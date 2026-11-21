@@ -93,6 +93,29 @@ test('tests.integration.test_native_installer.NativeInstallerTests.test_cached_a
     assert.deepEqual(fs.readFileSync(path), raw);
 } });
 test('tests.integration.test_native_installer.NativeInstallerTests.test_same_version_resource_upgrade_uses_verified_official_reinstall', t => { const f = fresh(t); f.install(); oldResources(f); const before = f.host.calls.length; assert.equal(f.install().failed, false); const calls = f.host.calls.slice(before).map(call => call.args[0]); assert.ok(calls.includes('uninstall')); assert.ok(calls.includes('install')); assert.ok(!calls.includes('update')); assert.equal(f.json(markerPath).cache_inventories.length, 1); });
+test('a previously staged bundle still refreshes a verified stale cache after validation succeeds', t => {
+    const f = fresh(t, [2, 1, 330]);
+    assert.equal(f.install().failed, false);
+    oldResources(f);
+    f.host.enabled(false);
+    const run = f.host.run.bind(f.host);
+    const plugin = join(f.root, NATIVE.name, 'plugins', NATIVE.name);
+    f.host.run = (args, values, json) => {
+        if (args[0] === 'validate' && args.includes(plugin)) throw new Error('Invalid hooks JSON');
+        return run(args, values, json);
+    };
+    const count = f.host.calls.length, failed = f.install();
+    assert.equal(failed.failed, true);
+    assert.match(failed.messages.map(message => renderMessage(message)).join('\n'), /Invalid hooks JSON/);
+    assert.deepEqual(f.host.calls.slice(count).map(call => call.args), [['validate', '--strict', join(f.root, NATIVE.name)]]);
+    assert.equal(f.json(markerPath).cache_inventories.length, 1);
+    f.host.run = run;
+    assert.equal(f.install().nativeState, 'plugin-disabled');
+    assert(f.host.calls.slice(count).some(call => call.args[0] === 'validate' && call.args.length === 2 && call.args[1] === plugin));
+    assert(f.host.calls.slice(count).some(call => call.args[0] === 'uninstall'));
+    assert.equal(f.host.listing()[1][0]!.enabled, false);
+    assert.equal(f.install().changed, false);
+});
 test('tests.integration.test_native_installer.NativeInstallerTests.test_user_disabled_upgrade_refreshes_resources_and_binding', t => { const f = fresh(t); f.install(); oldResources(f); f.host.enabled(false); f.host.inputs.backendExecutable = 'old'; assert.equal(f.install().nativeState, 'plugin-disabled'); assert.equal(f.host.inputs.backendExecutable, f.launch.executable); assert.equal(f.host.listing()[1][0]!.enabled, false); });
 test('tests.integration.test_native_installer.NativeInstallerTests.test_upgrade_prunes_old_empty_directories_and_disable_reenable_works', t => { const f = fresh(t); f.install(); oldResources(f, true); assert.equal(f.install().failed, false); assert.equal(fs.existsSync(join(f.root, NATIVE.name, 'plugins', NATIVE.name, 'lib/obsolete')), false); assert.equal(f.install({ native: false }).failed, false); assert.equal(f.install({ native: true }).nativeState, 'installed'); });
 test('tests.integration.test_native_installer.NativeInstallerTests.test_historical_directory_cleanup_preserves_unknown_files', t => { const f = fresh(t); f.install(); oldResources(f, true); f.put(NATIVE.name + '/plugins/' + NATIVE.name + '/lib/obsolete/note', Buffer.from('keep')); f.install(); f.install({ native: false }); assert.equal(f.read(NATIVE.name + '/plugins/' + NATIVE.name + '/lib/obsolete/note').toString(), 'keep'); });

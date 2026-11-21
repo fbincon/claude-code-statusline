@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { stripVTControlCharacters } from 'node:util';
 import { claudeLaunch } from './commands.js';
 import type { LaunchSpec } from './launch.js';
 import { decodeUtf8 } from './utf8.js';
@@ -15,8 +16,14 @@ export class PluginHost {
         const result = this.execute(this.command.executable, [...this.command.args, 'plugin', ...args], { cwd: this.configDir, env, input: values === undefined ? undefined : JSON.stringify(values), timeout: 45000, killSignal: 'SIGKILL', maxBuffer: 4 * 1024 * 1024, shell: false, windowsHide: true });
         if (result.error || result.signal || result.status === null)
             throw new UnconfirmedOperation('Official plugin operation could not be confirmed: ' + args.slice(0, 2).join(' '));
-        if (result.status !== 0)
-            throw new Error('Official plugin operation refused: ' + decodeUtf8(result.stderr?.length ? result.stderr : result.stdout ?? Buffer.alloc(0)).replace(/[\x00-\x1f\x7f]/gu, ' ').slice(0, 500));
+        if (result.status !== 0) {
+            const failedValidation = args[0] === 'validate';
+            const output = failedValidation
+                ? [result.stdout, result.stderr].map(part => part?.toString('utf8') ?? '').join('\n')
+                : decodeUtf8(result.stderr?.length ? result.stderr : result.stdout ?? Buffer.alloc(0));
+            const detail = stripVTControlCharacters(output).replace(/[\x00-\x1f\x7f-\x9f]+/gu, ' ').trim();
+            throw new Error('Official plugin operation refused: ' + detail.slice(0, failedValidation ? 1000 : 500));
+        }
         if (json) {
             try {
                 return decode(decodeUtf8(result.stdout));

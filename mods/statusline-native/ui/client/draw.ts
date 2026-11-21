@@ -31,7 +31,7 @@ import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 
-export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = ''): RenderElement {
+export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = '', paneColumns = columns): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
@@ -224,7 +224,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }, headerColumns(columns, rows)), columns),
+      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }, headerColumns(columns, rows, view.language, paneColumns)), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(capacityNotice || focusHint, styles.muted), columns),

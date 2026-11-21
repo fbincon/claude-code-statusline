@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { createImpactPlan, tasksFor, assertPlan, impactPolicy } from '../impact-plan.js';
+import { createImpactPlan, tasksFor, assertPlan, impactPolicy, scheduleMaintenance } from '../impact-plan.js';
 import { DOCUMENT_CONTENT_PATHS } from '../impact-documentation.js';
 import { emitted, productInputs, runtimeLock, canonical, hash, tree } from '../impact-content.js';
 import { checkAssets, pngDimensions } from '../impact-assets.js';
@@ -277,16 +277,38 @@ test('oversized package-sensitive plans split complete checks while historical t
     assert.equal(plan.route, 'compare');
     assert.deepEqual(plan.checks, original.checks);
     const [linux, ...otherTasks] = original.tasks;
-    assert.deepEqual(plan.tasks, [
+    assert.deepEqual(plan.tasks, original.tasks);
+    const resolved = scheduleMaintenance({ ...plan, ...comparison });
+    assert.deepEqual(resolved.tasks, [
         { ...linux!, checks: linux!.checks.slice(0, -1) },
         { ...linux!, id: 'linux-2', checks: ['tui'] },
         ...otherTasks,
     ]);
-    const resolved = { ...plan, ...comparison };
     checkScopedSchedule(resolved, [...tree(head).keys()]);
     assertPlan(resolved);
     assert.throws(() => assertPlan({ ...resolved, tasks: original.tasks }));
     assert.throws(() => assertPlan({ ...resolved, tasks: resolved.tasks.filter(task => task.id !== 'linux-2') }));
+});
+test('an oversized check family is admitted only after package comparison selects maintenance', t => {
+    const { write, commit } = repository(t);
+    write('tools/checks/impact-schedule.ts', '// Scheduling policy');
+    write('tools/generation/test/generation.test.ts', '// Generation family');
+    for (let i = 0; i < 3600; i++) write('tools/build/test/case-' + i + '.test.ts', '// Build family');
+    write('tools/build/pack.ts', 'export const payload = 1;');
+    const base = commit();
+    write('tools/build/pack.ts', 'export const payload = 2;');
+    const plan = createImpactPlan(base, commit());
+    assert.equal(plan.route, 'compare');
+    assert.deepEqual(scheduleMaintenance(plan), plan);
+    assert.throws(() => assertPlan(plan), /Unresolved impact plan/);
+
+    const comparison_sha256 = 'a'.repeat(64);
+    const product = scheduleMaintenance({ ...plan, route: 'product', comparison_sha256 });
+    assert.deepEqual(product.tasks, plan.tasks);
+    assertPlan(product);
+    const maintenance = { ...plan, route: 'maintenance' as const, comparison_sha256 };
+    assert.throws(() => scheduleMaintenance(maintenance), /Scoped task linux-2 needs 372 minutes/);
+    assert.throws(() => assertPlan(maintenance), /partition the task/);
 });
 test('scoped receipt cannot substitute another commit, task, plan, result or execution', t => {
     const { git, write, commit } = repository(t), base = git('rev-parse', 'HEAD'); write('docs/test.md', '# Text');

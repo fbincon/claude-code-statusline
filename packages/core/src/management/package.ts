@@ -34,7 +34,7 @@ export interface PackageReview {
     artifact_verified: boolean;
 }
 export class PackageError extends Error {
-    constructor(readonly code: string) { super(code); }
+    constructor(readonly code: string, readonly detail?: string) { super(code); }
 }
 export function exactVersion(value: unknown): value is string {
     return typeof value === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/u.test(value) && value.length <= 100 && !value.split('-').slice(1).join('-').split('.').some(part => /^0\d+$/u.test(part));

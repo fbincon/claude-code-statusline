@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createImpactPlan, assertPlan, type ImpactPlan } from './impact-plan.ts';
+import { createImpactPlan, assertPlan, scheduleMaintenance, type ImpactPlan } from './impact-plan.ts';
 import { hash, canonical, git, productInputs, tree } from './impact-content.ts';
 import { checkScopedSchedule } from './impact-budget.ts';
 import { selectMaintenanceMain, collectScopedReceipts, verifyScopedJobs, maintenanceSource, type MaintenanceRecord } from './impact-evidence.ts';
@@ -44,7 +44,11 @@ export async function selectImpact(directory: string): Promise<ImpactSelection> 
     if (!selected.reused && plan.route !== 'product' && plan.checks.includes('packaging')) {
         selected.package = await resolveComparison(plan, join(directory, 'package'));
     }
-    if (!selected.reused && selected.plan.route === 'maintenance') checkScopedSchedule(selected.plan, [...tree(selected.plan.head).keys()]);
+    if (!selected.reused && plan.route === 'maintenance') {
+        selected.plan = scheduleMaintenance(plan);
+        checkScopedSchedule(selected.plan, [...tree(plan.head).keys()]);
+    }
+    assert.notEqual(selected.plan.route, 'compare', 'Missing package comparison');
     if (selected.plan.route === 'product') git('diff','--check',selected.plan.base,selected.plan.head,'--');
     fs.writeFileSync(join(directory, 'selection.json'), JSON.stringify(selected, null, 2) + '\n');
     fs.writeFileSync(join(directory, 'plan.json'), JSON.stringify(selected.plan, null, 2) + '\n');
