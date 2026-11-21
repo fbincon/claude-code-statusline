@@ -52,7 +52,7 @@ assert.equal(sha256(bytes), checked.sha256, 'npm and Release package bytes diffe
 assert.equal(published.dist.integrity, 'sha512-' + createHash('sha512').update(bytes).digest('base64'));
 const installed = [];
 for (const selector of [VERSION, distTag]) {
-    const root = fs.mkdtempSync(join(tmpdir(), 'statusline-registry-'));
+    const root = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'statusline-registry-')));
     try {
         const prefix = join(root, 'prefix'), config = join(root, 'config');
         execFileSync(process.execPath, [npmEntry(), 'install', '--prefix', prefix, '--cache', join(root, 'empty-cache'), '--registry=https://registry.npmjs.org/', '--ignore-scripts', '--no-audit', '--no-fund', PACKAGE_NAME + '@' + selector], { encoding: 'utf8', timeout: 180000, stdio: 'pipe' });
@@ -65,6 +65,7 @@ for (const selector of [VERSION, distTag]) {
         const npx = checked.source.dependency_manifests === 'sanitized';
         if (npx) {
             const cache = join(root, 'empty-npx-cache'), defaultPrefix = join(root, 'npx-prefix');
+            const npxConfig = join(root, 'npx-config');
             const user = join(root, 'user.npmrc'), global = join(root, 'global.npmrc');
             fs.writeFileSync(user, ''); fs.writeFileSync(global, '');
             const globalModules = join(defaultPrefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
@@ -72,13 +73,15 @@ for (const selector of [VERSION, distTag]) {
             const review = execFileSync(process.execPath, [npmEntry(), 'exec', '--yes', '--', PACKAGE_NAME + '@' + selector, '--dry-run'], {
                 cwd: root, encoding: 'utf8', timeout: 180000, env: { ...process.env,
                     PATH: [dirname(process.execPath), ...(process.platform === 'win32' ? [] : ['/usr/bin', '/bin'])].join(delimiter),
-                    CLAUDE_CONFIG_DIR: config, npm_config_prefix: defaultPrefix, npm_config_cache: cache,
+                    CLAUDE_CONFIG_DIR: npxConfig, npm_config_prefix: defaultPrefix, npm_config_cache: cache,
                     npm_config_userconfig: user, npm_config_globalconfig: global, npm_config_ignore_scripts: 'false',
                     npm_config_registry: 'https://registry.npmjs.org/', npm_config_audit: 'false', npm_config_fund: 'false',
                 },
             });
             assert(review.includes(PACKAGE_NAME + '@' + VERSION) && review.includes(defaultPrefix), review);
-            assert(fs.existsSync(join(cache, '_npx')) && fs.readdirSync(globalModules).length === 0 && !fs.existsSync(config));
+            assert(fs.existsSync(join(cache, '_npx')), 'Expected an npm cache install');
+            assert.deepEqual(fs.readdirSync(globalModules), [], 'Dry-run changed the global installation');
+            assert(!fs.existsSync(npxConfig), 'Dry-run created the Claude configuration directory');
         }
         installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false,
             ...(npx ? { npx_review: { status: 'pass', lifecycle_scripts: true, initially_empty_cache: true } } : {}) });
