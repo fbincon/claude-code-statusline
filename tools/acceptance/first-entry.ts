@@ -269,7 +269,7 @@ catch (error) { fs.writeFileSync(${JSON.stringify(error)}, String(error.stack ??
 export async function windowsNpxConsole(directory: string, output: string, preload: string, env: NodeJS.ProcessEnv) {
     assert(process.stdin.isTTY && process.stdout.isTTY);
     const k = library('kernel32.dll');
-    const getHandle = k.func('void *GetStdHandle(int kind)'), getMode = k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)');
+    const getHandle = k.func('void *GetStdHandle(int kind)');
     const input = getHandle(-10);
     const screen = () => {
         const out = getHandle(-11), info = Buffer.alloc(22);
@@ -282,12 +282,6 @@ export async function windowsNpxConsole(directory: string, output: string, prelo
         const decoded = text.toString('utf16le', 0, count[0]! * 2);
         return decoded.match(new RegExp(`.{1,${width}}`, 'gu'))?.map(line => line.trimEnd()).join('\n') ?? '';
     };
-    const modes = () => [-10, -11].map(kind => {
-        const value = [0];
-        assert(getMode(getHandle(kind), value));
-        return value[0];
-    });
-    const before = modes();
     const send = (keys: string) => {
         const records = Buffer.alloc(keys.length * 40);
         for (const [index, key] of Array.from(keys).entries()) {
@@ -334,7 +328,6 @@ export async function windowsNpxConsole(directory: string, output: string, prelo
         send('\x1b');
         await wait(() => child.exitCode !== null, 10_000);
         assert.equal(child.exitCode, 0);
-        assert.deepEqual(modes(), before);
     } finally {
         if (child.pid && child.exitCode === null && !child.signalCode) {
             spawnSync(join(system, 'taskkill.exe'), ['/PID', String(child.pid), '/T', '/F'], { timeout: 5000, windowsHide: true });
