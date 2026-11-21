@@ -2,7 +2,7 @@
 
 [English](RELEASING.md) | **简体中文**
 
-GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，Gitee 同步已验证的代码和交付文件。安装见[使用指南](USER_GUIDE.zh-CN.md#安装与接入)。旧版本的操作及证据见[交付与历史索引](development/history/README.zh-CN.md)。
+GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包。Gitee 同步已验证的代码、带注释标签和发布说明，并仅附加 `build-manifest.json` 和 `SHA256SUMS`；包和源码归档链接到经过校验的 GitHub 原件。安装见[使用指南](USER_GUIDE.zh-CN.md#安装与接入)。旧版本的操作及证据见[交付与历史索引](development/history/README.zh-CN.md)。
 
 [发布准备](#current-typescript-publication) · [发布说明模板](#发布说明模板) · [源码与证据](#绑定源码的-ci-证据晋级) · [标签与草稿](#发布身份与不可变附件) · [npm OIDC](#通过-github-actions-可信发布-npm) · [公开下载](#github-正式发布与公开验证) · [Gitee](#gitee-代码与-release-同步) · [交付记录](#记录交付)
 
@@ -103,7 +103,7 @@ GitHub 是审查、CI 与 Release 的主库。npm 分发 TypeScript 软件包，
 3. 确认独立构建及交付源码重建复现了验证过的文件。`npm run release:build -- --commit "$SOURCE_COMMIT" --output NEW_DIRECTORY` 执行两次构建。从交付归档重建时，加上 `--source ABSOLUTE_SOURCE_ARCHIVE` 并使用另一个新目录。Git 导出按所选树的普通文件清单和 blob 身份核验，交付源码重建使用归档清单与摘要。
 4. 为该标签准备 GitHub Release 草稿。正式版发布时设为 Latest，预览版标记为预发布并关闭 Latest。以 `docs/releases/<tag>.md` 为基准，将公开说明中的仓库相对链接及图片解析为固定标签的 blob/raw 链接，保留外部 Issue、CI 链接与代码示例。上传四件已验证文件。将草稿附件下载至新目录，与原件核对清单、大小和 SHA-256 摘要。在匹配源码的检出目录运行 `npm run release:verify -- --artifact "$DRAFT_TGZ" --commit "$SOURCE_COMMIT"`，使下载的 tgz 与其他三件文件处于同一目录。参见[发布 Markdown 工具](../tools/release/markdown.ts)和[隔离安装检查](development/testing.zh-CN.md)。
 
-核对准确的 ref、提交与摘要后，才可修正未发布草稿的附件或标签。正式公开后，保留标签对象与附件字节，产品修复通过新版本交付。Gitee 副本需单独核对字节。参见 [GitHub 不可变 Release](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。
+核对准确的 ref、提交与摘要后，才可修正未发布草稿的附件或标签。正式公开后，保留标签对象与附件字节，产品修复通过新版本交付。Gitee 元数据附件需单独核对字节，包和源码归档链接须解析到固定版本的 GitHub 原件。参见 [GitHub 不可变 Release](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。
 
 <a id="release-asset-schemas"></a>
 
@@ -166,9 +166,9 @@ npm 发布及公开 registry 验证完成后，发布已核验的草稿。确认
 
 - **标题。** 与英文发布说明 H1 一致：`vX.Y.Z — <English summary>`。
 - **正文。** 沿用当前惯例：英文主文加 `<details><summary>简体中文</summary>` 中文摘要。保留源码 commit、交付记录链接、变更 bullets、兼容性/安装、Node 22/24、issue #96 六项缺口，以及版本决策与发布流程链接。
-- **附件。** 链接四个准确文件：包 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS`。不要添加其他文件。
+- **附件。** 链接四个准确的 GitHub 托管文件：包 tgz、源码归档、`build-manifest.json` 和 `SHA256SUMS`。不要添加其他文件。
 - **证据边界。** 费用、原始 run/artifact ID 与诊断留在交付记录；正文链接该记录。
-- **Gitee。** 使用保存的 GitHub/Gitee Release JSON 运行 `npm run release:gitee-notes`。保留追加的 `## Gitee installation and downloads` 和 `## Original publication` 章节；不要自行使用这些保留标题。更新后回读 tag、target、预发布状态、正文与附件身份，并匿名重新下载四个文件。
+- **Gitee。** 仅附加 `build-manifest.json` 和 `SHA256SUMS`；不要上传包或源码归档。使用保存的 GitHub/Gitee Release JSON 运行 `npm run release:gitee-notes`。保留追加的 `## Gitee installation and downloads` 和 `## Original publication` 章节；不要自行使用这些保留标题。更新后回读 tag、target、预发布状态、正文与两个附件身份，匿名重新下载两个 Gitee 元数据文件，并核对包和源码归档链接指向该标签的准确 GitHub Release 资产。Gitee 仓库附件存储上限为 1 GB；参见 [Gitee Release 创建说明](https://help.gitee.com/repository/release/create)。
 
 ## Gitee 代码与 Release 同步
 
@@ -181,11 +181,11 @@ git push gitee "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
 
 例行代码同步使用主分支 refspec，版本发布使用对应的标签 refspec。推送后读取两端的 `main`、标签对象和解引用提交，核对预期身份。
 
-GitHub 发布并验证后，在 Gitee 创建对应 Release，使用相同的标签、提交、标题和预发布状态。使用 [Gitee 官方 MCP](https://gitee.com/oschina/mcp-gitee)。通过 `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` 上传附件。写入 Release 元数据时使用表单编码字段和小写布尔值。[Gitee 官方 Release API](https://gitee.com/api/v5/swagger)复用已有 Release 前，先核对其元数据和现有附件。仅上传四件已验证 GitHub 附件中缺少的文件，发现冲突时停止。上传后匿名重新下载四件文件，与 GitHub 原件比较名称、大小和 SHA-256 摘要。
+GitHub 发布并验证后，在 Gitee 创建对应 Release，使用相同的标签、提交、标题和预发布状态。使用 [Gitee 官方 MCP](https://gitee.com/oschina/mcp-gitee)。通过 `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` 上传附件。写入 Release 元数据时使用表单编码字段和小写布尔值。[Gitee 官方 Release API](https://gitee.com/api/v5/swagger)复用已有 Release 前，先核对其元数据和现有附件。仅上传四件已验证 GitHub 附件中缺少的 `build-manifest.json` 和 `SHA256SUMS`；不要上传包 tgz 或源码归档。Gitee 仓库附件存储上限为 1 GB，因此两个大文件保留在 GitHub，Gitee 说明链接其固定版本的规范 URL。不要删除或替换旧 Gitee Release 上已有的大附件；保留已发布字节。发现冲突时停止，匿名重新下载两个已上传文件，与 GitHub 原件比较名称、大小和 SHA-256 摘要。核对说明中的包和源码归档链接指向 `https://github.com/fbincon/claude-code-statusline/releases/download/<tag>/<name>`。Python 时代版本继续在 Gitee 保留 wheel、sdist 和 `SHA256SUMS`，并沿用[历史 wheel 流程](development/history/release-procedures.zh-CN.md#python-发行版的-gitee-同步)。
 
 ### 生成平台适配说明
 
-保存对应 Gitee Release 的完整 JSON 及当前正文，作为恢复记录。导出已公开的 GitHub Release JSON，包含 `body`、`html_url`、`published_at`、标签、预发布状态和附件。将全部分页的 Gitee Release 及实际附件地址导出为一个 JSON 数组。确认两端 Release 和已验证附件就绪后，在隔离目录生成说明。
+保存对应 Gitee Release 的完整 JSON 及当前正文，作为恢复记录。导出已公开的 GitHub Release JSON，包含 `body`、`html_url`、`published_at`、标签、预发布状态和附件。将全部分页的 Gitee Release 及实际附件地址导出为一个 JSON 数组。确认两端 Release 及其已验证资产就绪后，在隔离目录生成说明。
 
 ```bash
 npm run release:gitee-notes -- \
@@ -195,11 +195,11 @@ npm run release:gitee-notes -- \
   --output "$RELEASE_ROOT/gitee-notes.md"
 ```
 
-生成器以 `docs/releases/<tag>.md` 为基准解析相对链接，并使用实际附件地址。将输出与公开的 GitHub 正文对照审查。通过官方 MCP/API 更新 Gitee 正文，保留接口要求的原元数据字段。更新必须携带原 `tag_name`、`name` 和 `body`；仅发送正文的 PATCH 不足。更新后读取验证新正文，以及预期的标签、目标提交、预发布状态和附件身份。凭据沿用维护者的 SSH 和密钥环配置。不同软件包格式分别参见[生成器约定](../tools/release/gitee-notes.ts)和[历史 wheel 同步](development/history/release-procedures.zh-CN.md#python-发行版的-gitee-同步)。
+生成器以 `docs/releases/<tag>.md` 为基准解析相对链接，对 `build-manifest.json` 和 `SHA256SUMS` 使用实际 Gitee 附件地址，对包和源码归档输出规范的 GitHub Release URL。缺少 Gitee 元数据或 GitHub 大文件 URL 非规范时拒绝生成。公开正文必须把包和源码归档链接到 GitHub；生成器不会为未附加到 Gitee 的文件构造 Gitee URL。历史 Python 版本仍将三件资产全部放在 Gitee。将输出与公开的 GitHub 正文对照审查。通过官方 MCP/API 更新 Gitee 正文，保留接口要求的原元数据字段。更新必须携带原 `tag_name`、`name` 和 `body`；仅发送正文的 PATCH 不足。更新后读取验证新正文，以及预期的标签、目标提交、预发布状态和附件身份。凭据沿用维护者的 SSH 和密钥环配置。不同软件包格式分别参见[生成器约定](../tools/release/gitee-notes.ts)和[历史 wheel 同步](development/history/release-procedures.zh-CN.md#python-发行版的-gitee-同步)。
 
 ## 记录交付
 
-记录源码 SHA、主分支合并、带注释标签及四件文件的摘要。链接必需的 PR、主分支和标签 CI、npm 发布及来源证明、公开下载和签名检查，以及两端的公开 Release。区分本次执行的检查、复用覆盖、重试和诊断。按实际范围与限制记录单独获准的本机、实机或付费检查，随该版本决定保留六项未验证缺口。原始日志和机器路径保存在隔离验收输出中。
+记录源码 SHA、主分支合并、带注释标签及四件文件的摘要。Gitee 镜像另记两个已上传元数据文件、核验过的包／源码 GitHub 链接，以及标签和链接验证。链接必需的 PR、主分支和标签 CI、npm 发布及来源证明、公开下载和签名检查，以及两端的公开 Release。区分本次执行的检查、复用覆盖、重试和诊断。按实际范围与限制记录单独获准的本机、实机或付费检查，随该版本决定保留六项未验证缺口。原始日志和机器路径保存在隔离验收输出中。
 
 [变更记录](../CHANGELOG.zh-CN.md)负责发布日期和摘要，版本说明负责用户可见改动，[交付记录](development/history/README.zh-CN.md)负责检查与源码身份。2026-11-14 及之后新增的记录按[交付记录模板](development/history/README.zh-CN.md#交付记录模板)编写；更早的记录保持冻结。按正常专项路线合入证据文档，再同步已验证的主分支。
 

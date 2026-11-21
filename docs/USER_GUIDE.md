@@ -122,7 +122,7 @@ To install an exact stable version from npm, append `@VERSION` to the package na
 
 ### Offline installation
 
-Choose the exact stable tag from the release list. Download the four attachments for that tag into one directory. These are `fbincon-claude-code-statusline-VERSION.tgz`, the rebuildable `claude-code-statusline-VERSION-source.tar.gz`, `build-manifest.json` and `SHA256SUMS`. Verify the three files listed in `SHA256SUMS` before installing. [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee Releases](https://gitee.com/fbincon/claude-code-statusline/releases)
+Choose the exact stable tag from the release list. Download the four release files for that tag into one directory. These are `fbincon-claude-code-statusline-VERSION.tgz`, the rebuildable `claude-code-statusline-VERSION-source.tar.gz`, `build-manifest.json` and `SHA256SUMS`. For current TypeScript releases, download the package and source archive from the version-pinned GitHub Release; `build-manifest.json` and `SHA256SUMS` are available from GitHub or the Gitee Release. Python-era releases keep all attachments on both hosts. Verify the three files listed in `SHA256SUMS` before installing. [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee Releases](https://gitee.com/fbincon/claude-code-statusline/releases)
 
 In the Linux example, replace `VERSION` with the version from the selected tag.
 

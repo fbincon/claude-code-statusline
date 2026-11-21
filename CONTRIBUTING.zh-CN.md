@@ -10,7 +10,7 @@
 - 潜在漏洞请按[安全政策](SECURITY.zh-CN.md)私密报告。
 - 参与社区时请遵守[行为准则](CODE_OF_CONDUCT.zh-CN.md)。
 
-诊断输出、配置片段和截图均为选填。分享前删除凭据、token、私密对话记录及无关个人信息。GitHub 是 Issues、PR 和 CI 的主要位置，Gitee 同步镜像代码与发布文件。
+诊断输出、配置片段和截图均为选填。分享前删除凭据、token、私密对话记录及无关个人信息。GitHub 是 Issues、PR 和 CI 的主要位置，Gitee 同步镜像代码、带注释标签和发布说明，并仅附加 `build-manifest.json` 和 `SHA256SUMS`；包和源码归档链接到经过校验的 GitHub 原件。
 
 ## 开发与检查
 

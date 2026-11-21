@@ -10,7 +10,7 @@
 - For a potential vulnerability, follow the [security policy](SECURITY.md) and report privately.
 - For community participation, follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Diagnostic output, configuration excerpts and screenshots are optional. Remove credentials, tokens, private transcripts and unrelated personal data before sharing them. GitHub is the primary location for Issues, PRs and CI; Gitee mirrors synchronized code and release files.
+Diagnostic output, configuration excerpts and screenshots are optional. Remove credentials, tokens, private transcripts and unrelated personal data before sharing them. GitHub is the primary location for Issues, PRs and CI; Gitee mirrors synchronized code, annotated tags and release notes, and attaches only `build-manifest.json` and `SHA256SUMS`; the package and source archive link to the verified GitHub originals.
 
 ## Development and checks
 

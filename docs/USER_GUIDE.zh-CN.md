@@ -122,7 +122,7 @@ npm install --global --ignore-scripts @fbincon/claude-code-statusline
 
 ### 离线安装
 
-从发行列表选定准确的正式版标签，将该标签的四个附件下载到同一目录。附件包括 `fbincon-claude-code-statusline-VERSION.tgz`、可重建的 `claude-code-statusline-VERSION-source.tar.gz`、`build-manifest.json` 和 `SHA256SUMS`。安装前核验 `SHA256SUMS` 列出的三个文件。[GitHub 发行列表](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee 发行列表](https://gitee.com/fbincon/claude-code-statusline/releases)
+从发行列表选定准确的正式版标签，将该标签的四件发布文件下载到同一目录。它们包括 `fbincon-claude-code-statusline-VERSION.tgz`、可重建的 `claude-code-statusline-VERSION-source.tar.gz`、`build-manifest.json` 和 `SHA256SUMS`。当前 TypeScript 版本的包和源码归档从固定版本的 GitHub Release 下载；`build-manifest.json` 和 `SHA256SUMS` 可从 GitHub 或 Gitee Release 获取。Python 时代版本仍在 GitHub 与 Gitee 两端保留全部附件。安装前核验 `SHA256SUMS` 列出的三个文件。[GitHub 发行列表](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee 发行列表](https://gitee.com/fbincon/claude-code-statusline/releases)
 
 在 Linux 的示例中，将 `VERSION` 替换为所选标签的版本号。
 
