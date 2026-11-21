@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-> **当前正式版：[v3.16.3](v3.16.3.zh-CN.md)** · 2026-11-05 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.3) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.3) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.3) · [CHANGELOG](../../CHANGELOG.zh-CN.md)
+> **当前正式版：[v3.16.4](v3.16.4.zh-CN.md)** · 2026-11-21 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.4) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.4) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.4) · [CHANGELOG](../../CHANGELOG.zh-CN.md)
 
 自 v3.10.0 起，发布说明分别维护英文和简体中文页面。更早版本的中英说明保留在同一历史页面中。
 
@@ -15,7 +15,8 @@
 
 ## TypeScript v3.10 及后续版本
 
-- [**v3.16.3**](v3.16.3.zh-CN.md) · 2026-11-05 · 最新稳定版 — 配置技能工作流修复 · [English](v3.16.3.md)
+- [**v3.16.4**](v3.16.4.zh-CN.md) · 2026-11-21 · 最新稳定版 — 修复 npm 首次设置与状态栏行为 · [English](v3.16.4.md)
+- [**v3.16.3**](v3.16.3.zh-CN.md) · 2026-11-05 · 正式版 — 配置技能工作流修复 · [English](v3.16.3.md)
 - [**v3.16.2**](v3.16.2.zh-CN.md) · 2026-11-01 · 正式版 — 任务窗格操控与草稿保护 · [English](v3.16.2.md)
 - [**v3.16.1**](v3.16.1.zh-CN.md) · 2026-10-31 · 正式版 — 运行观测、来源超时与保存冲突修复 · [English](v3.16.1.md)
 - [**v3.16.0**](v3.16.0.zh-CN.md) · 2026-10-30 · 正式版 — 新增六种语言 · [English](v3.16.0.md)

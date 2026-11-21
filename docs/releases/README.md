@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-> **Current stable: [v3.16.3](v3.16.3.md)** · 2026-11-05 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.3) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.3) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.3) · [CHANGELOG](../../CHANGELOG.md)
+> **Current stable: [v3.16.4](v3.16.4.md)** · 2026-11-21 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.4) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.4) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.4) · [CHANGELOG](../../CHANGELOG.md)
 
 Starting with v3.10.0, release notes have separate English and Simplified Chinese pages. Earlier releases retain both languages on the same historical page.
 
@@ -15,7 +15,8 @@ Starting with v3.10.0, release notes have separate English and Simplified Chines
 
 ## TypeScript v3.10 and later
 
-- [**v3.16.3**](v3.16.3.md) · 2026-11-05 · Latest — Configuration skill workflow repairs · [中文](v3.16.3.zh-CN.md)
+- [**v3.16.4**](v3.16.4.md) · 2026-11-21 · Latest — Reliable npm setup and statusline fixes · [中文](v3.16.4.zh-CN.md)
+- [**v3.16.3**](v3.16.3.md) · 2026-11-05 · Stable — Configuration skill workflow repairs · [中文](v3.16.3.zh-CN.md)
 - [**v3.16.2**](v3.16.2.md) · 2026-11-01 · Stable — Task pane controls and draft protection · [中文](v3.16.2.zh-CN.md)
 - [**v3.16.1**](v3.16.1.md) · 2026-10-31 · Stable — Runtime, source timeout and save-conflict repairs · [中文](v3.16.1.zh-CN.md)
 - [**v3.16.0**](v3.16.0.md) · 2026-10-30 · Stable — Six additional languages · [中文](v3.16.0.zh-CN.md)
