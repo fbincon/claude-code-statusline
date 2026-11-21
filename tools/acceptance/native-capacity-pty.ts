@@ -146,6 +146,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key(' ', 'edit the draft');
             await until(() => previews().at(-1)?.draft_sha256 !== initial.draft_sha256, 'draft preview changed');
             const edited = previews().at(-1)!;
+            // The backend logs completion before the host installs the new Button handlers.
+            await delay(350);
             const click = async (label: string) => {
                 read();
                 for (const [y, row] of screen.buffer.entries()) {
@@ -161,6 +163,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await click(retry);
             await until(() => previews().length > count, 'Retry restarted the Client');
             assert.equal(previews().at(-1)?.draft_sha256, edited.draft_sha256, 'Retry lost the unsaved draft');
+            await delay(350);
             await click(close);
             await until(text => !text.includes(title) && !text.includes(retry) && !text.includes(close), 'Close dismissed the pane');
             assert(!records().some(row => row.operation === 'apply'), 'Closing applied the draft');

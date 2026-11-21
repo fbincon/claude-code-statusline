@@ -178,9 +178,10 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
         const recover = [join(dirname(npm), 'npx-cli.js'), '--yes', '--package', packageName + '@' + identity.version, '--',
             'claude-statusline', '--language', 'en', 'recover', '--package', '--version', '3.16.4', '--prefix', prefix, '--config-dir', config];
         const prior = fs.readFileSync(failedOperation);
-        await call('preview the retained transaction using npx', installed.node, [...recover, '--dry-run'], env);
+        const npxEnv = process.platform === 'win32' ? env : { ...env, npm_config_script_shell: '/bin/sh' };
+        await call('preview the retained transaction using npx', installed.node, [...recover, '--dry-run'], npxEnv);
         assert.deepEqual(fs.readFileSync(failedOperation), prior);
-        await call('resume the original transaction using npx', installed.node, [...recover, '--yes'], env);
+        await call('resume the original transaction using npx', installed.node, [...recover, '--yes'], npxEnv);
         assert(!fs.existsSync(marker));
         assert.equal(read(failedOperation).stage, 'complete');
         assert.deepEqual(read(failedOperation).results, { package: true, integration: true });
