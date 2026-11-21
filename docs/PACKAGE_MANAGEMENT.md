@@ -71,6 +71,17 @@ Recovery first inspects the actual package on disk. A valid target is verified a
 
 Package replacement and integration are separate durable stages. A successful npm exit is not an upgrade-complete result. Failed integration, interruption or a configuration edit during npm leaves an incomplete record; review the actual state before resuming. The flow does not promise atomicity across npm and configuration. Completed transitions preserve schemes, project bindings, execution authorization and independent disabled options. Restart Claude after the verified integration to load matching resources.
 
+### Resume a 3.16.4 update on Claude Code 2.1.330
+
+When the retained transaction targets 3.16.4 and Claude Code 2.1.330 rejected the bundled plugin validation, start the v3.16.5 manager in a separate npm environment. Use the original persistent prefix and Claude configuration directory. The review still targets 3.16.4.
+
+```text
+npx --yes --package @fbincon/claude-code-statusline@3.16.5 -- claude-statusline recover --package --version 3.16.4 --prefix PATH --config-dir PATH --dry-run
+npx --yes --package @fbincon/claude-code-statusline@3.16.5 -- claude-statusline recover --package --version 3.16.4 --prefix PATH --config-dir PATH --yes
+```
+
+After recovery completes, check the installation with `claude-statusline doctor` and run the normal `update --version 3.16.5` from the original prefix. This recovery uses the retained archive and verifies the owned plugin caches and backend bindings. [Issue #292](https://github.com/fbincon/claude-code-statusline/issues/292)
+
 ## Protected history cleanup
 
 History is paginated for the selected installation prefix. Explicit cleanup accepts only selected, completed and unreferenced owned records, rechecking the review under installation/configuration locks. Running or unverifiable executors, unfinished transactions, attached control entries, current/previous rollback material and necessary snapshots are protected. Unreadable ownership or references block deletion. Configuration restoration stays a separate review and never silently restores source permission.

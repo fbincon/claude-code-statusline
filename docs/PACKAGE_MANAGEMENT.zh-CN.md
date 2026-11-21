@@ -71,6 +71,17 @@ claude-statusline recover --package --version 3.8.0 --prefix /chosen/prefix --co
 
 包替换与集成是不同持久阶段。npm 成功不等于升级完成。集成失败、中断或 npm 执行期间发生配置修改，均保留未完成记录；重新审核实际状态后再恢复，不宣称 npm 与配置整体原子。完成的转换保留方案、项目绑定、执行授权及独立关闭选项。集成验证成功后重启 Claude，加载匹配资源。
 
+### 在 Claude Code 2.1.330 上恢复 3.16.4 升级
+
+如果未完成事务的目标是 3.16.4，且 Claude Code 2.1.330 拒绝了内置插件目录校验，请在独立的 npm 环境启动 v3.16.5 管理器。指定原来的持久安装前缀和 Claude 配置目录。审核目标仍为 3.16.4。
+
+```text
+npx --yes --package @fbincon/claude-code-statusline@3.16.5 -- claude-statusline recover --package --version 3.16.4 --prefix PATH --config-dir PATH --dry-run
+npx --yes --package @fbincon/claude-code-statusline@3.16.5 -- claude-statusline recover --package --version 3.16.4 --prefix PATH --config-dir PATH --yes
+```
+
+恢复完成后，先用 `claude-statusline doctor` 核对集成，再从原前缀正常执行 `update --version 3.16.5`。恢复使用已保留的归档，并核验自有插件缓存及后端绑定。 [Issue #292](https://github.com/fbincon/claude-code-statusline/issues/292)
+
 ## 受保护历史清理
 
 历史按所选安装前缀分页。显式清理仅接受选中的已完成、无引用且归属明确的记录，在安装／配置锁内重新审核。运行或无法确认退出的执行器、未完成事务、仍连接的控制入口、当前／上一版本回退材料及必要快照受到保护。引用或归属无法读取时拒绝删除。配置还原始终独立审核，不会隐式恢复来源执行许可。

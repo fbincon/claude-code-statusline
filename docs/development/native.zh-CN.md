@@ -54,7 +54,7 @@ Native Mod 注册 `/statusline-configure-native` 和 `/statusline-task`；外部
 
 重复执行原生命令会聚焦现有面板并保留草稿。外部 TUI 和 Client 可同时打开；保存共用短期文件锁和打开时版本，先保存者生效，旧草稿提示冲突且不覆盖新配置。Client 冲突时保留草稿，r 明确丢弃重载。结果不明须先 k 只读核对，不重新提交或自动退出。
 
-Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使用 `$.config.list()` 的真实行。Apply 逐项重查锁定及当前值，报告部分成功，与工具配置保存分开。Finish 不默默丢弃待应用偏好。Client 故障保留宿主已接收草稿；Client 外始终保留 Retry/Close 按钮供加载失败时恢复。Client 标题栏为 20 列恢复控件预留空间，长标题在控件前省略。2.1.287/2.1.288 保留预检查、内部绘制异常处理和原生恢复按钮；较新宿主还通过兼容观察器处理 `ui.fault`，显示独立宿主恢复页。
+Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使用 `$.config.list()` 的真实行。Apply 逐项重查锁定及当前值，报告部分成功，与工具配置保存分开。Finish 不默默丢弃待应用偏好。Client 故障保留宿主已接收草稿；Client 外始终保留 Retry/Close 按钮供加载失败时恢复。宿主与 Client 共用两个翻译按钮的单元格预算，包含装饰与间距。长标题在控件前省略。窄窗格切换为紧凑按钮，并按字素边界缩短标签。2.1.287/2.1.288 保留预检查、内部绘制异常处理和原生恢复按钮；较新宿主还通过兼容观察器处理 `ui.fault`，显示独立宿主恢复页。
 
 <a id="client-page-hierarchy-footer-and-pagination"></a>
 
