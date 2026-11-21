@@ -2,6 +2,16 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.4 — 2026-11-21
+
+- Let GitHub sources follow the current worktree branch as it changes.
+- Complete the default `npx @fbincon/claude-code-statusline` installation and open setup after confirmation. [#220](https://github.com/fbincon/claude-code-statusline/issues/220)
+- Fix subagent display, session effort and task timing transitions.
+- Correct permission-mode snapshots, context percentages, semantic separators and main-row styles.
+- Improve editor controls and standardize Hong Kong Chinese wording.
+- Keep display schema 17 and require matching editor protocol 32. A following GitHub source can write source registry 4.
+- Published on npm, GitHub and Gitee on 2026-11-21. [Release notes](docs/releases/v3.16.4.md) · [Delivery record](docs/development/history/deliveries/v3-16-4.md#final-release).
+
 ## 3.16.3 — 2026-11-05
 
 - Keep `/statusline-config` questions within the host tool's limits, retaining current values and combining all item/language pages before one save.

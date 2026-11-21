@@ -21,6 +21,7 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 | Area | Delivery records |
 | --- | --- |
 | Component editing | [Group movement](deliveries/editor-group-movement.md) · [Catalog states and continuous additions](deliveries/component-catalog.md) |
+| v3.16.4 npm setup | [Installation and statusline delivery](deliveries/v3-16-4.md#final-release) |
 | v3.16.3 configuration skills | [Question paging, scope and fallback workflows](deliveries/skill-workflows.md#final-release) |
 | v3.16.2 editor controls | [Keyboard, draft protection and release verification](deliveries/editor-input-delivery.md#final-release) |
 | v3.16.1 correctness repairs | [Runtime identity, source timeout and save conflicts](deliveries/runtime-source-save-fixes.md#final-release) |

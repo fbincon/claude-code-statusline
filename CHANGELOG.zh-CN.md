@@ -4,6 +4,16 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## 3.16.4 — 2026-11-21
+
+- 使 GitHub 来源可随工作树当前分支切换。
+- 修复默认 `npx @fbincon/claude-code-statusline` 安装，用户确认后进入 setup。[#220](https://github.com/fbincon/claude-code-statusline/issues/220)
+- 修复子代理显示、会话强度和任务计时状态转换。
+- 修复权限模式快照、上下文百分比、语义分隔符和主栏样式。
+- 改进编辑器控件并统一香港中文术语。
+- 保留显示 schema 17，编辑器使用匹配的协议 32。跟随分支的 GitHub 来源可写入来源登记表 4。
+- 已于 2026-11-21 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.4.zh-CN.md) · [交付记录](docs/development/history/deliveries/v3-16-4.zh-CN.md#final-release)。
+
 ## 3.16.3 — 2026-11-05
 
 - `/statusline-config` 提问符合宿主工具限制，以当前值为起点，合并全部条目／语言分页答案后一次保存。
