@@ -3,7 +3,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import { createServer } from 'node:http';
-import { delimiter, join, resolve } from 'node:path';
+import { delimiter, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
@@ -106,7 +106,7 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
         const manage = (step: string, entry: string, args: string[], status = 0) =>
             call(step, installed.node, [entry, '--language', 'en', ...args, '--prefix', prefix, '--config-dir', config], env, status);
         const command = (step: string, args: string[], cmdEnv = env) =>
-            call(step, installed.node, [entryPath(), '--language', 'en', ...args, '--config-dir', config], cmdEnv);
+            call(step, installed.node, [entryPath(), '--language', 'en', args[0]!, '--config-dir', config, ...args.slice(1)], cmdEnv);
         const list = async (cmdEnv: NodeJS.ProcessEnv) => {
             const host = cmdEnv === oldEnv ? claudeLaunch(baselineHost).executable : exe;
             const { stdout } = await call('plugin inventory', host, ['plugin', 'list', '--json'], cmdEnv);
@@ -165,8 +165,22 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
             assert.match(strict.stdout + strict.stderr, /README_MISSING|TS5097|--strict treats warnings as errors/u);
             await call('ordinary runtime validation ' + name, exe, ['plugin', 'validate', folder], env);
         }
+        const corrupt = join(root, 'invalid-plugin-fixture');
+        fs.cpSync(join(config, names[0], 'plugins', names[0]), corrupt, { recursive: true });
+        for (const file of ['.claude-plugin/plugin.json', 'hooks/hooks.json']) {
+            const path = join(corrupt, file), original = fs.readFileSync(path);
+            fs.writeFileSync(path, '{');
+            await call('reject invalid ' + file, exe, ['plugin', 'validate', corrupt], env, 1);
+            fs.writeFileSync(path, original);
+        }
 
-        await manage('resume the original transaction from the isolated candidate', installed.entry, ['recover', '--package', '--version', '3.16.4', '--yes']);
+        await manage('unfinished update check', entryPath(), ['update', '--check'], 2);
+        const recover = [join(dirname(npm), 'npx-cli.js'), '--yes', '--package', packageName + '@' + identity.version, '--',
+            'claude-statusline', '--language', 'en', 'recover', '--package', '--version', '3.16.4', '--prefix', prefix, '--config-dir', config];
+        const prior = fs.readFileSync(failedOperation);
+        await call('preview the retained transaction using npx', installed.node, [...recover, '--dry-run'], env);
+        assert.deepEqual(fs.readFileSync(failedOperation), prior);
+        await call('resume the original transaction using npx', installed.node, [...recover, '--yes'], env);
         assert(!fs.existsSync(marker));
         assert.equal(read(failedOperation).stage, 'complete');
         assert.deepEqual(read(failedOperation).results, { package: true, integration: true });
@@ -194,7 +208,7 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
             assert.equal(row.version, identity.version);
             assert.equal(row.enabled, true);
         }
-        const { stdout } = await call('fresh render', installed.node, [installed.entry, 'render', '--config-dir', clean], freshEnv, 0,
+        const { stdout } = await call('fresh render', installed.node, [installed.entry, 'render'], freshEnv, 0,
             '{"session_id":"fixture","model":{"display_name":"Fixture model"}}');
         assert.match(stdout, /Fixture model/u);
         return { status: 'pass', model_calls: 0, platform: process.platform, arch: process.arch, node: process.version,
