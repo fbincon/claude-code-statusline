@@ -65,7 +65,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Skill resources | [Skill resource skeleton and check](deliveries/skill-resource-skeleton.md) |
 | i18n | [i18n authoring input examples](deliveries/i18n-authoring-examples.md) |
 | Performance | [Future performance report template](deliveries/performance-report-template.md) |
-| Release assets | [Release asset schema documentation](deliveries/release-asset-schema.md) |
+| Release assets | [Release asset schema documentation](deliveries/release-asset-schema.md) · [Gitee release asset policy](deliveries/gitee-release-asset-policy.md) |
 | Release body | [Public release body checklist](deliveries/release-body-checklist.md) |
 
 <a id="delivery-record-template"></a>
