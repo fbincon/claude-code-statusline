@@ -5,7 +5,7 @@
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@fbincon/claude-code-statusline)](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-适用于 Linux、WSL、Windows 和 macOS 的可配置 Claude Code 状态栏。一眼查看模型与推理强度、项目、Git、上下文、用量和任务计时；通过会话内编辑器、终端编辑器或 CLI 配置主栏与独立的子代理行。
+适用于 Linux、Windows 和 macOS 的可配置 Claude Code 状态栏。一眼查看模型与推理强度、项目、Git、上下文、用量和任务计时；通过会话内编辑器、终端编辑器或 CLI 配置主栏与独立的子代理行。
 
 [使用演示](docs/SHOWCASE.zh-CN.md) · [快速安装](#快速安装) · [常用配置](#常用配置) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)
 
@@ -42,7 +42,7 @@
 
 | 平台 | 支持环境 |
 | --- | --- |
-| Linux / WSL | Node 22.x 或 24.x，x64 |
+| Linux | Node 22.x 或 24.x，x64 |
 | Windows 10/11 | Node 22.x 或 24.x，x64 |
 | macOS 14+ | Node 22.x 或 24.x，Intel / Apple Silicon |
 

@@ -167,7 +167,7 @@ npm run build
 
 从 stdin 读取 Claude Code statusline JSON，根据当前配置向 stdout 输出一行或多行状态栏文本。无效输入时保持静默，以免错误内容污染 Claude Code UI。
 
-可以使用模拟输入做基础排查。Linux / WSL / macOS（按 120 列渲染）：
+可以使用模拟输入做基础排查。Linux / macOS（按 120 列渲染）：
 
 ```bash
 printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"/tmp"}}' \
@@ -186,7 +186,7 @@ Windows PowerShell：
 
 从 stdin 读取 Claude Code 官方 `subagentStatusLine` JSON，并把每个有效 task 渲染为一行 `{"id":"...","content":"..."}` NDJSON。顶层 JSON、`tasks` 或单项字段损坏时静默降级且退出码仍为 0；stdout 只包含协议结果；普通 payload 指标不扫描 transcript 或查询网络，终态计时可以读取已有本地结束证据。启用并绑定的外部值可以读取选定 JSON、检查本地 Git 身份并保存观测缓存；命令／GitHub provider 不在渲染过程中执行。详见 [CLI 渲染边界](../reference/cli.zh-CN.md#子-agent-行与三种作用域)。
 
-Linux / WSL / macOS：
+Linux / macOS：
 
 ```bash
 printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' \

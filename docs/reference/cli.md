@@ -452,7 +452,7 @@ claude-statusline config item subagent task max-width none
 
 Submit the complete display and host configuration together. The no-argument wizard uses this after collecting all answers; it is also useful for scripted deployment:
 
-Linux / WSL / macOS (Bash):
+Linux / macOS (Bash):
 
 ```bash
 claude-statusline config apply \

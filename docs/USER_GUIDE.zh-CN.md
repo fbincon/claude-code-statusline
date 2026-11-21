@@ -90,7 +90,7 @@ claude-statusline doctor
 
 | 平台 | 环境 |
 | --- | --- |
-| Linux / WSL | Node 22.x 或 24.x，x64 |
+| Linux | Node 22.x 或 24.x，x64 |
 | Windows 10/11 | Node 22.x 或 24.x，x64 |
 | macOS 14+ | Node 22.x 或 24.x，Intel / Apple Silicon |
 
@@ -124,7 +124,7 @@ npm install --global --ignore-scripts @fbincon/claude-code-statusline
 
 从发行列表选定准确的正式版标签，将该标签的四个附件下载到同一目录。附件包括 `fbincon-claude-code-statusline-VERSION.tgz`、可重建的 `claude-code-statusline-VERSION-source.tar.gz`、`build-manifest.json` 和 `SHA256SUMS`。安装前核验 `SHA256SUMS` 列出的三个文件。[GitHub 发行列表](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee 发行列表](https://gitee.com/fbincon/claude-code-statusline/releases)
 
-在 Linux 或 WSL 的示例中，将 `VERSION` 替换为所选标签的版本号。
+在 Linux 的示例中，将 `VERSION` 替换为所选标签的版本号。
 
 ```bash
 sha256sum -c SHA256SUMS &&
@@ -754,7 +754,7 @@ claude-statusline doctor
 
 ### Git 信息缺失或显示 `Git!`
 
-Linux、WSL 或 macOS 上用 `command -v git` 检查 PATH，PowerShell 中用 `Get-Command git`。非 Git 目录会省略工作树状态项。`Git!` 表示未取得工作树状态，也可能是采集策略拒绝。从项目目录运行 `claude-statusline doctor` 查看过滤器策略。[Git 采集策略](DIAGNOSTICS.zh-CN.md#git-采集策略)
+Linux 或 macOS 上用 `command -v git` 检查 PATH，PowerShell 中用 `Get-Command git`。非 Git 目录会省略工作树状态项。`Git!` 表示未取得工作树状态，也可能是采集策略拒绝。从项目目录运行 `claude-statusline doctor` 查看过滤器策略。[Git 采集策略](DIAGNOSTICS.zh-CN.md#git-采集策略)
 
 停用渲染器的内置 Git 查询，需要关闭组合项、独立状态项和已提交分支比较。对于按类型配置的用户默认显示，执行以下命令。
 

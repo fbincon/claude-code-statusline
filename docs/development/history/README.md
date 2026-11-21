@@ -49,7 +49,7 @@ These records preserve documentation organization, navigation and check-maintena
 | Checks and regression repairs | [Development content checks and registration](deliveries/development-content-checks.md) · [Documentation content regression repairs](deliveries/docs-content-check-fixes.md) |
 | CI dependencies | [Transfer artifact dependency pins](deliveries/transfer-artifact-dependencies.md) |
 | CodeQL | [Default setup and initial alert triage](deliveries/codeql-default-setup.md) |
-| Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) |
+| Targeted wording and scope adjustments | [Targeted documentation review adjustments](deliveries/docs-review-targeted-adjustments.md) · [Linux platform wording alignment](deliveries/linux-platform-wording.md) |
 | Agent guidance | [Project agent guidance maintenance](deliveries/agents-guidance-maintenance.md) |
 | Contributor guidance | [Contributing guide maintenance](deliveries/contributing-maintenance.md) |
 | Community policy | [Bilingual Code of Conduct](deliveries/code-of-conduct.md) |

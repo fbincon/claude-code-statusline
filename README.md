@@ -5,7 +5,7 @@
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@fbincon/claude-code-statusline)](https://www.npmjs.com/package/@fbincon/claude-code-statusline) · [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-A configurable Claude Code status line for Linux, WSL, Windows and macOS. See model and reasoning effort, project, Git, context, usage and task timing at a glance. Configure the main line and individual subagent rows in the current Claude session, a terminal editor or the CLI.
+A configurable Claude Code status line for Linux, Windows and macOS. See model and reasoning effort, project, Git, context, usage and task timing at a glance. Configure the main line and individual subagent rows in the current Claude session, a terminal editor or the CLI.
 
 [Demonstrations](docs/SHOWCASE.md) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting)
 
@@ -46,7 +46,7 @@ The clip copies a metric, then shows Undo, Redo, Save and reopening the editor. 
 
 | Platform | Supported environment |
 | --- | --- |
-| Linux / WSL | Node 22.x or 24.x, x64 |
+| Linux | Node 22.x or 24.x, x64 |
 | Windows 10/11 | Node 22.x or 24.x, x64 |
 | macOS 14+ | Node 22.x or 24.x, Intel / Apple Silicon |
 
