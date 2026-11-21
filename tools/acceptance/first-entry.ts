@@ -275,9 +275,14 @@ export async function windowsNpxConsole(directory: string, output: string, prelo
     };
     const system = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32');
     const powershell = join(system, 'WindowsPowerShell/v1.0/powershell.exe');
-    const child = spawn(powershell, ['-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
-        POWERSHELL_BOOTSTRAP + powershellIsolation(env) + "npx --yes '@fbincon/claude-code-statusline'; exit $LASTEXITCODE"],
-        { cwd: directory, env: powershellEnvironment({ ...env, NODE_OPTIONS: '--import=' + pathToFileURL(preload).href }), stdio: 'inherit' });
+    // The npm 10 PowerShell wrapper looks for npm inside npm_config_prefix.
+    // Keep the disposable global root empty by selecting the runtime's npx CLI explicitly.
+    const child = spawn(powershell, ['-NoLogo', '-NoProfile', '-Command',
+        POWERSHELL_BOOTSTRAP + powershellIsolation(env) + "& $env:STATUSLINE_NPX_NODE $env:STATUSLINE_NPX_CLI '--yes' '@fbincon/claude-code-statusline'; exit $LASTEXITCODE"],
+        { cwd: directory, env: powershellEnvironment({ ...env,
+            STATUSLINE_NPX_NODE: process.execPath, STATUSLINE_NPX_CLI: join(dirname(env.npm_execpath!), 'npx-cli.js'),
+            NODE_OPTIONS: '--import=' + pathToFileURL(preload).href,
+        }), stdio: 'inherit' });
     let failure: Error | undefined;
     child.once('error', error => { failure = error; });
     const wait = async (predicate: (text: string) => boolean, timeout: number) => {

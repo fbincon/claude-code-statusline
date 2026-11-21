@@ -60,7 +60,7 @@ node "$CANDIDATE_JS" install --config-dir "$CHECK_ROOT/claude-config" --dry-run
 
 在 PowerShell 中为对应变量设置绝对路径，并使用 `node` 调用已安装的 JavaScript 入口。测试接入时绑定匹配的 Node 可执行文件和 JavaScript 入口。使用 `doctor` 和 `recover --dry-run` 在同一测试配置下查看待处理事务。参见[安装与恢复](contracts.zh-CN.md#候选安装与恢复)。
 
-新候选产物带有 `dependency_manifests: "sanitized"` 标记。两个验证器都拒绝带标记产物的十个内置依赖清单中的脚本。未带标记的历史包沿用原验证规则。发布 smoke 使用经过校验的 tarball，在启用生命周期脚本、缓存与前缀均为空的环境中运行真实的 `npx`。测试确认首次启动审阅，进入 setup 后取消，检查用户设置文件未写入，删除缓存并用持久入口渲染。Windows 使用真实控制台和 Windows PowerShell 5.1 执行。已发布带标记产物的精确版本和渠道检查也在启用脚本时运行只读的 `npx` 审阅。
+新候选产物带有 `dependency_manifests: "sanitized"` 标记。两个验证器都拒绝带标记产物的十个内置依赖清单中的脚本。未带标记的历史包沿用原验证规则。发布 smoke 使用经过校验的 tarball，在启用生命周期脚本、缓存与前缀均为空的环境中运行真实的 `npx`。测试确认首次启动审阅，进入 setup 后取消，检查用户设置文件未写入，删除缓存并用持久入口渲染。在 Windows 上，PowerShell 5.1 在真实控制台中调用所选运行时的 npx CLI。已发布带标记产物的精确版本和渠道检查也在启用脚本时运行只读的 `npx` 审阅。
 
 验收时向各执行器提供同一产物和提交，每个平台和固定宿主使用新的报告路径。将示例宿主路径替换为选定的 Claude 可执行文件。安装验收使用隔离 prefix 和配置，并禁用生命周期脚本。官方宿主检查记录准确宿主和对应声明的可用性。
 
