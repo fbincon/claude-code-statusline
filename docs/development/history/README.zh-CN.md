@@ -21,6 +21,7 @@
 | 领域 | 交付记录 |
 | --- | --- |
 | 组件编辑 | [分组移动](deliveries/editor-group-movement.zh-CN.md) · [目录状态与连续添加](deliveries/component-catalog.zh-CN.md) |
+| v3.16.5 宿主兼容 | [宿主兼容与恢复交付](deliveries/v3-16-5.zh-CN.md#final-release) |
 | v3.16.4 npm 设置 | [安装与状态栏交付](deliveries/v3-16-4.zh-CN.md#final-release) |
 | v3.16.3 配置技能 | [问答分页、范围与回退流程](deliveries/skill-workflows.zh-CN.md#final-release) |
 | v3.16.2 编辑器操控 | [快捷键、草稿保护与发布核验](deliveries/editor-input-delivery.zh-CN.md#final-release) |
