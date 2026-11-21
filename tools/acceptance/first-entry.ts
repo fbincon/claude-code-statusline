@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { delimiter, dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -151,12 +152,29 @@ const setupScreen = 'Environment and configuration checks';
 
 /** Run npm's real temporary installation, then drive the two interactive stages. */
 export async function smokeNpxFirstEntry(installed: ReturnType<typeof installCandidate>, logDirectory: string) {
+    // Exercise npm's launcher in a normal working directory. The existing
+    // installation smoke separately covers metacharacters in product paths.
+    const directory = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'statusline-npx 中文 ')));
+    try {
+        return await npxFirstEntry(installed, directory, logDirectory);
+    } catch (error) {
+        const directoryLogs = join(directory, 'empty cache', '_logs');
+        if (fs.existsSync(directoryLogs)) {
+            const latest = fs.readdirSync(directoryLogs).filter(name => name.endsWith('-debug-0.log')).sort().at(-1);
+            if (latest) retainLog(logDirectory, 'npx-npm-debug.log', fs.readFileSync(join(directoryLogs, latest), 'utf8'));
+        }
+        throw error;
+    } finally {
+        removeTree(directory);
+        assert(!fs.existsSync(directory));
+    }
+}
+
+async function npxFirstEntry(installed: ReturnType<typeof installCandidate>, directory: string, logDirectory: string) {
     const manifest = JSON.parse(fs.readFileSync(join(installed.root, 'package.json'), 'utf8'));
     assert.equal(manifest.name, PACKAGE_NAME);
     const { version, commit, dependency_manifests } = installed.packed.source;
     assert.equal(dependency_manifests, 'sanitized');
-    const directory = join(installed.temporary, 'npx first entry');
-    fs.mkdirSync(directory);
     const config = join(directory, 'config'), prefix = join(directory, 'persistent prefix'), cache = join(directory, 'empty cache');
     const user = join(directory, 'user.npmrc'), global = join(directory, 'global.npmrc');
     fs.writeFileSync(user, '');
@@ -165,10 +183,12 @@ export async function smokeNpxFirstEntry(installed: ReturnType<typeof installCan
     const globalModules = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
     fs.mkdirSync(globalModules, { recursive: true });
     assert(!fs.existsSync(cache) && fs.readdirSync(globalModules).length === 0);
+    const systemPath = process.platform === 'win32' ? [join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')] : ['/usr/bin', '/bin'];
     const env = { ...installed.env, CLAUDE_CONFIG_DIR: config, LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8',
-        PATH: [dirname(process.execPath), ...(process.platform === 'win32' ? [] : ['/usr/bin', '/bin'])].join(delimiter),
+        PATH: [dirname(process.execPath), ...systemPath].join(delimiter),
         npm_execpath: npmEntry(), npm_config_cache: cache, npm_config_prefix: prefix, npm_config_userconfig: user,
-        npm_config_globalconfig: global, npm_config_ignore_scripts: 'false', npm_config_foreground_scripts: 'true' };
+        npm_config_globalconfig: global, npm_config_ignore_scripts: 'false', npm_config_foreground_scripts: 'true',
+        npm_config_progress: 'false' };
     const log = await withRegistry(manifest, installed.packed.tarball, async registry => {
         const childEnv = { ...env, npm_config_registry: registry };
         if (process.platform === 'win32') return windowsNpxFirstEntry(directory, childEnv, logDirectory);
@@ -251,6 +271,17 @@ export async function windowsNpxConsole(directory: string, output: string, prelo
     const k = library('kernel32.dll');
     const getHandle = k.func('void *GetStdHandle(int kind)'), getMode = k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)');
     const input = getHandle(-10);
+    const screen = () => {
+        const out = getHandle(-11), info = Buffer.alloc(22);
+        if (!k.func('bool GetConsoleScreenBufferInfo(void *handle, _Out_ void *info)')(out, info)) return '';
+        const width = info.readUInt16LE(0), row = info.readUInt16LE(6);
+        if (!width || width > 512) return '';
+        const from = Math.max(0, row - 12), text = Buffer.alloc(width * (1 + row - from) * 2), count = [0];
+        const read = k.func('bool ReadConsoleOutputCharacterW(void *handle, _Out_ void *text, uint32_t length, uint32_t coord, _Out_ uint32_t *count)');
+        if (!read(out, text, text.length / 2, from * 65536, count)) return '';
+        const decoded = text.toString('utf16le', 0, count[0]! * 2);
+        return decoded.match(new RegExp(`.{1,${width}}`, 'gu'))?.map(line => line.trimEnd()).join('\n') ?? '';
+    };
     const modes = () => [-10, -11].map(kind => {
         const value = [0];
         assert(getMode(getHandle(kind), value));
@@ -291,7 +322,8 @@ export async function windowsNpxConsole(directory: string, output: string, prelo
             if (failure) throw failure;
             const captured = fs.readFileSync(output, 'utf8');
             if (predicate(captured)) return;
-            if (child.exitCode !== null || child.signalCode || performance.now() >= deadline) throw new Error('Windows npx console: ' + captured.slice(-3000));
+            if (child.exitCode !== null || child.signalCode || performance.now() >= deadline)
+                throw new Error(`Windows npx console (exit ${child.exitCode}, signal ${child.signalCode})\n` + captured.slice(-3000) + '\n' + screen());
             await delay(25);
         }
     };
