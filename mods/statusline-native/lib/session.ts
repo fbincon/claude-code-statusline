@@ -49,14 +49,14 @@ export interface ClientProps {
   frame: Frame;
 }
 
-export function clientProps(view: View, epoch: number, ack: number, generation: number, columns: number, rows: number): ClientProps {
+export function clientProps(view: View, epoch: number, ack: number, generation: number, columns: number, rows: number, paneColumns = columns): ClientProps {
   let width = Math.max(2, Math.min(10000, columns));
   let height = Math.max(0, Math.min(10000, rows));
   for (;;) {
     try {
       const { elements, frame } = frameElements();
       const reduced = width !== columns || height !== rows;
-      draw(elements, view, width, height, reduced ? t('native.capacity.reduced', view.language ?? 'en', {columns: width, rows: height}) : '');
+      draw(elements, view, width, height, reduced ? t('native.capacity.reduced', view.language ?? 'en', {columns: width, rows: height}) : '', paneColumns);
       const result: ClientProps = { epoch, ack, generation, columns, rows, displayColumns: width, displayRows: height, language: view.language ?? 'en', busy: !!view.busy, frame };
       if (withinBudget(result) && withinBudget(frameTree(frame))) return result;
     } catch (error) {

@@ -130,12 +130,14 @@ test('post-install integration failure remains incomplete and recovery preserves
     f.options.host = () => [2, 1, 258];
     f.options.integrate = async (_root, _identity, _config, _host, _hashes, _workspace, dry) => {
         if (!dry && failure)
-            throw new PackageError('integration_failed');
+            throw new PackageError('integration_failed', 'Official validator: invalid hooks JSON');
     };
     assert.equal(await manage(f.args(), f.options), 2);
+    assert.match(f.state().output, /Official validator: invalid hooks JSON/);
     const pending = readOperation(f.configDir, f.prefix);
     assert.equal(pending.results?.package, true);
     assert.equal(pending.results?.integration, false);
+    assert.equal(pending.results?.error, 'integration_failed');
     failure = false;
     f.clear();
     assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);

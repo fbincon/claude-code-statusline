@@ -17,9 +17,37 @@ import {
   selectSetting,
   component,
   previewDraft,
+  presentation,
 } from '../fixtures.ts';
 
 const REGION = 'statusline-client';
+
+test('localized recovery buttons stay available after narrowing and retry keeps the draft', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.uiLanguage = 'de';
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const props = {...PANE.props, bodyColumns: 72};
+  const ui = await $.ui.mount({...PANE, props});
+  expect((await ui.find({type: 'Button', key: 'retry-client'}))?.props.label).toBe('Erneut versuchen');
+  expect((await ui.find({type: 'Button', key: 'close'}))?.props.label).toBe('Schließen');
+  const before = previewDraft(fixture);
+  await keys(ui, ' ');
+  const modified = previewDraft(fixture);
+  expect(modified).not.toEqual(before);
+  const {epoch} = await presentation(ui);
+  await ui.redraw({...props, bodyColumns: 32});
+  expect((await ui.find({type: 'Button', key: 'retry-client'}))?.props.plain).toBe(true);
+  expect((await ui.find({type: 'Button', key: 'close'}))?.props.label).toBe('Schließen');
+  await ui.press({key: 'retry-client'});
+  expect((await presentation(ui)).epoch).toBe(epoch + 1);
+  expect(previewDraft(fixture)).toEqual(modified);
+  await ui.press({key: 'close'});
+  expect(fixture.closes.length).toBe(1);
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
+  await ui.unmount();
+});
+
 test('native editor saves and reopens independent timer components and session effort', { timeoutMs: 20000 }, async ($, on) => {
   const fixture = setup(on);
   fixture.store.draft.display.subagents.instances = [

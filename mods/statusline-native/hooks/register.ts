@@ -31,7 +31,7 @@ import type {
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS, RECOVERY_CONTROLS_WIDTH, contentColumns, clip } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, RECOVERY_CONTROL_GAP, recoveryControls, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
@@ -150,7 +150,7 @@ function discard(state: Session): void {
 
 function props(state: Session) {
   try {
-    const projected = clientProps(state.view, state.epoch, state.ack, ++state.generation, state.columns, state.rows);
+    const projected = clientProps(state.view, state.epoch, state.ack, ++state.generation, state.columns, state.rows, state.pane.columns);
     state.displayColumns = projected.displayColumns;
     state.displayRows = projected.displayRows;
     return projected;
@@ -1063,6 +1063,8 @@ export const register: Register = (on, options) => {
       height >= MIN_ROWS
     ) {
       const projected = props(state);
+      const controls = recoveryControls(width, state.view.language);
+      const button = controls.plain ? { ...recoveryButton, plain: true as const } : recoveryButton;
       const tree = projected ? Box({
         width,
         height,
@@ -1079,16 +1081,16 @@ export const register: Register = (on, options) => {
             position: 'absolute',
             top: 0,
             right: 0,
-            width: RECOVERY_CONTROLS_WIDTH,
+            width: controls.width,
             height: 1,
             flexDirection: 'row',
-            columnGap: 1,
+            columnGap: RECOVERY_CONTROL_GAP,
             children: [
-              Button({ ...recoveryButton, key: 'retry-client', label: tr("native.hooks.register.retry"), onPress: retry }),
+              Button({ ...button, key: 'retry-client', label: controls.retry, onPress: retry }),
               Button({
-                ...recoveryButton,
+                ...button,
                 key: 'close',
-                label: tr("native.hooks.register.close"),
+                label: controls.close,
                 onPress: () => close($, state, options),
               }),
             ],

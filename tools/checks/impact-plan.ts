@@ -109,28 +109,39 @@ export function createImpactPlan(base: string, head: string): ImpactPlan {
     const selected = [...checks].sort();
     const route = unknown.length ? 'blocked' : changes.some(change => change.category === 'product') ? 'product'
         : changes.some(change => change.category === 'build') ? 'compare' : 'maintenance';
-    const tasks = tasksFor(selected);
-    // Historical plans keep the task identities of the source that issued them.
-    const partition = (route === 'maintenance' || route === 'compare') && current.has('tools/checks/impact-schedule.ts');
     return { schema_version: 1, kind: 'impact-plan', base, head, tree: git('rev-parse', head + '^{tree}'), policy_sha256: impactPolicy(head),
-        route, changes, checks: selected, tasks: partition ? partitionScopedTasks(tasks, [...current.keys()]) : tasks, unknown };
+        route, changes, checks: selected, tasks: tasksFor(selected), unknown };
 }
+
+export function scheduleMaintenance(plan: ImpactPlan): ImpactPlan {
+    if (plan.route !== 'maintenance') return plan;
+    const source = tree(plan.head);
+    // Historical plans keep the task identities of the source that issued them.
+    return source.has('tools/checks/impact-schedule.ts') ? { ...plan, tasks: partitionScopedTasks(plan.tasks, [...source.keys()]) } : plan;
+}
+
 export function assertPlan(value: ImpactPlan): void {
     assert.equal(value.schema_version, 1); assert.equal(value.kind, 'impact-plan');
-    const expected = createImpactPlan(value.base, value.head);
+    const source = createImpactPlan(value.base, value.head);
     const { comparison_sha256: _comparison, ...withoutComparison } = value;
-    assert.deepEqual(withoutComparison, { ...expected, route: value.comparison_sha256 && expected.route === 'compare' ? value.route : expected.route });
-    if (expected.route === 'compare') assert(value.comparison_sha256 && /^[a-f0-9]{64}$/u.test(value.comparison_sha256), 'Missing package comparison proof');
     assert(['maintenance', 'product'].includes(value.route), 'Unresolved impact plan: ' + value.unknown.join(', '));
+    if (source.route === 'compare') assert(value.comparison_sha256, 'Missing package comparison proof');
+    if (value.comparison_sha256 !== undefined) {
+        assert.match(value.comparison_sha256, /^[a-f0-9]{64}$/u, 'Invalid package comparison proof');
+        assert(source.route === 'compare' || source.route === 'maintenance' && source.checks.includes('packaging'), 'Unexpected package comparison proof');
+        source.route = value.route;
+    }
+    assert.deepEqual(withoutComparison, scheduleMaintenance(source));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { base: { type: 'string' }, head: { type: 'string', default: 'HEAD' }, output: { type: 'string' }, compare: { type: 'boolean' } } });
     assert(values.base, 'Use ci:plan -- --base BASE [--head HEAD] [--output FILE] [--compare]');
-    const plan = createImpactPlan(git('rev-parse', values.base + '^{commit}'), git('rev-parse', values.head + '^{commit}'));
-    if (values.compare && plan.route !== 'product' && plan.checks.includes('packaging')) {
+    let plan = createImpactPlan(git('rev-parse', values.base + '^{commit}'), git('rev-parse', values.head + '^{commit}'));
+    if (values.compare && ['compare', 'maintenance'].includes(plan.route) && plan.checks.includes('packaging')) {
         assert(values.output, 'Package comparison requires --output FILE');
         const { resolveComparison } = await import('./impact-comparison.ts'); await resolveComparison(plan, resolve(values.output) + '.package');
     }
+    plan = scheduleMaintenance(plan);
     if (plan.route === 'maintenance') checkScopedSchedule(plan, [...tree(plan.head).keys()]);
     if (values.output) fs.writeFileSync(values.output, JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
     console.log(JSON.stringify(plan.route === 'product' ? { ...plan, product_checks: productResponsibilities(plan.checks) } : plan, null, 2));

@@ -1,5 +1,6 @@
 // A separate process keeps this runner's native adapter out of the target installer's process.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { PackageError } from '@fbincon/statusline-core/management/package';
 import { installContext } from '../integration/install.js';
 import { prepareModDowngrade } from './mod-transition.js';
 const [requestPath, receipt] = process.argv.slice(2);
@@ -9,6 +10,6 @@ try {
     const hashes = prepareModDowngrade(context, request.root, request.version, request.hashes, request.dryRun);
     writeFileSync(receipt!, JSON.stringify({ valid: true, hashes }) + '\n', { mode: 0o600 });
 } catch (error) {
-    writeFileSync(receipt!, JSON.stringify({ valid: false, reason: error instanceof Error ? error.message : 'integration_failed' }) + '\n', { mode: 0o600 });
+    writeFileSync(receipt!, JSON.stringify({ valid: false, detail: error instanceof PackageError ? error.detail : undefined }) + '\n', { mode: 0o600 });
     process.exitCode = 2;
 }

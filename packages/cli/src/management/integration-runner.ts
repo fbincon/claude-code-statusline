@@ -4,6 +4,8 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { modFailureDetail } from '../integration/mod-diagnostic.js';
+import type { InstallContext } from '../integration/model.js';
 const [requestPath, receipt] = process.argv.slice(2);
 const request = JSON.parse(fs.readFileSync(requestPath!, 'utf8'));
 const load = (path: string) => import(pathToFileURL(join(request.root, 'node_modules/@fbincon/statusline-cli/dist/src', path + '.js')).href);
@@ -29,11 +31,21 @@ try {
         }
     };
     guard();
-    const context = installContext(request.configDir, { executable: process.execPath, args: [request.entry] }, request.host);
+    const target: InstallContext = installContext(request.configDir, { executable: process.execPath, args: [request.entry] }, request.host);
+    const context: InstallContext = { ...target, host(spec) {
+        const host = target.host(spec);
+        if (spec.name !== 'statusline-native' && spec.name !== 'statusline-runtime') return host;
+        const folder = join(target.configDir, spec.name, 'plugins', spec.name);
+        // Older verified installers ask for directory-submission checks on the local bundle.
+        return { listing: () => host.listing(), run(args, values, json) {
+            const bundledValidation = args.length === 3 && args[0] === 'validate' && args[1] === '--strict' && args[2] === folder;
+            return host.run(bundledValidation ? ['validate', folder] : args, values, json);
+        } };
+    } };
     const result = install(context, { dryRun: request.dryRun, beforeCommit: guard });
     const diagnostics = request.dryRun ? [] : doctor(context);
     const valid = !result.failed && !diagnostics.some((row: any) => row.level === 'ERROR');
-    fs.writeFileSync(receipt!, JSON.stringify({ valid, result, diagnostics }) + '\n', { mode: 0o600 });
+    fs.writeFileSync(receipt!, JSON.stringify({ valid, detail: result.failed ? modFailureDetail(result.messages) : undefined }) + '\n', { mode: 0o600 });
     process.exitCode = valid ? 0 : 2;
 }
 catch {

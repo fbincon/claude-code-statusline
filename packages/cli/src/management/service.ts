@@ -342,6 +342,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             stdout(JSON.stringify({ schema_version: 1, error: { code: reason, message } }) + '\n');
         else
             stderr(t('package.failure', language, { reason: message }) + '\n');
+        if (error instanceof PackageError && error.code === 'integration_failed' && error.detail)
+            stderr(error.detail + '\n');
         if (operation && release)
             stderr(t('management.partial', language, { id: operation.id, version: operation.version, prefix: operation.prefix, config: operation.configDir, stage: operation.stage }) + '\n');
         return reason === 'interrupted' ? 130 : 2;

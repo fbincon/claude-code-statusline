@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { artifactIdentity, artifactJson, listRunArtifacts, newestArtifact, requireRun, type ArtifactIdentity } from './ci-evidence.ts';
 import { completeSource, latestRun, runsFor, requireGate } from './ci-sources.ts';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
-import { assertPlan, createImpactPlan, type ImpactPlan } from './impact-plan.ts';
+import { assertPlan, createImpactPlan, scheduleMaintenance, type ImpactPlan } from './impact-plan.ts';
 import { canonical, git, hash, productInputs } from './impact-content.ts';
 import type { ScopedReceipt } from './impact-runner.ts';
 import { verifySourceLanguage, type LanguageEvidence } from './i18n-evidence.ts';
@@ -166,5 +166,6 @@ export async function verifyMaintenanceWithBase(reused: NonNullable<MaintenanceR
     const source = await maintenanceSource(run); assert.deepEqual(source.reference, reused.source);
     const expected = createImpactPlan(reused.integration.base, reused.integration.head);
     assert(!['product', 'blocked'].includes(expected.route), 'Accepted base rejects maintenance classification');
-    assert.deepEqual(source.record.plan.changes, expected.changes); assert.deepEqual(source.record.plan.tasks, expected.tasks);
+    assert.deepEqual(source.record.plan.changes, expected.changes);
+    assert.deepEqual(source.record.plan.tasks, scheduleMaintenance({ ...expected, route: 'maintenance' }).tasks);
 }

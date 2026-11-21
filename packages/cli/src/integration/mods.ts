@@ -13,6 +13,7 @@ import { owner, ownedPath, registered, cacheOwned, prune, type Marker } from './
 import { commit, safeTarget, type Change } from './transaction.js';
 import { BINDING_FILE, bindingRecord } from './ownership.js';
 import { refreshIntents } from '../recovery/journal.js';
+import { MOD_BLOCKED_NOTICE } from './mod-diagnostic.js';
 function rememberDisabled(context: InstallContext, spec: ModSpec, enabled: boolean): void {
     context.io.lock(context.configDir, () => {
         const current = bindingRecord(context.configDir, context.io);
@@ -131,9 +132,9 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         }
         const host = context.host(spec);
         const [markets, plugins] = host.listing();
-        let [registration, row] = registered(configDir, spec, markets, plugins, marker);
-        if (row)
-            cacheOwned(configDir, spec, row, marker!, io);
+        const [registration, registeredRow] = registered(configDir, spec, markets, plugins, marker);
+        const installedCache = registeredRow ? cacheOwned(configDir, spec, registeredRow, marker!, io) : null;
+        let row = registeredRow;
         if (!requested || uninstall) {
             if (row) {
                 host.run(['uninstall', spec.plugin, '--scope', 'user']);
@@ -168,25 +169,28 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         commandPreflight(configDir, spec);
         const [current, staged] = stage(context, spec, marker, provided);
         changed ||= staged;
+        const refresh = installedCache !== null && !equalSettings(installedCache, { mod_version: current.mod_version, files: current.files });
         const root = join(configDir, spec.name);
         host.run(['validate', '--strict', root]);
-        host.run(['validate', '--strict', join(root, 'plugins', spec.name)]);
+        host.run(['validate', join(root, 'plugins', spec.name)]);
         if (!registration) {
             host.run(['marketplace', 'add', root]);
             changed = true;
         }
-        else if (staged)
+        else if (staged || refresh)
             host.run(['marketplace', 'update', spec.marketplace]);
         const values = bindingValues(context, spec, provided?.inventory.backend_version);
-        if (row && (staged && row.version === current.mod_version || provided && row.version !== current.mod_version)) {
+        if (row && refresh && (row.version === current.mod_version || provided)) {
             if (userDisabled) rememberDisabled(context, spec, true);
             host.run(['uninstall', spec.plugin, '--scope', 'user']);
             changed = true;
             row = null;
         }
         if (row) {
-            if (staged)
+            if (refresh) {
                 host.run(['update', spec.plugin, '--scope', 'user', '--json']);
+                changed = true;
+            }
             const before = host.run(['configure', spec.plugin, '--json'], undefined, true);
             if (!bindingMatches(before, values)) {
                 host.run(['configure', spec.plugin, '--values-stdin'], values);
@@ -219,6 +223,6 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         return result(userDisabled ? 'plugin-disabled' : 'installed', userDisabled ? 'explicitly disabled; resources and binding refreshed' : 'installed and enabled on disk; session loading remains unverified');
     }
     catch (error) {
-        return { state: 'blocked', active: false, changed, messages: [text('native.notice.compatibility_configuration_is_retained_run_doctor_before', { value0: String(error) })] };
+        return { state: 'blocked', active: false, changed, messages: [text(MOD_BLOCKED_NOTICE, { value0: String(error) })] };
     }
 }

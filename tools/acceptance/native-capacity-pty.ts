@@ -17,13 +17,14 @@ import { nativeCapacityData } from '../generation/native-capacity.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture } from '../migration/ts-04/capture.js';
 import type { Draft } from '@fbincon/statusline-core/contracts/ui';
-import { t } from '@fbincon/statusline-core/i18n/messages';
+import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
-    claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' },
+    claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' }, 'header-controls': { type: 'boolean' },
 } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker]');
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls]');
+assert(!(values['component-picker'] && values['header-controls']), 'Select one focused PTY journey');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
 assert.deepEqual(artifact.source.source_hashes, sourceHashes(), 'PTY collector differs from the candidate source');
@@ -36,7 +37,7 @@ const matrix = nativeCapacityData(), reports: Record<string, unknown>[] = [];
 const project = join(installed.temporary, 'project 中文 &'), template = join(installed.temporary, 'template'), shim = join(installed.temporary, 'backend-entry.mjs');
 fs.mkdirSync(project); fs.mkdirSync(template);
 const main = pathToFileURL(join(installed.modules, 'statusline-cli/dist/src/main.js')).href;
-fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null,sourceValue=null;try{operation=JSON.parse(raw).operation??null}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw,stdout:value=>{process.stdout.write(value);if(operation==='source_inspect')try{sourceValue=JSON.parse(value).result?.view?.value??null}catch{}}});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode,...(operation==='source_inspect'?{source_value:sourceValue}:{})})+'\\n');\n`);
+fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {createHash} from 'node:crypto';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null,sourceValue=null,preview={};try{const request=JSON.parse(raw);operation=request.operation??null;if(operation==='preview')preview={width:request.payload.width,draft_sha256:createHash('sha256').update(JSON.stringify(request.payload.draft)).digest('hex')}}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw,stdout:value=>{process.stdout.write(value);if(operation==='source_inspect')try{sourceValue=JSON.parse(value).result?.view?.value??null}catch{}}});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode,...preview,...(operation==='source_inspect'?{source_value:sourceValue}:{})})+'\\n');\n`);
 const env = officialEnvironment(installed);
 function command(executable: string, args: string[], environment = env, timeout = 180000) {
     const result = spawnSync(executable, args, { cwd: project, env: environment, encoding: 'utf8', timeout, maxBuffer: 8 * 1024 * 1024 });
@@ -50,7 +51,7 @@ function caseData(name: string): any {
 }
 const failures = /props serializes to more than|a tree serializing to more than|too many nodes|too deep|a hook returned a tree that does not validate|instance unmounted|returned a tree that does not validate/u;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-async function runCase(name: string, fixtureName: string, action: string, external = false) {
+async function runCase(name: string, fixtureName: string, action: string, external = false, language: Language = 'en') {
     const directory = join(output, name); fs.mkdirSync(directory);
     const config = join(installed.temporary, name);
     // The live-command journey reruns the real installer, whose ownership
@@ -59,7 +60,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const data = caseData(fixtureName), draft = (fixtureName === 'import-four-gradients' ? data.review.result.draft : data.draft) as Draft;
     record(join(config, '.claude.json'), { hasCompletedOnboarding: true, theme: 'dark', projects: { [project]: { hasTrustDialogAccepted: true } } });
     record(join(config, 'claude-statusline.json'), draft.display);
-    record(join(config, 'statusline-ui.json'), { schema_version: 1, ui_language: 'en' });
+    record(join(config, 'statusline-ui.json'), { schema_version: 1, ui_language: language });
     if (data.profiles?.library) { const { revision: _, ...library } = data.profiles.library; record(join(config, 'claude-statusline-profiles.json'), library); }
     if (data.sources?.library) { const { revision: _, ...library } = data.sources.library; record(join(config, 'claude-statusline-sources.json'), library); }
     const importPath = join(config, 'identical-display.json');const imported=structuredClone(draft.display);if(action==='style-reuse'){imported.instances[0]!.options.foreground='#abcdef';imported.instances[0]!.options.label='Copied style';}record(importPath, imported);
@@ -83,8 +84,9 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
     const nativeTask = action === 'native-task';
     const compactTask = nativeTask && name === 'native-task-viewer';
-    const columns = nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
-    const initialRows = nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
+    const header = action === 'header-controls';
+    const columns = header ? 190 : nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
+    const initialRows = header ? 40 : nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
     let rows = initialRows;
     const p = openPty(config, columns, rows, environment, 'en', external
         ? { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project }
@@ -111,13 +113,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     };
     const key = async (bytes: string, label: string) => { p.send(bytes); await delay(180); read(); steps.push({ name: label, elapsed_ms: Date.now() - start }); };
     const capture = (label: string) => { read(); record(join(directory, label + '.cells.json'), { columns, rows, cells: screen.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' }); fs.writeFileSync(join(directory, label + '.txt'), screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n')); };
-    let status = 'fail', error: string | null = null;
+    let status = 'fail', error: string | null = null, bodyColumns: number | undefined;
+    const title = t('native.ui.client.draw.configure_status_line', language);
     try {
         if (!external) {
             await until(text => text.includes('❯') && fs.existsSync(hostLog) && fs.readFileSync(hostLog, 'utf8').includes('$.command.register (statusline-native): /statusline-configure-native listed'), 'host command ready', 30000);
             if (!nativeTask) await key('/statusline-configure-native\r', 'open native command');
         }
-        if (!nativeTask) await until(text => text.includes('Configure Status Line') && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
+        if (!nativeTask) await until(text => text.includes(title) && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
         if (!external && !nativeTask) {
             let clicked = false;
             for (let y = 0; y < screen.buffer.length && !clicked; y++) {
@@ -127,7 +130,44 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert(clicked, 'No observed Client item to focus');
         }
         if (!nativeTask) capture('before');
-        if (pickerSave || pickerDiscard) {
+        if (header) {
+            const retry = '[ ' + t('native.hooks.register.retry', language) + ' ]';
+            const close = '[ ' + t('native.hooks.register.close', language) + ' ]';
+            await until(text => text.split('\n').some(line => {
+                const start = line.indexOf(title), a = line.indexOf(retry), b = line.indexOf(close);
+                return start >= 0 && a > start + title.length && b >= a + retry.length + 1 &&
+                    b + close.length - start === 72;
+            }), 'title and both complete controls fit the 72-cell row');
+            bodyColumns = 72;
+            capture('header');
+            const previews = () => records().filter(row => row.operation === 'preview' && row.phase === 'complete' && row.status === 0);
+            const initial = previews().at(-1)!;
+            assert.equal(initial.width, 70, 'Framed Client did not request a 70-cell preview');
+            await key(' ', 'edit the draft');
+            await until(() => previews().at(-1)?.draft_sha256 !== initial.draft_sha256, 'draft preview changed');
+            const edited = previews().at(-1)!;
+            // The backend logs completion before the host installs the new Button handlers.
+            await delay(350);
+            const click = async (label: string) => {
+                read();
+                for (const [y, row] of screen.buffer.entries()) {
+                    const x = row.findIndex((_, i) => row.slice(i, i + label.length).map(cell => cell.data).join('') === label);
+                    if (x >= 0) {
+                        await key('\x1b[<0;' + (x + 3) + ';' + (y + 1) + 'M\x1b[<0;' + (x + 3) + ';' + (y + 1) + 'm', 'click ' + label);
+                        return;
+                    }
+                }
+                assert.fail('No visible control ' + label);
+            };
+            const count = previews().length;
+            await click(retry);
+            await until(() => previews().length > count, 'Retry restarted the Client');
+            assert.equal(previews().at(-1)?.draft_sha256, edited.draft_sha256, 'Retry lost the unsaved draft');
+            await delay(350);
+            await click(close);
+            await until(text => !text.includes(title) && !text.includes(retry) && !text.includes(close), 'Close dismissed the pane');
+            assert(!records().some(row => row.operation === 'apply'), 'Closing applied the draft');
+        } else if (pickerSave || pickerDiscard) {
             const marker = (text: string, value: string) =>
                 text.split('\n').some(line => /›\s+\[/u.test(line) && line.includes('[' + value + ']'));
             const query = async (id: string) => {
@@ -334,10 +374,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             }
             await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before);
         }
-        else if (!nativeTask) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
+        else if (!nativeTask && !header) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
         if (action !== 'save' && !pickerSave) {
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
-            if (pickerDiscard) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
+            if (pickerDiscard || header) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
         }
         assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
         status = 'pass';
@@ -348,19 +388,22 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         try { process.kill(-p.child.pid!, 'SIGTERM'); } catch { /* Already ended. */ }
         await delay(100); try { process.kill(-p.child.pid!, 'SIGKILL'); } catch { /* Already ended. */ }
         await p.close();
-        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: initialRows,
+        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: initialRows, language, body_columns: bodyColumns,
             model_calls: 0, source_commands: action==='live-command'?1:0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
             display_after_sha256: sha256(fs.readFileSync(join(config, 'claude-statusline.json'))), steps };
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
-const expectedJourneys = values['component-picker'] ? 4 : 43;
+const expectedJourneys = values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
     fs.copyFileSync(fileURLToPath(new URL('../migration/ts-04/test/installed-driver.js', import.meta.url)), driver);
     command(installed.node, [driver, installed.modules, 'prepare-host', template, join(installed.temporary, 'prepared.json'), request], { ...env, CLAUDE_CONFIG_DIR: template });
-    if (values['component-picker']) {
+    if (values['header-controls']) {
+        for (const language of ['de', 'pt-BR', 'en'] as const)
+            await runCase('native-header-' + language, 'plain-main-w72', 'header-controls', false, language);
+    } else if (values['component-picker']) {
         for (const external of [false, true]) for (const action of ['picker-save', 'picker-discard']) {
             await runCase((external ? 'external-' : 'native-') + action, 'plain-main-w72', action, external);
         }

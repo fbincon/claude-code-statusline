@@ -12,6 +12,7 @@ import { NATIVE, RUNTIME, type InstallContext } from '../integration/model.js';
 import { owner } from '../integration/mod-ownership.js';
 import { bundledFiles } from '../integration/resources.js';
 import { integrate } from '../integration/mods.js';
+import { modFailureDetail } from '../integration/mod-diagnostic.js';
 import { BINDING_FILE } from '../integration/ownership.js';
 import { administration } from '../recovery/service.js';
 import { refreshIntents } from '../recovery/journal.js';
@@ -46,7 +47,8 @@ export function prepareModDowngrade(context: InstallContext, root: string, versi
         assertConfiguration(context.configDir, expected);
         for (const { spec, requested, bundle } of transitions) {
             const result = integrate(tracked, spec, requested, !requested, bundle);
-            if (!['installed','plugin-disabled','disabled','suspended'].includes(result.state)) throw new PackageError('integration_failed');
+            if (!['installed','plugin-disabled','disabled','suspended'].includes(result.state))
+                throw new PackageError('integration_failed', modFailureDetail(result.messages));
         }
     });
     const after = configurationBytes(context.configDir);

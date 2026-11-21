@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing';
-import { dimensions, clip, cellWidth, headerColumns } from '../../ui/layout.ts';
+import { dimensions, clip, cellWidth, displayWidth, headerColumns, recoveryControls } from '../../ui/layout.ts';
 import { formPages, formSelection, formWindow, pageSelection, pageWindow } from '../../lib/editor/navigation.ts';
 
 test('smallest usable pane budgets all sections and resizing keeps selection visible', () => {
@@ -29,6 +29,24 @@ test('header budget keeps width for the host recovery controls', () => {
   expect(headerColumns(72, 24)).toBe(52);
   expect(headerColumns(73, 24)).toBe(53);
   expect(headerColumns(120, 30)).toBe(100);
+});
+
+test('translated buttons and the title share the pane budget through the compact breakpoint', () => {
+  const german = recoveryControls(72, 'de');
+  expect(german).toEqual({ retry: 'Erneut versuchen', close: 'Schließen', width: 34, plain: false });
+  expect(recoveryControls(72, 'pt-BR')).toEqual({ retry: 'Tentar novamente', close: 'Fechar', width: 31, plain: false });
+  expect(recoveryControls(72, 'ja').width).toBe(21);
+  expect(headerColumns(72, 24, 'de')).toBe(37);
+  expect(headerColumns(32, 24, 'de', 72)).toBe(32);
+
+  expect(recoveryControls(47, 'de')).toEqual(german);
+  expect(recoveryControls(46, 'de').plain).toBe(true);
+  const compact = recoveryControls(32, 'de');
+  expect(compact.plain).toBe(true);
+  expect(compact.retry).toBe(clip(german.retry, 9));
+  expect(compact.close).toBe(german.close);
+  expect(compact.width).toBe(displayWidth(compact.retry) + displayWidth(compact.close) + 1);
+  expect(headerColumns(32, 12, 'de')).toBe(12);
 });
 
 test('grouped pages fill actual rows, repeat context and never orphan headings', () => {
