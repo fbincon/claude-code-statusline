@@ -24,7 +24,7 @@ flowchart TD
 
 ## 当前 TypeScript workspace
 
-私有 workspace 打包到公开 npm 成品中，布局将复用规则、系统操作及应用编排分开：
+私有 workspace 打包到公开 npm 成品中。打包依赖清单会移除生命周期 `scripts`，避免安装器执行已裁剪的构建脚本；原生二进制使用预构建产物。布局将复用规则、系统操作及应用编排分开：
 
 ```text
 packages/

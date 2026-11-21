@@ -13,6 +13,25 @@ test('verified npm provenance remains bound to exact subject, repository, tag, c
  const s=statement();s.predicate.buildDefinition.resolvedDependencies[0]!.digest.gitCommit='b'.repeat(40);assert.throws(()=>verifiedProvenance([bundle(s)],expected,integrity));
  assert.throws(()=>verifiedProvenance([bundle(statement())],expected,'sha512-'+Buffer.alloc(64,1).toString('base64')));
 });
+test('sanitized release inventories reject public and private dependency lifecycle scripts',()=>{
+ const entries=new Map<string,Buffer>(),deps:Record<string,string>={};
+ for(const short of ['core','platform','cli','tui']){const name='@fbincon/statusline-'+short;deps[name]='0.0.0';entries.set('node_modules/'+name+'/package.json',Buffer.from(JSON.stringify({name,version:'0.0.0',private:true})));}
+ deps.koffi='3.3.3';
+ const koffi=Buffer.from(JSON.stringify({name:'koffi',version:'3.3.3'}));
+ entries.set('node_modules/koffi/package.json',koffi);
+ entries.set('package.json',Buffer.from(JSON.stringify({name:'@fbincon/claude-code-statusline',version:expected.version,dependencies:deps,bundleDependencies:Object.keys(deps)})));
+ const source={schema_version:1,application_version:expected.version,commit:expected.commit,dirty:false,dependency_manifests:'sanitized',dependencies:{koffi:{version:'3.3.3',integrity:'sha512-AAAA',files:{'package.json':sha256(koffi)}}},files:Object.fromEntries([...entries].map(([name,raw])=>[name,sha256(raw)]))};
+ for (const name of ['koffi', '@fbincon/statusline-cli']) {
+     const path = 'node_modules/' + name + '/package.json';
+     const fixture = new Map(entries), inventory = structuredClone(source);
+     const raw = Buffer.from(JSON.stringify({ ...JSON.parse(entries.get(path)!.toString()), scripts: { install: 'node ./missing.cjs' } }));
+     fixture.set(path, raw);
+     inventory.files[path] = sha256(raw);
+     if (name === 'koffi') inventory.dependencies.koffi.files['package.json'] = sha256(raw);
+     fixture.set('candidate.json', Buffer.from(JSON.stringify(inventory)));
+     assert.throws(() => verifiedInventory(fixture, expected), /Bundled dependency scripts/);
+ }
+});
 test('a signed outer package requires complete internal and public inventories',()=>{
  const entries=new Map<string,Buffer>(),deps:Record<string,string>={};
  for(const short of ['core','platform','cli','tui']){const name='@fbincon/statusline-'+short;deps[name]='0.0.0';entries.set('node_modules/'+name+'/package.json',Buffer.from(JSON.stringify({name,version:'0.0.0',private:true})));}

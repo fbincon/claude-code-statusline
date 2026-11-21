@@ -11,6 +11,7 @@ import { installCandidate } from './install.js';
 import { sha256 } from '../build/files.js';
 import { git } from '../checks/ci-git.js';
 import { retainLog } from './diagnostics.js';
+import { smokeNpxFirstEntry } from './first-entry.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, source: { type: 'string' }, integration: { type: 'string' }, target: { type: 'string' }, report: { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 assert(values.artifact && values.source && values.integration && values.target && values.report);
 assert.match(values.integration, /^[a-f0-9]{40}$/u);
@@ -27,6 +28,11 @@ if (values['release-smoke']) Object.assign(report, { host_arch: architecture().h
 try {
     installed = installCandidate(resolve(values.artifact), values.source); report.tarball_sha256 = installed.packed.sha256;
     checks.push('offline-empty-cache-install');
+    if (values['release-smoke']) {
+        const before = performance.now();
+        const npx = await smokeNpxFirstEntry(installed, join(dirname(reportPath), 'logs'));
+        phases.push({ command: 'npx-first-entry', elapsed_ms: performance.now() - before, status: 0, ...npx });
+    }
     const config = installed.env.CLAUDE_CONFIG_DIR;
     fs.mkdirSync(config, { recursive: true }); fs.writeFileSync(join(config, 'settings.json'), '{"env":{"KEEP":"unchanged"}}\n');
     const invoke = (args: string[], input = '') => {

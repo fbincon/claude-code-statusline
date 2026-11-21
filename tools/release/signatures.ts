@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { npmEntry, readTar, sha256 } from '../build/files.js';
+import { dependencyFileMatches } from '../build/dependencies.js';
 import { BUSINESS } from '../build/model.js';
 import { NPM_PACKAGE, REPOSITORY } from './npm-registry.js';
 
@@ -40,6 +41,8 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
   assert.equal(manifest.name, NPM_PACKAGE); assert.equal(manifest.version, options.version);
   assert.equal(source.application_version, options.version); assert.equal(source.commit, options.commit);
   assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
+  assert(source.dependency_manifests === undefined || source.dependency_manifests === 'sanitized');
+    if (source.dependency_manifests === 'sanitized') assert.equal(manifest.scripts, undefined, 'Product manifest scripts');
   assert.deepEqual(Object.keys(source.files).sort(), [...entries.keys()].filter(name => name !== 'candidate.json').sort(), 'Incomplete package inventory');
   for (const [name, hash] of Object.entries(source.files)) assert.equal(sha256(entries.get(name)!), hash, 'Changed package file: ' + name);
   const internal = BUSINESS.map(name => '@fbincon/statusline-' + name);
@@ -49,6 +52,7 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
     assert.equal(dependencies[name], '0.0.0');
     const workspace = json('node_modules/' + name + '/package.json');
     assert.equal(workspace.name, name); assert.equal(workspace.version, '0.0.0'); assert.equal(workspace.private, true);
+    if (source.dependency_manifests === 'sanitized') assert.equal(workspace.scripts, undefined, 'Bundled dependency scripts: ' + name);
   }
   assert.deepEqual(Object.keys(source.dependencies).sort(), Object.keys(dependencies).filter(name => !internal.includes(name)).sort(), 'Incomplete public dependency inventory');
   for (const [name, record] of Object.entries(source.dependencies) as [string, any][]) {
@@ -56,6 +60,7 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
     assert.match(record.integrity, /^sha512-[A-Za-z0-9+/]+=*$/u);
     const prefix = 'node_modules/' + name + '/';
     assert.deepEqual(Object.keys(record.files).sort(), [...entries.keys()].filter(path => path.startsWith(prefix)).map(path => path.slice(prefix.length)).sort());
+    if (source.dependency_manifests === 'sanitized') assert.equal(json(prefix + 'package.json').scripts, undefined, 'Bundled dependency scripts: ' + name);
     for (const [path, hash] of Object.entries(record.files)) assert.equal(sha256(entries.get(prefix + path)!), hash);
   }
   return { source, internal };
@@ -89,7 +94,7 @@ export async function verifyReleaseSignatures(options: SignatureOptions) {
       assert.equal('sha512-' + createHash('sha512').update(upstream).digest('base64'), record.integrity);
       const path = join(temporary, 'upstream.tgz'); fs.writeFileSync(path, upstream);
       const original = readTar(path);
-      for (const [file, hash] of Object.entries(record.files)) { assert(original.has(file), 'Bundled file absent upstream'); assert.equal(sha256(original.get(file)!), hash, 'Bundled dependency differs from signed upstream: ' + name + '/' + file); }
+      for (const [file, hash] of Object.entries(record.files) as [string, string][]) { assert(original.has(file), 'Bundled file absent upstream'); assert(dependencyFileMatches(file, hash, original.get(file)!), 'Bundled dependency differs from signed upstream: ' + name + '/' + file); }
       dependencies.push({ name, version: record.version, integrity: checked.integrity, signatures: checked.signatures.length, attestations: checked.attestationBundles?.length ?? 0 });
     }
     const report = { schema_version: 1, status: 'pass', npm: '11.19.0', package: NPM_PACKAGE, version: options.version, commit: options.commit, sha256: sha256(bytes), integrity, signatures: outer.signatures.length, attestations: outer.attestationBundles.length, provenance, dependencies, bundled_workspaces: internal, native_full_tree_audit: 'unsupported-bundled-workspaces', scope: 'signed-outer-tarball-and-all-bundled-public-upstreams' };

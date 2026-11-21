@@ -7,6 +7,7 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import * as tar from 'tar';
 import { extractFiles, sha256 } from '../../files.js';
+import { sanitizeDependencyManifest } from '../../dependencies.js';
 import { BUSINESS, NATIVE, TARGETS, identity, publicChannel, sourceFilename, type Channel } from '../../model.js';
 import { analyze } from '../../../generation/i18n/analysis.js';
 
@@ -27,12 +28,14 @@ export function candidateEntries(kind: Channel = 'candidate', commit = 'a'.repea
     for (const name of ['statusline-config', 'statusline-configure']) put(`node_modules/@fbincon/statusline-cli/resources/${name}/SKILL.md`, 'template');
     const external: Record<string, any> = {};
     for (const name of ['koffi', 'lossless-json', ...NATIVE]) {
-        put(`node_modules/${name}/package.json`, { name, version: name === 'lossless-json' ? '4.3.1' : '3.3.3' });
+        const version = name === 'lossless-json' ? '4.3.1' : '3.3.3';
+        const manifest = { name, version, ...(['koffi', 'lossless-json'].includes(name) ? { scripts: { install: 'node ./cnoke.cjs' } } : {}) };
+        entries.set(`node_modules/${name}/package.json`, sanitizeDependencyManifest(Buffer.from(JSON.stringify(manifest))));
         if (NATIVE.includes(name)) put(`node_modules/${name}/koffi.node`, 'test-only native placeholder');
-        external[name] = { version: name === 'lossless-json' ? '4.3.1' : '3.3.3', integrity: 'sha512-AAAA', files: Object.fromEntries([...entries].filter(([path]) => path.startsWith('node_modules/' + name + '/')).map(([path, raw]) => [path.slice(('node_modules/' + name + '/').length), sha256(raw)])) };
+        external[name] = { version, integrity: 'sha512-AAAA', files: Object.fromEntries([...entries].filter(([path]) => path.startsWith('node_modules/' + name + '/')).map(([path, raw]) => [path.slice(('node_modules/' + name + '/').length), sha256(raw)])) };
     }
     if (kind !== 'candidate') put('README.md', 'Preview installation');
-    put('candidate.json', { schema_version: 1, channel: kind, name: identity(commit, kind).name, version: identity(commit, kind).version, application_version: VERSION, commit, dirty: false, node: 'v24.21.0', npm: '11.19.0', typescript: '5.9.3', lock_sha256: 'b'.repeat(64), source_manifest_sha256: 'c'.repeat(64), source_hashes: { 'package-lock.json': 'b'.repeat(64) }, targets: TARGETS, dependencies: external, files: Object.fromEntries([...entries].map(([path, raw]) => [path, sha256(raw)])) });
+    put('candidate.json', { schema_version: 1, channel: kind, name: identity(commit, kind).name, version: identity(commit, kind).version, application_version: VERSION, commit, dirty: false, node: 'v24.21.0', npm: '11.19.0', typescript: '5.9.3', lock_sha256: 'b'.repeat(64), source_manifest_sha256: 'c'.repeat(64), source_hashes: { 'package-lock.json': 'b'.repeat(64) }, targets: TARGETS, dependency_manifests: 'sanitized', dependencies: external, files: Object.fromEntries([...entries].map(([path, raw]) => [path, sha256(raw)])) });
     return entries;
 }
 

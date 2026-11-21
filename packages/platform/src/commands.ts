@@ -20,7 +20,7 @@ export function resolvedPath(value: string): string {
         return parent === path ? path : join(resolvedPath(parent), relative(parent, path));
     }
 }
-export function which(name: string, environment: NodeJS.ProcessEnv = process.env): string | null {
+export function which(name: string, environment: NodeJS.ProcessEnv = process.env, accept?: (path: string) => boolean): string | null {
     if (name.includes('\0'))
         return null;
     const paths = /[/\\]/u.test(name) ? [''] : (environment.PATH ?? '').split(delimiter);
@@ -31,7 +31,7 @@ export function which(name: string, environment: NodeJS.ProcessEnv = process.env
             try {
                 if (statSync(path).isFile()) {
                     accessSync(path, process.platform === 'win32' ? constants.F_OK : constants.X_OK);
-                    return path;
+                    if (!accept || accept(path)) return path;
                 }
             }
             catch { /* Try the next PATH entry. */ }

@@ -7,9 +7,9 @@ import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { VERSION, PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { supportedNode } from '@fbincon/statusline-core/node-runtime';
 import { PackageError, entryAction, type PackageIdentity } from '@fbincon/statusline-core/management/package';
-import { Npm, productRoot, productIdentity, writablePrefix, within } from '@fbincon/statusline-platform/npm';
+import { Npm, persistentStatuslineEntry, productRoot, productIdentity, writablePrefix, within } from '@fbincon/statusline-platform/npm';
 import { lock } from '@fbincon/statusline-platform/files';
-import { sameLaunchEntry, which } from '@fbincon/statusline-platform/commands';
+import { sameLaunchEntry } from '@fbincon/statusline-platform/commands';
 import { ArgumentError, optionToken } from '../config/arguments.js';
 import { createPrefix, pendingPath, startOperation, saveOperation, recordInstallation, finishOperation, observeOperation } from './store.js';
 import { previousBinding } from '../integration/ownership.js';
@@ -81,7 +81,8 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
         if (!supportedNode(process.versions.node))
             throw new PackageError('runtime');
         const origin = options.origin === undefined ? productRoot(fileURLToPath(import.meta.url)) : options.origin;
-        if (!origin || productIdentity(origin)?.version !== VERSION)
+        const startingPackage = origin && productIdentity(origin);
+        if (!startingPackage || startingPackage.version !== VERSION)
             throw new PackageError('development');
         const npm = options.npm ?? new Npm(process.env, undefined, undefined, controller.signal), layout = await npm.layout(flags.prefix);
         const before = productIdentity(layout.root, layout.prefix), action = entryAction(before, VERSION);
@@ -91,7 +92,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             stdout(JSON.stringify({ installed: before!.version, target: VERSION, prefix: layout.prefix }, null, 2) + '\n');
             throw new PackageError('version_conflict');
         }
-        const pathEntry = which('claude-statusline');
+        const pathEntry = flags.prefix ? null : persistentStatuslineEntry(startingPackage, layout.cache, npm.environment);
         const previous = previousBinding(configDir, createStorage());
         const priorRoot = previous?.args.length === 1 ? productRoot(previous.args[0]!) : null;
         const inferredPrefix = (root: string) => dirname(dirname(dirname(process.platform === 'win32' ? root : dirname(root))));

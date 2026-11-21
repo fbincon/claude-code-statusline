@@ -28,6 +28,18 @@ test('maintenance packages retain distinct source hashes while equivalent produc
     const result = comparePackages(base, head, before, after); assert.equal(result.equivalent, true); assert.notEqual(result.base_sha256, result.head_sha256);
     assert.throws(() => comparePackages(base, head, before, before), /commit|equal/u);
 });
+test('removing a bundled dependency lifecycle script changes installation behavior', t => {
+    const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40);
+    for (const name of ['koffi', '@fbincon/statusline-cli']) {
+        const path = 'node_modules/' + name + '/package.json';
+        const manifest = { name, version: '3.3.3' };
+        const before = pack(base, { [path]: JSON.stringify({ ...manifest, scripts: { install: 'node ./missing.cjs' } }) });
+        const after = pack(head, { [path]: JSON.stringify(manifest) });
+        const result = comparePackages(base, head, before, after);
+        assert.equal(result.equivalent, false);
+        assert.deepEqual(result.changed_members, [path]);
+    }
+});
 test('runtime changes, new executable files disguised as licenses and package entrypoint changes are not equivalent', t => {
     const pack = fixture(t), base = 'a'.repeat(40), head = 'b'.repeat(40), before = pack(base);
     const changes: Record<string, string>[] = [{ 'node_modules/@fbincon/statusline-core/dist/src/render.js': 'export const render = () => "other";' },

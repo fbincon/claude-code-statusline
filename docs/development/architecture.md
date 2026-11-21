@@ -24,7 +24,7 @@ flowchart TD
 
 ## Current TypeScript workspace
 
-The private workspaces are bundled into the public npm product. Their layout separates reusable rules, OS effects and application work:
+The private workspaces are bundled into the public npm product. Bundled dependency manifests have lifecycle `scripts` removed so installers never execute trimmed build scripts; prebuilt native binaries are used. Their layout separates reusable rules, OS effects and application work:
 
 ```text
 packages/

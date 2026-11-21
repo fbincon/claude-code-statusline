@@ -5,7 +5,7 @@ import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PackageError, exactVersion, type PackageIdentity } from '@fbincon/statusline-core/management/package';
 import { compatibility, LEGACY_370_SHA256, type PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
-import { which, resolvedPath, sameLaunchEntry } from './commands.js';
+import { which, normalizedPath, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
 import { phaseTimer } from './performance.js';
 import { readSourceFile } from './source-files.js';
@@ -88,6 +88,18 @@ export function productIdentity(root: string, prefix = ''): PackageIdentity | nu
     catch {
         throw new PackageError('identity');
     }
+}
+/** Skip only this verified origin's npm-exec shim and continue the PATH lookup. */
+export function persistentStatuslineEntry(origin: PackageIdentity, cache: string, environment: NodeJS.ProcessEnv): string | null {
+    const modules = dirname(dirname(origin.root)), run = dirname(modules);
+    if (normalizedPath(dirname(run)) !== normalizedPath(join(cache, '_npx')) ||
+        normalizedPath(origin.root) !== normalizedPath(join(run, 'node_modules', PACKAGE_NAME))) {
+        return which('claude-statusline', environment);
+    }
+    const bin = normalizedPath(join(modules, '.bin'));
+    const launch = { executable: process.execPath, args: [origin.entry] };
+    return which('claude-statusline', environment, path =>
+        normalizedPath(resolvedPath(dirname(path))) !== bin || !sameLaunchEntry(path, launch));
 }
 export function npmEntry(environment: NodeJS.ProcessEnv = process.env): string {
     const found = which('npm', environment);
