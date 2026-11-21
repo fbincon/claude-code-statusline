@@ -4,6 +4,8 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { GITHUB, RAW_GITHUB, REPOSITORY, TAG, localDestination, rewriteLinks } from './markdown.js';
 export const GITEE = 'https://gitee.com/' + REPOSITORY;
+const METADATA_ASSETS: ReadonlySet<string> = new Set(['build-manifest.json', 'SHA256SUMS']);
+const githubAsset = (tag: string, name: string): string => `${GITHUB}/releases/download/${encodeURIComponent(tag)}/${encodeURIComponent(name)}`;
 export interface Release {
     tag_name: string;
     prerelease: boolean;
@@ -18,11 +20,13 @@ export interface Release {
 }
 function require(value: unknown, message: string): asserts value { if (!value)
     throw new Error(message); }
-export function assetCatalog(releases: Release[]): Map<string, string> {
+export function assetCatalog(releases: Release[], only?: ReadonlySet<string>): Map<string, string> {
     const result = new Map<string, string>();
     for (const release of releases) {
         require(TAG.test(release.tag_name), 'Unexpected Gitee tag');
         for (const asset of release.assets) {
+            if (only && !only.has(asset.name))
+                continue;
             if (!/\.(?:whl|tgz|tar\.gz|json)$|^SHA256SUMS$/u.test(asset.name))
                 continue;
             const url = asset.browser_download_url;
@@ -43,7 +47,7 @@ export function renderGitee(tag: string, source: Release, targets: Release[]): s
     const matching = targets.filter(row => row.tag_name === tag);
     require(matching.length === 1, 'Gitee target Release is missing or duplicated');
     require(matching[0]!.prerelease === source.prerelease, 'Prerelease status differs');
-    const catalog = assetCatalog(targets), names = source.assets.map(row => row.name), wheels = names.filter(n => n.endsWith('.whl')), npm = names.filter(n => n.endsWith('.tgz'));
+    const names = source.assets.map(row => row.name), wheels = names.filter(n => n.endsWith('.whl')), npm = names.filter(n => n.endsWith('.tgz'));
     require(names.length === new Set(names).size && names.includes('SHA256SUMS'), 'Duplicate assets or missing SHA256SUMS');
     const legacy = wheels.length === 1;
     if (legacy) {
@@ -56,15 +60,23 @@ export function renderGitee(tag: string, source: Release, targets: Release[]): s
         require(wheels.length === 0 && npm.length === 1 && npm[0] === `fbincon-claude-code-statusline-${version}.tgz`, 'Expected one verified npm package');
         require(names.length === 4 && names.includes(`claude-code-statusline-${version}-source.tar.gz`) && names.includes('build-manifest.json'), 'Incomplete TypeScript delivery');
         require(source.prerelease === version.includes('-'), 'Release channel and version differ');
+        for (const asset of source.assets)
+            require(asset.browser_download_url === githubAsset(tag, asset.name), 'Unexpected GitHub asset URL: ' + asset.name);
     }
+    const catalog = assetCatalog(targets, legacy ? undefined : METADATA_ASSETS);
     for (const name of names)
-        require(catalog.has(tag + '/' + name), 'Missing matching Gitee asset: ' + tag + '/' + name);
+        if (legacy || METADATA_ASSETS.has(name))
+            require(catalog.has(tag + '/' + name), 'Missing matching Gitee asset: ' + tag + '/' + name);
     const packageName = (legacy ? wheels[0] : npm[0])!, local = './' + packageName;
     const rewrite = (target: string, image = false): string => {
         if (!target || target.startsWith('#'))
             return target;
         if (target.startsWith(GITHUB + '/releases/download/')) {
             const key = decodeURIComponent(target.slice((GITHUB + '/releases/download/').length));
+            const parts = key.split('/'), ref = parts[0]!, name = parts[1]!;
+            require(parts.length === 2 && !!ref && !!name && TAG.test(ref) && target === githubAsset(ref, name), 'Unexpected GitHub asset URL');
+            if (!legacy && !METADATA_ASSETS.has(name))
+                return target;
             require(catalog.has(key), 'Missing matching Gitee asset: ' + key);
             return catalog.get(key)!;
         }
@@ -100,7 +112,11 @@ export function renderGitee(tag: string, source: Release, targets: Release[]): s
     const command = legacy ? `pipx install --force "${local}"` : `npm install --prefix ./statusline-install --offline --ignore-scripts "${local}"`;
     const entry = legacy ? 'claude-statusline' : 'node ./statusline-install/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js';
     const config = legacy ? '' : ' --config-dir ./statusline-install/test-config';
-    return body.trimEnd() + `\n\n## Gitee installation and downloads / Gitee 安装与下载\n\nDownload the package and SHA256SUMS, verify the checksum, then install from the download directory. / 下载包和 SHA256SUMS，核验后在下载目录安装。\n\n\`\`\`text\n${command}\n${entry} install${config} --dry-run\n${entry} install${config}\n${entry} doctor${config}\n\`\`\`\n\n${names.map(name => `[${name}](${catalog.get(tag + '/' + name)})`).join('\n')}\n\n## Original publication / 原始发布信息\n\n[Original GitHub Release / GitHub 原始发行版](${original})\n\nOriginal GitHub publication time / GitHub 原始发布时间: ${source.published_at}\n`;
+    const explanation = legacy
+        ? 'Download the package and SHA256SUMS, verify the checksum, then install from the download directory. / 下载包和 SHA256SUMS，核验后在下载目录安装。'
+        : 'To stay within Gitee\'s 1 GB repository attachment quota, the package and source archive link to the verified GitHub originals for this tag, while Gitee attaches only `build-manifest.json` and `SHA256SUMS`. Download all four files into one directory, verify the checksums, then install from that directory. / 为遵守 Gitee 的 1 GB 仓库附件配额，安装包和源码归档链接到该 tag 已验证的 GitHub 原件，Gitee 仅附加 `build-manifest.json` 和 `SHA256SUMS`。请将四个文件下载到同一目录，核验后在该目录安装。';
+    const assetUrl = (name: string): string => legacy || METADATA_ASSETS.has(name) ? catalog.get(tag + '/' + name)! : githubAsset(tag, name);
+    return body.trimEnd() + `\n\n## Gitee installation and downloads / Gitee 安装与下载\n\n${explanation}\n\n\`\`\`text\n${command}\n${entry} install${config} --dry-run\n${entry} install${config}\n${entry} doctor${config}\n\`\`\`\n\n${names.map(name => `[${name}](${assetUrl(name)})`).join('\n')}\n\n## Original publication / 原始发布信息\n\n[Original GitHub Release / GitHub 原始发行版](${original})\n\nOriginal GitHub publication time / GitHub 原始发布时间: ${source.published_at}\n`;
 }
 export function writeNotes(tag: string, source: string, targets: string, output: string): void {
     const body = renderGitee(tag, JSON.parse(readFileSync(source, 'utf8')), JSON.parse(readFileSync(targets, 'utf8')));

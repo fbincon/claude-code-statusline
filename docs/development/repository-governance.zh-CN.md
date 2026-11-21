@@ -4,7 +4,7 @@
 
 ## 协作与安全
 
-[GitHub](https://github.com/fbincon/claude-code-statusline)是 Issues、PR、CI 和安全报告的主要位置，Gitee 分发同步后的代码与发布。开发和反馈从[贡献指南](../../CONTRIBUTING.zh-CN.md)开始，私有漏洞报告遵循[安全政策](../../SECURITY.zh-CN.md)。通用双语 Bug 表单替换迁移预览表单；双语功能建议表单用于收集功能建议，空白 Issue 继续用于提问。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)保留既有平台验收跟踪用途。
+[GitHub](https://github.com/fbincon/claude-code-statusline)是 Issues、PR、CI 和安全报告的主要位置，Gitee 分发同步后的代码、发布说明和两个发布元数据资产。开发和反馈从[贡献指南](../../CONTRIBUTING.zh-CN.md)开始，私有漏洞报告遵循[安全政策](../../SECURITY.zh-CN.md)。通用双语 Bug 表单替换迁移预览表单；双语功能建议表单用于收集功能建议，空白 Issue 继续用于提问。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)保留既有平台验收跟踪用途。
 
 根目录政策使用英文和简体中文对应文件，仅维护英文的[项目级代理指引](../../AGENTS.md)除外。该文件记录共享开发规则；个人偏好、机器配置和凭据处理保留在用户级指引中。GitHub 表单与 PR 模板各使用单个双语文件。`docs:check` 校验 PR 模板必需的双语章节，`.github/ISSUE_TEMPLATE/` 下的任意顶层表单按文档路由。项目 README 聚焦介绍与使用，维护证据放在本文或交付报告中。
 
@@ -22,7 +22,7 @@ PR 成功合并后，在 GitHub 允许时自动删除其来源分支。2026-11-1
 
 2026-10-26 首次扫描在 `tools/acceptance/package-lock.json` 和 `tools/migration/ts-05/reference-requirements.txt` 中发现六条告警（一条高危、两条中危、三条低危）。Dependabot 分别创建了 [setuptools #149](https://github.com/fbincon/claude-code-statusline/pull/149)、[body-parser #150](https://github.com/fbincon/claude-code-statusline/pull/150) 和 [fast-uri #151](https://github.com/fbincon/claude-code-statusline/pull/151) 修复 PR。此前根工作区的 npm audit 未覆盖这些独立依赖文件。这些修复当时安排为单独审阅和检查；该盘点是历史快照，不代表当前告警或 PR 状态。#96 的平台验收豁免不适用于依赖告警。
 
-Release immutability 面向未来 GitHub 正式发布。先在草稿中准备并验证全部四项附件，再正式发布。已发布包的修复通过新版本交付，不替换附件或移动关联标签。不重建历史发布，也不新增覆盖全部 `v*` 的规则集。Gitee 副本须独立核对摘要，详见[发布流程](../RELEASING.zh-CN.md)。
+Release immutability 面向未来 GitHub 正式发布。先在 GitHub 草稿中准备并验证全部四项附件，再正式发布。已发布包的修复通过新版本交付，不替换附件或移动关联标签。不重建历史发布，也不新增覆盖全部 `v*` 的规则集。当前 TypeScript 版本由 Gitee 镜像代码、带注释标签和发布说明，并仅附加 `build-manifest.json` 和 `SHA256SUMS`；受 Gitee 仓库附件配额限制，包和源码归档保留在 GitHub。两个 Gitee 元数据副本须独立核对摘要，包和源码归档链接须解析到固定版本的 GitHub 原件。Python 时代版本继续在 Gitee 保留 wheel、sdist 和 `SHA256SUMS`。详见[发布流程](../RELEASING.zh-CN.md)。
 
 该维护任务配置的仓库元数据将 Homepage 指向 npm 包，Topics 描述 TypeScript/Node CLI，关闭空 Wiki 并保留 Projects。npm 定期更新及其他社区服务仍不在该任务范围内。
 
