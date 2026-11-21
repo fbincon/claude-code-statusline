@@ -4,6 +4,14 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## 3.16.5 — 2026-11-21
+
+- 在 Claude Code 2.1.330 上安装、升级和恢复内置插件，并显示具体校验失败原因。 [#292](https://github.com/fbincon/claude-code-statusline/issues/292)
+- 让 Native 编辑器在窄窗格中同时保留重试和关闭按钮。 [#287](https://github.com/fbincon/claude-code-statusline/issues/287)
+- 先比较包内容，再检查维护路线的专项任务预算。 [#288](https://github.com/fbincon/claude-code-statusline/issues/288)
+- 沿用显示 schema 17、编辑器协议 32 和现有存储格式。
+- 已于 2026-11-21 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.16.5.zh-CN.md) · [交付记录](docs/development/history/deliveries/v3-16-5.zh-CN.md#final-release)。
+
 ## 3.16.4 — 2026-11-21
 
 - 使 GitHub 来源可随工作树当前分支切换。

@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.16.5 — 2026-11-21
+
+- Install, upgrade and recover bundled plugins on Claude Code 2.1.330 and report validation failures. [#292](https://github.com/fbincon/claude-code-statusline/issues/292)
+- Keep both Retry and Close available in narrow Native editor panes. [#287](https://github.com/fbincon/claude-code-statusline/issues/287)
+- Compare packages before applying the scoped maintenance job budget. [#288](https://github.com/fbincon/claude-code-statusline/issues/288)
+- Retain display schema 17, editor protocol 32 and the existing storage formats.
+- Published on npm, GitHub and Gitee on 2026-11-21. [Release notes](docs/releases/v3.16.5.md) · [Delivery record](docs/development/history/deliveries/v3-16-5.md#final-release).
+
 ## 3.16.4 — 2026-11-21
 
 - Let GitHub sources follow the current worktree branch as it changes.
