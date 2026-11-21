@@ -177,7 +177,7 @@ These commands are primarily called by Claude Code and the installed integration
 
 Read Claude Code status-line JSON from stdin and output one or more status-line text rows to stdout using current configuration. Invalid input is silent so errors do not pollute the Claude Code UI.
 
-Use simulated input for basic troubleshooting. Linux / WSL / macOS, rendered at 120 columns:
+Use simulated input for basic troubleshooting. Linux / macOS, rendered at 120 columns:
 
 ```bash
 printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"/tmp"}}' \
@@ -196,7 +196,7 @@ These examples read `claude-statusline.json` from the current configuration dire
 
 Read official Claude Code `subagentStatusLine` JSON from stdin and render each valid task as one `{"id":"...","content":"..."}` NDJSON line. Invalid top-level JSON, `tasks`, or individual fields degrade silently with exit code 0. Stdout contains only protocol results. Ordinary payload metrics do not scan transcripts or query the network; completed timing can read existing local end evidence. Enabled, bound external values may read selected JSON, inspect local Git identity and save observation caches; command/GitHub providers are not executed during rendering. See [CLI rendering boundaries](../reference/cli.md#subagent-rows-and-the-three-scopes).
 
-Linux / WSL / macOS:
+Linux / macOS:
 
 ```bash
 printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' \

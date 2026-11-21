@@ -448,7 +448,7 @@ claude-statusline config item subagent task max-width none
 
 一次提交完整的显示配置和宿主配置。无参数向导在收集完全部答案后使用该命令；也可以用于脚本化部署：
 
-Linux / WSL / macOS（Bash）：
+Linux / macOS（Bash）：
 
 ```bash
 claude-statusline config apply \

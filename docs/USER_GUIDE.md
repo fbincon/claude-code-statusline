@@ -90,7 +90,7 @@ The main line reports main/session data; each subagent row reports its own task.
 
 | Platform | Environment |
 | --- | --- |
-| Linux / WSL | Node 22.x or 24.x, x64 |
+| Linux | Node 22.x or 24.x, x64 |
 | Windows 10/11 | Node 22.x or 24.x, x64 |
 | macOS 14+ | Node 22.x or 24.x, Intel / Apple Silicon |
 
@@ -124,7 +124,7 @@ To install an exact stable version from npm, append `@VERSION` to the package na
 
 Choose the exact stable tag from the release list. Download the four attachments for that tag into one directory. These are `fbincon-claude-code-statusline-VERSION.tgz`, the rebuildable `claude-code-statusline-VERSION-source.tar.gz`, `build-manifest.json` and `SHA256SUMS`. Verify the three files listed in `SHA256SUMS` before installing. [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases) · [Gitee Releases](https://gitee.com/fbincon/claude-code-statusline/releases)
 
-In the Linux or WSL example, replace `VERSION` with the version from the selected tag.
+In the Linux example, replace `VERSION` with the version from the selected tag.
 
 ```bash
 sha256sum -c SHA256SUMS &&
@@ -775,7 +775,7 @@ To preserve manual edits, restore from the latest backup or repair the JSON befo
 
 ### Git information is missing or shows `Git!`
 
-Check whether Git is on PATH with `command -v git` on Linux, WSL or macOS, or `Get-Command git` in PowerShell. Outside a repository the worktree status items are omitted. `Git!` indicates a failed worktree status observation, which can include a collection policy refusal. Run `claude-statusline doctor` from the project directory to inspect the filter policy. [Git collection policy](DIAGNOSTICS.md#git-collection-policy)
+Check whether Git is on PATH with `command -v git` on Linux or macOS, or `Get-Command git` in PowerShell. Outside a repository the worktree status items are omitted. `Git!` indicates a failed worktree status observation, which can include a collection policy refusal. Run `claude-statusline doctor` from the project directory to inspect the filter policy. [Git collection policy](DIAGNOSTICS.md#git-collection-policy)
 
 To stop the renderer's built-in Git queries, disable the compound, its independent status items and the committed branch comparison. Use this command for a type-based user-default display.
 
