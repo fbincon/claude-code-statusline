@@ -85,10 +85,14 @@ export class LiveStore {
                     else
                         ignored++;
                 }
-                reconcileBindings(state, this.history(session));
                 // Always acquire live before task. Task writers never acquire a live lock.
                 if (timing)
-                    this.tasks.mutate(session, history => observeNative(history, state, this.context.sample, completeTiming));
+                    this.tasks.mutate(session, history => {
+                        reconcileBindings(state, history);
+                        return observeNative(history, state, this.context.sample, completeTiming);
+                    });
+                else
+                    reconcileBindings(state, this.history(session));
                 this.publish(target, state);
             });
         }

@@ -64,11 +64,12 @@ export function transcriptChunk(io: RuntimeIO, path: string, start: bigint): {
 }
 /** Visit parsed complete records without retaining the transcript. A caller must
  * stage its reductions until success; I/O failure discards the entire chunk. */
-export function visitTranscript(io: RuntimeIO, path: string, start: bigint, visit: (row: unknown) => void): { cursor: bigint; count: number } | null {
+export function visitTranscript(io: RuntimeIO, path: string, start: bigint, visit: (row: unknown, end: bigint) => void): { cursor: bigint; count: number } | null {
     let first = true;
-    let count = 0, consumerFailed = false;
+    let count = 0, consumerFailed = false, end = start;
     try {
         const cursor = io.lines(path, start, raw => {
+            end += BigInt(raw.length);
             let text = raw.toString('utf8');
             if (first && text.startsWith('\uFEFF'))
                 text = text.slice(1);
@@ -80,7 +81,7 @@ export function visitTranscript(io: RuntimeIO, path: string, start: bigint, visi
             try { row = readDataJson(text); }
             catch { return; /* A malformed complete line is consumed permanently. */ }
             count++;
-            try { visit(row); }
+            try { visit(row, end); }
             catch (error) { consumerFailed = true; throw error; }
         });
         return { count, cursor };

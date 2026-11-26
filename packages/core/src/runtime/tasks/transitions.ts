@@ -2,6 +2,7 @@ import { int, truth, string, numeric, object, maxInt, compareInt, type Data } fr
 import { StatusTimer } from '../../timing/timer.js';
 import { END_PRIORITY, TERMINAL_STATUSES, MAX_AGENT_HISTORY, recordKey, elapsedNs, findTurn, lifecycleId, newRecord, rememberId, pruneTurns, type AgentNotice, type Turn, type TaskStore } from './model.js';
 import { agentEvidence, agentWorkPending, agentsObservedThrough, clearSnapshotOnlyAgents, findAgentOwner, hasObservedAgentEnd, syncAgentPhase, syncAgentReports } from './agents.js';
+import { linkTask } from './identity.js';
 export function priority(source: unknown): number { return typeof source === 'string' && Object.hasOwn(END_PRIORITY, source) ? END_PRIORITY[source]! : 0; }
 export function noteEndEvidence(record: Turn, wall: bigint, source: string): void {
     const previous = object(record.last_end_evidence) ? record.last_end_evidence : null, stamp = int(previous?.wall_ns, false);
@@ -250,18 +251,45 @@ export function applyConfirmedStop(store: TaskStore, promptId: unknown, wallValu
     finishRecord(record, 'completed', wall, boot, domain, 'transcript_stop', 'successful_stop_hooks');
     return record;
 }
-export function reconcileTranscript(store: TaskStore, observations: readonly unknown[], unfinishedOnly = false): string | null {
+export function reconcileTranscript(store: TaskStore, observations: readonly unknown[], unfinishedOnly = false, preserve?: ReadonlySet<Turn>): string | null {
     const indexed = observations.map((event, index) => ({ event, index })).sort((a, b) => compareInt(object(a.event) ? int(a.event.wall_ns, false) ?? 0n : 0n, object(b.event) ? int(b.event.wall_ns, false) ?? 0n : 0n) || a.index - b.index);
-    const eligible = unfinishedOnly ? new Set(store.turns.filter(record => record.status === 'running')) : undefined;
-    const mayApply = (prompt: unknown) => !eligible || typeof prompt === 'string' && eligible.has(findTurn(store, prompt)!);
+    const pairs = new Map<string, string | null>();
+    for (const { event } of indexed) {
+        if (!object(event) || event.kind !== 'prompt' || int(event.wall_ns, false) === null)
+            continue;
+        const prompt = lifecycleId(event.prompt_id), message = lifecycleId(event.message_uuid);
+        if (prompt && message && prompt !== message)
+            for (const [from, to] of [[prompt, message], [message, prompt]] as const)
+                pairs.set(from, !pairs.has(from) || pairs.get(from) === to ? to : null);
+    }
+    const link = (event: Data) => {
+        const prompt = lifecycleId(event.prompt_id), message = lifecycleId(event.message_uuid);
+        if (prompt && message && pairs.get(prompt) === message && pairs.get(message) === prompt)
+            linkTask(store, prompt, message, true);
+    };
+    // Repair stored identities before any ending or activity is attributed. A
+    // migration can repair a pair even when neither record is still running.
+    for (const { event } of indexed)
+        if (object(event) && event.kind === 'prompt')
+            link(event);
+    const eligible = unfinishedOnly || preserve ? new Set(store.turns.filter(record => !preserve?.has(record) && (!unfinishedOnly || record.status === 'running'))) : undefined;
+    const mayApply = (prompt: unknown) => {
+        if (!eligible) return true;
+        const record = typeof prompt === 'string' ? findTurn(store, prompt) : null;
+        return record ? eligible.has(record) : !unfinishedOnly;
+    };
     let observed: string | null = null;
     for (const { event } of indexed) {
         if (!object(event))
             continue;
         const target = lifecycleId(event.prompt_id) ?? lifecycleId(event.context_prompt_id) ?? (!Object.hasOwn(event, 'prompt_id') ?
             observed ?? (store.turns.length === 1 ? store.turns[0]!.prompt_id : null) : null);
-        if (event.kind === 'prompt')
-            observed = (mayApply(event.prompt_id) ? applyPrompt(store, event.prompt_id, event.wall_ns)?.prompt_id : null) ?? lifecycleId(event.prompt_id);
+        if (event.kind === 'prompt') {
+            const record = mayApply(event.prompt_id) ? applyPrompt(store, event.prompt_id, event.wall_ns) : null;
+            if (record) eligible?.add(record);
+            observed = record?.prompt_id ?? lifecycleId(event.prompt_id);
+            link(event);
+        }
         else if (event.kind === 'interrupt')
             applyInterrupt(store, event.wall_ns, eligible);
         else if (event.kind === 'local_command' && mayApply(event.prompt_id))

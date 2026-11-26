@@ -1,6 +1,7 @@
 import { int, numeric, object, truth, string, type Data } from '@fbincon/statusline-core/runtime/values';
 import { roundedInteger } from '@fbincon/statusline-core/runtime/transcript';
 import { findTurn, type Turn } from '@fbincon/statusline-core/runtime/tasks/model';
+import { mainExecutionObserved, supersededSubmission } from '@fbincon/statusline-core/runtime/tasks/identity';
 import { registryStatus } from '../registry.js';
 import { TaskService } from './service.js';
 export function localCommandIsCurrent(local: unknown, payload: string | null, real: string | null, lastPrompt: unknown): boolean {
@@ -41,6 +42,13 @@ export function collectTask(service: TaskService, sessionId: unknown, promptId: 
     if (!effective)
         return null;
     let state = history ? findTurn(history, effective) : null;
+    if (state && state !== current && supersededSubmission(state) && current && !current.configuration_prompt) {
+        const start = int(current.started_wall_ns, false), ended = int(state.ended_wall_ns, false), previous = int(state.started_wall_ns, false);
+        if (start !== null && previous !== null && ended !== null && start > previous && start >= ended &&
+            (['completed', 'failed', 'interrupted'].includes(current.status) || current.status === 'running' &&
+                (current.submission_verified || mainExecutionObserved(current, service.context.sample().wall_ns))))
+            return current;
+    }
     if (!state && real === effective && timestamp !== null) {
         try {
             service.transcript(session, [{ kind: 'prompt', prompt_id: effective, wall_ns: roundedInteger(timestamp * 1e9) }]);

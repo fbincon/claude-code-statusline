@@ -3,6 +3,7 @@ import { int, truth, string, object, maxInt, numeric, type Data } from '../value
 import { findTurn, upsertTurn, terminalRecord, agentNotificationIds, lifecycleId, elapsedNs, recordKey, TERMINAL_STATUSES, type Turn, type TaskStore } from './model.js';
 import { applyAgentNotification, endIsCurrent, finishRecord, noteEndEvidence, priority, reconcileNotifications } from './transitions.js';
 import { agentWorkPending, reconcileBackground, startSubagent, stopSubagent } from './agents.js';
+import { mainExecutionObserved } from './identity.js';
 export interface Evidence {
     submissionNs?: bigint | null;
     modifiedNs?: bigint | null;
@@ -39,9 +40,7 @@ export function stopTarget(store: TaskStore, prompt: string | null, wall: bigint
     const record = candidates[0]!, start = int(record.started_wall_ns, false);
     if (start === null || store.current_prompt_id !== record.prompt_id)
         return null;
-    const beganMain = (int(record.last_assistant_wall_ns, false) ?? -1n) >= start || Object.values(record.native_turns).some(turn =>
-        turn.agent_id === null && turn.start_observed === true && (numeric(turn.started_at_ms) ?? -1) >= Number(start) / 1e6 &&
-        (numeric(turn.started_at_ms) ?? Infinity) <= Number(wall) / 1e6);
+    const beganMain = mainExecutionObserved(record, wall);
     const ambiguous = store.turns.some(item => item !== record && (int(item.started_wall_ns, false) ?? start) < start &&
         (item.end_source === 'next_prompt' && (int(item.ended_wall_ns, false) ?? -1n) >= start ||
          Object.values(item.native_turns).some(turn => turn.agent_id === null && turn.start_observed === true &&

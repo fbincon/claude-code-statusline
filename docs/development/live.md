@@ -71,10 +71,7 @@ live bindings and invalidates unfinished coverage; old epochs can retain attribu
 history but cannot replace current observations. Resume/clear/end invalidate live
 state. The Mod refreshes its session binding after these boundaries.
 
-Observation hooks pass their input/result through unchanged. A bounded queue batches
-publication outside routine event handling, retries exact identities after refusal,
-and preserves the bootstrap heartbeat during overflow. Collector failure does not
-alter model requests or timer completion. Advanced metric views do not decide task outcomes; native timing observations use the canonical task reducer and its lock after the live-observation lock.
+Observation hooks pass their input and results through unchanged. Prompt, turn and tool events start a background drain of the bounded queue. One write runs at a time, and an acknowledgement lets the drain continue through pending batches. A timeout or refusal retains the original sequence identities for a later event or periodic retry. Periodic queue refresh and the heartbeat are registered independently. Overflow preserves the bootstrap heartbeat. Advanced metric views read task outcomes. Native timing observations update them through the canonical task reducer under the live-before-task lock order.
 The installer does not enable or redirect telemetry exporters or retain prompts,
 answers or arbitrary tool arguments in this store.
 
@@ -88,7 +85,9 @@ See [architecture](architecture.md), [testing](testing.md),
 
 ## State views
 
-Turn IDs bind main tools and agent spawns to the executing task, independently of a newly queued prompt. Native spawn results establish parent/child ownership; unknown loop IDs remain unavailable. Task/Todo snapshots and updates are kept per prompt and reset on reload. Successful empty snapshots represent 0/0, distinct from no observation. The newest started main tool wins even if an older parallel tool finishes later. Terminal state and results remain readable after heartbeat expiration; unfinished live observations do not.
+Turn IDs bind main tools and agent spawns to the executing task, independently of a newly queued prompt. Native spawn results establish parent/child ownership. Unknown loop IDs remain unavailable. Task/Todo snapshots and updates are kept per prompt and reset on reload. Successful empty snapshots represent 0/0. The newest started main tool wins even if an older parallel tool finishes later.
+
+The footer updates lifecycle evidence before reading live metrics. When the native snapshot is late, a verified current task can supply its execution phase. The tool display requires a fresh observation owned by that task. If neither source establishes a value, the item shows `—`. A heartbeat updates the session's liveness. Ownership and task activity determine which state is current. Finished tasks retain their attributed terminal state and tool results for idle display and historical reads.
 
 ## Requests
 
@@ -106,6 +105,6 @@ See the [historical acceptance record](history/acceptance-records.md#v160-stable
 
 Protocol v2 introduced native reported duration, wait start/end and explicit coverage metadata, retained in v3. V1 requests remain readable but cannot establish complete execution-time coverage. Timing-only mode suppresses advanced persistence while still tracking sequence continuity. The live observation lock precedes the task lock; task writers never acquire a live lock. Retries preserve identities and remain idempotent.
 
-Official prompt-ID/message-UUID links can promote a uniquely verified lifecycle owner when print/SDK mode omitted session.append. Unbound live turns stay unbound. Completion recorded before session exit remains completed when its batch arrives late. Message aliases and background-report aliases are distinct. See [task clocks](timer.md).
+A real human transcript row or an official telemetry event can establish the prompt-ID/message-UUID link. When several eligible prompt IDs were present at turn start, that turn can bind if all the recorded candidates resolve to one prompt. Print/SDK runs with no prompt identity event can still bind through a unique completed lifecycle window. Completion recorded before session exit remains completed when its batch arrives late. See [task clocks](timer.md).
 
 `runtime read` includes `task-active-timer`; unavailable reasons include `native_timing_disabled`, `wait_coverage_missing`, `incomplete`, `stale` and `abnormal_clock`. The current host conservatively hides execution time for permission/question/MCP waiting whose exact boundaries cannot be proved.

@@ -3,20 +3,25 @@ import { register } from '../hooks/observe.ts';
 import type { Observation } from '../lib/generated-contracts.ts';
 
 /** Drive the shipped observer, including fields absent from older host engines. */
-function observer(advanced: boolean) {
+function observer(advanced: boolean, publish?: (batch: Observation[]) => Promise<void>, refused: readonly number[] = []) {
   type Handler = ($: unknown, event: any, next: any) => any;
   const handlers = new Map<string, Handler>(), ticks: (() => Promise<void>)[] = [];
   register(((name: string, ...args: unknown[]) => {
     handlers.set(name, args[args.length - 1] as Handler);
   }) as Parameters<typeof register>[0], { liveMetrics: advanced });
-  const rows: Observation[] = [];
-  let now = 1000;
+  const rows: Observation[] = [], periods: number[] = [];
+  let now = 1000, session = 's';
   const $ = {
-    session: { id: async () => 's', version: async () => ({ version: '2.1.314' }), cwd: async () => '/work' },
+    session: { id: async () => session, version: async () => ({ version: '2.1.314' }), cwd: async () => '/work' },
     env: { get: async () => '' },
-    clock: { now: async () => now++, every: (ms: number, callback: () => Promise<void>) => { if (ms === 1000) ticks.push(callback); } },
+    clock: { now: async () => now++, every: (ms: number, callback: () => Promise<void>) => {
+      periods.push(ms);
+      if (refused.includes(ms)) throw new Error('clock period refused');
+      if (ms === 1000) ticks.push(callback);
+    } },
     process: { run: async (_argv: unknown, options: { stdin: string }) => {
       const batch = JSON.parse(options.stdin).payload.observations as Observation[];
+      if (publish) await publish(batch);
       rows.push(...batch);
       return { exitCode: 0, stdout: JSON.stringify({ protocol_version: 3, result: {
         backend_version: 'test', enabled: true, accepted: batch.length, ignored: 0,
@@ -30,7 +35,7 @@ function observer(advanced: boolean) {
     }, { signal: { aborted: false } });
     return handlers.get(kind)!($, event, next);
   };
-  return { rows, emit, flush: () => ticks[0]!(),
+  return { rows, periods, emit, flush: () => ticks[0]!(), advance: (ms: number) => { now += ms; }, session: (id: string) => { session = id; },
     async step(turnId: string, agentId?: string) {
       const event = { turnId, agentId, index: 0, model: 'test', messageCount: 1 };
       const answer = { answer: 'unchanged' };
@@ -85,4 +90,60 @@ for (const advanced of [false, true]) test(`turn starts retain main, parallel an
   } else expect(f.rows.some(row => row.kind === 'request_end')).toBe(false);
   expect(f.rows.every((row, index) => row.seq === index)).toBe(true);
   expect(JSON.stringify(f.rows).includes('private')).toBe(false);
+});
+
+const prompt = (uuid: string) => ({ uuid, message: { type: 'user' }, origin: { kind: 'composer' } });
+const settle = async () => { for (let i = 0; i < 16; i++) await Promise.resolve(); };
+
+test('native events drain promptly after both timer registrations are refused and a write is busy', async () => {
+  let release!: () => void, inFlight = 0, highWater = 0;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const f = observer(true, async rows => {
+    highWater = Math.max(highWater, ++inFlight);
+    if (rows.some(row => row.kind === 'prompt')) await held;
+    inFlight--;
+  }, [1000, 5000]);
+  await f.emit('session.start', {});
+  expect(f.periods).toEqual([1000, 5000]);
+  const nextPrompt = prompt('message');
+  expect(await f.emit('session.append', nextPrompt)).toBe(nextPrompt);
+  await f.emit('turn.start', { turnId: 't' });
+  const answer = { result: 'original result' };
+  expect(await f.emit('tool.call', { tool: 'Read', tool_use_id: 'r' }, answer)).toBe(answer);
+  await f.emit('turn.complete', { turnId: 't', durationMs: 5, reason: 'answer' });
+  expect(f.rows.map(row => row.kind)).toEqual(['heartbeat']);
+  release();
+  await settle();
+  expect(f.rows.map(row => row.kind)).toEqual(['heartbeat', 'prompt', 'turn_start', 'tool_start', 'tool_end', 'turn_end', 'turn_usage']);
+  expect(highWater).toBe(1);
+});
+
+test('an unacknowledged write retries the same identities without leaking them to a rebound session', async () => {
+  const attempts: Observation[][] = [];
+  let fail = true, release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const f = observer(true, async rows => {
+    attempts.push(rows);
+    if (rows.some(row => row.kind === 'prompt' && row.prompt_id === 'first') && fail) {
+      fail = false;
+      throw new Error('timeout after possible commit');
+    }
+    if (rows.some(row => row.kind === 'prompt' && row.prompt_id === 'held')) await held;
+  }, [1000, 5000]);
+  await f.emit('session.start', {});
+  await f.emit('session.append', prompt('first'));
+  await settle();
+  f.advance(1500);
+  await f.emit('turn.start', { turnId: 't' });
+  await settle();
+  expect(attempts[2]?.[0]).toEqual(attempts[1]?.[0]);
+  expect(f.rows.filter(row => row.prompt_id === 'first').length).toBe(1);
+  await f.emit('session.append', prompt('held'));
+  f.session('new-session');
+  await f.emit('session.append', prompt('new-message'));
+  release();
+  await settle();
+  const newRows = f.rows.filter(row => row.session_id === 'new-session');
+  expect(newRows.map(row => [row.seq, row.kind, row.prompt_id])).toEqual([[0, 'heartbeat', null], [1, 'prompt', 'new-message']]);
+  expect(newRows[0]?.epoch === attempts[1]?.[0]?.epoch).toBe(false);
 });

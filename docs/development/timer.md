@@ -12,6 +12,8 @@ The [v3.1.3 repair record](history/migration/post-migration-fixes.md) documents 
 
 `packages/core/src/runtime/tasks` owns pure task identity, transitions, native adaptation and metric views. `packages/cli/src/runtime/tasks` coordinates submission indexing and atomic storage through platform adapters. Collection/reconciliation precedes formatting; preview uses fixed snapshots without runtime I/O. Python module aliases belong to the [frozen archive](../../archive/python/README.md).
 
+A main-session human transcript row can link its `promptId` and message `uuid` even when the host skips classic and telemetry hooks. Apply that link before processing activity or endings. The same task keeps its earliest trusted running start and its accepted terminal duration. Ambiguous pairs, configuration prompts and background reports retain their own identities.
+
 ## Completion
 
 A classic `Stop` is an attempted ending. Without further confirmation it shows `? <elapsed>+`, the known lower bound. Verified continuation clears that candidate without resetting the submission clock. Duplicate attempts without new activity remain idempotent.
@@ -35,6 +37,8 @@ The native turn's reported `durationMs` is recorded independently and never cali
 Execution time uses its own accumulated/resume clock. Parallel work is not added twice. Main-agent waiting while an agent executes remains execution time. Waiting requests have independent identities so overlapping waits cannot resume early. The current host does not expose precise permission/question/MCP wait boundaries in every case; such tasks hide the execution metric and report `wait_coverage_missing`. Parallel wait/dependency coverage that cannot be proved reports `incomplete`. Missing data is never treated as zero user wait.
 
 ## Persistence and compatibility
+
+The lifecycle scan advances its own complete-line cursor after the task-store update. Enabling live items alone uses this cursor for the main transcript. A one-time backfill links older task records and preserves settled durations. When only the old task ledger is available, a task superseded by a newer prompt can yield the timer display to a newer verified current task. Selection leaves both stored records intact.
 
 The storage location and schema-1 mirror remain unchanged. Lifecycle v4 reads v2/v3; old frozen values remain recorded history rather than being reinterpreted into a new metric. Missing execution evidence stays unavailable. Reads and previews do not migrate files; writes occur under the session lock and atomically publish normalized state.
 

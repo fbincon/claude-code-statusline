@@ -1,4 +1,4 @@
-import { object, own, truth, string } from '../values.js';
+import { object, own, truth, string, numeric } from '../values.js';
 import type { Observation } from './model.js';
 import type { LiveState } from './state.js';
 export function canonicalPrompt(state: LiveState, value: unknown): string | null {
@@ -32,15 +32,15 @@ export function owner(state: LiveState, observation: Observation, parent = false
     const target = canonicalPrompt(state, observation.prompt_id);
     return target && state.prompts[target]!.epoch === observation.epoch ? target : null;
 }
-export function pendingOwner(state: LiveState, epoch: string): string | null {
-    const bound = new Set(Object.values(state.turns).filter(turn => turn.agent_id === null).map(turn => turn.prompt_id));
-    const candidates = Object.entries(state.prompts).filter(([key, prompt]) => prompt.epoch === epoch && !bound.has(key) && !truth(prompt.terminal)).map(([key]) => key);
-    if (candidates.length === 1)
-        return candidates[0]!;
+export function pendingPrompts(state: LiveState, epoch: string, at: number): string[] {
+    const bound = new Set(Object.values(state.turns).filter(turn => turn.agent_id === null && turn.epoch === epoch).map(turn => canonicalPrompt(state, turn.prompt_id)));
+    const candidates = [...new Set(Object.entries(state.prompts).filter(([, prompt]) => prompt.epoch === epoch &&
+        (numeric(prompt.started_at_ms) ?? Infinity) <= at && !truth(prompt.terminal)).map(([key]) => canonicalPrompt(state, key)))]
+        .filter((id): id is string => id !== null && !bound.has(id) && own(state.prompts, id)?.epoch === epoch);
     if (!candidates.length && state.active_prompt_id !== null) {
-        const prompt = own(state.prompts, state.active_prompt_id);
+        const active = canonicalPrompt(state, state.active_prompt_id), prompt = own(state.prompts, active);
         if (prompt?.epoch === epoch && !truth(prompt.terminal))
-            return state.active_prompt_id;
+            return [active!];
     }
-    return null;
+    return candidates;
 }

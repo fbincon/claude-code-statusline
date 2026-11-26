@@ -1,6 +1,10 @@
 import test, { type TestContext } from 'node:test';
-import { setup, observation as o, plain, assert, fs, join } from './runtime-support.js';
+import { setup, observation as o, plain, assert, fs, join, writeLines } from './runtime-support.js';
 import { main } from '../src/main.js';
+import { collectMetrics } from '../src/runtime/live/collect.js';
+import { promptLine, assistantLine } from './lifecycle-support.js';
+import { UsageCollector } from '../src/runtime/usage.js';
+import { sessionTokenCounts } from '@fbincon/statusline-core/runtime/usage';
 import { CONFIG_FILENAME } from '@fbincon/statusline-core/config/display';
 import { lock } from '@fbincon/statusline-platform/files';
 import { config } from './render-support.js';
@@ -64,6 +68,77 @@ async function command(f: ReturnType<typeof setup>, name: string, input: unknown
     assert.equal(stderr, '');
     return stdout;
 }
+
+test('the live-only footer follows the current task while a fresh heartbeat still points to old terminal data', async t => {
+    const f = setup(t), path = join(f.root, 'transcript.jsonl');
+    const input = { session_id: 's', transcript_path: path };
+    f.preferences(true, false);
+    fs.writeFileSync(join(f.root, CONFIG_FILENAME), JSON.stringify(config(['run-state', 'last-tool'], { statusline_language: 'en' })));
+    f.apply(o(), o('prompt', 1, 1010, { prompt: 'old-uuid' }), o('turn_start', 2, 1020, { turn_id: 'old-turn' }),
+        o('tool_end', 3, 1030, { turn_id: 'old-turn', request_id: 'old-tool', payload: { name: 'Bash', status: 'success' } }),
+        o('turn_end', 4, 1090, { turn_id: 'old-turn', payload: { status: 'completed' } }));
+    writeLines(path, [{ ...promptLine('old', 1.01), uuid: 'old-uuid' }, { ...assistantLine(1.08), message: { id: 'a', usage: { input_tokens: 5 } } }]);
+    f.clock(1500000000n);
+    assert.match(await command(f, 'render', input), /completed.*Bash success/u);
+    writeLines(path, [{ ...promptLine('new', 2), uuid: 'new-uuid' }, assistantLine(2.1)], true);
+    f.apply(o('heartbeat', 5, 2200));
+    f.clock(2300000000n);
+    for (const prompt of [null, 'new', 'old']) {
+        const rendered = await command(f, 'render', { ...input, prompt_id: prompt });
+        assert.match(rendered, /State.*main/u);
+        assert.match(rendered, /Tool.*—/u);
+        assert.doesNotMatch(rendered, /completed|Bash/u);
+    }
+    const usage = new UsageCollector(f.context), entry = usage.load().state.sessions.s!;
+    assert.deepEqual(Object.keys(entry.files), []);
+    assert.equal(entry.usage_index, undefined);
+    assert.equal(sessionTokenCounts(entry), null);
+    assert.equal(f.tasks.store.state('s', 'new-uuid')!.prompt_id, 'new');
+    f.apply(o('prompt', 6, 2010, { prompt: 'new-uuid' }), o('turn_start', 7, 2020, { turn_id: 'new-turn' }),
+        o('tool_start', 8, 2060, { turn_id: 'new-turn', request_id: 'new-tool', payload: { name: 'Read' } }));
+    assert.match(await command(f, 'render', { ...input, prompt_id: 'new' }), /main.*Read started/u);
+    f.clock(20000000000n);
+    const stale = await command(f, 'render', { ...input, prompt_id: 'new' });
+    assert.match(stale, /main.*Tool.*—/u);
+    assert.doesNotMatch(stale, /Bash|Read/u);
+});
+
+test('a queued prompt leaves the active tool with its executing owner and unknown owners contribute no metrics', t => {
+    const f = metrics(t);
+    f.preferences(true, false);
+    f.tasks.transcript('s', [{ kind: 'prompt', prompt_id: 'p', wall_ns: 1010000000n },
+        { kind: 'prompt', prompt_id: 'queued', wall_ns: 1030000000n }]);
+    f.apply(o('prompt', 3, 1030, { prompt: 'queued' }),
+        o('tool_start', 4, 1060, { request_id: 'tool', turn_id: 't', payload: { name: 'Read' } }),
+        o('turn_start', 5, 1070, { turn_id: 'unowned', prompt: 'missing' }),
+        o('tool_start', 6, 1080, { request_id: 'unbound-tool', turn_id: 'unowned', payload: { name: 'Bash' } }));
+    const active = collectMetrics(f.store, 's', 'p', 1200);
+    assert.deepEqual(active['last-tool']!.value, { name: 'Read', status: 'started' });
+    const queued = collectMetrics(f.store, 's', 'queued', 1200);
+    assert.equal(queued['run-state']!.value, 'queued');
+    assert.equal(queued['last-tool']!.value, null);
+    for (const id of ['run-state', 'last-tool'])
+        assert.equal(collectMetrics(f.store, 's', 'missing', 1200)[id]!.value, null);
+});
+
+test('a native turn waits for both pending identities to resolve to the same human message', async t => {
+    const f = setup(t), path = join(f.root, 'transcript.jsonl'), input = { session_id: 's', transcript_path: path, prompt_id: 'p' };
+    f.preferences(true, true);
+    fs.writeFileSync(join(f.root, CONFIG_FILENAME), JSON.stringify(config(['run-state', 'last-tool', 'task-timer'], { statusline_language: 'en' })));
+    f.apply(o(), o('prompt', 1, 1100, { prompt: 'p', source: 'classic_hook' }), o('prompt', 2, 1120, { prompt: 'uuid' }),
+        o('turn_start', 3, 1130, { turn_id: 't' }), o('tool_start', 4, 1300, { turn_id: 't', request_id: 'r', payload: { name: 'Read' } }));
+    assert.equal(f.store.load('s')!.turns['e:main:t']!.prompt_id, null);
+    assert.equal(collectMetrics(f.store, 's', 'p', 1500)['last-tool']!.value, null);
+    writeLines(path, [{ ...promptLine('p', 1.1), uuid: 'uuid' }, assistantLine(1.4)]);
+    f.clock(5000000000n);
+    const rendered = await command(f, 'render', input);
+    assert.match(rendered, /main.*Read started.*0m 03s/u);
+    assert.equal(f.tasks.store.load('s')!.turns.length, 1);
+    const oldLive = fs.readFileSync(f.store.path('s'));
+    const read = await command(f, 'runtime', { protocol_version: 3, operation: 'read', payload: { session_id: 's', prompt_id: 'uuid' } });
+    assert.equal(JSON.parse(read).result.metrics['last-tool'].value.name, 'Read');
+    assert.deepEqual(fs.readFileSync(f.store.path('s')), oldLive);
+});
 const submit = { hook_event_name: 'UserPromptSubmit', session_id: 's', prompt_id: 'p', permission_mode: 'plan' };
 
 test('settings UserPromptSubmit provides a recent permission snapshot without a Mod classic hook', async t => {

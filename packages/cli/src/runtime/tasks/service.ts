@@ -4,6 +4,7 @@ import { int, truth, string, object, type Data } from '@fbincon/statusline-core/
 import { findTurn, lifecycleId } from '@fbincon/statusline-core/runtime/tasks/model';
 import { applyHook, blockConfigurationPrompt, needsSubmission, stopTarget, type Evidence } from '@fbincon/statusline-core/runtime/tasks/hooks';
 import { confirmCompletion, reconcileTranscript, reconcileRegistry, withdrawPrompt } from '@fbincon/statusline-core/runtime/tasks/transitions';
+import { supersededSubmission } from '@fbincon/statusline-core/runtime/tasks/identity';
 import { TaskStore } from './store.js';
 import { SubmissionIndex } from './submissions.js';
 export class TaskService {
@@ -39,10 +40,14 @@ export class TaskService {
         this.store.prune();
         return result;
     }
-    transcript(sessionId: unknown, observations: unknown, unfinishedOnly = false): Data | null {
+    transcript(sessionId: unknown, observations: unknown, unfinishedOnly = false, appended: readonly unknown[] = []): Data | null {
         if (!truth(sessionId) || !Array.isArray(observations))
             return null;
-        const result = this.store.mutate(string(sessionId), history => reconcileTranscript(history, observations, unfinishedOnly));
+        const result = this.store.mutate(string(sessionId), history => {
+            const preserve = unfinishedOnly && appended.length ? new Set(history.turns.filter(row => row.status !== 'running' && !supersededSubmission(row))) : undefined;
+            const previous = reconcileTranscript(history, observations, unfinishedOnly);
+            return appended.length ? reconcileTranscript(history, appended, false, preserve) ?? previous : previous;
+        });
         this.store.prune();
         return result;
     }
