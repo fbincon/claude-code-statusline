@@ -7,39 +7,11 @@ import { findTurn, rememberId, type TaskStore, type Turn } from './model.js';
 import { applyPrompt, endIsCurrent, finishRecord, noteEndEvidence, reopenForContinuation, reconcileNotifications } from './transitions.js';
 import { agentWorkPending, clearSnapshotOnlyAgents, startSubagent, stopSubagent } from './agents.js';
 import { notificationPrompt } from './hooks.js';
+import { linkTask } from './identity.js';
+export { linkTask } from './identity.js';
 export function nativeSample(wall: bigint, capture: () => Sample): Sample {
     const captured = capture(), delay = captured.wall_ns - wall;
     return captured.boot_id && captured.boot_ns !== null && delay >= 0n && delay <= 2000000000n ? { wall_ns: wall, boot_ns: captured.boot_ns - delay, boot_id: captured.boot_id } : { wall_ns: wall, boot_ns: null, boot_id: null };
-}
-export function linkTask(history: TaskStore, alias: string, target: string): void {
-    const original = findTurn(history, alias), message = findTurn(history, target);
-    if (original && message && original !== message) {
-        const earlier = int(message.started_wall_ns), previous = int(original.started_wall_ns);
-        if (original.status === 'running' && !original.historical_frozen && earlier !== null && previous !== null && earlier < previous) {
-            let boot = int(original.started_boot_ns), domain: unknown;
-            const offset = previous - earlier, messageBoot = int(message.started_boot_ns);
-            if (messageBoot !== null && truth(message.boot_id)) {
-                boot = messageBoot;
-                domain = message.boot_id;
-            }
-            else {
-                boot = boot !== null && offset >= 0n && offset <= boot ? boot - offset : null;
-                domain = boot !== null ? original.boot_id : null;
-            }
-            Object.assign(original, { started_wall_ns: earlier, started_boot_ns: boot, boot_id: domain, start_source: message.start_source, submission_verified: message.submission_verified });
-        }
-        for (const item of message.prompt_aliases)
-            rememberId(original, 'prompt_aliases', item);
-        history.turns.splice(history.turns.indexOf(message), 1);
-    }
-    const record = original ?? message;
-    if (record) {
-        for (const key of [alias, target])
-            if (key !== record.prompt_id)
-                rememberId(record, 'prompt_aliases', key);
-        if (history.current_prompt_id === alias || history.current_prompt_id === target)
-            history.current_prompt_id = record.prompt_id;
-    }
 }
 export function observeNative(history: TaskStore, state: LiveState, capture: () => Sample, completeTiming = true): string | null {
     const epoch = state.epoch!, ledger = own(state.epochs, epoch);

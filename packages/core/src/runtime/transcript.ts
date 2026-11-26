@@ -95,7 +95,7 @@ export interface TurnEvents {
 /** Retains compact lifecycle observations, never the parsed transcript rows. */
 export class TurnAccumulator {
     readonly result: TurnEvents;
-    constructor(promptContext: unknown = null) {
+    constructor(promptContext: unknown = null, private readonly session: string | null = null) {
         this.result = { prompt: null, interrupt: null, local_command: null, assistant_activity: null, observations: [], context_prompt_id: lifecycleId(promptContext) };
     }
     push(row: unknown): void {
@@ -164,7 +164,10 @@ export class TurnAccumulator {
             result.context_prompt_id = promptId;
             if (!result.prompt || ts > numeric(result.prompt.ts)!)
                 result.prompt = candidate;
-            result.observations.push({ kind: 'prompt', prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9) });
+            const message = promptId && row.isSidechain !== true && row.agentId == null &&
+                (this.session === null || row.sessionId == null || row.sessionId === this.session) ? lifecycleId(row.uuid) : null;
+            result.observations.push({ kind: 'prompt', prompt_id: promptId, wall_ns: roundedInteger(ts * 1e9),
+                ...(message && message !== promptId ? { message_uuid: message } : {}) });
         }
     }
 }

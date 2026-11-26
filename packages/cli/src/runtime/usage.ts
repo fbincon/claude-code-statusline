@@ -6,7 +6,7 @@ import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { scalarCompare } from '@fbincon/statusline-core/json';
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import type { RuntimeContext } from './context.js';
-import { runtimeIO, visitTranscript, type RuntimeIO } from './io.js';
+import { runtimeIO, visitTranscript, type FileInfo, type RuntimeIO } from './io.js';
 import { TaskService } from './tasks/service.js';
 import { readDataJson, dumpDataJson } from './json-data.js';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
@@ -21,6 +21,20 @@ export type UsageResult = [
     unknown,
     usage.UsageEntry
 ];
+const TURN_METADATA = ['last_pt', 'last_prompt_id', 'last_interrupt', 'last_local_command', 'last_assistant_ts', 'transcript_prompt_id'] as const;
+interface TurnScan {
+    session: string;
+    start: bigint;
+    reset: boolean;
+    upgrade: boolean;
+    replayThrough: bigint;
+}
+function cursorFor(saved: Data | null | undefined, stat: FileInfo): { start: bigint; reset: boolean; changed: boolean } {
+    const recorded = int(saved?.size, false);
+    const reset = recorded === null || !equalSettings(saved?.identity, [stat.dev, stat.ino]) || stat.size < recorded ||
+        stat.size === recorded && stat.mtimeNs !== int(saved?.mtime_ns);
+    return { start: reset ? 0n : recorded, reset, changed: reset || stat.size > recorded };
+}
 export class UsageCollector {
     readonly tasks: TaskService;
     private index: UsageIndex | null = null;
@@ -58,29 +72,56 @@ export class UsageCollector {
         catch { /* A corrupt cache is rebuilt from transcript evidence. */ }
         return { state: { sessions: dictionary() }, dropped: false };
     }
-    private scan(entry: usage.UsageEntry, path: string, start: bigint, mode: 'merge' | 'observe' | 'none', prompts = false, cost = false, reset = false) {
+    private scan(entry: usage.UsageEntry, path: string, start: bigint, mode: 'merge' | 'observe' | 'none', cost = false, prompts: TurnScan | null = null) {
         const observed = entry.token_observed ? { ...entry.token_observed } : undefined;
         const ids = mode === 'merge' ? dictionary<usage.Counters>() : null;
-        const turns = prompts ? new TurnAccumulator(reset ? null : entry.transcript_prompt_id ?? null) : null;
+        const turns = prompts ? new TurnAccumulator(prompts.reset ? null : entry.transcript_prompt_id ?? null, prompts.session) : null;
+        let appended: TurnAccumulator | null = null;
         const costs = cost ? new usage.CostAccumulator(observed) : null;
         const pending = !cost && mode !== 'none' && object(entry._pending_api_snapshot) && object(entry._pending_api_snapshot._snapshot_ts) ? { ...entry._pending_api_snapshot, _post_ids: dictionary<usage.Counters>() } : null;
         const delta = { _pending_api_snapshot: pending } as unknown as usage.UsageEntry;
-        const read = visitTranscript(this.io, path, start, row => {
+        const read = visitTranscript(this.io, path, start, (row, end) => {
             if (mode !== 'none') usage.addUsage(ids, row, observed);
-            turns?.push(row);
+            if (turns && prompts && prompts.replayThrough > 0n && end > prompts.replayThrough) {
+                appended ??= new TurnAccumulator(turns.result.context_prompt_id, prompts.session);
+                appended.push(row);
+            }
+            else turns?.push(row);
             costs?.push(row);
             if (pending) usage.stageSubagentDelta(delta, [row]);
         });
-        return read ? { ...read, ids, observed, turns: turns?.result, snapshot: costs?.finish(sha256) ?? null, post: pending?._post_ids } : null;
+        return read ? { ...read, ids, observed, turns: turns?.result, appended: (appended as TurnAccumulator | null)?.result,
+            snapshot: costs?.finish(sha256) ?? null, post: pending?._post_ids } : null;
     }
-    private metadata(entry: usage.UsageEntry, result: TurnEvents, session: string, unfinishedOnly: boolean): void {
-        const observations = applyTurnMetadata(entry, result);
-        if (observations.length) {
-            try { this.tasks.transcript(session, observations, unfinishedOnly); }
-            catch { /* Accounting survives an unavailable lifecycle ledger. */ }
+    private turnPlan(entry: usage.UsageEntry, path: string, stat: FileInfo, session: string): TurnScan | null {
+        const saved = object(entry.turn_file) && entry.turn_file.path === path ? entry.turn_file : null;
+        const cursor = cursorFor(saved, stat), upgrade = !equalSettings(entry.turn_scan_version, usage.TURN_SCAN_VERSION);
+        if (!upgrade && !cursor.changed)
+            return null;
+        const old = cursorFor(saved ?? own(entry.files, path), stat);
+        return { session, start: upgrade ? 0n : cursor.start, reset: upgrade || cursor.reset, upgrade,
+            replayThrough: upgrade && entry.turn_scan_version != null ? old.reset ? stat.size : old.start : 0n };
+    }
+    private recordTurns(entry: usage.UsageEntry, path: string, stat: FileInfo, plan: TurnScan, scan: { cursor: bigint; turns?: TurnEvents; appended?: TurnEvents } | null): boolean {
+        if (!scan?.turns)
+            return false;
+        // Commit the lifecycle cursor only after its observations reach the task store.
+        const older = scan.turns.observations, newer = scan.appended?.observations ?? [];
+        if (older.length || newer.length) {
+            try { this.tasks.transcript(plan.session, older, plan.replayThrough > 0n, newer); }
+            catch { return false; }
         }
+        if (plan.upgrade)
+            for (const key of TURN_METADATA)
+                delete entry[key];
+        applyTurnMetadata(entry, scan.turns);
+        if (scan.appended)
+            applyTurnMetadata(entry, scan.appended);
+        entry.turn_file = { path, size: scan.cursor, mtime_ns: stat.mtimeNs, identity: [stat.dev, stat.ino] };
+        entry.turn_scan_version = usage.TURN_SCAN_VERSION;
+        return true;
     }
-    private applyScan(entry: usage.UsageEntry, scan: NonNullable<ReturnType<UsageCollector['scan']>>, session: string | null, cost: boolean, force = false, unfinishedOnly = false): void {
+    private applyScan(entry: usage.UsageEntry, scan: NonNullable<ReturnType<UsageCollector['scan']>>, session: string | null, cost: boolean, force = false): void {
         if (scan.observed && entry.token_observed) Object.assign(entry.token_observed, scan.observed);
         if (scan.ids) {
             if (!this.index) {
@@ -92,40 +133,36 @@ export class UsageCollector {
             }
             this.index.merge(scan.ids, entry);
         }
-        if (scan.turns && session) this.metadata(entry, scan.turns, session, unfinishedOnly);
         if (cost) usage.stageParsedCostSnapshot(entry, scan.snapshot, force);
         else if (scan.post && object(entry._pending_api_snapshot)) {
             const pending = entry._pending_api_snapshot;
             usage.mergeIds((pending._post_ids ??= dictionary<usage.Counters>()) as Record<string, usage.Counters>, scan.post);
         }
     }
-    updateFile(entry: usage.UsageEntry, path: string, session: string | null = null, trackPrompts = false, trackCost = false): boolean {
-        let size: bigint, mtime: bigint, identity: bigint[];
+    updateFile(entry: usage.UsageEntry, path: string, session: string | null = null, trackPrompts = false, trackCost = false, lifecycleOnly = false): boolean {
+        let stat: FileInfo;
         try {
-            const stat = this.io.stat(path);
-            size = stat.size;
-            mtime = stat.mtimeNs;
-            identity = [stat.dev, stat.ino];
+            stat = this.io.stat(path);
         }
         catch {
             return false;
         }
-        const previous = own(entry.files, path), recorded = previous ? int(previous.size)! : 0n;
-        const reset = !previous || !equalSettings(previous.identity, identity) || size < recorded || size === recorded && mtime !== int(previous.mtime_ns);
-        if (!reset && size <= recorded)
-            return false;
-        const scan = this.scan(entry, path, reset ? 0n : recorded, 'merge', trackPrompts && Boolean(session), trackCost, reset);
-        if (!scan?.count)
-            return false;
-        if (!previous)
-            entry.files[path] = { size: scan.cursor, mtime_ns: mtime, identity };
-        else {
-            previous.size = scan.cursor;
-            previous.mtime_ns = mtime;
-            previous.identity = identity;
+        const cursor = cursorFor(own(entry.files, path), stat);
+        const plan = session && trackPrompts ? this.turnPlan(entry, path, stat, session) : null;
+        const account = !lifecycleOnly && cursor.changed, shared = account && plan?.start === cursor.start;
+        const scan = account ? this.scan(entry, path, cursor.start, 'merge', trackCost, shared ? plan : null) : null;
+        let changed = false;
+        if (scan?.count) {
+            entry.files[path] = { size: scan.cursor, mtime_ns: stat.mtimeNs, identity: [stat.dev, stat.ino] };
+            this.applyScan(entry, scan, session, trackCost);
+            changed = true;
         }
-        this.applyScan(entry, scan, session, trackCost);
-        return true;
+        if (plan) {
+            const turns = shared ? scan : this.scan(entry, path, plan.start, 'none', false, plan);
+            if (this.recordTurns(entry, path, stat, plan, turns))
+                changed = true;
+        }
+        return changed;
     }
     subagentFiles(root: string): string[] {
         const paths: string[] = [];
@@ -147,7 +184,7 @@ export class UsageCollector {
         walk(root);
         return paths.sort(scalarCompare);
     }
-    collect(data: unknown): UsageResult | null {
+    private withTranscript<T>(data: unknown, action: (session: string, path: string) => T): T | null {
         if (!object(data) || !truth(data.session_id) || !truth(data.transcript_path))
             return null;
         const session = string(data.session_id), path = resolve(data.transcript_path as string);
@@ -156,7 +193,7 @@ export class UsageCollector {
         let entered = false;
         try {
             safeTarget(this.context.cacheRoot, this.path());
-            return this.io.lock(this.path() + '.lock', () => { entered = true; return this.locked(session, path); });
+            return this.io.lock(this.path() + '.lock', () => { entered = true; return action(session, path); });
         }
         catch (error) {
             if (entered)
@@ -164,9 +201,36 @@ export class UsageCollector {
             return null;
         }
     }
+    collect(data: unknown): UsageResult | null {
+        return this.withTranscript(data, (session, path) => this.locked(session, path));
+    }
+    collectLifecycle(data: unknown): void {
+        this.withTranscript(data, (session, path) => {
+            const { state, dropped } = this.load();
+            const entry = state.sessions[session] ?? { files: dictionary(), ids: dictionary(), base: { ...usage.BASE } };
+            if (this.updateFile(entry, path, session, true, false, true))
+                this.save(state, session, entry, false);
+            else if (dropped && own(state.sessions, session))
+                this.save(state, session, entry, false);
+        });
+    }
     private activeSession = '';
     private publishIndex(entry: usage.UsageEntry): void { if (this.index) entry.usage_index = this.index.publish(); }
     private pruneIndex(): void { this.index?.prune(); }
+    private save(state: ReturnType<UsageCollector['load']>['state'], session: string, entry: usage.UsageEntry, accounting: boolean): void {
+        delete state.sessions[session];
+        state.sessions[session] = entry;
+        while (Object.keys(state.sessions).length > usage.MAX_SESSIONS)
+            delete state.sessions[Object.keys(state.sessions)[0]!];
+        try {
+            this.io.write(this.path(), Buffer.from(dumpDataJson(state)));
+            if (accounting) {
+                this.pruneIndex();
+                UsageIndex.pruneSessions(join(this.context.cacheRoot, 'statusline_usage_v2'), this.context.cacheRoot, Object.keys(state.sessions), this.io);
+            }
+        }
+        catch { /* Retain this result even if the cache cannot be saved. */ }
+    }
     private locked(session: string, path: string): UsageResult | null {
         this.index = null;
         this.activeSession = session;
@@ -177,19 +241,10 @@ export class UsageCollector {
             entry.token_observed = usage.tokenObservations(entry, true);
             changed = true;
         }
-        const turnVersionMatches = equalSettings(entry.turn_scan_version, usage.TURN_SCAN_VERSION);
-        if (this.updateFile(entry, path, session, turnVersionMatches, true))
+        if (this.updateFile(entry, path, session, true, true))
             changed = true;
-        if (!turnVersionMatches) {
-            for (const key of ['last_pt', 'last_prompt_id', 'last_interrupt', 'last_local_command', 'last_assistant_ts', 'transcript_prompt_id'])
-                delete entry[key];
-            const scan = this.scan(entry, path, 0n, 'none', true);
-            if (scan?.count) this.applyScan(entry, scan, session, false, false, entry.turn_scan_version != null);
-            entry.turn_scan_version = usage.TURN_SCAN_VERSION;
-            changed = true;
-        }
         if (!equalSettings(entry.usage_scan_version, usage.USAGE_SCAN_VERSION)) {
-            const scan = this.scan(entry, path, 0n, 'observe', false, true);
+            const scan = this.scan(entry, path, 0n, 'observe', true);
             if (scan?.count) this.applyScan(entry, scan, null, true, true);
             entry.usage_scan_version = usage.USAGE_SCAN_VERSION;
             rescan = true;
@@ -224,18 +279,8 @@ export class UsageCollector {
         const visible = usage.visibleTotals(entry);
         if (usage.acceptPending(entry, visible))
             changed = true;
-        if (changed) {
-            delete state.sessions[session];
-            state.sessions[session] = entry;
-            while (Object.keys(state.sessions).length > usage.MAX_SESSIONS)
-                delete state.sessions[Object.keys(state.sessions)[0]!];
-            try {
-                this.io.write(this.path(), Buffer.from(dumpDataJson(state)));
-                this.pruneIndex();
-                UsageIndex.pruneSessions(join(this.context.cacheRoot, 'statusline_usage_v2'), this.context.cacheRoot, Object.keys(state.sessions), this.io);
-            }
-            catch { /* Retain this result even if the cache cannot be saved. */ }
-        }
+        if (changed)
+            this.save(state, session, entry, true);
         const displayed = usage.displayTotals(entry, visible);
         if (entry.usage_incomplete === true) return null;
         return [humanizeTokens(displayed.hit), humanizeTokens(displayed.miss), humanizeTokens(displayed.out), entry.last_pt ?? null, { ...entry, _raw_token_counts: displayed }];

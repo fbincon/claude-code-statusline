@@ -350,7 +350,7 @@ claude-statusline config instance main set session-cost-rate cost-rate-basis api
 
 ## 实时状态项
 
-`run-state`、`permission-mode`、`active-agents`、`task-progress` 和 `last-tool` 默认不选中，采集使用独立的 `install --live-metrics` 开关，支持已验证的 Claude Code 2.1.289。缺少观测显示 `—`，真实零值显示 `0`，有限覆盖附 `*`。运行协议 `read` 返回来源、时间和具体原因。排队 prompt、旧 epoch 和代理事件不会覆盖新任务；终止历史独立于心跳保存。预览使用确定性样例，不读取实时状态。参见[运行契约](development/live.zh-CN.md)。
+`run-state`、`permission-mode`、`active-agents`、`task-progress` 和 `last-tool` 默认不选中，采集使用独立的 `install --live-metrics` 开关，支持已验证的 Claude Code 2.1.289。缺少观测显示 `—`，真实零值显示 `0`，有限覆盖附 `*`。运行协议 `read` 返回来源、时间和具体原因。原生快照滞后时，`State` 可显示当前任务已确认的阶段。`Tool` 需要归属当前任务且仍有效的观测。会话空闲时，最近完成任务仍可显示终态和工具结果。预览使用确定性样例，不读取实时状态。参见[运行契约](development/live.zh-CN.md)。
 
 ## 请求覆盖与 SDK 回退
 

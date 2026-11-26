@@ -1,6 +1,6 @@
 import { numeric, own, truth, dictionary, maxNumber, minNumber, type Data } from '../values.js';
 import * as model from './model.js';
-import { owner, pendingOwner, turnKey } from './ownership.js';
+import { owner, pendingPrompts, turnKey } from './ownership.js';
 import { applyRequest, reconcileRequests } from './requests.js';
 import type { LiveState } from './state.js';
 export function trimTable(values: Record<string, Data>, maximum: number, stamp = 'updated_at_ms'): void {
@@ -68,7 +68,7 @@ export function applyObservation(state: LiveState, o: model.Observation, metadat
         if (!current)
             return true;
         const previous = own(state.prompts, state.current_prompt_id);
-        if (previous && numeric(previous.updated_at_ms)! > numeric(stamp)!)
+        if (previous?.epoch === epoch && numeric(previous.started_at_ms)! > numeric(stamp)!)
             return true;
         if (!Object.hasOwn(state.prompts, promptId!))
             state.prompts[promptId!] = { updated_at_ms: stamp, started_at_ms: stamp, epoch, source: o.source, complete: !gap, terminal: false };
@@ -118,12 +118,14 @@ export function applyObservation(state: LiveState, o: model.Observation, metadat
         const key = turnKey(epoch, o.turn_id, o.agent_id);
         let turn = own(state.turns, key);
         if (!turn) {
-            let target = owner(state, o);
-            if (target === null && o.agent_id === null)
-                target = pendingOwner(state, epoch);
+            const explicit = owner(state, o), candidates = explicit === null && o.agent_id === null && o.prompt_id === null ? pendingPrompts(state, epoch, numeric(stamp)!) : [];
+            const target = explicit ?? (candidates.length === 1 ? candidates[0]! : null);
             turn = { prompt_id: target, agent_id: o.agent_id, started_at_ms: stamp, start_observed: kind === 'turn_start', ended_at_ms: null, status: 'running', updated_at_ms: stamp, epoch };
+            if (target === null && o.agent_id === null && (o.prompt_id !== null || candidates.length > 1))
+                turn.pending_prompt_ids = o.prompt_id !== null ? [o.prompt_id] : candidates;
             state.turns[key] = turn;
-            if (current && o.agent_id === null) {
+            const active = own(state.turns, state.current_main_turn_id);
+            if (current && o.agent_id === null && (!active || (numeric(active.started_at_ms) ?? 0) <= numeric(stamp)!)) {
                 state.current_main_turn_id = key;
                 state.active_prompt_id = target;
             }

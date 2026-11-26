@@ -353,7 +353,7 @@ For $2 over one session hour or ten API minutes, the respective estimates are `~
 
 ## Live state items
 
-`run-state`, `permission-mode`, `active-agents`, `task-progress` and `last-tool` default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. Queued prompts, old epochs and agent events do not overwrite a new main task; terminal history is retained separately from heartbeat freshness. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).
+`run-state`, `permission-mode`, `active-agents`, `task-progress` and `last-tool` default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. When native data lags, `State` can show the current task's verified phase. `Tool` needs a fresh observation owned by that task. The last completed task can still show its terminal state and tool when the session is idle. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).
 
 ## Request coverage and SDK fallback
 

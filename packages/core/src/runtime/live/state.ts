@@ -102,6 +102,12 @@ export function validateViews(state: LiveState): void {
             }
             if (table === 'turns' && !['running', 'completed', 'failed', 'interrupted'].includes(row.status as string))
                 throw new Error('invalid turn status');
+            if (table === 'turns' && Object.hasOwn(row, 'pending_prompt_ids')) {
+                if (!Array.isArray(row.pending_prompt_ids) || !row.pending_prompt_ids.length || row.pending_prompt_ids.length > model.MAX_PROMPTS)
+                    throw new Error('invalid pending prompt identities');
+                for (const id of row.pending_prompt_ids)
+                    model.text(id, 'pending prompt');
+            }
             if (table === 'tools') {
                 model.text(row.name, 'tool name');
                 if (!['started', 'success', 'error', 'denied', 'interrupted'].includes(row.status as string))

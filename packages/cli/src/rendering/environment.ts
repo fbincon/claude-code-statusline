@@ -2,7 +2,7 @@ import { supportsLinks } from '@fbincon/statusline-core/terminal/links';
 import { matchesScope, observationContext } from '@fbincon/statusline-core/extensions/model';
 import { homedir, release } from 'node:os';
 import type { DisplayDraft } from '@fbincon/statusline-core/contracts/ui';
-import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
+import type { RenderEnvironment, UsageObservation } from '@fbincon/statusline-core/rendering/context';
 import { Presentation } from '@fbincon/statusline-core/rendering/language';
 import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
@@ -90,11 +90,33 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
     }
     else if (!overrides.branchDiff)
         env.branchDiff = () => ({ value: null, reason: 'not_observed' });
-    if (sid && truth(payload.transcript_path) && has('tokens', 'input-tokens', 'output-tokens', 'task-timer', 'task-active-timer') && (!overrides.usage || has('task-timer') && !overrides.task)) {
+    const usageSelected = has('tokens', 'input-tokens', 'output-tokens', 'task-timer', 'task-active-timer');
+    const promptMetrics = has('run-state', 'active-agents', 'task-progress', 'last-tool', 'ttft', 'output-rate', 'prompt-input-tokens', 'prompt-output-tokens', 'prompt-cost');
+    const readUsage = usageSelected && !overrides.usage, readTask = has('task-timer') && !overrides.task;
+    let refreshLifecycle: ((value: unknown) => void) | undefined;
+    if (sid && truth(payload.transcript_path) && (readUsage || readTask || promptMetrics && !overrides.live)) {
         const { UsageCollector } = await import('../runtime/usage.js'), source = new UsageCollector(await runtime());
-        if (!overrides.usage)
-            env.usage = value => { const totals = source.collect(value); return totals ? { hit: totals[0], miss: totals[1], out: totals[2], last_prompt: totals[3], entry: totals[4], counts: sessionTokenCounts(totals[4]) } : null; };
-        if (!overrides.task && has('task-timer')) {
+        if (readUsage) {
+            let previous: unknown, cached: UsageObservation | null;
+            env.usage = value => {
+                if (value !== previous) {
+                    const totals = source.collect(value);
+                    cached = totals ? { hit: totals[0], miss: totals[1], out: totals[2], last_prompt: totals[3], entry: totals[4], counts: sessionTokenCounts(totals[4]) } : null;
+                    previous = value;
+                }
+                return cached ?? null;
+            };
+        }
+        if (promptMetrics) {
+            refreshLifecycle = value => {
+                try {
+                    if (readUsage) env.usage(value);
+                    else source.collectLifecycle(value);
+                }
+                catch { /* Existing live evidence is still independently readable. */ }
+            };
+        }
+        if (readTask) {
             const { collectTask } = await import('../runtime/tasks/collect.js');
             env.task = (value, usage) => { const data = object(value) ? value : {}; return { state: collectTask(source.tasks, data.session_id, data.prompt_id, usage.last_prompt, usage.entry), sample: source.context.sample() }; };
         }
@@ -108,10 +130,13 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
             return truth(record?.had_subagents);
         };
     }
-    if (sid && has('run-state', 'permission-mode', 'active-agents', 'task-progress', 'last-tool', 'ttft', 'output-rate', 'prompt-input-tokens', 'prompt-output-tokens', 'prompt-cost') && !overrides.live) {
+    if (sid && (promptMetrics || has('permission-mode')) && !overrides.live) {
         const [{ LiveStore }, { collectMetrics }] = await Promise.all([import('../runtime/live/store.js'), import('../runtime/live/collect.js')]);
         const store = new LiveStore(await runtime());
-        env.live = (value, now) => { const data = object(value) ? value : {}; return collectMetrics(store, data.session_id, data.prompt_id, now); };
+        env.live = (value, now) => {
+            const data = object(value) ? value : {};
+            return collectMetrics(store, data.session_id, data.prompt_id, now, refreshLifecycle && (() => refreshLifecycle(value)));
+        };
     }
     if (sid && has('task-active-timer') && !overrides.activePoint) {
         const [{ LiveStore }, { loadRuntime }, { activePoint }, { fresh }] = await Promise.all([import('../runtime/live/store.js'), import('../config/runtime-preferences.js'), import('@fbincon/statusline-core/runtime/tasks/view'), import('@fbincon/statusline-core/runtime/live/state')]);

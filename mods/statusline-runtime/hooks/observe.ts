@@ -9,46 +9,84 @@ import { promptLink, reportAgent } from '../lib/identity.ts';
 import { WaitCoverage } from '../lib/timing.ts';
 import { binding } from '../lib/launch.ts';
 
-type State = { endedSession: string | null; sourceSequence: number; sourceBusy: boolean; sourceEnded: boolean; queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[]; sourceAgents: Record<string,string> };
+type FlushEvent = { epoch: string; run: () => void };
+type State = { endedSession: string | null; sourceSequence: number; sourceBusy: boolean; sourceEnded: boolean; queue: Queue; ready: boolean;
+  binding: Promise<void> | null; flushing: { epoch: string; done: Promise<void> } | null; nextFlush: FlushEvent | null; retryAt: number;
+  executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[]; sourceAgents: Record<string,string> };
 
-async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
-  const queue = state.queue;
-  const session = await $.session.id();
-  if (state.endedSession === session) return;
-  if (state.ready && queue.session === session) return;
+async function loadBinding($: EngineInterface, options: PluginOptions, state: State, session: string): Promise<void> {
   const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE') || undefined);
-  state.executable = launch.executable;
-  state.args = launch.args;
-  state.directory = (await $.env.get('CLAUDE_CONFIG_DIR')) ||
+  const directory = (await $.env.get('CLAUDE_CONFIG_DIR')) ||
     (typeof options.configDir === 'string' ? options.configDir : '');
-  state.hostVersion = (await $.session.version()).version;
+  const hostVersion = (await $.session.version()).version;
   const now = await $.clock.now();
   if (state.endedSession === session) return;
-  queue.bind(session, now);
+  Object.assign(state, { executable: launch.executable, args: launch.args, directory, hostVersion, retryAt: 0, nextFlush: null });
+  state.queue.bind(session, now);
   state.sourceSequence = 0; state.sourceEnded = false;
   state.turns = {};
   state.agentTypes = []; state.sourceAgents = {};
-  queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: now }, now);
+  state.queue.push('heartbeat', { host_version: hostVersion, loaded_at_ms: now }, now);
   state.ready = true;
 }
 
-async function flush($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
-  const queue = state.queue;
-  if (state.busy || !queue.pending.length) return;
-  state.busy = true;
-  const batch = queue.batch();
-  try {
-    const argv = [state.executable, ...state.args, 'runtime', ...(state.directory ? ['--config-dir', state.directory] : [])];
-    const result = await $.process.run(argv, {
-      stdin: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'observe', payload: { observations: batch } }),
-      timeoutMs: 2000,
-    });
-    const expected = typeof options.backendVersion === 'string' ? options.backendVersion : '';
-    if (result.exitCode === 0 && confirmedResponse(result.stdout, expected, batch.length)) queue.acknowledge(batch);
-  } catch { /* Keep exact identities for an idempotent retry. */ }
-  finally { state.busy = false; }
+async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<string | null> {
+  const session = await $.session.id();
+  while (state.binding) await state.binding;
+  if (state.endedSession === session) return null;
+  if (!state.ready || state.queue.session !== session) {
+    state.binding = loadBinding($, options, state, session).finally(() => { state.binding = null; });
+    await state.binding;
+  }
+  return state.ready && state.queue.session === session ? state.queue.epoch : null;
 }
 
+async function eventTime($: EngineInterface, options: PluginOptions, state: State): Promise<number | null> {
+  const epoch = await bind($, options, state), at = await $.clock.now();
+  return epoch !== null && state.ready && epoch === state.queue.epoch ? at : null;
+}
+
+async function drain($: EngineInterface, options: PluginOptions, state: State, epoch: string, at: number): Promise<void> {
+  const queue = state.queue;
+  // The queue retains at most four full batches. Yield after that many writes
+  // even when incoming events replenish it faster than the backend can drain it.
+  for (let i = 0; i < 4 && epoch === queue.epoch && queue.pending.length; i++) {
+    const batch = queue.batch();
+    try {
+      const argv = [state.executable, ...state.args, 'runtime', ...(state.directory ? ['--config-dir', state.directory] : [])];
+      const result = await $.process.run(argv, {
+        stdin: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'observe', payload: { observations: batch } }),
+        timeoutMs: 2000,
+      });
+      const expected = typeof options.backendVersion === 'string' ? options.backendVersion : '';
+      if (result.exitCode === 0 && confirmedResponse(result.stdout, expected, batch.length)) {
+        queue.acknowledge(batch);
+        continue;
+      }
+    } catch { /* Keep exact identities for an idempotent retry. */ }
+    let now = at;
+    try { now = await $.clock.now(); } catch {}
+    if (epoch === queue.epoch) state.retryAt = now + 1000;
+    break;
+  }
+}
+
+function flush($: EngineInterface, options: PluginOptions, state: State, at: number, force = false): Promise<void> {
+  const epoch = state.queue.epoch;
+  if (state.flushing) {
+    if (state.flushing.epoch !== epoch) state.nextFlush = { epoch, run: () => { void flush($, options, state, at); } };
+    return state.flushing.done;
+  }
+  if (!state.queue.pending.length || !force && at < state.retryAt) return Promise.resolve();
+  const done = drain($, options, state, epoch, at).finally(() => {
+    state.flushing = null;
+    const next = state.nextFlush;
+    state.nextFlush = null;
+    if (next?.epoch === state.queue.epoch) next.run();
+  });
+  state.flushing = { epoch, done };
+  return done;
+}
 
 async function sourceLifecycle($: EngineInterface, options: PluginOptions, state: State, event: 'tick' | 'end'): Promise<void> {
   if (options.sourceRefresh !== true || state.sourceEnded || event === 'tick' && state.sourceBusy) return;
@@ -69,7 +107,8 @@ async function sourceLifecycle($: EngineInterface, options: PluginOptions, state
 
 
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { endedSession: null, sourceSequence: 0, sourceBusy: false, sourceEnded: false, queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [], sourceAgents: {} };
+  const state: State = { endedSession: null, sourceSequence: 0, sourceBusy: false, sourceEnded: false, queue: new Queue(), ready: false,
+    binding: null, flushing: null, nextFlush: null, retryAt: 0, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [], sourceAgents: {} };
   const queue = state.queue;
   queue.timing = options.nativeTiming !== false;
   queue.metrics = options.liveMetrics === true;
@@ -83,24 +122,39 @@ export const register: Register = (on, options: PluginOptions) => {
   };
   on('session.start', async ($, e, next) => {
     try {
-      await bind($, options, state);
-      await sourceLifecycle($, options, state, 'tick');
-      await flush($, options, state);
-      $.clock.every(1000, async () => { try { await bind($, options, state); await flush($, options, state); } catch {} });
+      const now = await eventTime($, options, state);
+      if (now !== null) {
+        await sourceLifecycle($, options, state, 'tick');
+        await flush($, options, state, now);
+      }
+    } catch { /* A refused API cannot change the session start. */ }
+    try {
+      $.clock.every(1000, async () => {
+        try {
+          const now = await eventTime($, options, state);
+          if (now !== null) await flush($, options, state, now);
+        } catch {}
+      });
+    } catch {}
+    try {
       $.clock.every(5000, async () => {
         try {
-          await bind($, options, state);
+          const now = await eventTime($, options, state);
+          if (now === null) return;
+          const epoch = queue.epoch;
+          queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: queue.loadedAt }, now);
+          void flush($, options, state, now);
           if(options.sourceRefresh===true&&Object.keys(state.sourceAgents).length){try{const agents=await $.agent.list();const active=new Set(agents.filter(a=>!a.teammateId&&!['completed','failed','killed'].includes(a.status)).map(a=>a.id));for(const id of Object.keys(state.sourceAgents))if(!active.has(id))delete state.sourceAgents[id];}catch{state.sourceAgents={};}}
+          if (epoch !== queue.epoch || !state.ready) return;
           await sourceLifecycle($, options, state, 'tick');
           if (!queue.timing && !queue.metrics) return;
-          const now = await $.clock.now();
-          queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: queue.loadedAt }, now);
           const agents = await $.agent.list();
+          if (epoch !== queue.epoch || !state.ready) return;
           queue.push('agents', { agents: agents.slice(0, 256).map(agent => ({
             id: agent.id, parent_id: agent.parentId ?? null, status: agent.status,
             local: !agent.teammateId || Boolean(state.turns[agent.id]),
           })) }, now);
-          await flush($, options, state);
+          await flush($, options, state, now);
         } catch {}
       });
     } catch { /* A refused API cannot change the session start. */ }
@@ -148,22 +202,26 @@ export const register: Register = (on, options: PluginOptions) => {
 
   on('turn.start', async ($, e, next) => {
     try {
-      await bind($, options, state);
-      const agent = 'agentId' in e && typeof e.agentId === 'string' ? e.agentId : null;
-      state.turns[agent ?? 'main'] = e.turnId;
-      queue.push('turn_start', {}, await $.clock.now(), { turn_id: e.turnId, agent_id: agent });
+      const now = await eventTime($, options, state);
+      if (now !== null) {
+        const agent = 'agentId' in e && typeof e.agentId === 'string' ? e.agentId : null;
+        state.turns[agent ?? 'main'] = e.turnId;
+        queue.push('turn_start', {}, now, { turn_id: e.turnId, agent_id: agent });
+        void flush($, options, state, now);
+      }
     } catch {}
     return next(e);
   });
 
   on('session.append', { door: 'prompt' }, async ($, e, next) => {
     try {
-      await bind($, options, state);
-      const now = await $.clock.now();
-      if (e.agentId) {
-        queue.push('prompt_alias', { agent_id: e.agentId }, now, { prompt_id: e.uuid, agent_id: e.agentId });
-      } else if (e.message.type === 'user' && ['composer', 'bridge', 'sdk'].includes(e.origin.kind)) {
-        queue.push('prompt', {}, now, { prompt_id: e.uuid });
+      const now = await eventTime($, options, state);
+      if (now !== null) {
+        if (e.agentId)
+          queue.push('prompt_alias', { agent_id: e.agentId }, now, { prompt_id: e.uuid, agent_id: e.agentId });
+        else if (e.message.type === 'user' && ['composer', 'bridge', 'sdk'].includes(e.origin.kind))
+          queue.push('prompt', {}, now, { prompt_id: e.uuid });
+        void flush($, options, state, now);
       }
     } catch {}
     return next(e);
@@ -191,16 +249,20 @@ export const register: Register = (on, options: PluginOptions) => {
 
   on('turn.complete', async ($, e, next) => {
     try {
-      await bind($, options, state);
-      const now = await $.clock.now();
-      const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
-      queue.push('turn_end', { status, duration_ms: e.durationMs, wait_coverage: waitCoverage.finish(e.agentId ?? 'main', e.turnId) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
-      queue.push('turn_usage', { usage: usage(e.usage) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
-      if(e.agentId)delete state.sourceAgents[e.agentId];
-      if (e.agentId)
-        queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
+      const now = await eventTime($, options, state);
+      if (now !== null) {
+        const loop = e.agentId ?? 'main';
+        const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
+        queue.push('turn_end', { status, duration_ms: e.durationMs, wait_coverage: waitCoverage.finish(loop, e.turnId) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+        queue.push('turn_usage', { usage: usage(e.usage) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+        if (e.agentId) {
+          delete state.sourceAgents[e.agentId];
+          queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
+        }
+        if (state.turns[loop] === e.turnId) delete state.turns[loop];
+        void flush($, options, state, now);
+      }
     } catch {}
-    delete state.turns[e.agentId ?? 'main'];
     return next(e);
   });
 
@@ -212,12 +274,14 @@ export const register: Register = (on, options: PluginOptions) => {
     let counted: Record<string, number> | null = null;
     let status = 'interrupted';
     try {
-      await bind($, options, state);
-      epoch = queue.epoch;
-      state.turns[e.agentId ?? 'main'] = e.turnId;
-      const now = await $.clock.now();
-      queue.push('turn_start', {}, now, identity);
-      queue.push('request_start', {}, now, identity);
+      const now = await eventTime($, options, state);
+      if (now !== null) {
+        epoch = queue.epoch;
+        state.turns[e.agentId ?? 'main'] = e.turnId;
+        queue.push('turn_start', {}, now, identity);
+        queue.push('request_start', {}, now, identity);
+        void flush($, options, state, now);
+      }
     } catch {}
     if (!queue.metrics) return yield* next(e);
     const observed = tapStream(next(e), async (item, operation) => {
@@ -276,37 +340,52 @@ export const register: Register = (on, options: PluginOptions) => {
     if (e.tool === 'AskUserQuestion' || e.tool.startsWith('mcp__')) {
       try { unknownWait('question_wait_unobserved', await $.clock.now(), e.agentId); } catch {}
     }
-    try { queue.push('tool_start', { name: e.tool }, await $.clock.now(), identity); } catch {}
+    try {
+      const now = await $.clock.now();
+      if (state.ready && epoch === queue.epoch) {
+        queue.push('tool_start', { name: e.tool }, now, identity);
+        void flush($, options, state, now);
+      }
+    } catch {}
     try {
       const result = await next(e);
       try {
-        if (epoch === queue.epoch) {
-          const now = await $.clock.now();
+        const now = await $.clock.now();
+        if (state.ready && epoch === queue.epoch) {
           queue.push('tool_end', { name: e.tool, status: result.deny !== undefined ? 'denied' : result.isError ? 'error' : 'success' }, now, identity);
           if (queue.metrics && result.deny === undefined && !result.isError) {
             const change = checklist(e.tool, e, result.result);
             if (change) queue.push(change.kind, change.payload, now, identity);
           }
+          void flush($, options, state, now);
         }
       } catch {}
       return result;
     } catch (error) {
       try {
-        if (epoch === queue.epoch)
-          queue.push('tool_end', { name: e.tool, status: next.signal.aborted ? 'interrupted' : 'error' }, await $.clock.now(), identity);
+        const now = await $.clock.now();
+        if (state.ready && epoch === queue.epoch) {
+          queue.push('tool_end', { name: e.tool, status: next.signal.aborted ? 'interrupted' : 'error' }, now, identity);
+          void flush($, options, state, now);
+        }
       } catch {}
       throw error;
     }
   });
 
   on('session.end', async ($, e, next) => {
+    if (state.queue.session !== e.sessionId) return next(e);
     state.endedSession = e.sessionId;
+    state.ready = false;
+    const epoch = queue.epoch;
     try {
       await sourceLifecycle($, options, state, 'end');
-      queue.push('invalidate', { reason: 'session_' + e.reason }, await $.clock.now());
-      await flush($, options, state);
+      const now = await $.clock.now();
+      if (epoch === queue.epoch) {
+        queue.push('invalidate', { reason: 'session_' + e.reason }, now);
+        await flush($, options, state, now, true);
+      }
     } catch {}
-    state.ready = false;
     return next(e);
   });
 };
