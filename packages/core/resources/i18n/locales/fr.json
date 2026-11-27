@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Appuyez sur Ctrl+X puis sur Tab pour activer le volet des tâches, ou cliquez sur une commande.",
   "task.controls.field_help": "Entrée pour confirmer · Tab pour atteindre Annuler",
   "task.controls.focus_field": "Cliquez dans le champ ou appuyez sur Ctrl+X puis Tab. Saisissez le texte une fois ⏎ affiché.",
-  "shortcuts.action.event-refresh": "Actualiser uniquement sur événement"
+  "shortcuts.action.event-refresh": "Actualiser uniquement sur événement",
+  "ui.refresh.auto": "Vue actualisée automatiquement",
+  "ui.refresh.cancel_requested": "Annulation demandée. En attente de l’arrêt du processus.",
+  "ui.refresh.checking_timeout": "Délai dépassé. Vérification du résultat final…",
+  "ui.refresh.read_now": "Relire maintenant",
+  "ui.refresh.read_only": "Lecture seule"
 }

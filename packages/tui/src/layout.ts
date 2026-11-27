@@ -1,4 +1,8 @@
+import type { Key } from '@fbincon/statusline-core/terminal/key';
+
 export const MIN_COLUMNS = 64, MIN_ROWS = 18;
+const reportRowKeys = new Set(['up', 'down', 'left', 'right', 'pageup', 'pagedown', 'home', 'end', 'j', 'k', 'return', 'enter']);
+export const usesReportRows = (event: Key) => !event.text && !event.paste && !event.ctrl && !event.meta && reportRowKeys.has(event.key.toLowerCase());
 export interface Panel {
     y: number;
     width: number;
@@ -9,13 +13,21 @@ export interface Panel {
     innerWidth: number;
     innerHeight: number;
 }
-export function dimensions(width: number, height: number) {
+export function canvasSize(columns: number, rows: number) {
+    return {
+        columns: Math.max(1, Math.min(500, Math.trunc(columns))),
+        rows: Math.max(1, Math.min(200, Math.trunc(rows))),
+    };
+}
+export function dimensions(columns: number, rows: number) {
+    const { columns: width, rows: height } = canvasSize(columns, rows);
     const framed = width >= 64 && height >= 20;
     const previewRows = Math.min(5, Math.max(2, Math.floor((height - 10) / 4)));
     const previewHeight = previewRows + (framed ? 2 : 1), contentHeight = Math.max(3, height - 6 - previewHeight);
     const panel = (y: number, h: number): Panel => ({ y, width, height: h, framed, innerY: y + 1, innerX: framed ? 2 : 1, innerWidth: Math.max(1, width - (framed ? 4 : 2)), innerHeight: Math.max(1, h - (framed ? 2 : 1)) });
     const content = panel(4, contentHeight), preview = panel(4 + contentHeight, previewHeight);
-    return { content, preview, actionsY: height - 2, helpY: height - 1, listHeight: Math.max(1, content.innerHeight - 2), available: width >= MIN_COLUMNS && height >= MIN_ROWS };
+    const report = panel(4, Math.max(3, height - 6));
+    return { content, preview, report, actionsY: height - 2, helpY: height - 1, listHeight: Math.max(1, content.innerHeight - 2), available: width >= MIN_COLUMNS && height >= MIN_ROWS };
 }
 export interface FormLine {
     group: string;

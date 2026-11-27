@@ -25,6 +25,8 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const e = state.editor;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     const size = dimensions(canvas.columns, canvas.rows);
+    const reportPage = !!(e.packages || e.taskViewer);
+    const panel = reportPage ? size.report : size.content;
 
     if (state.exitChoice !== null) {
         const choices = ['keep', 'discard'] as const;
@@ -64,7 +66,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
-    state.ensureVisible(size.listHeight);
+    if (!reportPage) state.ensureVisible(size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
     const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
     const description = pickerNotice ? renderMessage(pickerNotice, state.language)
@@ -84,14 +86,17 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const { actions, help, primaryActions } = footer(state);
     const visibleHelp = shortcuts(help, canvas.columns);
     canvas.put(3, 0, notice(state, canvas.columns, visibleHelp));
-    canvas.panel(size.content, contentTitle(state));
-    const summary = drawPage(canvas, state, size);
+    canvas.panel(panel, contentTitle(state));
+    const summary = drawPage(canvas, state, size, panel);
     const summaryHints = state.form && !e.diagnosis && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
-    canvas.content(size.content, size.content.innerHeight - 1, [
+    canvas.content(panel, panel.innerHeight - 1, [
         paint(summary + (summaryHints.length ? ' · ' : '')), ...summaryHints,
     ]);
+    canvas.put(size.actionsY, 0, shortcuts(actions, canvas.columns, primaryActions));
+    canvas.put(size.helpY, 0, visibleHelp);
+    if (reportPage) return canvas.frame();
 
     const draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
     const previewTitle = e.review
@@ -117,7 +122,5 @@ export function frame(state: State, columns: number, rows: number): Frame {
             remaining === 1 ? 'ui.drawing.more_line' : 'ui.drawing.more_lines', { remaining },
         ))]);
     }
-    canvas.put(size.actionsY, 0, shortcuts(actions, canvas.columns, primaryActions));
-    canvas.put(size.helpY, 0, visibleHelp);
     return canvas.frame();
 }

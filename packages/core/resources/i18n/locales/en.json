@@ -2453,5 +2453,10 @@
   "shortcuts.unavailable-key": "Unavailable key for this action. Try a letter or Ctrl+letter.",
   "shortcuts.unknown": "Save could not be confirmed. Read the saved shortcuts before trying again.",
   "shortcuts.working": "Updating shortcut preferences…",
-  "shortcuts.write-failed": "Cannot save shortcut preferences. {detail}"
+  "shortcuts.write-failed": "Cannot save shortcut preferences. {detail}",
+  "ui.refresh.auto": "Auto-refreshing view",
+  "ui.refresh.cancel_requested": "Cancellation requested. Waiting for the worker to stop.",
+  "ui.refresh.checking_timeout": "Timed out. Checking for a final result…",
+  "ui.refresh.read_now": "Read now",
+  "ui.refresh.read_only": "Read-only"
 }

@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Ctrl+X の後に Tab を押してタスクペインにフォーカスを移すか、操作ボタンをクリックしてください。",
   "task.controls.field_help": "Enter で確定 · Tab でキャンセルに移動",
   "task.controls.focus_field": "入力欄をクリックするか、Ctrl+X の後に Tab を押します。⏎ が表示されたら入力してください。",
-  "shortcuts.action.event-refresh": "イベント時のみ更新"
+  "shortcuts.action.event-refresh": "イベント時のみ更新",
+  "ui.refresh.auto": "表示を自動更新",
+  "ui.refresh.cancel_requested": "中止を要求しました。実行プロセスの停止を待っています。",
+  "ui.refresh.checking_timeout": "タイムアウトしました。最終結果を確認しています…",
+  "ui.refresh.read_now": "今すぐ再読み込み",
+  "ui.refresh.read_only": "読み取り専用"
 }

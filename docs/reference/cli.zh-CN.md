@@ -702,7 +702,7 @@ claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
 ```
 
-要求交互终端和显式会话身份，沿用全局 `--language`。省略任务 ID 时读取已发布的当前任务指针，`--json` 仅用于 `task show`。查看器不初始化安装／配置，也不运行采集。[控件与证据](../TASK_DETAILS.zh-CN.md)。
+要求交互终端和显式会话 ID，可通过全局 `--language` 选择界面语言。查看器在打开期间重读所选任务报告。省略 `--prompt-id` 时跟随已发布的当前任务指针。需要输出一次文本或 JSON 报告时，使用 `task show`。跟踪报告只读取已有状态。[控件与证据](../TASK_DETAILS.zh-CN.md)
 
 ## 外观与显示选项
 

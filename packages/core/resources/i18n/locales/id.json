@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Tekan Ctrl+X lalu Tab untuk memindahkan fokus ke panel tugas, atau klik salah satu kontrol.",
   "task.controls.field_help": "Enter untuk mengonfirmasi · Tab untuk menuju Batal",
   "task.controls.focus_field": "Klik kolom atau tekan Ctrl+X lalu Tab. Mulai mengetik setelah ⏎ muncul.",
-  "shortcuts.action.event-refresh": "Segarkan hanya saat ada peristiwa"
+  "shortcuts.action.event-refresh": "Segarkan hanya saat ada peristiwa",
+  "ui.refresh.auto": "Tampilan diperbarui otomatis",
+  "ui.refresh.cancel_requested": "Pembatalan diminta. Menunggu proses berhenti.",
+  "ui.refresh.checking_timeout": "Waktu tunggu habis. Memeriksa hasil akhir…",
+  "ui.refresh.read_now": "Baca sekarang",
+  "ui.refresh.read_only": "Hanya baca"
 }

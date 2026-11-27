@@ -1,6 +1,6 @@
 import { openChanges, changesKey, stepDraftHistory } from '@fbincon/statusline-core/editor/change-review';
 import { openReuse, reuseKey } from '@fbincon/statusline-core/editor/reuse-manager';
-import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
+import { packageManager, packageKey, packageView } from '@fbincon/statusline-core/editor/package-manager';
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';
@@ -19,7 +19,8 @@ import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
-import { dimensions, formWindow } from './layout.js';
+import { dimensions, formWindow, usesReportRows } from './layout.js';
+import { externalTaskRows } from './report-refresh.js';
 import { formPageIndex } from './navigation.js';
 import type { ShortcutContext } from '@fbincon/statusline-core/editor/shortcut-map';
 import { shortcutPanelFits, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
@@ -242,9 +243,16 @@ export class State {
         if (e.shortcuts.panel) return e.shortcuts.key(event, this.language, columns, rows - 1, event.shift);
         if (e.changeReview) return changesKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         if (e.reuse) return reuseKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
-        if (e.packages) return packageKey(e.packages, event, e.shortcuts);
+        // Several decoded keys can arrive before the next terminal draw.
+        if (e.packages) {
+            if (!e.packages.input && usesReportRows(event))
+                packageView(e.packages, this.language, size.report.innerWidth, size.report.innerHeight - 1, e.shortcuts, true);
+            return packageKey(e.packages, event, e.shortcuts);
+        }
         if (e.packageLocked) { this.notice(text('package.ui.editor_locked')); return cancel ? this.requestExit() : null; }
         if (e.taskViewer) {
+            if (!e.taskViewer.input && usesReportRows(event))
+                externalTaskRows(e.taskViewer, size.report.innerWidth, size.report.innerHeight - 1);
             const effect = taskViewerKey(e.taskViewer, event, e.shortcuts);
             if (effect === 'close') e.taskViewer = null;
             return effect === 'read' ? 'tasks' : null;

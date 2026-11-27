@@ -14,6 +14,8 @@ This named configuration is a **profile**. Built-in complete schemes and origina
 
 The editor opens the scheme selected for its working directory, or the user default when no binding matches. Its header identifies the editing target, matching root and number of shared project bindings. The target stays fixed during editing; switching a dirty draft offers Save, Discard and Cancel.
 
+The external editor reads the profile list when you open it, return to it or request a reload. A profile that still exists stays selected by its ID even if another editor renames it. Forms and confirmation screens keep the values you are reviewing. Saving still checks the revision you started from.
+
 ```sh
 claude-statusline configure
 claude-statusline configure --user

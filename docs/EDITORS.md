@@ -51,9 +51,11 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 ### Terminal page regions and footer
 
-Content and `Preview (sample data)` occupy separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`; settings and forms show `OPTION`, `VALUE`.
+Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`. Settings and forms show `OPTION`, `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
 
 The footer changes with the current operation. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
+
+Leave a task report or a running job’s status open to follow changes. The active refresh key requests an immediate update. Automatic reads pause during input and confirmation, and stop when you leave the view. The **Refresh interval** setting controls Claude’s status line independently. See [task details](TASK_DETAILS.md), [package progress](PACKAGE_MANAGEMENT.md) and [source jobs](EXTENSIONS.md#configure-with-either-editor).
 
 <a id="client-pagination-and-footer"></a>
 

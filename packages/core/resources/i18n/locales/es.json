@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Pulsa Ctrl+X y después Tab para enfocar el panel de tareas, o haz clic en un control.",
   "task.controls.field_help": "Enter para confirmar · Tab para ir a Cancelar",
   "task.controls.focus_field": "Haz clic en el campo o pulsa Ctrl+X y luego Tab. Escribe cuando aparezca ⏎.",
-  "shortcuts.action.event-refresh": "Actualizar solo por eventos"
+  "shortcuts.action.event-refresh": "Actualizar solo por eventos",
+  "ui.refresh.auto": "Vista con actualización automática",
+  "ui.refresh.cancel_requested": "Cancelación solicitada. Esperando a que se detenga el proceso.",
+  "ui.refresh.checking_timeout": "Se agotó el tiempo de espera. Comprobando el resultado final…",
+  "ui.refresh.read_now": "Leer ahora",
+  "ui.refresh.read_only": "Solo lectura"
 }

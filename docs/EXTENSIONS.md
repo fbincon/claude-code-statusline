@@ -66,6 +66,10 @@ refresh** and **Inspect source and observations** expose its result. Closing the
 editor releases only its refresh interest; other consumers or applicable automatic leases keep the job running. Explicit cancellation still stops the whole job. Enablement is independent of refresh: it
 never automatically launches a command or GitHub request. Automatic policies are reviewed separately in [automation](#automation-refresh-and-execution).
 
+The external editor follows a job you started, joined or found in a source inspection. Keep that source’s actions, observation details or saved checks open to see progress. The page checks the same job ID and reads the published observation when the result is final. A provisional timeout is checked less frequently while the worker settles. The reload key reads the known job immediately. Watching progress uses local records. Use **Refresh now** to request a job. Automatic command and GitHub jobs require their own policy review.
+
+The source list reloads when you open it, return to it or use its reload key. It keeps the selected source by ID. While you edit a definition or review a permission, you keep the fields and revision you opened.
+
 <a id="local-json"></a>
 
 ## Local JSON sources

@@ -155,7 +155,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 `profiles_apply.action` 支持 `save`、`rename`、`delete`、`activate`、`bind`、`unbind`。覆盖需显式 `overwrite:true`；被引用方案不可删除；保存与 `bind_path` 属于同一事务。`activate` 将显示快照复制为独立默认配置，方案不含宿主及运行偏好。编辑器中的启用操作则先加载默认目标草稿，等待普通保存。任务详情要求明确会话，不采集或修复，也不声称跨文件快照原子一致。
 
-`task_details` 保持版本 1 响应及显式会话／任务语义。`task view` 与双端阅读控件共享仅当前界面有效的搜索、过滤、树展开、证据显示和行锚点，不改变任务存储。
+`task_details` 保持版本 1 响应及显式会话／任务语义。外部编辑器和 `task view` 使用此操作跟踪当前可见的报告。手动读取时另请求 `read_ui_preferences`。读取失败后保留上次报告及其读取时间。搜索、过滤、树展开、证据显示和行锚点只属于当前视图。原生窗格按需请求任务详情。
 
 ### 配置与示例解释协议
 
@@ -252,7 +252,7 @@ GitHub 自动刷新租约及观测身份包含实际分支和提交。每个适�
 
 包审核提供 `package_status`（`prefix: string|null`、非负整数 `offset`）、`package_review_start`（`owner`、`request`）及 `package_review_status`／`package_review_cancel`（`id`、`owner`）。request 包含 `action`（`check`、`update`、`rollback`、`recover-package`、`restore-config`）、`prefix`、`expected_revision` 和可空的 `target`、`channel`、`backup_id`、`expected_integrity`。元数据检查与已验证 dry-run 分开；配置还原返回独立文件审核，不宣称产物验证。
 
-状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled；临时文件与安装 journal 分离，显式查询进度，按所有者取消，身份／revision 变化使审核失效。前后端资源需匹配。其他接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
+状态返回当前后端版本、安装身份、兼容原因、未完成事务及每页最多 16 条历史记录。作业版本为 1，状态为 running／complete／failed／cancelled，临时文件与安装 journal 独立。外部编辑器使用 `package_review_status` 读取已知审核作业的进度。交接后通过该执行保留的控制入口请求 `package_execute_status`。原生窗格按需查询进度。取消按所有者核对，身份或修订变化会使审核失效。前后端资源需匹配。其他接口版本见 [CLI 参考](../reference/cli.zh-CN.md#协议与-schema-版本)。
 
 包执行记录独立版本为 1，持有保留控制入口。进度读取不改写记录，进程身份区分已停止与无法确认。包历史／未完成事务的 `running` 为 `true`、`false` 或 `null`（无法确认）；未知执行器保留记录，并阻止恢复／替换，直到确认退出或身份不同。清理绑定修订并保守保护。回退审核在替换前核对每个已存格式是否落在目标包的读取范围内，包括来源注册表 v4。需要恢复旧格式字节时，使用经审核的配置恢复流程。
 

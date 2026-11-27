@@ -15,6 +15,9 @@ export interface SourceManager {
     owner: string;
     closed: boolean;
     page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review' | 'checks' | 'bindings' | 'binding-cleanup';
+    listCursor: number;
+    refreshList: boolean;
+    observation: { id: string; revision: string; context: SourceContext; job?: SourceJob } | null;
     inspection: SourceInspection | null;
     bindingReview: BindingReview | null;
     bindingSelection: string | null;
@@ -33,7 +36,7 @@ export interface SourceManager {
     details: string[];
     jobs: SourceJob[];
     message: LocalizedText | null;
-    effect: 'load' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | 'auto-review' | 'auto-on' | 'auto-off' | 'checks' | 'raw' | 'bindings' | 'binding-cleanup' | null;
+    effect: 'load' | 'observe-job' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | 'auto-review' | 'auto-on' | 'auto-off' | 'checks' | 'raw' | 'bindings' | 'binding-cleanup' | null;
     target: {
         scope: Scope;
         id: string;
@@ -44,7 +47,14 @@ export interface SourceBackend {
 }
 const external = ['external-value', 'github-pr', 'github-ci'];
 export function openSources(editor: Editor): void {
-    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), closed: false, inspection: null, bindingReview: null, bindingSelection: null, offset: 0, page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), closed: false, inspection: null, bindingReview: null, bindingSelection: null, offset: 0, page: 'list', listCursor: 0, refreshList: false, observation: null, automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+}
+function returnToList(editor: Editor): void {
+    const m = editor.sources!;
+    m.page = 'list';
+    m.refreshList = editor.shortcuts.surface === 'terminal';
+    m.cursor = m.refreshList ? m.listCursor : 0;
+    m.scroll = 0;
 }
 function source(editor: Editor): SourceDefinition | undefined { return editor.sources!.library?.sources.find(s => s.id === editor.sources!.selected); }
 function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(['github','command'].includes(source(editor)?.kind ?? '') ? ['auto-review' as const, 'auto-off' as const] : []), 'checks', 'raw']; }
@@ -81,9 +91,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         if (m.page === 'list')
             m.effect = 'close';
         else {
-            m.page = 'list';
-            m.cursor = 0;
-            m.scroll = 0;
+            returnToList(editor);
             m.message = null;
         }
         return m.effect ? 'sources' : null;
@@ -110,6 +118,10 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     if (m.page === 'list' && editor.shortcuts.action('sources', event) === 'reload-sources') {
         m.effect = 'load'; return 'sources';
     }
+    if (editor.shortcuts.surface === 'terminal' && m.observation?.id === m.selected &&
+        ['actions','diagnose','checks'].includes(m.page) && editor.shortcuts.action('sources', event) === 'reload-sources') {
+        m.effect = 'observe-job'; return 'sources';
+    }
     if (!plain)
         return null;
     if (['review', 'diagnose', 'auto-review', 'checks', 'binding-cleanup'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
@@ -125,9 +137,14 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         m.cursor = Math.max(0, Math.min(count(editor) - 1, m.cursor + (key === 'up' ? -1 : 1)));
     if (key === 'enter') {
         if (m.page === 'list') {
+            m.listCursor = m.cursor;
             const selected = m.library?.sources[m.cursor];
             if (selected) {
                 m.selected = selected.id;
+                if (editor.shortcuts.surface === 'terminal' && (m.observation?.id !== selected.id || m.observation.revision !== selected.revision)) {
+                    const own = m.jobs.findLast(job => job.source_id === selected.id && job.source_revision === selected.revision);
+                    m.observation = own ? { id: selected.id, revision: selected.revision, context: own.context, job: own } : null;
+                }
                 m.page = 'actions';
             }
             else if(m.cursor === (m.library?.sources.length??0)+1){m.offset=0;m.effect='bindings';}
@@ -163,8 +180,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
                 (target!.scope === 'main' ? draft.display : draft.display.subagents).instances.find(n => n.id === target!.id)!.source = { ...node.source, binding: null };
                 editor.commitDraft(draft);
                 m.message = text('sources.bound');
-                m.page = 'list';
-                m.cursor = 0;
+                returnToList(editor);
             }
         }
         else if (m.page === 'bind') {
@@ -181,7 +197,10 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
         return;
     m.closed = true;
     let failed: unknown;
-    for (const job of m.jobs.filter(job => job.state === 'running')) {
+    // A public timeout can precede the worker's final publication. Release this
+    // view's consumer even after it has displayed that provisional failure.
+    for (const job of m.jobs.filter(job => job.state === 'running' ||
+        editor.shortcuts.surface === 'terminal' && job.state === 'failed' && job.reason === 'timeout' && !job.result)) {
         try { await backend.request('source_release', { id: job.id, owner:m.owner }); }
         catch (error) { failed = error; }
     }
@@ -194,6 +213,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
     if (!m || !effect)
         return;
     m.effect = null;
+    if (effect === 'observe-job') return;
     m.message = null;
     try {
         const generation=editor.mutationGeneration;
@@ -204,9 +224,10 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         }
         if (effect === 'load') {
             m.library = await backend.request('sources_read', {});
+            m.refreshList = false;
             const target = editor.baseline.configuration;
             m.context = await backend.request('source_context', { project: target?.project_root ?? (target?.target.kind === 'project' ? target.target.path : null), session: null, agent: null });
-            if(!m.closed){editor.sourceDraftRegistered=true;await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:draftBindings(editor),close:false});}
+            if (!m.closed) await registerBindings(editor, backend);
             return;
         }
         if(effect==='bindings'||effect==='binding-cleanup'){
@@ -227,6 +248,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             if(effect==='refresh'){
                 const job=await backend.request('source_refresh',{id:m.selected,context,owner:m.owner});
                 if(m.closed||editor.sources!==m){await backend.request('source_release',{id:job.id,owner:m.owner});return;}
+                m.observation = { id: selected.id, revision: selected.revision, context, job };
                 m.jobs=[...m.jobs.filter(previous=>previous.id!==job.id),job];m.message=text('sources.refresh_started');return;
             }
             if(effect==='cancel'){
@@ -235,6 +257,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             }
             const report=await backend.request('source_inspect',{id:m.selected,context,offset:m.offset});
             if(m.closed||editor.sources!==m)return;
+            m.observation = { id: selected.id, revision: selected.revision, context };
             m.inspection=report;m.jobs=m.jobs.map(j=>report.jobs.find(updated=>updated.id===j.id)??j);m.details=effect==='raw'?JSON.stringify(report,null,2).split('\n'):[];m.page=effect==='checks'?'checks':'diagnose';m.scroll=0;return;
         }
         const payload: Record<string, unknown> = { action: effect, id: m.selected, expected_revision: m.library!.revision };
@@ -253,12 +276,15 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
                 parsed.branch = null;
             Object.assign(payload, { action: m.editing ? 'edit' : 'add', id, source: { name: name || id, kind: m.kind, scope: { project: project || null, session: session || null, agent: agent || null }, ttl_seconds: Number(ttl_seconds), settings: parsed } });
         }
-        if(effect==='bind'){payload.binding=m.target?editor.instance(m.target.scope,m.target.id)?.source?.binding:null;payload.draft_owner=editor.sourceDraftOwner;editor.sourceDraftRegistered=true;await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:draftBindings(editor),close:false});}
+        if(effect==='bind'){payload.binding=m.target?editor.instance(m.target.scope,m.target.id)?.source?.binding:null;payload.draft_owner=editor.sourceDraftOwner;await registerBindings(editor,backend);}
         if (effect === 'enable' || effect === 'auto-on') payload.review_revision = m.review?.review_revision;
         if (effect === 'auto-on') payload.interval_seconds = m.automaticInterval;
+        const origin = editor.shortcuts.surface === 'terminal' ? m.library?.sources[m.listCursor]?.id : null;
         const result = await backend.request('sources_apply', payload);
         m.library = result;
+        m.refreshList = false;
         if (effect === 'bind' && m.target && result.binding) {
+            if (result.binding.binding) registeredBindings.get(editor)?.add(result.binding.binding);
             if (!editor.canMutateDraft(generation) || editor.sources !== m) { m.message=editor.compositionError;return; }
             const node = editor.instance(m.target.scope, m.target.id);
             if (node) {
@@ -271,7 +297,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         else
             m.message = text(effect === 'auto-on' ? 'sources.automatic_saved' : 'sources.saved');
         m.page = 'list';
-        m.cursor = 0;
+        const index = origin ? result.sources.findIndex(entry => entry.id === origin) : 0;
+        m.cursor = index < 0 ? result.sources.length : index;
         m.scroll = 0;
     }
     catch (error) {
@@ -338,4 +365,19 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
 }
 
 export function draftBindings(editor:Editor):string[]{return [...new Set([editor.draft,editor.baseline.draft,...editor.history.undo.map(e=>e.draft),...editor.history.redo.map(e=>e.draft)].flatMap(d=>[...d.display.instances,...d.display.subagents.instances].flatMap(n=>n.source?.binding?[n.source.binding]:[])))];}
-export async function closeSourceDraft(editor:Editor,backend:SourceBackend):Promise<void>{if(editor.sourceDraftRegistered){await backend.request('source_draft',{owner:editor.sourceDraftOwner,bindings:[],close:true});editor.sourceDraftRegistered=false;}}
+const registeredBindings = new WeakMap<Editor, Set<string>>();
+async function registerBindings(editor: Editor, backend: SourceBackend): Promise<void> {
+    const bindings = draftBindings(editor);
+    const previous = editor.shortcuts.surface === 'terminal' ? registeredBindings.get(editor) : undefined;
+    if (previous && bindings.every(id => previous.has(id))) return;
+    editor.sourceDraftRegistered = true;
+    await backend.request('source_draft', { owner: editor.sourceDraftOwner, bindings, close: false });
+    if (editor.shortcuts.surface === 'terminal' && editor.sourceDraftRegistered)
+        registeredBindings.set(editor, new Set([...(previous ?? []), ...bindings]));
+}
+export async function closeSourceDraft(editor: Editor, backend: SourceBackend): Promise<void> {
+    if (!editor.sourceDraftRegistered) return;
+    await backend.request('source_draft', { owner: editor.sourceDraftOwner, bindings: [], close: true });
+    editor.sourceDraftRegistered = false;
+    registeredBindings.delete(editor);
+}

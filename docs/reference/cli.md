@@ -706,7 +706,7 @@ claude-statusline task show --session-id SESSION_ID --json
 claude-statusline task view --session-id ID [--prompt-id ID] [--config-dir PATH]
 ```
 
-Requires a terminal and explicit session identity; global `--language` remains available. Omitting the prompt uses the published current-task pointer. `--json` belongs to `task show`. The viewer does not initialize installation/configuration or run collection. [Controls and evidence](../TASK_DETAILS.md).
+Requires a terminal and an explicit session ID. Global `--language` selects the interface language. The viewer follows the published current-task pointer unless you specify `--prompt-id`, and rereads the selected report while open. Use `task show` for a single text or JSON report. Following a report only reads existing state. [Controls and evidence](../TASK_DETAILS.md)
 
 ## Appearance and display options
 

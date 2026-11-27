@@ -180,12 +180,15 @@ export function claudeLaunch(executable = 'claude', windows = process.platform =
     }
     throw new Error('errors.capabilities.cannot_safely_resolve_claude_batch_wrapper_use');
 }
+export function parseClaudeVersion(output: string): readonly number[] | null {
+    const match = output.match(/(?<!\d)(\d+)\.(\d+)\.(\d+)(?!\d)/u);
+    return match ? match.slice(1).map(Number) : null;
+}
 export function detectClaudeVersion(): readonly number[] | null {
     try {
         const launch = claudeLaunch();
         const result = spawnSync(launch.executable, [...launch.args, '--version'], { encoding: 'utf8', timeout: 5000, windowsHide: true, shell: false });
-        const match = result.stdout?.match(/(?<!\d)(\d+)\.(\d+)\.(\d+)(?!\d)/u);
-        return result.status === 0 && match ? match.slice(1).map(Number) : null;
+        return result.status === 0 ? parseClaudeVersion(result.stdout) : null;
     }
     catch {
         return null;

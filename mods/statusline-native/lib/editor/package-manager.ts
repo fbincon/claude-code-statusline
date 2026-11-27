@@ -114,8 +114,10 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
         if(!view.closed&&generation===view.generation){view.message=error instanceof BackendError&&error.localization?error.localization:text('package.reason_io_error');view.selected='message';}
     }finally{if(generation===view.generation)view.busy=false;}
 }
-export function packageView(view:PackageManager,language:Language,width:number,height:number,shortcuts?: EditorShortcuts):Row[]{
+export function packageView(view:PackageManager,language:Language,width:number,height:number,shortcuts?: EditorShortcuts, automatic = false):Row[]{
     const tr=(key:string,params:Record<string,unknown>={})=>t('package.ui.'+key,language,params),rows:Row[]=[];
+    const jobState = (kind: 'state_' | 'execution_state_', state: string) => automatic && state === 'running'
+        ? t('task.value.running', language) : tr(kind + state, { key: refreshKey(shortcuts) });
     const add=(key:string,value:string,action?:Row['action'],backup?:string)=>wrapText([value.replace(/[\p{Cc}\p{Cs}]/gu,'')],Math.max(2,width-2)).forEach((line,index)=>rows.push({key:index?key+':'+index:key,text:line,...(action?{action}:{}),...(backup?{backup}:{})}));
     const status=view.status;
     if(view.mode==='draft'){
@@ -143,14 +145,22 @@ export function packageView(view:PackageManager,language:Language,width:number,h
             for(const record of status.history)add('backup:'+record.id,`${record.id} · ${record.version??'—'} · ${tr('stage_'+record.stage)} · ${tr('backup_'+record.backup)}`,record.backup==='verified'?'restore-config':undefined,record.id);
             if(status.total>16){add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));}
         }
-        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:tr('state_'+job.state, { key: refreshKey(shortcuts) })}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
+        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:jobState('state_', job.state)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
             if(job.review){const review=job.review;add('verification',tr(review.action==='restore-config'?'restore_review':review.artifact_verified?'verified':'unverified'));add('review-target',`${review.current??'—'} → ${review.target??'—'}`);add('review-config',tr('config',{value:review.config_dir}));if(review.registry)add('registry',review.registry);if(review.integrity)add('integrity',review.integrity);if(review.node_engine)add('engine','Node '+review.node_engine);review.reasons.forEach(reason=>add('review-reason:'+reason,t('package.reason_'+reason,language,{},reason)));review.configuration_conflicts.forEach(file=>add('conflict:'+file,file));review.files.forEach(file=>add('restore:'+file,file));if(verified(view))add('execute',tr('execute'));}
         }
-        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:tr('execution_state_'+run.state, { key: refreshKey(shortcuts) }),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
+        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:jobState('execution_state_', run.state),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
     }
     if(view.input&&view.editing==='export_path')add('export-path',tr('export_path',{value:inputView(view.input,Math.max(2,width-16))}));
-    if(view.message)add('message',renderMessage(view.message,language));
-    let index=rows.findIndex(row=>row.key===view.selected);if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
+    if (view.message) {
+        const waiting = automatic && typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested';
+        add('message', waiting ? t('ui.refresh.cancel_requested', language) : renderMessage(view.message, language));
+    }
+    let index = rows.findIndex(row => row.key === view.selected);
+    if (automatic && index < 0) {
+        const logicalRow = view.selected.replace(/:\d+$/u, '');
+        index = rows.findIndex(row => row.key === logicalRow);
+    }
+    if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
     return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,text:(row.key===view.selected?'› ':'  ')+row.text,selected:row.key===view.selected}));
 }
 export function packageKey(view:PackageManager,event:TextKey,shortcuts?: EditorShortcuts):'packages'|null{

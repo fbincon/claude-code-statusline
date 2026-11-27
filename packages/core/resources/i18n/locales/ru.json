@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Нажмите Ctrl+X, затем Tab, чтобы перейти в панель задач, или щёлкните по элементу управления.",
   "task.controls.field_help": "Enter — подтвердить · Tab — перейти к кнопке отмены",
   "task.controls.focus_field": "Щёлкните по полю или нажмите Ctrl+X, затем Tab. Вводите текст после появления ⏎.",
-  "shortcuts.action.event-refresh": "Обновлять только по событиям"
+  "shortcuts.action.event-refresh": "Обновлять только по событиям",
+  "ui.refresh.auto": "Автообновление экрана",
+  "ui.refresh.cancel_requested": "Отмена запрошена. Ожидание остановки рабочего процесса.",
+  "ui.refresh.checking_timeout": "Время ожидания истекло. Проверка окончательного результата…",
+  "ui.refresh.read_now": "Перечитать",
+  "ui.refresh.read_only": "Только чтение"
 }

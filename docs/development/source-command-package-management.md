@@ -28,6 +28,8 @@ Execution permission and automatic permission are reviewed independently. Comman
 
 Readable summaries separate current failure from retained-success freshness. GitHub detail pages read stored checks and their own captured context/time; unavailable states do not become passing. Binding reuses compatible records and reviews unused/duplicate records. Defaults, all named profiles and project associations, registered unsaved drafts and recovery snapshots protect references. Cleanup rechecks full references/revision under lock; uncertainty preserves records. Closed-draft tombstones reject late registration. Crashed owners can be explicitly released after handling their draft.
 
+The external editor reads `source_status` for a known job on the visible source, revision and context. A final result triggers one read of the published observation. Periodic reads are independent of `source_refresh`, automatic leases and draft registration. The source and profile lists reread saved definitions on entry, return or manual reload. Their forms and confirmations retain the revision under review. [Terminal read intervals](task-version-review.md#responsibilities-and-interfaces)
+
 ## Safe package handoff
 
 A compatible verified review is required. Draft save must complete or reconcile; export stays dirty, discard is explicit and cancellation retains edits. Saving changes requires fresh review. Execution checks installation/configuration/target identity again before mutation. The executor and controls live outside the package being replaced; persistent IDs, stages and process identity distinguish package, integration and configuration outcomes. Interactive persistent TUI processes also copy their runtime before native modules load, allowing Windows npm replacement.

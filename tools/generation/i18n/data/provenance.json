@@ -62438,6 +62438,291 @@
       },
       "review": "Reviewed event-only refresh wording in all 12 locales for the terminal shortcut action",
       "validated_inputs_sha256": "07982666741f0731aa5a1b0a7d6b117330d615290b6165b48f9b7909f511df3b"
+    },
+    "90c7708dc1fa67c99e022d4a14ce4ef461c9b09ba3906ec58be7a72a6ee27b45": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "cb884d9e3411c27c701eb9f21f2cc40760821e00c89f789a5167e5cde3448f5d"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "5506002cc869c01b2a0e953e47a07dffb317a8c66ff932bbe49e8baabfc50832"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "566868cc91b6b9d23c83a2c3c7b50e42a53d49ed269d0c7ca03fd14ba0c376ff"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "4be864094252089575742d7479ed8f22a227b80f8e29d6670e538bacd9dedb6b"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "fd6589c032942f01809c75c5fbba6c060a14f9d38c3e82305166acd4274e184c"
+          }
+        },
+        "en": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "cdc9f27e52473ac2e537635acfd073ea8ebf599c84583d2fbff6769c29ac2fbd"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "aa88032ff0b0c19b0f02ae2469ce6c634d208f84a251b167ac6bef0eeade5f4a"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "39c157b76ed5c8209dfd868cb41f8fd8cbb26eb9b5268003305139ae543860fd"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "20d8b246c1ccf97ae52e0c6791957c1ee341cbbfe14412d1ec9a1a7470969712"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "72bb90897ab1eadc924fa1358773c5949372c1f06d8dd53d730bbfa3b0c5b695"
+          }
+        },
+        "es": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "0700fd8c23cf80ea953a3e62c6d6ce3d0073bdbfb9ac3f696ae0ff6f2d215cc2"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "e77bad33699522d039525a099e9458059750d7b612676b54862804fad52c60c1"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "c880fcc96b4c430e4427b5d559640caeee9e9d27e3bffa78f5e203d353bcef5d"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "cd9727cf897a107559d36d544b15a0da03f1baf10098c32de9bcec8529a12909"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "6e3c2c930b47229412014b8b7b4ff2c365e6249ad1547f31984505fc2d553246"
+          }
+        },
+        "fr": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "64dd0ae12061a871fcfe0b756c4f506eff062e20043d5817cefede9fbac49ffa"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "4fbb1a1bfcef802aeb68f850564d9c1a60164d19376e48575dbd244c4b77f012"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "43da5b193b5c31d7c6731fbb13cca6a5d0605df8e30135cfdf6052b822222976"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "a037abd5789d4c6a84845587c10a1cd7067ee0d905b224687a243426b7d9c49a"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "2af697456ab21797b4aa0a5f7a78380dbdb75450fd9ce5bd9e936d69a1b4d0c4"
+          }
+        },
+        "id": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "f2750431e7c763a3eab1de2c76ce42d5f1488a8d807110194f1e98356f87e6eb"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "59a11697e98dff99f841410031fe38dcd9f145d87293b7fdbdb94e91f6cae7f8"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "d40f0b9bd32daa2178a8cbc08b3ca83767734a575f39f819471824e1c0cac7a9"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "f93ca239020f545720398ea597bb41290e07c1cea97790289fde952aac0ef289"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "792bbe41c9ee95c2f6b123dbf4aac3cabafb1377f93647540ab670c426d0e92c"
+          }
+        },
+        "ja": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "e40a64a0f8afedb94f60869b8f8a2d9c70d9d9c2e6d922536136bcc3a5e3a216"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "ff3d784474c15dd2a4512845ea6c1e228ca5b7330023b7374fc856250f1a7ce5"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "fee0eb3b7fa3ad19b5f493425e8a4c8b16d82820febe4d0c53e608ca217ed1a7"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "269c454fdc5af0e48879ea9100c220de99a276bfef5763c9fb59b5d310bc47cf"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "24ef40e810497a9eab29652fb631aa71a0c96d26d11def05c84432118936d7e4"
+          }
+        },
+        "ko": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "18d79afe65c0dfeeffd46e124d78cc6bc829d65f750cb1f7014f6f0dd7ff9bd7"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "ece4265319185fe4f86302a25554ec41e1738fd4340353b89946db30842693f1"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "137233a21cc6439724ddb301ec36c58d2ec96d64fe80caf9aca3b0747b45c526"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "84ba3545a052ce5e2e99930e05f6e4a12b59d53bf6506dda99c942fecefb3e2c"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "5c08dcf561d7354bfe27f7dee2595adc911dbbe3a9af751cff2efacbddac874f"
+          }
+        },
+        "pt-BR": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "96fd5ae4e9a50137d57ee73c380c97b08df5d15da1352e174e21c727c5b472e1"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "50c8c0e0461b29eff96f9bf79f488e3e9242646d2b70ef3a52d2acd6a44d6f52"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "30eda2b2797c4aaef4ac5487871a11e264154a28a67f72042ea92351df259c47"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "d7715e9a526eddd7ae0963f1b49a95032405523a7a82e351023c4967146a2029"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "0e156e8eefc13f45ea47416fc336ac0a3525f56a6d8c7de17b03f1bd3a45a6ef"
+          }
+        },
+        "ru": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "7c4bf4538ad0e1dfb20c8d6a3d928ba6277ae25ac6ea2584340bccc6058a48a5"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "fb18fe20c19d17c829caf135dc6b29699c1a93ebcd504492bf2e9c8f5ca65a8d"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "bd35a4a5fa0842fe53cd0b8de2b0e58ca0b0a353d61e6de6ad5afa3e392edbf8"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "b56f4a4bc02f93f4c465a8c25ed177bd4ec834a4c1312c2007699569d3ea9a67"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "50cee3d628b17475eab528738080ce1e413238bdfc8e971dc4d77c4a11af360b"
+          }
+        },
+        "zh-CN": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "6fa04addbf49529381b9f61d14332527b5ddebe60615b7256cec015ce5e488fd"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "396239b855c377c3c03927127cb5441a7d40f735273e27974992e0665d0075fe"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "aa0eda3cce052b70780b308602946772060d8b24077b6a063282d9fe5feb6f57"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "184274ced37e6bb1351f8d97f64ecafa3fb6b2c97f526384cf6c5efdabed79ad"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "3b5ec3533b0e44856a0266eff1dcdc2886fa48be4a8c34aaf43c4bec211383e3"
+          }
+        },
+        "zh-HK": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "8f815eef11f168bf2a438acb582f59af3008ba9f4635a823ef5ea532d0e89420"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "53e08856eb0dcb31ab21252b9c9e9d3d5b1776bc4e03cf6d3d90003c13c7d7e3"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "5e84c7ef3731560560c006b6b1aa4b804795b87595234550e8d7756daaf60d27"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "e0dc2bfd38491a2d956655917af044e77216a1bc8bcf7c2d26b6b9f7202981dd"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "258b221f71b48f847518c800972de656c48fe8927bb8f962f5b873709e18d53e"
+          }
+        },
+        "zh-TW": {
+          "ui.refresh.auto": {
+            "source": "294c65eac576aeb5ff17169017da9cba04058357c9c8848af9811539927b84f7",
+            "translation": "8f815eef11f168bf2a438acb582f59af3008ba9f4635a823ef5ea532d0e89420"
+          },
+          "ui.refresh.cancel_requested": {
+            "source": "068672135ff2595f0b5f6e28950723c5318ac27ebabffcc70307c2bd18a3690a",
+            "translation": "d836d56307551dfbedf2b50b34e4243e3d8c6f8f7b57adfa8f04189f6d2e9f87"
+          },
+          "ui.refresh.checking_timeout": {
+            "source": "0ff64d828b11f705198fe2e8fef228aeceab4c3e6c1e3d4c97e4ac408de50f36",
+            "translation": "5e84c7ef3731560560c006b6b1aa4b804795b87595234550e8d7756daaf60d27"
+          },
+          "ui.refresh.read_now": {
+            "source": "f072b011a61eb2a5dc7e71e314ab29e934285a84a107baa53bc88211f5b0a0d1",
+            "translation": "e0dc2bfd38491a2d956655917af044e77216a1bc8bcf7c2d26b6b9f7202981dd"
+          },
+          "ui.refresh.read_only": {
+            "source": "4c543152ca18cfa637af098a239e90adcb553f01930a60859dbb621f43091db0",
+            "translation": "258b221f71b48f847518c800972de656c48fe8927bb8f962f5b873709e18d53e"
+          }
+        }
+      },
+      "review": "Reviewed all twelve locales in their external editor contexts for automatic display updates, one-time reads, pending cancellation and provisional source timeouts. Checked the distinct Traditional Chinese terminology and keyboard-independent labels.",
+      "validated_inputs_sha256": "c77de478daf4759ca7e559c64a05f79547247087350d65a9006264da5dad4f4e"
     }
   }
 }
