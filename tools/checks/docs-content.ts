@@ -18,6 +18,7 @@ import { developmentFacts, sourceReader, type SourceReader } from './docs-source
 import { checkInterfaceVersions, checkNpmScripts, documentationProse, NUMBER, numericClaims } from './docs-markdown.js';
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 import { NATIVE } from '@fbincon/statusline-cli/integration/model';
+import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, MAX_REFRESH_BACKOFF_MS } from '@fbincon/statusline-tui/foreground-refresh';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 import { candidateCasesForNode } from './release-ci-policy.js';
 import { SCOPED_HOSTED_JOB_MS } from './impact-budget.js';
@@ -287,6 +288,14 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                         [facts.minimum, facts.maximum], 'Automatic interval range differs from source');
                     numeric(zh ? NUMBER + '秒续租、' + NUMBER + '秒过期' : 'renew every ' + NUMBER + ' seconds and expire after ' + NUMBER,
                         [facts.renewalSeconds, facts.leaseSeconds], 'Lease timing differs from source');
+                    break;
+                case 'docs/development/task-version-review':
+                    numeric(zh ? '每 ' + NUMBER + ' 秒读取运行中的任务或作业' : 'checks a running task or job every ' + NUMBER + ' seconds',
+                        [ACTIVE_REFRESH_MS / 1000], 'Active terminal refresh interval differs from the scheduler');
+                    numeric(zh ? '每 ' + NUMBER + ' 秒读取一次' : 'checks an idle task or an uncertain job every ' + NUMBER + ' seconds',
+                        [IDLE_REFRESH_MS / 1000], 'Idle terminal refresh interval differs from the scheduler');
+                    numeric(zh ? '重试间隔，最长 ' + NUMBER + ' 秒' : 'retry interval to a maximum of ' + NUMBER + ' seconds',
+                        [MAX_REFRESH_BACKOFF_MS / 1000], 'Terminal read retry limit differs from the scheduler');
                     break;
             }
         });

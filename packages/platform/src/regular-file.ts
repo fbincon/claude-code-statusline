@@ -1,5 +1,6 @@
-import { constants, openSync, closeSync, fstatSync, readSync, lstatSync } from 'node:fs';
+import { constants, openSync, closeSync, fstatSync, lstatSync } from 'node:fs';
 import { isLinkOrReparse, fileIdentity, sameFileIdentity, FileChangedError } from './files.js';
+import { readLimitedInput } from './input.js';
 /** Reject devices/FIFOs and links before reading; bound growth during the read too. */
 export function readBoundedRegularFile(path: string, maximum: number): Buffer | null {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -23,16 +24,13 @@ function readSnapshot(path: string, maximum: number): Buffer | null {
         if (!stat.isFile() || stat.size > maximum)
             throw new Error('file_size_or_type');
         if (!sameFileIdentity(identity, stat)) throw new FileChangedError();
-        const bytes = Buffer.alloc(maximum + 1);
-        let size = 0, count: number;
-        while (size < bytes.length && (count = readSync(fd, bytes, size, bytes.length - size, null)) > 0)
-            size += count;
-        if (size > maximum)
+        const bytes = readLimitedInput(maximum, fd, Number(stat.size));
+        if (bytes.length > maximum)
             throw new Error('output_limit');
         const after = fstatSync(fd, { bigint: true });
         if (after.mtimeNs !== stat.mtimeNs || after.size !== stat.size)
             throw new FileChangedError();
-        return bytes.subarray(0, size);
+        return bytes;
     }
     catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT')

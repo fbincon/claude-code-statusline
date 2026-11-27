@@ -2453,5 +2453,10 @@
   "shortcuts.unavailable-key": "该操作无法使用此键。可尝试字母键或 Ctrl+字母。",
   "shortcuts.unknown": "无法确认保存结果。请先读取已保存的快捷键，再重试。",
   "shortcuts.working": "正在更新快捷键偏好…",
-  "shortcuts.write-failed": "无法保存快捷键偏好。{detail}"
+  "shortcuts.write-failed": "无法保存快捷键偏好。{detail}",
+  "ui.refresh.auto": "视图自动刷新",
+  "ui.refresh.cancel_requested": "已请求取消，正在等待执行器停止。",
+  "ui.refresh.checking_timeout": "已超时，正在核实最终结果…",
+  "ui.refresh.read_now": "立即重读",
+  "ui.refresh.read_only": "只读"
 }

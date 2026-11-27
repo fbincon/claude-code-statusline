@@ -25,7 +25,7 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 
 Session and prompt IDs come from your supplied statusline input or existing session metadata. Pass `--session-id` explicitly; the CLI does not read statusline stdin or search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
 
-Command descriptions and initial titles use the loaded interface language. Task-read failures retain that language; refresh/reopen reload preferences. The native pane and interactive `task view` show guidance and fall back to English when preferences are unreadable; `task show` returns English without a warning. Neither case blocks task reads. Tall panes reduce the visible page to fit host capacity while retaining the complete report for paging.
+Command descriptions and initial titles use the loaded interface language. A task-read failure retains that language. Reopening or requesting an immediate refresh reloads preferences. Automatic reads keep the current interface language. The native pane and interactive `task view` show guidance and fall back to English when preferences are unreadable. `task show` returns a single report and falls back to English silently. Tall native panes reduce the visible page to fit host capacity while retaining the complete report for paging.
 
 ## Reading controls
 
@@ -38,12 +38,14 @@ Command descriptions and initial titles use the loaded interface language. Task-
 | Select previous/next row | P/N | ↑/↓; Home/End select first/last row |
 | Page up/down | K/J | Page Up/Down or K/J |
 | Expand/collapse an agent | Z | ←/→ or Enter |
-| Reread published state | R | R |
+| Read published state immediately | R | R |
 | Close | Q; Esc returns focus to Claude | Q; outside field editing, Esc or Ctrl+G closes; while editing a field, Esc or Ctrl+G cancels the field |
 
 Native letter controls need pane focus; report-reading keys need body focus. After opening a native field, click it or press Ctrl+X then Tab. When the ⏎ submit hint appears, type or paste the complete value, including spaces, and press Enter. Tab to **Cancel**, then Enter, restores the previous value. Active fields handle their own input keys.
 
-Refresh is manual. An empty prompt field selects the published current-task pointer. Summary and all statuses are the default. Search is case-insensitive, and matching children retain their parents as context. The external viewer does not infer host-only agent names.
+In the external editor’s **Task details** page and in `task view`, leave the report open to follow changes. Both reread a running task every two seconds. When the task finishes, its status is unknown or the current task is missing, they check every ten seconds for a continuation or a newly published task. An empty prompt field follows the published current-task pointer. A supplied prompt ID keeps the view on that task. For an immediate read, press R in standalone `task view` or your current refresh shortcut in **Settings → Task details** (default R). The native pane reads on demand.
+
+Automatic reads pause while you edit a field. Search is case-insensitive, and matching children retain their parents as context. The initial view shows the summary and all statuses. The external viewer uses the agent names present in the published report.
 
 Short panes reserve space for the selected report row and page by the actual body height; use S to inspect identities when the heading is compact. Refresh and resizing retain a selected row that still exists. Selecting another task resets task-specific reading state. Failed refreshes keep the previous report and its capture time.
 

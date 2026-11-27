@@ -1,7 +1,6 @@
 import { performChanges, changePreview, openChanges } from '@fbincon/statusline-core/editor/change-review';
 import { performReuse } from '@fbincon/statusline-core/editor/reuse-manager';
 import { performPackage, closePackage } from '@fbincon/statusline-core/editor/package-manager';
-import { readTask } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
 import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
@@ -21,9 +20,15 @@ import { State } from './state.js';
 import { frame, ansiFrame } from './drawing.js';
 import { dimensions } from './layout.js';
 import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
+import { ForegroundRefresh, type RefreshTarget } from './foreground-refresh.js';
+import { managerRefresh, manualManagerRefresh } from './manager-refresh.js';
+import { packageRefresh, taskRefresh } from './report-refresh.js';
+import type { ObserveOperation } from './observation-backend.js';
+export type { ObserveOperation } from './observation-backend.js';
 export interface Backend {
     control?<O extends Operation>(control:PackageControl,operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
     request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
+    observe?<O extends ObserveOperation>(operation: O, payload: unknown, signal: AbortSignal, control?: PackageControl): Promise<ResultFor<O>>;
 }
 export interface Outcome {
     outcome: 'updated' | 'already-current' | 'cancelled' | 'interrupted' | 'timed-out' | 'error';
@@ -71,7 +76,28 @@ export class Session {
         this.state.preview = await this.backend.request('preview', { draft, width,scenario:e.previewScenario });
         this.previewKey = key;
     }
-    async key(key: Key, columns = 80, rows = 24): Promise<'save' | Outcome | null> {
+    private refreshTarget(columns: number, rows: number): RefreshTarget | null {
+        const state = this.state, e = state.editor;
+        if (!e.packages && !e.taskViewer && !e.sources && !e.profiles) return null;
+        if (!dimensions(columns, rows).available || state.exitChoice || state.input || e.shortcuts.panel ||
+            e.changeReview || e.reuse || e.saveState === 'pending') return null;
+        if (e.packages) return packageRefresh(e.packages, this.backend);
+        if (e.packageLocked) return null;
+        if (e.taskViewer) return taskRefresh(e.taskViewer, this.backend, this.languageOverride);
+        if (e.diagnosis || e.colors || e.alignmentManager || e.groupManager) return null;
+        return managerRefresh(e, this.backend);
+    }
+    private async readNow(columns: number, rows: number, refresh?: ForegroundRefresh): Promise<void> {
+        if (refresh) { refresh.immediate(); return; }
+        // Callers that drive the editor one key at a time have no terminal event loop.
+        const target = this.refreshTarget(columns, rows);
+        if (!target) return;
+        try {
+            const apply = await target.read(new AbortController().signal, 'manual');
+            apply();
+        } catch (error) { target.failed(error); }
+    }
+    async key(key: Key, columns = 80, rows = 24, refresh?: ForegroundRefresh): Promise<'save' | Outcome | null> {
         const state = this.state, e = state.editor;
         const effect = state.key(key, columns, rows);
         if (effect === 'save')
@@ -84,12 +110,31 @@ export class Session {
                 await e.shortcuts.perform(effect, async (operation, payload) => this.backend.request(operation, payload));
                 return null;
             }
-            if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend,e);if(e.packages.closed)e.packages=null;return null;}
-            if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
+            if ((e.sources || e.profiles) && dimensions(columns, rows).available && manualManagerRefresh(e, key)) {
+                await this.readNow(columns, rows, refresh);
+                return null;
+            }
+            if (effect === 'packages' && e.packages) {
+                const view = e.packages;
+                if (view.effect === 'status' && view.mode === 'status') {
+                    view.effect = null;
+                    await this.readNow(columns, rows, refresh);
+                } else {
+                    refresh?.invalidate();
+                    await performPackage(view, this.backend, e);
+                    if (view.closed) e.packages = null;
+                }
+                return null;
+            }
+            if (effect === 'tasks' && e.taskViewer) {
+                await this.readNow(columns, rows, refresh);
+                return null;
+            }
             if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
             if (effect === 'changes') {await performChanges(e,this.backend);return null;}
             if (effect === 'reuse') {await performReuse(e,this.backend);return null;}
             if (effect === 'reconcile') {await this.reconcile();return null;}
+            if (effect === 'sources' || effect === 'profiles') refresh?.invalidate();
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
             else if (effect === 'language') {
@@ -166,13 +211,18 @@ export class Session {
         const output = options.output ?? process.stdout;
         let selectedColors = colors ?? 16;
         await this.preview(output.columns || 80, output.rows || 24);
+        const refresh = new ForegroundRefresh(
+            () => this.refreshTarget(output.columns || 80, output.rows || 24), options.now,
+        );
         let result: 'save' | Outcome;
         try {
             result = await terminal<'save' | Outcome>({
                 ready: capability => { selectedColors = colors ?? capability.colors; },
                 draw: (columns, rows) => ansiFrame(frame(this.state, columns, rows), selectedColors),
+                observe: submit => { refresh.bind(submit); refresh.tick(); },
+                closing: () => refresh.close(),
                 key: async (key, columns, rows) => {
-                    const action=await this.key(key,columns,rows);
+                    const action=await this.key(key,columns,rows,refresh);
                     if(action!=='save') return action;
                     try { return await this.save(); }
                     catch(error) {

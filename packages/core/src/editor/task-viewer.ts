@@ -34,6 +34,8 @@ export interface TaskViewer {
         report: TaskDetails | null;
         key: string;
         rows: TaskRow[];
+        agentStart: number;
+        agentEnd: number;
     } | null;
     input: 'session' | 'prompt' | 'search' | null;
     sessionInput: TextInput;
@@ -102,8 +104,9 @@ const safe = (value: string) => value.replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu, '').r
 const validIdentity = (value: string) => !!value && [...value].length <= 1024 && !/[\p{Cc}\p{Cs}]/u.test(value);
 export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     const cacheKey = JSON.stringify([width, view.language, view.query, view.status, view.evidence, view.collapsed, view.busy]);
-    if (view.cache?.report === view.report && view.cache?.key === cacheKey)
-        return view.cache.rows;
+    const cache = view.cache?.key === cacheKey ? view.cache : null;
+    if (cache && cache.report === view.report)
+        return cache.rows;
     const language = view.language, tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params);
     const status = (value: string | null) => value === null ? tr('task.unknown') : t('task.value.' + value, language, {}, value);
     const duration = (value: number | null) => value === null ? tr('task.unknown') : value.toFixed(1) + 's';
@@ -122,65 +125,77 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     add('active', tr('task.active', { value: duration(report.active_seconds) }));
     add('progress', tr('task.progress', { value: report.progress ? report.progress.completed + '/' + report.progress.total : tr('task.unknown') }));
     add('agents', tr('task.agents'));
-    const agents = new Map(report.agents.map(agent => [agent.id, agent]));
-    const childrenByParent = new Map<string, TaskAgentDetail[]>();
-    for (const agent of report.agents)
-        if (agent.parent_id) {
-            const children = childrenByParent.get(agent.parent_id) ?? [];
-            children.push(agent);
-            childrenByParent.set(agent.parent_id, children);
+    // The summary changes every tick. Reuse wrapped agent and evidence rows when
+    // the corresponding immutable snapshot and reading controls still match.
+    const agentStart = rows.length;
+    if (cache?.report?.agents === report.agents) {
+        for (let index = cache.agentStart; index < cache.agentEnd; index++) rows.push(cache.rows[index]!);
+    } else {
+        const agents = new Map(report.agents.map(agent => [agent.id, agent]));
+        const childrenByParent = new Map<string, TaskAgentDetail[]>();
+        for (const agent of report.agents)
+            if (agent.parent_id) {
+                const children = childrenByParent.get(agent.parent_id) ?? [];
+                children.push(agent);
+                childrenByParent.set(agent.parent_id, children);
+            }
+        const collapsedAgents = new Set(view.collapsed);
+        const matched = new Set(report.agents.filter(agent => (!view.status || (agent.status ?? 'unknown') === view.status) &&
+            (!view.query || (agent.id + '\n' + (agent.name ?? '')).toLowerCase().includes(view.query.toLowerCase()))).map(agent => agent.id));
+        const included = new Set(matched);
+        for (const id of matched) {
+            let parent = agents.get(id)?.parent_id;
+            const seen = new Set([id]);
+            while (parent && agents.has(parent) && !seen.has(parent) && !included.has(parent)) {
+                seen.add(parent);
+                included.add(parent);
+                parent = agents.get(parent)?.parent_id ?? null;
+            }
         }
-    const collapsedAgents = new Set(view.collapsed);
-    const matched = new Set(report.agents.filter(agent => (!view.status || (agent.status ?? 'unknown') === view.status) &&
-        (!view.query || (agent.id + '\n' + (agent.name ?? '')).toLowerCase().includes(view.query.toLowerCase()))).map(agent => agent.id));
-    const included = new Set(matched);
-    for (const id of matched) {
-        let parent = agents.get(id)?.parent_id;
-        const seen = new Set([id]);
-        while (parent && agents.has(parent) && !seen.has(parent) && !included.has(parent)) {
-            seen.add(parent);
-            included.add(parent);
-            parent = agents.get(parent)?.parent_id ?? null;
-        }
-    }
-    const visited = new Set<string>(), filtering = !!(view.query || view.status);
-    const append = (agent: TaskAgentDetail, depth: number) => {
-        if (visited.has(agent.id) || !included.has(agent.id))
-            return;
-        visited.add(agent.id);
-        const children = (childrenByParent.get(agent.id) ?? []).filter(child => included.has(child.id));
-        const collapsed = !filtering && collapsedAgents.has(agent.id);
-        add('agent:' + agent.id, '  '.repeat(Math.min(depth, 8)) + (children.length ? collapsed ? '▸ ' : '▾ ' : '  ') +
-            (agent.name ?? agent.id) + ' [' + agent.id + ']: ' + status(agent.status) +
-            (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), agent.id);
-        if (view.evidence)
-            evidence('agent-evidence:' + agent.id, agent.evidence);
-        if (!collapsed)
-            children.forEach(child => append(child, depth + 1));
-    };
-    report.agents.filter(agent => !agent.parent_id || !agents.has(agent.parent_id)).forEach(agent => append(agent, 0));
-    // Defensive cycle handling for a malformed wire response; never invent a parent.
-    report.agents.filter(agent => included.has(agent.id) && !visited.has(agent.id) &&
-        !(agent.parent_id && agents.has(agent.parent_id) && collapsedAgents.has(agent.parent_id) && !filtering)).forEach(agent => {
-        let parent = agent.parent_id;
-        const seen = new Set([agent.id]);
-        while (parent && agents.has(parent) && !seen.has(parent)) {
-            if (!filtering && collapsedAgents.has(parent))
+        const visited = new Set<string>(), filtering = !!(view.query || view.status);
+        const append = (agent: TaskAgentDetail, depth: number) => {
+            if (visited.has(agent.id) || !included.has(agent.id))
                 return;
-            seen.add(parent);
-            parent = agents.get(parent)?.parent_id ?? null;
-        }
-        if (parent && seen.has(parent))
-            append(agent, 0);
-    });
-    if (!matched.size)
-        add('no-agents', tr('task.viewer.no_matches'));
-    if (view.evidence) {
-        add('sources', tr('task.sources'));
-        evidence('evidence', report.evidence);
+            visited.add(agent.id);
+            const children = (childrenByParent.get(agent.id) ?? []).filter(child => included.has(child.id));
+            const collapsed = !filtering && collapsedAgents.has(agent.id);
+            add('agent:' + agent.id, '  '.repeat(Math.min(depth, 8)) + (children.length ? collapsed ? '▸ ' : '▾ ' : '  ') +
+                (agent.name ?? agent.id) + ' [' + agent.id + ']: ' + status(agent.status) +
+                (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), agent.id);
+            if (view.evidence)
+                evidence('agent-evidence:' + agent.id, agent.evidence);
+            if (!collapsed)
+                children.forEach(child => append(child, depth + 1));
+        };
+        report.agents.filter(agent => !agent.parent_id || !agents.has(agent.parent_id)).forEach(agent => append(agent, 0));
+        // Defensive cycle handling for a malformed wire response; never invent a parent.
+        report.agents.filter(agent => included.has(agent.id) && !visited.has(agent.id) &&
+            !(agent.parent_id && agents.has(agent.parent_id) && collapsedAgents.has(agent.parent_id) && !filtering)).forEach(agent => {
+            let parent = agent.parent_id;
+            const seen = new Set([agent.id]);
+            while (parent && agents.has(parent) && !seen.has(parent)) {
+                if (!filtering && collapsedAgents.has(parent))
+                    return;
+                seen.add(parent);
+                parent = agents.get(parent)?.parent_id ?? null;
+            }
+            if (parent && seen.has(parent))
+                append(agent, 0);
+        });
+        if (!matched.size)
+            add('no-agents', tr('task.viewer.no_matches'));
     }
-    report.limitations.forEach(reason => add('limit:' + reason, t('task.limit.' + reason, language, {}, reason)));
-    view.cache = { report: view.report, key: cacheKey, rows };
+    const agentEnd = rows.length;
+    if (cache?.report?.limitations === report.limitations && (!view.evidence || cache.report.evidence === report.evidence)) {
+        for (let index = cache.agentEnd; index < cache.rows.length; index++) rows.push(cache.rows[index]!);
+    } else {
+        if (view.evidence) {
+            add('sources', tr('task.sources'));
+            evidence('evidence', report.evidence);
+        }
+        report.limitations.forEach(reason => add('limit:' + reason, t('task.limit.' + reason, language, {}, reason)));
+    }
+    view.cache = { report, key: cacheKey, rows, agentStart, agentEnd };
     return rows;
 }
 /** Header identity and error remain visible while the evidence body pages. */

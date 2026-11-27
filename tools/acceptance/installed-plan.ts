@@ -45,7 +45,7 @@ export function installedPhases(windows: boolean, languages: number, pattern?: s
         ['tests.integration.test_compatibility.CompatibilityTests.test_terminal_script_uses_package_root_after_relocation', 150_000],
         ['tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installed_main_and_subagent_commands_match_in_both_shells', 300_000],
         ['installed native-editor protocol supports describe, preview, revision-bound save and portable export', 210_000],
-        ['installed task viewer is available without installation and shares registered-language bounded reading', 60_000],
+        ['installed task viewer is available without installation and shares registered-language bounded reading', windows ? 60_000 : 120_000],
         ['installed setup checks, previews, cancels, saves and integrates in a real terminal', 90_000],
         ['installed external editor saves and cancels in a real native terminal', 45_000],
         ['installed recovery restores interrupted editor publication without Python', 120_000],

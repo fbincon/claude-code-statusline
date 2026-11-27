@@ -18,6 +18,8 @@ export interface ProfileManager {
     selected: string | null;
     projectRoot: string | null;
     cursor: number;
+    listCursor: number;
+    refreshList: boolean;
     detailScroll: number;
     action: Action | null;
     fields: { key: 'name' | 'path'; input: TextInput }[];
@@ -31,7 +33,7 @@ export interface ProfileManager {
 }
 export interface ProfileBackend { request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>> }
 export function openProfiles(editor: Editor): void {
-    editor.profiles = { library: null, page: 'list', selected: null, projectRoot: null, cursor: 0, detailScroll: 0, action: null, fields: [], field: 0, candidate: null,
+    editor.profiles = { library: null, page: 'list', selected: null, projectRoot: null, cursor: 0, listCursor: 0, refreshList: false, detailScroll: 0, action: null, fields: [], field: 0, candidate: null,
         confirmation: null, next: null, effect: { kind: 'load' }, message: null, uncertain: false };
 }
 /** Open Save as without replacing the caller's unsaved draft. */
@@ -46,11 +48,23 @@ export function targetLabel(editor: Editor, language: Language): string {
     return t('profiles.target', language, { name: c.profile_name ?? t('profiles.user', language),
         root: c.project_root ?? '—', count: c.shared_projects.length });
 }
-function entries(m: ProfileManager): { key: string; label: string; raw?: boolean }[] {
-    if (m.page === 'actions') return ['edit','activate','rename','delete','bind','export'].map(key => ({ key, label: 'profiles.action.' + key }));
-    return [{ key: 'user', label: 'profiles.user' }, ...(m.library?.profiles ?? []).map(p => ({ key: p.id, label: p.name, raw: true })),
+function entries(m: ProfileManager, page = m.page): { key: string; label: string; raw?: boolean }[] {
+    if (page === 'actions') return ['edit','activate','rename','delete','bind','export'].map(key => ({ key, label: 'profiles.action.' + key }));
+    return [{ key: 'user', label: 'profiles.user' }, ...(m.library?.profiles ?? []).map(p => ({ key: 'profile:' + p.id, label: p.name, raw: true })),
         ...(m.library?.bindings ?? []).map(b=>({key:'binding:'+b.root,label:b.root+' → '+(m.library!.profiles.find(p=>p.id===b.profile_id)?.name ?? b.profile_id),raw:true})),
         ...['save','save_bind','import','unbind','reuse'].map(key => ({ key: 'action:' + key, label: 'profiles.action.' + key }))];
+}
+/** A list read can reorder profiles, bindings and commands while the user navigates. */
+export function receiveProfileList(m: ProfileManager, result: ProfilesResult): void {
+    const key = entries(m)[m.cursor]?.key;
+    m.library = result;
+    m.cursor = Math.max(0, entries(m).findIndex(row => row.key === key));
+}
+function returnToList(e: Editor, restoreSelection = true): void {
+    const m = e.profiles!;
+    m.page = 'list';
+    m.refreshList = e.shortcuts.surface === 'terminal';
+    m.cursor = m.refreshList && restoreSelection ? m.listCursor : 0;
 }
 function startForm(e: Editor, action: Action): void {
     const m = e.profiles!, profile = m.library?.profiles.find(p => p.id === m.selected), project = e.baseline.configuration;
@@ -91,7 +105,7 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
     if (cancel) {
         if (m.uncertain) { m.message = text('profiles.uncertain'); return null; }
         if (m.page === 'list') e.profiles = null;
-        else { m.page = 'list'; m.cursor = 0; m.candidate = null; m.confirmation = null; }
+        else { returnToList(e); m.candidate = null; m.confirmation = null; }
         return null;
     }
     if (m.page === 'form') {
@@ -116,7 +130,7 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
         if (key === 'up') m.cursor = Math.max(0, m.cursor - 1);
         if (key === 'down') m.cursor = Math.min(2, m.cursor + 1);
         if (key === 'enter') {
-            if (choices[m.cursor] === 'cancel') { m.page = 'list'; m.cursor = 0; }
+            if (choices[m.cursor] === 'cancel') { returnToList(e, false); }
             else m.effect = { kind: 'switch', next: m.next!, save: m.cursor === 0 };
         }
         return m.effect ? 'profiles' : null;
@@ -125,7 +139,7 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
         if (key === 'pageup' || key === 'pagedown') { m.detailScroll = Math.max(0, m.detailScroll + (key === 'pageup' ? -1 : 1)); return null; }
         if (key === 'up' || key === 'down') m.cursor = 1 - m.cursor;
         if (key === 'enter') {
-            if (m.cursor === 1) { m.page = 'list'; m.cursor = 0; m.confirmation = null; }
+            if (m.cursor === 1) { returnToList(e, false); m.confirmation = null; }
             else { m.effect = m.confirmation; return 'profiles'; }
         }
         return null;
@@ -140,11 +154,12 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
     if (key === 'enter') {
         const row = rows[m.cursor]!;
         if (m.page === 'list') {
+            m.listCursor = m.cursor;
             if (row.key === 'user') switching(e, { target: { kind: 'user' } });
             else if (row.key.startsWith('action:')) { m.candidate = null; startForm(e, row.key.slice(7) as Action); }
             else {
                 m.projectRoot = row.key.startsWith('binding:') ? row.key.slice(8) : null;
-                m.selected = m.projectRoot ? m.library!.bindings.find(b=>b.root===m.projectRoot)!.profile_id : row.key;
+                m.selected = m.projectRoot ? m.library!.bindings.find(b=>b.root===m.projectRoot)!.profile_id : row.key.slice('profile:'.length);
                 const selected = m.library!.profiles.find(p=>p.id===m.selected);
                 if (!selected) { m.message=text('profiles.error.missing',{value:m.selected}); return null; }
                 m.candidate=selected.display; m.page='actions';m.cursor=0;
@@ -171,6 +186,7 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
         if (effect.kind === 'load') {
             const copy = m.action === 'save' && m.candidate !== null;
             m.library = await backend.request('profiles_read'); m.page = 'list'; m.cursor = 0;
+            m.refreshList = false;
             if (copy) startForm(e, 'save');
             m.message = m.uncertain ? text('profiles.review_saved') : null; m.uncertain = false; return;
         }
@@ -202,6 +218,7 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
             m.candidate = result.display; startForm(e, 'save'); m.fields[0]!.input = textInput(result.name);
             m.message = text('profiles.import_review'); return;
         }
+        const origin = e.shortcuts.surface === 'terminal' ? entries(m, 'list')[m.listCursor] : null;
         writing = true;
         if (effect.kind === 'export') {
             await backend.request('profile_export', { path: effect.path, name: effect.name, display: effect.display, overwrite: effect.overwrite });
@@ -221,7 +238,9 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
                     JSON.stringify(current.draft) === JSON.stringify(e.baseline.draft)) e.baseline = current;
             }
         }
-        m.page = 'list'; m.cursor = 0; m.candidate = null; m.confirmation = null; m.message = text('profiles.saved');
+        m.page = 'list'; m.cursor = 0; m.refreshList = effect.kind === 'export' && e.shortcuts.surface === 'terminal';
+        if (origin?.raw) m.cursor = Math.max(0, entries(m).findIndex(row => row.key === origin.key));
+        m.candidate = null; m.confirmation = null; m.message = text('profiles.saved');
     } catch (error) {
         const code = error instanceof BackendError ? error.code : '';
         if(savingDisplay)e.saveFailed(code);

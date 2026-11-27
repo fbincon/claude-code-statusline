@@ -162,7 +162,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { taskCommand } = await import('./tasks/command.js');
             const { runtimeContext } = await import('./runtime/context.js');
             try {
-                if(args[0]==='view'){const {taskViewCommand}=await import('./tasks/view.js');return await taskViewCommand(args,environment.runtime??runtimeContext(configDir),language,selectedLanguage as Language|undefined);}
+                if(args[0]==='view'){const {taskViewCommand}=await import('./tasks/view.js');return await taskViewCommand(args,environment.runtime??configDir,language,selectedLanguage as Language|undefined);}
                 stdout(taskCommand(args, environment.runtime ?? runtimeContext(configDir), language) + '\n');
                 return 0;
             } catch (error) {

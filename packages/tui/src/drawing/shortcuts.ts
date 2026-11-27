@@ -1,11 +1,29 @@
 import { importShortcutHelp, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
+import { shortcutHint, type ShortcutAction } from '@fbincon/statusline-core/editor/shortcut-map';
+import type { EditorShortcuts } from '@fbincon/statusline-core/editor/shortcut-settings';
+import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 /** State-specific hints fitted as indivisible key/action pairs. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { t, renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import { paint, type Paint } from '../theme.js';
 import type { State } from '../state.js';
+import { sourceObservationJob, sourceObservationPending } from '../manager-refresh.js';
 
 export type Hint = readonly [key: string, label: string, short?: string];
+
+export function taskFooter(view: TaskViewer, keys?: EditorShortcuts): { actions: Hint[]; help: Hint[] } {
+    const tr = (key: string) => t(key, view.language);
+    const binding = (action: ShortcutAction) => keys?.hint('tasks', action) ?? shortcutHint('terminal', 'tasks', {}, action);
+    if (view.input) return {
+        actions: [['Enter', tr('ui.hints.accept')], ['Esc/Ctrl+G', tr('ui.hints.back')]],
+        help: [['←→', tr('ui.hints.move_cursor')], ['Ctrl+U', tr('ui.hints.clear')]],
+    };
+    const actions: Hint[] = [];
+    if (view.session) actions.push([binding('reload-tasks'), tr('ui.refresh.read_now')]);
+    actions.push([binding('close-tasks') + '/Esc', tr('task.close')]);
+    const readingKeys = (['task-search', 'task-filter', 'task-evidence', 'task-identity'] as const).map(binding);
+    return { actions, help: [['↑↓ PgUp/PgDn', tr('ui.hints.scroll')], [readingKeys.join(' ') + ' ←→', tr('task.viewer.keys')]] };
+}
 
 export function shortcuts(hints: readonly Hint[], width: number, primaryCount = hints.length): Paint[] {
     const fits = (values: readonly Hint[]) => displayWidth(values.map(([key, label]) => key + ' ' + label).join(' · ')) <= width;
@@ -37,24 +55,18 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
     const saveAndExit = (context: State['shortcutContext']) => hint(keys.aliases(context, 'save'), 'save_and_exit', 'save');
     if(e.changeReview||e.reuse)return {actions:[['Ctrl+G',t('ui.hints.back',state.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
     if (e.packages) {
-        const actions = [hint('Enter', 'select'), hint('Esc/Ctrl+G', 'back')], help = [hint('↑↓ PgUp/PgDn', 'scroll')];
-        if (!e.packages.input) {
-            actions.splice(1, 0, [keys.hint('packages', 'refresh-package'), t('profiles.refresh', state.language)]);
-            actions[2] = [keys.hint('packages', 'close-packages') + '/Esc', t('task.close', state.language)];
-            help.unshift(hint(keys.hint('packages', 'reload-packages'), 'reload'));
-            if (e.packages.job && !e.packages.execution) help.unshift(hint(keys.hint('packages', 'cancel-package-review'), 'cancel'));
-        }
+        if (e.packages.input) return {
+            actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')],
+            help: [hint('←→', 'move_cursor'), hint('Ctrl+U', 'clear')],
+        };
+        const actions: Hint[] = [hint('Enter', 'select'),
+            [keys.hint('packages', 'refresh-package'), t('ui.refresh.read_now', state.language)],
+            [keys.hint('packages', 'close-packages') + '/Esc', t('task.close', state.language)]];
+        const help = [hint(keys.hint('packages', 'reload-packages'), 'reload'), hint('↑↓ PgUp/PgDn', 'scroll')];
+        if (e.packages.job && !e.packages.execution) help.unshift(hint(keys.hint('packages', 'cancel-package-review'), 'cancel'));
         return { actions, help };
     }
-    if (e.taskViewer) {
-        const lang = e.taskViewer.language;
-        if (e.taskViewer.input) return { actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')], help: [hint('←→', 'move_cursor'), hint('Ctrl+U', 'clear')] };
-        return {
-            actions: [[keys.hint('tasks', 'reload-tasks'), t('profiles.refresh', lang)], [keys.hint('tasks', 'close-tasks') + '/Esc', t('task.close', lang)]],
-            help: [hint('↑↓ PgUp/PgDn', 'scroll'), [(['task-search', 'task-filter', 'task-evidence', 'task-identity'] as const).map(action =>
-                keys.hint('tasks', action)).join(' ') + ' ←→', t('task.viewer.keys', lang)]],
-        };
-    }
+    if (e.taskViewer) return taskFooter(e.taskViewer, keys);
     if (e.colors) return { actions: e.colors.input ? [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')] :
         [[keys.hint('colors', 'apply-color'), t('colors.apply', state.language)], hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓', 'select'), hint('Enter', 'edit')] };
     if (e.diagnosis) {
@@ -68,6 +80,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
         const help: Hint[] = [hint('↑↓','select')];
         if (e.sources.page === 'form') help.push([keys.hint('source-form', 'save-source'),t('sources.save',state.language)]);
         if (e.sources.page === 'list') help.push([keys.hint('sources', 'reload-sources'),t('sources.reload',state.language)]);
+        else if (sourceObservationJob(e)) help.push([keys.hint('sources', 'reload-sources'), t('ui.refresh.read_now', state.language)]);
         return { actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help };
     }
     if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [
@@ -153,6 +166,19 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
     if(e.saveState==='unknown')return [paint(tr('editor.save_unknown'),true)];
+    if (e.sources) {
+        const job = sourceObservationJob(e);
+        if (job) {
+            const pending = sourceObservationPending(job);
+            const status = pending && job.state === 'failed' ? tr('ui.refresh.checking_timeout') : tr('sources.reason.' + job.state);
+            const parts = [tr('sources.status'), status];
+            if (pending && job.state === 'running') parts.push(tr('ui.refresh.auto'));
+            if (!pending && job.reason !== job.state) parts.push(t('sources.error.' + job.reason, state.language, {},
+                t('sources.reason.' + job.reason, state.language, {}, job.reason)));
+            parts.push(job.id);
+            return [paint(parts.join(' · '))];
+        }
+    }
     if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
     if (e.review) return [paint(importShortcutHelp(e.review, e.shortcuts, state.language))];

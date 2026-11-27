@@ -129,7 +129,7 @@ claude-statusline task view --session-id SESSION_ID
 
 `task view` requires a TTY; for noninteractive text or JSON, use `task show` as shown above.
 
-Replace `SESSION_ID` with your own session ID. The gallery's recorded demonstration identifiers belong to the earlier controlled demonstration; do not paste them as your own IDs. Add `--prompt-id PROMPT_ID` to select a known historical task. Use `/` to search names/IDs, F to filter observed statuses, Enter to expand a selected agent, E to inspect evidence and R to refresh manually. Q closes the viewer. Settings → **Task details** returns to the existing configuration draft.
+Replace `SESSION_ID` with your own session ID. The identifiers in the gallery belong to the recorded demonstration. Add `--prompt-id PROMPT_ID` to follow a particular task. While a task is running, leave the terminal viewer open and watch its published progress change. Use `/` to search names or IDs, F to filter statuses, Enter to expand an agent and E to inspect evidence. R requests an immediate read and Q closes the viewer. The native pane refreshes on demand. Closing **Settings → Task details** returns to the existing configuration draft.
 
 Check that task total time and per-agent elapsed time retain their different scopes, completed durations freeze, and unavailable active time stays unavailable. The external viewer may show IDs where Native can obtain host names. A failed refresh retains the previous report and its capture time. Neither viewer scans transcripts, starts collection, queries GitHub or calls a model. See [task details](TASK_DETAILS.md).
 

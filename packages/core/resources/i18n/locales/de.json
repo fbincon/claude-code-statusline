@@ -2347,5 +2347,10 @@
   "task.controls.focus": "Strg+X und dann Tab drücken, um den Aufgabenbereich zu fokussieren, oder ein Bedienelement anklicken.",
   "task.controls.field_help": "Eingabe bestätigt · Tab wechselt zu Abbrechen",
   "task.controls.focus_field": "Feld anklicken oder Strg+X und dann Tab drücken. Erst tippen, wenn ⏎ erscheint.",
-  "shortcuts.action.event-refresh": "Nur bei Ereignissen aktualisieren"
+  "shortcuts.action.event-refresh": "Nur bei Ereignissen aktualisieren",
+  "ui.refresh.auto": "Ansicht aktualisiert sich automatisch",
+  "ui.refresh.cancel_requested": "Abbruch angefordert. Warten auf das Ende des Arbeitsprozesses…",
+  "ui.refresh.checking_timeout": "Zeitüberschreitung. Endergebnis wird geprüft…",
+  "ui.refresh.read_now": "Jetzt einlesen",
+  "ui.refresh.read_only": "Schreibgeschützt"
 }

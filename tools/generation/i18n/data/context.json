@@ -41,6 +41,31 @@
       "version": 1,
       "description": "Terminal keyboard shortcut action. Switch the refresh interval to the event-only mode in the current display draft.",
       "terms": []
+    },
+    "ui.refresh.auto": {
+      "version": 1,
+      "description": "External editor status. The current view re-reads already available data. This label describes the view only, including when a source or a package job is shown.",
+      "terms": []
+    },
+    "ui.refresh.cancel_requested": {
+      "version": 1,
+      "description": "A package review in the external editor has received a cancellation request. The worker has yet to confirm that it stopped.",
+      "terms": []
+    },
+    "ui.refresh.checking_timeout": {
+      "version": 1,
+      "description": "An external source job passed its deadline. The view keeps checking for a final result from the same job.",
+      "terms": []
+    },
+    "ui.refresh.read_now": {
+      "version": 1,
+      "description": "External editor shortcut for an immediate read of published status. Provider and package execution have separate actions.",
+      "terms": []
+    },
+    "ui.refresh.read_only": {
+      "version": 1,
+      "description": "Task report in the external editor. The view displays previously published evidence.",
+      "terms": []
     }
   }
 }

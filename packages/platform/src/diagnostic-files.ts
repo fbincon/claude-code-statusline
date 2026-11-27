@@ -11,8 +11,9 @@ export function readDiagnosticFile(path: string, allowLink = false): Buffer | nu
         if (!allowLink && isLinkOrReparse(path)) throw new Error('Symbolic diagnostic store');
         // A named pipe must not block in open before the regular-file check.
         fd = openSync(path, constants.O_RDONLY | (process.platform === 'win32' ? 0 : constants.O_NONBLOCK));
-        if (!fstatSync(fd).isFile()) throw new Error('Diagnostic input is not a regular file');
-        const raw = readLimitedInput(MAX_DIAGNOSTIC_BYTES, fd);
+        const stat = fstatSync(fd);
+        if (!stat.isFile()) throw new Error('Diagnostic input is not a regular file');
+        const raw = readLimitedInput(MAX_DIAGNOSTIC_BYTES, fd, stat.size);
         if (raw.length > MAX_DIAGNOSTIC_BYTES) throw new Error('Diagnostic input exceeds 32 MiB');
         return raw;
     } catch (error) {

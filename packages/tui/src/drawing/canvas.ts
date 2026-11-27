@@ -5,7 +5,7 @@ import { clipSpans, clusterSpans } from '@fbincon/statusline-core/terminal/spans
 import { terminalColor } from '@fbincon/statusline-core/rendering/colors';
 import type { Span } from '@fbincon/statusline-core/contracts/ui';
 import { paint, heading, type Paint } from '../theme.js';
-import type { Panel } from '../layout.js';
+import { canvasSize, type Panel } from '../layout.js';
 
 export interface Frame {
     columns: number;
@@ -25,8 +25,9 @@ export class Canvas {
     private readonly cells: (Paint | null)[][];
 
     constructor(columns: number, rows: number) {
-        this.columns = Math.max(1, Math.min(500, Math.trunc(columns)));
-        this.rows = Math.max(1, Math.min(200, Math.trunc(rows)));
+        const size = canvasSize(columns, rows);
+        this.columns = size.columns;
+        this.rows = size.rows;
         this.cells = Array.from({ length: this.rows }, () =>
             Array.from({ length: this.columns }, () => paint(' ')));
     }

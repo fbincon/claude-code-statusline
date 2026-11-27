@@ -1,6 +1,7 @@
 /** Bounded snapshots of atomically replaced, caller-owned private state. */
-import { constants, openSync, closeSync, fstatSync, readSync, lstatSync } from 'node:fs';
+import { constants, openSync, closeSync, fstatSync, lstatSync } from 'node:fs';
 import { FileChangedError, fileIdentity, sameFileIdentity, isLinkOrReparse } from './files.js';
+import { readLimitedInput } from './input.js';
 import type { BigIntStats } from 'node:fs';
 
 function privateFile(stat: BigIntStats): boolean {
@@ -17,14 +18,12 @@ function snapshot(path: string, maximum: number): Buffer {
         const opened = fstatSync(fd, { bigint: true });
         if (!privateFile(opened) || opened.size > BigInt(maximum)) throw new Error('Unsafe private state');
         if (!sameFileIdentity(identity, opened)) throw new FileChangedError();
-        const bytes = Buffer.alloc(maximum + 1);
-        let size = 0, count: number;
-        while (size < bytes.length && (count = readSync(fd, bytes, size, bytes.length - size, null)) > 0) size += count;
-        if (size > maximum) throw new Error('Private state grew past its limit');
+        const bytes = readLimitedInput(maximum, fd, Number(opened.size));
+        if (bytes.length > maximum) throw new Error('Private state grew past its limit');
         const after = fstatSync(fd, { bigint: true });
         if (!privateFile(after)) throw new Error('Private state permissions changed');
         if (after.mtimeNs !== opened.mtimeNs || after.size !== opened.size) throw new FileChangedError();
-        return bytes.subarray(0, size);
+        return bytes;
     } finally { closeSync(fd); }
 }
 /** Retry only identity/content races; unsafe files, missing data and invalid JSON

@@ -18,6 +18,7 @@ import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
+import { installedTaskEvidence, taskRefreshPty } from './task-refresh-pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import * as bridge from '@fbincon/statusline-platform/terminal/bridge';
 import { Capture } from '../capture.js';
@@ -623,7 +624,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     report.profile_project_task_cases = 8;
     checks.native_protocol = true;
 });
-test('installed task viewer is available without installation and shares registered-language bounded reading', () => {
+test('installed task viewer is available without installation and shares registered-language bounded reading', async () => {
     const config=join(installed.temporary,'task-viewer-readonly');
     assert(run(['task','--help'],config).includes('view --session-id'));
     const nonTty=invoke(['task','view','--session-id','session'],config);
@@ -634,7 +635,10 @@ test('installed task viewer is available without installation and shares registe
     admitInstalledCommand(30000);
     const result=spawnSync(installed.node,['--input-type=module','-e',program],{cwd:installed.directory,env:installed.env,encoding:'utf8',timeout:30000});
     assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,LANGUAGES.length*3);assert(!fs.existsSync(config));
-    report.task_viewer={languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true};checks.task_viewer=true;
+    const foreground = process.platform === 'win32' ? null : await taskRefreshPty(setup('task-viewer-foreground'),
+        { executable: installed.node, args: [installed.entry] }, installed.directory, installed.env);
+    Object.assign(report, installedTaskEvidence(LANGUAGES.length, foreground));
+    checks.task_viewer = true;
 });
 test('installed setup checks, previews, cancels, saves and integrates in a real terminal', { timeout: 90000 }, async () => {
     const readonly = join(installed.temporary, 'setup readonly');

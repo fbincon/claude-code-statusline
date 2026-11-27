@@ -2347,5 +2347,10 @@
   "task.controls.focus": "按 Ctrl+X 再按 Tab 將焦點移至工作窗格，或點選控制項。",
   "task.controls.field_help": "Enter 確認 · Tab 移至取消按鈕",
   "task.controls.focus_field": "點選欄位，或按 Ctrl+X 再按 Tab。看到 ⏎ 後再輸入。",
-  "shortcuts.action.event-refresh": "只在事件發生時重新整理"
+  "shortcuts.action.event-refresh": "只在事件發生時重新整理",
+  "ui.refresh.auto": "檢視會自動更新",
+  "ui.refresh.cancel_requested": "已要求取消，正在等待執行器停止。",
+  "ui.refresh.checking_timeout": "已逾時，正在確認最終結果…",
+  "ui.refresh.read_now": "立即重讀",
+  "ui.refresh.read_only": "唯讀"
 }

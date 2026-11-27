@@ -61,7 +61,8 @@ export function configurationDescription(version: readonly number[] | null) {
     return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: [...ITEMS], options: configurationOptions(), capabilities: capabilities(version), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
 }
 export class ConfigurationProtocol {
-    constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose) { }
+    constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose,
+        private readonly readTask = taskAdapter(service.context.configDir)) { }
     readResult(effective: EffectiveConfig & { configuration?: contracts.ResolvedConfiguration }): Record<string, unknown> {
         return { draft: draft(effective), revision: effective.revision, installed: effective.installed, installation: effective.installation, capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION,
             ...(effective.configuration ? { configuration: effective.configuration } : {}) };
@@ -117,7 +118,7 @@ export class ConfigurationProtocol {
             return sources.start(payload.id, payload.context, payload.owner);
         }
 
-        if (operation === 'task_details') return taskAdapter(this.service.context.configDir)(payload);
+        if (operation === 'task_details') return this.readTask(payload);
         if (operation === 'profiles_read' || operation === 'profiles_apply' || operation === 'profile_import' || operation === 'profile_export') {
             const profiles = new ProfileService(this.service, this.nextId);
             if (operation === 'profiles_read') { requestObject(payload, [], 'payload'); return profiles.read(); }

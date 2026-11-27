@@ -11,6 +11,7 @@ import { VERSION, isPrerelease } from '@fbincon/statusline-core/release';
 import { repoRoot } from '../../migration/ts-03/common.js';
 import { sha256 } from '../../build/files.js';
 import { commit, hash, officialLog, capacityValidationLog, sourceEntries, capacityLog, receipts, capacityValidation } from './fixtures/acceptance.js';
+import { installedTaskEvidence } from '../../migration/ts-04/test/task-refresh-pty.js';
 const registry = assessApprovalRegistry(JSON.parse(readFileSync(join(repoRoot, APPROVAL_REGISTRY_PATH), 'utf8')));
 const assessStableApproval = (value: unknown, version: string) => assessRegisteredApproval(value, version, registry);
 const stableApprovalPath = (version: string) => registeredApprovalPath(version, registry);
@@ -173,6 +174,20 @@ test('task-viewer and read-only package-review receipts cannot be omitted or wea
     }
     const missing=receipts();delete missing[0].task_viewer;assert.throws(()=>assessEvidence(missing,commit,hash));
     const changed=receipts();changed[0].task_viewer.readonly=false;assert.throws(()=>assessEvidence(changed,commit,hash));
+});
+test('installed task timing evidence preserves the task-viewer contract on POSIX and Windows', () => {
+    const rows = receipts();
+    const timing = { surfaces: ['configure-following', 'task-view-fixed'], completion_ms: 2000, continuation_ms: 10000,
+        next_prompt_ms: 2000, restored_terminals: 2, retained_draft: true };
+    for (const [target, foreground] of [['ubuntu-', timing], ['windows-', null]] as const) {
+        const row = rows.find(report => report.target?.startsWith(target) && report.task_viewer);
+        assert(row);
+        const evidence = installedTaskEvidence(row.task_viewer.languages, foreground);
+        assert.deepEqual(evidence.task_viewer, row.task_viewer);
+        assert.deepEqual(evidence.task_foreground_pty, foreground ?? undefined);
+        Object.assign(row, evidence);
+    }
+    assert.doesNotThrow(() => assessEvidence(rows, commit, hash));
 });
 test('twelve-language release rejects old combination and capacity counts', () => {
     for (const change of [

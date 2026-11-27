@@ -164,6 +164,9 @@ test('development content checks reject changed current facts and historical fra
             [`docs/development/architecture${suffix}.md`, 'benchmarks/', 'benchmarkz/'],
             [`docs/development/skill-workflows${suffix}.md`, suffix ? '`show`、`list-items`' : '`show`, `list-items`', suffix ? '`show`、`missing-action`' : '`show`, `missing-action`'],
             [`docs/development/source-command-package-management${suffix}.md`, suffix ? '300 秒' : '300 seconds', suffix ? '600 秒' : '600 seconds'],
+            [`docs/development/task-version-review${suffix}.md`, suffix ? '每 2 秒' : 'every 2 seconds', suffix ? '每 12 秒' : 'every 12 seconds'],
+            [`docs/development/task-version-review${suffix}.md`, suffix ? '每 10 秒' : 'every 10 seconds', suffix ? '每 20 秒' : 'every 20 seconds'],
+            [`docs/development/task-version-review${suffix}.md`, suffix ? '最长 30 秒' : 'maximum of 30 seconds', suffix ? '最长 60 秒' : 'maximum of 60 seconds'],
         ] as const) {
             const original = pages.get(path)!, changed = new Map(pages);
             assert(original.includes(before), path);

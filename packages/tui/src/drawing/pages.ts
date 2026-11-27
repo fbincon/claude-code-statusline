@@ -1,7 +1,6 @@
 import { changesView } from '@fbincon/statusline-core/editor/change-review';
 import { reuseView } from '@fbincon/statusline-core/editor/reuse-manager';
 import { packageView } from '@fbincon/statusline-core/editor/package-manager';
-import { taskViewerView } from '@fbincon/statusline-core/editor/task-viewer';
 import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
@@ -16,21 +15,31 @@ import { catalogMarker } from '@fbincon/statusline-core/editor/instances';
 import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
 import { reviewRows } from '@fbincon/statusline-core/editor/import-review';
 import { matchText, segments, snippet } from '@fbincon/statusline-core/editor/search';
-import { t } from '@fbincon/statusline-core/i18n/messages';
-import { formWindow, type dimensions } from '../layout.js';
+import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
+import { formWindow, type dimensions, type Panel } from '../layout.js';
+import { externalTaskRows, packageRefreshError, packageRefreshInterval } from '../report-refresh.js';
 import { paint, heading } from '../theme.js';
 import type { State } from '../state.js';
 import { Canvas, column } from './canvas.js';
-import { fieldLabel, fieldValue, groupKey } from './presentation.js';
+import { fieldLabel, fieldValue, groupKey, taskReportStatus } from './presentation.js';
 
-export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof dimensions>): string {
+export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof dimensions>, panel: Panel): string {
     const e = state.editor;
-    const panel = size.content;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     if(e.changeReview||e.reuse){(e.changeReview?changesView(e,state.language,width,panel.innerHeight-1):reuseView(e,state.language,width,panel.innerHeight-1)).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return ''; }
-    if(e.packages){packageView(e.packages,state.language,width,panel.innerHeight-1,e.shortcuts).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return tr('package.ui.help');}
-    if(e.taskViewer){taskViewerView(e.taskViewer,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return t('task.readonly',e.taskViewer.language);}
+    if (e.packages) {
+        packageView(e.packages, state.language, width, panel.innerHeight - 1, e.shortcuts, true)
+            .forEach((row, index) => canvas.content(panel, index, [paint(row.text, false, row.selected)], row.selected));
+        const error = packageRefreshError(e.packages);
+        if (error) return renderMessage(error, state.language);
+        return packageRefreshInterval(e.packages) === null ? '' : tr('ui.refresh.auto');
+    }
+    if (e.taskViewer) {
+        externalTaskRows(e.taskViewer, width, panel.innerHeight - 1)
+            .forEach((row, index) => canvas.content(panel, index, [paint(row.text, false, row.selected)], row.selected));
+        return taskReportStatus(e.taskViewer);
+    }
     if (e.diagnosis) {
         const page = diagnosisPage(e, state.language, width, panel.innerHeight - 1);
         page.lines.forEach((line, index) => canvas.content(panel, index, [paint(line)]));

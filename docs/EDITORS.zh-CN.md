@@ -51,9 +51,11 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 
 ### 终端页面区域与底部提示
 
-内容和 `Preview (sample data)` 使用独立区域，64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。
+编辑显示配置时，草稿内容和 `Preview (sample data)` 使用独立区域，64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。**任务详情**和**版本与安装**将整个内容区用于报告，文件诊断则在预览区显示实际渲染输出。
 
 底部提示随当前操作变化。组件列表优先显示切页、选择和切换。保存区显示当前的保存并退出键。筛选时提供清除筛选的入口，隐藏排序提示。输入字段显示接受／取消及光标／删除控制，选择器显示选择控制。仅打开字段或修改文件路径不改变显示草稿；配置文本尚未接受时，也可能在标题中标记为已修改。
+
+保持任务报告或运行中作业的状态页打开即可跟踪变化。按当前刷新键可立即查看。输入或确认期间暂停自动读取，离开页面后停止。设置里的**刷新间隔**单独控制 Claude 的状态栏。详见[任务详情](TASK_DETAILS.zh-CN.md)、[包管理进度](PACKAGE_MANAGEMENT.zh-CN.md)和[来源作业](EXTENSIONS.zh-CN.md#使用两个编辑器配置)。
 
 <a id="client-pagination-and-footer"></a>
 

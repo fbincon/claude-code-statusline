@@ -1,10 +1,17 @@
 /** External-editor labels and values; editable text remains canonical. */
 import { fieldMessage } from '@fbincon/statusline-core/editor/forms';
+import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 import { t, renderMessage, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/messages';
 import type { State, Row } from '../state.js';
+import { taskRefreshInterval } from '../report-refresh.js';
 
 export const groupKey = (group: string): string =>
     'groups.' + group.toLowerCase().replaceAll(' / ', '.').replaceAll(' ', '-');
+
+export function taskReportStatus(view: TaskViewer): string {
+    const readOnly = t('ui.refresh.read_only', view.language);
+    return taskRefreshInterval(view) === null ? readOnly : readOnly + ' · ' + t('ui.refresh.auto', view.language);
+}
 
 export function fieldLabel(row: Row, state: State): string {
     if (/^(?:field|item|fit|break):/u.test(row.key)) {
