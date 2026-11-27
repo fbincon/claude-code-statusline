@@ -22,7 +22,7 @@ import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
 import type { ShortcutContext } from '@fbincon/statusline-core/editor/shortcut-map';
-import { shortcutPanelCapacity, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
+import { shortcutPanelFits, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
 export type Effect = 'changes' | 'reuse' | 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | ShortcutEffect | null;
 type Input = ({
     kind: 'search';
@@ -237,9 +237,9 @@ export class State {
         }
         if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' && !event.text && !event.paste) return 'reconcile';
         if (e.saveState === 'pending') return null;
-        if (!size.available && !cancel) return null;
+        if (!size.available && !cancel && !(e.shortcuts.panel && shortcutPanelFits(columns, rows))) return null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
-        if (e.shortcuts.panel) return e.shortcuts.key(event, shortcutPanelCapacity(rows - 1, columns), event.shift);
+        if (e.shortcuts.panel) return e.shortcuts.key(event, this.language, columns, rows - 1, event.shift);
         if (e.changeReview) return changesKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         if (e.reuse) return reuseKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         if (e.packages) return packageKey(e.packages, event, e.shortcuts);

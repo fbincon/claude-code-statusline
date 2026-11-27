@@ -1,5 +1,5 @@
 import { isPackageResult } from './package-validation.js';
-import { isBindingMap, shortcutConflict } from './shortcut-map.js';
+import { isBindingMap, readShortcutBindings, shortcutConflict } from './shortcut-map.js';
 import { isScenario } from './preview-settings.js';
 import { validAlignments } from './alignments.js';
 import { GRADIENT_KEYS, validGradient } from './gradients.js';
@@ -456,10 +456,17 @@ export function parseResponse<O extends Operation>(
         !STATUSLINELANGUAGE_VALUES.some(language => language === result.ui_language) ||
         !(result.warning === null || isLocalizedText(result.warning))) fail();
   } else if (operation === 'read_editor_shortcuts' || operation === 'set_editor_shortcuts') {
+    const bindings = result.bindings;
     if (!exact(result, ['schema_version', 'bindings', 'revision', 'warning']) || result.schema_version !== EDITOR_SHORTCUTS_SCHEMA_VERSION ||
-        !isBindingMap(result.bindings) || shortcutConflict(result.bindings) ||
-        !(result.revision === null ? !Object.keys(result.bindings).length : typeof result.revision === 'string' && result.revision.length === 64 && /^[a-f0-9]{64}$/u.test(result.revision)) ||
+        !object(bindings) ||
+        !(result.revision === null ? !Object.keys(bindings).length : typeof result.revision === 'string' && result.revision.length === 64 && /^[a-f0-9]{64}$/u.test(result.revision)) ||
         !(result.warning === null || operation === 'read_editor_shortcuts' && isLocalizedText(result.warning))) fail();
+    if (operation === 'read_editor_shortcuts' && result.warning === null) {
+      const decoded = readShortcutBindings(bindings);
+      if (!decoded) fail();
+      result.bindings = decoded.bindings;
+      result.warning = decoded.warning;
+    } else if (!isBindingMap(bindings) || shortcutConflict(bindings)) fail();
   } else if (operation === 'read' || operation === 'apply') {
     if (result.configuration !== undefined && !isConfiguration(result.configuration)) fail();
     if (

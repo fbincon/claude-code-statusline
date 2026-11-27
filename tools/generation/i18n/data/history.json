@@ -28283,6 +28283,89 @@
         "terms": []
       },
       "terms": {}
+    },
+    "852ad8fb85e11c1c66b0603dc9ae93a5161ba4aaafc4d6e0ddd741f1a7c159fb": {
+      "key": "shortcuts.capture-host-help",
+      "english": "Claude reserves {keys}. Ctrl+G cancels.",
+      "placeholders": [
+        "keys"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.capture-host-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2825f9dacb9ddbca2b21bde57a89ecb3a583d286c5457a360e386b54fda7f37f": {
+      "key": "shortcuts.filter",
+      "english": "Filter",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.filter",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f453eb1533a0866cf3443ef45d7a9979ce37e59c06e3afdeba4d26e2132ea184": {
+      "key": "shortcuts.filter-help",
+      "english": "Enter apply · Ctrl+G cancel · Ctrl+U clear",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.filter-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0ff956af7e276946ea55cce4176c4634b707b1c50ac528bc88fdd1d648461ca9": {
+      "key": "shortcuts.host-key",
+      "english": "Claude reserves {key}. Choose another key.",
+      "placeholders": [
+        "key"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.host-key",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "103f6cdfff16d1b5eeb98b912f4567de450d3cdec623631599f1b600ba88a462": {
+      "key": "shortcuts.ignored-bindings",
+      "english": "Skipped unavailable or conflicting keys {keys}. Save shortcuts to confirm.",
+      "placeholders": [
+        "keys"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.ignored-bindings",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e13e607a40452fb55b016e5de258e3fc2b9d4ba444e67434be906f12eed79acc": {
+      "key": "shortcuts.list-help",
+      "english": "/ filter · Enter change · Delete restore",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.list-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2a8176f0881a610cf3a12b5d9527a20ef8b6f527cec9318f94c6709ecadc8a20": {
+      "key": "shortcuts.no-matches",
+      "english": "No matching actions.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.no-matches",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -28515,6 +28598,15 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.list-help": [
+        {
+          "source": "689ae4e1769d6a442fcf0f87faf67f8ac7bdea357d8306e6e4f833cdbd49d871",
+          "translation": "e7c9b863af8792c1c50efc11c27d501b689b8198fbdfa7227d899263254beaba",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
         }
       ]
     },
@@ -29031,6 +29123,15 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.list-help": [
+        {
+          "source": "689ae4e1769d6a442fcf0f87faf67f8ac7bdea357d8306e6e4f833cdbd49d871",
+          "translation": "bc864e49beeac4308e53d3248e706ebf883dcb04a8705ef1de5a5233ede3c96e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
         }
       ]
     },

@@ -8,7 +8,7 @@ Editor-specific undo/redo keys and terminal conflicts are in [keyboard controls]
 
 Open **Changes and history** from Settings or with **Ctrl+T**. Within that page, ordinary **U** and **R** undo and redo. A text field, picker or manager handles its own keys while active. Return to the main editor to use draft history.
 
-Claude's Unix host can intercept Ctrl+Z to suspend the entire process before the editor receives it, as observed on 2.1.312 and described in [Claude's terminal conflicts](https://code.claude.com/docs/en/keybindings#terminal-conflicts). The installer does not modify Claude's global keybindings; use the host-specific alternatives in the editor guide.
+Use Ctrl+/ or Ctrl+_ in Client. In Claude on Unix, Ctrl+Z can suspend the entire process before Client receives the key, as observed on 2.1.312. The external editor receives Ctrl+Z as Undo through raw terminal input. [Claude terminal conflicts](https://code.claude.com/docs/en/keybindings#terminal-conflicts)
 
 ## History and change review
 

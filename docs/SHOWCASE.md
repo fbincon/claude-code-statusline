@@ -85,7 +85,7 @@ Open the external editor with `claude-statusline configure --user`, or use `/sta
 
 1. Confirm the editing target in the header. Use Settings to select sample scenario and preview width, then inspect Main and Subagents. These preview controls are session-only.
 2. Open a component and change its ordinary foreground or foreground gradient. Cancel the form once to confirm the draft is retained, then accept a change.
-3. Open **Changes and history** with Ctrl+T. Use U to undo and R to redo there. Outside managers, terminal-editor undo is Ctrl+Z; Client undo is Ctrl+Z / Ctrl+/ (Ctrl+_ when forwarded), because Unix Claude may intercept Ctrl+Z. Redo is Ctrl+R. See [editor keyboard controls](EDITORS.md#keyboard-controls).
+3. Open **Changes and history** with Ctrl+T. Use U to undo and R to redo there. Outside managers, undo uses Ctrl+Z in the terminal editor and Ctrl+/ or Ctrl+_ in Client. Redo uses Ctrl+R. [Editor keyboard controls](EDITORS.md#keyboard-controls)
 4. Use **Display schemes and projects** (Ctrl+O) to import selected settings from a profile into the current draft. Select only the intended sections, review the differences and accept. Save separately.
 5. Open a destination component's **Copy / paste visual style** to select a source and compatible visual fields. Its metric, local binding, position and visibility stay with the destination.
 6. Use Settings → **Reuse complete groups** for an entire group. Review dependencies and any automatic-to-explicit layout conversion. Imported local bindings remain unresolved until separately bound; importing never enables their source.

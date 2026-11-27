@@ -5,13 +5,15 @@ import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
-import { dimensions } from './layout.js';
+import { dimensions, MIN_COLUMNS, MIN_ROWS } from './layout.js';
 import { paint, heading } from './theme.js';
 import { Canvas, type Frame } from './drawing/canvas.js';
 import { drawPage } from './drawing/pages.js';
 import { contentTitle } from './drawing/presentation.js';
 import { footer, notice, shortcuts } from './drawing/shortcuts.js';
-import { shortcutPanelRows } from '@fbincon/statusline-core/editor/shortcut-settings';
+import {
+    SHORTCUT_PANEL_MIN_COLUMNS, SHORTCUT_PANEL_MIN_ROWS, shortcutPanelFits, shortcutPanelRows,
+} from '@fbincon/statusline-core/editor/shortcut-settings';
 
 export type { Paint } from './theme.js';
 export type { Frame } from './drawing/canvas.js';
@@ -39,10 +41,19 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
+    if (e.shortcuts.panel && shortcutPanelFits(canvas.columns, canvas.rows)) {
+        canvas.put(0, 0, [heading(tr('shortcuts.title'))]);
+        shortcutPanelRows(e.shortcuts, state.language, canvas.columns, canvas.rows - 1)
+            .forEach((row, index) => canvas.line(index + 1, row.text, false, row.selected));
+        return canvas.frame();
+    }
+
     if (!size.available) {
         canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line'))]);
         const message = tr('ui.drawing.terminal_too_small_need_x_current_x', {
-            MIN_TERMINAL_WIDTH: 64, MIN_TERMINAL_HEIGHT: 18, width: canvas.columns, height: canvas.rows,
+            MIN_TERMINAL_WIDTH: e.shortcuts.panel ? SHORTCUT_PANEL_MIN_COLUMNS : MIN_COLUMNS,
+            MIN_TERMINAL_HEIGHT: e.shortcuts.panel ? SHORTCUT_PANEL_MIN_ROWS : MIN_ROWS,
+            width: canvas.columns, height: canvas.rows,
         });
         const start = canvas.rows > 3 ? 2 : 0;
         wrapText([message], canvas.columns).slice(0, Math.max(0, canvas.rows - start - 1))
@@ -53,11 +64,6 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
-    if (e.shortcuts.panel) {
-        canvas.put(0, 0, [heading(tr('shortcuts.title'))]);
-        shortcutPanelRows(e.shortcuts, state.language, columns, rows - 1).forEach((row, index) => canvas.line(index + 1, row.text, false, row.selected));
-        return canvas.frame();
-    }
     state.ensureVisible(size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
     const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;

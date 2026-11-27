@@ -7,6 +7,7 @@ import { SCHEMA_VERSION, defaultDisplay, isSchema, validateDisplay } from '@fbin
 import { COMPLETE_SCHEMES, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
 import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { PROTOCOL_VERSION as RUNTIME_PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/runtime';
+import { reservedNativeKeys, shortcutAliases } from '@fbincon/statusline-core/editor/shortcut-map';
 import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { readJson } from '@fbincon/statusline-core/json-read';
@@ -144,6 +145,14 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             assert.deepEqual(dimensions.slice(1).map(Number), [MIN_COLUMNS, MIN_ROWS], 'Terminal editor minimum size differs from production layout');
             const client = rows.find(row => row.startsWith('| `/statusline-configure-native` |'));
             assert.equal(client?.match(/(\d+\.\d+\.\d+)\+/u)?.[1], NATIVE.minimum.join('.'), 'Client minimum host differs from integration');
+            const undo = rows.find(row => row.startsWith(suffix ? '| 撤销 |' : '| Undo |'));
+            for (const surface of ['terminal', 'native'] as const) {
+                const key = shortcutAliases(surface, 'list', {}, 'undo');
+                assert(undo?.includes(key), 'Missing editor undo preset ' + key);
+            }
+            const customization = body.split('<a id="customize-keyboard-shortcuts"></a>')[1]?.split('<a id="text-input"></a>')[0];
+            for (const key of reservedNativeKeys('save'))
+                assert(customization?.includes(key), 'Missing Claude host restriction ' + key);
         });
         check(schemes, body => {
             const counts = body.match(suffix ? /下方([^\s]+?)套完整方案/u : /The (\w+) complete schemes below/u);
