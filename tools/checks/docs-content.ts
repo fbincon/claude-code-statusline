@@ -146,9 +146,12 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             const client = rows.find(row => row.startsWith('| `/statusline-configure-native` |'));
             assert.equal(client?.match(/(\d+\.\d+\.\d+)\+/u)?.[1], NATIVE.minimum.join('.'), 'Client minimum host differs from integration');
             const undo = rows.find(row => row.startsWith(suffix ? '| 撤销 |' : '| Undo |'));
-            for (const surface of ['terminal', 'native'] as const) {
+            const keyboard = body.split('<a id="keyboard-controls"></a>')[1]?.split('### ', 3);
+            for (const [index, surface] of (['terminal', 'native'] as const).entries()) {
                 const key = shortcutAliases(surface, 'list', {}, 'undo');
                 assert(undo?.includes(key), 'Missing editor undo preset ' + key);
+                const toggle = shortcutAliases(surface, 'list', {}, 'toggle-item').replaceAll('/', ' / ');
+                assert(keyboard?.[index + 1]?.includes('| ' + toggle + ' |'), 'Missing ' + surface + ' component toggle presets ' + toggle);
             }
             const customization = body.split('<a id="customize-keyboard-shortcuts"></a>')[1]?.split('<a id="text-input"></a>')[0];
             for (const key of reservedNativeKeys('save'))

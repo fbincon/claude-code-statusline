@@ -603,6 +603,8 @@
   "ui.hints.select": "выбрать",
   "ui.hints.edit": "изменить",
   "ui.hints.save": "сохранить",
+  "ui.hints.save_and_continue": "сохранить и продолжить",
+  "ui.hints.save_and_exit": "сохранить и выйти",
   "ui.hints.cancel": "отменить",
   "ui.hints.interrupt": "прервать",
   "ui.drawing.type_to_search": "Поиск > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "каталог",
   "ui.hints.add_enable": "добавить/включить",
   "ui.hints.clear_filters": "сбросить фильтры",
+  "ui.hints.clear_filters_short": "сброс фильтров",
   "composition.close_picker": "Закрыть выбор",
   "composition.actions": "Добавить / копировать / удалить",
   "review.component": "Компонент {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "Свернуть",
   "task.controls.focus": "Нажмите Ctrl+X, затем Tab, чтобы перейти в панель задач, или щёлкните по элементу управления.",
   "task.controls.field_help": "Enter — подтвердить · Tab — перейти к кнопке отмены",
-  "task.controls.focus_field": "Щёлкните по полю или нажмите Ctrl+X, затем Tab. Вводите текст после появления ⏎."
+  "task.controls.focus_field": "Щёлкните по полю или нажмите Ctrl+X, затем Tab. Вводите текст после появления ⏎.",
+  "shortcuts.legacy-settings-short": "Прежние настройки"
 }

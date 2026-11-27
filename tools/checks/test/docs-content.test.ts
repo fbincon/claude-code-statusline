@@ -38,6 +38,7 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/USER_GUIDE${suffix}.md`, 'claude-statusline setup --dry-run', 'claude-statusline setup --check'],
             [`docs/EDITORS${suffix}.md`, '64×18', '63×18'],
             [`docs/EDITORS${suffix}.md`, '2.1.287+', '2.1.999+'],
+            [`docs/EDITORS${suffix}.md`, '| Enter / Space |', '| Space |'],
             [`docs/EDITORS${suffix}.md`, 'Ctrl+/', 'Ctrl+F'],
             [`docs/EDITORS${suffix}.md`, 'Ctrl+Z', 'Ctrl+B'],
             [`docs/development/ci-maintenance${suffix}.md`, suffix ? '11 项发版 PR 作业' : '11 release PR jobs', suffix ? '65 项发版 PR 作业' : '65 release PR jobs'],

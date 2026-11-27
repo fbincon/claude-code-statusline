@@ -244,7 +244,13 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, count, written) || written[0] !== count) throw new Error('WriteConsoleInputW did not send every key record');
     };
     const discardEditor = operation === 'windows-editor' && choice !== 'save';
+    const toggleThenSave = operation === 'windows-editor' && choice === 'save';
+    const protectedFiles = toggleThenSave ? ['claude-statusline.json', 'settings.json'].map(name => {
+        const path = join(config!, name);
+        return { path, bytes: fs.readFileSync(path), mode: fs.statSync(path).mode };
+    }) : [];
     let previewCancelled = false, discardConfirmed = false;
+    let toggledBeforeSave = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     // The production editor can move to an independent runtime. Preserve its
     // real console handles and record its writes through a fixture-only preload,
@@ -263,9 +269,17 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
             scheduled = true;
             setTimeout(() => {
                 const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
-                    : discardEditor ? ' \x1b' : ' \x13';
+                    : discardEditor ? ' \x1b' : '\r';
                 sendKeys(keys);
             }, 50);
+        }
+        if (toggleThenSave && scheduled && !toggledBeforeSave && output.includes('Configure Status Line *')) {
+            toggledBeforeSave = true;
+            for (const { path, bytes, mode } of protectedFiles) {
+                assert.deepEqual(fs.readFileSync(path), bytes, 'Enter changed ' + path);
+                assert.equal(fs.statSync(path).mode, mode, 'Enter changed the mode of ' + path);
+            }
+            setTimeout(() => sendKeys('\x13'), 50);
         }
         if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
@@ -289,6 +303,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
+        assert(!toggleThenSave || toggledBeforeSave, 'Windows editor saved before the Enter toggle was visible');
         fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, discard_confirmed: discardConfirmed, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }

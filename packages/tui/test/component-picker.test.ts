@@ -87,7 +87,11 @@ test('terminal catalog shows scoped type states for new, copied and disabled ins
         assert.match(row()!, /› \[x\]/u);
         assert.deepEqual(nodes(e.draft, scope).filter(item => item.type_id === type).map(item => item.id), [copy]);
         ctrl('g');
-        assert.equal(state.key({ key: 'return' }), 'save');
+        const undoCount = e.history.undo.length;
+        assert.equal(state.key({ key: 'return' }), null);
+        assert.equal(e.instance(scope, copy)!.enabled, false);
+        assert.equal(e.history.undo.length, undoCount + 1);
+        assert.equal(ctrl('s'), 'save');
     }
 });
 
@@ -102,7 +106,8 @@ test('terminal catalog inherits filters and keeps them separate during continuou
     const original = e.listContext('main');
     let output = plain(state).join('\n');
     assert.match(output, /Configured 1 · Unconfigured 4/u);
-    assert.match(output, /Ctrl\+A catalog · Ctrl\+G clear filters/u);
+    assert.match(output, /Ctrl\+A\/D\/X add\/copy\/rm/u);
+    assert.match(output, /Ctrl\+G clear/u);
 
     ctrl('a');
     assert.deepEqual([e.listContext('main').category, e.listContext('main').search], ['model', 'model-with-effort']);
@@ -131,4 +136,23 @@ test('terminal catalog inherits filters and keeps them separate during continuou
     assert.equal(e.category.main, 'all');
     assert.equal(e.search.main, '');
     assert.equal(e.history.undo.length, 2);
+});
+
+test('Enter accepts a query before it can toggle a configured component', () => {
+    const state = fixture(), e = state.editor;
+    state.key({ key: '/' });
+    state.key({ key: 'model-with-effort', text: true });
+    const id = e.selected.main;
+    assert.equal(e.instance('main', id)?.type_id, 'model-with-effort');
+    assert.equal(state.key({ key: 'return' }), null);
+    assert.equal(state.input, null);
+    assert.equal(e.history.undo.length, 0);
+    assert.equal(state.key({ key: 'return' }), null);
+    assert.equal(e.instance('main', id)?.enabled, false);
+    assert.equal(e.history.undo.length, 1);
+
+    state.search('no-configured-component-zxq');
+    assert.equal(e.selected.main, '');
+    assert.equal(state.key({ key: 'return' }), null);
+    assert.equal(e.history.undo.length, 1);
 });

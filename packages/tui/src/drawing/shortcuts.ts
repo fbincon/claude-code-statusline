@@ -7,12 +7,14 @@ import type { State } from '../state.js';
 
 export type Hint = readonly [key: string, label: string, short?: string];
 
-export function shortcuts(hints: readonly Hint[], width: number): Paint[] {
-    const compact = displayWidth(hints.map(([key, label]) => key + ' ' + label).join(' · ')) > width;
+export function shortcuts(hints: readonly Hint[], width: number, primaryCount = hints.length): Paint[] {
+    const fits = (values: readonly Hint[]) => displayWidth(values.map(([key, label]) => key + ' ' + label).join(' · ')) <= width;
+    const compact = !fits(hints);
+    const compactPrimary = compact && !fits(hints.slice(0, primaryCount));
     const spans: Paint[] = [];
     let used = 0;
-    for (const [key, full, short] of hints) {
-        const label = compact ? short ?? full : full;
+    for (const [index, [key, full, short]] of hints.entries()) {
+        const label = (index < primaryCount ? compactPrimary : compact) ? short ?? full : full;
         const separator = spans.length ? ' · ' : '';
         const size = displayWidth(separator + key + ' ' + label);
         if (used + size > width) {
@@ -25,13 +27,14 @@ export function shortcuts(hints: readonly Hint[], width: number): Paint[] {
     return spans;
 }
 
-export function footer(state: State): { actions: Hint[]; help: Hint[] } {
+export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryActions?: number } {
     const e = state.editor;
     const hint = (key: string, label: string, short?: string): Hint => [
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
     const keys = e.shortcuts;
+    const saveAndExit = (context: State['shortcutContext']) => hint(keys.aliases(context, 'save'), 'save_and_exit', 'save');
     if(e.changeReview||e.reuse)return {actions:[['Ctrl+G',t('ui.hints.back',state.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
     if (e.packages) {
         const actions = [hint('Enter', 'select'), hint('Esc/Ctrl+G', 'back')], help = [hint('↑↓ PgUp/PgDn', 'scroll')];
@@ -110,40 +113,39 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     }
     if (e.adding) {
         return {
-            actions: [hint('Enter/Space', 'add_enable'), hint('Ctrl+G/Esc', 'back')],
-            help: [hint(keys.hint('picker', 'search'), 'search'), hint('↑↓', 'select'), hint(keys.hint('picker', 'category'), 'category'),
+            actions: [hint('Enter/Space', 'add_enable'), hint('Ctrl+G/Esc', 'back'), saveAndExit('picker')],
+            help: [hint('↑↓', 'select'), hint(keys.hint('picker', 'search'), 'search'), hint(keys.hint('picker', 'category'), 'category'),
                 hint('Ctrl+U', 'clear'), hint(keys.hint('picker', 'item-details'), 'details')],
         };
     }
     const context = state.shortcutContext;
-    const actions: Hint[] = [hint(keys.aliases(context, 'save'), 'save'),
-        hint(keys.aliases(context, 'close'), 'cancel'), hint('Ctrl+C', 'interrupt')];
+    const actions: Hint[] = [saveAndExit(context), hint(keys.aliases(context, 'close'), 'close'), hint('Ctrl+C', 'interrupt')];
+    const primaryActions = actions.length;
     actions.push([keys.hint(context, 'undo', 'redo'),t('history.undo_redo',state.language)], [keys.hint(context, 'history'),t('history.title',state.language)]);
     if(!e.detail) actions.push([keys.hint(context, 'quick-setup'),t('quick.title',state.language)]);
     actions.push([keys.hint(context, 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]);
     if (e.detail) {
-        return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
+        return { actions, primaryActions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
     if (state.form) {
-        const enter = ['legacy-settings', 'numeric-settings', 'refresh-settings'].includes(context) ? [] : [hint('Enter', 'edit')];
+        const enter = context === 'settings' || context === 'layout' ? [hint('Enter', 'edit')] : [];
         return {
-            actions,
+            actions, primaryActions,
             help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), ...enter],
         };
     }
     const filtered = e.filtered(state.scope);
-    const help = [hint(keys.hint(context, 'search'), 'search')];
-    if (filtered) {
-        if (e.category[state.scope] !== 'all') help.push(hint(keys.hint(context, 'add-item'), 'catalog'));
-        help.push(hint('Ctrl+G', 'clear_filters'));
-    }
-    help.push(hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
-        hint(keys.hint(context, 'toggle-item'), 'toggle'), hint(keys.hint(context, 'item-details'), 'format'), hint('↑↓', 'select'));
+    const help = [hint('Tab', 'page'), hint('↑↓', 'select'), hint(keys.aliases(context, 'toggle-item'), 'toggle'),
+        hint(keys.hint(context, 'search'), 'search')];
+    if (filtered) help.push(hint('Ctrl+G', 'clear_filters', 'clear_filters_short'));
+    help.push(hint(keys.hint(context, 'category'), 'category'),
+        hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'));
     if (!filtered) help.push(hint(keys.hint(context, 'move-left', 'move-right'), 'order'));
-    return { actions, help };
+    help.push(hint(keys.hint(context, 'item-details'), 'details'));
+    return { actions, primaryActions, help };
 }
 
-export function notice(state: State, width: number): Paint[] {
+export function notice(state: State, width: number, visibleHelp: readonly Paint[]): Paint[] {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
@@ -160,10 +162,22 @@ export function notice(state: State, width: number): Paint[] {
     if (e.page === 'layout') return [paint(tr('ui.drawing.explicit_rows_priority_width'))];
     if (e.page === 'settings') {
         const prefix = tr('ui.drawing.use_arrows_to_change_values');
+        if (state.shortcutContext !== 'settings') return [paint(prefix.trimEnd())];
         return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
     }
     const { category, search } = e.listContext(state.scope);
     const context = e.adding ? 'picker' : 'list';
-    return [paint(e.shortcuts.hint(context, 'category'), true), paint(' ' + tr('catalog.categories.' + category) + ' · '),
-        paint(e.shortcuts.hint(context, 'search'), true), paint(' ' + tr('ui.drawing.type_to_search') + search)];
+    const keys = e.shortcuts;
+    const hints: Hint[] = [[keys.hint(context, 'category'), tr('catalog.categories.' + category)]];
+    if (e.inDraftView && !e.packageLocked && e.filtered(state.scope)) {
+        const visible = (key: string) => visibleHelp.some(span => span.bold && span.text === key);
+        if (!visible('Ctrl+G')) hints.push(['Ctrl+G', tr('ui.hints.clear_filters'), tr('ui.hints.clear_filters_short')]);
+        if (category !== 'all' && !visible(keys.hint('list', 'add-item', 'copy-item', 'remove-item')))
+            hints.push([keys.hint('list', 'add-item'), tr('ui.hints.catalog')]);
+    }
+    const status = shortcuts(hints, width);
+    const separator = ' · ';
+    const remaining = width - displayWidth(status.map(span => span.text).join('') + separator);
+    const searchHint = shortcuts([[keys.hint(context, 'search'), tr('ui.drawing.type_to_search').trimEnd(), tr('ui.hints.search')]], remaining);
+    return searchHint.length ? [...status, paint(separator), ...searchHint, paint(search ? ' ' + search : '')] : status;
 }

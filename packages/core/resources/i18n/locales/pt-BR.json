@@ -603,6 +603,8 @@
   "ui.hints.select": "selecionar",
   "ui.hints.edit": "editar",
   "ui.hints.save": "salvar",
+  "ui.hints.save_and_continue": "salvar e continuar",
+  "ui.hints.save_and_exit": "salvar e sair",
   "ui.hints.cancel": "cancelar",
   "ui.hints.interrupt": "interromper",
   "ui.drawing.type_to_search": "Digite para buscar > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "catálogo",
   "ui.hints.add_enable": "adicionar/ativar",
   "ui.hints.clear_filters": "limpar filtros",
+  "ui.hints.clear_filters_short": "limpar filtro",
   "composition.close_picker": "Fechar seletor",
   "composition.actions": "Adicionar / copiar / remover",
   "review.component": "Componente {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "Recolher",
   "task.controls.focus": "Pressione Ctrl+X e depois Tab para focar o painel de tarefas ou clique em um controle.",
   "task.controls.field_help": "Enter para confirmar · Tab para ir até Cancelar",
-  "task.controls.focus_field": "Clique no campo ou pressione Ctrl+X e depois Tab. Digite quando ⏎ aparecer."
+  "task.controls.focus_field": "Clique no campo ou pressione Ctrl+X e depois Tab. Digite quando ⏎ aparecer.",
+  "shortcuts.legacy-settings-short": "Configurações anteriores"
 }

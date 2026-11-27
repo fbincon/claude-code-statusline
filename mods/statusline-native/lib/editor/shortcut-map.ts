@@ -54,11 +54,10 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
   const reuse = { 'close-reuse': ['Q'] };
   return {
     list: scenario({ ...root, ...pageTools, ...listSelection,
-      save: native ? ['S'] : ['Enter', 'Ctrl+S'],
       'add-item': native ? ['A', 'Ctrl+A'] : ['Ctrl+A'],
       'copy-item': copy,
       'remove-item': remove,
-      'toggle-item': native ? ['Enter', 'Space'] : ['Space'],
+      'toggle-item': ['Enter', 'Space'],
       'move-left': ['Left'], 'move-right': ['Right'],
     }, pageKeys),
     picker: scenario({ ...chrome, ...listSelection, ...(native ? { 'close-picker': ['Q'] } : {}) }, ['Enter', 'Space', 'Left', 'Right', ...pageKeys]),
@@ -88,7 +87,14 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
 }
 
 const scenarios = { terminal: editorScenarios('terminal'), native: editorScenarios('native') };
-const legacyScenarios = { ...scenarios, native: editorScenarios('native', true) };
+const legacyTerminalList = scenarios.terminal.list;
+const legacyScenarios = {
+  terminal: {
+    ...scenarios.terminal,
+    list: scenario({ ...legacyTerminalList.defaults, save: ['Enter', 'Ctrl+S'], 'toggle-item': ['Space'] }, legacyTerminalList.fixed),
+  },
+  native: editorScenarios('native', true),
+};
 export type ShortcutContext = keyof ReturnType<typeof editorScenarios>;
 const surfaces: readonly EditorSurface[] = ['terminal', 'native'];
 const actions = Object.values(SHORTCUT_GROUPS).flat();
@@ -227,7 +233,9 @@ export function shortcutAliases(surface: EditorSurface, context: ShortcutContext
   return effectiveKeys(scenarios[surface][context].defaults, bindings, action).map(shortcutKeyLabel).join('/');
 }
 
-export function listedShortcut(surface: EditorSurface, action: ShortcutAction, bindings: ShortcutBindings): string {
-  const keys = Object.values(scenarios[surface]).flatMap(({ defaults }) => effectiveKeys(defaults, bindings, action));
+export function listedShortcut(surface: EditorSurface, action: ShortcutAction, bindings: ShortcutBindings, contexts?: readonly ShortcutContext[]): string {
+  const registry = scenarios[surface];
+  const settings = contexts ? contexts.map(context => registry[context]) : Object.values(registry);
+  const keys = settings.flatMap(({ defaults }) => effectiveKeys(defaults, bindings, action));
   return [...new Set(keys)].map(shortcutKeyLabel).join(' / ');
 }

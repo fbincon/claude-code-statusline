@@ -159,8 +159,9 @@ test('search highlights labels and descriptions, and identifies alternate-field 
 
 test('footers follow actual category, numeric, filtered and add actions', () => {
     const state = fixture('zh-CN');
-    assert.ok(plain(state, 80, 24).at(-2)!.includes('Enter/Ctrl+S'));
-    assert.ok(plain(state, 80, 24).at(-1)!.includes('Ctrl+A/D/X'));
+    assert.ok(plain(state, 80, 24).at(-2)!.includes('Ctrl+S ' + t('ui.hints.save_and_exit', 'zh-CN')));
+    assert.ok(!plain(state, 80, 24).at(-2)!.includes('Enter'));
+    assert.ok(plain(state).at(-1)!.includes('Ctrl+A/D/X'));
     state.search('git');
     assert.ok(!plain(state).at(-1)!.includes('←→'));
     state.key({ key: 'f', ctrl: true });
@@ -170,17 +171,62 @@ test('footers follow actual category, numeric, filtered and add actions', () => 
     state.key({ key: 'escape' });
     state.key({ key: 'a', ctrl: true });
     assert.ok(plain(state).at(-2)!.includes('Enter/Space ' + t('ui.hints.add_enable', 'zh-CN')));
+    assert.ok(plain(state).at(-2)!.includes('Ctrl+S ' + t('ui.hints.save_and_exit', 'zh-CN')));
     state.key({ key: 'escape' });
     state.editor.page = 'settings';
     state.editor.setting = 'padding';
+    const beforeInput = plain(state);
+    assert.ok(beforeInput.at(-2)!.includes('Ctrl+S/Enter ' + t('ui.hints.save_and_exit', 'zh-CN')));
+    assert.ok(!beforeInput[3]!.includes('Enter'));
     state.key({ key: '9' });
     assert.ok(plain(state).join('\n').includes('9▏'));
+    assert.ok(plain(state).at(-2)!.includes('Enter ' + t('ui.hints.accept', 'zh-CN')));
+    assert.ok(!plain(state).at(-2)!.includes('Ctrl+S'));
     assert.ok(plain(state).at(-1)!.includes('Home/End'));
     assert.ok(!plain(state).at(-1)!.includes('Ctrl+U'));
     state.key({ key: 'backspace' });
     assert.ok(plain(state).join('\n').includes('▏'));
     state.key({ key: 'escape' });
     assert.equal(state.editor.draft.host.padding, 0);
+});
+
+test('navigation, switching, save and filtered list controls stay visible at 64 columns', () => {
+    for (const language of LANGUAGES) {
+        for (const page of ['main', 'subagents'] as const) {
+            const state = fixture(language), e = state.editor;
+            e.page = page;
+            for (const category of e.categories(state.scope)) {
+                e.chooseCategory(state.scope, category);
+                for (const query of ['', 'model']) {
+                    state.search(query);
+                    const { rows } = frame(state, 64, 18);
+                    const keys = (row: number) => rows[row]!.filter(span => span.bold).map(span => span.text);
+                    const label = [language, page, category, query].join(' / ');
+                    assert.deepEqual(keys(17).slice(0, 4), ['Tab', '↑↓', 'Enter/Space', '/'], label);
+                    assert.deepEqual(keys(16).slice(0, 3), ['Ctrl+S', 'Esc', 'Ctrl+C'], label);
+                    assert.ok(keys(3).includes('Ctrl+F'), label);
+                    const clear = [...keys(3), ...keys(17)].filter(key => key === 'Ctrl+G');
+                    assert.equal(clear.length, e.filtered(state.scope) ? 1 : 0, label);
+                    if (category !== 'all') assert.ok(keys(3).includes('Ctrl+A'), label);
+                }
+            }
+        }
+    }
+});
+
+test('list hints show active remaps while the catalog retains its own activation', () => {
+    const state = fixture(), e = state.editor;
+    e.shortcuts.snapshot.bindings = { save: 'Z', close: 'M', 'toggle-item': 'T', search: '?', category: 'Ctrl+Q', 'add-item': 'O' };
+    e.chooseCategory(state.scope, 'model');
+    const output = plain(state, 64, 18);
+    assert.match(output.at(-2)!, /^Z save and exit · M\/Esc close · Ctrl\+C interrupt/u);
+    assert.match(output.at(-1)!, /^Tab page · ↑↓ select · T toggle · \? search/u);
+    assert.match(output[3]!, /^Ctrl\+Q .*\bO catalog/u);
+    assert.ok(!output.at(-1)!.includes('Enter/Space'));
+    state.key({ key: 'o' });
+    const catalog = plain(state, 80, 24);
+    assert.match(catalog.at(-2)!, /^Enter\/Space add\/enable · Ctrl\+G\/Esc back · Z save and exit/u);
+    assert.match(catalog.at(-1)!, /\? search · Ctrl\+Q category/u);
 });
 
 test('pending configuration input marks modifications without marking open or path dialogs', () => {

@@ -213,11 +213,17 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_terminal_command_sav
     const f = await fixture(t), i = prepare(f.root, f.launch, f.root), p = openPty(f.root, 80, 24, bridgeEnvironment(i.request, i.directory, {}));
     try {
         await ready(p);
-        p.send(' \r');
+        const before = f.bytes();
+        p.send('\r');
+        await p.wait(output => output.includes('Configure Status Line *'));
+        assert.deepEqual(f.bytes(), before);
+        assert.equal(fs.existsSync(i.result), false);
+        p.send('\x13');
         await p.exited();
         assert.equal(p.child.exitCode, 0);
         assert.equal(readResult(i.result, f.root).outcome, 'updated');
         assert.equal(fs.readdirSync(join(f.root, 'backups/statusline')).length, 1);
+        assert.deepEqual(p.attributes(), p.before);
     }
     finally {
         await p.close();

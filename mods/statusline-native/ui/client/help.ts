@@ -72,38 +72,41 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: '←→ Home/End', label: 'edit', optional: 10 },
     focus,
   ]];
+  const context = shortcutContext(view);
+  const saveActions: Shortcut[] = [
+    { key: keys.hint(context, 'save'), label: 'save and continue', short: 'save' },
+    { key: keys.hint(context, 'finish'), label: 'save and exit', short: 'finish' },
+  ];
   if (e.adding) return [
     [{key:'Enter/Space',label:'add enable'}, {key:keys.hint('picker','close-picker') + '/Ctrl+G',label:'back'}, focus],
-    [{key:'↑↓',label:'select',optional:7}, {key:keys.hint('picker','search'),label:'search',optional:9},
+    [{key:'↑↓',label:'select'}, {key:keys.hint('picker','search'),label:'search',optional:9},
       {key:keys.hint('picker','category'),label:'category',optional:13}, {key:'Ctrl+U',label:'clear',optional:11},
-      {key:keys.hint('picker','item-details'),label:'details',optional:12}],
+      {key:keys.hint('picker','item-details'),label:'details',optional:12},
+      ...saveActions.map(hint => ({ ...hint, optional: 0 }))],
   ];
-  const context = shortcutContext(view);
   const pending = e.modified || view.preferences.some(preferenceChanged);
   const actions: Shortcut[] = [
-    { key: keys.hint(context, 'save'), label: 'save' },
-    { key: keys.hint(context, 'finish'), label: 'finish' },
+    ...saveActions,
     { key: keys.hint(context, 'close'), label: pending ? 'discard' : 'close' },
     { key: keys.hint(context, 'retry-preview'), label: 'preview', optional: 4 },
     focus,
   ];
-  const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
-  if(!e.detail) contextual.push({key:keys.hint(context,'quick-setup'),label:'quick setup'});
-  if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
+  const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }, { key: '↑↓', label: 'select' }];
+  if (context === 'list') {
     const scope = e.page === 'main' ? 'main' : 'subagent';
-    if (e.filtered(scope)) contextual.unshift({key:'Ctrl+G',label:'clear filters',short:'clear'});
-    if (e.category[scope] !== 'all') contextual.unshift({key:keys.hint(context,'add-item'),label:'catalog'});
+    const filtered = e.filtered(scope);
+    contextual.push({ key: keys.aliases(context, 'toggle-item'), label: 'toggle' });
+    if (filtered) contextual.push({ key: 'Ctrl+G', label: 'clear filters', short: 'clear filters short' });
     contextual.push(
-      { key: keys.hint(context, 'add-item', 'copy-item', 'remove-item'), label: 'add/copy/remove', short:'add/copy/remove' },
-      { key: keys.aliases(context, 'toggle-item'), label: 'toggle' },
-      { key: '↑↓', label: 'select', optional: 7 },
-      ...(e.filtered(scope) ? [] : [{ key: keys.hint(context, 'move-left', 'move-right'), label: 'order', optional: 8 }]),
-      { key: keys.hint(context, 'item-details'), label: 'format' },
-      { key: keys.hint(context, 'search'), label: 'search', optional: 9 },
+      { key: keys.hint(context, 'search'), label: 'search' },
+      { key: keys.hint(context, 'category'), label: 'category', optional: 9 },
     );
+    if (e.category[scope] !== 'all') contextual.push({ key: keys.hint(context, 'add-item'), label: 'catalog', optional: 10 });
+    contextual.push({ key: keys.hint(context, 'add-item', 'copy-item', 'remove-item'), label: 'add/copy/remove', short: 'add copy remove short', optional: 8 });
+    if (!filtered) contextual.push({ key: keys.hint(context, 'move-left', 'move-right'), label: 'order', optional: 7 });
+    contextual.push({ key: keys.hint(context, 'item-details'), label: 'format', optional: 7 });
   } else {
     contextual.push(
-      { key: '↑↓', label: 'select', optional: 7 },
       { key: '←→', label: 'adjust', optional: 8 },
       { key: 'Enter', label: 'edit' },
     );
@@ -115,18 +118,23 @@ export function editorShortcuts(view: View): Shortcut[][] {
     }
   }
   if (view.error && e.page !== 'settings') actions.splice(actions.length - 1, 0, { key: keys.hint(context, 'reload'), label: 'reload', optional: 5 });
-  return [actions, contextual, [{key: keys.hint(context,'undo'),label:'undo',optional:1},
+  const tools: Shortcut[] = [
+    {key: keys.hint(context,'undo'),label:'undo',optional:1},
     {key: keys.hint(context,'redo'),label:'redo',optional:2},{key: keys.hint(context,'history'),label:'changes',optional:3},
-    {key: keys.hint(context,'preview-scenario','preview-width','preview-row'),label:'preview',optional:0}]];
+    {key: keys.hint(context,'preview-scenario','preview-width','preview-row'),label:'preview',optional:0},
+  ];
+  if (!e.detail) tools.push({ key: keys.hint(context, 'quick-setup'), label: 'quick setup', optional: 0 });
+  return [actions, contextual, tools];
 }
 
 /** Share footer and viewport budgets between drawing and keyboard paging. */
 export function editorLayout(view: View, columns: number, rows: number) {
-  let groups = translatedShortcuts(editorShortcuts(view), view.language);
-  if (view.editor?.adding) {
-    const activation = groups[0]?.find(hint => hint.key === 'Enter/Space');
-    if (activation) activation.short = clip(activation.label, columns - displayWidth(activation.key) - 1);
-  }
+  // A required hint must still fit when its translated label alone is long.
+  let groups = translatedShortcuts(editorShortcuts(view), view.language).map(group => group.map(hint => {
+    const room = columns - displayWidth(hint.key) - 1;
+    const short = hint.short ?? hint.label;
+    return hint.optional === undefined && displayWidth(short) > room ? { ...hint, short: clip(short, room) } : hint;
+  }));
   const framed = columns >= 64 && rows >= 20;
   // Keep the header, section edges, filter/selection and one preview row.
   const limit = Math.max(1, rows - (framed ? 10 : 8));

@@ -6,8 +6,10 @@ import { preferences } from '../lib/preferences.ts';
 import { CAPACITY_DESCRIPTION, CAPACITY_VALUES, CAPACITY_CASES } from './generated-capacity-fixtures.ts';
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 export function capacityView(value: typeof CAPACITY_CASES[number]): View {
-  const data = Object.fromEntries(Object.entries(value.editor).map(([key, index]) => [key, clone(CAPACITY_VALUES[index])]));
+  const { shortcuts, ...data } = Object.fromEntries(Object.entries(value.editor).map(([key, index]) => [key, clone(CAPACITY_VALUES[index])]));
   const editor = Object.assign(new Editor(clone(CAPACITY_DESCRIPTION) as DescribeResult, data.baseline as ReadResult), data);
+  // Restore the serialized shortcut state without discarding the controller's methods.
+  Object.assign(editor.shortcuts, shortcuts);
   return { editor, language: LANGUAGES.find(language=>(value.name.startsWith('appearance-')||value.name.startsWith('i18n-'))&&value.name.endsWith('-'+language)) ?? 'zh-CN', input: value.search ? { kind: 'search', scope: 'main', original: '', selected: editor.selected.main } : null,
     preview: clone(CAPACITY_VALUES[value.preview]) as PreviewResult, previewBackground: 'dark',
     preferences: preferences([

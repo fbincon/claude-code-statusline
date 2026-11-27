@@ -603,6 +603,8 @@
   "ui.hints.select": "sélectionner",
   "ui.hints.edit": "modifier",
   "ui.hints.save": "enregistrer",
+  "ui.hints.save_and_continue": "enregistrer et continuer",
+  "ui.hints.save_and_exit": "enregistrer et quitter",
   "ui.hints.cancel": "annuler",
   "ui.hints.interrupt": "interrompre",
   "ui.drawing.type_to_search": "Saisir pour rechercher > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "catalogue",
   "ui.hints.add_enable": "ajouter/activer",
   "ui.hints.clear_filters": "effacer les filtres",
+  "ui.hints.clear_filters_short": "effacer",
   "composition.close_picker": "Fermer le sélecteur",
   "composition.actions": "Ajouter / copier / supprimer",
   "review.component": "Composant {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "Replier",
   "task.controls.focus": "Appuyez sur Ctrl+X puis sur Tab pour activer le volet des tâches, ou cliquez sur une commande.",
   "task.controls.field_help": "Entrée pour confirmer · Tab pour atteindre Annuler",
-  "task.controls.focus_field": "Cliquez dans le champ ou appuyez sur Ctrl+X puis Tab. Saisissez le texte une fois ⏎ affiché."
+  "task.controls.focus_field": "Cliquez dans le champ ou appuyez sur Ctrl+X puis Tab. Saisissez le texte une fois ⏎ affiché.",
+  "shortcuts.legacy-settings-short": "Anciens réglages"
 }

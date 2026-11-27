@@ -30,7 +30,12 @@ test('external shortcut changes stage independently and apply on save and reopen
     await press('g', true);
     f.e.page = 'main';
     assert.equal(await press('s', true), null);
+    const id = f.e.selected.main, enabled = f.e.instance('main', id)!.enabled;
     assert.equal(await press('return'), null);
+    assert.equal(f.e.instance('main', id)?.enabled, !enabled);
+    assert.equal(f.e.history.undo.length, history.undo.length + 1);
+    assert.equal(f.calls.some(call => call.operation === 'apply'), false);
+    const toggledDraft = structuredClone(f.e.draft), toggledHistory = structuredClone(f.e.history);
     await press('/');
     assert.equal(await press('z'), null);
     assert.equal(f.e.search.main, 'z');
@@ -47,8 +52,8 @@ test('external shortcut changes stage independently and apply on save and reopen
     await press('g', true);
     f.e.page = 'main';
     assert.equal(await press('s', true), 'save');
-    assert.deepEqual(f.e.draft, draft);
-    assert.deepEqual(f.e.history, history);
+    assert.deepEqual(f.e.draft, toggledDraft);
+    assert.deepEqual(f.e.history, toggledHistory);
 });
 
 test('remapped terminal search accepts bound characters and Esc retains its guarded close', async t => {
@@ -58,7 +63,7 @@ test('remapped terminal search accepts bound characters and Esc retains its guar
     });
     f.state.notice('An unrelated message');
     assert.match(text(f.state, 64, 18), /Y search/);
-    assert.match(text(f.state, 64, 18), /M\/Esc/);
+    assert.ok(text(f.state, 64, 18).includes('M/Esc ' + tMessage('ui.hints.close', 'en')));
     assert.deepEqual(f.keys('z'), ['save']);
     assert.equal(f.e.search.main, '');
     f.keys('x', 'y', 'z');
@@ -75,7 +80,7 @@ test('remapped terminal search accepts bound characters and Esc retains its guar
     assert.deepEqual(f.keys('escape', 'escape'), [null, null]);
     assert.equal(f.e.adding, false);
     assert.deepEqual(f.keys('escape', 'm'), ['cancel', 'cancel']);
-    f.keys(' ');
+    assert.deepEqual(f.keys('return'), [null]);
     const draft = structuredClone(f.e.draft), history = structuredClone(f.e.history);
     assert.equal(f.e.modified, true);
     f.keys('escape');

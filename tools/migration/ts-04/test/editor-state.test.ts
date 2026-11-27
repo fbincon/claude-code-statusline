@@ -53,8 +53,9 @@ test('tests.ui.test_interactive_config.ItemStateTests.test_no_matches_make_toggl
     const f = await fixture(t);
     const before = structuredClone(f.e.draft);
     f.state.search('not-a-real-component-xyz');
-    f.keys(' ', 'left', 'right');
+    assert.deepEqual(f.keys('return', ' ', 'left', 'right'), [null, null, null, null]);
     assert.deepEqual(f.e.draft, before);
+    assert.equal(f.e.history.undo.length, 0);
     assert.equal(f.e.selected.main, '');
 });
 test('tests.ui.test_interactive_config.ItemStateTests.test_filtered_move_is_blocked_and_preserves_the_full_order', async (t) => {
@@ -393,14 +394,30 @@ test('tests.ui.test_interactive_config.SaveAndRunTests.test_cancel_and_interrupt
 test('tests.ui.test_interactive_config.SaveAndRunTests.test_save_calls_apply_once_with_complete_draft_and_baseline', async (t) => {
     const f = await fixture(t);
     const revision = f.e.baseline.revision;
-    f.keys(' ');
+    const before = f.bytes(), settingsMode = fs.statSync(f.settingsPath).mode;
+    const applies = () => f.calls.filter(call => call.operation === 'apply');
+    for (const scope of ['main', 'subagent'] as const) {
+        if (scope === 'subagent') await f.session.key({ key: 'tab' });
+        const id = f.e.listContext(scope).selected;
+        const instance = f.e.instance(scope, id);
+        assert.ok(instance);
+        const enabled = instance.enabled, historyLength = f.e.history.undo.length;
+        assert.equal(await f.session.key({ key: 'return' }), null);
+        assert.equal(f.e.instance(scope, id)?.enabled, !enabled);
+        assert.equal(f.e.history.undo.length, historyLength + 1);
+        assert.equal(applies().length, 0);
+        assert.deepEqual(f.bytes(), before);
+        assert.equal(fs.statSync(f.settingsPath).mode, settingsMode);
+    }
     const draft = structuredClone(f.e.draft);
+    assert.equal(await f.session.key({ key: 's', ctrl: true }), 'save');
     const result = await f.session.save();
     assert.equal(result.outcome, 'updated');
-    const calls = f.calls.filter(c => c.operation === 'apply');
+    const calls = applies();
     assert.equal(calls.length, 1);
     assert.deepEqual(calls[0]!.payload, { draft, expected_revision: revision });
     assert.deepEqual(f.e.baseline.draft, draft);
+    assert.deepEqual((await Session.open(f.backend)).state.editor.draft, draft);
     assert.equal((await f.session.save()).outcome, 'already-current');
     assert.deepEqual(JSON.parse(fs.readFileSync(f.settingsPath, 'utf8')).permissions, { allow: ['Read'] });
 });

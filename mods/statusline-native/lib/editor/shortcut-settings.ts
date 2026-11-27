@@ -21,8 +21,16 @@ export function shortcutPanelFits(columns: number, rows: number): boolean {
 }
 
 type Request = (operation: 'read_editor_shortcuts' | 'set_editor_shortcuts', payload?: unknown) => Promise<EditorShortcutsResult>;
-const actions = Object.entries(SHORTCUT_GROUPS).flatMap(([group, entries]) => entries.map(action => ({ group, action })));
+const firstActions: Partial<Record<string, readonly ShortcutAction[]>> = {
+  editor: ['save', 'finish', 'close', 'undo', 'redo', 'history'],
+  components: ['toggle-item', 'search', 'category', 'item-details'],
+};
+const actions = Object.entries(SHORTCUT_GROUPS).flatMap(([group, entries]) => {
+  const first = firstActions[group] ?? [];
+  return [...first, ...entries.filter(action => !first.includes(action))].map(action => ({ group, action }));
+});
 const commands = ['save', 'restore-all', 'reload'] as const;
+const originalSettingsContexts = ['legacy-settings', 'numeric-settings', 'refresh-settings'] as const;
 
 export function defaultShortcuts(warning: LocalizedText | null = null): EditorShortcutsResult {
   return { schema_version: EDITOR_SHORTCUTS_SCHEMA_VERSION, bindings: {}, revision: null, warning };
@@ -48,6 +56,10 @@ interface ShortcutPanel {
 }
 
 const actionMessage = (action: ShortcutAction) => text('shortcuts.action.' + action);
+
+function panelShortcut(surface: EditorSurface, action: ShortcutAction, bindings: ShortcutBindings): string {
+  return listedShortcut(surface, action, bindings, action === 'save' ? ['list'] : undefined);
+}
 
 function matchingActions(panel: ShortcutPanel, language: Language): typeof actions {
   const query = panel.filter?.input.value ?? panel.query;
@@ -250,17 +262,24 @@ function shortcutPanelLayout(editor: EditorShortcuts, language: Language, width:
     before.push({ text: prefix + value });
   }
   const details: PanelRow[] = [];
-  if (selected) {
+  if (selected && !filtering) {
     const { group, action } = selected;
-    if (!filtering) before.push({ text: panel.capture ? tr('capture-action', { action: actionMessage(action) }) : tr('group.' + group) });
+    before.push({ text: panel.capture ? tr('capture-action', { action: actionMessage(action) }) : tr('group.' + group) });
     const keys = (surface: EditorSurface) => {
-      const preset = listedShortcut(surface, action, {});
-      return preset ? `${tr(surface + '-short')} ${listedShortcut(surface, action, panel.draft)} [${preset}]` : '';
+      const preset = panelShortcut(surface, action, {});
+      return preset ? `${tr(surface + '-short')} ${panelShortcut(surface, action, panel.draft)} [${preset}]` : '';
     };
     const keyRow = [keys('terminal'), keys('native')].filter(Boolean);
+    if (action === 'save') {
+      const preset = listedShortcut('terminal', action, {}, originalSettingsContexts);
+      if (preset && preset !== panelShortcut('terminal', action, {})) {
+        const effective = listedShortcut('terminal', action, panel.draft, originalSettingsContexts);
+        keyRow.push(`${tr('legacy-settings-short')} ${effective} [${preset}]`);
+      }
+    }
     const combined = keyRow.join(' · ');
-    if (!filtering) details.push(...(displayWidth(combined) <= width ? [combined] : wrapText(keyRow, width)).map(text => ({ text })));
-  } else before.push({ text: tr('no-matches') });
+    details.push(...(displayWidth(combined) <= width ? [combined] : wrapText(keyRow, width)).map(text => ({ text })));
+  } else if (!selected) before.push({ text: tr('no-matches') });
   const conflict = shortcutConflict(panel.draft);
   const notice = panel.busy ? text('shortcuts.working') : panel.message ??
     (panel.capture || filtering ? null : conflict ? conflictMessage(conflict) : editor.snapshot.warning);
@@ -303,7 +322,7 @@ export function shortcutPanelRows(editor: EditorShortcuts, language: Language, w
   const alternate = editor.surface === 'native' ? 'terminal' : 'native';
   const visible = matches.slice(panel.scroll, panel.scroll + capacity).map(({ action }) => {
     const selected = panel.command === null && action === panel.selected;
-    const key = listedShortcut(editor.surface, action, panel.draft) || listedShortcut(alternate, action, panel.draft);
+    const key = panelShortcut(editor.surface, action, panel.draft) || panelShortcut(alternate, action, panel.draft);
     const label = renderMessage(actionMessage(action), language);
     return { selected, text: `${selected ? '›' : ' '} ${key}  ${label}` };
   });

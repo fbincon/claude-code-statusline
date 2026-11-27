@@ -826,7 +826,7 @@ Management commands generally use 0 for success and 2 for argument/configuration
 
 ## Current limitations
 
-- Settings and project bindings are stored per user. [Project bindings](PROFILES.md) select named display schemes; repository files do not supply executable configuration. Drag-and-drop and custom key bindings are not provided.
+- Settings and project bindings are stored per user. [Project bindings](PROFILES.md) select named display schemes. Repository files do not supply executable configuration. Both editors support [custom keyboard shortcuts](EDITORS.md#customize-keyboard-shortcuts).
 - The macOS in-session Client interaction issue remains recorded. The terminal editor and CLI are available alternatives.
 - Desktop external launchers support the listed platform terminals. Other terminals can use `claude-statusline configure` or tmux; IDE, print mode, web sessions, and globally disabled hooks do not guarantee a terminal editor.
 - Optional live fields require independent collection and valid observations; they do not infer missing measurements or focused-agent identity.
