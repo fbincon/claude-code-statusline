@@ -11,8 +11,10 @@ import { emitted, productInputs, runtimeLock, canonical, hash, tree } from '../i
 import { checkAssets, pngDimensions } from '../impact-assets.js';
 import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
 import { assessImpactNeeds, selectImpact } from '../impact-workflow.js';
-import { runScopedModTests, runScopedTestFiles, scopedTests } from '../impact-runner.js';
-import { checkScopedSchedule, familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
+import { runScopedTestFiles, scopedTests } from '../impact-runner.js';
+import { runScopedModTests } from '../impact-mod-batches.js';
+import { checkScopedSchedule, familyAdmissionMs, familyEnvelopeMs, scopedModFiles, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
+import { OFFICIAL_TEST_TIMEOUT_MS } from '../../acceptance/official-tests.js';
 import { partitionScopedTasks } from '../impact-schedule.js';
 import { productResponsibilities, runProductChecks, supplementPlan, validateProductChecks, type ProductCheckReceipt } from '../impact-product.js';
 
@@ -244,13 +246,31 @@ test('scoped Mods hand each planned file to an isolated official process and ret
         host: { executable: process.execPath, args: [stub, 'literal argument &'] }, env: process.env };
     await assert.rejects(runScopedModTests(options, expected.slice(0, 1)), /inventory differs/u);
     assert(!fs.existsSync(options.logs));
-    const result = await runScopedModTests(options, expected);
+    let clock = 0;
+    const admission = familyAdmissionMs(expected.length);
+    const result = await runScopedModTests({ ...options, onCommand() { clock = clock === 0 ? admission - 1 : clock + 20_000; } },
+        expected, () => clock);
     assert.deepEqual(result.batches.map(batch => batch.test_files), expected.map(file => [file]));
-    assert.equal(result.totals.pass, 2);
+    assert(result.batches.every(batch => batch.timeout_ms === OFFICIAL_TEST_TIMEOUT_MS));
+    assert.equal(result.totals.pass, 2); assert(clock > admission, 'Last admitted file can finish after admission closes');
+    clock = 0;
+    const expiredLogs = join(root, 'expired');
+    await assert.rejects(runScopedModTests({ ...options, logs: expiredLogs, onCommand() { clock = admission; } },
+        expected, () => clock), /tests\/b\.test\.ts/u);
+    assert.match(fs.readFileSync(join(expiredLogs, 'plugin-batch-0002.log'), 'utf8'), /Scoped Mod file admission expired/u);
     const logs = join(root, 'fail');
     await assert.rejects(runScopedModTests({ ...options, logs, env: { ...process.env, FAIL_FILE: expected[1] } }, expected), /tests\/b\.test\.ts/u);
     assert(fs.existsSync(join(logs, 'plugin-batch-0002.log')));
     assert(!fs.existsSync(options.temporary));
+
+    // The 46 native files on Windows 2.1.326 took 716.58 seconds in official batches.
+    const nativeFiles = Array.from({ length: 46 }, (_, index) => 'tests/' + String(index).padStart(2, '0') + '.test.ts');
+    for (const path of expected) fs.unlinkSync(join(source, path));
+    for (const path of nativeFiles) fs.writeFileSync(join(source, path), '// Test fixture\n');
+    clock = 0;
+    const native = await runScopedModTests({ ...options, logs: join(root, 'native'), onCommand() { clock += 716_582 / nativeFiles.length; } },
+        nativeFiles, () => clock);
+    assert(clock >= 716_581); assert.equal(native.totals.files, 46); assert.equal(native.totals.pass, 46);
 });
 test('each scoped test file owns a fresh deadline and any failed file keeps the family failed', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'scoped-files-'));
@@ -286,6 +306,19 @@ test('scheduling budgets use the selected Git source inventory and reject an inf
     const oversized = Array.from({ length: 4500 }, (_, i) => 'packages/cli/test/large-' + i + '.test.ts');
     assert.throws(() => scopedTaskBudget(task, oversized), /partition the task/);
     assert.throws(() => partitionScopedTasks([task], oversized), /partition the task/);
+});
+test('scoped Mod estimates cover the source-bound serial policy and preserve historical hosted budgets', () => {
+    const task = tasksFor(['native']).find(row => row.os === 'windows-2025' && row.host === '2.1.326')!;
+    const paths = Array.from({ length: 46 }, (_, index) => 'mods/statusline-native/tests/' + index + '.test.ts');
+    const historical = [...paths, 'mods/statusline-runtime/tests/other.test.ts', 'mods/statusline-native/tests/support.ts'];
+    const current = [...historical, 'tools/checks/impact-mod-batches.ts'];
+    assert.equal(scopedModFiles('native', current).length, 46);
+    assert.equal(scopedTaskBudget(task, historical), (25 + 15 + 40) * 60_000);
+    assert.equal(scopedTaskBudget(task, current), (25 + 15 + 48) * 60_000);
+    assert.equal(scopedTaskBudget({ ...task, host: '2.1.296' }, current), (25 + 15 + 48 - 16) * 60_000);
+    assert.throws(() => scopedTaskBudget({ ...task, checks: ['agent-rows'] }, current), /Empty scoped test family/u);
+    const oversized = Array.from({ length: 4_000 }, (_, index) => 'mods/statusline-native/tests/large-' + index + '.test.ts');
+    assert.throws(() => scopedTaskBudget(task, [...current, ...oversized]), /partition the task/u);
 });
 test('oversized package-sensitive plans split complete checks while historical tasks keep their identities', t => {
     const { write, commit } = repository(t);

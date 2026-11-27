@@ -24,7 +24,7 @@ Template locations and check boundaries are listed in the [template and check re
 
 Documentation checks run on Linux. Pure core tests run on Linux; platform, application, terminal and tooling families retain Linux, Windows and macOS executions. Mod checks use the existing fixed host inventory for the affected Mod; the Runtime floor is 2.1.289 and the AgentRow floor is 2.1.326. Historical plans retain the inventory from their source commit. Scoped host jobs run official validation/tests and available exact-host declarations without running unrelated installation/runtime matrices. The existing Claude 2.1.296 declaration gap remains explicit.
 
-Each scoped Mod check runs the official tests one file at a time in isolated plugin copies. The runner verifies the file hashes, the full test-file inventory and each batch result. This bounds the number of host test processes running at once.
+Each scoped Mod check runs one official test file at a time in an isolated plugin copy and verifies every file's hash and result. The runner can start batches for 15 minutes plus five seconds per test file in the source commit. Each batch it has started gets up to 180 seconds to finish. The task budget also accounts for host identification, plugin validation and the applicable declaration and TypeScript checks.
 
 Several categories combine by taking the union of checks. Unknown responsibilities, unsupported file types, ambiguous modes or unreadable revisions block with a classification diagnostic. They never automatically select the expensive product matrix. Frozen archive changes still face archive integrity checks.
 

@@ -9,9 +9,10 @@ import { parseArgs } from 'node:util';
 import { assertPlan, type ImpactPlan, type ImpactTask, type Check } from './impact-plan.ts';
 import { canonical, git, hash, tree } from './impact-content.ts';
 import { AGENT_ROW_HOSTS } from './runtime-inputs.ts';
-import { familyAdmissionMs, familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget, SCOPED_COMMAND_MS } from './impact-budget.ts';
+import { familyAdmissionMs, familyEnvelopeMs, scopedModFiles, scopedSourceFiles, scopedTaskBudget,
+    SCOPED_COMMAND_MS, SCOPED_MOD_VALIDATE_MS, SCOPED_MOD_VERSION_MS } from './impact-budget.ts';
+import { runScopedModTests } from './impact-mod-batches.ts';
 import { checkAssets } from './impact-assets.ts';
-import type { OfficialTestOptions } from '../acceptance/official-tests.js';
 
 export interface ScopedReceipt {
     schema_version: 1; kind: 'scoped-checks'; status: 'pass' | 'fail'; commit: string; plan_sha256: string;
@@ -36,20 +37,6 @@ export async function runScopedTestFiles(files: string[], reportPath: string, en
     const admission = familyAdmissionMs(files.length);
     await superviseInstalled([worker, String(SCOPED_COMMAND_MS), String(admission), ...files], phases, env, reportPath,
         { maxBudgetMs: familyEnvelopeMs(files.length) });
-}
-/** One file per synchronous host process, with the original ten-minute test window. */
-export async function runScopedModTests(options: OfficialTestOptions, expectedFiles: readonly string[]) {
-    const built = pathToFileURL(resolve('dist/typescript/tools/acceptance/official-tests.js')).href;
-    const { officialTestInventory, runOfficialTestBatches } = await import(built) as typeof import('../acceptance/official-tests.js');
-    assert.deepEqual(officialTestInventory(options.source).test_files, expectedFiles, 'Scoped Mod test inventory differs from the planned source');
-    const deadline = performance.now() + 600_000;
-    const batches = runOfficialTestBatches(options, (file, args, command) => {
-        const remaining = Math.floor(deadline - performance.now());
-        assert(remaining > 0, 'Scoped Mod tests exhausted the ten-minute budget');
-        return spawnSync(file, args, { ...command, timeout: Math.min(command.timeout, remaining) });
-    });
-    assert(performance.now() <= deadline, 'Scoped Mod tests exhausted the ten-minute budget');
-    return batches;
 }
 export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: string, artifact?: string): Promise<ScopedReceipt> {
     assertPlan(plan); assert.equal(git('rev-parse', 'HEAD'), plan.head);
@@ -104,19 +91,17 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
                 const host = claudeLaunch('claude'), temporary = fs.mkdtempSync(join(tmpdir(), 'impact-host-'));
                 try {
                     const env = isolatedHostEnvironment(process.env, temporary), plugin = 'mods/statusline-' + check;
-                    const version = spawnSync(host.executable, [...host.args, '--version'], { env, encoding: 'utf8', timeout: 10000 });
+                    const version = spawnSync(host.executable, [...host.args, '--version'], { env, encoding: 'utf8', timeout: SCOPED_MOD_VERSION_MS });
                     assert.equal(version.status, 0);
                     assert.equal(version.stdout.match(/\d+\.\d+\.\d+/u)?.[0], task.host, 'Scoped Mod host identity differs');
                     recordModHost(plugin, task.host);
                     const checkedJson: boolean = check !== 'agent-rows' && AGENT_ROW_HOSTS.some((version): boolean => version === task.host);
                     const validation = spawnSync(host.executable, [...host.args, 'plugin', 'validate', checkedJson ? '--json' : '--strict', plugin],
-                        { env, encoding: 'utf8', timeout: 600000, maxBuffer: 8 * 1024 * 1024 });
+                        { env, encoding: 'utf8', timeout: SCOPED_MOD_VALIDATE_MS, maxBuffer: 8 * 1024 * 1024 });
                     assert.ifError(validation.error); assert.equal(validation.status, 0, validation.stderr + validation.stdout);
                     if (checkedJson) checkModValidation(validation.stdout, plugin, task.host);
                     const logs = reportPath + '.' + check;
-                    const prefix = plugin + '/';
-                    const files = sources.filter(path => path.startsWith(prefix) && /\.test\.[cm]?[jt]sx?$/u.test(path))
-                        .map(path => path.slice(prefix.length)).sort();
+                    const files = scopedModFiles(check, sources);
                     const batches = await runScopedModTests({ source: plugin, temporary: join(temporary, 'tests'), logs, host, env, cwd: process.cwd() }, files);
                     fs.writeFileSync(join(logs, 'batches.json'), JSON.stringify({ commit: plan.head, host: task.host, batches }) + '\n', { flag: 'wx' });
                     if (task.host !== '2.1.296') {
