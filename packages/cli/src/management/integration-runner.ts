@@ -10,7 +10,7 @@ const [requestPath, receipt] = process.argv.slice(2);
 const request = JSON.parse(fs.readFileSync(requestPath!, 'utf8'));
 const load = (path: string) => import(pathToFileURL(join(request.root, 'node_modules/@fbincon/statusline-cli/dist/src', path + '.js')).href);
 try {
-    const [{ install, installContext }, { doctor }, { safeTarget }] = await Promise.all([load('integration/install'), load('integration/doctor'), load('integration/paths')]);
+    const [{ install, installContext }, { doctor }, { safeTarget }, model] = await Promise.all([load('integration/install'), load('integration/doctor'), load('integration/paths'), load('integration/model')]);
     const guard = () => {
         for (const [name, expected] of Object.entries(request.hashes)) {
             const path = join(request.configDir, name);
@@ -32,7 +32,19 @@ try {
     };
     guard();
     const target: InstallContext = installContext(request.configDir, { executable: process.execPath, args: [request.entry] }, request.host);
-    const context: InstallContext = { ...target, host(spec) {
+    const bindingPath = join(request.configDir, 'statusline_runtime', 'installation.json');
+    // An old installer checks the names in this field even during preview. Only
+    // project the intent the current runner will remove before the real install.
+    const io = request.dryRun && !model.AGENT_ROWS ? { ...target.io, read(path: string) {
+        const raw = target.io.read(path);
+        if (!raw || path !== bindingPath) return raw;
+        const binding = JSON.parse(raw.toString('utf8'));
+        if (!Array.isArray(binding.refresh_disabled) || !binding.refresh_disabled.includes('statusline-agent-rows')) return raw;
+        binding.refresh_disabled = binding.refresh_disabled.filter((name: string) => name !== 'statusline-agent-rows');
+        if (!binding.refresh_disabled.length) delete binding.refresh_disabled;
+        return Buffer.from(JSON.stringify(binding));
+    } } : target.io;
+    const context: InstallContext = { ...target, io, host(spec) {
         const host = target.host(spec);
         if (spec.name !== 'statusline-native' && spec.name !== 'statusline-runtime') return host;
         const folder = join(target.configDir, spec.name, 'plugins', spec.name);

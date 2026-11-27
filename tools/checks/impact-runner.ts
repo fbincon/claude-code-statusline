@@ -82,7 +82,7 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
                     receipt.package_sha256 = hash(fs.readFileSync(packed));
                     run(['dist/typescript/tools/acceptance/integration-smoke.js', '--artifact', resolve(packed), '--source', plan.head, '--integration', plan.head, '--target', task.os, '--report', join(temporary, 'smoke.json')]);
                 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
-            } else if (check === 'native' || check === 'runtime') {
+            } else if (check === 'native' || check === 'runtime' || check === 'agent-rows') {
                 assert(task.host); const { claudeLaunch } = await import('@fbincon/statusline-platform/commands');
                 const { isolatedHostEnvironment, prepareModTypes, recordModHost } = await import(pathToFileURL(resolve('dist/typescript/tools/acceptance/mod-types.js')).href);
                 const host = claudeLaunch('claude'), temporary = fs.mkdtempSync(join(tmpdir(), 'impact-host-'));

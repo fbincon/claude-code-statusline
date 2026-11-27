@@ -35,13 +35,15 @@ import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 import { ProfileService } from '../config/profiles.js';
 import { taskAdapter } from '../tasks/service.js';
+import { agentRowCapabilities } from '@fbincon/statusline-core/integration/agent-row-capabilities';
 export const BACKEND_VERSION = VERSION;
 export const OPERATIONS = contracts.OPERATIONS;
 export type Preview = (draft: Draft, width: number, trace?: RenderTrace, scenario?: PreviewScenario) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
+    const rows = agentRowCapabilities(version);
     return {
         host_version: version?.join('.') ?? null,
-        subagent_rows: version === null ? 'unknown' : atLeast(version, [2, 1, 205]) ? 'supported' : 'unsupported',
+        subagent_rows: version === null ? 'unknown' : rows.mod || rows.legacy ? 'supported' : 'unsupported',
         native_mod: version === null ? 'unknown' : atLeast(version, [2, 1, 287]) ? 'unverified' : 'unsupported',
         native_mod_loaded: null, data_observation: 'not_observed',
     };

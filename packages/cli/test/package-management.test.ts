@@ -13,7 +13,9 @@ import { managementOptions, managementRequest } from '../src/management/argument
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
 import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation, observeOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
-import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
+import { assertConfiguration, CONFIG_FILES, configurationBytes, configurationCompatibility, configurationHashes, readSnapshot, saveSnapshot } from '../src/management/configuration.js';
+import { AGENT_ROW_ROUTE_FILE } from '../src/integration/agent-row-paths.js';
+import { idleRoute } from '../src/integration/agent-row-state.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 function product(prefix: string, version: string) {
     const root = globalPackageRoot(prefix);
@@ -121,6 +123,38 @@ test('unknown npm result is reconciled from disk without a second replacement', 
     assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);
     assert.equal(f.state().replacements, 1);
     assert(!fs.existsSync(pendingPath(f.prefix)));
+});
+
+test('a package review binds the renderer preference while its snapshot keeps the historical key set', t => {
+    const f = fixture(t);
+    f.write(AGENT_ROW_ROUTE_FILE, idleRoute('legacy', 'legacy', 'legacy'));
+    const bytes = configurationBytes(f.configDir), expected = configurationHashes(bytes);
+    const transaction = join(f.configDir, 'statusline_runtime', 'package-management', 'transactions', 'snapshot-compat');
+    const saved = saveSnapshot(f.configDir, transaction, bytes);
+    assert.deepEqual(Object.keys(saved).sort(), [...CONFIG_FILES].sort());
+    assert.equal(Object.hasOwn(saved, AGENT_ROW_ROUTE_FILE), false);
+    assert.deepEqual(Object.keys(readSnapshot(f.configDir, transaction, saved)).sort(), Object.keys(saved).sort());
+    assertConfiguration(f.configDir, expected);
+    f.write(AGENT_ROW_ROUTE_FILE, idleRoute('mod', 'builtin', 'not-installed'));
+    assert.throws(() => assertConfiguration(f.configDir, expected), error => error instanceof PackageError && error.code === 'conflict');
+});
+
+test('package recovery refuses a third inventory with the same version as the verified archive', async t => {
+    const f = fixture(t), install = f.npm.installArchive.bind(f.npm);
+    f.npm.installArchive = async (archive, prefix) => {
+        await install(archive, prefix);
+        if (prefix === f.prefix) throw new PackageError('timeout');
+    };
+    assert.equal(await manage(f.args(), f.options), 2);
+    const inventory = join(f.layout.root, 'candidate.json');
+    fs.appendFileSync(inventory, '\n');
+    const changed = fs.readFileSync(inventory);
+    f.clear();
+    assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 2);
+    assert.match(f.state().output, /conflict|changed/iu);
+    assert.deepEqual(fs.readFileSync(inventory), changed);
+    assert.equal(f.state().replacements, 1);
+    assert(fs.existsSync(pendingPath(f.prefix)));
 });
 test('post-install integration failure remains incomplete and recovery preserves explicit disabled settings', async (t) => {
     const f = fixture(t), entry = productIdentity(f.layout.root)!.entry;

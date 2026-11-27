@@ -12,13 +12,13 @@ import { assessEvidence, assessEvidenceDirectory } from '../prepare.js';
 import { sectionFixtureReport, sectionFixtureEntries, writeSectionLogs } from './fixtures/v2-sections.js';
 import { repoRoot } from '../../migration/ts-03/common.js';
 const archive = 'b'.repeat(64);
-function scenario(t: TestContext) {
+function scenario(t: TestContext, agentRows = false) {
     const root=mkdtempSync(join(tmpdir(),'prepare-v2-')),original=process.cwd(),repository=join(root,'repository'),directory=join(root,'evidence');
     t.after(()=>{process.chdir(original);removeTree(root);assert(!existsSync(root));});
     mkdirSync(repository);mkdirSync(directory);
     const git=(...args:string[])=>execFileSync('git',['-C',repository,'-c','user.name=CI Fixture','-c','user.email=fixture@example.invalid','-c','core.autocrlf=false',...args],{encoding:'utf8'}).trim();
     git('init','-q','--initial-branch=main');
-    const entries=sectionFixtureEntries();entries.set(COVERAGE_ACTIVATION_PATH,Buffer.from(COVERAGE_ACTIVATION));
+    const entries=sectionFixtureEntries(agentRows);entries.set(COVERAGE_ACTIVATION_PATH,Buffer.from(COVERAGE_ACTIVATION));
     for(const path of ['tools/checks/ci-coverage.ts','tools/checks/runtime-inputs.ts','tools/checks/impact-lock.ts'])entries.set(path,readFileSync(join(repoRoot,path)));
     for(const [path,bytes] of entries){mkdirSync(dirname(join(repository,path)),{recursive:true});writeFileSync(join(repository,path),bytes);}
     git('add','.');git('commit','-qm','initial approved policy');const base=git('rev-parse','HEAD');
@@ -54,6 +54,17 @@ test('release reads a complete v2 directory with actual F/S history and independ
     assert.throws(()=>assessEvidence([],head,archive,entries),/Activated/);
     const downgraded=new Map(entries);downgraded.delete(COVERAGE_ACTIVATION_PATH);
     assert.throws(()=>assessEvidenceDirectory(directory,head,archive,downgraded),/activation disagree/);
+});
+test('AgentRow source requires the original third Mod execution on each supporting platform and pinned host', t=>{
+    const {assess, plan, directory} = scenario(t, true);
+    assert.equal(assess().hosts, 22);
+    const producers = plan.producers.filter(row => row.host === '2.1.326' || row.host === '2.1.332');
+    assert.equal(producers.length, 6);
+    const path = join(directory, producers[0]!.receipt);
+    const fragment = JSON.parse(readFileSync(path, 'utf8'));
+    delete fragment.report.official.mods['statusline-agent-rows'];
+    writeFileSync(path, JSON.stringify(fragment));
+    assert.throws(() => assess());
 });
 test('physical readiness rejects section substitution, incomplete short transitions, wrong actors and stale evidence', t=>{
     const {plan,assess,context,directory}=scenario(t);

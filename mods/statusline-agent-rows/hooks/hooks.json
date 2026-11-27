@@ -1,0 +1,1 @@
+{"description": "Render subagent rows in the terminal", "modules": ["./register.ts"]}

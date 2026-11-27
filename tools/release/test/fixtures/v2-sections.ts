@@ -7,6 +7,7 @@ import { sha256 } from '../../../build/files.js';
 import { SECTION_CHECKS, SECTION_INPUT_PATHS } from '../../../checks/ci-section-evidence.js';
 import type { CoveragePlan, CoverageProducer } from '../../../checks/ci-coverage.js';
 import type { PhysicalIdentity } from '../../../checks/ci-fragment.js';
+import { AGENT_ROWS_MANIFEST, officialModsForHost } from '../../../checks/runtime-inputs.js';
 import { repoRoot } from '../../../migration/ts-03/common.js';
 import { receipts, transitions, sourceEntries, officialReceipt, capacityLog, capacityValidationLog, officialLog, schema } from './acceptance.js';
 
@@ -15,16 +16,22 @@ const scenario = 'changed host kinds and choices are refused per row while indep
 function stabilityLog(ms: number) {
     return 'tests/integration/advanced.test.ts:\n(pass) '+scenario+' ['+ms+'ms]\n\n1 pass\n0 fail\nRan 1 test across 1 file. [1s]\n';
 }
-export function sectionFixtureEntries(): Map<string, Buffer> {
+export function sectionFixtureEntries(agentRows = false): Map<string, Buffer> {
     const rows = new Map<string,Buffer>(sourceEntries);
     for (const path of [...SECTION_INPUT_PATHS,'package.json','.node-version']) rows.set(path,readFileSync(join(repoRoot,path)));
+    if (agentRows) {
+        rows.set(AGENT_ROWS_MANIFEST, readFileSync(join(repoRoot, AGENT_ROWS_MANIFEST)));
+        rows.set('mods/statusline-agent-rows/hooks/hooks.json', Buffer.from(JSON.stringify({ modules: ['./register.ts'] })));
+        rows.set('mods/statusline-agent-rows/hooks/register.ts', Buffer.from('export function register() {}'));
+        rows.set('mods/statusline-agent-rows/tests/fixture.test.ts', Buffer.from('// AgentRow test source\n'));
+    }
     return rows;
 }
 export function sectionFixtureReport(producer: CoverageProducer, plan: CoveragePlan, entries: ReadonlyMap<string, Uint8Array>, id: PhysicalIdentity): Record<string, any> {
     const target = plan.obligations.find(row=>row.id===producer.obligations[0])!.target;
-    const observed = structuredClone(base.find(row=>row.target===target));
+    const observed = structuredClone(base.find(row=>row.target===target) ?? base.find(row=>row.target===id.platform+'-2.1.310'));
     const out: Record<string,any> = {status:'pass'}, stage=producer.stage;
-    const mods = !id.host ? [] : Number(id.host.split('.')[2]) >= 289 ? ['statusline-native','statusline-runtime'] : ['statusline-native'];
+    const mods = id.host ? officialModsForHost(id.host, entries.has(AGENT_ROWS_MANIFEST)) : [];
     if (!id.host && (stage==='complete' || stage==='installed')) {
         delete observed.i18n_workflow; delete observed.version_management;
         Object.assign(observed,{commit:id.commit,tarball_sha256:id.tarball_sha256,checks:Object.fromEntries(SECTION_CHECKS.map(name=>[name,true]))});
@@ -48,15 +55,17 @@ export function sectionFixtureReport(producer: CoverageProducer, plan: CoverageP
                     const current=phase==='upgrade';
                     return {phase,exit_code:0,package_version:current?VERSION:'3.8.0',backend_version:current?VERSION:'3.8.0',archive_sha256:current?id.tarball_sha256:prior,
                         entry,bound_entry:entry,bound_executable_sha256:id.node_sha256,display_schema:current?schema:13,display_sha256:current&&schema>13?hash('migrated-display'):display,
-                        profiles_sha256:profiles,third_party_keep:'unchanged',elapsed_ms:1,bindings:mods.map(mod=>({mod,executable_sha256:id.node_sha256,entry}))};
+                        profiles_sha256:profiles,third_party_keep:'unchanged',elapsed_ms:1,bindings:mods.filter(mod=>current||mod!=='statusline-agent-rows').map(mod=>({mod,executable_sha256:id.node_sha256,entry}))};
                 }),schema_restore:schema>13?{from:13,to:schema,refusal_exit_code:2,refusal_reason:'configuration-schema',retained_version:VERSION,restore_exit_code:0,display_sha256:display,profiles_sha256:profiles}:null,
-                explicit_disable:{reinstall_exit_code:0,native_preference:false,runtime_preference:false,enabled_managed_mods:[],third_party_keep:'unchanged'}};
+                explicit_disable:{reinstall_exit_code:0,native_preference:false,runtime_preference:false,enabled_managed_mods:mods.filter(mod=>mod==='statusline-agent-rows'),third_party_keep:'unchanged'}};
         }
     }
     if (id.host) {
-        const o=observed;delete o.package_management; Object.assign(o,{commit:id.commit,tarball_sha256:id.tarball_sha256});
+        const o=observed;delete o.package_management; Object.assign(o,{target, host:id.host, commit:id.commit,tarball_sha256:id.tarball_sha256});
+        if (mods.includes('statusline-agent-rows')) o.mods['statusline-agent-rows'] = { validation:'pass', official_tests:'pass', types:{status:'pass',host:id.host} };
         for(const mod of Object.keys(o.mods)) {
             if (!mods.includes(mod)) {o.mods[mod]={status:'unsupported',reason:'Requires 2.1.289+'};continue;}
+            if (o.mods[mod].types.status === 'pass') o.mods[mod].types.host = id.host;
             o.mods[mod].official_test_batches=officialReceipt(mod,false,entries);
             for (const batch of o.mods[mod].official_test_batches.batches) batch.log=mod+'-'+batch.log;
             if(mod==='statusline-native')o.mods[mod].capacity.execution=officialReceipt(mod,true,entries);

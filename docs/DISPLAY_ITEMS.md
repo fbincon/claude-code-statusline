@@ -186,7 +186,7 @@ Request-derived latency, throughput and attributed prompt totals. See [request c
 
 ## Subagent items
 
-Custom subagent rows use the Claude Code 2.1.205–2.1.322 callback. Each row uses the current task's data, with optional local observations described below. [Host compatibility](USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
+The command callback and the AgentRow Mod use the same components, order, colors and filters. Each row draws from its own task. All rows use the Profile selected by the session directory and the optional local observations described below. [Host compatibility](USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
 | ID | Default | Content |
 | --- | --- | --- |

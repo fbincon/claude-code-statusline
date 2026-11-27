@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { commandFor } from '@fbincon/statusline-platform/commands';
+import { commandFor, ownedCommand } from '@fbincon/statusline-platform/commands';
 import { clone, object, fail } from '@fbincon/statusline-core/config/validation';
 import { safeInteger } from '@fbincon/statusline-core/json';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
@@ -12,8 +12,8 @@ export interface PlanContext {
     force: boolean;
     fast: boolean;
     external: boolean;
-    subagents: boolean;
-    rows: boolean;
+    subagentLifecycle: boolean;
+    legacyRows: 'write' | 'keep' | 'remove';
 }
 export function cleanHooks(groups: unknown, context: PlanContext, operations = ['hook'], removeLegacy = false): unknown[] {
     if (groups == null)
@@ -30,39 +30,42 @@ export function cleanHooks(groups: unknown, context: PlanContext, operations = [
         return hooks.length ? [{ ...clone(group), hooks: clone(hooks) }] : [];
     });
 }
+export function setLegacyRows(settings: Record<string, unknown>, context: Pick<PlanContext, 'launch' | 'previous' | 'force'>, action: PlanContext['legacyRows']): void {
+    if (action === 'keep') return;
+    const current = settings.subagentStatusLine;
+    const owned = object(current) && current.type === 'command' && (ownedCommand(current.command, 'render-subagents', context.launch) ||
+        Boolean(context.previous && ownedCommand(current.command, 'render-subagents', context.previous)));
+    if (action === 'remove') {
+        if (owned) delete settings.subagentStatusLine;
+        return;
+    }
+    if (current != null && !owned && !context.force)
+        fail('errors.install_plan.an_unrelated_subagentstatusline_is_already_configured_choose');
+    settings.subagentStatusLine = { type: 'command', command: commandFor(context.launch, 'render-subagents') };
+}
 export function settingsPlan(settings: Record<string, unknown>, context: PlanContext, uninstall = false): Record<string, unknown> {
     const updated = clone(settings);
-    for (const [key, operation] of [['statusLine', 'render'], ['subagentStatusLine', 'render-subagents']] as const) {
-        const current = updated[key], command = object(current) ? current.command : null, owned = owns(command, operation, context.launch, context.previous);
-        if (uninstall) {
-            if (owned)
-                delete updated[key];
-            continue;
-        }
-        if (key === 'subagentStatusLine' && (!context.subagents || !context.rows)) {
-            if (owned)
-                delete updated[key];
-            continue;
-        }
-        if (current != null && !owned && !(key === 'statusLine' && legacy(command, join(context.directory, 'statusline.py'))) && !context.force)
-            fail(key === 'statusLine' ? 'errors.install_plan.an_unrelated_statusline_is_already_configured_rerun' : 'errors.install_plan.an_unrelated_subagentstatusline_is_already_configured_choose');
-        const desired: Record<string, unknown> = { type: 'command', command: commandFor(context.launch, operation) };
-        if (key === 'statusLine') {
-            if (!object(current))
-                desired.refreshInterval = 1;
-            else {
-                for (const [field, maximum] of [['padding', 32], ['refreshInterval', 3600]] as const) {
-                    try {
-                        desired[field] = safeInteger(current[field], 1, maximum);
-                    }
-                    catch { /* Invalid optional host values are omitted. */ }
+    const current = updated.statusLine, command = object(current) ? current.command : null;
+    const owned = owns(command, 'render', context.launch, context.previous);
+    if (uninstall) {
+        if (owned) delete updated.statusLine;
+    } else {
+        if (current != null && !owned && !legacy(command, join(context.directory, 'statusline.py')) && !context.force)
+            fail('errors.install_plan.an_unrelated_statusline_is_already_configured_rerun');
+        const desired: Record<string, unknown> = { type: 'command', command: commandFor(context.launch, 'render') };
+        if (!object(current)) desired.refreshInterval = 1;
+        else {
+            for (const [field, maximum] of [['padding', 32], ['refreshInterval', 3600]] as const) {
+                try {
+                    desired[field] = safeInteger(current[field], 1, maximum);
                 }
-                if (current.hideVimModeIndicator === true)
-                    desired.hideVimModeIndicator = true;
+                catch { /* Invalid optional host values are omitted. */ }
             }
+            if (current.hideVimModeIndicator === true) desired.hideVimModeIndicator = true;
         }
-        updated[key] = desired;
+        updated.statusLine = desired;
     }
+    setLegacyRows(updated, context, uninstall ? 'remove' : context.legacyRows);
     if (uninstall) {
         if (object(updated.hooks)) {
             const hooks = Object.fromEntries(Object.entries(updated.hooks).map(([event, groups]) => [event, cleanHooks(groups, context, ['hook', 'slash-hook'])]).filter(([, groups]) => (groups as unknown[]).length));
@@ -81,7 +84,7 @@ export function settingsPlan(settings: Record<string, unknown>, context: PlanCon
         hooks[event] = [...cleanHooks(hooks[event], context, ['hook'], true), { hooks: [action] }];
     for (const event of SUBAGENT_HOOKS) {
         const groups = cleanHooks(hooks[event], context);
-        if (context.subagents)
+        if (context.subagentLifecycle)
             groups.push({ hooks: [action] });
         if (groups.length)
             hooks[event] = groups;

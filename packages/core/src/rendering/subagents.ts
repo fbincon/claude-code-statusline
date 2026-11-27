@@ -294,40 +294,57 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     }).join('');
     return prepared.measure(content) > columns ? formatters.truncateText(plain(parts), columns) : content;
 }
-export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEnvironment, nowMs?: number): {
-    id: string;
-    content: string;
-}[] {
-    if (!object(data) || !Array.isArray(data.tasks))
-        return [];
-    const width = int(data.columns), columns = width !== null && width > 0n ? Number(width) : DEFAULT_COLUMNS, seen = new Set<string>(), result = [];
-    const session = env.sessionEffort ? effortIdentity(data.session_id) : null;
+interface OrderedTasks {
+    tasks: readonly unknown[];
+    sessionId: unknown;
+    columns: number | ReadonlyMap<string, number>;
+    /** Lower bound on serialized bytes for bounded transports, in UTF-16 code units. */
+    maxOutputUnits?: number;
+}
+/** Fit in list order. Both the visible-row count and the Powerline color cursor span rows. */
+export function renderOrderedTasks(batch: OrderedTasks, config: DisplayDraft, env: RenderEnvironment, nowMs?: number) {
+    const seen = new Set<string>(), rows: { id: string; content: string }[] = [];
+    const session = env.sessionEffort ? effortIdentity(batch.sessionId) : null;
+    let failed = false, outputUnits = 0;
     let visible = 0, endings: Data | null = null, prepared: Prepared | undefined;
-    for (let task of data.tasks) {
-        if (!object(task) || typeof task.id !== 'string' || !trim(task.id) || seen.has(task.id))
+    for (const entry of batch.tasks) {
+        if (!object(entry) || typeof entry.id !== 'string' || !trim(entry.id) || seen.has(entry.id))
             continue;
-        const id = task.id;
+        const id = entry.id;
+        let task = entry;
         seen.add(id);
         env.trace?.begin('subagent',id);
         const hidden = config.subagents.visibility === 'running' && task.status !== 'running' || config.subagents.hide_completed && task.status === 'completed' || config.subagents.row_limit !== null && visible >= config.subagents.row_limit;
         if(hidden) for(const node of config.subagents.instances) if(node.enabled) env.trace?.mark('subagent',node.id,'row_hidden');
         let content = '';
         try {
-            if (['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms') && typeof data.session_id === 'string' && data.session_id) {
-                endings ??= env.agentEndings(data.session_id);
+            if (['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms') && typeof batch.sessionId === 'string' && batch.sessionId) {
+                endings ??= env.agentEndings(batch.sessionId);
                 const end = numeric(own(endings, id)), start = finite(task.startTime);
                 if (end !== null && start !== null && start >= 0 && start <= end)
                     task = { ...task, _frozen_duration_ms: end - start };
             }
-            if (!hidden)
+            const columns = typeof batch.columns === 'number' ? batch.columns : batch.columns.get(id);
+            if (columns === undefined) throw new Error('Missing subagent row width');
+            if (!hidden && columns > 0)
                 content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, env.trace), session);
         }
-        catch { /* A malformed task must not break the remaining NDJSON records. */ }
+        catch { failed = true; }
+        if (batch.maxOutputUnits !== undefined) {
+            outputUnits += id.length + content.length;
+            if (outputUnits > batch.maxOutputUnits) return { rows: [], failed: true };
+        }
         if (content)
             visible++;
-        result.push({ id, content });
+        rows.push({ id, content });
     }
-    return result;
+    return { rows, failed };
+}
+export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEnvironment, nowMs?: number) {
+    if (!object(data) || !Array.isArray(data.tasks)) return [];
+    const width = int(data.columns), columns = width !== null && width > 0n ? Number(width) : DEFAULT_COLUMNS;
+    // The callback keeps the other NDJSON records even if a task fails to render.
+    return renderOrderedTasks({ tasks: data.tasks, sessionId: data.session_id, columns }, config, env, nowMs).rows;
 }
 export function previewRows(config: DisplayDraft, columns: number, env: RenderEnvironment, scenario: PreviewScenario = 'normal'): string[] {
     env={...env,source:scenarioSource(scenario),links:true};

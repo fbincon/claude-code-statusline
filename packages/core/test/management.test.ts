@@ -20,7 +20,7 @@ test('compatibility is explicit, bounded and independent of display/editor schem
     assert.deepEqual(historical.read.display, [1, 13]);
     assert.throws(() => compatibility(undefined, '3.6.0'));
     assert.throws(() => compatibility(undefined, '3.8.0'));
-    for (const patch of [{ schema_version: 2 }, { node: { '24': '22.0.0' } }, { read: { display: [1, 13] } }, { targets: ['linux-unknown'] }, { editor_protocol: 0 }])
+    for (const patch of [{ schema_version: 2 }, { node: { '24': '22.0.0' } }, { read: { display: [1, 13] } }, { targets: ['linux-unknown'] }, { editor_protocol: 0 }, { agent_rows_protocol: -1 }])
         assert.throws(() => compatibility({ ...PACKAGE_COMPATIBILITY, ...patch }, '3.8.0'));
     assert.deepEqual(runtimeCompatibility(PACKAGE_COMPATIBILITY, '24.0.0', 'win32-x64', '2.1.205', true), []);
     assert.deepEqual(runtimeCompatibility(PACKAGE_COMPATIBILITY, '26.0.0', 'linux-arm64', null, true), ['runtime', 'platform', 'host']);

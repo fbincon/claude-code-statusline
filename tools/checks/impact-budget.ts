@@ -27,7 +27,7 @@ export function estimatedScopedTaskMs(task: ImpactTask, files: readonly string[]
     for (const check of task.checks) {
         if (['actions', 'docs', 'assets', 'archive', 'approval'].includes(check)) total += SCOPED_COMMAND_MS;
         else if (check === 'packaging') total += 60 * MINUTE; // optional four 10m build commands and installation smoke
-        else if (check === 'native' || check === 'runtime') total += 40 * MINUTE; // validation, tests, exact types and tsc
+        else if (check === 'native' || check === 'runtime' || check === 'agent-rows') total += 40 * MINUTE; // validation, tests, exact types and tsc
         else {
             if (check === 'generation') total += SCOPED_COMMAND_MS; // resources --check
             total += familyEnvelopeMs(scopedSourceFiles(check, files).length);

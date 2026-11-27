@@ -101,9 +101,10 @@ The six known validation gaps remain unverified; accepted scope and historical r
 | Feature | Claude Code requirement |
 | --- | --- |
 | Main line, CLI, terminal editor, wizard | Available on older/unknown hosts; unavailable data is omitted |
-| Custom subagent rows | 2.1.205–2.1.322 |
+| Custom subagent rows via the command callback | 2.1.205–2.1.322, 2.1.326–2.1.332 |
+| Custom subagent rows via the AgentRow Mod | 2.1.326+ |
 | Subagent lifecycle hooks | 2.1.205+ |
-| Configured effort in custom subagent rows | 2.1.214–2.1.322 |
+| Configured effort in custom subagent rows | 2.1.214–2.1.322, 2.1.326+ |
 | Local argument-based slash commands, external entry | 2.1.258+ |
 | In-session Client editor | 2.1.287+ |
 | Native timing and advanced live-metrics collection | 2.1.289+ |
@@ -661,20 +662,22 @@ This warning does not migrate the file: diagnosis and reads preserve its bytes; 
 
 ### Subagent rows are missing or ownership conflicts occur
 
-Run `claude --version` and `claude-statusline doctor` first. Claude Code 2.1.323 removed the `subagentStatusLine` callback. On that host, Claude displays its built-in agent rows even when a custom command is in the settings. The subagent lifecycle hooks are separate. [Claude Code 2.1.323 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.323)
+Run `claude --version` and `claude-statusline doctor`. On Claude Code 2.1.323–2.1.325 the panel uses its built-in rows even when `settings.json` contains an old command. From 2.1.326 the terminal provides the `AgentRow` render site. The command callback returned for a deprecation period and has been verified through 2.1.332. [Claude Code 2.1.323 release notes](https://github.com/anthropics/claude-code/releases/tag/v2.1.323) · [Official Mod render sites](https://code.claude.com/docs/en/plugins/mods/reference#render-sites)
 
-For custom rows, use a host in the supported range and rerun `claude-statusline install`. If `doctor` reports `foreign`, choose one of the following commands.
+The default installation preference, `auto`, prefers the Mod on compatible hosts. To restore automatic selection after pinning a renderer, run `claude-statusline install --subagent-renderer auto`. Use `legacy` to request the command on a compatible host or `mod` to require the Mod. The editor, timing and live-metrics switches are independent.
+
+When migrating an owned command, open a fresh trusted Claude Code terminal and start a subagent. The command continues drawing until the Mod has calculated its first applicable batch. The installation then removes the owned command automatically. Run `doctor` to distinguish installation on disk, loading in a session and verification of a row batch. If the Mod is unavailable, `auto` can use the legacy callback on known compatible hosts when policy permits. If `doctor` reports a foreign command, choose how to handle its ownership.
 
 ```bash
-# Explicitly take over third-party subagent rows
-claude-statusline install --force
+# On a host with a verified callback, explicitly replace a third-party command
+claude-statusline install --subagent-renderer legacy --force
 
 # Keep the third-party implementation and disable only this tool's custom-row target
 claude-statusline config set subagent-statusline off
 claude-statusline install
 ```
 
-If `subagents.instances` is empty or `subagents.enabled` is false, this renderer returns empty content as required by the protocol. After entering a subagent transcript, the global bottom line still belongs to the main agent/session because Claude provides no current-focus ID.
+Turning custom rows off leaves the host or other renderer in control. With custom rows enabled, an empty template or an explicit row filter hides the corresponding row. Opening a subagent transcript keeps the bottom status line attached to the main session.
 
 <a id="statusline-config-不可见"></a>
 

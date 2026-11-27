@@ -30,6 +30,18 @@ export function contentWidth(columns?: string): number {
     const parsed = coercedInteger(columns), width = parsed !== null && parsed > 0n ? Number(parsed) : 120;
     return Math.max(2, width - 2);
 }
+export function displayForRender(configDir: string, data: unknown) {
+    const directory = liveDirectory(data);
+    return resolvedDisplay(configDir, {
+        read(path) {
+            try { return readFileSync(path); }
+            catch (error) {
+                if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+                throw error;
+            }
+        },
+    }, readDisplay(configDir), directory ? { kind: 'project', path: directory } : { kind: 'user' }).display;
+}
 export async function render(read: () => string | Uint8Array, options: EnvironmentOptions = {}, subagents = false, columns = process.env.COLUMNS): Promise<string> {
     let data: unknown;
     try {
@@ -39,9 +51,7 @@ export async function render(read: () => string | Uint8Array, options: Environme
         return '';
     }
     const observedAt = options.runtime?.nowMs() ?? Date.now();
-    const configDir = configDirectory(options.configDir), directory = liveDirectory(data);
-    const config = resolvedDisplay(configDir, { read(path) { try { return readFileSync(path); } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; } } },
-        readDisplay(configDir), directory ? { kind: 'project', path: directory } : { kind: 'user' }).display;
+    const configDir = configDirectory(options.configDir), config = displayForRender(configDir, data);
     // An omitted override preserves the host's default agent rows.
     if (subagents && !config.subagents.enabled) return '';
     if (!subagents && object(data) && effortIdentity(data.session_id) && sessionEffortEnabled(config)) {

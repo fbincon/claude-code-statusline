@@ -9,6 +9,8 @@ import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { safeTarget } from '../integration/paths.js';
+import { MANAGED_MODS } from '../integration/model.js';
+import { AGENT_ROW_ROUTE_FILE } from '../integration/agent-row-paths.js';
 export const ROOT = 'statusline_runtime/transactions';
 export const hash = (raw: Buffer | null): string | null => raw === null ? null : createHash('sha256').update(raw).digest('hex');
 export class RecoveryRequired extends ConfigError {
@@ -42,7 +44,7 @@ export interface FileJournal extends Base {
 }
 export interface OfficialJournal extends Base {
     kind: 'official';
-    spec: 'statusline-native' | 'statusline-runtime';
+    spec: 'statusline-native' | 'statusline-runtime' | 'statusline-agent-rows';
     args: string[];
     values: Record<string, string> | null;
     before: unknown;
@@ -103,7 +105,7 @@ export function refreshIntents(directory: string): string[] {
     const record = JSON.parse(source);
     if (!Object.hasOwn(record, 'refresh_disabled'))
         return [];
-    if (record.owner !== 'claude-code-statusline' || record.schema_version !== 1 || !Array.isArray(record.refresh_disabled) || record.refresh_disabled.some((name: unknown) => !['statusline-native', 'statusline-runtime'].includes(String(name))) || new Set(record.refresh_disabled).size !== record.refresh_disabled.length)
+    if (record.owner !== 'claude-code-statusline' || record.schema_version !== 1 || !Array.isArray(record.refresh_disabled) || record.refresh_disabled.some((name: unknown) => !MANAGED_MODS.some(spec => spec.name === name)) || new Set(record.refresh_disabled).size !== record.refresh_disabled.length)
         throw new RecoveryRequired('Invalid plugin refresh intent');
     return record.refresh_disabled;
 }
@@ -167,13 +169,18 @@ export function readJournal(directory: string, path: string): Journal {
             seen.add(entry.path);
         }
     }
-    else if (!['statusline-native', 'statusline-runtime'].includes(value.spec) || !['prepared', 'uncertain'].includes(value.phase) || !Array.isArray(value.args) || value.args.some((x: unknown) => typeof x !== 'string' || /[\0\r\n]/u.test(x)) || !(value.values === null || record(value.values) && Object.values(value.values).every(x => typeof x === 'string')))
+    else if (!MANAGED_MODS.some(spec => spec.name === value.spec) || !['prepared', 'uncertain'].includes(value.phase) || !Array.isArray(value.args) || value.args.some((x: unknown) => typeof x !== 'string' || /[\0\r\n]/u.test(x)) || !(value.values === null || record(value.values) && Object.values(value.values).every(x => typeof x === 'string')))
         throw new RecoveryRequired('Invalid official operation checkpoint');
     return { ...value, configDir: directory } as Journal;
 }
 export function allowedArtifact(path: string): boolean {
     if (path.includes('\\') || isAbsolute(path) || path.split('/').some(x => !x || x === '.' || x === '..'))
         return false;
-    return ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME, 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline_runtime/installation.json'].includes(path) || /^skills\/statusline-(?:config|configure)\/(?:SKILL\.md|\.claude-statusline-owner\.json)$/u.test(path) || /^statusline-(?:native|runtime)\/(?:\.claude-statusline-owner\.json|\.claude-plugin\/marketplace\.json|plugins\/statusline-(?:native|runtime)\/(?:resource-manifest\.json|\.claude-plugin\/plugin\.json|hooks\/hooks\.json|(?:hooks|lib|ui)\/.+\.ts))$/u.test(path);
+    if (['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME, 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline_runtime/installation.json', AGENT_ROW_ROUTE_FILE].includes(path) || /^skills\/statusline-(?:config|configure)\/(?:SKILL\.md|\.claude-statusline-owner\.json)$/u.test(path)) return true;
+    const spec = MANAGED_MODS.find(mod => path.startsWith(mod.name + '/'));
+    if (!spec) return false;
+    const file = path.slice(spec.name.length + 1), plugin = 'plugins/' + spec.name + '/';
+    return file === '.claude-statusline-owner.json' || file === '.claude-plugin/marketplace.json' ||
+        file.startsWith(plugin) && /^(?:resource-manifest\.json|\.claude-plugin\/plugin\.json|hooks\/hooks\.json|(?:hooks|lib|ui)\/.+\.ts)$/u.test(file.slice(plugin.length));
 }
 export function relativePath(directory: string, path: string): string { safeTarget(directory, path); return relative(directory, path).replaceAll('\\', '/'); }

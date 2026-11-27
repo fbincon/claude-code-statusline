@@ -11,19 +11,28 @@ import { parseNative, parseFeature, parseRuntime } from '@fbincon/statusline-cor
 import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
 import { safeTarget } from '../integration/paths.js';
 import { BINDING_FILE } from '../integration/ownership.js';
+import { AGENT_ROW_ROUTE_FILE } from '../integration/agent-row-paths.js';
+import { routeSnapshot } from '../integration/agent-row-state.js';
 import { hash, readRegular } from '../recovery/journal.js';
 import { atomicWrite } from '@fbincon/statusline-platform/files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 export const CONFIG_FILES = [...Object.keys(CONFIG_FORMATS), 'settings.json', BINDING_FILE];
+// The old snapshot reader requires the original exact key set. The current
+// installation route guards package changes but is never restored from a backup.
+const REVIEW_FILES = [...CONFIG_FILES, AGENT_ROW_ROUTE_FILE];
 export type ConfigBytes = Record<string, Buffer | null>;
 export type ConfigHashes = Record<string, string | null>;
 export function configurationBytes(directory: string): ConfigBytes {
     const result: ConfigBytes = {};
     let size = 0;
-    for (const name of CONFIG_FILES) {
+    for (const name of REVIEW_FILES) {
         const path = join(directory, name);
         safeTarget(directory, path);
         try {
+            if (name === AGENT_ROW_ROUTE_FILE) {
+                result[name] = routeSnapshot(directory).raw;
+                continue;
+            }
             const stat = fs.lstatSync(path);
             if (!stat.isFile() || stat.size > 32 * 1024 * 1024)
                 throw new PackageError('configuration');
@@ -41,10 +50,10 @@ export function configurationBytes(directory: string): ConfigBytes {
     }
     return result;
 }
-export const configurationHashes = (bytes: ConfigBytes): ConfigHashes => Object.fromEntries(CONFIG_FILES.map(name => [name, hash(bytes[name] ?? null)]));
+export const configurationHashes = (bytes: ConfigBytes): ConfigHashes => Object.fromEntries(REVIEW_FILES.map(name => [name, hash(bytes[name] ?? null)]));
 export function assertConfiguration(directory: string, expected: ConfigHashes): void {
     const actual = configurationHashes(configurationBytes(directory));
-    if (CONFIG_FILES.some(name => actual[name] !== expected[name]))
+    if (REVIEW_FILES.some(name => actual[name] !== expected[name]))
         throw new PackageError('conflict');
 }
 export function configurationCompatibility(bytes: ConfigBytes, target: PackageCompatibility): string[] {
@@ -89,7 +98,7 @@ export function configurationCompatibility(bytes: ConfigBytes, target: PackageCo
     return reasons;
 }
 export function saveSnapshot(directory: string, transaction: string, bytes: ConfigBytes): ConfigHashes {
-    const hashes = configurationHashes(bytes);
+    const hashes = Object.fromEntries(CONFIG_FILES.map(name => [name, hash(bytes[name] ?? null)]));
     for (const name of CONFIG_FILES) {
         const raw = bytes[name];
         if (raw === null || raw === undefined)

@@ -2,7 +2,7 @@ import test from 'node:test';
 import { spawnSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { fresh, snapshot, assert, fs, join, NATIVE, doctor } from './install-support.js';
-import { pending, readJournal, refreshIntents, RecoveryRequired } from '@fbincon/statusline-cli/recovery/journal';
+import { allowedArtifact, pending, readJournal, refreshIntents, RecoveryRequired } from '@fbincon/statusline-cli/recovery/journal';
 import { digest } from '@fbincon/statusline-cli/integration/resources';
 import { owner, registered, cacheOwned } from '@fbincon/statusline-cli/integration/mod-ownership';
 import { recover } from '@fbincon/statusline-cli/recovery/service';
@@ -10,7 +10,40 @@ import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { setLanguage } from '@fbincon/statusline-cli/config/preferences';
 import { UnconfirmedOperation } from '@fbincon/statusline-platform/plugin-host';
 import { main } from '@fbincon/statusline-cli/main';
+import { AGENT_ROWS } from '@fbincon/statusline-cli/integration/model';
+import { AGENT_ROW_ROUTE_FILE, AGENT_ROW_EVIDENCE_FILE } from '@fbincon/statusline-cli/integration/agent-row-paths';
 const helper = fileURLToPath(new URL('./recovery-child.js', import.meta.url));
+
+test('the AgentRow transaction whitelist matches its exact plugin roots and excludes observations', () => {
+    assert(allowedArtifact(AGENT_ROW_ROUTE_FILE));
+    assert(!allowedArtifact(AGENT_ROW_EVIDENCE_FILE));
+    assert(allowedArtifact(AGENT_ROWS.name + '/plugins/' + AGENT_ROWS.name + '/hooks/register.ts'));
+    assert(!allowedArtifact(AGENT_ROWS.name + '/plugins/statusline-native/hooks/register.ts'));
+    assert(!allowedArtifact('statusline-native/plugins/' + AGENT_ROWS.name + '/hooks/register.ts'));
+});
+
+test('uncertain AgentRow operations reconcile against the owned row plugin without a second install', t => {
+    for (const applied of [true, false]) {
+        const f = fresh(t, [2, 1, 332]);
+        const run = f.agentRows.run.bind(f.agentRows);
+        f.agentRows.run = (args, values, json) => {
+            if (args[0] !== 'install') return run(args, values, json);
+            if (applied) run(args, values, json);
+            throw new UnconfirmedOperation('Interrupted test install');
+        };
+        assert.equal(f.install({ native: false, nativeTiming: false }).failed, true);
+        const journal = readJournal(f.root, pending(f.root)[0]!);
+        assert.equal(journal.kind === 'official' && journal.spec, AGENT_ROWS.name);
+        f.agentRows.run = run;
+        const before = snapshot(f.root), entry = { id: journal.id, kind: 'official', outcome: applied ? 'confirmed' : 'not-applied' };
+        assert.deepEqual(recover(f.context, true), { changed: false, transactions: [entry] });
+        assert.deepEqual(snapshot(f.root), before);
+        assert.deepEqual(recover(f.context), { changed: true, transactions: [entry] });
+        assert.deepEqual(pending(f.root), []);
+        assert.equal(f.agentRows.calls.filter(call => call.args[0] === 'install').length, Number(applied));
+        assert.equal(f.install({ native: false, nativeTiming: false }).failed, false);
+    }
+});
 test('canonical cache identity never conceals a link inside the configuration tree', t => {
     const f = fresh(t); f.install({ native: true, nativeTiming: false });
     const row = f.host.plugins[0]!, path = String(row.installPath), moved = path + '-original';

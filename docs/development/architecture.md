@@ -2,7 +2,7 @@
 
 **English** | [简体中文](architecture.zh-CN.md)
 
-The product is a TypeScript/Node application. Pure rules live in core, OS effects in platform, application orchestration in CLI, and external terminal interaction in TUI. Native and runtime Mods adapt the official host and call the backend through separate JSON protocols.
+The product is a TypeScript/Node application. Pure rules live in core, OS effects in platform, application orchestration in CLI, and external terminal interaction in TUI. Three independent Mods connect the official host to the editor, runtime observation and agent row services.
 
 ## Architecture overview
 
@@ -12,6 +12,7 @@ Solid arrows show workspace dependencies; dashed arrows show backend process cal
 flowchart TD
     Native[Native editor Mod] -. UI protocol .-> CLI[CLI application services]
     Runtime[Runtime Mod] -. Runtime protocol .-> CLI
+    Rows[AgentRow Mod] -. Ordered row batch .-> CLI
     CLI --> TUI[External TUI]
     CLI --> Platform[Platform adapters]
     CLI --> Core[Core rules]
@@ -37,6 +38,7 @@ packages/
 mods/
   statusline-native/              Official-host editor and generated pure resources
   statusline-runtime/             Official-host observations and lifecycle integration
+  statusline-agent-rows/          Official-host custom subagent rows
 tools/
   generation/                    Resource generation
   checks/                        Repository, documentation and CI policy checks

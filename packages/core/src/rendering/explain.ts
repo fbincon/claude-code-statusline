@@ -1,6 +1,7 @@
 import type { Draft, Scope, PreviewResult, ExplainResult, ExplainReason, InstanceDraft } from '../contracts/ui.js';
 import { BY_SCOPE } from '../config/catalog.js';
 import type { RenderTrace } from './trace.js';
+import { agentRowCapabilities } from '../integration/agent-row-capabilities.js';
 
 export interface ExplanationFacts {
   installation: { main: 'owned' | 'absent' | 'foreign' | 'unknown'; subagent: 'owned' | 'absent' | 'foreign' | 'unknown' };
@@ -36,7 +37,11 @@ export function configurationReasons(draft: Draft, scope: Scope, node: InstanceD
       const definition=BY_SCOPE[scope].get(node.type_id), requirements=definition?.guidance.requirements ?? [];
       const minimum=definition?.minimum_version ?? (scope==='subagent'?'2.1.205':null);
       if(facts.host_version===null) add('unknown_host_version','unknown');
-      else if(minimum) add(atLeast(facts.host_version,minimum)?'host_supported':'unsupported_host','host_capability');
+      else if(minimum) {
+        const rows = agentRowCapabilities(facts.host_version);
+        const supported = atLeast(facts.host_version,minimum) && (scope !== 'subagent' || rows.mod || rows.legacy);
+        add(supported?'host_supported':'unsupported_host','host_capability');
+      }
       else if(!['text','spacer'].includes(node.type_id)) add('host_requirement_unknown','unknown');
       for(const [requirement,field] of [['native_timing','native_timing'],['live_metrics','live_metrics']] as const) {
         if(!requirements.includes(requirement)) continue;

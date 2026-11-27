@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { Npm, readPackageManifest } from '../src/npm.js';
+import { globalPackageRoot, Npm, readPackageManifest } from '../src/npm.js';
 import { PackageError } from '@fbincon/statusline-core/management/package';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { verifyArchive,type NpmLayout } from '../src/npm.js';
@@ -10,6 +10,52 @@ import * as fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolvedPath } from '../src/commands.js';
 import { removeTree } from '../src/remove-tree.js';
+test('staged validation selects two or three owned Mods from the target package contract at the same application version', async t => {
+    const prefix = fs.mkdtempSync(join(tmpdir(), 'agent-row stage ')), root = globalPackageRoot(prefix);
+    t.after(() => removeTree(prefix));
+    const name = '@fbincon/claude-code-statusline', version = '3.16.5', nodeEngine = '>=22';
+    const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
+    const put = (file: string, data: unknown) => {
+        const bytes = Buffer.from(typeof data === 'string' ? data : JSON.stringify(data));
+        const path = join(root, file);
+        fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, bytes);
+        return digest(bytes);
+    };
+    const files: Record<string, string> = {};
+    for (const file of ['bin/claude-statusline.js', 'node_modules/@fbincon/statusline-cli/dist/src/entry.js', 'node_modules/@fbincon/statusline-core/dist/src/release.js']) files[file] = put(file, 'export {};');
+    put('candidate.json', { name, version, application_version: version, files });
+    const compatibility = { ...PACKAGE_COMPATIBILITY };
+    delete compatibility.agent_rows_protocol;
+    const manifest = { name, version, engines: { node: nodeEngine }, bin: { 'claude-statusline': 'bin/claude-statusline.js' }, statuslineCompatibility: compatibility };
+    put('package.json', manifest);
+    const target = { version, nodeEngine, compatibility, registry: '', integrity: '', legacy: false };
+    const npm = new Npm({}, async () => ({ code: 0, reason: 'completed', stdout: '' }), 'npm-cli.js');
+    npm.verify = async () => {};
+    const modRoot = 'node_modules/@fbincon/statusline-cli/resources/';
+    function installMod(mod: string, protocol: number) {
+        const base = modRoot + mod + '/', resources: Record<string, string> = {};
+        resources['.claude-plugin/plugin.json'] = put(base + '.claude-plugin/plugin.json', { name: mod, version });
+        resources['hooks/hooks.json'] = put(base + 'hooks/hooks.json', { modules: ['./register.ts'] });
+        resources['hooks/register.ts'] = put(base + 'hooks/register.ts', 'export function register() {}');
+        put(base + 'resource-manifest.json', { backend_version: version, mod_version: version, protocol_version: protocol, files: resources });
+        for (const [file, hash] of Object.entries(resources)) files[base + file] = hash;
+        put('candidate.json', { name, version, application_version: version, files });
+    }
+    installMod('statusline-native', compatibility.editor_protocol);
+    installMod('statusline-runtime', compatibility.runtime_protocol);
+    assert.equal((await npm.validateStaged(prefix, target)).version, version);
+    compatibility.agent_rows_protocol = 1; put('package.json', manifest);
+    await assert.rejects(npm.validateStaged(prefix, target), error => error instanceof PackageError && error.code === 'identity');
+    installMod('statusline-agent-rows', 1);
+    assert.equal((await npm.validateStaged(prefix, target)).version, version);
+    put(modRoot + 'statusline-agent-rows/hooks/register.ts', 'changed');
+    await assert.rejects(npm.validateStaged(prefix, target), error => error instanceof PackageError && error.code === 'identity');
+    const resourceManifest = modRoot + 'statusline-agent-rows/resource-manifest.json';
+    const altered = JSON.parse(fs.readFileSync(join(root, resourceManifest), 'utf8'));
+    altered.files['hooks/register.ts'] = digest(Buffer.from('changed'));
+    put(resourceManifest, altered);
+    await assert.rejects(npm.validateStaged(prefix, target), error => error instanceof PackageError && error.code === 'identity');
+});
 test('ordinary package manifests accept public permissions and reject unsafe or malformed inputs without writes', t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'package manifest 中文 ')), path = join(root, 'package.json');
     t.after(() => removeTree(root));

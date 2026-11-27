@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { canonical, runtimeLock, runtimeManifest, withoutCiScripts } from './impact-lock.ts';
-import { runnerTargets, runtimeInputs, type RunnerPolicy } from './runtime-inputs.ts';
+import { AGENT_ROWS_MANIFEST, AGENT_ROW_HOSTS, runnerTargets, runtimeInputs, type RunnerPolicy } from './runtime-inputs.ts';
 
 export const COVERAGE_ACTIVATION_PATH = 'tools/checks/coverage-v2.json';
 export const COVERAGE_ACTIVATION = '{"schema_version":2,"policy":"history-profiles-v2"}\n';
@@ -23,7 +23,7 @@ export interface CoverageProducer {
     os: string; arch: string; host_arch: string; node: string; host: string | null; depth: Depth;
 }
 type Basis = 'pull_request' | 'accepted-main' | 'conservative';
-type Lane = 'none' | 'all' | 'windows' | 'macos' | 'posix' | 'runtime-hosts';
+type Lane = 'none' | 'all' | 'windows' | 'macos' | 'posix' | 'runtime-hosts' | 'agent-row-hosts';
 interface Escalation { path: string; installed: Lane; hosts: Lane; reason: string }
 export interface CoveragePlan {
     schema_version: 2; kind: 'coverage-plan'; basis: Basis; base: string | null; comparison_base: string | null;
@@ -45,13 +45,17 @@ export function fullHistorySelectors(os: string, policy: RunnerPolicy = 'current
 const linux = 'ubuntu-24.04', windows = 'windows-2025', macos = 'macos-15';
 const officialOS = [linux, windows, macos];
 /** This inventory belongs to v2. A new upstream release does not add a permanent obligation. */
-export const FIXED_HOST_POLICY = [
+const originalHosts = [
     { version: '2.1.287', os: [linux], full: [linux], reason: 'First Native-capable host', exit: 'Reviewed change to the supported Native floor' },
     { version: '2.1.288', os: officialOS, full: [windows], reason: 'Native-only boundary on all OSes and the historical Windows npm upgrade regression', exit: 'Replacement for both the below-Runtime boundary and the Windows upgrade regression' },
     { version: '2.1.289', os: officialOS, full: officialOS, reason: 'First Runtime-capable host and Windows long-scenario regression', exit: 'Reviewed Runtime floor change with retained Windows stability coverage' },
     { version: '2.1.294', os: officialOS, full: [], reason: 'Exact declaration and Windows repeated native-scenario reference', exit: 'Accepted replacement for both exact-host and unchanged repeated-scenario evidence' },
     { version: '2.1.296', os: officialOS, full: [], reason: 'Known exact-host declaration gap', exit: 'Explicit reviewed change to the gap, retaining its historical unavailable status' },
     { version: '2.1.310', os: officialOS, full: officialOS, reason: 'First interactive declaration path and three-platform native-capacity baseline', exit: 'Reviewed preservation of the declaration boundary and capacity; a newer version alone is insufficient' },
+] as const;
+export const FIXED_HOST_POLICY = [...originalHosts,
+    { version: AGENT_ROW_HOSTS[0], os: officialOS, full: [linux], reason: 'First AgentRow host, including legacy handoff', exit: 'Reviewed change to the AgentRow floor and migration coverage' },
+    { version: AGENT_ROW_HOSTS[1], os: officialOS, full: [], reason: 'Three-platform AgentRow and current legacy-grace reference', exit: 'Validated replacement for AgentRow and the legacy grace period' },
 ] as const;
 function gitBytes(...args: string[]): Buffer {
     return execFileSync('git', ['--no-replace-objects', ...args], { maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -67,6 +71,19 @@ function blob(commit: string, path: string): Buffer | undefined {
     const fields = /^(100644|100755) blob ([a-f0-9]{40})\t([^\t\n]+)$/u.exec(entry);
     assert(fields && fields[3] === path, 'Coverage policy input must be a regular Git blob: ' + path);
     return gitBytes('cat-file', 'blob', fields[2]!);
+}
+/** Earlier source trees keep their two-Mod responsibilities when verified today. */
+export function agentRowsAt(commit: string): boolean {
+    checkCommit(commit);
+    assert(!git('log', '--full-history', '--no-renames', '-m', '--diff-filter=DT', '-1', '--format=%H', commit, '--', AGENT_ROWS_MANIFEST),
+        'AgentRow source activation was removed or replaced');
+    const manifest = blob(commit, AGENT_ROWS_MANIFEST);
+    if (!manifest) {
+        assert.equal(git('rev-parse', '--is-shallow-repository'), 'false', 'Cannot establish absence of AgentRow support from shallow history');
+        return false;
+    }
+    assert.equal(JSON.parse(manifest.toString('utf8')).name, 'statusline-agent-rows', 'Unexpected AgentRow manifest identity');
+    return true;
 }
 export function coverageVersionInArchive(entries: ReadonlyMap<string, Uint8Array>): 1 | 2 {
     const marker = entries.get(COVERAGE_ACTIVATION_PATH);
@@ -113,7 +130,7 @@ function frozenInputs(value: unknown, runnerPolicy: RunnerPolicy): ReturnType<ty
     assert.deepEqual(inputs.matrix, expected.matrix, 'Frozen runtime matrix omitted or changed an execution');
     return expected;
 }
-export function baselineObligations(value: unknown, runnerPolicy: RunnerPolicy = 'current'): CoverageObligation[] {
+export function baselineObligations(value: unknown, runnerPolicy: RunnerPolicy = 'current', agentRows = false): CoverageObligation[] {
     const inputs = frozenInputs(value, runnerPolicy), rows: CoverageObligation[] = [];
     const targets = runnerTargets(runnerPolicy);
     for (const target of targets) {
@@ -123,7 +140,7 @@ export function baselineObligations(value: unknown, runnerPolicy: RunnerPolicy =
         for (const selector of selectors) rows.push({ ...common, id: id + '@' + selector, kind: 'runtime', selector, node: inputs.versions[selector]!,
             depth: full.includes(selector) ? 'full' : 'short' });
     }
-    for (const host of FIXED_HOST_POLICY) for (const os of host.os) {
+    for (const host of agentRows ? FIXED_HOST_POLICY : originalHosts) for (const os of host.os) {
         const runner = targets.find(target => target.os === os); assert(runner);
         const platform = os === linux ? 'linux' : os === windows ? 'win32' : 'darwin', id = platform + '-' + host.version;
         rows.push({ id, target: id, kind: 'host', selector: null, os, arch: runner.arch, host_arch: runner.host_arch ?? runner.arch,
@@ -155,6 +172,7 @@ function escalation(path: string, base: string, head: string): Escalation | unde
         return risk('all', 'all', 'Cross-platform process or terminal execution');
     if (/^packages\/(?:cli\/src\/integration\/|platform\/src\/plugin-host\.ts$|core\/src\/(?:integration|contracts)\/)/u.test(path))
         return risk('all', 'all', 'Installation, binding or protocol shared across official hosts');
+    if (path.startsWith('mods/statusline-agent-rows/')) return risk('none', 'agent-row-hosts', 'AgentRow Mod integration');
     if (/^mods\/statusline-(?:native|runtime)\/(?:\.claude-plugin\/|hooks\/|.*(?:protocol|binding|marketplace|install|host)\.[jt]s$)/u.test(path))
         return risk('none', path.startsWith('mods/statusline-runtime/') ? 'runtime-hosts' : 'all', 'Official Mod integration');
     // ci:plan owns the ordinary route. A full-route verifier still cannot
@@ -168,7 +186,8 @@ function escalation(path: string, base: string, head: string): Escalation | unde
 }
 function includesLane(lane: Lane, row: CoverageObligation): boolean {
     return lane === 'all' || lane === 'windows' && row.os.startsWith('windows-') || lane === 'macos' && row.os.startsWith('macos-') ||
-        lane === 'posix' && !row.os.startsWith('windows-') || lane === 'runtime-hosts' && !!row.host && Number(row.host.split('.')[2]) >= 289;
+        lane === 'posix' && !row.os.startsWith('windows-') || lane === 'runtime-hosts' && !!row.host && Number(row.host.split('.')[2]) >= 289 ||
+        lane === 'agent-row-hosts' && !!row.host && Number(row.host.split('.')[2]) >= 326;
 }
 function producers(rows: CoverageObligation[]): CoverageProducer[] {
     const result: CoverageProducer[] = [];
@@ -196,7 +215,8 @@ export function createCoveragePlan(base: string | null, head: string, inputs: un
     assert(['conservative', 'pull_request', 'accepted-main'].includes(basis));
     assert.equal(base === null, basis === 'conservative');
     const runnerPolicy = runnerPolicyAt(head);
-    const rows = baselineObligations(inputs, runnerPolicy);
+    const agentRows = agentRowsAt(head);
+    const rows = baselineObligations(inputs, runnerPolicy, agentRows);
     assert.equal(blob(head, '.node-version')?.toString().trim(), rows.find(row => row.kind === 'installed')!.node, 'Development Node differs from source');
     let comparisonBase: string | null = null;
     if (base !== null) {
@@ -221,7 +241,7 @@ export function createCoveragePlan(base: string | null, head: string, inputs: un
     }
     const risks = comparisonBase === null ? [] : changed.flatMap(path => escalation(path, comparisonBase!, head) ?? []);
     for (const row of rows) if (basis === 'conservative' || risks.some(risk => includesLane(row.kind === 'host' ? risk.hosts : risk.installed, row))) row.depth = 'full';
-    const paths = runnerPolicy === 'current' ? [...policyFiles, RUNNER_ACTIVATION_PATH] : policyFiles;
+    const paths = [...policyFiles, ...(runnerPolicy === 'current' ? [RUNNER_ACTIVATION_PATH] : []), ...(agentRows ? [AGENT_ROWS_MANIFEST] : [])];
     const policy = paths.map(path => { const bytes = blob(head, path); assert(bytes, 'Missing coverage policy input: ' + path);
         return [path, createHash('sha256').update(bytes).digest('hex')]; });
     return { schema_version: 2, kind: 'coverage-plan', basis, base, comparison_base: comparisonBase, head, tree: git('rev-parse', head + '^{tree}'),

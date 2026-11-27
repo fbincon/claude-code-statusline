@@ -20,9 +20,11 @@
 
 ## 当前 TypeScript 检查
 
-[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)定义发布路线。发版 PR 冒烟覆盖 Linux x64、Windows x64、Windows ARM 上的 x64 Node、macOS Apple Silicon 与 Intel。所有目标运行 Node 22.0.0，Linux 另跑 24.0.0。三个系统各固定 Claude 2.1.310，检查两个 Mod 的官方验证、测试、精确类型声明和原包安装集成。main 在三个系统验证原包。
+[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)定义发布路线。发版 PR 冒烟覆盖 Linux x64、Windows x64、Windows ARM 上的 x64 Node、macOS Apple Silicon 与 Intel。所有目标运行 Node 22.0.0，Linux 另跑 24.0.0。Linux、Windows 和 macOS 在 Claude 2.1.310 上验证 Native 与 Runtime Mod，另在 2.1.326、2.1.332 上验证包括 AgentRow 在内的三个 Mod。各适用 Mod 均检查官方测试、精确构建类型和原包安装集成。main 在三个系统验证原包。
 
-完整手动诊断覆盖 7 安装目标、28 个 Node 场景、16 宿主及所有适用 Native 容量检查。安装、恢复和宿主兼容改动可按需执行对应诊断。
+完整手动诊断覆盖 7 安装目标、28 个 Node 场景、22 宿主及所有适用 Native 容量检查。安装、恢复和宿主兼容改动可按需执行对应诊断。
+
+执行 `npm run test:agent-rows -- --artifact TGZ --commit FULL_SHA --hosts DIR --output NEW_DIR`，在 `DIR` 放置按精确版本命名的 Linux 官方可执行文件。PTY 探针使用本地回环模拟服务启动真实子代理，对照旧回调、空窗和 Mod 版本的可见行。CI 的 `agent-rows` 诊断在 Linux、Windows 和 macOS 上用同一源码绑定包验证 CLI、渲染、恢复及已安装的官方 Mod。两类诊断的付费模型调用均为零。
 
 维护改动按[影响计划](impact-checks.zh-CN.md)执行 `npm run ci:plan` 与选中的 `ci:check` 任务。核心改动执行 `npm run check` 及适用的完整产品验收。
 默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
@@ -129,7 +131,7 @@ v3.15.0 及之后的安装验收契约要求 27 类检查（更早版本为 26 �
 
 `source.commit` 与 `source.files_sha256` 标识被接受的源码；`tree` 可选。没有打包产物时 `artifact` 可以为 `null`。`checks` 必须非空、名称唯一，状态为 `pass` 或 `skip`，且至少有一个 `pass`。每条 `limitations` 必须非空，且数组至少包含一条。允许未知扩展键，`produced_at` 可选。
 
-`createAcceptanceEnvelope` 与 `validateAcceptanceEnvelope` 位于 `tools/checks/receipt.ts`。`showcase` 与 `editor-capture` 验收脚本是当前 exemplar：既有顶层回执不变，envelope 作为增量字段携带。`official-tests` 仍是具有独立 schema 与校验器的 CI 绑定回执；在那里采用 envelope 属于后续增量变更，并需要兼容测试。
+`createAcceptanceEnvelope` 与 `validateAcceptanceEnvelope` 位于 `tools/checks/receipt.ts`。`mods`、`showcase` 与 `editor-capture` 在符合要求的成功路径中，把 envelope 作为字段加入既有回执。`official-tests` 仍是具有独立 schema 与校验器的 CI 绑定回执；在那里采用 envelope 属于后续增量变更，并需要兼容测试。
 
 <a id="acceptance-receipt-producers"></a>
 
@@ -156,6 +158,7 @@ Registry 为阻断式：`npm run docs:check` 与 `npm run check` 在漂移时失
 <!-- acceptance-producers:start -->
 | 文件 | 角色 | 主要输出 | 可晋升 | 证据类别 | Envelope | 校验 | 说明 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `agent-rows.ts` | `diagnostic` | `receipt.json` | no | `diagnostic` | `diagnostic-opt-out` | `manual` | 在固定版本的官方 Linux 宿主中，以已安装的包和本地模拟服务验证 PTY 子代理行。 |
 | `artifact.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 内存 artifact 身份绑定；不是验收回执。 |
 | `budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 付费调用 ledger 预留与结算 helper；不是验收回执。 |
 | `budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 截止时间与阶段预算常量。 |
@@ -181,7 +184,7 @@ Registry 为阻断式：`npm run docs:check` 与 `npm run check` 在漂移时失
 | `language-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 语言截止时间与准入。 |
 | `language-comparison.ts` | `diagnostic` | `installed-language-comparison` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | CI 语言诊断；promotable:false。 |
 | `mod-types.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | 宿主声明准备；写入元数据，不是回执。 |
-| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `planned` | `official-host` | v1 mods 证据与 v2 官方宿主 section。 |
+| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `adopted` | `official-host` | v1 mods 证据与 v2 官方宿主 section。 |
 | `native-capacity-pty.ts` | `producer` | `pty-reports` | no | `manual` | `manual-opt-out` | `manual` | 手动 PTY 容量采集；文档证据。 |
 | `native-capacity.ts` | `producer` | `mods.json:capacity` | yes | `official-host` | `embedded-via-parent` | `official-host` | 内存容量回执，持久化到 mods.json。 |
 | `native-stability.ts` | `producer` | `native-stability.json` | yes | `official-host` | `embedded-via-parent` | `official-host` | 临时稳定性报告，嵌入 physical fragment。 |

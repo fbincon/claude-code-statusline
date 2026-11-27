@@ -7,14 +7,14 @@ import { parseArgs } from 'node:util';
 import { canonical, emitted, generatedLocalePath, git, hash, localePath, messageShape, productPath, runtimeLock, runtimeManifest, tree, type Blob } from './impact-content.ts';
 import { withoutCiScripts } from './impact-lock.ts';
 import { productionOwners } from './impact-ownership.ts';
-import { HOSTS } from './runtime-inputs.ts';
+import { AGENT_ROWS_MANIFEST, HOSTS, LEGACY_HOSTS, officialModsForHost } from './runtime-inputs.ts';
 import { checkScopedSchedule } from './impact-budget.ts';
 import { partitionScopedTasks } from './impact-schedule.ts';
 import { extraCheck, productResponsibilities } from './impact-product.ts';
 import { DOCUMENT_CONTENT_PATHS } from './impact-documentation.ts';
 
 export const CHECKS = ['actions', 'docs', 'assets', 'archive', 'generation', 'approval', 'core', 'platform', 'cli', 'tui',
-    'checks', 'release', 'build', 'acceptance', 'benchmarks', 'migration', 'packaging', 'native', 'runtime'] as const;
+    'checks', 'release', 'build', 'acceptance', 'benchmarks', 'migration', 'packaging', 'native', 'runtime', 'agent-rows'] as const;
 export type Check = typeof CHECKS[number];
 export type Category = 'documentation' | 'presentation' | 'tests' | 'tools' | 'policy' | 'build' | 'product' | 'unknown';
 export interface ImpactTask { id: string; os: string; checks: Check[]; host: string }
@@ -25,11 +25,12 @@ export interface ImpactPlan {
 }
 const SYSTEMS = ['ubuntu-24.04', 'windows-2025', 'macos-15'];
 const crossPlatform = new Set<Check>(['platform', 'cli', 'tui', 'checks', 'release', 'build', 'acceptance', 'benchmarks', 'migration', 'packaging']);
-export function tasksFor(checks: readonly Check[]): ImpactTask[] {
+export function tasksFor(checks: readonly Check[], agentRows = true): ImpactTask[] {
     const tasks = SYSTEMS.map((os, index) => ({ id: ['linux', 'windows', 'macos'][index]!, os, host: '',
-        checks: checks.filter(check => !['native', 'runtime'].includes(check) && (index === 0 || crossPlatform.has(check))) })).filter(task => task.checks.length);
-    for (const host of HOSTS) {
-        const selected = checks.filter(check => check === 'native' || check === 'runtime' && host.claude !== '2.1.287' && host.claude !== '2.1.288');
+        checks: checks.filter(check => !['native', 'runtime', 'agent-rows'].includes(check) && (index === 0 || crossPlatform.has(check))) })).filter(task => task.checks.length);
+    for (const host of agentRows ? HOSTS : LEGACY_HOSTS) {
+        const mods = officialModsForHost(host.claude, agentRows);
+        const selected = checks.filter(check => mods.includes('statusline-' + check));
         if (selected.length) tasks.push({ id: host.os + '-' + host.claude, os: host.os, host: host.claude, checks: selected });
     }
     return tasks;
@@ -54,7 +55,7 @@ function classify(path: string, before: Blob | undefined, after: Blob | undefine
     if (/\/\.claude-plugin\/plugin\.json$/u.test(path) && equal(raw => { const value = JSON.parse(raw.toString()); delete value.version; return value; }))
         return result('policy', ['release', 'generation', 'packaging'], 'Generated Mod version identity');
     if (/^(?:packages\/[^/]+\/test\/|mods\/[^/]+\/tests\/|tools\/[^/]+\/test\/)/u.test(path)) {
-        const family = path.startsWith('packages/') ? path.split('/')[1] : path.startsWith('mods/') ? (path.includes('statusline-native') ? 'native' : 'runtime') : path.split('/')[1];
+        const family = path.startsWith('mods/') ? path.split('/')[1]!.replace(/^statusline-/u, '') : path.split('/')[1];
         const check = family === 'generation' ? 'generation' : family as Check;
         if (!CHECKS.includes(check)) return result('unknown', [], 'Test family has no check registration');
         return result('tests', [check, ...(check === 'generation' ? ['core' as const] : [])], 'Registered test family, including shared fixtures');
@@ -110,7 +111,7 @@ export function createImpactPlan(base: string, head: string): ImpactPlan {
     const route = unknown.length ? 'blocked' : changes.some(change => change.category === 'product') ? 'product'
         : changes.some(change => change.category === 'build') ? 'compare' : 'maintenance';
     return { schema_version: 1, kind: 'impact-plan', base, head, tree: git('rev-parse', head + '^{tree}'), policy_sha256: impactPolicy(head),
-        route, changes, checks: selected, tasks: tasksFor(selected), unknown };
+        route, changes, checks: selected, tasks: tasksFor(selected, current.has(AGENT_ROWS_MANIFEST)), unknown };
 }
 
 export function scheduleMaintenance(plan: ImpactPlan): ImpactPlan {

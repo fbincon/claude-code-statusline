@@ -48,6 +48,7 @@
     "acceptance:terminal": "npm run build && node dist/typescript/tools/acceptance/terminal.js",
     "test:installed": "npm run build && node dist/typescript/tools/acceptance/installed.js",
     "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js",
+    "test:agent-rows": "npm run build && node dist/typescript/tools/acceptance/agent-rows.js",
     "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel public",
     "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
     "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js",

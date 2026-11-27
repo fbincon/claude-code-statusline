@@ -97,7 +97,9 @@ claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix
 claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix --config-dir /chosen/claude --yes
 ```
 
-用操作输出的完整 UUID 备份 ID 替换 `pkg-BACKUP_ID`。审核列出文件及修订。明确提供 prefix 时，此配置恢复无需 npm。恢复范围包括保存的显示配置、方案集合及项目绑定，并在恢复布局需要时只调整自有子代理回调。保留当前来源执行授权、独立编辑器／采集器选择、界面偏好及 Claude 无关设置，不从旧快照静默重新启用授权。
+用操作输出的完整 UUID 备份 ID 替换 `pkg-BACKUP_ID`。审核列出文件及修订。明确提供 prefix 时，此配置恢复无需 npm。恢复范围包括显示配置、方案集合及项目绑定。调整子代理行接入时遵循当前安装的渲染器偏好与归属规则。保留当前来源执行授权、编辑器与采集器选择、界面偏好及 Claude 无关设置。
+
+降级到尚未提供 AgentRow Mod 的软件包时，较新版本的恢复程序先撤下本工具的子代理行插件，取消待完成的交接，再运行旧安装器。如果宿主支持已验证的命令回调，已启用的自定义行可以恢复到旧命令。此过程保留第三方子代理行设置和手动禁用的插件状态。
 
 恢复先校验快照哈希，在配置锁内重查当前修订，并通过既有文件事务备份被替换内容。快照缺失／变化或并发编辑会阻止操作。不兼容回退在替换包前停止；须单独审核并恢复适用快照，再重新审核回退。不要修改 schema 数字强行兼容。
 

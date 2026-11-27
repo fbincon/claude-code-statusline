@@ -27,7 +27,7 @@ function mutation(args: readonly string[]): boolean {
 }
 function validate(journal: OfficialJournal, spec: ModSpec): void {
     const args = journal.args, operation = args[0];
-    if (!mutation(args) || operation === 'marketplace' && (args[1] === 'add' ? resolvedPath(args[2]!) !== resolvedPath(join(journal.configDir, spec.name)) : args[2] !== spec.marketplace) || operation !== 'marketplace' && args[1] !== spec.plugin)
+    if (journal.spec !== spec.name || !mutation(args) || operation === 'marketplace' && (args[1] === 'add' ? resolvedPath(args[2]!) !== resolvedPath(join(journal.configDir, spec.name)) : args[2] !== spec.marketplace) || operation !== 'marketplace' && args[1] !== spec.plugin)
         throw new RecoveryRequired('Untrusted official operation identity');
     if (journal.values && (operation !== 'configure' || !args.includes('--values-stdin')))
         throw new RecoveryRequired('Unexpected official operation values');

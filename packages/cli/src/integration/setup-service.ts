@@ -15,7 +15,8 @@ import { readProfiles, resolveProfile } from '../rendering/configuration.js';
 import { localizedError } from '../errors.js';
 import { assertClear, hash } from '../recovery/journal.js';
 import { BINDING_FILE } from './ownership.js';
-import { SKILL, EXTERNAL, OWNER_FILE, NATIVE, RUNTIME, type InstallContext, type ChangeResult } from './model.js';
+import { SKILL, EXTERNAL, OWNER_FILE, NATIVE, RUNTIME, AGENT_ROWS, type InstallContext, type ChangeResult } from './model.js';
+import { AGENT_ROW_ROUTE_FILE } from './agent-row-paths.js';
 import { safeTarget } from './paths.js';
 import { install } from './install.js';
 import { doctor } from './doctor.js';
@@ -83,7 +84,7 @@ export function inspectSetup(context: InstallContext, project = process.cwd()): 
             external: text('values.' + (loadFeature(context.configDir, undefined, context.io) ? 'on' : 'off')), timing: text('values.' + (modes.native_timing ? 'on' : 'off')), live: text('values.' + (modes.live_metrics ? 'on' : 'off')) }));
     });
     check(() => {
-        for (const spec of [NATIVE, RUNTIME]) {
+        for (const spec of [NATIVE, RUNTIME, AGENT_ROWS]) {
             const marker = owner(context.configDir, spec, context.io, true);
             if (marker) ownedArtifacts.push(...Object.keys(marker.files).map(name => join(context.configDir, spec.name, name)));
         }
@@ -93,9 +94,9 @@ export function inspectSetup(context: InstallContext, project = process.cwd()): 
         facts.checks.push({ level: 'OK', message: text('setup.ownership') });
     });
     const displayPaths = new Set([CONFIG_FILENAME, 'settings.json', PROFILES_FILENAME].map(path => join(context.configDir, path)));
-    const paths = new Set([FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, BINDING_FILE,
+    const paths = new Set([FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, BINDING_FILE, AGENT_ROW_ROUTE_FILE,
         ...[SKILL, EXTERNAL].flatMap(name => ['skills/' + name + '/SKILL.md', 'skills/' + name + '/' + OWNER_FILE]),
-        ...[NATIVE, RUNTIME].flatMap(spec => [spec.name, spec.name + '/' + OWNER_FILE])].map(path => join(context.configDir, path)));
+        ...[NATIVE, RUNTIME, AGENT_ROWS].flatMap(spec => [spec.name, spec.name + '/' + OWNER_FILE])].map(path => join(context.configDir, path)));
     for (const path of ownedArtifacts) paths.add(path);
     for (const path of facts.resources) paths.add(path);
     // Foreign integration paths can block integration without blocking a safe display save.

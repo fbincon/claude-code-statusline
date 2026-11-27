@@ -6,7 +6,7 @@ on:
       validation:
         description: Select a diagnostic suite
         type: choice
-        options: [full, windows-probe, macos-probe, windows-source-probe, language-comparison, tiered-probe, artifact-transfer-probe, plugin-recovery]
+        options: [full, windows-probe, macos-probe, windows-source-probe, language-comparison, tiered-probe, artifact-transfer-probe, plugin-recovery, agent-rows]
         default: full
       language_input:
         description: Package for the manual language comparison
@@ -61,7 +61,7 @@ jobs:
 
   candidate:
     name: Reproducible public package
-    if: github.ref_type == 'branch' && contains(fromJSON('["full","tiered-probe","windows-probe","plugin-recovery"]'), inputs.validation)
+    if: github.ref_type == 'branch' && contains(fromJSON('["full","tiered-probe","windows-probe","plugin-recovery","agent-rows"]'), inputs.validation)
     permissions:
       contents: read
       actions: read
@@ -99,7 +99,7 @@ jobs:
       - run: npm run build
       - id: historical-key
         name: Identify immutable historical cache
-        if: inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe","windows-probe"]'), inputs.validation)
         run: |
           node --input-type=module <<'JS'
           import fs from 'node:fs';
@@ -107,15 +107,15 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'key=historical-v1-' + Object.values(HISTORICAL_RELEASES).join('-') + '\n');
           JS
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        if: inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe","windows-probe"]'), inputs.validation)
         with:
           key: ${{ steps.historical-key.outputs.key }}
           path: ${{ runner.temp }}/historical
       - name: Prepare checksum-pinned historical inputs once
-        if: inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe","windows-probe"]'), inputs.validation)
         run: node dist/typescript/tools/acceptance/historical-inputs.js "$RUNNER_TEMP/historical"
       - id: historical_upload
-        if: inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe","windows-probe"]'), inputs.validation)
         uses: ./.github/actions/transfer-artifact
         with:
           operation: upload
@@ -127,11 +127,11 @@ jobs:
         run: npm run release:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
       - id: runtimes
         name: Freeze runtime selectors once for this candidate
-        if: inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe","windows-probe"]'), inputs.validation)
         run: node tools/checks/runtime-inputs.ts "$RUNNER_TEMP/candidate/runtime-inputs.json"
       - id: plan
         name: Plan physical jobs from this immutable source and frozen runtime inputs
-        if: inputs.validation != 'windows-probe' && inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe"]'), inputs.validation)
         env:
           GH_TOKEN: ${{ github.token }}
           CI_VALIDATION: ${{ inputs.validation }}
@@ -155,7 +155,7 @@ jobs:
           path: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
           compression-level: 0
       - id: fingerprint
-        if: inputs.validation != 'windows-probe' && inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe"]'), inputs.validation)
         name: Freeze the worker inputs before the original candidate upload
         env:
           COMMIT: ${{ steps.identity.outputs.commit }}
@@ -170,7 +170,7 @@ jobs:
           compression-level: 0
           retention-days: 30
       - id: worker
-        if: inputs.validation != 'windows-probe' && inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe"]'), inputs.validation)
         name: Bind the worker package to the original candidate object
         env:
           COMMIT: ${{ steps.identity.outputs.commit }}
@@ -180,13 +180,76 @@ jobs:
           INPUT_DIGEST: ${{ steps.fingerprint.outputs.input_sha256 }}
         run: node tools/build/worker-input.ts create "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/worker-input" --commit "$COMMIT" --filename "$FILENAME" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --candidate-id "$ORIGINAL_ID" --candidate-digest "$ORIGINAL_DIGEST" --input-sha256 "$INPUT_DIGEST"
       - id: worker_upload
-        if: inputs.validation != 'windows-probe' && inputs.validation != 'plugin-recovery'
+        if: contains(fromJSON('["full","tiered-probe"]'), inputs.validation)
         uses: ./.github/actions/transfer-artifact
         with:
           operation: upload
           name: ci-worker-input
           path: ${{ runner.temp }}/worker-input
           compression-level: 0
+
+  agent-rows:
+    name: Agent rows / ${{ matrix.os }} / ${{ matrix.host }}
+    if: inputs.validation == 'agent-rows' && needs.candidate.result == 'success'
+    needs: candidate
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    permissions:
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+        host: ['2.1.326', '2.1.332']
+    env:
+      SOURCE: ${{ needs.candidate.outputs.commit }}
+      CANDIDATE_FILE: ${{ needs.candidate.outputs.filename }}
+      HOST_VERSION: ${{ matrix.host }}
+      DISABLE_AUTOUPDATER: '1'
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - name: Check batched rendering, routing and package recovery
+        run: node --test packages/cli/dist/test/*agent-row*.test.js packages/cli/dist/test/package-management.test.js packages/cli/dist/test/recovery-file-identity.test.js
+      - uses: ./.github/actions/transfer-artifact
+        with:
+          operation: download
+          run-id: ${{ github.run_id }}
+          name: ts06-candidate
+          artifact-ids: ${{ needs.candidate.outputs.candidate_id }}
+          expected-digest: ${{ needs.candidate.outputs.candidate_digest }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/candidate
+      - name: Install the exact native host
+        run: |
+          claude_native=$(node -p "'@anthropic-ai/claude-code-' + process.platform + '-' + process.arch")
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@$HOST_VERSION" "$claude_native@$HOST_VERSION"
+          node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
+          echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check exact declarations, official Mod tests and installed bindings
+        env:
+          TS05_PHYSICAL_EXPECT_HOST: ${{ matrix.host }}
+        run: >-
+          node dist/typescript/tools/acceptance/mods.js --release-smoke
+          --artifact "$RUNNER_TEMP/candidate/$CANDIDATE_FILE" --commit "$SOURCE"
+          --report "$RUNNER_TEMP/agent-rows/receipt.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: diagnostic-agent-rows-${{ matrix.os }}-${{ matrix.host }}
+          path: ${{ runner.temp }}/agent-rows/
+          if-no-files-found: error
+          retention-days: 30
 
   plugin-recovery:
     name: Recover the package on Claude Code 2.1.330 (Windows x64)

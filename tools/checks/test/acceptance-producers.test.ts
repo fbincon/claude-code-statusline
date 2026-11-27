@@ -161,7 +161,7 @@ test('acceptance producer registry locks known exceptions', () => {
 test('repository acceptance producer registry is complete and synchronized', () => {
     assert.deepEqual(checkAcceptanceProducers(process.cwd()), []);
     assert.deepEqual(validateKnownExceptions(ACCEPTANCE_PRODUCERS), []);
-    assert.equal(ACCEPTANCE_PRODUCERS.length, 60);
+    assert.equal(ACCEPTANCE_PRODUCERS.length, 61);
     for (const path of ['docs/development/testing.md', 'docs/development/testing.zh-CN.md'])
         assert.ok(fs.readFileSync(join(process.cwd(), path), 'utf8').includes(ANCHOR));
 });

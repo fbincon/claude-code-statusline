@@ -6,7 +6,7 @@ import { isSchema } from '@fbincon/statusline-core/config/display';
 import { object } from '@fbincon/statusline-core/config/validation';
 import { decodeUtf8, type Storage } from '../config/storage.js';
 import { safeTarget } from './transaction.js';
-import { OWNER } from './model.js';
+import { MANAGED_MODS, OWNER } from './model.js';
 export const BINDING_FILE = 'statusline_runtime/installation.json';
 export function skillOwned(raw: Buffer | null): boolean {
     try {
@@ -24,7 +24,7 @@ export function bindingRecord(directory: string, io: Storage): Record<string, un
     if (raw === null)
         return null;
     const value = readJson(decodeUtf8(raw), { duplicate(key) { throw new Error('Duplicate binding field: ' + key); } });
-    if (!object(value) || Object.keys(value).filter(key => key !== 'refresh_disabled').sort().join(',') !== 'backend_version,launch,owner,schema_version' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.backend_version !== 'string' || !object(value.launch) || Object.keys(value.launch).sort().join(',') !== 'args,executable' || typeof value.launch.executable !== 'string' || !Array.isArray(value.launch.args) || !value.launch.args.every(x => typeof x === 'string' && !x.includes('\0')) || Object.hasOwn(value, 'refresh_disabled') && (!Array.isArray(value.refresh_disabled) || value.refresh_disabled.some(name => !['statusline-native', 'statusline-runtime'].includes(String(name)))))
+    if (!object(value) || Object.keys(value).filter(key => key !== 'refresh_disabled').sort().join(',') !== 'backend_version,launch,owner,schema_version' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.backend_version !== 'string' || !object(value.launch) || Object.keys(value.launch).sort().join(',') !== 'args,executable' || typeof value.launch.executable !== 'string' || !Array.isArray(value.launch.args) || !value.launch.args.every(x => typeof x === 'string' && !x.includes('\0')) || Object.hasOwn(value, 'refresh_disabled') && (!Array.isArray(value.refresh_disabled) || value.refresh_disabled.some(name => !MANAGED_MODS.some(spec => spec.name === name))))
         throw new Error('Untrusted installation binding');
     return value;
 }

@@ -6,6 +6,7 @@ import { lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CoveragePlan } from './ci-coverage.ts';
 import type { PhysicalFragment, PhysicalIdentity } from './ci-fragment.ts';
+import { AGENT_ROWS_MANIFEST, officialModsForHost } from './runtime-inputs.ts';
 
 type Producer = CoveragePlan['producers'][number];
 type Entries = ReadonlyMap<string, Uint8Array>;
@@ -16,7 +17,7 @@ export const SECTION_INPUT_PATHS = ['packages/core/src/release.ts', 'packages/co
 const [releasePath, displayPath, languagePath, stabilityPath, runnerPath] = SECTION_INPUT_PATHS;
 export function sectionInputsAt(commit: string): ReadonlyMap<string, Uint8Array> {
     assert.match(commit, /^[a-f0-9]{40}$/u);
-    const inventory = execFileSync('git',['--no-replace-objects','ls-tree','-rz',commit,'--',...SECTION_INPUT_PATHS,'mods/statusline-native','mods/statusline-runtime'],
+    const inventory = execFileSync('git',['--no-replace-objects','ls-tree','-rz',commit,'--',...SECTION_INPUT_PATHS,'mods/statusline-native','mods/statusline-runtime','mods/statusline-agent-rows'],
         {encoding:'utf8',maxBuffer:4*1024*1024}).split('\0').filter(Boolean).map(row=>{
         const match=/^100(?:644|755) blob ([a-f0-9]{40})\t(.+)$/u.exec(row); assert(match,'Unexpected section source object');
         return {oid:match[1]!,path:match[2]!};
@@ -93,9 +94,6 @@ function fullHistory(value: any, identity: PhysicalIdentity, source: Contract, p
         'package_recovery','separate_configuration_restore','protected_cleanup','configuration_preserved','real_npm']);
     assert.equal(value.editor_execution.model_calls, 0); timings(value.editor_execution.operation_timings, 30);
 }
-function modsFor(host: string | null): string[] {
-    return host === null ? [] : Number(host.split('.')[2]) < 289 ? ['statusline-native'] : ['statusline-native','statusline-runtime'];
-}
 function verifyOfficialInventory(receipt: any, original: Record<string,string>, capacity: number | null) {
     const ordered=(rows: Record<string,string>)=>Object.fromEntries(Object.keys(rows).sort().map(path=>[path,rows[path]!]));
     const isTest=(path:string)=>/\.test\.[cm]?[jt]sx?$/u.test(path);
@@ -121,7 +119,7 @@ function verifyOfficialInventory(receipt: any, original: Record<string,string>, 
         }
     }
 }
-function shortHistory(h: any, identity: PhysicalIdentity, source: Contract): void {
+function shortHistory(h: any, identity: PhysicalIdentity, source: Contract, agentRows: boolean): void {
     exactKeys(h, ['depth','historical_version','historical_sha256','target_version','host','registry','real_npm','lifecycle_scripts','model_calls','observations','schema_restore','explicit_disable']);
     assert.equal(h.historical_version, '3.8.0'); assert.equal(h.historical_sha256, old380); assert.equal(h.target_version, source.version);
     assert.equal(h.host, identity.host); assert.equal(h.registry, 'controlled-loopback'); assert.equal(h.real_npm, true);
@@ -136,7 +134,8 @@ function shortHistory(h: any, identity: PhysicalIdentity, source: Contract): voi
         assert.equal(row.display_schema, current ? source.schema : 13); assert.match(row.display_sha256, HASH);
         assert.match(row.profiles_sha256, HASH); assert.equal(row.profiles_sha256, before.profiles_sha256);
         assert.equal(row.third_party_keep, 'unchanged');
-        assert.deepEqual(row.bindings, modsFor(identity.host).map(mod => ({ mod, executable_sha256: identity.node_sha256, entry: packageEntry })));
+        const mods = identity.host ? officialModsForHost(identity.host, current && agentRows) : [];
+        assert.deepEqual(row.bindings, mods.map(mod => ({ mod, executable_sha256: identity.node_sha256, entry: packageEntry })));
         assert(Number.isFinite(row.elapsed_ms) && row.elapsed_ms >= 0 && row.elapsed_ms <= 360_000);
     }
     assert.equal(rolledBack.display_sha256, before.display_sha256);
@@ -145,8 +144,9 @@ function shortHistory(h: any, identity: PhysicalIdentity, source: Contract): voi
         assert.deepEqual(h.schema_restore, { from:13, to:source.schema, refusal_exit_code:2, refusal_reason:'configuration-schema',
             retained_version:source.version, restore_exit_code:0, display_sha256:before.display_sha256, profiles_sha256:before.profiles_sha256 });
     } else { assert.equal(h.schema_restore, null); assert.equal(upgraded.display_sha256, before.display_sha256); }
+    const independentlyEnabled = identity.host && officialModsForHost(identity.host, agentRows).includes('statusline-agent-rows') ? ['statusline-agent-rows'] : [];
     assert.deepEqual(h.explicit_disable, { reinstall_exit_code:0, native_preference:false, runtime_preference:false,
-        enabled_managed_mods:[], third_party_keep:'unchanged' });
+        enabled_managed_mods:independentlyEnabled, third_party_keep:'unchanged' });
 }
 export function validateInstalledDetails(report: any, languages: readonly string[], appearancePreview: boolean): void {
     assert.equal(report.offline_install, true); assert.equal(report.initially_empty_npm_cache, true);
@@ -235,16 +235,16 @@ export function validateSectionEvidence(fragment: PhysicalFragment, producer: Pr
     if (keys.includes('history')) {
         assert.equal(r.history.depth, producer.depth, 'Wrong observed history depth');
         if (producer.depth === 'full') { exactKeys(r.history, ['depth','sequence']); fullHistory(r.history.sequence,id,contract); }
-        else shortHistory(r.history,id,contract);
+        else shortHistory(r.history,id,contract,entries.has(AGENT_ROWS_MANIFEST));
     }
     if (host) {
-        const o = r.official, mods = modsFor(producer.host);
+        const o = r.official, mods = officialModsForHost(producer.host!, entries.has(AGENT_ROWS_MANIFEST));
         assert.equal(o.target,obligations[0]!.target); assert.equal(o.host,id.host); assert.equal(o.platform,id.platform);
         assert.equal(o.model_calls,0); assert(!('package_management' in o));
         assert.equal(o.installed.status,'pass'); assert.equal(o.installed.tarball_sha256,id.tarball_sha256); assert.equal(o.installed.source.commit,id.commit);
         assert.deepEqual(o.installed.result.host_version, producer.host!.split('.').map(Number));
         assert.deepEqual(o.installed.result.installed_mods, mods); assert.equal(o.installed.result.pending,0); assert.equal(o.installed.result.model_calls,0);
-        exactKeys(o.mods,['statusline-native','statusline-runtime']);
+        exactKeys(o.mods,[...new Set([...mods,'statusline-runtime'])]);
         required(o.installed.result,['idempotent','bindings','native_protocol_save','user_disabled_preserved','removed_owned_only']);
         for (const mod of mods) {
             const m = o.mods[mod]; assert.equal(m.validation,'pass'); assert.equal(m.official_tests,'pass');

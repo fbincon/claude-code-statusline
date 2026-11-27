@@ -67897,6 +67897,1326 @@
       },
       "review": "Reviewed action and draft terminology, checked dynamic key names for each editor, and verified the transaction recovery wording and literal command in context.",
       "validated_inputs_sha256": "b5622a8160c6b5fc513ea38b99d0b8c83d0b8720e16dc97618432fec443abc76"
+    },
+    "dbd28010256c5fa1b121a19ec79e1e1557eec2fca4dbd5a9c9e6f7a720f64834": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "790d83013d29dd66144f6dfcb6fb01f0f4b188ab0ca8aef7af5c86ea29953933"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "87ed7410c2cedb718d8c06b48ae7a866540a38e66afcdacbb11294347d14d9c4"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "e447c3a4b6b8a76ab6db053a4fd79e6287e21ef3142e8764ebf7d70f752b4511"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "678429203cd0eb8b80bb61738c3f798ca3306f0efe18185d30858be85ca2c18c"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "17c95d1b1168afc2052b58afa98a58f00fed3279d01a161203b9fd36b6480440"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "fcf57b8e616af0b213905bc00f761311930218d217587549388f284603467e5a"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "50c90ddebe1ef9b9ee84b545a99db243d472c259e58a77326ef9921c54164197"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "ee2a51d5d143f5aeee22ac868c34e4920e70247846dc73b2612f47d23e4aaa42"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "3eb23f75ce1d35d0585027ab58b6e5b754255080f3d4cabc72553352bc3dfe89"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "6266a7fe8a7d33a2abcd77d2d8557f327c553e21f2f64aa94743d9369bf623e2"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "695c1fa905a05e35c8ab0fcaa426f088656876bd86425e0e9f23e61a8f6ca1c1"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "73ebc46007b2dd7af0856992a7ab4b850bf0028d70b32f50305dead7a8be289d"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "6bf847046f226c73228bb8f183179cc44c139730c892c67f7e72e91d4d97b860"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "5f7e6bde925e3513e8e1b1282d9f13b8d2ba9faa2b4ef8a4f2a8c22b3cac61d7"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "6b6216cb5170207d0d937aa9e313c8275d9165bcb7f1ebb293981cbac130f8e3"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "1672bb16aebaa846e6ad461b24363de07b96148db020925d324a4a957d039521"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "adfb55e598a95db95cc13e82625a91c19679a5c0ad51d2cfe86034b6752dd6ef"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "14c47dd82ecefff2ab672633ee4d108283dd6b9b7c7e016518e93c4b925058c9"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "65b05e5c1cf6f0d807b200aa4d505364393fe1d90d9fe5f8257563f82387142d"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "9f914a222c6a31c224b40856d6333fd6dcca56cea5ddec873a8d6b35153ed983"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "c63de79e77c54f6a58431a4e2a343565f0060b7e52c8d9605e67c3c15a77c7b3"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "53018def5325b93972a1cf90596a241a6c4414a0fa51484eb67e7ff1ee9a4651"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "444ef02332f53419c867334be9e4c8679c54eff83a7442912a4630d733a3325f"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "a19aee1ed9884f336759ef32bbc83d53e01bfffeba7ccfcc3fc0c324f79bd663"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "251d6a183f69a020b7b38b4eb80474429b9e4b833acd6f849e2e4fce000def52"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "07981b9452ddaec1e778a5e181a765ef05a36a25df5d8856a58ee8c6aac6b02e"
+          }
+        },
+        "en": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "5ad38304b535c2987dbd24657c1a11b884984ff600d9f389deb0d4e634fee792"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "f594db6d84a87a787613ddfedb3467682c33fcee16e6f76cbab564da81394288"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "9679c4c4495e85605b4728e7281b755c39de3c228c33dc9416769509d22d7e73"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "12b24b024055a3eff6fbdc5ac4448cb8204657f083cc35b81f565279eede2f08"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "55ca4bb77091ed218da250c46421b3944d8a09ea8f14c8872cd4406210b899c9"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "c5ff89fda8b472813e11ee95846e2e66197c3ecc41c92cd66994adf288c28763"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "c57a6313b1ea6337da959a78215e02bdd8e1d8275864af99123ef5b9f5a38147"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "5a7daffe4f8449ffc2aba9885d98a2249e47794427450e50edcbd193fc8b682c"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "97bd718d7944da321f8a3eab81eac5fc1e19d844fd4edd7bef44c1d2b456b536"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "8a2d3573c29cb20af96a27a1a99835bd720fc2f4ff789c405510f107ed37225f"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "ec1812fb3db54571e401155d85714ab4850de31b2e5fd224eef8dcb8a3899948"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "dd6ed8451c52a409e7074ee93c63d7df40e84cf9e2e9ce1784700ce12b49beba"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "2f01df6d7a0cb9c0c902d23caa530f2e87475e5e9da5ebb0160850841cf7e92b"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "d48ea305a5c2aee96a2ac57fe40009fbf6376f0510fd33e87827b25af5af9082"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "1c0a5453de841650506d43f26b04deb60b5afc3f5be94d13597c5fef58286ec1"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "e060b2c215d74e1bb5ea86622a2545eb95f3b0776c330fe35c12d38a14ca3830"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "b315b4488e5d903a074388b7988632b9a5e4281d8e30e341487b2ae3a72284fa"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "2c5f29df58ea7db5c07134c221604909fd21ec5cc178c7fda2acfe1aa638e68c"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "ff5917f7a2b67d213e7567dcd7a749110bb576ba8a45d7655927666721cf17f6"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "98e538f11854e3c8393a76e30e84bbd052b4d3809153ba69be735f0c61b790e3"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "e4e8cbb525d567dd5fc64f5ae6b57d8daa58913df49b5a786e3f534008282307"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "50775e958d641acd5f095a1faa194c4147f7d2c0c53d7f0efab4c3d9f1c96b4d"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "b2295335c355372e51662bdd41f60563dbb9a7ef94e8a628ab3ebc220b5078d6"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "56abc5ce3896d092e8006e65bb10219032bfa7023f9107c8024bfad72aef1c8b"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "26c3503bea701c37dbe4925f90233445a11ca553c315e53a341d2bbf4372161e"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "652d5d71bb73914541fe3f1b4f58bc5fc1c43cd28324874baa80e9caece19b72"
+          }
+        },
+        "es": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "c72035c25f91d281bc8f6a8c49a537795ddfc10153144a328d62cdf2f71d7bfc"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "946052b11a7b05aca07741f0d65283da671cd2702b7c64982ffb1c42638e4643"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "aa190a06c66f4ecf67d5e6ca01b557514a01a1a55452d42ef223a0ba0f3fd74c"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "5ab8a1652ecc648ef5b18b10a01c49b23376de605b463c61b24f471f1e71afd6"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "97b50baa6265b1eb4a51d2ba04d97b94023c8e7c5e38a80e20a55c60b95e8397"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "a418c5ec0e6ae0c3694a9f045139b9480f64229ee508f07c66ce67e11da52758"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "70412575e395365941b7d06f0c700d5fe79b63a89bc1448c101e3441ba0604bc"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "ad10690bef951e38e171669714128b722fc7a84eff594f942dc1d2cc9716b9cd"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "ad8a233efba3d7e805512a08165c8e508bb92225d432bff3cdde4ab4c4e0bc11"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "dcf9aff9445d8771de840443ffbbc625b532b814c2b34a955aa31dfdbca51f4c"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "1a6854be63e104679370aa7f0d49d4c6eb892b9b327fc58d0fa89ee0f27e5031"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "27082d1776fa965a0211cb4c5dfb2feb867af33b08481c02dd9398b563f4c2db"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "d5aae505942bd02bb0ab8531c5eb9632c3a4325c925b839642b4baa6f8a8deec"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "56a64948e1b8d83d9f88ed66f0aa4c1442780dd173916f9911e7b35b7ef71198"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "d3e6ec9e7c21d5e152cef6101fa8fc1e1fb28b7b7db50008c97b501ae4d8dd51"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "084a2c7890e4c469ee2608644a114cf03fcfa864b9b2d1373f3bd75e3df58145"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "722f54c8c132ad29ecab714d6bf9af78656946890586e3fb8e987780e91f444c"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "3f34a51d517e452251435bfe7bd7ed2eebce80040b854d6f017a90141e559744"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "52c9f61367f7fac2f29d092553cb9bedfc2519c9759e1d96100fc3306a9a5652"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "94f9e5cfbc93c68097da5aaa6462a2b09d0731727c38db6b99d87a21a24b0359"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "f5d6c1f9d3d4c79ea7609ef499013ede9c8845ce4a173549ea76f47849c15d8a"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "1ea0f7bdd332a2734f355c01fea9f66b338ad41028cfa47539121a9ea78b0e97"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "0052289ecf750dd2eaed7555709c59274ac946ecc5b0de3c5b6a3299170d2753"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "fd084c26dd0e866f686a860fb4e357fd682871e2de065b39274d5c7c5122869f"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "efc7e809f10c7fc8f5c4266630d3a574adaffa2e78d1f879d7db4bf309bb1572"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "8daaf1c79da5478c1e46deb8b670443a2d75670567096b225430827cfa82d9b3"
+          }
+        },
+        "fr": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "5ad38304b535c2987dbd24657c1a11b884984ff600d9f389deb0d4e634fee792"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "67d44b93a6bbae07677678d9d354acd11d9d13dcb479b4d19e74717323dd7bb0"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "547eacbe0a2a687489b0d865d20d6108f782fa4f66ace9ff17129c5b34c89bd8"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "7f245e712544a5569eb7bc06090c73ad2f44a4ea15cfa5f5ee947626b1e0584c"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "8688c2ebf3ae23ff768a73ea996a0c60b50b00d4259c6fd8a359e53a0db19cab"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "811ff00898fb757aecbb5d085c9555a3ab8c3c28ed9477cf9b3ce2f2742ec2d4"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "212f4747b140f98ed9d85b0a57629dba84f4063a6136b3169d226fee74014f54"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "e59cbb9c7cd6f72e2b9669d2cd01f76c2e37ab0387286ea2679c002be3c83a9e"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "21d6a656ba6c4b52ba264356ed4fba01c5412120b836d60ad5539f8ebae10a80"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "ab7b0a877431ecfca902dae093234cd7d9ae918db1298df0f5868be7427f2752"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "40563d8acb095a0496f2e6189923d459c27f66f32b0d1bd6323b1ed5c24639d6"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "d6e189206446ed0855611f2ac10ddeda63d28578bfb1ac08f3733599aa18d3f0"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "68115a491ea3a2efb4100bb6cf77e174817a313000ce5daf1eff4d0d56d19188"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "53c8bc068ba8d90ec957c01c5005931d4a7ce965459c162f79203f07ee9144e1"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "6df47ced3048b0b6d2595e38be0afd43390c780d1b0798b728cee3d12b638b4c"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "ce4463c4b5ccf35b302d4d2e4f53b1859ab5661d6e64c021b038fef776cc97cb"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "7106d962c91321726e5d23a120abd45cc72623f59e63672adac0bd320dd9a14c"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "7d2fd33ed54938cf42d929228b33a55dcae52fcf09cee652412f7f7f1354aeb6"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "ceda119faaa77d5bb2c4a8b53bdfd9bbf0aa1d08d48dcc5c4fd2db069b47af4c"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "76e6c953951b07f024375a07e4a9413ece171bb966e9a6da11d846d0ba79463c"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "eff18acd9e48bab786fd40747e0731490f75e2f5377117c3365c7c574e229e6e"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "60b7ecec81f3387af3c5c15f54d19f44995eed3d8fccecbd242f295017eeaf8c"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "4c126c7cbc97e79f2167cf6a65f31d0f148c7a24d9b06ec1115101be617d720c"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "884532aa2ece5dcfe7bb9b71349f7c6910f823ec1f2c697acf646f5c9c7527a1"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "49ed647e3996b8d4302b378e5598bc7bf612d738167b19616ea62524975e4e05"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "eb72007d2c6a301a98f04b3ea3d4310f69fe45f01e7fc3433da7a2766023a2f7"
+          }
+        },
+        "id": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "ff620330b3b75e35776c79b141fc35da7181c0d2c21b3e08a6bd57f856cfefff"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "492881149513c72f3d12209e187dd950f0830ddc9691516d3cc9a44e524211aa"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "fed9ae5925d834e374f0b98182a6dc2e76811fe9f7f92f8a224521c7bffccf31"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "6dae38e23ae58d324c5ff0ba65b8e792e8241cc7c19b150c23f2afe29ae32ca3"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "c9385ec46614f11428c0de1e960829d6ab084bcf834e4b308a3155ae5ec70868"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "660bd847402e5f4cb2ccf2095bc3a92f2e6baac6bbba65abfdb6a2d34ae9573d"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "a9b5d8690c7fbee5f1dbb98a1a035c29578e2d6d22e7a605803c62f32af55935"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "f8c539c8b89e1608776a34cce305c01a001103a1e7925ffca7bf2584ae8c783c"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "2ef43b1cfef225159d65ba8be31cc300855db45c120e2b4848a1b887c76cf910"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "94cae4a332015f4da3ec3afc4eb5f676f36bc0b3e9cd1f9576df648f65475fef"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "b5f83b5abbbfdeb3b3419732814c6e0aad70a93c009ce9394494ecac28e9bfb1"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "6a2adaa666acf4a8434d194775bf91318d663012f9130ea88c14c71fdb665547"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "36498ead2711945a6c2207a9f85c8642fb35c5f08e8958a119992058591a25db"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "d0ff716d29cc9b5e4cefe6fd14d5f0de65a2931782cc4b9cf9be247518a7bcc5"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "71f43f72d830df3ee55038384ca2cf5da1c5cb9d5beacb56550d5d0d46902d6a"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "2eb04fc4bcf362b6ead62a8f79e4274a6e1d7d444abe31d173307bb78402f3dc"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "eadc8255ce0c409bd7dc8861ceff51cadbdc9595371f57753016aea533082775"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "2863099f9d240c417e1afa69a291682e9fa358f33b387eff3390829f83eef494"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "f33a9d744142e46b17312627372511c06c05d196dd89f3f191cbfe6560efe4fa"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "b7e92b5616f322c21a3bdb0a579e29297c0d17f752bb1591df30ce100f461c86"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "89f8471d9ba09c0a755ad8a3c962ca08a14c40fa11e32fa41ac46dfdbd858a41"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "ef3a571eda39e6beea36f8615f519aaf336260083be9fbc0c612e172359eefdf"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "7f644000fac9ba2e73bee092bc088147e0eb8d4b9e217b5ec019084bd36bb9a5"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "dec8edc995a771690be8c5458a6340c0d1954e685a6f2cc87852591981dbfcf9"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "0d4c8952bc0179c06c9053860304b6115c305000910e14f41156122a66c0eea5"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "67ecbda5a30c260fd646574012133f4f0584e063d6d8419e0f0d9d4b41543c0b"
+          }
+        },
+        "ja": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "19822ac9e73b91f606ef3e459fff0413e6f36fcfad5802b0d8bd2f81334db6cd"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "68aca53ae15b092fe1a47b335cd8012bd2ad3fba1b4907aafe740e7a8a331805"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "1496d5b29f2abdece2100ec595f2f0b96192e082ed7a0c3f7107346a14a8fac1"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "76c1e0a10b38a7d395c23953fb804abf77dac79b54a92c69107eef227d831b67"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "b5e06db7b325bc6e3683ca9e6f56fed65035fcdccf14e1959d9bb41df6aecd45"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "2b42e7c0a55b801d9582aa6ce3f91191106ce33660f29d1a233ee2828bfc5e0f"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "b48ab623b2306ec5bee1559da4d9bc3f400dd6c91b3887aa5e84534ef0ddcd66"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "35bc3e26b2b4a157bfdc134cd57cceb3edb446d0a68f643e8ca2f5e9d6b2bd44"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "88baa2ff04c334240b6da2fb1faad74109b2aaac674c111acdf4ea02ba3f7547"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "5e7a49292e292e9c14d6e3f9288d2870804672da8c57259cfd33ef10de109d66"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "7a7cc9c0b4356e29638131f811d5ee0c5f22be609331bee1cace8b2dd5f6e370"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "9d286f8decd36d4ee01b2e9385367f64137a4952ca910700054e39593822c474"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "fa52efe5cd772e714795347edcc03db4d61555d6e5f56fd9003593c5afb67e60"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "0422ca120208cafb36497fc2e29436cb142069ef8418ef068063c54e6319b63a"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "accf3f86054ba8e0fcd7c8ad8f567f93bb1276461588fb3b1045340fc30597de"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "966aeef88e36b41eb688c32f881159ea61ba0189298b014a619063e0f364ccc5"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "de78c90152f89f9832b06e715c23c5666196157d31411340af50475d6b549834"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "e0630e3ec1e78bcf8d79ffcd191b143b5442b09c4d207903c0969a9268737403"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "2a204f71060c15f4b02a255c7a9803856cca564fa4f9488ebee436871286c971"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "4ba20d08dc87d541b4bd9f86967253acfde1c297190fb708c5a2cf11cfa7bb6d"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "b0b6535f71fd0a1495e8f330a090606959122191b7c986884247cfedcfd429c2"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "31f393a2164a2e43531c6944e73842e28ca8bba1b66b2d5d0390bc23f6daf8a9"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "275f51e0d1b33aebd9453ce1de978c5f1e7c2a10c53482b69173159f0a12823e"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "d3ec9246deacbcd1641265e531ea9af039d1a991b6da02ef0319cae39d79f35e"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "f178924d004b9a0fa40479feeddd449b82e7d73e513b8a16bd5c8c4867e5f121"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "7ae2f9cc5617b3238d7c988fef2920f2fdb50853e11fd1d9fdd2f5155ee4939e"
+          }
+        },
+        "ko": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "413e2237a266bc8319ade43b9308f7c27d81af5400f85f004ef59687e82891ca"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "20544f1a17472db282ebc3b69d3401824749eb0fc6d8cbf11d1b108b81a96521"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "e137a69966acb22e44c62938bdc166d865274fb704ae5582bcf74ed2ff353e46"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "309d1f784596b9b5f7dde0a4ba53b0985174eda5ce8ef14166c422f5093e096c"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "a023b182a7d36c2ed569c5119a3bb43c83409d2057169d53971ce078163b1263"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "d7b4af6b1c97528167e7199deb77d81d10a10bb7840614eb6bf04c3ecc9bf3a6"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "2e17d17a55e041afe84246637228e526b6d87b32b23ffd51c505a93481fe1f2a"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "bd96233fd01f32cc1614b16a81b3a527d0e55abf797ad21b3b75383593e3a691"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "48d5449301687a1b83a80d7453426cc0dfef0646d68981271926b9dc1c260c1a"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "be329dd815ec65a5842aff673c60f158c81a5064c162a577a0df16d5733e41ad"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "3f9956fef34e474d611d65b097848594be4c954bb1a9bf0c8ef91d32bfb8a95b"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "45cc127cbb6ebfa5ec9d5e68a1ebcf47651fe2398c0c59495d59e5fd0c637fca"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "e737fbfd1b437d76e663983f04a21c1da7330e7b031f579a9c0bf5833fa59c28"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "ddc2f367d320787cecc98bb961ed74a7380269b17bf6d69e6fb287358e807db2"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "e046e0245587f02431aa96f07060a823203d6fe16fe906dfc66f68dcb60c5189"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "70f2b7229acc127eaf56609f2e2b5b8f1b67c78bce81eac9c4faf682686ede08"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "e26c1e6685f513597efc05e2178ce93eee34d155ee81e9fdb3586a9fee413768"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "114abc2efe8db38756c991e01e4755fc2c0c9e6ea2a91fd82af1ef54d371fdc1"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "d0d058ca4c59ebc9b791dc5ba51d168b33341668ad8860375f7c0f9c5375e0de"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "a0321cf020276abbcc51e3d89faee0414b17cdbcf9fb7c5ee886d402e4c8db84"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "b71699172c2e711770e81e381342b60568f7d2e00eb0c23d822709e2112d3c81"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "fa50c22c5f63aa20914ff0b300816f85833a3cfac51a7ad8ef141da5a4cd3ea7"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "5f5e7ef4944f7e3ea775bc4def63035ed981cd60b91c67980d52768313f0645a"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "4d29a4de0ef51839ebe428edbc5d2677694ca2f21264c8538b716bc460a04b8c"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "d2c5ae5ca5355dc7dd623cd2a09adf6e113ecb6f3fd603318ac00e85025a97aa"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "248599c548fd23d2a1e3982a3c4a72b48bbf5fb510d61b69fb2a1e8ce23c41c7"
+          }
+        },
+        "pt-BR": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "c72035c25f91d281bc8f6a8c49a537795ddfc10153144a328d62cdf2f71d7bfc"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "57241c7abc8c951b2a487f0dfa99595394da3341f3c7e5bfaf0ad3925bc89770"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "672120b15f7a0973d9d44b4fad5c9cf9b8b9345ae06623098f2e253b8ed49b6c"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "586b62ebf61cfa0337bf94b04e32becb26c444616a7ea9a23e19008dcb262fe4"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "2bc399c2268a50927724fe88d1ac22f60795435f65776b8456a335df05e4605e"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "8cfd1d9b4d64f170a8bb653943629773072e010915c3738ecba6f1b943bbb58b"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "8ebaea7bd2dfd6265ed159297130190e2e085b7d56ccffd7887c26c3fb4d1149"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "f5bf4edc28211ed2994c6d12d82c4c78c818a7df562ddc65378289630ee254fd"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "0f5fb67321c43e0f411b2891e3cc780e60b1747389b89602330515edd2dbd6b8"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "a153997982d71394744b3b2806935fd701b1ecef94c31cca396ccb52006dd7b9"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "46352535655efada6c348e6a65004bdfa9408315a07245b425d7f6fc6cbd4dde"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "13bd7f8211d5e0eb8bc76f936aa405d7f3da139ee65c3ded1116058d5b0cb132"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "fea33dda0528f658e1e96efadda977cc7ca4e11c02819e9fbb4b700026cc9042"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "364ade4c5d54bcf13274191ca5ca413a938d84581be21c9a7864c2df87ed7b95"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "42efc62cc0cc381ee8e3984a1b9e68f0c3b154e15fa709f4ccb13fde81bd36ea"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "ca5cc6188828cfda5ebbce66d172ed8853e1a0d83931e8623b832debc89d7204"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "49d1773f84a4aa623a8c9213de578c796c804ed4cd0a47c881ce5b1913874787"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "885c97ea68b7ba4a4f1ee53ff2c2be393ce04da489d52df8be1aaae0af4e3ec5"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "3b13facca2dc8acc66f63295c83ae14c5d54096228e0e4b975698e5204c748a8"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "3ab2bc10287595b5e42b4d343af16adb75efd5039d53019fc6b895b01e95b908"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "9aa84bdca44e0dee036429ea2a684d32e20b5312541cb30b3940e50655709f9a"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "222aedf0d377dbb23782c0c457c7c478ff4335d4fe6bbf07f243b40e64081475"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "543304fa38a9711bc25050ceb416d6b7498cf0b2f6c59b12769fbe58f1f7e7f0"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "fb1197040d129b19bae76596321a5239e8251ef0a4884899ffb7d26335c6ea8f"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "323e6d975e4d3fea99228f6a0238765be990a7e7ce5f5f00e2cb4bebaf7276a6"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "84cd6bf5c0af2f8a1acd8545fc18a41f38a81bba82f408ba1db72955b1799f09"
+          }
+        },
+        "ru": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "9f971be06c5f054ba33d378521adc87f6d22b9e18827e30f6124a8c3d9627b83"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "940fb9071eb75f628cf7fbcda277ead6fbd2a928d2962b158a8e9af993defc55"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "31f9a93c436ee69757820636714ce34d5904a55a0cf6f26ffdf1366f7e56f716"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "f386a2790ab57f160d48f8d6fbc2def51a21129ee872577e349e4f19f5afbbc5"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "16def91143d948e56bded73441d761b5cf7799d3f516c8557aead54a70493348"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "e86a2a5748d1dd188625d8fb618b379842e6731867421a240652bb69b970d470"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "7c612572c20a9315aa4dd8b8cb346dfc20e60b8cff8021779e28943ab8dbace5"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "e908f1e941d2052c885e27f5596eab1eaf328c56b48a00e487b6aaaf54495ddd"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "c1b82d39cc5a963b7f89af3aad34ca28ef0d22d70f7663ba9845316c13eea901"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "384177a21fce88693e046a4bb4a3ed34378ff17ecb01b22f938b78c67641f3bf"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "2ca501762622312beddf771f4c60451ae37c510c2d94b983af654a85c292371f"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "350306e4eb4e0740accaffd92107474947f979a64849f280dbabb022cb493463"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "a955ed37813603fb7327b163b43e22055e8dff6b565a8282d02d4e9bee0e7458"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "dbdc5ef0fcd194a0c891d8cc98e9731947c067e83be968f5b2fc37567ea4ba70"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "edc2370d0f52e0c0929f75dba0c743ca4207d43feb62b6b031d54f2906858cb4"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "85b8a6889ddfdf211e7382a23f9cc4f6cef3dfb68b0042f3932a80d394f61947"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "77b01b56349a3ab71e94585ab407d5f9e7fb43165cb1753403a7e68f25e7c22c"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "a7b2b70260ba742f33a36a60909dfd966f568b5cbf0356c592f4d12ecb48af00"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "a2831b36e4926e6523d3a8fdd5588eb5284e838c2ad9851dee5680059c641643"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "e3dac74c3126ed8074165f945fe971a438940c86cd35305df1132c7aec629df1"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "79d40b5b335ca9d47163a361e3cf2cfdff89155dd280b553b96f1804d78c40f3"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "eaa31c4390b4a21b51b1875fa1ab7c7fbc47c809f7f7f3b588e56ead0d3e1e21"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "8a3c51348be789464ee7eccb54338939a2f9a6fbe418523e17f33cd4c1f61216"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "82e17b395c6df62bba73a4a1844c6e6b5ef2c71f11f9d3660347297f2e958e42"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "6773d58a0b09304df17b0dd1c7be1ab96d8b51bb93409b9e91fccf72646428fc"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "5d6fddfd71ebb6afa554773c173754cf1fabe03451b6e36106807d6a72a30d74"
+          }
+        },
+        "zh-CN": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "156219e305f6cebcd23d048931c6057beee0ab3eadb5b8e370edde3e7ff4e788"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "e33b9ef335750704b2f57d99440c43d188ae19174cc766635e8a534f33d04cfe"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "a35d5b901b7e5e30af1dd486ab80d3f6f6d062d8479f1a7ec9643d01fdf3d197"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "2b97de5bdeae0cf5840709fe5f947afcb8bd8e71b2fc6c07df961e11adf2c252"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "bfff7f3951278e2a2b658e1966ec7264e06710dea36a3c168ad953cc0557a3d8"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "dbd450f7d1f51dd51f97be9cc408964a2022e686a07accd00fda302da66d6d03"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "76fe15594e416af9bd1e9ca6c85a961e228c3003fa714336009e597f8ac75937"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "e3766ad065a9a2daea045366b2d2bf7387c504443391d5dd443640173b84d14c"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "e525f1e31d595ff0c78e1fb45b93c005f94defb318346a881aa21e8c6254f248"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "ac4220188179078bd429dc8710aa1c20fd42af1d91c0684ae256aa28dbdf6aa0"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "d8b6b1b44528bac9378fdada8588433e10d56dfec927cebe9c486f6736c04a5a"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "6de5f2a6995aec41fe8755662af6c3ec918250c60b6b8c2d6976a130d442a426"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "9d57a08f848917fcd4229e6a68603b05fe4b19e58ee6d99ea0e8ed144eadbd5f"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "4b9818ccdc790a5592a96197345c04a859411cf7ebc55c5df2daaea602894bc4"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "6106a85a6e779775a57ded2c5bb8aa9e94c5e9d7d5edfb6a65b45cec7bbabaf5"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "a053dea79d1bf2d6041068c1ae40bbaa1470b77ea4e1c2ca19f2e05103da18e7"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "50a1695bdab57f1b187959a8c9d74ebe0f800cd2801e0677e6aee55487544d50"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "39ef2d10112143cb3c87926690937bd4cf805dec5b2c79b68cae4fe214124e26"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "9a1d0c4023bfa655d783662aa428a6afd5df4fdacbe732e371f92de4f10d5f1c"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "afacea82785ad91ea4571f27ce28b5933c7b6a43230b9a6140a27ea779351dc4"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "a292df62cc8c6c01da24f3d648b522e1bc01d8e0bf8f42c4103b22d3cd85cd97"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "d494e507ca0af144e2453d076bb0254a053ed8af5aee7d1b44f76745fe5e6721"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "5b8fd86d025a4490ca974b0bc0fb4a9f11fe5e8a9bcad3eb72f3d1052b9a4502"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "b96e952ead8d0343b8608d873a9dfd0263b3e993e97db8f90c6f965573d8dbe6"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "17061565364d39289393ea19073b9c91a430ad5e67656ca0e450818663365f51"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "f3521d810b064ce8be6cc3ee5a61ce2f3c39f7df620de2afedfba43e3752ad26"
+          }
+        },
+        "zh-HK": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "bcfde393feb40cea752ed9fd35a3ce2bc10621ad0448c0e454e802f796935743"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "e09453c705c590a95d71c047ee63ea4a261dd6a10ba736704ee3e7be2474790e"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "08c3015ddb0b14eefa8cf153ca476cd51e0153dafef511541720eb42294dcbf1"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "7d83a564b40e6ebeb41d103d3238efd98894baadd40eb1663f4508a27f8fe203"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "2c3f87602f255a5fc678f343ce1ec18f47d7e13888dda3317b3c52139f6cdc7f"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "af42db30742c007d313aa1bc0726f153d060a69d3ad5f142dc70c691b2022eeb"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "014c0765641a53e528812f029caa1f1f19833e64eb9545c7896f2a204f4d3385"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "eb8f12a7121d9eb3b405dcab2429189c69b4256060a35e79a699fe27455f00f5"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "92ab81a627fccc3e7c17376677502b1c5727bab05805b09d3478e28104a882d2"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "4fc8670efabdf7b4f7288f2f5b64d9876ecc1f97ff171d4f80fc73b92aebd7f8"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "9e99a83e2839a8f4aeeac6b4cbe83a3beef2a3435b16040bd146a1b947950254"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "98c0d9d935e49259a2507782e6c870edf791c0baa4d33f76c5cd496941edd17f"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "2f7942a2fc83fd4370b7488b9715bfe9125bedecdf4fd767edae494ad821278c"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "41f8280b241d007d1ec6afeae4e1665b047167f500803869a0dd46b2256f6d69"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "bf38d436c0d2a6b2d0a7abb54caf87581c9e5f30ab8ec1827066a3c93d9fa3ec"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "97dee0053617f667fc6634a90dde67d5f19f50e5ec40dcf25b8d939cdba94b81"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "a75f765aa46138cb27205103ac27c677ec96b055052e25d14290d674849e838f"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "02af195c66b1fe22ebb42560a07b731158ff77dec88973321f8a03b42867d301"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "3768e540104ffdc6b6f7240921ec3dca11181e8066e7f00d06103471d524f8d7"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "92ada6138d09bcb50629c4f2c21ddf0f30fc9a3d821717a1036342dfbf3abcaa"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "c562eb1e9cac420096040abe001e63981a2513f4a859f53788347d801e3b8fa5"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "efe542dbf10ace5d5834ccaa4210913fdd13132dccbf18f257408aa1ce4ed3c9"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "79ca801f4463e9a8caeb6bff08ab61564e9a3a4d81d9e49c0c1903e6eeed6b07"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "77230f0f5bc2075177bad2d80a1dee60b08f32aa6ba1d2e6045e20a977a443d2"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "8b92ea065291219939b485df1ebb8165e24b00e8a70789487e3472c2db1e5dec"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "8fe5be047faa97fcd024ccc0c5410a10110d80692da6f56607469df28afd5cac"
+          }
+        },
+        "zh-TW": {
+          "agent_rows.disk.absent": {
+            "source": "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea",
+            "translation": "684afa253fb4651aff5c3550f697cf4813ef21ad30869704292d8137f9be35d9"
+          },
+          "agent_rows.disk.disabled": {
+            "source": "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c",
+            "translation": "fcc8f994b04ab889aeb89e049c3a72a9121f22f741f59ce15d23872b9428ee05"
+          },
+          "agent_rows.disk.mismatch": {
+            "source": "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a",
+            "translation": "43223216bcf620a57ede5d10e6e5acaf68af52431ba5599f31108cfe3b601503"
+          },
+          "agent_rows.disk.suspended": {
+            "source": "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c",
+            "translation": "7d83a564b40e6ebeb41d103d3238efd98894baadd40eb1663f4508a27f8fe203"
+          },
+          "agent_rows.disk.verified": {
+            "source": "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c",
+            "translation": "a04361e38cf0d4f9117917e41d5b00c1644fd10bba37c4b2279924b0206e0894"
+          },
+          "agent_rows.doctor.disk": {
+            "source": "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531",
+            "translation": "2a453ba3b99fe1f259841774acba01d56a937fe7a772d1d3e6f8b10e34aa8023"
+          },
+          "agent_rows.doctor.evidence": {
+            "source": "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01",
+            "translation": "d82731e4bbc2b5f390b7076403cd8aa328b565a106e723ed9268e86b00a3f86a"
+          },
+          "agent_rows.doctor.route": {
+            "source": "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5",
+            "translation": "d94eb2769a181cc4dfcca0eaec0181de5e06e6ced60e2c67e56dfb675080ec38"
+          },
+          "agent_rows.help": {
+            "source": "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40",
+            "translation": "9e6bd4e6df47c800e8b07a2f77011836be255a2ea97a203ef0b0ee31b771c445"
+          },
+          "agent_rows.install.plugin": {
+            "source": "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f",
+            "translation": "4fc8670efabdf7b4f7288f2f5b64d9876ecc1f97ff171d4f80fc73b92aebd7f8"
+          },
+          "agent_rows.install.route": {
+            "source": "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da",
+            "translation": "9e99a83e2839a8f4aeeac6b4cbe83a3beef2a3435b16040bd146a1b947950254"
+          },
+          "agent_rows.install.unavailable": {
+            "source": "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623",
+            "translation": "17822d98651dbf7615916219379c21482972d2f3ba83afc38e6c78a1a02d6205"
+          },
+          "agent_rows.reason.awaiting-mod": {
+            "source": "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a",
+            "translation": "66f29b76a8c5a5b07416707166121a3b62299b12b8ce0c812d06f4ef1932a730"
+          },
+          "agent_rows.reason.callback-gap": {
+            "source": "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff",
+            "translation": "d128d51fce931da1cc5b053f2cd96de131513be6ef06c8441a877ec52f8da5ae"
+          },
+          "agent_rows.reason.disabled": {
+            "source": "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26",
+            "translation": "440b0ea54f240cd4133ed4aa4a9a91cb0ebc088fa2c3a7f1453324359127ba4a"
+          },
+          "agent_rows.reason.foreign": {
+            "source": "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935",
+            "translation": "fe890ec07a8e55f2d33c4a39567557bcd6e3e5e28004c607d719c9da94056395"
+          },
+          "agent_rows.reason.legacy": {
+            "source": "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712",
+            "translation": "a75f765aa46138cb27205103ac27c677ec96b055052e25d14290d674849e838f"
+          },
+          "agent_rows.reason.mod-disabled": {
+            "source": "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a",
+            "translation": "02af195c66b1fe22ebb42560a07b731158ff77dec88973321f8a03b42867d301"
+          },
+          "agent_rows.reason.mod-failed": {
+            "source": "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed",
+            "translation": "506ca2d128c11b5de18096a5aef3b9e7a4c69437487d5bc32e90161bcdd437da"
+          },
+          "agent_rows.reason.mod-selected": {
+            "source": "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455",
+            "translation": "19ffa4bf7c1f8abe2ce84f93b83c481e9281a0250b321b881a0a8fd23b219f2e"
+          },
+          "agent_rows.reason.not-installed": {
+            "source": "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353",
+            "translation": "c562eb1e9cac420096040abe001e63981a2513f4a859f53788347d801e3b8fa5"
+          },
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "3796580f95847c63daa60a4e00cf2d7c169981e772c706011af9327827efaf98"
+          },
+          "agent_rows.reason.restricted": {
+            "source": "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1",
+            "translation": "d9fb140d5b5d6f9f1567135dcf477819573a223ad04ed592f93e5d01a2c79940"
+          },
+          "agent_rows.reason.unavailable": {
+            "source": "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0",
+            "translation": "77230f0f5bc2075177bad2d80a1dee60b08f32aa6ba1d2e6045e20a977a443d2"
+          },
+          "agent_rows.reason.unknown-host": {
+            "source": "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6",
+            "translation": "341c29b230f5c3c511c0bddcd0b52893a2f9e89271fe313eac2b6af30847cd27"
+          },
+          "agent_rows.reason.unsupported-host": {
+            "source": "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81",
+            "translation": "8fe5be047faa97fcd024ccc0c5410a10110d80692da6f56607469df28afd5cac"
+          }
+        }
+      },
+      "review": "Reviewed installation, legacy ownership, host capability gaps, session evidence and disk state in context for all twelve languages. Checked literal CLI terms and named placeholders.",
+      "validated_inputs_sha256": "0a981103f7d3e0a4a415a7565e14100974559a3cd8e5785c6d52879ef3d51958"
+    },
+    "08ef6d1e3d173d4667ebcac355820b24b051c797e70c6990523201e83090d62f": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "zh-HK": {
+          "agent_rows.reason.ownership-changed": {
+            "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+            "translation": "360b3d7da8a7b0db989dcb118b7b668786b083665dbe5e2e3f327e13eecfbcd9"
+          }
+        }
+      },
+      "review": "Applied the documented Hong Kong terminology for installation identity. Verified by the regional terminology regression.",
+      "validated_inputs_sha256": "52a62b4d19fa7cd4f8954ccb635e1f3ab438a9b50910ac33329c030a742db864"
     }
   }
 }

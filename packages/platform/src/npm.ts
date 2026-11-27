@@ -3,12 +3,13 @@ import { dirname, join, resolve, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PackageError, exactVersion, type PackageIdentity } from '@fbincon/statusline-core/management/package';
-import { compatibility, LEGACY_370_SHA256, type PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
+import { bundledModProtocols, compatibility, LEGACY_370_SHA256, type PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { which, normalizedPath, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
 import { phaseTimer } from './performance.js';
-import { readSourceFile } from './source-files.js';
+import { readBoundedRegularFile } from './regular-file.js';
+import { MAX_SOURCE_BYTES } from '@fbincon/statusline-core/extensions/model';
 import { decodeUtf8 } from './utf8.js';
 export interface NpmLayout {
     prefix: string;
@@ -28,16 +29,17 @@ export interface RegistryPackage {
 }
 export const globalPackageRoot = (prefix: string) => join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules', PACKAGE_NAME);
 export const globalPackageBin = (prefix: string) => join(prefix, process.platform === 'win32' ? 'claude-statusline.cmd' : 'bin/claude-statusline');
-/** Authoritative manifest reads run in the independent worker, after bootstrap. */
-export function readPackageManifest(root: string): Record<string, any> {
+function readManifest(path: string, maximum = MAX_SOURCE_BYTES): Record<string, any> {
     try {
-        const bytes = readSourceFile(join(root, 'package.json'));
+        const bytes = readBoundedRegularFile(path, maximum);
         if (!bytes) throw new Error('missing manifest');
         const value: unknown = JSON.parse(decodeUtf8(bytes));
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid manifest');
         return value as Record<string, any>;
     } catch { throw new PackageError('identity'); }
 }
+/** Authoritative manifest reads run in the independent worker, after bootstrap. */
+export function readPackageManifest(root: string): Record<string, any> { return readManifest(join(root, 'package.json')); }
 export function verifyArchive(path: string, target: RegistryPackage): void {
     const finish = phaseTimer('package.verify-archive');
     try { verifyArchiveBytes(path, target); } finally { finish(); }
@@ -257,20 +259,36 @@ export class Npm {
         const manifest = readPackageManifest(root);
         if (manifest.engines?.node !== target.nodeEngine || !equalSettings(compatibility(manifest.statuslineCompatibility, target.version), target.compatibility) || (manifest.statuslineCompatibility === undefined) !== target.legacy)
             throw new PackageError('identity');
-        await this.verify(identity, globalPackageBin(prefix));
-        for (const [name, protocol] of [['statusline-native', target.compatibility.editor_protocol], ['statusline-runtime', target.compatibility.runtime_protocol]] as const) {
+        if (target.compatibility.agent_rows_protocol === undefined && fs.existsSync(join(root, 'node_modules/@fbincon/statusline-cli/resources/statusline-agent-rows')))
+            throw new PackageError('identity');
+        for (const [name, protocol] of Object.entries(bundledModProtocols(target.compatibility))) {
             const resources = join(root, 'node_modules/@fbincon/statusline-cli/resources', name);
-            const descriptor = JSON.parse(fs.readFileSync(join(resources, 'resource-manifest.json'), 'utf8'));
-            if (descriptor.backend_version !== target.version || descriptor.mod_version !== target.version || descriptor.protocol_version !== protocol)
+            const descriptor = readManifest(join(resources, 'resource-manifest.json'));
+            if (descriptor.backend_version !== target.version || descriptor.mod_version !== target.version || descriptor.protocol_version !== protocol ||
+                !descriptor.files || typeof descriptor.files !== 'object' || Array.isArray(descriptor.files))
                 throw new PackageError('identity');
-            for (const [file, hash] of Object.entries(descriptor.files ?? {})) {
-                if (file.startsWith('/') || file.includes('\\') || file.split('/').some(part => !part || part === '..' || part === '.') || typeof hash !== 'string')
+            if (name === 'statusline-agent-rows') {
+                const inventory = readManifest(join(root, 'candidate.json'), 64 * 1024 * 1024);
+                const prefix = 'node_modules/@fbincon/statusline-cli/resources/' + name + '/';
+                const packaged = Object.fromEntries(Object.entries(inventory.files).filter(([file]) =>
+                    file.startsWith(prefix) && file !== prefix + 'resource-manifest.json'
+                ).map(([file, hash]) => [file.slice(prefix.length), hash]));
+                const plugin = readManifest(join(resources, '.claude-plugin/plugin.json'));
+                const hooks = readManifest(join(resources, 'hooks/hooks.json'));
+                if (!equalSettings(packaged, descriptor.files) || plugin.name !== name || plugin.version !== target.version || !Object.hasOwn(descriptor.files, '.claude-plugin/plugin.json') ||
+                    !Object.hasOwn(descriptor.files, 'hooks/hooks.json') || !Array.isArray(hooks.modules) || !hooks.modules.length ||
+                    !hooks.modules.every((entry: unknown) => typeof entry === 'string' && entry.startsWith('./') && Object.hasOwn(descriptor.files, 'hooks/' + entry.slice(2))))
                     throw new PackageError('identity');
-                const path = join(resources, file);
-                if (fs.lstatSync(path).isSymbolicLink() || createHash('sha256').update(fs.readFileSync(path)).digest('hex') !== hash)
+            }
+            for (const [file, hash] of Object.entries(descriptor.files)) {
+                if (file.startsWith('/') || file.includes('\\') || file.split('/').some(part => !part || part === '..' || part === '.') || typeof hash !== 'string' || !/^[a-f0-9]{64}$/u.test(hash))
+                    throw new PackageError('identity');
+                const bytes = readBoundedRegularFile(join(resources, file), 64 * 1024 * 1024);
+                if (!bytes || createHash('sha256').update(bytes).digest('hex') !== hash)
                     throw new PackageError('identity');
             }
         }
+        await this.verify(identity, globalPackageBin(prefix));
         return { ...identity, integrity: target.integrity, registry: target.registry };
     }
 }

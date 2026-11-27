@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sha256 } from '@fbincon/statusline-platform/hash';
+import { bundledModProtocols, PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 export const repoRoot = fileURLToPath(new URL('../../../../../', import.meta.url));
 export const fixtures = join(repoRoot, 'tests/fixtures/migration/ts-01');
 export const reference = '9b6d2fab4bf165be280d428a874521bfbf02c7e1';
@@ -61,7 +62,7 @@ export function sourceHashes(): Record<string, string> {
     }
     for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/migration/ts-04', 'tools/migration/ts-05', 'tools/generation', 'tools/testing', 'tools/checks', 'tools/release', 'tools/acceptance', 'tools/benchmarks', 'tools/build', 'tests/fixtures/migration/ts-05'])
         walk(path);
-    for (const name of ['statusline-native', 'statusline-runtime']) {
+    for (const name of Object.keys(bundledModProtocols(PACKAGE_COMPATIBILITY))) {
         const root = 'mods/' + name;
         for (const relative of readdirSync(join(repoRoot, root), { recursive: true }).map(String)) {
             if (!relative.endsWith('.ts') || relative.split(/[\\/]/u).some(part => ['node_modules', 'types', 'dist'].includes(part)))
@@ -71,6 +72,8 @@ export function sourceHashes(): Record<string, string> {
         }
         const manifest = root + '/.claude-plugin/plugin.json';
         hashes[manifest] = sha256(readFileSync(join(repoRoot, manifest)));
+        const hooks = root + '/hooks/hooks.json';
+        hashes[hooks] = sha256(readFileSync(join(repoRoot, hooks)));
     }
     for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/ci.yml', '.github/workflows/reference.yml', '.github/workflows/preview-downloads.yml',
         'archive/python/manifest.json', 'archive/python/manifest.sha256', 'tools/unicode/UNICODE-LICENSE.txt', 'tools/unicode/WCWIDTH-LICENSE.txt', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])

@@ -3,6 +3,10 @@ import type { ConfigurationService } from '../config/service.js';
 import { readSettings } from '../config/storage.js';
 import { installationIdentity } from '../config/host.js';
 import { loadRuntime } from '../config/runtime-preferences.js';
+import { object } from '@fbincon/statusline-core/config/validation';
+import { revision } from '@fbincon/statusline-platform/hash';
+import { readAgentRowRoute } from '../integration/agent-row-state.js';
+import { AGENT_ROWS, VERSION } from '../integration/model.js';
 
 /** Reads only attributable configuration. No locks, repair, runtime stores or collectors. */
 export function explanationFacts(service: ConfigurationService): ExplanationFacts {
@@ -13,6 +17,12 @@ export function explanationFacts(service: ConfigurationService): ExplanationFact
     for(const [scope,key] of [['main','statusLine'],['subagent','subagentStatusLine']] as const) {
       const state=identity[key]?.state;
       if(state==='owned'||state==='absent'||state==='foreign') result.installation[scope]=state;
+    }
+    if (result.installation.subagent === 'absent' && object(settings.enabledPlugins) &&
+        settings.enabledPlugins[AGENT_ROWS.plugin] === true) {
+      const route = readAgentRowRoute(service.context.configDir);
+      if (route?.mode === 'mod' && route.backendVersion === VERSION && route.launchRevision === revision(service.context.launch))
+        result.installation.subagent = 'owned';
     }
   } catch { /* Unreadable configuration is unknown, never absent. */ }
   try { result.runtime=loadRuntime(service.context.configDir,service.io); } catch { /* Retain unknown; never repair. */ }

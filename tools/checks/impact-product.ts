@@ -15,6 +15,7 @@ export const PRODUCT_CHECKS = {
     platform: 'installed/platform-source-suite', cli: 'installed/platform-source-suite', tui: 'installed/platform-source-suite',
     checks: 'installed/platform-source-suite', release: 'installed/platform-source-suite', build: 'installed/platform-source-suite',
     acceptance: 'installed/platform-source-suite', benchmarks: 'installed/platform-source-suite', migration: 'installed/platform-source-suite',
+    'agent-rows': 'mods/exact-official-hosts',
     packaging: 'candidate/reproducible-build-and-platform-installations', native: 'mods/exact-official-hosts', runtime: 'mods/exact-official-hosts',
 } satisfies Record<Exclude<Check, ExtraCheck>, string>;
 

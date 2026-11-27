@@ -22,6 +22,7 @@ import { sha256 as digestBytes } from '../build/files.js';
 import { coverageVersionAt, coverageVersionInArchive, historyCounts, verifyCoveragePlan, type CoveragePlan } from '../checks/ci-coverage.ts';
 import { validateFragmentIdentity } from '../checks/ci-fragment.ts';
 import { validateSectionEvidence, validateInstalledDetails, verifySectionLogBytes, SECTION_INPUT_PATHS, sectionInputsAt } from '../checks/ci-section-evidence.ts';
+import { AGENT_ROWS_MANIFEST, officialModsForHost } from '../checks/runtime-inputs.ts';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
@@ -65,7 +66,9 @@ function versionSequence(value: any, official: boolean, historical: HistoricalRe
 }
 function officialInputs(sourceEntries: ReadonlyMap<string, Uint8Array>) {
     assert(sourceEntries instanceof Map, 'Immutable source entries are required for official test coverage');
-    return Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => {
+    const names = ['statusline-native', 'statusline-runtime'];
+    if (sourceEntries.has(AGENT_ROWS_MANIFEST)) names.push('statusline-agent-rows');
+    return Object.fromEntries(names.map(name => {
         const prefix = 'mods/' + name + '/';
         return [name, Object.fromEntries([...sourceEntries].filter(([path]) => path.startsWith(prefix)).map(([path, bytes]) => [path.slice(prefix.length), digestBytes(Buffer.from(bytes))]))];
     }));
@@ -208,7 +211,7 @@ export function assessEvidenceDirectory(directory: string, commit: string, sha25
     const plan = verifyCoveragePlan(JSON.parse(evidenceBytes(join(candidate,'coverage-plan.json'),1024*1024).toString()),context.base,commit,inputs,context.basis);
     assert.deepEqual(physicalPaths(root),plan.producers.map(p=>p.receipt).sort(),'Missing, duplicate or unexpected physical receipts');
     const gitInputs = sectionInputsAt(commit), contractPaths = new Set<string>(SECTION_INPUT_PATHS);
-    const archived = [...entries.keys()].filter(path=>contractPaths.has(path)||path.startsWith('mods/statusline-native/')||path.startsWith('mods/statusline-runtime/'));
+    const archived = [...entries.keys()].filter(path=>contractPaths.has(path)||/^mods\/statusline-(?:native|runtime|agent-rows)\//u.test(path));
     assert.deepEqual(archived.sort(),[...gitInputs.keys()].sort(),'Archive and Git section inventories differ');
     for (const path of archived) assert(Buffer.from(entries.get(path)!).equals(gitInputs.get(path)!),'Archive and Git section inputs differ: '+path);
     const manifest = JSON.parse(Buffer.from(entries.get('package.json')!).toString('utf8'));
@@ -224,7 +227,7 @@ export function assessEvidenceDirectory(directory: string, commit: string, sha25
         validateSectionEvidence(fragment,producer,plan,entries);
         if (fragment.report.official) {
             const official = fragment.report.official as any;
-            const requiredNames = Number(id.host!.split('.')[2]) >= 289 ? ['statusline-native','statusline-runtime'] : ['statusline-native'];
+            const requiredNames = officialModsForHost(id.host!, entries.has(AGENT_ROWS_MANIFEST));
             for (const name of requiredNames) {
                 const mod = official.mods[name];
                 verifyOfficialTestBatches(mod.official_test_batches,officialSources[name]!);

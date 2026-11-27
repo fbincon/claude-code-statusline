@@ -31,10 +31,20 @@ export type RunnerPolicy = 'legacy' | 'current';
 export function runnerTargets(policy: RunnerPolicy) {
     return policy === 'legacy' ? LEGACY_TARGETS : TARGETS;
 }
-export const HOSTS = [
+export const AGENT_ROWS_MANIFEST = 'mods/statusline-agent-rows/.claude-plugin/plugin.json';
+export const AGENT_ROW_HOSTS = ['2.1.326', '2.1.332'] as const;
+export function officialModsForHost(version: string, agentRows: boolean): string[] {
+    assert.match(version, /^2\.1\.\d+$/u, 'Expected a pinned official host');
+    const patch = Number(version.split('.')[2]);
+    return ['statusline-native', ...(patch >= 289 ? ['statusline-runtime'] : []),
+        ...(agentRows && patch >= 326 ? ['statusline-agent-rows'] : [])];
+}
+export const LEGACY_HOSTS = [
     ...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os: 'ubuntu-24.04', claude })),
     ...['windows-2025', 'macos-15'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os, claude }))),
 ];
+export const HOSTS = [...LEGACY_HOSTS, ...['ubuntu-24.04', 'windows-2025', 'macos-15']
+    .flatMap(os => AGENT_ROW_HOSTS.map(claude => ({ os, claude })))];
 export function runtimeInputs(index: { version: string }[], development: string, policy: RunnerPolicy = 'current') {
     const latest = (major: number) => {
         const versions = index.map(row => row.version.replace(/^v/u, '')).filter(version => new RegExp(`^${major}\\.\\d+\\.\\d+$`, 'u').test(version));

@@ -13,7 +13,7 @@ export const SCOPE_LABEL_ID = '$scope';
 const isContent = (unit: Unit) => unit.id !== SCOPE_LABEL_ID && !unit.spacer;
 export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[], config: DisplayDraft, scope: Scope,
   columns: number, [outer, inner]: readonly [string, string], auto: boolean, observe?: FitObserver, colors = powerline.cursor(scope)): string[] {
-  columns = Math.max(2, Math.trunc(columns));
+  columns = Math.max(scope === 'subagent' ? 1 : 2, Math.trunc(columns));
   const nodes = new Map((scope === 'main' ? config.instances : config.subagents.instances).map(n => [n.id, n]));
   const byId = new Map(cells.map(c => [c.id, c])), membership = new Map(groups.flatMap(g => g.member_ids.map(id => [id, g] as const)));
   const units: Unit[] = [], seen = new Set<string>();

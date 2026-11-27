@@ -101,9 +101,10 @@ claude-statusline doctor
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
 | 主栏、CLI、终端编辑器、问答向导 | 旧版或未知版本仍可使用，缺失数据省略 |
-| 自定义子代理行 | 2.1.205–2.1.322 |
+| 通过命令回调自定义子代理行 | 2.1.205–2.1.322、2.1.326–2.1.332 |
+| 通过 AgentRow Mod 自定义子代理行 | 2.1.326+ |
 | 子代理生命周期 hooks | 2.1.205+ |
-| 自定义子代理行中的显式强度 | 2.1.214–2.1.322 |
+| 自定义子代理行中的显式强度 | 2.1.214–2.1.322、2.1.326+ |
 | 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |
 | 会话内 Client 编辑器 | 2.1.287+ |
 | 原生计时及高级实时指标采集 | 2.1.289+ |
@@ -652,22 +653,24 @@ Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、�
 
 ### 子代理行不显示或发生所有权冲突
 
-先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 2.1.323 移除了 `subagentStatusLine` 回调。该版本即使保留已配置的命令，也会显示内置子代理行。子代理生命周期 hooks 独立于该回调。[Claude Code 2.1.323 发布说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.323)
+先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 2.1.323–2.1.325 的面板始终显示内置行，即使 `settings.json` 还保留着旧命令。从 2.1.326 起，终端提供 `AgentRow` 绘制接口。命令回调也在弃用宽限期内恢复，已验证到 2.1.332。[Claude Code 2.1.323 发布说明](https://github.com/anthropics/claude-code/releases/tag/v2.1.323) · [官方 Mod 绘制接口](https://code.claude.com/docs/en/plugins/mods/reference#render-sites)
 
-如需自定义子代理行，请使用支持该回调的版本，然后重跑 `claude-statusline install`。如果 `doctor` 报告 `foreign`，请选择下面的一条命令。
+默认安装偏好 `auto` 在兼容宿主上优先使用 Mod。手动指定过接入方式后，运行 `claude-statusline install --subagent-renderer auto` 可恢复自动选择。设置 `legacy` 可在兼容宿主上指定命令回调，`mod` 则要求使用 Mod。编辑器、计时和实时指标仍可独立开关。
+
+迁移本工具拥有的命令时，请打开一个新的受信任 Claude Code 终端会话并启动子代理。Mod 成功算出首批适用行之前，旧命令继续绘制。验证通过后，安装器自动移除本工具的旧命令。运行 `doctor` 可分别检查磁盘安装、会话加载和首批行验证。Mod 不可用时，若已知宿主兼容旧回调且策略允许，`auto` 可以采用旧回调。如果 `doctor` 报告已有第三方命令，可按归属选择下面的操作。
 
 <a id="明确接管第三方子-agent-行"></a>
 
 ```bash
-# 明确接管第三方子代理行
-claude-statusline install --force
+# 在已确认支持回调的宿主上，明确替换第三方命令
+claude-statusline install --subagent-renderer legacy --force
 
 # 保留第三方实现，只关闭本工具的自定义行目标
 claude-statusline config set subagent-statusline off
 claude-statusline install
 ```
 
-若 `subagents.instances` 为空或 `subagents.enabled` 为 false，本工具的 renderer 会按协议返回空 content。进入子代理 transcript 后底部全局栏仍属于主代理/session，这是 Claude 未提供当前焦点 ID 的既定边界。
+关闭自定义行时由宿主或原渲染器继续绘制。启用自定义行时，空模板或显式行过滤会隐藏相应行。进入子代理 transcript 后，底部状态栏仍显示主会话。
 
 ### `/statusline-config` 不可见
 

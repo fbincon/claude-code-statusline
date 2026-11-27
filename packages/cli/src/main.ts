@@ -51,6 +51,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     }
     if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!))
         return renderer(args[0]!);
+    if (args[0] === 'render-subagents' && ['--agent-row-batch', '--agent-row-loaded', '--agent-row-ready'].includes(args[1] ?? '')) {
+        const { agentRowCommand } = await import('./integration/agent-row-command.js');
+        stdout(await agentRowCommand(args.slice(1), environment.configDir, environment.stdin));
+        return 0;
+    }
     if (args.length === 1 && args[0] === 'runtime') {
         const { runtimeCommand } = await import('./runtime/command.js');
         return runtimeCommand(environment, stdout, stderr);

@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { NATIVE as EDITOR, RUNTIME, VERSION } from '@fbincon/statusline-cli/integration/model';
+import { MANAGED_MODS, VERSION } from '@fbincon/statusline-cli/integration/model';
 import { bundledFiles } from '@fbincon/statusline-cli/integration/resources';
 import { repoRoot, sourceHashes } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
@@ -68,7 +68,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
         }
         const dependencies: Candidate['dependencies'] = {};
         for (const name of EXTERNAL) dependencies[name] = await dependency(name, lock, join(stage, 'node_modules', name), temporary);
-        for (const spec of [EDITOR, RUNTIME]) for (const [name, raw] of bundledFiles(spec).files) {
+        for (const spec of MANAGED_MODS) for (const [name, raw] of bundledFiles(spec).files) {
             const path = join(stage, 'node_modules/@fbincon/statusline-cli/resources', spec.name, name);
             fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, raw);
         }

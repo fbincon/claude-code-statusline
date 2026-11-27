@@ -143,7 +143,7 @@ else if (operation === 'official' || operation === 'prepare-host') {
     const { PROTOCOL_VERSION } = await load('core', 'contracts/ui');
     const { installContext, install, uninstall } = await load('cli', 'integration/install');
     const { doctor } = await load('cli', 'integration/doctor');
-    const { NATIVE, RUNTIME } = await load('cli', 'integration/model');
+    const { NATIVE, RUNTIME, AGENT_ROWS } = await load('cli', 'integration/model');
     const { PluginHost } = await load('platform', 'plugin-host');
     const { pending } = await load('cli', 'recovery/journal');
     const { spawnSync } = await import('node:child_process');
@@ -175,11 +175,13 @@ else if (operation === 'official' || operation === 'prepare-host') {
         const diagnostics = doctor(context);
         if (diagnostics.some((row: any) => row.level === 'ERROR'))
             throw new Error(JSON.stringify(diagnostics));
-        const specs = request.version[2] >= 289 ? [NATIVE, RUNTIME] : [NATIVE];
+        const specs = [NATIVE, RUNTIME, AGENT_ROWS].filter(spec => spec && request.version[2] >= spec.minimum[2]);
         for (const spec of specs) {
             const options = host.run(['configure', spec.plugin, '--json'], undefined, true) as any;
             if (options.inputs.backendExecutable !== process.execPath || options.inputs.backendArgs !== JSON.stringify([entry]))
                 throw new Error('Installed official binding differs');
+            if (spec === AGENT_ROWS && !options.inputs.installationId)
+                throw new Error('AgentRow Mod lacks an installation identity');
         }
         const ui = (operation: string, payload: unknown = {}) => {
             const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', config!], { env: process.env, input: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation, payload }), encoding: 'utf8', timeout: 15000 });

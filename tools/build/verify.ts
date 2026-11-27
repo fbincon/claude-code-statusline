@@ -11,13 +11,14 @@ import assert from 'node:assert/strict';
 import { readTar, sha256, sums, verifyChecksums } from './files.js';
 import { BUSINESS, EXTERNAL, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
 import { languageEvidence, verifyPackLanguages } from '../checks/i18n-evidence.ts';
-export function verifyContents(entries: Map<string, Buffer>, commit: string, requireSanitized = false) {
+import { agentRowSourceFiles, verifyAgentRowResources } from './agent-row-resources.js';
+export function verifyContents(entries: Map<string, Buffer>, commit: string, currentBuild = false) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
     const source = read('candidate.json') as Candidate, manifest = read('package.json');
     assert.match(commit, /^[a-f0-9]{40}$/u, 'Fixed source SHA required');
     assert.equal(source.commit, commit, 'Wrong source commit');
     assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
-    assert(source.dependency_manifests === 'sanitized' || (!requireSanitized && source.dependency_manifests === undefined), 'Invalid dependency manifest policy');
+    assert(source.dependency_manifests === 'sanitized' || (!currentBuild && source.dependency_manifests === undefined), 'Invalid dependency manifest policy');
     const kind = channel(source.channel ?? 'candidate'), product = identity(commit, kind);
     assert(source.channel === undefined || source.channel === kind, 'Artifact channel must be canonical');
     assert.equal(source.name, product.name); assert.equal(manifest.name, product.name);
@@ -25,7 +26,12 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string, req
     assert.equal(manifest.private, product.private); assert.equal(manifest.scripts, undefined);
     assert.equal(manifest.devDependencies, undefined);
     assert.deepEqual(manifest.engines, { node: NODE_RUNTIME_RANGE });
-    assert.deepEqual(manifest.statuslineCompatibility,PACKAGE_COMPATIBILITY);
+    const expectedCompatibility = { ...PACKAGE_COMPATIBILITY };
+    if (!Object.hasOwn(source.source_hashes, 'mods/statusline-agent-rows/.claude-plugin/plugin.json')) {
+        assert(!currentBuild, 'Current builds must include the AgentRow source');
+        delete expectedCompatibility.agent_rows_protocol;
+    }
+    assert.deepEqual(manifest.statuslineCompatibility, expectedCompatibility);
     if (kind !== 'candidate') {
         assert.deepEqual(manifest.publishConfig, { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' });
         assert.deepEqual(manifest.repository, { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' });
@@ -62,7 +68,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string, req
             const path = file.slice(root.length + 1);
             const compiled = /^dist\/src\/.+\.(?:js|d\.ts)(?:\.map)?$/u.test(path);
             const language = short === 'core' && (path === 'resources/i18n/languages.json' || LANGUAGES.some(code => path === `resources/i18n/locales/${code}.json`));
-            const cliResource = short === 'cli' && /^resources\/statusline-(?:native\/|runtime\/|config\/SKILL\.md$|configure\/SKILL\.md$)/u.test(path);
+            const cliResource = short === 'cli' && /^resources\/statusline-(?:native\/|runtime\/|agent-rows\/|config\/SKILL\.md$|configure\/SKILL\.md$)/u.test(path);
             assert(compiled || language || cliResource, 'Unexpected business resource: ' + path);
         }
     }
@@ -82,6 +88,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string, req
         assert(entries.has(root + '/.claude-plugin/plugin.json'));
         assert.deepEqual([...entries.keys()].filter(file => file.startsWith(root + '/') && file !== root + '/resource-manifest.json').map(file => file.slice(root.length + 1)).sort(), Object.keys(mapping).sort(), 'Unowned Mod resource');
     }
+    verifyAgentRowResources(entries, source.source_hashes, manifest.statuslineCompatibility.agent_rows_protocol, VERSION);
     for (const name of ['statusline-configure', 'statusline-config']) assert(entries.has('node_modules/@fbincon/statusline-cli/resources/' + name + '/SKILL.md'));
     for (const name of NATIVE) {
         assert.equal(read('node_modules/' + name + '/package.json').version, '3.3.3');
@@ -117,6 +124,7 @@ export function verifyDelivery(path: string, commit: string) {
     const snapshot = JSON.parse(raw.toString()); assert.equal(snapshot.commit, commit);
     assert.deepEqual(Object.keys(snapshot.files).sort(), [...entries.keys()].filter(name => name !== '.candidate-source.json').sort());
     for (const [name, hash] of Object.entries(snapshot.files)) assert.equal(sha256(entries.get(name)!), hash, 'Source archive differs');
+    assert.deepEqual(agentRowSourceFiles(candidate.source.source_hashes), agentRowSourceFiles(snapshot.files), 'AgentRow source differs from immutable archive');
     const language = languageEvidence(entries, commit);
     verifyPackLanguages(entries, readTar(path));
     return { ...candidate, sourceEntries: entries, ...(language ? { language } : {}) };

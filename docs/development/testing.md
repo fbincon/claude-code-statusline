@@ -20,9 +20,11 @@ Current native-capacity rules and applicable host checks are in [capacity and re
 
 ## Current TypeScript checks
 
-The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) defines the release route. Package smoke runs on Linux x64, Windows x64, Windows ARM with x64 Node, and macOS Apple Silicon and Intel. Every target uses Node 22.0.0, and Linux also exercises 24.0.0. Each of the three systems runs Claude 2.1.310 for the two Mods' official validation, tests, exact type declarations and installed-package integration. Main exercises the original package on three systems.
+The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) defines the release route. Package smoke runs on Linux x64, Windows x64, Windows ARM with x64 Node, and macOS Apple Silicon and Intel. Every target uses Node 22.0.0, and Linux also exercises 24.0.0. Linux, Windows and macOS exercise the Native and Runtime Mods on Claude 2.1.310. Claude 2.1.326 and 2.1.332 also exercise AgentRow on all three systems. Each applicable Mod must pass official tests, exact-build type checks and installed integration. Main exercises the original package on three systems.
 
-The full manual diagnostic suite covers 7 installations, 28 Node cases, 16 hosts and all applicable native-capacity cases. Select targeted diagnostics for installation, recovery and host compatibility changes.
+The full manual diagnostic suite covers 7 installations, 28 Node cases, 22 hosts and all applicable native-capacity cases. Select targeted diagnostics for installation, recovery and host compatibility changes.
+
+Run `npm run test:agent-rows -- --artifact TGZ --commit FULL_SHA --hosts DIR --output NEW_DIR` with official Linux executables named by exact version in `DIR`. The PTY probe starts real subagents with a loopback model service and verifies visible rows at the legacy, unsupported and Mod boundaries. The `agent-rows` CI diagnostic runs focused CLI/rendering/recovery tests and installed official Mod checks on Linux, Windows and macOS using one source-bound package. Both diagnostics use zero paid model calls.
 
 For maintenance, run `npm run ci:plan` and the selected `ci:check` tasks. For core changes, run `npm run check` and the applicable complete product acceptance. [Impact checks](impact-checks.md)
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
@@ -129,7 +131,7 @@ Promotable, CI-bound evidence may carry the shared acceptance envelope. The enve
 
 `source.commit` and `source.files_sha256` identify the accepted source; `tree` is optional. `artifact` may be `null` when no packaged artifact exists. `checks` must be non-empty, use unique names, use `pass` or `skip` statuses and include at least one `pass`. Each `limitations` entry must be non-empty, and the array must contain at least one entry. Unknown extension keys are allowed, and `produced_at` is optional.
 
-`createAcceptanceEnvelope` and `validateAcceptanceEnvelope` live in `tools/checks/receipt.ts`. The `showcase` and `editor-capture` acceptance scripts are the current exemplars: their existing top-level receipts are unchanged and carry the envelope as an additive field. `official-tests` remains a CI-bound receipt with its own schema and validators; adopting the envelope there is a later additive change with a compatibility test.
+`createAcceptanceEnvelope` and `validateAcceptanceEnvelope` live in `tools/checks/receipt.ts`. The `mods`, `showcase` and `editor-capture` acceptance scripts attach this field on their eligible success paths: their existing top-level receipts are unchanged and carry the envelope as an additive field. `official-tests` remains a CI-bound receipt with its own schema and validators; adopting the envelope there is a later additive change with a compatibility test.
 
 <a id="acceptance-receipt-producers"></a>
 
@@ -156,6 +158,7 @@ The registry is blocking: `npm run docs:check` and `npm run check` fail on drift
 <!-- acceptance-producers:start -->
 | File | Role | Primary outputs | Promotable | Evidence class | Envelope | Validation | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `agent-rows.ts` | `diagnostic` | `receipt.json` | no | `diagnostic` | `diagnostic-opt-out` | `manual` | Fixed official Linux hosts draw subagents in a PTY using an installed package and a loopback provider. |
 | `artifact.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | In-memory artifact identity binder; no acceptance receipt. |
 | `budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Paid-call ledger reserve and settle helper; not an acceptance receipt. |
 | `budgets.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Deadline and phase budget constants. |
@@ -181,7 +184,7 @@ The registry is blocking: `npm run docs:check` and `npm run check` fail on drift
 | `language-budget.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Language deadlines and admission. |
 | `language-comparison.ts` | `diagnostic` | `installed-language-comparison` | no | `diagnostic` | `diagnostic-opt-out` | `ci` | CI language diagnostic; promotable:false. |
 | `mod-types.ts` | `helper` | none | no | `none` | `not-applicable` | `none` | Host declaration preparation; writes metadata, not a receipt. |
-| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `planned` | `official-host` | v1 mods evidence and v2 official-host sections. |
+| `mods.ts` | `producer` | `mods.json` | yes | `official-host` | `adopted` | `official-host` | v1 mods evidence and v2 official-host sections. |
 | `native-capacity-pty.ts` | `producer` | `pty-reports` | no | `manual` | `manual-opt-out` | `manual` | Manual PTY capacity capture; documentation evidence. |
 | `native-capacity.ts` | `producer` | `mods.json:capacity` | yes | `official-host` | `embedded-via-parent` | `official-host` | In-memory capacity receipt persisted in mods.json. |
 | `native-stability.ts` | `producer` | `native-stability.json` | yes | `official-host` | `embedded-via-parent` | `official-host` | Transient stability report embedded in the physical fragment. |

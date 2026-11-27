@@ -20,6 +20,7 @@ const published = {
 };
 const names = ['statusline-native', 'statusline-runtime'] as const;
 const ids = ['statusline-native@claude-statusline-local', 'statusline-runtime@claude-statusline-runtime-local'];
+const agentRowsId = 'statusline-agent-rows@claude-statusline-agent-rows-local';
 const runProcess = promisify(execFile);
 
 /** Replay #292 on real Claude binaries and three immutable npm archives. */
@@ -109,15 +110,18 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
             call(step, installed.node, [entry, '--language', 'en', ...args, '--prefix', prefix, '--config-dir', config], env, status);
         const command = (step: string, args: string[], cmdEnv = env) =>
             call(step, installed.node, [entryPath(), '--language', 'en', args[0]!, '--config-dir', config, ...args.slice(1)], cmdEnv);
-        const list = async (cmdEnv: NodeJS.ProcessEnv) => {
+        const marked = packages.at(-1)!.manifest.statuslineCompatibility?.agent_rows_protocol === 1;
+        const list = async (cmdEnv: NodeJS.ProcessEnv, current = false) => {
             const host = cmdEnv === oldEnv ? claudeLaunch(baselineHost).executable : exe;
             const { stdout } = await call('plugin inventory', host, ['plugin', 'list', '--json'], cmdEnv);
             const rows = JSON.parse(stdout) as { id: string; version: string; enabled: boolean; installPath: string }[];
-            return ids.map(id => { const row = rows.find(item => item.id === id); assert(row, 'Missing ' + id); return row; });
+            const expected = current && marked ? [...ids, agentRowsId] : ids;
+            assert.equal(rows.some(row => row.id === agentRowsId), expected.includes(agentRowsId));
+            return expected.map(id => { const row = rows.find(item => item.id === id); assert(row, 'Missing ' + id); return row; });
         };
         const bindings = async (version: string, cmdEnv: NodeJS.ProcessEnv) => {
             const host = cmdEnv === oldEnv ? claudeLaunch(baselineHost).executable : exe;
-            for (const [index, row] of (await list(cmdEnv)).entries()) {
+            for (const [index, row] of (await list(cmdEnv, version === identity.version)).entries()) {
                 assert.equal(row.version, version);
                 assert.equal(row.enabled, true);
                 assert.equal(read(join(row.installPath, '.claude-plugin', 'plugin.json')).version, version);
@@ -127,6 +131,7 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
                 assert.equal(inputs.configDir, config);
                 assert.deepEqual(JSON.parse(inputs.backendArgs), [entryPath()]);
                 if (index === 1) for (const key of ['nativeTiming', 'liveMetrics', 'sourceRefresh']) assert.equal(inputs[key], 'true', key);
+                if (row.id === agentRowsId) assert(typeof inputs.installationId === 'string' && inputs.installationId.length);
             }
         };
         const marker = join(prefix, '.claude-statusline-operation.json');
@@ -215,7 +220,7 @@ export async function pluginRecovery(installed: ReturnType<typeof installCandida
         const freshEnv = { ...env, CLAUDE_CONFIG_DIR: clean };
         await call('fresh install', installed.node, [installed.entry, ...installArgs, '--config-dir', clean], freshEnv);
         await call('fresh doctor', installed.node, [installed.entry, 'doctor', '--config-dir', clean], freshEnv);
-        for (const row of await list(freshEnv)) {
+        for (const row of await list(freshEnv, true)) {
             assert.equal(row.version, identity.version);
             assert.equal(row.enabled, true);
         }

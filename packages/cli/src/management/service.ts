@@ -219,6 +219,11 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         if (flags.command === 'rollback' && !flags.version && history?.previous?.inventory_sha256 && staged.inventory_sha256 !== history.previous.inventory_sha256)
             throw new PackageError('integrity');
         const expected = { ...staged, prefix: layout.prefix, root: layout.root, entry: review.entry };
+        const assertReviewedIdentity = (identity: PackageIdentity | null) => {
+            if (identity && !sameIdentity(identity, expected) && !(before && sameIdentity(identity, before)))
+                throw new PackageError('conflict');
+        };
+        if (flags.package) assertReviewedIdentity(observedPackage(layout, operation!).identity);
         if (integrated)
             await (options.integrate ?? refreshIntegration)(staged.root, expected, configDir, host, hashes, temporary, true, environment, controller.signal);
         review.artifact_verified = true;
@@ -244,6 +249,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             const recorded = readOperation(configDir, layout.prefix);
             if (recorded.id !== operation!.id || actual.state !== observed)
                 throw new PackageError('conflict');
+            assertReviewedIdentity(installed);
             operation = recorded;
         }
         else {
@@ -293,7 +299,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         mark('reviewed');
         options.checkpoint?.('reviewed', operation);
         verifyArchive(savedArchive, target);
-        if (installed?.version !== target.version) {
+        if (!installed || !sameIdentity(installed, expected)) {
             operation.stage = 'installing';
             saveOperation(operation);
             mark('installing');
@@ -301,6 +307,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             await npm.installArchive(savedArchive, layout.prefix);
         }
         operation.after = await npm.validateStaged(layout.prefix, target);
+        if (!sameIdentity(operation.after, expected))
+            throw new PackageError('integrity');
         operation.stage = 'package_verified';
         operation.results.package = true;
         saveOperation(operation);
@@ -315,6 +323,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             await (options.integrate ?? refreshIntegration)(layout.root, operation.after, configDir, host, hashes, temporary, false, environment, controller.signal, observeProcess);
         }
         operation.after = await npm.validateStaged(layout.prefix, target);
+        if (!sameIdentity(operation.after, expected))
+            throw new PackageError('integrity');
         operation.results.integration = true;
         saveOperation(operation);
         recordInstallation(operation);

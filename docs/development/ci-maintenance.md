@@ -28,9 +28,9 @@ Every logical target installs and exercises the candidate on its own required ru
 | macOS 15 ARM | 22.0.0 and 24.0.0 |
 | macOS 15 Intel | 22.x |
 | macOS 26 ARM / Intel | 24.x on both |
-| Fixed Claude hosts (eight full / eight short) | Linux 2.1.287, Windows 2.1.288 and all three OSes for 2.1.289 and 2.1.310 |
+| Fixed Claude hosts (9 full / 13 short) | Linux 2.1.287 and 2.1.326, Windows 2.1.288 and all three OSes for 2.1.289 and 2.1.310 |
 
-The historical v2 baseline has 35 logical installation and Node obligations, with 14 full and 21 short histories. Its 16 fixed hosts follow the history profile in the table. A manual full run uses the conservative plan and exercises full history for every obligation. Exact declarations, Mod tests, capacities and Windows stability stay on the relevant host. Node aliases share only when both binaries and inputs match. The Windows ARM language, history and remaining installation jobs each own their prefix, configuration and cache. Relocation and the shell, editor and recovery checks that depend on it stay together. Each fixed host has a recorded capability, regression and replacement criterion. Review a pinned probe before changing the inventory. [Coverage policy](../../tools/checks/ci-coverage.ts)
+The current v2 baseline has 35 logical installation and Node obligations, with 14 full and 21 short histories. Its 22 fixed hosts follow the history profile in the table. A manual full run uses the conservative plan and exercises full history for every obligation. Exact declarations, Mod tests, capacities and Windows stability stay on the relevant host. Node aliases share only when both binaries and inputs match. The Windows ARM language, history and remaining installation jobs each own their prefix, configuration and cache. Relocation and the shell, editor and recovery checks that depend on it stay together. Each fixed host has a recorded capability, regression and replacement criterion. Review a pinned probe before changing the inventory. [Coverage policy](../../tools/checks/ci-coverage.ts)
 
 GitHub retired the macOS 14 runner image on 2026-11-02. The runner activation moves its full Node 22.0.0 history to macOS 15 ARM. Earlier evidence retains its original runner grid, depths and policy digest. [GitHub runner retirement](https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/)
 
@@ -42,11 +42,11 @@ Ordinary PRs and their merges to `main` use local checks. Release CI runs for ow
 
 ### Route table and blocking conditions
 
-The candidate stage schedules 11 release PR jobs.
+The candidate stage schedules 17 release PR jobs. Sources predating AgentRow retain their original host cases and receipt readers.
 
 | Event | Execution |
 | --- | --- |
-| Ready release PR | One Linux development and reproducibility job, six package smokes, one official-host job per system, and the `Accept release candidate` aggregate |
+| Ready release PR | One Linux development and reproducibility job, six package smokes, three official-host jobs per system, and the `Accept release candidate` aggregate |
 | Release PR merged into `main` | Independent first-parent verification, three package smokes and `Accept release integration` |
 | Annotated version tag | One verification job binds the release candidate and integration to the tag and original files |
 | Manual dispatch | Release CI runs the same candidate jobs as a diagnostic. CI diagnostics offers the full suite and targeted probes. |

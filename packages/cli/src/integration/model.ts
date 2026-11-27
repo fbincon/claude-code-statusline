@@ -2,6 +2,7 @@ import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import type { Storage } from '../config/storage.js';
 import type { LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { AGENT_ROW_MINIMUM } from '@fbincon/statusline-core/integration/agent-row-capabilities';
 export const OWNER = 'claude-code-statusline';
 export const OWNER_FILE = '.claude-statusline-owner.json';
 export const HOOKS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd'] as const;
@@ -20,6 +21,8 @@ function spec(name: string, marketplace: string, minimum: readonly number[], pro
 }
 export const NATIVE = spec('statusline-native', 'claude-statusline-local', [2, 1, 287], PROTOCOL_VERSION);
 export const RUNTIME = spec('statusline-runtime', 'claude-statusline-runtime-local', [2, 1, 289], 3);
+export const AGENT_ROWS = spec('statusline-agent-rows', 'claude-statusline-agent-rows-local', AGENT_ROW_MINIMUM, 1);
+export const MANAGED_MODS = [NATIVE, RUNTIME, AGENT_ROWS] as const;
 export interface Host {
     run(args: readonly string[], values?: Record<string, string>, json?: boolean): unknown;
     listing(): [
@@ -41,6 +44,7 @@ export interface InstallOptions {
     native?: boolean;
     liveMetrics?: boolean;
     nativeTiming?: boolean;
+    subagentRenderer?: 'auto' | 'mod' | 'legacy';
     /** Internal review guard, evaluated under the file transaction lock. */
     beforeCommit?: () => void;
 }

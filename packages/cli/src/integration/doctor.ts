@@ -27,6 +27,7 @@ import { pending, readJournal, refreshIntents } from '../recovery/journal.js';
 import { GitInvocation, GitPolicyError } from '@fbincon/statusline-platform/git';
 import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
 import { captureWindowsModes } from '@fbincon/statusline-platform/terminal/windows-modes';
+import { agentRowDiagnostics } from './agent-row-diagnostics.js';
 export function pathCollisions(context: InstallContext, environment: NodeJS.ProcessEnv = process.env): Diagnostic[] {
     const path = which('claude-statusline', environment);
     if (!path || sameLaunchEntry(path, context.launch))
@@ -111,11 +112,7 @@ export function doctor(context: InstallContext): Diagnostic[] {
             const schema = safeInteger((readJson(decodeUtf8(raw)) as Record<string, unknown>).schema_version);
             rows.push(schemaDiagnostic(schema));
         }
-        const current = settings.subagentStatusLine, owned = object(current) && ownedCommand(current.command, 'render-subagents', launch);
-        if (display.subagents.enabled && atLeast(version, [2, 1, 205]))
-            add(owned ? 'OK' : 'ERROR', owned ? 'doctor.doctor.subagentstatusline_enabled_and_owned' : 'doctor.doctor.subagentstatusline_is_enabled_but_its_state_is', { state: current == null ? 'absent' : 'foreign' });
-        else
-            add(owned ? 'ERROR' : 'OK', owned ? 'doctor.doctor.subagentstatusline_is_disabled_but_an_owned_setting' : 'doctor.doctor.subagentstatusline_disabled', { value0: '' });
+        agentRowDiagnostics(context, settings, display, rows);
     });
     const shortcuts = readEditorShortcuts(configDir, io);
     if (shortcuts.warning) rows.push({ level: 'WARN', message: shortcuts.warning });

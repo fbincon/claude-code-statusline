@@ -63,7 +63,7 @@ Resolution chooses the deepest registered ancestor of the current directory. It 
 
 The main statusline and all subagent rows use the session directory. They do not select separate schemes from each agent's working directory. Unbound paths, unavailable directories, conflicting aliases and missing schemes fall back to the user default. A missing scheme at a more specific root does not silently select a parent's scheme. `project resolve` and [input diagnosis](DIAGNOSTICS.md) report the selection reason.
 
-Moving a project does not rewrite bindings: unbind the old path and bind the new root. A scheme cannot enable collection. When a bound scheme needs custom subagent rows, the tool coordinates its own display callback; a foreign renderer remains protected. A project with custom rows disabled keeps Claude's default rows.
+After moving a project, unbind the old path and bind the new root. A bound scheme can enable custom subagent rows and choose their appearance. All projects share the host renderer selected by `install --subagent-renderer`. A project with custom rows turned off leaves those rows to Claude or the existing renderer. Source collection has its own installation preferences.
 
 ## Files, conflicts and recovery
 

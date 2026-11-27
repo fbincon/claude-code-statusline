@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
+import { basename, join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
@@ -19,6 +19,8 @@ import assert from 'node:assert/strict';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { runOfficialTestBatches, type OfficialTestExecute } from './official-tests.js';
 import { admitOfficialCommand } from './physical-budgets.js';
+import { createAcceptanceEnvelope } from '../checks/receipt.js';
+import { HOSTS, LEGACY_HOSTS, officialModsForHost } from '../checks/runtime-inputs.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' }, 'physical-window-ms': { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const windowMs = values['physical-window-ms'] === undefined ? null : Number(values['physical-window-ms']);
@@ -52,16 +54,19 @@ function run(executable: string, args: string[], env = environment, timeout = 18
 }
 try {
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
-    if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].includes(version)) throw new Error('Unsupported unpinned host');
+    const agentRows = candidate.entries.includes('node_modules/@fbincon/statusline-cli/resources/statusline-agent-rows/resource-manifest.json');
+    if (!version || !(agentRows ? HOSTS : LEGACY_HOSTS).some(row => row.claude === version)) throw new Error('Unsupported unpinned host');
     if (windowMs !== null || releaseSmoke) {
         assert.equal(version, process.env.TS05_PHYSICAL_EXPECT_HOST, 'Actual host differs from the frozen producer');
         assert.equal(host.args.length, 0, 'Physical host acceptance requires the installed native binary');
     }
     report.host = version; report.platform = process.platform; report.target = process.platform + '-' + version;
     report.node_sha256 = sha256(fs.readFileSync(process.execPath)); report.host_sha256 = sha256(fs.readFileSync(host.executable));
-    for (const name of ['statusline-native', 'statusline-runtime']) {
+    const applicable = officialModsForHost(version, agentRows);
+    if (!applicable.includes('statusline-runtime'))
+        report.mods['statusline-runtime'] = { status: 'unsupported', reason: 'Runtime Mod requires host 2.1.289+' };
+    for (const name of applicable) {
         const directory = join(repoRoot, 'mods', name);
-        if (name === 'statusline-runtime' && Number(version.split('.')[2]) < 289) { report.mods[name] = { status: 'unsupported', reason: 'Runtime Mod requires host 2.1.289+' }; continue; }
         recordModHost(directory, version);
         run(host.executable, [...host.args, 'plugin', 'validate', '--strict', directory]);
         const official_test_batches = runOfficialTestBatches({ source: directory, temporary: join(temporary, name + '-tests'), logs: join(dirname(reportPath), 'logs'),
@@ -84,6 +89,16 @@ try {
     if (report.installed.tarball_sha256 !== candidate.sha256 || report.installed.status !== 'pass') throw new Error('Installed Mod evidence differs from candidate');
     if (windowMs === null && !releaseSmoke) await legacyHistories(version);
     if (releaseSmoke) assert.equal(sha256(fs.readFileSync(host.executable)), report.host_sha256, 'Official binary changed during smoke');
+    if (process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch') {
+        report.envelope = createAcceptanceEnvelope({
+            schema_version: 1, kind: 'acceptance-envelope', status: 'pass', producer: { kind: 'official Mods' },
+            source: { commit: candidate.source.commit, files_sha256: candidate.source.source_manifest_sha256 },
+            artifact: { sha256: candidate.sha256, filename: basename(artifact), version: candidate.source.application_version },
+            runtime: { node: process.version, node_sha256: report.node_sha256, platform: process.platform, arch: process.arch, host: version },
+            checks: [...applicable.map(name => ({ name, status: 'pass' as const })), { name: 'installed integration', status: 'pass' }],
+            limitations: [version === '2.1.296' ? 'This host did not emit exact-build declarations.' : 'Automated official host validation with zero model calls.'],
+        });
+    }
     report.status = 'pass';
 } catch (error) { report.error = sanitizeLog(String(error)); process.exitCode = 1; }
 finally {

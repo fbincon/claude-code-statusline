@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { withLock } from '@fbincon/statusline-platform/files';
-import { NATIVE, RUNTIME, type InstallContext } from '../integration/model.js';
+import { MANAGED_MODS, type InstallContext } from '../integration/model.js';
 import { pending, readJournal, assertClear, refreshIntents, permitRefresh, RecoveryRequired } from './journal.js';
 import { install } from '../integration/install.js';
 import { safeTarget } from '../integration/paths.js';
@@ -49,8 +49,13 @@ export function recover(context: InstallContext, dryRun = false): RecoveryResult
         if (current.length > 1)
             throw new RecoveryRequired('Multiple pending transactions require inspection; no automatic ordering is assumed');
         const journal = readJournal(context.configDir, current[0]!);
-        const spec = journal.kind === 'official' && journal.spec === RUNTIME.name ? RUNTIME : NATIVE;
-        const outcome = journal.kind === 'files' ? recoverFiles(journal, context.io, dryRun) : reconcile(context, spec, context.host(spec), journal, dryRun);
+        let outcome: string;
+        if (journal.kind === 'files') outcome = recoverFiles(journal, context.io, dryRun);
+        else {
+            const spec = MANAGED_MODS.find(mod => mod.name === journal.spec);
+            if (!spec) throw new RecoveryRequired('Unrecognized official plugin');
+            outcome = reconcile(context, spec, context.host(spec), journal, dryRun);
+        }
         return { changed: !dryRun, transactions: [{ id: journal.id, kind: journal.kind, outcome }] };
     }
     if (dryRun)

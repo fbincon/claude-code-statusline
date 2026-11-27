@@ -184,6 +184,8 @@ Windows PowerShell：
 
 ### `render-subagents`
 
+`statusline-agent-rows` Mod 通过内部 `--agent-row-batch` 形式传递有序的任务与逐行宽度，并通过 `--agent-row-loaded` 和 `--agent-row-ready` 将会话证据与 `install` 选定的安装关联。下方命令回调形式适用于[兼容的宿主](../USER_GUIDE.zh-CN.md#运行要求)。[渲染规则](rendering.zh-CN.md) · [宿主验收](testing.zh-CN.md)
+
 从 stdin 读取 Claude Code 官方 `subagentStatusLine` JSON，并把每个有效 task 渲染为一行 `{"id":"...","content":"..."}` NDJSON。顶层 JSON、`tasks` 或单项字段损坏时静默降级且退出码仍为 0；stdout 只包含协议结果；普通 payload 指标不扫描 transcript 或查询网络，终态计时可以读取已有本地结束证据。启用并绑定的外部值可以读取选定 JSON、检查本地 Git 身份并保存观测缓存；命令／GitHub provider 不在渲染过程中执行。详见 [CLI 渲染边界](../reference/cli.zh-CN.md#子-agent-行与三种作用域)。
 
 Linux / macOS：

@@ -12,6 +12,7 @@ import { fail, object, ConfigError } from '@fbincon/statusline-core/config/valid
 import { expandUser, resolvedPath } from '@fbincon/statusline-platform/commands';
 import { retryWindows, syncDirectory } from '@fbincon/statusline-platform/files';
 import { decodeUtf8, errorDetail } from './storage.js';
+import { MANAGED_MODS } from '../integration/model.js';
 export function importFile(path: string, current: Draft): Draft {
     const fd = fs.openSync(expandUser(path), 'r');
     let raw: Buffer;
@@ -57,7 +58,7 @@ export function exportBytes(path: string, raw: Buffer, directory: string, overwr
     const target = resolvedPath(path), root = resolvedPath(directory);
     const same = (left: string, right: string) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
     const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME].some(name => same(target, join(root, name)));
-    const ownedDirectory = ['statusline-native', 'statusline-runtime', 'statusline_runtime'].some(name => {
+    const ownedDirectory = [...MANAGED_MODS.map(mod => mod.name), 'statusline_runtime'].some(name => {
         const rel = relative(join(root, name), target);
         return rel !== '' && rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);
     });
