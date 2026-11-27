@@ -26,13 +26,14 @@ interface Evidence {
     sessions: SessionEvidence[];
 }
 const SESSION_LIMIT = 32;
-const timestamp = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0;
+const timestamp = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= 8.64e15;
 const privateSession = (identity: AgentRowIdentity): string => sha256(identity.session_id);
 function validSession(value: unknown): value is SessionEvidence {
-    if (!object(value) || !isDigest(value.session) || !isHost(value.host) || !timestamp(value.loadedAt) ||
+    if (!object(value) || Object.keys(value).length !== 5 || !isDigest(value.session) || !isHost(value.host) || !timestamp(value.loadedAt) ||
         !(value.verifiedAt === null || timestamp(value.verifiedAt))) return false;
     const ticket = value.confirmation;
-    return ticket === null || (object(ticket) && isGeneration(ticket.token) && isDigest(ticket.revision) && timestamp(ticket.expiresAt));
+    return ticket === null || (object(ticket) && Object.keys(ticket).length === 3 &&
+        isGeneration(ticket.token) && isDigest(ticket.revision) && timestamp(ticket.expiresAt));
 }
 
 export function readEvidence(directory: string, installationId: string): Evidence {
@@ -40,7 +41,7 @@ export function readEvidence(directory: string, installationId: string): Evidenc
     const empty = (): Evidence => ({ schema_version: 1, installationId, sessions: [] });
     if (bytes === null) return empty();
     const value = privateJson(bytes);
-    if (!object(value) || value.schema_version !== 1 || !isGeneration(value.installationId) ||
+    if (!object(value) || Object.keys(value).length !== 3 || value.schema_version !== 1 || !isGeneration(value.installationId) ||
         !Array.isArray(value.sessions) || value.sessions.length > SESSION_LIMIT || !value.sessions.every(validSession))
         throw new Error('Invalid agent row session evidence');
     if (value.installationId !== installationId) return empty();

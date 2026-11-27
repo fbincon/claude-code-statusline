@@ -74,7 +74,9 @@ export async function inspectSession(session: Session) {
     const env = { ...session.env, ANTHROPIC_API_KEY: SAMPLE_KEY, ANTHROPIC_BASE_URL: provider.url };
     const args = ['--permission-mode', 'default', '--plugin-dir', plugin, '--debug-file', debug, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'];
     if (session.settingsOverride) args.push('--settings', JSON.stringify(session.settingsOverride));
-    const pty = openPty(session.config, COLUMNS, HEIGHT, env, 'en', { executable: session.executable, args, cwd: session.project });
+    let pty: ReturnType<typeof openPty>;
+    try { pty = openPty(session.config, COLUMNS, HEIGHT, env, 'en', { executable: session.executable, args, cwd: session.project }); }
+    catch (error) { await provider.close(); throw error; }
     const screen = new Capture(COLUMNS, HEIGHT);
     let offset = 0, acceptedKey = false;
     const sample = () => {
@@ -99,8 +101,9 @@ export async function inspectSession(session: Session) {
         pty.send('\r');
         let stableSince = 0;
         await pty.wait(() => {
-            sample();
-            const correct = provider.received.size === AGENTS.length &&
+            const screenText = sample();
+            const hidden = session.expected.count > 0 || AGENTS.every(agent => !screenText.includes(agent.label));
+            const correct = hidden && provider.received.size === AGENTS.length &&
                 matchRows(visibleRows(screen.buffer), session.expected) && (session.readyAfterRender?.() ?? true);
             if (!correct) { stableSince = 0; return false; }
             if (!stableSince) stableSince = performance.now();
@@ -127,14 +130,18 @@ export async function inspectSession(session: Session) {
             name_colour: rows.some(row => row.custom) ? '#' + NAME_COLOR : null, same_session_recolour_after_handoff: changeObserved,
             fake_requests_with_distinct_prompts: provider.received.size, external_model_calls: 0, billed_usd: 0 };
     } finally {
-        sample();
-        fs.writeFileSync(join(session.output, 'terminal.ansi'), pty.captured(), { mode: 0o600 });
-        fs.writeFileSync(join(session.output, 'terminal.txt'), screen.buffer.map(row => row.map(c => c.data).join('').trimEnd()).join('\n'), { mode: 0o600 });
-        if (pty.child.pid && pty.child.exitCode === null) {
-            try { process.kill(-pty.child.pid, 'SIGTERM'); }
-            catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error; }
+        try {
+            sample();
+            fs.writeFileSync(join(session.output, 'terminal.ansi'), pty.captured(), { mode: 0o600 });
+            fs.writeFileSync(join(session.output, 'terminal.txt'), screen.buffer.map(row => row.map(c => c.data).join('').trimEnd()).join('\n'), { mode: 0o600 });
+        } finally {
+            try {
+                if (pty.child.pid && pty.child.exitCode === null) {
+                    try { process.kill(-pty.child.pid, 'SIGTERM'); }
+                    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error; }
+                }
+                await pty.close();
+            } finally { await provider.close(); }
         }
-        await pty.close();
-        await provider.close();
     }
 }

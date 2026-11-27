@@ -1,9 +1,10 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, existsSync, readFileSync, statSync } from 'node:fs';
+import { chmodSync, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { revision } from '@fbincon/statusline-platform/hash';
+import { run } from '@fbincon/statusline-platform/launch';
 import { PROFILES_FILENAME } from '@fbincon/statusline-core/config/profiles';
 import { setup, jsonBytes } from './final-support.js';
 import { commit } from '../src/integration/transaction.js';
@@ -150,6 +151,36 @@ test('handoff rolls back an interrupted settings write before retrying the same 
     assert.deepEqual(readFileSync(join(f.dir,AGENT_ROW_ROUTE_FILE)), routeBefore);
     assert.deepEqual(pending(f.dir),[]);
     assert.equal(agentRowReady(f.dir,f.identity,token),'mod');
+});
+
+test('two live sessions racing to confirm produce just one settings transaction', async t => {
+    const f = fixture(t);
+    const candidates = [f.identity, {...f.identity, session_id:'second-session'}].map(identity =>
+        ({ ...identity, protocol:1, confirmation:f.prove(identity) }));
+    const answers = await Promise.all(candidates.map(input => run(f.launch,
+        ['render-subagents','--agent-row-ready','--config-dir',f.dir], JSON.stringify(input),
+        15_000, {...process.env, HOME:f.dir, CLAUDE_CONFIG_DIR:f.dir}, f.dir)));
+    assert(answers.every(reply => reply.code === 0 && reply.stderr === ''));
+    assert(answers.some(reply => JSON.parse(reply.stdout).mode === 'mod'));
+    assert.equal(f.settings().subagentStatusLine,undefined);
+    assert.equal(readAgentRowRoute(f.dir)?.mode,'mod');
+    assert.deepEqual(pending(f.dir),[]);
+    assert.equal(readdirSync(join(f.dir,'backups/statusline')).filter(name => name.startsWith('cli-agent-row-handoff-')).length,1);
+});
+
+test('expired tickets cannot promote a row, and a resumed session rechecks the staged resources', t => {
+    const f = fixture(t), time = Date.now();
+    t.mock.method(Date, 'now', () => time);
+    const expired = f.prove();
+    t.mock.method(Date, 'now', () => time + 121_000);
+    assert.equal(agentRowReady(f.dir, f.identity, expired), 'standby');
+    const fresh = f.prove();
+    assert.notEqual(fresh, expired);
+    const hook = join(f.dir, AGENT_ROWS.name, 'plugins', AGENT_ROWS.name, 'hooks/row.ts');
+    f.io.write(hook, Buffer.from('modified'));
+    assert.throws(() => agentRowLoaded(f.dir, f.identity), /resource changed/);
+    assert.throws(() => agentRowReady(f.dir, f.identity, fresh), /resource changed/);
+    assert.deepEqual(f.settings().subagentStatusLine, f.before.subagentStatusLine);
 });
 
 test('clean Mod installs record real per-session evidence without touching settings and retain manual disable on downgrade', t=>{

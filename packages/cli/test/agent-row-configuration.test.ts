@@ -73,7 +73,11 @@ test('a profile never reinstalls the inactive callback in the gap or on the Mod 
         delete settings.subagentStatusLine;
         if (patch === 332) settings.enabledPlugins = { [AGENT_ROWS.plugin]: true };
         writeFileSync(f.settingsPath, jsonBytes(settings));
-        if (patch === 332) f.activate('mod');
+        if (patch === 332) {
+            const route = f.activate('mod');
+            settings.pluginConfigs = { [AGENT_ROWS.plugin]: { options: { installationId: route.installationId } } };
+            writeFileSync(f.settingsPath, jsonBytes(settings));
+        }
         const before = readFileSync(f.settingsPath);
         const project = join(f.root, 'project'); mkdirSync(project);
         f.profiles.mutate({action:'save', name:'Agents', bind_path:project, display:defaultDisplay(), expected_revision:f.profiles.read().revision});
@@ -86,6 +90,18 @@ test('a profile never reinstalls the inactive callback in the gap or on the Mod 
     }
 });
 
+test('a newly bound profile can use the known legacy grace period while it awaits Mod installation', t => {
+    for (const [patch, supportedLegacy] of [[326, true], [332, true], [333, false]] as const) {
+        const f = fixture(t, [2, 1, patch]), settings = f.settings();
+        delete settings.subagentStatusLine;
+        writeFileSync(f.settingsPath, jsonBytes(settings));
+        const display = defaultDisplay(); display.subagents.enabled = false;
+        writeFileSync(f.displayPath, jsonBytes(display));
+        f.profiles.mutate({action:'save', name:'Local rows', bind_path:f.root, display:defaultDisplay(), expected_revision:f.profiles.read().revision});
+        assert.equal(typeof f.settings().subagentStatusLine?.command === 'string', supportedLegacy);
+    }
+});
+
 test('Profile saves conserve the reviewed legacy command and reject stale renderer generations', t => {
     const f = fixture(t), settings = f.settings();
     settings.subagentStatusLine.annotation = 'retain existing options';
@@ -93,6 +109,14 @@ test('Profile saves conserve the reviewed legacy command and reject stale render
     assert.equal(f.activate('auto').mode, 'standby');
     const before = readFileSync(f.settingsPath), current = f.service.read();
     assert.equal(current.subagent_statusline.state, 'standby');
+    const scope = {kind:'user'} as const;
+    for (const enabled of [false, true]) {
+        const user = f.profiles.readTarget(scope);
+        user.display.subagents.enabled = enabled;
+        f.profiles.applyTarget({display:user.display, host:user.host}, user.revision, scope);
+        assert.deepEqual(readFileSync(f.settingsPath), before);
+    }
+    assert.equal(f.service.read().subagent_statusline.state, 'standby');
     f.profiles.mutate({action:'save', name:'Rows', bind_path:f.root, display:defaultDisplay(), expected_revision:f.profiles.read().revision});
     assert.deepEqual(readFileSync(f.settingsPath), before);
     f.activate('mod');

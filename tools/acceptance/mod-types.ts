@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
-import { join, resolve } from 'node:path';
+import assert from 'node:assert/strict';
+import { join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -9,6 +10,34 @@ import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { compareVersions } from '@fbincon/statusline-core/management/compatibility';
 import { openPty } from '../migration/ts-04/test/pty.js';
+
+/** These hosts' validator ignores its own compiler's import settings and
+ * cannot see the local version fixture. The exact host tsc still runs. */
+export function checkModValidation(raw: string, plugin: string, version: string) {
+    const report = JSON.parse(raw);
+    assert.equal(report.success, true); assert.equal(report.strict, false);
+    assert.equal(resolve(report.target), resolve(plugin, '.claude-plugin/plugin.json'));
+    assert.deepEqual(report.manifest.errors, []); assert.deepEqual(report.manifest.warnings, []);
+    assert(Array.isArray(report.contents) && report.contents.length > 0);
+    const observed = { import_extension: 0, test_host_version: 0 };
+    for (const row of report.contents) {
+        assert.deepEqual(row.errors, []); assert(Array.isArray(row.warnings));
+        const name = relative(resolve(plugin), resolve(row.file)).split(sep).join('/');
+        for (const warning of row.warnings) {
+            assert.equal(row.type, 'hooks'); assert(name.endsWith('.ts') && !name.startsWith('../'));
+            if (warning.message === "error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.") {
+                observed.import_extension++;
+            } else {
+                assert.equal(name, 'tests/integration/capacity-recovery.test.ts', 'Unexpected official validator warning: ' + warning.message);
+                assert.equal(warning.message, "error TS2307: Cannot find module '../../.claude-plugin/types/host-version.ts' or its corresponding type declarations.");
+                const binding = fs.readFileSync(resolve(plugin, '.claude-plugin/types/host-version.ts'), 'utf8');
+                assert(binding.includes('export const HOST_VERSION = ' + JSON.stringify(version) + ';'));
+                observed.test_host_version++;
+            }
+        }
+    }
+    return observed;
+}
 export function isolatedHostEnvironment(environment: NodeJS.ProcessEnv, directory: string): NodeJS.ProcessEnv {
     const result = Object.fromEntries(Object.entries(environment).filter(([key]) => !/^(ANTHROPIC_|AWS_|GOOGLE_|CLAUDE_|CLAUDECODE)/u.test(key)));
     return { ...result, CLAUDE_CONFIG_DIR: directory, DISABLE_AUTOUPDATER: '1', CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', ANTHROPIC_API_KEY: 'statusline-types-synthetic', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9' };

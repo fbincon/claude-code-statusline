@@ -220,7 +220,11 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             throw new PackageError('integrity');
         const expected = { ...staged, prefix: layout.prefix, root: layout.root, entry: review.entry };
         const assertReviewedIdentity = (identity: PackageIdentity | null) => {
-            if (identity && !sameIdentity(identity, expected) && !(before && sameIdentity(identity, before)))
+            // Older operation records can lack the original inventory digest.
+            // Use every recorded field when recognizing the old install; only
+            // the exact verified target can skip the replacement.
+            if (identity && !sameIdentity(identity, expected) &&
+                !(before && sameIdentity(identity, { ...before, inventory_sha256: before.inventory_sha256 ?? identity.inventory_sha256 })))
                 throw new PackageError('conflict');
         };
         if (flags.package) assertReviewedIdentity(observedPackage(layout, operation!).identity);

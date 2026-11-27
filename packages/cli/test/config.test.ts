@@ -412,7 +412,7 @@ test('tests.config.test_transfer.TransferTests.test_existing_file_and_live_confi
     const raw = fs.readFileSync(target);
     assert.throws(() => exportFile(target, value, f.root));
     assert.deepEqual(fs.readFileSync(target), raw);
-    for (const name of ['settings.json', 'claude-statusline.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'claude-statusline-features.json', 'statusline-ui.json', 'statusline_runtime/private.json', 'statusline-native/binding.json', 'statusline-runtime/binding.json'])
+    for (const name of ['settings.json', 'claude-statusline.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'claude-statusline-features.json', 'statusline-ui.json', 'statusline_runtime/private.json', 'statusline-native/binding.json', 'statusline-runtime/binding.json', 'statusline-agent-rows', 'statusline-agent-rows/hooks.ts', 'statusline_runtime/agent-row-route.json'])
         assert.throws(() => exportFile(join(f.root, name), value, f.root, true), ConfigError);
 });
 test('tests.config.test_transfer.TransferTests.test_export_import_roundtrip_contains_only_draft', t => {

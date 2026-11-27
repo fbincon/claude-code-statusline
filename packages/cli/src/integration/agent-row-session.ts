@@ -105,17 +105,17 @@ export function agentRowAccess(directory: string, identity: AgentRowIdentity): A
 }
 
 export function agentRowLoaded(directory: string, identity: AgentRowIdentity): AgentRowMode {
-    const checked = current(directory, identity);
-    if (!checked) return 'pass';
-    if (findSession(readEvidence(directory, identity.installation_id), identity)) return checked.mode;
+    if (!current(directory, identity)) return 'pass';
     return underInstallLock(directory, () => {
         const now = current(directory, identity);
         if (!now || !installedResourcesMatch(directory, now)) return 'pass';
         const evidence = readEvidence(directory, identity.installation_id);
-        if (!findSession(evidence, identity)) {
-            addSession(evidence, identity, Date.now());
-            saveEvidence(directory, evidence);
-        }
+        // Claude can resume a saved session in a new process. Each load verifies
+        // the current resources even if this session id was observed previously.
+        const session = findSession(evidence, identity);
+        if (session) session.loadedAt = Date.now();
+        else addSession(evidence, identity, Date.now());
+        saveEvidence(directory, evidence);
         return now.mode;
     });
 }

@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import type { DisplayDraft, Draft, HostDraft } from '@fbincon/statusline-core/contracts/ui';
 import { CONFIG_FILENAME, defaultDisplay, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { DEFAULT_HOST, validateDraft } from '@fbincon/statusline-core/config/draft';
-import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
+import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -13,10 +13,9 @@ import { commit } from '../recovery/files.js';
 import { assertClear } from '../recovery/journal.js';
 import { readProfiles } from '../rendering/configuration.js';
 import { profileRowsSettings } from './profiles.js';
-import { configuredAgentRows } from './agent-rows.js';
+import { configuredAgentRows, hasAgentRowBinding } from './agent-rows.js';
 import { agentRowCapabilities, inspectAgentRowRoute } from '../integration/agent-row-route.js';
 import { latestAgentRowEvidence } from '../integration/agent-row-evidence.js';
-import { AGENT_ROWS } from '../integration/model.js';
 export interface ConfigurationContext {
     configDir: string;
     launch: LaunchSpec;
@@ -91,10 +90,7 @@ export class ConfigurationService {
         } else if (route.mode === 'standby') state = 'standby';
         else if (route.mode === 'preserve' && legacy === 'foreign') state = 'foreign';
         else if (route.mode === 'builtin' && ['restricted', 'mod-disabled', 'mod-failed', 'unavailable'].includes(route.reason)) state = route.reason;
-        const plugin = object(settings.pluginConfigs) ? settings.pluginConfigs[AGENT_ROWS.plugin] : null;
-        const bound = route.mode === 'mod' && route.installationId !== null && object(settings.enabledPlugins) &&
-            settings.enabledPlugins[AGENT_ROWS.plugin] === true && object(plugin) && object(plugin.options) &&
-            plugin.options.installationId === route.installationId;
+        const bound = route.mode === 'mod' && hasAgentRowBinding(settings, route.installationId);
         const rowInstalled = bound || state === 'owned' || state === 'mod-verified' || state === 'mod-loaded' ||
             (state === 'standby' && legacy === 'owned');
         return {

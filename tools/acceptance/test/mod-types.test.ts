@@ -3,7 +3,34 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { declarationIdentity } from '../mod-types.js';
+import { checkModValidation, declarationIdentity, recordModHost } from '../mod-types.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
+
+test('pinned hosts accept only their known runtime validation warnings before exact typechecking', () => {
+    const dir = fs.mkdtempSync(join(tmpdir(), 'official-validator-')), version = '2.1.332';
+    const file = join(dir, 'tests/integration/capacity-recovery.test.ts');
+    const row = { file, type: 'hooks', errors: [] as string[], warnings: [{ message: "error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled." }] };
+    const report = { success: true, strict: false, target: join(dir, '.claude-plugin/plugin.json'), manifest: {errors: [], warnings: [] as string[]}, contents: [row] };
+    const validate = () => checkModValidation(JSON.stringify(report), dir, version);
+    try {
+        assert.deepEqual(validate(), { import_extension: 1, test_host_version: 0 });
+        row.warnings[0]!.message = "error TS2307: Cannot find module '../../.claude-plugin/types/host-version.ts' or its corresponding type declarations.";
+        assert.throws(validate);
+        recordModHost(dir, version);
+        assert.deepEqual(validate(), { import_extension: 0, test_host_version: 1 });
+        row.file = join(dir, 'hooks/register.ts');
+        assert.throws(validate, /Unexpected official validator warning/u);
+        row.file = file;
+        row.warnings[0]!.message = "error TS2307: Cannot find module './backend'.";
+        assert.throws(validate);
+        row.warnings = []; row.errors.push('invalid hook');
+        assert.throws(validate);
+        row.errors = []; report.manifest.warnings.push('unrecognized property');
+        assert.throws(validate);
+    } finally {
+        removeTree(dir); assert(!fs.existsSync(dir));
+    }
+});
 
 test('exact declaration evidence waits for compiler settings and every requested type file', () => {
     const directory = fs.mkdtempSync(join(tmpdir(), 'declaration-evidence-'));

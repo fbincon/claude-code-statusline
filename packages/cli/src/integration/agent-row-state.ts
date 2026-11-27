@@ -83,8 +83,9 @@ export function routeSnapshot(directory: string): { state: AgentRowRoute | null;
             !value.backendVersion || !isDigest(value.launchRevision) || !(value.resourceRevision === null || isDigest(value.resourceRevision)) ||
             (value.mode === 'standby' ? !isDigest(value.legacyRevision) || !validLaunch(value.legacyLaunch) :
                 value.legacyRevision !== null || value.legacyLaunch !== null)) throw new Error('Invalid agent row activation');
-    } else if ((value.mode !== 'legacy' && value.mode !== 'builtin') ||
-        !Object.keys(idleRoute('auto', 'builtin', 'not-installed')).slice(5).every(key => value[key] === null)) {
+    } else if ((value.mode !== 'legacy' && value.mode !== 'builtin') || value.installationId !== null ||
+        value.hostVersion !== null || value.backendVersion !== null || value.launchRevision !== null ||
+        value.resourceRevision !== null || value.legacyRevision !== null || value.legacyLaunch !== null) {
         throw new Error('Invalid inactive agent row state');
     }
     return { state: value as unknown as AgentRowRoute, raw };

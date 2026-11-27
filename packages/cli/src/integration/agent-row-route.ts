@@ -111,13 +111,20 @@ export function inspectAgentRowRoute(context: Context, settings: Settings, rows:
     const state = readAgentRowRoute(context.configDir);
     const selection = choose(context, settings, rows, {}, state);
     const caps = agentRowCapabilities(context.version);
-    if (selection.wantMod) {
+    if (!rows && state?.mode === 'standby' && state.legacyRevision === revision(settings.subagentStatusLine ?? null)) {
+        // Config/Profile saves only change display settings. The old command
+        // already passes when off; keep this reviewed handoff resumable on re-enable.
+        selection.legacy = 'keep';
+    } else if (selection.wantMod) {
         if (!state?.installationId || state.backendVersion !== VERSION || state.launchRevision !== revision(context.launch)) {
             const current = settings.subagentStatusLine;
             const fallback = caps.legacy && !!ownerLaunch(context, current);
             selection.mode = fallback ? 'legacy' : 'builtin';
             selection.reason = state?.reason === 'mod-failed' ? 'mod-failed' : 'not-installed';
-            selection.legacy = fallback || state?.mode === 'legacy' && caps.legacy ? 'write' : 'keep';
+            // A newly enabled Profile can acquire its first owned row without an
+            // interactive plugin install while the legacy command still works.
+            const firstLegacy = !state?.installationId && current == null && selection.preference === 'auto' && caps.legacy;
+            selection.legacy = fallback || firstLegacy || state?.mode === 'legacy' && caps.legacy ? 'write' : 'keep';
         } else if (state.mode === 'standby') {
             selection.legacy = 'keep';
             if (revision(settings.subagentStatusLine ?? null) !== state.legacyRevision) {

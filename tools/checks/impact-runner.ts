@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { parseArgs } from 'node:util';
 import { assertPlan, type ImpactPlan, type ImpactTask, type Check } from './impact-plan.ts';
 import { canonical, git, hash, tree } from './impact-content.ts';
+import { AGENT_ROW_HOSTS } from './runtime-inputs.ts';
 import { familyAdmissionMs, familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget, SCOPED_COMMAND_MS } from './impact-budget.ts';
 import { checkAssets } from './impact-assets.ts';
 
@@ -84,16 +85,19 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
                 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
             } else if (check === 'native' || check === 'runtime' || check === 'agent-rows') {
                 assert(task.host); const { claudeLaunch } = await import('@fbincon/statusline-platform/commands');
-                const { isolatedHostEnvironment, prepareModTypes, recordModHost } = await import(pathToFileURL(resolve('dist/typescript/tools/acceptance/mod-types.js')).href);
+                const { checkModValidation, isolatedHostEnvironment, prepareModTypes, recordModHost } = await import(pathToFileURL(resolve('dist/typescript/tools/acceptance/mod-types.js')).href);
                 const host = claudeLaunch('claude'), temporary = fs.mkdtempSync(join(tmpdir(), 'impact-host-'));
                 try {
                     const env = isolatedHostEnvironment(process.env, temporary), plugin = 'mods/statusline-' + check;
                     const version = spawnSync(host.executable, [...host.args, '--version'], { env, encoding: 'utf8', timeout: 10000 });
                     assert.equal(version.status, 0); assert(version.stdout.includes(task.host)); recordModHost(plugin, task.host);
-                    for (const command of ['validate', 'test']) {
-                        const result = spawnSync(host.executable, [...host.args, 'plugin', command, ...(command === 'validate' ? ['--strict'] : []), plugin], { env, stdio: 'inherit', timeout: 600000 });
-                        assert.equal(result.error, undefined); assert.equal(result.status, 0, 'Scoped Mod check failed');
-                    }
+                    const checkedJson: boolean = check !== 'agent-rows' && AGENT_ROW_HOSTS.some((version): boolean => version === task.host);
+                    const validation = spawnSync(host.executable, [...host.args, 'plugin', 'validate', checkedJson ? '--json' : '--strict', plugin],
+                        { env, encoding: 'utf8', timeout: 600000, maxBuffer: 8 * 1024 * 1024 });
+                    assert.ifError(validation.error); assert.equal(validation.status, 0, validation.stderr + validation.stdout);
+                    if (checkedJson) checkModValidation(validation.stdout, plugin, task.host);
+                    const result = spawnSync(host.executable, [...host.args, 'plugin', 'test', plugin], { env, stdio: 'inherit', timeout: 600000 });
+                    assert.ifError(result.error); assert.equal(result.status, 0, 'Scoped Mod tests failed');
                     if (task.host !== '2.1.296') { await prepareModTypes(plugin); run(['node_modules/typescript/bin/tsc', '--noEmit', '--project', plugin + '/tsconfig.json']); }
                 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
             } else await runFamily(check);

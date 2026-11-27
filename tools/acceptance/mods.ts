@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { architecture } from '@fbincon/statusline-platform/architecture';
-import { prepareModTypes, recordModHost, isolatedHostEnvironment } from './mod-types.js';
+import { checkModValidation, prepareModTypes, recordModHost, isolatedHostEnvironment } from './mod-types.js';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { Writable } from 'node:stream';
@@ -20,7 +20,7 @@ import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { runOfficialTestBatches, type OfficialTestExecute } from './official-tests.js';
 import { admitOfficialCommand } from './physical-budgets.js';
 import { createAcceptanceEnvelope } from '../checks/receipt.js';
-import { HOSTS, LEGACY_HOSTS, officialModsForHost } from '../checks/runtime-inputs.js';
+import { AGENT_ROW_HOSTS, HOSTS, LEGACY_HOSTS, officialModsForHost } from '../checks/runtime-inputs.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' }, 'physical-window-ms': { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const windowMs = values['physical-window-ms'] === undefined ? null : Number(values['physical-window-ms']);
@@ -68,7 +68,9 @@ try {
     for (const name of applicable) {
         const directory = join(repoRoot, 'mods', name);
         recordModHost(directory, version);
-        run(host.executable, [...host.args, 'plugin', 'validate', '--strict', directory]);
+        const runtimeValidation = name !== 'statusline-agent-rows' && AGENT_ROW_HOSTS.some(host => host === version);
+        const validation = run(host.executable, [...host.args, 'plugin', 'validate', runtimeValidation ? '--json' : '--strict', directory]);
+        const warnings = runtimeValidation ? checkModValidation(validation, directory, version) : null;
         const official_test_batches = runOfficialTestBatches({ source: directory, temporary: join(temporary, name + '-tests'), logs: join(dirname(reportPath), 'logs'),
             host, cwd: repoRoot, env: environment, onCommand: phase => report.phases.push(phase) }, batch);
         let types: Record<string, string>;
@@ -79,7 +81,7 @@ try {
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' && !releaseSmoke ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), batch) } : {}) };
+        report.mods[name] = { validation: 'pass', ...(warnings ? { host_validator_warnings: warnings } : {}), official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' && !releaseSmoke ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), batch) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {

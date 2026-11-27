@@ -60,7 +60,7 @@ export function exportBytes(path: string, raw: Buffer, directory: string, overwr
     const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME].some(name => same(target, join(root, name)));
     const ownedDirectory = [...MANAGED_MODS.map(mod => mod.name), 'statusline_runtime'].some(name => {
         const rel = relative(join(root, name), target);
-        return rel !== '' && rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);
+        return rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);
     });
     if (protectedFile || ownedDirectory)
         fail('errors.transfer.export_cannot_replace_live_configuration_or_owned');

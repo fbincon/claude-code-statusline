@@ -17,7 +17,7 @@ const MOD = 'statusline-agent-rows@claude-statusline-agent-rows-local';
 const SYSTEM_PATH = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
 interface Scenario {
     id: string; version: Version; mode: 'auto' | 'mod' | 'legacy'; appearance: ExpectedRows['appearance'];
-    foreign?: boolean; gap?: boolean; limit?: number;
+    foreign?: boolean; gap?: boolean; featureOff?: boolean; limit?: number;
 }
 export const SCENARIOS: readonly Scenario[] = [
     { id: 'legacy-322', version: '2.1.322', mode: 'auto', appearance: 'custom' },
@@ -26,6 +26,8 @@ export const SCENARIOS: readonly Scenario[] = [
     { id: 'auto-326', version: '2.1.326', mode: 'auto', appearance: 'custom' },
     { id: 'auto-332', version: '2.1.332', mode: 'auto', appearance: 'custom' },
     { id: 'limited-332', version: '2.1.332', mode: 'mod', appearance: 'custom', limit: 1 },
+    { id: 'zero-332', version: '2.1.332', mode: 'mod', appearance: 'custom', limit: 0 },
+    { id: 'off-332', version: '2.1.332', mode: 'auto', appearance: 'default', featureOff: true },
     { id: 'legacy-332', version: '2.1.332', mode: 'legacy', appearance: 'custom' },
     { id: 'foreign-332', version: '2.1.332', mode: 'auto', appearance: 'foreign', foreign: true },
 ];
@@ -91,7 +93,7 @@ async function runStage(candidate: Candidate, host: Host, work: Workspace, outpu
     if (install) write(join(output, 'install.json'), install);
     const start = installation(settings);
     if (scenario.foreign) assert.deepEqual(start.legacy, foreign!.setting);
-    else if (scenario.gap) { assert.equal(start.legacy, null); assert.notEqual(start.mod, true); }
+    else if (scenario.gap || scenario.featureOff) { assert.equal(start.legacy, null); assert.notEqual(start.mod, true); }
     else if (scenario.mode === 'legacy' || host.version === '2.1.322') {
         assert.equal(splitCommand(start.legacy?.command)?.at(-1), 'render-subagents'); assert.notEqual(start.mod, true);
     } else {
@@ -144,7 +146,7 @@ async function matrix(options: Options) {
             candidate_source_sha256: archived ? sha256(archived) : null,
             executed_js_sha256: sha256(fs.readFileSync(join(repoRoot, 'dist', 'typescript', file + '.js'))) };
     });
-    const receipt = { schema_version: 1, status: 'running', complete_matrix: !options.selected, candidate_commit: options.commit,
+    const receipt = { schema_version: 1, status: 'running', selected: options.selected ?? 'full', complete_matrix: false, candidate_commit: options.commit,
         artifact_sha256: candidate.packed.sha256, source_archive_sha256: read(join(dirname(options.artifact), 'build-manifest.json')).source.sha256,
         source_manifest_sha256: delivery.source.source_manifest_sha256,
         driver_commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(), driver,
@@ -168,7 +170,9 @@ async function matrix(options: Options) {
         };
         for (const scenario of selected) {
             const work = workspace(join(candidate.temporary, scenario.id));
-            configure(candidate, work, environment(work, candidate, hosts.get(scenario.version)!), scenario.limit);
+            const env = environment(work, candidate, hosts.get(scenario.version)!);
+            configure(candidate, work, env, scenario.limit);
+            if (scenario.featureOff) invoke(candidate, work, env, ['config', 'set', 'subagent-statusline', 'off']);
             await stage(scenario, work);
         }
         if (migration) {
@@ -190,7 +194,7 @@ async function matrix(options: Options) {
             assert.equal(results.find(r => r.scenario === 'limited-332')!.rows[0]!.label,
                 results.find(r => r.scenario === 'auto-332')!.rows[0]!.label, 'The single visible row must be the first eligible host row');
         }
-        receipt.status = 'pass'; receipt.current_scenario = '';
+        receipt.status = 'pass'; receipt.complete_matrix = !options.selected; receipt.current_scenario = '';
     } catch (error) {
         receipt.status = 'fail'; receipt.error = String(error);
         throw error;
