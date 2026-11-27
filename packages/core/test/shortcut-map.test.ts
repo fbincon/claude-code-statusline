@@ -41,10 +41,35 @@ test('configured lists share toggle keys and keep their own save bindings', () =
         for (const context of ['picker', 'settings', 'detail', 'layout'] as const)
             assert.equal(resolveShortcut(surface, context, { key: 'return' }, {}), null);
     }
-    for (const context of ['legacy-settings', 'numeric-settings', 'refresh-settings'] as const) {
-        assert.equal(resolveShortcut('terminal', context, { key: 'return' }, {}), 'save');
-        assert.equal(shortcutAliases('terminal', context, {}, 'save'), 'Ctrl+S/Enter');
+});
+
+test('terminal Settings reserve Enter and use the active save binding', () => {
+    const remapped = { save: 'Z' };
+    for (const context of ['settings', 'numeric-settings', 'refresh-settings'] as const) {
+        assert.equal(resolveShortcut('terminal', context, { key: 'return' }, {}), null);
+        assert.equal(resolveShortcut('terminal', context, { key: 'return' }, remapped), null);
+        assert.equal(resolveShortcut('terminal', context, { key: 's', ctrl: true }, {}), 'save');
+        assert.equal(resolveShortcut('terminal', context, { key: 's', ctrl: true }, remapped), null);
+        assert.equal(resolveShortcut('terminal', context, { key: 'z' }, remapped), 'save');
+        assert.equal(shortcutAliases('terminal', context, {}, 'save'), 'Ctrl+S');
+        assert.equal(shortcutAliases('terminal', context, remapped, 'save'), 'Z');
     }
+});
+
+test('refresh event mode retains its preset and accepts remaps that leave field keys free', () => {
+    for (const key of ['Enter', 'Space', 'Left', 'Right', '0', '9']) {
+        const bindings = { save: 'Z', 'event-refresh': key };
+        assert.equal(isBindingMap(bindings), false, key);
+        assert.equal(readShortcutBindings(bindings), null, key);
+    }
+    assert.equal(readShortcutBindings({ save: 'Z', 'event-refresh': 'Enter', undo: 'Ctrl+Z' }), null);
+    assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'e' }, {}), 'event-refresh');
+    assert.equal(resolveShortcut('terminal', 'numeric-settings', { key: 'e' }, {}), null);
+    assert.equal(resolveShortcut('native', 'settings', { key: 'e' }, {}), null);
+    const remapped = { save: 'Z', 'event-refresh': 'J' };
+    assert.deepEqual(readShortcutBindings(remapped), { bindings: remapped, warning: null });
+    assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'e' }, remapped), null);
+    assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'j' }, remapped), 'event-refresh');
 });
 
 test('existing shared remaps keep precedence over the configured list presets', () => {
@@ -215,7 +240,7 @@ test('shortcut settings put common editor and component actions first', () => {
     }
 });
 
-test('shortcut settings show the original settings save separately at narrow widths', () => {
+test('shortcut settings show each editor’s save key at narrow widths', () => {
     for (const surface of ['terminal', 'native'] as const) {
         for (const language of ['en', 'zh-CN'] as const) {
             const keys = new EditorShortcuts(surface);
@@ -223,18 +248,43 @@ test('shortcut settings show the original settings save separately at narrow wid
             const tr = (key: string) => t('shortcuts.' + key, language);
             const rows = () => shortcutPanelRows(keys, language, 32, 11);
             const panelText = () => rows().map(row => row.text).join(' ');
-            const label = tr('legacy-settings-short');
-            assert.notEqual(label, 'shortcuts.legacy-settings-short');
             assert.equal(rows().find(row => row.selected)?.text,
                 `› ${surface === 'terminal' ? 'Ctrl+S' : 'S'}  ${tr('action.save')}`);
             assert.ok(panelText().includes(`${tr('terminal-short')} Ctrl+S [Ctrl+S]`));
             assert.ok(panelText().includes(`${tr('native-short')} S [S]`));
-            assert.ok(panelText().includes(`${label} Ctrl+S / Enter [Ctrl+S / Enter]`));
             keys.panel!.draft.save = 'Z';
             assert.ok(panelText().includes(`${tr('terminal-short')} Z [Ctrl+S]`));
-            assert.ok(panelText().includes(`${label} Z [Ctrl+S / Enter]`));
+            assert.ok(panelText().includes(`${tr('native-short')} Z [S]`));
+            assert.ok(!panelText().includes('[Ctrl+S / Enter]'));
             assert.ok(panelText().includes(tr('back-help')));
         }
+    }
+});
+
+test('shortcut settings refuse Enter when capturing the refresh event action', () => {
+    for (const surface of ['terminal', 'native'] as const) {
+        const keys = new EditorShortcuts(surface);
+        keys.snapshot.bindings = { save: 'Z' };
+        keys.open();
+        const press = (key: string, paste = false) => keys.key({ key, paste }, 'en', 32, 11);
+        const panelText = () => shortcutPanelRows(keys, 'en', 32, 11).map(row => row.text).join(' ');
+        press('/');
+        press('event-refresh', true);
+        press('return');
+        assert.equal(keys.panel!.selected, 'event-refresh');
+        assert.match(panelText(), /Terminal E \[E\]/);
+
+        press('return');
+        press('return');
+        assert.equal(keys.panel!.capture, true);
+        assert.equal(keys.panel!.message?.key, 'shortcuts.unavailable-key');
+        assert.deepEqual(keys.panel!.draft, { save: 'Z' });
+
+        press('j');
+        assert.equal(keys.panel!.capture, false);
+        assert.equal(keys.panel!.message, null);
+        assert.deepEqual(keys.panel!.draft, { save: 'Z', 'event-refresh': 'J' });
+        assert.match(panelText(), /Terminal J \[E\]/);
     }
 });
 
@@ -248,7 +298,7 @@ test('page movement uses the action rows visible with wrapped warnings', () => {
         const rows = shortcutPanelRows(keys, 'en', width, height);
         const count = rows.filter(row => row.selected !== undefined).length;
         assert.ok(count > 0);
-        if (width === 32) assert.equal(count, 1);
+        if (width === 32) assert.equal(count, 2);
         for (let i = 0; i < count; i++) keys.key({ key: 'down' }, 'en', width, height);
         const expected = panel.selected;
         keys.key({ key: 'home' }, 'en', width, height);

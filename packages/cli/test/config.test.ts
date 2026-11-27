@@ -113,6 +113,38 @@ test('damaged shortcuts use defaults until an explicit repair, with future schem
     assert.equal(fs.statSync(path).mode, mode);
 });
 
+test('refresh Enter is a reserved key when saving or reading shortcut preferences', t => {
+    const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
+    const settings = fs.readFileSync(f.settingsPath), display = f.read();
+    const saved = f.call('set_editor_shortcuts', { bindings: { save: 'Z', 'event-refresh': 'J' }, expected_revision: null });
+    assert.equal(saved.status, 0, JSON.stringify(saved.response));
+    const { revision } = saved.response.result;
+    const valid = fs.readFileSync(path), mode = fs.statSync(path).mode, prior = backups(f.root);
+    for (const bindings of [{ 'event-refresh': 'Enter' }, { save: 'Z', 'event-refresh': 'Enter' }]) {
+        const rejected = f.call('set_editor_shortcuts', { bindings, expected_revision: revision });
+        assert.equal(rejected.response.error.code, 'invalid_request');
+        assert.equal(rejected.response.error.localization.key, 'shortcuts.invalid-request');
+    }
+    assert.deepEqual(f.call('read_editor_shortcuts').response.result, saved.response.result);
+    assert.deepEqual(fs.readFileSync(path), valid);
+    assert.equal(fs.statSync(path).mode, mode);
+    assert.deepEqual(backups(f.root), prior);
+
+    const invalid = jsonBytes({ schema_version: 1, bindings: { save: 'Z', 'event-refresh': 'Enter' } });
+    fs.writeFileSync(path, invalid);
+    const fallback = f.call('read_editor_shortcuts');
+    assert.equal(fallback.status, 0);
+    const recovered = fallback.response.result;
+    assert.deepEqual(recovered.bindings, {});
+    assert.equal(recovered.revision, createHash('sha256').update(invalid).digest('hex'));
+    assert.equal((recovered.warning as EditorShortcutsResult['warning'])?.key, 'shortcuts.invalid');
+    assert.deepEqual(fs.readFileSync(path), invalid);
+    assert.equal(fs.statSync(path).mode, mode);
+    assert.deepEqual(backups(f.root), prior);
+    assert.deepEqual(f.read(), display);
+    assert.deepEqual(fs.readFileSync(f.settingsPath), settings);
+});
+
 test('legacy shortcut reads and doctor preserve bytes and mode until explicit cleanup', t => {
     const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
     const raw = jsonBytes({ schema_version: 1, bindings: { save: 'Z', undo: 'Ctrl+Z', redo: 'U', 'task-identity': 'Ctrl+D' } });

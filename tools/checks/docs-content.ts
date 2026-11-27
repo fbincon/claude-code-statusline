@@ -153,6 +153,8 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                 const toggle = shortcutAliases(surface, 'list', {}, 'toggle-item').replaceAll('/', ' / ');
                 assert(keyboard?.[index + 1]?.includes('| ' + toggle + ' |'), 'Missing ' + surface + ' component toggle presets ' + toggle);
             }
+            const eventRefresh = shortcutAliases('terminal', 'refresh-settings', {}, 'event-refresh');
+            assert(keyboard?.[1]?.includes('| ' + eventRefresh + ' |'), 'Missing terminal event-only refresh preset ' + eventRefresh);
             const customization = body.split('<a id="customize-keyboard-shortcuts"></a>')[1]?.split('<a id="text-input"></a>')[0];
             for (const key of reservedNativeKeys('save'))
                 assert(customization?.includes(key), 'Missing Claude host restriction ' + key);

@@ -1734,7 +1734,6 @@ export const MESSAGES = {
   "shortcuts.invalid": "Invalid shortcut preferences. Using defaults. Use Restore all to repair them.",
   "shortcuts.invalid-request": "Invalid shortcut bindings or revision.",
   "shortcuts.keep": "Keep editing",
-  "shortcuts.legacy-settings-short": "Original settings",
   "shortcuts.list-help": "/ filter · Enter change · Delete restore",
   "shortcuts.native": "In-session editor",
   "shortcuts.native-short": "Client",

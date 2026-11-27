@@ -81,11 +81,14 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Ctrl+F | Choose a category |
 | Ctrl+E / Ctrl+G | Open item details / return, cancel input or clear list filters |
 | Ctrl+A / Ctrl+D / Ctrl+X | Open the catalog / copy / remove an instance on an item page |
-| Enter | Save on original Settings rows. On other fields, open or accept editing. |
+| Enter | Activate the selected Settings row or open and accept field editing |
+| E | Set the selected refresh interval to event-only in the draft |
 | Ctrl+S | Save the display draft and exit outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
 | Esc | Cancel a field or subview. At the top level, close a clean draft or confirm discarding changes, defaulting to keep editing. Available after rebinding Close. |
 | Ctrl+C | Restore the terminal, exit 130 and discard unsaved display edits |
+
+On the **Refresh interval** row, Enter opens the editor with its current value. Press Ctrl+U to clear it, enter a whole number from 1 to 3600 seconds or `event`, and press Enter to accept it into the draft. Use the current **Save** shortcut to write the draft. **Set event-only refresh** defaults to E and can use another available key. Enter is reserved on this row.
 
 ### In-session Client
 
@@ -123,7 +126,7 @@ Return from a manager to the main editor to use draft history. On Unix, Claude m
 
 ## Customize keyboard shortcuts
 
-In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The Save details identify the additional key for original terminal Settings rows. The open shortcut panel fits in 32×12.
+In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The open shortcut panel fits in 32×12.
 
 1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
 2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
@@ -131,7 +134,7 @@ In either editor, open **Settings → Keyboard shortcuts**. Navigate with the ar
 
 The current editor applies the keys immediately after saving. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict so you can read the saved map first. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)
 
-Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. Ctrl+D, Ctrl+X and Ctrl+Z can be assigned only to terminal-only actions because Claude can intercept them. If a saved map contains an unavailable binding, the editors show a warning and load the usable overrides. Choose **Save shortcuts** to store that map.
+Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. Ctrl+D, Ctrl+X and Ctrl+Z can be assigned only to terminal-only actions because Claude can intercept them. Invalid shortcut preferences trigger a warning and load the presets. The compatibility rule for keys now reserved by Claude still loads usable overrides. Choose **Save shortcuts** to store your preferences.
 
 Rebinding Save replaces its preset keys, and Enter continues to confirm menu choices. Rebinding terminal Close adds the chosen key alongside Esc. In the terminal component list or catalog, bound characters run their actions and unbound characters filter the list. To include any bound letter or symbol in the query, use the current **Search** key shown on screen to open the input field. Its preset is `/`.
 
@@ -203,7 +206,7 @@ Client controls follow Claude's applied theme. **Preview background (UI only)** 
 
 | Operation | Terminal editor | Client |
 | --- | --- | --- |
-| Save display | Ctrl+S saves and exits outside input editing. Enter also saves on original Settings rows. | S saves and continues. F saves successfully before closing. If Claude preferences have pending changes, the panel remains for a separate Apply. |
+| Save display | Ctrl+S saves and exits outside input editing. | S saves and continues. F saves successfully before closing. If Claude preferences have pending changes, the panel remains for a separate Apply. |
 | Cancel display edits | Top-level Esc; confirm **Discard changes and close** if modified | Q discards unsaved display edits and closes |
 | Unknown save outcome | Ctrl+K checks the submitted snapshot | K checks the submitted snapshot |
 

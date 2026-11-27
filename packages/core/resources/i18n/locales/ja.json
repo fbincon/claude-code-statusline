@@ -2347,5 +2347,5 @@
   "task.controls.focus": "Ctrl+X の後に Tab を押してタスクペインにフォーカスを移すか、操作ボタンをクリックしてください。",
   "task.controls.field_help": "Enter で確定 · Tab でキャンセルに移動",
   "task.controls.focus_field": "入力欄をクリックするか、Ctrl+X の後に Tab を押します。⏎ が表示されたら入力してください。",
-  "shortcuts.legacy-settings-short": "従来の設定項目"
+  "shortcuts.action.event-refresh": "イベント時のみ更新"
 }

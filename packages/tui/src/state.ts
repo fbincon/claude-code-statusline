@@ -13,7 +13,7 @@ import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profi
 import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
-import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
+import { Editor, copyDraft, type NumericField, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
@@ -38,12 +38,11 @@ type Input = ({
     original?: string;
 } | {
     kind: 'numeric';
-    field: 'padding' | 'refresh_interval';
-    before: number | 'event';
+    field: NumericField;
     buffer: string;
 }) & { edit?: TextInput };
 export interface Row extends SettingRow {
-    kind: 'legacy' | 'action' | 'choice' | 'integer' | 'text' | 'boolean';
+    kind: 'action' | 'choice' | 'integer' | 'text' | 'boolean';
     form?: FormRow;
 }
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
@@ -75,7 +74,7 @@ export class State {
         const row = this.selectedRow();
         if (row.key === 'padding') return 'numeric-settings';
         if (row.key === 'refresh_interval') return 'refresh-settings';
-        return row.kind === 'legacy' ? 'legacy-settings' : 'settings';
+        return 'settings';
     }
     get listScrollKey(): string { return this.editor.adding ? 'catalog' : this.scope; }
     get detailItem() { return this.editor.detailItem; }
@@ -97,17 +96,21 @@ export class State {
     rows(): Row[] {
         const e = this.editor, d = e.draft.display, h = e.draft.host;
         const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
-        const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
+        const row = (key: string, label: string, value: string, group: string, kind: Row['kind']): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
             return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'),...(!e.adding?[row('diagnose-file','Diagnose input file','','Item format','action'),row('reuse-style','Copy / paste visual style','','Item format','action')]:[]), ...fields];
         if (e.page === 'layout')
             return d.instances.length ? [fields[0]!, row('row-alignment', 'Align explicit main rows', 'Enter', 'Layout', 'action'), ...fields.slice(1)] : fields;
         const result: Row[] = [
-            row('colors', 'Use colors', d.use_colors ? 'on' : 'off', 'Appearance'), row('palette', 'Palette', d.palette, 'Appearance'),
-            row('directory-style', 'Directory style', d.directory_style, 'Appearance'), row('separator-style', 'Separator style', d.separator_style, 'Appearance'),
-            row('padding', 'Padding', e.buffers.padding, 'Refresh / behavior'), row('refresh_interval', 'Refresh interval', e.buffers.refresh_interval, 'Refresh / behavior'),
-            row('vim-indicator', 'Built-in Vim indicator', h.hide_vim_mode_indicator ? 'hide' : 'show', 'Refresh / behavior'),
-            row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
+            row('colors', 'Use colors', d.use_colors ? 'on' : 'off', 'Appearance', 'boolean'),
+            row('palette', 'Palette', d.palette, 'Appearance', 'choice'),
+            row('directory-style', 'Directory style', d.directory_style, 'Appearance', 'choice'),
+            row('separator-style', 'Separator style', d.separator_style, 'Appearance', 'choice'),
+            row('padding', 'Padding', e.buffers.padding, 'Refresh / behavior', 'integer'),
+            row('refresh_interval', 'Refresh interval', e.buffers.refresh_interval, 'Refresh / behavior', 'integer'),
+            row('vim-indicator', 'Built-in Vim indicator', h.hide_vim_mode_indicator ? 'hide' : 'show', 'Refresh / behavior', 'boolean'),
+            row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance', 'choice'),
+            row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior', 'boolean'),
             ...fields,
             row('preview-scenario','Sample scenario',e.previewScenario,'Preview','choice'),row('preview-width','Preview width',e.previewWidth,'Preview','choice'),
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
@@ -203,18 +206,15 @@ export class State {
         e.cancelNumeric();
         return null;
     }
-    private numeric(field: 'padding' | 'refresh_interval', value: string): void {
+    private numeric(field: NumericField, value?: string): void {
         const e = this.editor;
-        if (this.input?.kind !== 'numeric')
-            this.input = { kind: 'numeric', field, before: e.draft.host[field], buffer: '' };
-        const input = this.input;
-        input.buffer = value;
-        e.setBuffer(field, value);
+        const buffer = value ?? String(e.draft.host[field]);
+        if (this.input?.kind === 'numeric') this.input.buffer = buffer;
+        else this.input = { kind: 'numeric', field, buffer };
+        e.setBuffer(field, buffer);
+        if (value === undefined) return;
         // Preserve the last valid number while showing an invalid partial edit.
-        if (e.acceptNumeric(field, true)) {
-            e.setBuffer(field, value);
-            this.notice('');
-        }
+        if (e.acceptNumeric(field, true)) this.notice('');
         else
             this.notice(e.fieldErrorMessages[field] ?? e.fieldErrors[field] ?? '');
     }
@@ -314,13 +314,7 @@ export class State {
                     e.filter(this.scope, input.original);
                     e.selectItem(this.scope, input.selected);
                 }
-                if (input.kind === 'numeric') {
-                    if (input.field === 'padding')
-                        e.draft.host.padding = input.before as number;
-                    else
-                        e.draft.host.refresh_interval = input.before;
-                    e.cancelNumeric(input.field);
-                }
+                if (input.kind === 'numeric') e.cancelNumeric(input.field);
                 this.input = null;
                 this.notice('');
                 return null;
@@ -421,17 +415,11 @@ export class State {
             this.ensureVisible(height);
             return null;
         }
-        if (action === 'event-refresh') {
-            const candidate = copyDraft(e.draft);
-            candidate.host.refresh_interval = 'event';
-            e.commitDraft(candidate);
-            e.cancelNumeric('refresh_interval');
-            return null;
-        }
         if (event.meta) return null;
         if (k === 'return' && !ctrl) {
-            if (!this.form || this.selectedRow().kind === 'legacy') return null;
+            if (!this.form) return null;
             const row = this.selectedRow();
+            if (row.key === 'padding' || row.key === 'refresh_interval') { this.numeric(row.key); return null; }
             if (row.key === 'keyboard-shortcuts') { e.shortcuts.open(); return null; }
             if(row.key==='change-history'){openChanges(e);return null;}
             if(row.key==='reuse-style'||row.key==='reuse-groups'){openReuse(e,row.key==='reuse-style'?'style':'groups');return null;}
@@ -457,6 +445,13 @@ export class State {
                 this.input = { kind: 'field', key: row.key, buffer: row.value, original: row.value };
             else
                 return this.adjust(1);
+            return null;
+        }
+        if (action === 'event-refresh') {
+            const candidate = copyDraft(e.draft);
+            candidate.host.refresh_interval = 'event';
+            e.commitDraft(candidate);
+            e.cancelNumeric('refresh_interval');
             return null;
         }
         if (k === 'tab' && !e.adding) {

@@ -387,7 +387,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\x07','back to form');await key('\x07','back to retained editor');
         } else if (action === 'editor-shortcuts') {
             const preference = shortcutPath, languageBytes = fs.readFileSync(join(config, 'statusline-ui.json'));
-            const settingsBytes = fs.readFileSync(join(config, 'settings.json'));
+            const settingsPath = join(config, 'settings.json');
+            const settingsBytes = fs.readFileSync(settingsPath), settingsMode = fs.statSync(settingsPath).mode;
             assert.ok(legacyShortcuts);
             const { bytes: legacy, mode: preferenceMode } = legacyShortcuts;
             const openNativeSettings = async () => {
@@ -398,7 +399,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await key('\r', 'open native shortcut list');
                 await until(text => /›.*Save display/u.test(text), 'native save binding selected');
             };
-            const runExternal = async (label: string, journey: (tty: ReturnType<typeof openPty>, wait: (text: string) => Promise<void>) => Promise<void>) => {
+            type ExternalWait = (label: string, matches?: (text: string) => boolean) => Promise<string>;
+            const runExternal = async (label: string, journey: (tty: ReturnType<typeof openPty>, wait: ExternalWait) => Promise<void>) => {
                 const child = openPty(config, 120, 30, environment, 'en', { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project });
                 const capture = new Capture(120, 30);
                 let offset = 0;
@@ -407,9 +409,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                     return capture.buffer.map(row => row.map(cell => cell.data).join('')).join('\n');
                 };
                 try {
-                    await journey(child, async value => {
-                        await child.wait(() => screenText().includes(value));
+                    await journey(child, async (value, matches = text => text.includes(value)) => {
+                        let frame = '';
+                        await child.wait(() => {
+                            frame = screenText();
+                            return matches(frame);
+                        });
                         steps.push({ name: label + ': ' + value, elapsed_ms: Date.now() - start });
+                        return frame;
                     });
                     await child.exited();
                     assert.equal(child.child.exitCode, 0);
@@ -537,7 +544,90 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             });
             assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
             assert.equal(applyRequests(), appliesBeforeDefault + 1);
-            assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settingsBytes);
+            assert.deepEqual(fs.readFileSync(settingsPath), settingsBytes);
+            assert.equal(fs.statSync(settingsPath).mode, settingsMode);
+
+            const expectedSettings = JSON.parse(settingsBytes.toString('utf8'));
+            const previousRefresh = String(expectedSettings.statusLine.refreshInterval ?? 'event');
+            const refreshSeconds = previousRefresh === '37' ? '42' : '37';
+            const refreshLabel = t('settings.refresh_interval', 'en');
+            const refreshRow = '› ' + refreshLabel + ':';
+            const enterEdit = 'Enter ' + t('ui.hints.edit', 'en');
+            const enterAccept = 'Enter ' + t('ui.hints.accept', 'en');
+            const selectRefresh = async (tty: ReturnType<typeof openPty>, wait: ExternalWait) => {
+                const selected = (screen: string) => /› ([^:\n]+):/u.exec(screen)?.[1];
+                tty.send('\t\t\x1b[H');
+                let frame = await wait('› ' + t('settings.colors', 'en') + ':');
+                for (let i = 0; i < 32 && selected(frame) !== refreshLabel; i++) {
+                    const previous = selected(frame);
+                    assert.ok(previous, 'Settings has no selected field');
+                    tty.send('\x1b[B');
+                    frame = await wait('advance from ' + previous, text => !!selected(text) && selected(text) !== previous);
+                }
+                await wait(refreshRow);
+            };
+            const waitForRefresh = (wait: ExternalWait, value: string) => wait(refreshLabel + ' = ' + value, text =>
+                text.split('\n').some(line => {
+                    const index = line.indexOf(refreshRow);
+                    return index >= 0 && line.slice(index + refreshRow.length).split('│')[0]?.trim() === value;
+                }));
+            const appliesBeforeSettings = applyRequests(), committedDisplayMode = fs.statSync(displayPath).mode;
+            const assertRefreshReadOnly = () => {
+                assert.equal(applyRequests(), appliesBeforeSettings);
+                assert.deepEqual(fs.readFileSync(settingsPath), settingsBytes);
+                assert.equal(fs.statSync(settingsPath).mode, settingsMode);
+                assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
+                assert.equal(fs.statSync(displayPath).mode, committedDisplayMode);
+            };
+            await runExternal('terminal-refresh', async (tty, wait) => {
+                await selectRefresh(tty, wait);
+                await wait('E ' + t('shortcuts.action.event-refresh', 'en'));
+                await wait(enterEdit);
+                tty.send('\r');
+                await waitForRefresh(wait, previousRefresh + '▏');
+                await wait(enterAccept);
+                tty.send('\x153601\r');
+                await waitForRefresh(wait, '3601▏');
+                await wait(t('native.numeric.event', 'en', { minimum: 1, maximum: 3600 }));
+                assertRefreshReadOnly();
+                tty.send('\x07');
+                await waitForRefresh(wait, previousRefresh);
+                await wait(enterEdit);
+
+                const acceptRefresh = async (value: string) => {
+                    tty.send('\r');
+                    await wait(enterAccept);
+                    tty.send('\x15' + value);
+                    await waitForRefresh(wait, value + '▏');
+                    tty.send('\r');
+                    await waitForRefresh(wait, value);
+                    await wait(enterEdit);
+                    assertRefreshReadOnly();
+                };
+                await acceptRefresh(refreshSeconds);
+                tty.send('e');
+                await waitForRefresh(wait, 'event');
+                assertRefreshReadOnly();
+                await acceptRefresh(refreshSeconds);
+                await acceptRefresh('event');
+                await acceptRefresh(refreshSeconds);
+                await wait('Ctrl+S ' + t('ui.hints.save_and_exit', 'en'));
+                tty.send('\x13');
+            });
+            assert.equal(applyRequests(), appliesBeforeSettings + 1);
+            expectedSettings.statusLine.refreshInterval = Number(refreshSeconds);
+            const savedSettings = fs.readFileSync(settingsPath), savedSettingsMode = fs.statSync(settingsPath).mode;
+            assert.deepEqual(JSON.parse(savedSettings.toString('utf8')), expectedSettings);
+            await runExternal('terminal-refresh-reopened', async (tty, wait) => {
+                await selectRefresh(tty, wait);
+                await waitForRefresh(wait, refreshSeconds);
+                tty.send('\x1b');
+            });
+            assert.equal(applyRequests(), appliesBeforeSettings + 1);
+            assert.deepEqual(fs.readFileSync(settingsPath), savedSettings);
+            assert.equal(fs.statSync(settingsPath).mode, savedSettingsMode);
+            assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
+            assert.equal(fs.statSync(displayPath).mode, committedDisplayMode);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
         } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');

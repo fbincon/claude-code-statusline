@@ -16451,6 +16451,13 @@
       "method": "validated_accepted",
       "validation_version": 1,
       "evidence": "886cfd8873deda808bd0d3780cf9fb0c8f14b223ebba328c9b01ddfceca6c8da"
+    },
+    "shortcuts.action.event-refresh": {
+      "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+      "translation": "90aa7df4f525d37793fc4ef15253f9daab21c0ecb5a5c75fc98e4dd7db64b91c",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "95421acda5aac0b5a308a5ae801fdade172d6371b97c5196c88182b2d8b5fb2e"
     }
   }
 }

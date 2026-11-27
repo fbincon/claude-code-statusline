@@ -102,7 +102,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
     if (state.input?.kind === 'numeric') {
         return {
             actions: [hint('Enter', 'accept'), hint('Ctrl+G/Esc', 'restore')],
-            help: [hint('←→ Home/End', 'move_cursor'), hint('Backspace/Delete', 'delete')],
+            help: [hint('←→ Home/End', 'move_cursor'), hint('Ctrl+U', 'clear'), hint('Backspace/Delete', 'delete')],
         };
     }
     if (state.input) {
@@ -128,11 +128,14 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
         return { actions, primaryActions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
     if (state.form) {
-        const enter = context === 'settings' || context === 'layout' ? [hint('Enter', 'edit')] : [];
-        return {
-            actions, primaryActions,
-            help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), ...enter],
-        };
+        const row = state.selectedRow();
+        const activate = row.kind === 'boolean' ? 'toggle' : row.kind === 'choice' && !row.form ? 'adjust' : 'edit';
+        const help = [hint('Tab', 'page'), hint('↑↓', 'select'), hint('Enter', activate)];
+        if (context === 'refresh-settings') help.push([
+            keys.hint(context, 'event-refresh'), t('shortcuts.action.event-refresh', state.language), t('values.event', state.language),
+        ]);
+        help.push(hint('←→', 'adjust'));
+        return { actions, primaryActions, help };
     }
     const filtered = e.filtered(state.scope);
     const help = [hint('Tab', 'page'), hint('↑↓', 'select'), hint(keys.aliases(context, 'toggle-item'), 'toggle'),
@@ -160,11 +163,7 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
         return [paint(prefix), ...shortcuts([['Ctrl+G', tr('ui.hints.back')]], width - displayWidth(prefix))];
     }
     if (e.page === 'layout') return [paint(tr('ui.drawing.explicit_rows_priority_width'))];
-    if (e.page === 'settings') {
-        const prefix = tr('ui.drawing.use_arrows_to_change_values');
-        if (state.shortcutContext !== 'settings') return [paint(prefix.trimEnd())];
-        return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
-    }
+    if (e.page === 'settings') return [];
     const { category, search } = e.listContext(state.scope);
     const context = e.adding ? 'picker' : 'list';
     const keys = e.shortcuts;

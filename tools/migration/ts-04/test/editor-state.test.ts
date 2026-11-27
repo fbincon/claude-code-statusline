@@ -128,7 +128,13 @@ test('tests.ui.test_interactive_config.SettingStateTests.test_booleans_and_all_e
     for (const key of ['colors', 'palette', 'directory-style', 'separator-style', 'scope-labels', 'vim-indicator', 'custom-subagent-rows']) {
         f.e.setting = key;
         const before = structuredClone(f.e.draft);
-        f.keys('right', 'left');
+        f.keys('right');
+        const adjusted = structuredClone(f.e.draft);
+        f.keys('left');
+        assert.deepEqual(f.e.draft, before, key);
+        assert.deepEqual(f.keys('return'), [null], key);
+        assert.deepEqual(f.e.draft, adjusted, key);
+        f.keys('left');
         assert.deepEqual(f.e.draft, before, key);
     }
     assert.equal(f.calls.filter(c => c.operation === 'apply').length, 0);
@@ -176,6 +182,7 @@ test('tests.ui.test_interactive_config.SettingStateTests.test_numeric_edit_accep
 });
 test('tests.ui.test_interactive_config.SettingStateTests.test_numeric_edit_blocks_tabs_and_needs_second_enter_to_save', async (t) => {
     const f = await fixture(t);
+    const before = f.bytes(), settingsMode = fs.statSync(f.settingsPath).mode;
     f.e.page = 'settings';
     f.e.setting = 'padding';
     f.keys('2', 'tab');
@@ -183,7 +190,54 @@ test('tests.ui.test_interactive_config.SettingStateTests.test_numeric_edit_block
     assert.equal((f.state.input as {
         kind: string;
     } | null)?.kind, 'numeric');
-    assert.deepEqual(f.keys('return', 'return'), [null, 'save']);
+    assert.deepEqual(f.keys('return'), [null]);
+    assert.equal(f.state.input, null);
+    assert.equal(f.e.draft.host.padding, 2);
+    assert.equal(f.e.history.undo.length, 1);
+    // Keep the historical coverage ID while checking the current second Enter behavior.
+    assert.deepEqual(f.keys('return'), [null]);
+    const reopened = f.state.input as { kind: string; buffer: string } | null;
+    assert.equal(reopened?.kind, 'numeric');
+    assert.equal(reopened?.buffer, '2');
+    assert.deepEqual(f.keys({ key: 's', ctrl: true }), [null]);
+    f.keys({ key: 'g', ctrl: true });
+    assert.equal(f.e.history.undo.length, 1);
+    assert.equal(f.e.draft.host.padding, 2);
+    assert.equal(f.calls.some(call => call.operation === 'apply'), false);
+    assert.deepEqual(f.bytes(), before);
+    assert.equal(fs.statSync(f.settingsPath).mode, settingsMode);
+    assert.deepEqual(f.keys({ key: 's', ctrl: true }), ['save']);
+});
+test('external refresh accepts typed values and keeps the remapped event and save actions separate', async (t) => {
+    const f = await fixture(t);
+    f.e.shortcuts.snapshot = await f.backend.request('set_editor_shortcuts', {
+        bindings: { save: 'Z', 'event-refresh': 'J' }, expected_revision: null,
+    });
+    f.e.page = 'settings';
+    f.e.setting = 'refresh_interval';
+    const before = f.bytes(), settingsMode = fs.statSync(f.settingsPath).mode;
+    const clear = { key: 'u', ctrl: true };
+    assert.deepEqual(f.keys('return', clear, '3', '7', 'return'), [null, null, null, null, null]);
+    assert.equal(f.e.draft.host.refresh_interval, 37);
+    assert.equal(f.e.history.undo.length, 1);
+    f.keys('e');
+    assert.equal(f.e.draft.host.refresh_interval, 37);
+    assert.equal(f.e.history.undo.length, 1);
+    f.keys('j');
+    assert.equal(f.e.draft.host.refresh_interval, 'event');
+    assert.equal(f.e.history.undo.length, 2);
+    f.keys('return', clear, '4', '2', 'return');
+    assert.equal(f.e.draft.host.refresh_interval, 42);
+    assert.equal(f.e.history.undo.length, 3);
+    assert.deepEqual(f.keys({ key: 's', ctrl: true }), [null]);
+    assert.deepEqual(f.keys('z'), ['save']);
+    assert.equal(f.calls.some(call => call.operation === 'apply'), false);
+    assert.deepEqual(f.bytes(), before);
+    assert.equal(fs.statSync(f.settingsPath).mode, settingsMode);
+    assert.equal((await f.session.save()).outcome, 'updated');
+    assert.equal(f.calls.filter(call => call.operation === 'apply').length, 1);
+    assert.equal(JSON.parse(fs.readFileSync(f.settingsPath, 'utf8')).statusLine.refreshInterval, 42);
+    assert.equal((await Session.open(f.backend)).state.editor.draft.host.refresh_interval, 42);
 });
 test('tests.ui.test_search.SearchTests.test_queries_and_categories_are_ephemeral_and_block_all_reorders', async (t) => {
     const f = await fixture(t);

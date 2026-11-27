@@ -2347,5 +2347,5 @@
   "task.controls.focus": "Pressione Ctrl+X e depois Tab para focar o painel de tarefas ou clique em um controle.",
   "task.controls.field_help": "Enter para confirmar · Tab para ir até Cancelar",
   "task.controls.focus_field": "Clique no campo ou pressione Ctrl+X e depois Tab. Digite quando ⏎ aparecer.",
-  "shortcuts.legacy-settings-short": "Configurações anteriores"
+  "shortcuts.action.event-refresh": "Atualizar apenas por evento"
 }

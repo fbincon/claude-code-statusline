@@ -176,18 +176,45 @@ test('footers follow actual category, numeric, filtered and add actions', () => 
     state.editor.page = 'settings';
     state.editor.setting = 'padding';
     const beforeInput = plain(state);
-    assert.ok(beforeInput.at(-2)!.includes('Ctrl+S/Enter ' + t('ui.hints.save_and_exit', 'zh-CN')));
-    assert.ok(!beforeInput[3]!.includes('Enter'));
+    assert.ok(beforeInput.at(-2)!.includes('Ctrl+S ' + t('ui.hints.save_and_exit', 'zh-CN')));
+    assert.ok(!beforeInput.at(-2)!.includes('Enter'));
+    assert.ok(beforeInput.at(-1)!.includes('Enter ' + t('ui.hints.edit', 'zh-CN')));
     state.key({ key: '9' });
     assert.ok(plain(state).join('\n').includes('9▏'));
     assert.ok(plain(state).at(-2)!.includes('Enter ' + t('ui.hints.accept', 'zh-CN')));
     assert.ok(!plain(state).at(-2)!.includes('Ctrl+S'));
     assert.ok(plain(state).at(-1)!.includes('Home/End'));
-    assert.ok(!plain(state).at(-1)!.includes('Ctrl+U'));
+    assert.ok(plain(state).at(-1)!.includes('Ctrl+U'));
     state.key({ key: 'backspace' });
     assert.ok(plain(state).join('\n').includes('▏'));
     state.key({ key: 'escape' });
     assert.equal(state.editor.draft.host.padding, 0);
+});
+
+test('Settings explains the selected action, including the effective refresh key at 64 columns', () => {
+    for (const language of LANGUAGES) {
+        const state = fixture(language), e = state.editor;
+        e.page = 'settings';
+        for (const [setting, action] of [['colors', 'toggle'], ['palette', 'adjust'], ['padding', 'edit']] as const) {
+            e.setting = setting;
+            assert.ok(plain(state, 64, 18).at(-1)!.includes('Enter ' + t('ui.hints.' + action, language)), language);
+        }
+        e.setting = 'refresh_interval';
+        for (const key of ['E', 'Ctrl+Q']) {
+            e.shortcuts.snapshot.bindings = key === 'E' ? {} : { 'event-refresh': key };
+            const { rows } = frame(state, 64, 18);
+            const help = rows.at(-1)!;
+            assert.deepEqual(help.filter(span => span.bold).slice(0, 4).map(span => span.text), ['Tab', '↑↓', 'Enter', key], language);
+            assert.ok(help.some(span => span.text.includes(t('values.event', language)) ||
+                span.text.includes(t('shortcuts.action.event-refresh', language))), language);
+        }
+        state.key({ key: 'return' });
+        const active = plain(state, 64, 18);
+        assert.ok(active.at(-2)!.includes('Enter ' + t('ui.hints.accept', language)), language);
+        assert.ok(!active.at(-2)!.includes('Ctrl+S'), language);
+        assert.ok(!active.at(-1)!.includes('Ctrl+Q'), language);
+        assert.ok(active.at(-1)!.includes('Ctrl+U'), language);
+    }
 });
 
 test('navigation, switching, save and filtered list controls stay visible at 64 columns', () => {

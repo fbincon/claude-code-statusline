@@ -2347,5 +2347,5 @@
   "task.controls.focus": "Ctrl+X 다음 Tab을 눌러 작업 창으로 포커스를 이동하거나 컨트롤을 클릭하세요.",
   "task.controls.field_help": "Enter로 확인 · Tab으로 취소 버튼 이동",
   "task.controls.focus_field": "필드를 클릭하거나 Ctrl+X 다음 Tab을 누르세요. ⏎가 표시되면 입력하세요.",
-  "shortcuts.legacy-settings-short": "기존 설정 항목"
+  "shortcuts.action.event-refresh": "이벤트 발생 시에만 새로 고침"
 }
