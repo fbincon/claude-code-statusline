@@ -8,7 +8,16 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   const ui = await $.ui.mount(PANE);
   await keys(ui, ' ', '3');
   await selectSetting(ui, 'keyboard-shortcuts');
-  await keys(ui, 'return', 'return', 'z');
+  await keys(ui, 'return');
+  await ui.resize({ columns: 32, rows: 12 });
+  await keys(ui, '/', 'save display', 'return');
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('› S Save display');
+  await ui.resize({ columns: 100, rows: 30 });
+  await keys(ui, 'return');
+  expect(await visibleText(ui)).toContain('Claude reserves Ctrl+D, Ctrl+X, Ctrl+Z');
+  await keys(ui, { key: 'd', ctrl: true });
+  expect(await visibleText(ui)).toContain('Claude reserves Ctrl+D. Choose another key.');
+  await keys(ui, 'z');
   expect(fixture.store.shortcuts.bindings).toEqual({});
   expect(await visibleText(ui)).toContain('Save display');
   await keys(ui, 'tab', 'return');

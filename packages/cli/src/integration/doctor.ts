@@ -16,6 +16,7 @@ import { hostFromSettings } from '../config/host.js';
 import { safeTarget } from './paths.js';
 import { readDisplay, readSettings, decodeUtf8 } from '../config/storage.js';
 import { loadFeature, loadNative, loadRuntime } from '../config/backend-preferences.js';
+import { readEditorShortcuts } from '../config/editor-shortcuts.js';
 import { localizedError } from '../errors.js';
 import { SKILL, EXTERNAL, OWNER_FILE, HOOKS, SUBAGENT_HOOKS, NATIVE, RUNTIME, VERSION, type InstallContext, type Diagnostic, type ModSpec } from './model.js';
 import { skillOwned } from './ownership.js';
@@ -116,6 +117,8 @@ export function doctor(context: InstallContext): Diagnostic[] {
         else
             add(owned ? 'ERROR' : 'OK', owned ? 'doctor.doctor.subagentstatusline_is_disabled_but_an_owned_setting' : 'doctor.doctor.subagentstatusline_disabled', { value0: '' });
     });
+    const shortcuts = readEditorShortcuts(configDir, io);
+    if (shortcuts.warning) rows.push({ level: 'WARN', message: shortcuts.warning });
     const primary = join(configDir, 'skills', SKILL);
     capture(() => { const valid = io.read(join(primary, 'SKILL.md'))?.equals(renderSkill(launch)) === true && skillOwned(io.read(join(primary, OWNER_FILE))); add(valid ? 'OK' : 'ERROR', valid ? 'doctor.doctor.skill' : 'doctor.doctor.skill_is_missing_or_not_owned', { SLASH_COMMAND_NAME: SKILL }); });
     capture(() => {

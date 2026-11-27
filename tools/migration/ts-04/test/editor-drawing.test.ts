@@ -104,11 +104,17 @@ test('all framed pages retain complete borders, aligned columns and full-width s
 });
 test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_independent_styles_on_every_page', async (t) => {
     const f = await fixture(t);
-    for (const page of ['main', 'subagents', 'settings', 'layout'] as const) {
+    for (const [page, setting, save] of [
+        ['main', null, 'Enter/Ctrl+S'],
+        ['subagents', null, 'Enter/Ctrl+S'],
+        ['settings', 'colors', 'Ctrl+S/Enter'],
+        ['settings', 'keyboard-shortcuts', 'Ctrl+S'],
+        ['layout', 'layout-mode', 'Ctrl+S'],
+    ] as const) {
         f.e.page = page;
+        if (setting) f.e.setting = setting;
         const rows = bounded(f.state, 120, 30).rows;
         const action = rows[28]!;
-        const save = page === 'main' || page === 'subagents' ? 'Enter/Ctrl+S' : 'Ctrl+S';
         assert.ok(action.some(s => s.text === save && s.bold && !s.reverse));
         assert.ok(action.some(s => s.text.includes('save') && !s.reverse));
     }

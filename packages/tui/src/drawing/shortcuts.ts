@@ -111,12 +111,13 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     if (e.adding) {
         return {
             actions: [hint('Enter/Space', 'add_enable'), hint('Ctrl+G/Esc', 'back')],
-            help: [hint('↑↓', 'select'), hint(keys.hint('picker', 'search'), 'search'), hint(keys.hint('picker', 'category'), 'category'), hint('Ctrl+U', 'clear'), hint(keys.hint('picker', 'item-details'), 'details')],
+            help: [hint(keys.hint('picker', 'search'), 'search'), hint('↑↓', 'select'), hint(keys.hint('picker', 'category'), 'category'),
+                hint('Ctrl+U', 'clear'), hint(keys.hint('picker', 'item-details'), 'details')],
         };
     }
     const context = state.shortcutContext;
-    const actions: Hint[] = [hint(state.form ? keys.hint(context, 'save') : keys.aliases(context, 'save'), 'save'),
-        hint(keys.hint(context, 'close'), 'cancel'), hint('Ctrl+C', 'interrupt')];
+    const actions: Hint[] = [hint(keys.aliases(context, 'save'), 'save'),
+        hint(keys.aliases(context, 'close'), 'cancel'), hint('Ctrl+C', 'interrupt')];
     actions.push([keys.hint(context, 'undo', 'redo'),t('history.undo_redo',state.language)], [keys.hint(context, 'history'),t('history.title',state.language)]);
     if(!e.detail) actions.push([keys.hint(context, 'quick-setup'),t('quick.title',state.language)]);
     actions.push([keys.hint(context, 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]);
@@ -124,17 +125,21 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
     if (state.form) {
+        const enter = ['legacy-settings', 'numeric-settings', 'refresh-settings'].includes(context) ? [] : [hint('Enter', 'edit')];
         return {
             actions,
-            help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', keys.aliases(context, 'save').includes('Enter') ? 'edit_save' : 'edit')],
+            help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), ...enter],
         };
     }
-    const help = [hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
-        hint(keys.hint(context, 'toggle-item'), 'toggle'), hint(keys.hint(context, 'item-details'), 'format'), hint('↑↓', 'select')];
-    if (e.filtered(state.scope)) {
-        help.unshift(hint('Ctrl+G', 'clear_filters'));
-        if (e.category[state.scope] !== 'all') help.unshift(hint(keys.hint(context, 'add-item'), 'catalog'));
-    } else help.push(hint(keys.hint(context, 'move-left', 'move-right'), 'order'));
+    const filtered = e.filtered(state.scope);
+    const help = [hint(keys.hint(context, 'search'), 'search')];
+    if (filtered) {
+        if (e.category[state.scope] !== 'all') help.push(hint(keys.hint(context, 'add-item'), 'catalog'));
+        help.push(hint('Ctrl+G', 'clear_filters'));
+    }
+    help.push(hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
+        hint(keys.hint(context, 'toggle-item'), 'toggle'), hint(keys.hint(context, 'item-details'), 'format'), hint('↑↓', 'select'));
+    if (!filtered) help.push(hint(keys.hint(context, 'move-left', 'move-right'), 'order'));
     return { actions, help };
 }
 

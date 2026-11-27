@@ -73,7 +73,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     focus,
   ]];
   if (e.adding) return [
-    [{key:'Enter/Space',label:'add enable'}, {key:'Ctrl+G',label:'back'}, focus],
+    [{key:'Enter/Space',label:'add enable'}, {key:keys.hint('picker','close-picker') + '/Ctrl+G',label:'back'}, focus],
     [{key:'↑↓',label:'select',optional:7}, {key:keys.hint('picker','search'),label:'search',optional:9},
       {key:keys.hint('picker','category'),label:'category',optional:13}, {key:'Ctrl+U',label:'clear',optional:11},
       {key:keys.hint('picker','item-details'),label:'details',optional:12}],

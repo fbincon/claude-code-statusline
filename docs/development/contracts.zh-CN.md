@@ -147,9 +147,9 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 `read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（注册表中的受支持代码）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
 
-`read_editor_shortcuts` 接受 `{}`，返回 `{schema_version,bindings,revision,warning}`。`bindings` 只包含改绑项。`revision` 为现存偏好文件的 SHA-256，文件缺失时为 `null`。无效文件只读回退预设并返回警告。
+`read_editor_shortcuts` 接受 `{}`，返回 `{schema_version,bindings,revision,warning}`。`bindings` 只包含可用的改绑项。`revision` 为原始偏好文件的 SHA-256，文件缺失时为 `null`。无效偏好回退到预设并返回警告。原本有效的映射含有新增保留键时，返回警告，跳过对应绑定以及恢复预设后与其冲突的覆盖。前端对同为协议 33 的旧读响应采用相同兼容规则。读取保留原文件。
 
-`set_editor_shortcuts` 接受 `{bindings,expected_revision}`。前后端使用同一场景表对两种编辑器校验按键和冲突。锁内重读修订，并通过既有事务备份及原子发布修改。空映射恢复预设并移除文件。修订不符时返回 `configuration_conflict`。未知保存结果通过只读返回核对。快捷键独立于显示草稿、界面语言和 Profile。[文件与版本](../reference/cli.zh-CN.md#editor-shortcut-preferences)
+`set_editor_shortcuts` 接受 `{bindings,expected_revision}`。前后端使用同一场景表对两种编辑器校验按键和冲突。Claude 保留的组合键仅可分配给外部编辑器专属动作。锁内重读修订，并通过既有事务备份及原子发布修改。显式保存带兼容警告的映射也会替换原文件内容。空映射恢复预设并移除文件。修订不符时返回 `configuration_conflict`。未知保存结果通过只读回读核对。快捷键独立于显示草稿、界面语言和 Profile。[文件与版本](../reference/cli.zh-CN.md#editor-shortcut-preferences)
 
 ### 方案、项目与任务
 

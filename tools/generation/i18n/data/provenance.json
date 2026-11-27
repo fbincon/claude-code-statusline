@@ -62027,6 +62027,87 @@
       },
       "review": "Reviewed English and Simplified Chinese action names, key labels, context-dependent guidance, and save and recovery messages against both editors. The current feature checks cover rendering and key dispatch; this does not claim regional-language review.",
       "validated_inputs_sha256": "2279a21e6d8474176db65a96474132a5abc83f629d87afaf6e4eaeb8b79f7894"
+    },
+    "35bb741009a85c07c00b7cb3f04e4b466ed3ef40ffa02938eb49357aa71d8165": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "en": {
+          "shortcuts.capture-host-help": {
+            "source": "852ad8fb85e11c1c66b0603dc9ae93a5161ba4aaafc4d6e0ddd741f1a7c159fb",
+            "translation": "69f15f8c447e9a2316f24fc1d132448fb3be2e67137f9bd044bd3bcb3a70c34f"
+          },
+          "shortcuts.filter": {
+            "source": "2825f9dacb9ddbca2b21bde57a89ecb3a583d286c5457a360e386b54fda7f37f",
+            "translation": "638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381"
+          },
+          "shortcuts.filter-help": {
+            "source": "f453eb1533a0866cf3443ef45d7a9979ce37e59c06e3afdeba4d26e2132ea184",
+            "translation": "e64827324752176e514c6ea19d1ec779a7a1f6b10e680eb15c021521f4908d6b"
+          },
+          "shortcuts.host-key": {
+            "source": "0ff956af7e276946ea55cce4176c4634b707b1c50ac528bc88fdd1d648461ca9",
+            "translation": "4d888597854f37be7efadad2fcf92390b1baaefa5e5ea507de0910c6cd2767a6"
+          },
+          "shortcuts.ignored-bindings": {
+            "source": "103f6cdfff16d1b5eeb98b912f4567de450d3cdec623631599f1b600ba88a462",
+            "translation": "573372898380e2694060511928c52963b0975800da82d5d326a02ec172dc3103"
+          },
+          "shortcuts.list-help": {
+            "source": "e13e607a40452fb55b016e5de258e3fc2b9d4ba444e67434be906f12eed79acc",
+            "translation": "552fa71497be62922d8f842acf45835167e4a1988651844e13a16872e3c11675"
+          },
+          "shortcuts.no-matches": {
+            "source": "2a8176f0881a610cf3a12b5d9527a20ef8b6f527cec9318f94c6709ecadc8a20",
+            "translation": "0867fb726be333c89b4c6294dac337f89edf25274bf4d42381ba4540a21a683c"
+          }
+        },
+        "zh-CN": {
+          "shortcuts.capture-host-help": {
+            "source": "852ad8fb85e11c1c66b0603dc9ae93a5161ba4aaafc4d6e0ddd741f1a7c159fb",
+            "translation": "02e6b130cf7cdbea7831d168485b87aee9d92842720ae47dd32a04a2a7d4b450"
+          },
+          "shortcuts.filter": {
+            "source": "2825f9dacb9ddbca2b21bde57a89ecb3a583d286c5457a360e386b54fda7f37f",
+            "translation": "b5f15473fdc0fefe54938ded6af1586874e43b8b6012627bf5fb325f75912cc3"
+          },
+          "shortcuts.filter-help": {
+            "source": "f453eb1533a0866cf3443ef45d7a9979ce37e59c06e3afdeba4d26e2132ea184",
+            "translation": "7414440e24992b5cfc2c483cc8752254e99c7ae133fd4e39b4847effed49e7b5"
+          },
+          "shortcuts.host-key": {
+            "source": "0ff956af7e276946ea55cce4176c4634b707b1c50ac528bc88fdd1d648461ca9",
+            "translation": "4172acf7237615cd5d380d11c9e3a1c082575494f87c596859183031a84c899a"
+          },
+          "shortcuts.ignored-bindings": {
+            "source": "103f6cdfff16d1b5eeb98b912f4567de450d3cdec623631599f1b600ba88a462",
+            "translation": "782e5772747b755e33260408afb909e4dc546ce277f75d1bebc01653ca0e2f82"
+          },
+          "shortcuts.list-help": {
+            "source": "e13e607a40452fb55b016e5de258e3fc2b9d4ba444e67434be906f12eed79acc",
+            "translation": "afe7eaabd727ac44e0d295e08fc4ded90d568541bca501cb5bdeda2fc02cc62e"
+          },
+          "shortcuts.no-matches": {
+            "source": "2a8176f0881a610cf3a12b5d9527a20ef8b6f527cec9318f94c6709ecadc8a20",
+            "translation": "da7b33bc5b450eec726a929ed9fffd7535831b7f3fe470c99f696b5acd8f7476"
+          }
+        }
+      },
+      "review": "Reviewed both editor languages in the shortcut list, key recorder, filtered input and migration warning. Kept key names literal and distinguished temporary filtering from persisting shortcut preferences.",
+      "validated_inputs_sha256": "8502d628e7a422b071f6b3b350a9ad7c96886497b4f7980c3669cc9758d443e5"
     }
   }
 }

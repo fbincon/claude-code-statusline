@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
@@ -17,6 +18,8 @@ import { readPreferences, setLanguage } from '../src/config/preferences.js';
 import { configCommand, itemListing, parseSlashArguments } from '../src/config/commands.js';
 import { selection, setOption } from '../src/config/operations.js';
 import { importFile, exportFile } from '../src/config/transfer.js';
+import { doctor } from '../src/integration/doctor.js';
+import { installContext } from '../src/integration/install.js';
 type Reply = {
     result: {
         draft: Draft;
@@ -109,6 +112,37 @@ test('damaged shortcuts use defaults until an explicit repair, with future schem
     assert.deepEqual(fs.readFileSync(path), damaged);
     assert.equal(fs.statSync(path).mode, mode);
 });
+
+test('legacy shortcut reads and doctor preserve bytes and mode until explicit cleanup', t => {
+    const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
+    const raw = jsonBytes({ schema_version: 1, bindings: { save: 'Z', undo: 'Ctrl+Z', redo: 'U', 'task-identity': 'Ctrl+D' } });
+    fs.writeFileSync(path, raw, { mode: 0o640 });
+    const mode = fs.statSync(path).mode;
+    const { revision, bindings, warning } = f.call('read_editor_shortcuts').response.result;
+    assert.equal(revision, createHash('sha256').update(raw).digest('hex'));
+    assert.deepEqual(bindings, { save: 'Z', 'task-identity': 'Ctrl+D' });
+    assert.equal((warning as EditorShortcutsResult['warning'])?.key, 'shortcuts.ignored-bindings');
+    const diagnose = () => doctor(installContext(f.root, f.launch, [2, 1, 294], f.io))
+        .filter(row => typeof row.message !== 'string' && row.message.key.startsWith('shortcuts.'));
+    assert.deepEqual(diagnose(), [{ level: 'WARN', message: warning }]);
+    assert.deepEqual(fs.readFileSync(path), raw);
+    assert.equal(fs.statSync(path).mode, mode);
+    assert.deepEqual(backups(f.root), []);
+    assert.equal(f.call('set_editor_shortcuts', { bindings: { save: 'Ctrl+Z' }, expected_revision: revision }).response.error.code, 'invalid_request');
+    assert.equal(f.call('set_editor_shortcuts', { bindings, expected_revision: null }).response.error.code, 'configuration_conflict');
+    assert.deepEqual(fs.readFileSync(path), raw);
+    assert.equal(fs.statSync(path).mode, mode);
+    const cleaned = f.call('set_editor_shortcuts', { bindings, expected_revision: revision });
+    assert.equal(cleaned.status, 0);
+    assert.equal(cleaned.response.result.warning, null);
+    assert.notEqual(cleaned.response.result.revision, revision);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path, 'utf8')), { schema_version: 1, bindings });
+    const [backup] = backups(f.root);
+    assert.ok(backup && backup.includes('editor-shortcuts'));
+    assert.deepEqual(fs.readFileSync(join(f.root, 'backups/statusline', backup, EDITOR_SHORTCUTS_FILENAME + '.before')), raw);
+    assert.deepEqual(diagnose(), []);
+});
+
 test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_two_editors_noop_and_unrelated_settings_preserved', t => {
     const f = setup(t), first = f.read(), second = f.read();
     const settings = JSON.parse(fs.readFileSync(f.settingsPath, 'utf8'));

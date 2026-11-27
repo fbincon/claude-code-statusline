@@ -14,7 +14,13 @@ test('external shortcut changes stage independently and apply on save and reopen
     const draft = structuredClone(f.e.draft), history = structuredClone(f.e.history);
     f.e.page = 'settings'; f.e.setting = 'keyboard-shortcuts';
     const press = (key: string, ctrl = false) => f.session.key({ key, ctrl });
-    await press('return'); await press('return'); await press('z');
+    await press('return');
+    const compact = (key: string, paste = false) => f.session.key({ key, paste }, 32, 12);
+    await compact('/');
+    await compact('save display', true);
+    await compact('return');
+    assert.match(text(f.state, 32, 12), /› .*Save display/);
+    await compact('return'); await compact('z');
     assert.equal(fs.existsSync(shortcutPath), false);
     await press('tab'); await press('return');
     assert.deepEqual((await f.backend.request('read_editor_shortcuts')).bindings, { save: 'Z' });
@@ -44,6 +50,46 @@ test('external shortcut changes stage independently and apply on save and reopen
     assert.deepEqual(f.e.draft, draft);
     assert.deepEqual(f.e.history, history);
 });
+
+test('remapped terminal search accepts bound characters and Esc retains its guarded close', async t => {
+    const f = await fixture(t);
+    f.e.shortcuts.snapshot = await f.backend.request('set_editor_shortcuts', {
+        bindings: { save: 'Z', search: 'Y', close: 'M' }, expected_revision: null,
+    });
+    f.state.notice('An unrelated message');
+    assert.match(text(f.state, 64, 18), /Y search/);
+    assert.match(text(f.state, 64, 18), /M\/Esc/);
+    assert.deepEqual(f.keys('z'), ['save']);
+    assert.equal(f.e.search.main, '');
+    f.keys('x', 'y', 'z');
+    assert.equal(f.state.input?.kind, 'search');
+    assert.equal(f.e.search.main, 'xz');
+    assert.deepEqual(f.keys('escape'), [null]);
+    assert.equal(f.state.input, null);
+    assert.equal(f.e.search.main, 'x');
+    f.keys({ key: 'g', ctrl: true }, { key: 'a', ctrl: true });
+    assert.equal(f.e.adding, true);
+    assert.match(text(f.state, 64, 18), /Y search/);
+    f.keys('y', 'z');
+    assert.equal(f.e.listContext('main').search, 'z');
+    assert.deepEqual(f.keys('escape', 'escape'), [null, null]);
+    assert.equal(f.e.adding, false);
+    assert.deepEqual(f.keys('escape', 'm'), ['cancel', 'cancel']);
+    f.keys(' ');
+    const draft = structuredClone(f.e.draft), history = structuredClone(f.e.history);
+    assert.equal(f.e.modified, true);
+    f.keys('escape');
+    assert.equal(f.state.exitChoice, 'keep');
+    assert.deepEqual(f.keys('return'), [null]);
+    assert.equal(f.state.exitChoice, null);
+    f.keys('m');
+    assert.equal(f.state.exitChoice, 'keep');
+    assert.deepEqual(f.keys('down', 'return'), [null, 'cancel']);
+    assert.deepEqual(f.e.draft, draft);
+    assert.deepEqual(f.e.history, history);
+    assert.equal(fs.existsSync(f.displayPath), false);
+});
+
 async function reviewFixture(t: import('node:test').TestContext) {
     const f = await fixture(t);
     f.e.page = 'settings';

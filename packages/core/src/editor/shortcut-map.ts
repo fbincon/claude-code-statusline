@@ -1,3 +1,4 @@
+import { text, type LocalizedText } from '../i18n/messages.js';
 import type { TextKey } from './text-input.js';
 
 export type EditorSurface = 'terminal' | 'native';
@@ -24,11 +25,19 @@ function scenario(defaults: Defaults, fixed: readonly string[] = []): Scenario {
   return { defaults, fixed };
 }
 
-function editorScenarios(surface: EditorSurface) {
+function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
   const native = surface === 'native';
   const preview: Defaults = { 'preview-scenario': ['Ctrl+V'], 'preview-width': ['Ctrl+W'], 'preview-row': ['Ctrl+N'] };
+  const undo = native ? ['Ctrl+/'] : ['Ctrl+Z'];
+  const copy = native ? ['D'] : ['Ctrl+D'];
+  const remove = native ? ['X'] : ['Ctrl+X'];
+  if (native && legacyNativeAliases) {
+    undo.push('Ctrl+Z');
+    copy.push('Ctrl+D');
+    remove.push('Ctrl+X');
+  }
   const draft: Defaults = {
-    history: ['Ctrl+T'], undo: native ? ['Ctrl+/', 'Ctrl+Z'] : ['Ctrl+Z'], redo: ['Ctrl+R'],
+    history: ['Ctrl+T'], undo, redo: ['Ctrl+R'],
     diagnose: ['Ctrl+L'], groups: ['Ctrl+B'], sources: ['Ctrl+Y'], ...preview,
   };
   const pageTools: Defaults = { profiles: ['Ctrl+O'], 'quick-setup': ['Ctrl+P'] };
@@ -46,8 +55,8 @@ function editorScenarios(surface: EditorSurface) {
     list: scenario({ ...root, ...pageTools, ...listSelection,
       save: native ? ['S'] : ['Enter', 'Ctrl+S'],
       'add-item': native ? ['A', 'Ctrl+A'] : ['Ctrl+A'],
-      'copy-item': native ? ['D', 'Ctrl+D'] : ['Ctrl+D'],
-      'remove-item': native ? ['X', 'Ctrl+X'] : ['Ctrl+X'],
+      'copy-item': copy,
+      'remove-item': remove,
       'toggle-item': native ? ['Enter', 'Space'] : ['Space'],
       'move-left': ['Left'], 'move-right': ['Right'],
     }, pageKeys),
@@ -78,9 +87,12 @@ function editorScenarios(surface: EditorSurface) {
 }
 
 const scenarios = { terminal: editorScenarios('terminal'), native: editorScenarios('native') };
+const legacyScenarios = { ...scenarios, native: editorScenarios('native', true) };
 export type ShortcutContext = keyof ReturnType<typeof editorScenarios>;
 const surfaces: readonly EditorSurface[] = ['terminal', 'native'];
 const actions = Object.values(SHORTCUT_GROUPS).flat();
+const nativeActions = new Set(Object.values(scenarios.native).flatMap(({ defaults }) => Object.keys(defaults)));
+const nativeReserved: readonly string[] = ['Ctrl+D', 'Ctrl+X', 'Ctrl+Z'];
 const reservedControl = new Set(['Ctrl+C', 'Ctrl+G', 'Ctrl+H', 'Ctrl+I', 'Ctrl+J', 'Ctrl+K', 'Ctrl+M', 'Ctrl+U']);
 
 export function keyToken(event: TextKey): string | null {
@@ -105,19 +117,37 @@ export function assignableKey(key: string): boolean {
     key.length === 6 && /^Ctrl\+[A-Z]$/.test(key) && !reservedControl.has(key);
 }
 
-export function canAssignKey(action: ShortcutAction, key: string): boolean {
+function assignableInContexts(action: ShortcutAction, key: string): boolean {
   return assignableKey(key) && (action !== 'save-source' || key.startsWith('Ctrl+')) &&
     surfaces.every(surface => Object.values(scenarios[surface]).every(({ defaults, fixed }) => !defaults[action] || !fixed.includes(key)));
 }
 
-export function isBindingMap(value: unknown): value is ShortcutBindings {
+export function isNativeReservedKey(action: ShortcutAction, key: string): boolean {
+  return reservedNativeKeys(action).includes(key);
+}
+
+export function reservedNativeKeys(action: ShortcutAction): readonly string[] {
+  return nativeActions.has(action) ? nativeReserved : [];
+}
+
+export function canAssignKey(action: ShortcutAction, key: string): boolean {
+  return !isNativeReservedKey(action, key) && assignableInContexts(action, key);
+}
+
+function bindingMap(value: unknown, accept: (action: ShortcutAction, key: string) => boolean): value is ShortcutBindings {
   return !!value && typeof value === 'object' && !Array.isArray(value) && Object.entries(value).every(([action, key]) =>
-    actions.includes(action as ShortcutAction) && typeof key === 'string' && canAssignKey(action as ShortcutAction, key));
+    actions.includes(action as ShortcutAction) && typeof key === 'string' && accept(action as ShortcutAction, key));
+}
+
+export function isBindingMap(value: unknown): value is ShortcutBindings {
+  return bindingMap(value, canAssignKey);
 }
 
 function effectiveKeys(defaults: Defaults, bindings: ShortcutBindings, action: ShortcutAction): readonly string[] {
   const keys = defaults[action], custom = bindings[action];
-  return !keys ? [] : custom === undefined ? keys : [custom];
+  if (!keys) return [];
+  if (custom === undefined) return keys;
+  return action === 'close' && keys.includes('Esc') ? [custom, 'Esc'] : [custom];
 }
 
 export interface ShortcutConflict {
@@ -128,10 +158,10 @@ export interface ShortcutConflict {
   second: ShortcutAction;
 }
 
-export function shortcutConflict(bindings: ShortcutBindings): ShortcutConflict | null {
+function findConflict(bindings: ShortcutBindings, registry: typeof scenarios): ShortcutConflict | null {
   for (const surface of surfaces) {
-    for (const context of Object.keys(scenarios[surface]) as ShortcutContext[]) {
-      const { defaults } = scenarios[surface][context], used = new Map<string, ShortcutAction>();
+    for (const context of Object.keys(registry[surface]) as ShortcutContext[]) {
+      const { defaults } = registry[surface][context], used = new Map<string, ShortcutAction>();
       for (const action of Object.keys(defaults) as ShortcutAction[]) {
         for (const key of effectiveKeys(defaults, bindings, action)) {
           const first = used.get(key);
@@ -142,6 +172,35 @@ export function shortcutConflict(bindings: ShortcutBindings): ShortcutConflict |
     }
   }
   return null;
+}
+
+export function shortcutConflict(bindings: ShortcutBindings): ShortcutConflict | null {
+  return findConflict(bindings, scenarios);
+}
+
+/** Project a formerly valid map onto the current host rules without changing its revision. */
+export function readShortcutBindings(value: unknown): { bindings: ShortcutBindings; warning: LocalizedText | null } | null {
+  if (isBindingMap(value) && !shortcutConflict(value)) return { bindings: value, warning: null };
+  if (!bindingMap(value, assignableInContexts) || findConflict(value, legacyScenarios)) return null;
+  const bindings = { ...value };
+  const ignored = new Set<string>();
+  for (const action of actions) {
+    const key = bindings[action];
+    if (key !== undefined && isNativeReservedKey(action, key)) {
+      ignored.add(key);
+      delete bindings[action];
+    }
+  }
+  if (!ignored.size) return null;
+  // Any new collision is with a preset restored by dropping an override.
+  for (let conflict = shortcutConflict(bindings); conflict; conflict = shortcutConflict(bindings)) {
+    const action = bindings[conflict.first] === undefined ? conflict.second : conflict.first;
+    const key = bindings[action];
+    if (key === undefined) return null;
+    ignored.add(key);
+    delete bindings[action];
+  }
+  return { bindings, warning: text('shortcuts.ignored-bindings', { keys: [...ignored].join(', ') }) };
 }
 
 export function resolveShortcut(surface: EditorSurface, context: ShortcutContext, event: TextKey, bindings: ShortcutBindings): ShortcutAction | null {

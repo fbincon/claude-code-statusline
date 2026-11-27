@@ -1089,7 +1089,7 @@ Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`
 {"schema_version": 1, "bindings": {"save": "Z"}}
 ```
 
-The shared registry defines action IDs and their contexts. Missing overrides use the editor's presets. Saving an empty map backs up and removes the file. Reads leave the configuration on disk as found. A future schema refuses writes. Older packages can read their own configuration normally, and a subsequent upgrade can read the saved overrides. [Shortcut workflow](../EDITORS.md#customize-keyboard-shortcuts)
+The shared registry defines action IDs and their contexts. Missing overrides use each editor's presets. When a previously valid map contains newly reserved keys, reads return the usable overrides and warn about the skipped keys. The original file stays available until an explicit save. Saving an empty map backs up and removes the file. A future schema refuses writes. `doctor` reports shortcut preference warnings using the same reader. [Shortcut workflow](../EDITORS.md#customize-keyboard-shortcuts)
 
 ### Editor enablement preferences
 

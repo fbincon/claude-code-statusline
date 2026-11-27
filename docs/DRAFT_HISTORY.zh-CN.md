@@ -8,7 +8,7 @@
 
 在设置中选择**变更与历史**，或按 **Ctrl+T** 打开该页。在页内按普通 **U** 撤销、**R** 重做。编辑字段、使用选择器或管理器期间，由当前页面处理快捷键。返回主编辑区后可使用草稿历史。
 
-Claude 的 Unix 宿主可能在编辑器收到 Ctrl+Z 前挂起整个进程；本机 2.1.312 已观察到这一行为，参见 [Claude 终端冲突说明](https://code.claude.com/docs/en/keybindings#terminal-conflicts)。安装程序不会修改 Claude 的全局按键配置；请使用编辑器指南中的宿主替代键。
+内置 Client 使用 Ctrl+/ 或 Ctrl+_ 撤销。在 Unix 上，Claude 可能在 Client 收到 Ctrl+Z 前挂起整个进程，本机 2.1.312 已观察到这一行为。外部编辑器通过终端原始输入接收 Ctrl+Z 并执行撤销。[Claude 终端冲突说明](https://code.claude.com/docs/en/keybindings#terminal-conflicts)
 
 ## 历史与变更审阅
 

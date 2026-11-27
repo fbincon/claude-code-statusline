@@ -84,7 +84,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Enter | Save on Main/Subagents pages and original settings rows; edit or accept advanced fields |
 | Ctrl+S | Save the display draft outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
-| Esc | Cancel a field or subview; at the top level close a clean draft or confirm discarding changes, defaulting to keep editing |
+| Esc | Cancel a field or subview. At the top level, close a clean draft or confirm discarding changes, defaulting to keep editing. Available after rebinding Close. |
 | Ctrl+C | Restore the terminal, exit 130 and discard unsaved display edits |
 
 ### In-session Client
@@ -109,7 +109,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Operation | Terminal / Client | Detailed workflow |
 | --- | --- | --- |
 | Quick setup | Ctrl+P in either editor outside item details | [Schemes and presets](SCHEMES.md#editor-quick-setup) |
-| Undo | Terminal editor: Ctrl+Z. Client: Ctrl+Z / Ctrl+/; Ctrl+_ is also accepted when forwarded | [History and terminal conflicts](DRAFT_HISTORY.md) |
+| Undo | Terminal editor uses Ctrl+Z. Client uses Ctrl+/ and also accepts Ctrl+_. | [History and terminal conflicts](DRAFT_HISTORY.md) |
 | Redo; changes and history | Ctrl+R; Ctrl+T | [Draft history and review](DRAFT_HISTORY.md#history-and-change-review) |
 | Component groups | Ctrl+B | [Composition](COMPOSITION.md#component-groups) |
 | Profiles and project targets | Ctrl+O outside item details | [Profiles](PROFILES.md) |
@@ -123,7 +123,7 @@ Return from a manager to the main editor to use draft history. On Unix, Claude m
 
 ## Customize keyboard shortcuts
 
-In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ.
+In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The open shortcut panel fits in 32×12.
 
 1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
 2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
@@ -131,7 +131,9 @@ In either editor, open **Settings → Keyboard shortcuts**. Navigate with the ar
 
 The current editor applies the keys immediately after saving. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict so you can read the saved map first. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)
 
-Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. A new binding replaces the preset and its aliases for that operation. For example, rebind terminal Save to use the new key on the item list, while Enter still confirms regular menu choices. Host focus, text editing, menu navigation, emergency exit, and recovery use fixed controls.
+Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. Ctrl+D, Ctrl+X and Ctrl+Z can be assigned only to terminal-only actions because Claude can intercept them. If a saved map contains an unavailable binding, the editors show a warning and load the usable overrides. Choose **Save shortcuts** to store that map.
+
+Rebinding Save replaces its preset keys, and Enter continues to confirm menu choices. Rebinding terminal Close adds the chosen key alongside Esc. In the terminal component list or catalog, bound characters run their actions and unbound characters filter the list. To include any bound letter or symbol in the query, use the current **Search** key shown on screen to open the input field. Its preset is `/`.
 
 The tables on this page show presets. After a change, look at the footer or shortcut panel for active bindings. Your terminal and host must deliver the key to the editor for recording and dispatch. The Client cannot distinguish paste that the host delivers as an ordinary single-character key event.
 

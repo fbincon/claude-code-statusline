@@ -62,6 +62,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     record(join(config, '.claude.json'), { hasCompletedOnboarding: true, theme: 'dark', projects: { [project]: { hasTrustDialogAccepted: true } } });
     record(join(config, 'claude-statusline.json'), draft.display);
     record(join(config, 'statusline-ui.json'), { schema_version: 1, ui_language: language });
+    const shortcutPath = join(config, EDITOR_SHORTCUTS_FILENAME);
+    let legacyShortcuts: { bytes: Buffer; mode: number } | undefined;
+    if (action === 'editor-shortcuts') {
+        record(shortcutPath, {
+            schema_version: 1, bindings: { close: 'M', search: 'Y', undo: 'Ctrl+Z', redo: 'U', 'reload-profiles': 'Ctrl+D', 'reload-sources': 'Ctrl+X' },
+        });
+        legacyShortcuts = { bytes: fs.readFileSync(shortcutPath), mode: fs.statSync(shortcutPath).mode };
+    }
     if (data.profiles?.library) { const { revision: _, ...library } = data.profiles.library; record(join(config, 'claude-statusline-profiles.json'), library); }
     if (data.sources?.library) { const { revision: _, ...library } = data.sources.library; record(join(config, 'claude-statusline-sources.json'), library); }
     const importPath = join(config, 'identical-display.json');const imported=structuredClone(draft.display);if(action==='style-reuse'){imported.instances[0]!.options.foreground='#abcdef';imported.instances[0]!.options.label='Copied style';}record(importPath, imported);
@@ -330,8 +338,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\x1b[B'.repeat(4)+'\r','diagnose input only');await until(text=>(external||completed('diagnose_file'))&&text.includes('File diagnosis output')&&text.includes('File-input-model')&&text.includes('Evidence: supplied input only'),'file result visible');capture('after');
             await key('\x07','back to form');await key('\x07','back to retained editor');
         } else if (action === 'editor-shortcuts') {
-            const preference = join(config, EDITOR_SHORTCUTS_FILENAME), languageBytes = fs.readFileSync(join(config, 'statusline-ui.json'));
+            const preference = shortcutPath, languageBytes = fs.readFileSync(join(config, 'statusline-ui.json'));
             const settingsBytes = fs.readFileSync(join(config, 'settings.json'));
+            assert.ok(legacyShortcuts);
+            const { bytes: legacy, mode: preferenceMode } = legacyShortcuts;
             const openNativeSettings = async () => {
                 await key('3', 'open native Settings');
                 await key('\x1b[F', 'start at last setting');
@@ -363,18 +373,33 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 }
             };
             await openNativeSettings();
+            await until(text => text.includes('Skipped unavailable or conflicting keys'), 'incompatible legacy shortcuts reported');
+            await key('/', 'open shortcut filter');
+            await key('save display', 'filter shortcut actions');
+            await key('\r', 'accept shortcut filter');
+            await until(text => text.includes('Filter save display') && /›.*Save display/u.test(text), 'filtered save action remains selected');
             await key('\r', 'capture save binding');
-            await until(text => text.includes('New key for Save display'), 'native recorder visible');
+            await until(text => text.includes('New key for Save display') && text.includes('Claude reserves Ctrl+D, Ctrl+X, Ctrl+Z'), 'native recorder shows host restrictions');
             await key('z', 'stage Z for save');
-            assert.equal(fs.existsSync(preference), false);
+            assert.deepEqual(fs.readFileSync(preference), legacy);
+            assert.equal(fs.statSync(preference).mode, preferenceMode);
             await key('\t\r', 'save shortcut changes');
             await until(text => text.includes('Keyboard shortcuts saved'), 'native shortcut save confirmed');
-            assert.deepEqual(JSON.parse(fs.readFileSync(preference, 'utf8')).bindings, { save: 'Z' });
+            assert.deepEqual(JSON.parse(fs.readFileSync(preference, 'utf8')).bindings, { close: 'M', save: 'Z', search: 'Y' });
+            const backupRoot = join(config, 'backups/statusline');
+            const shortcutBackup = fs.readdirSync(backupRoot).find(name => name.includes('editor-shortcuts'));
+            assert.ok(shortcutBackup);
+            assert.deepEqual(fs.readFileSync(join(backupRoot, shortcutBackup, EDITOR_SHORTCUTS_FILENAME + '.before')), legacy);
             assert.deepEqual(fs.readFileSync(displayPath), before);
             assert.equal(fs.statSync(displayPath).mode, beforeMode);
             capture('native-custom');
             await key('\x071', 'return to main editor');
             await until(text => /\bZ +save\b/u.test(text), 'native footer shows Z');
+            await key('y', 'use remapped native search');
+            await key('z', 'type the bound save key in search');
+            await until(text => text.includes('z▏'), 'native search treats Z as input');
+            assert.equal(records().filter(row => row.operation === 'apply').length, 0);
+            await key('\x07', 'cancel native search');
             await key('s', 'try previous native save key');
             assert.equal(records().filter(row => row.operation === 'apply').length, 0);
             await key('z', 'use new native save key');
@@ -383,7 +408,18 @@ async function runCase(name: string, fixtureName: string, action: string, extern
 
             await runExternal('terminal-custom', async (tty, wait) => {
                 await wait('Z save');
+                await wait('Y search');
+                await wait('M/Esc cancel');
+                tty.send('yz');
+                await wait('z▏');
+                assert.deepEqual(fs.readFileSync(displayPath), before);
+                tty.send('\x1b');
+                await wait('Y search');
                 tty.send(' ');
+                await wait('Configure Status Line *');
+                tty.send('\x1b');
+                await wait('› ' + t('ui.exit.keep', 'en'));
+                tty.send('\r');
                 await wait('Configure Status Line *');
                 tty.send('\x13\r');
                 await delay(350);
@@ -394,6 +430,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 assert.equal(JSON.parse(fs.readFileSync(displayPath, 'utf8')).instances[0].enabled, false);
             });
             const savedDisplay = fs.readFileSync(displayPath);
+            await runExternal('terminal-escape', async (tty, wait) => {
+                await wait('M/Esc cancel');
+                tty.send('\x1b');
+            });
             await runExternal('terminal-restore', async (tty, wait) => {
                 await wait('Z save');
                 tty.send('\t\t\x1b[F\r');

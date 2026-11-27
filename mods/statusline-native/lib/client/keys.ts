@@ -23,7 +23,7 @@ import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview, reviewShortcutContext } from '../editor/import-review.ts';
-import { shortcutPanelCapacity, type ShortcutEffect } from '../editor/shortcut-settings.ts';
+import type { ShortcutEffect } from '../editor/shortcut-settings.ts';
 
 export type Effect = 'changes' | 'reuse' | 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | ShortcutEffect | null;
 
@@ -55,7 +55,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if ((columns < 32 || rows < 12) && !view.input && !e.packages && !event.ctrl && !event.meta && !event.text && shortcut === 'q') return 'close';
-  if (e.shortcuts.panel) return e.shortcuts.key(event, shortcutPanelCapacity(rows - 1, columns), event.shift);
+  if (e.shortcuts.panel) return e.shortcuts.key(event, view.language ?? 'en', columns, rows - 1, event.shift);
   if (e.changeReview) return changesKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
   if (e.reuse) return reuseKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
   if (e.packages) {

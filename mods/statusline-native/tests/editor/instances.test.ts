@@ -56,8 +56,11 @@ test('picker cancellation and instance shortcuts retain the unsaved draft',()=>{
   handleKey(v,{key:'a',ctrl:true},80,24);expect(e.adding).toBe(true);
   handleKey(v,{key:'g',ctrl:true},80,24);expect(e.adding).toBe(false);expect(e.search.main).toBe('model');expect(e.modified).toBe(false);
   e.filter('main','');handleKey(v,{key:'d',ctrl:true},80,24);
+  expect(e.draft.display.instances.length).toBe(1);
+  handleKey(v,{key:'d'},80,24);
   expect(e.draft.display.instances.length).toBe(2);const duplicate=e.selected.main;
-  handleKey(v,{key:'x',ctrl:true},80,24);expect(e.instance('main',duplicate)).toBe(undefined);
+  handleKey(v,{key:'x',ctrl:true},80,24);expect(e.instance('main',duplicate)).toBeDefined();
+  handleKey(v,{key:'x'},80,24);expect(e.instance('main',duplicate)).toBe(undefined);
   expect(e.baseline.draft.display.instances.length).toBe(1);
 });
 
