@@ -114,6 +114,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             schema_version: 1, bindings: { close: 'M', search: 'Y', undo: 'Ctrl+Z', redo: 'U', 'reload-profiles': 'Ctrl+D', 'reload-sources': 'Ctrl+X' },
         });
         legacyShortcuts = { bytes: fs.readFileSync(shortcutPath), mode: fs.statSync(shortcutPath).mode };
+    } else if (action === 'shortcut-preset') {
+        record(shortcutPath, { schema_version: 1, bindings: { save: 'Q', close: 'Z', 'close-picker': 'Z' } });
     }
     if (data.profiles?.library) { const { revision: _, ...library } = data.profiles.library; record(join(config, 'claude-statusline-profiles.json'), library); }
     if (data.sources?.library) { const { revision: _, ...library } = data.sources.library; record(join(config, 'claude-statusline-sources.json'), library); }
@@ -629,6 +631,17 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
             assert.equal(fs.statSync(displayPath).mode, committedDisplayMode);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
+        } else if (action === 'shortcut-preset') {
+            await key('3', 'open native Settings');
+            await key('\x1b[F', 'start at the last setting');
+            const selected = (text: string) => text.split('\n').some(line => /›.*Expand selected preset/u.test(line));
+            for (let i = 0; i < 16 && !selected(read()); i++) await key('\x1b[A', 'find the preset action');
+            await until(selected, 'native preset action selected');
+            await key('\r', 'expand the selected preset into the draft');
+            const notice = t('shortcuts.native-preset-applied', 'en', { save: 'Q', close: 'Z' });
+            await until(text => text.includes(notice) && text.includes('Configure Status Line *') && completed('preset'), 'dirty preset shows Q to save and Z to discard');
+            assert.equal(applyRequests(), 0);
+            capture('remapped-preset');
         } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
@@ -675,10 +688,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             }
             await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before);
         }
-        else if (!nativeTask && !header) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
+        else if (!nativeTask && !header) {
+            await key(action === 'shortcut-preset' ? 'z' : 'q', 'close without another save');
+            await until(text => !text.includes('Configure Status Line'), 'pane closed');
+        }
+        if (action === 'shortcut-preset') assert.equal(applyRequests(), 0, 'Discarding the native preset requested a configuration save');
         if (action !== 'save' && action !== 'editor-shortcuts' && !pickerSave) {
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
-            if (pickerDiscard || header) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
+            if (pickerDiscard || header || action === 'shortcut-preset') assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
         }
         assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
         status = 'pass';
@@ -695,7 +712,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
-const expectedJourneys = values['editor-shortcuts'] ? 1 : values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
+const expectedJourneys = values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
@@ -703,6 +720,7 @@ try {
     command(installed.node, [driver, installed.modules, 'prepare-host', template, join(installed.temporary, 'prepared.json'), request], { ...env, CLAUDE_CONFIG_DIR: template });
     if (values['editor-shortcuts']) {
         await runCase('editor-shortcuts', 'plain-main-w72', 'editor-shortcuts');
+        await runCase('native-remapped-preset', 'plain-main-w72', 'shortcut-preset');
     } else if (values['header-controls']) {
         for (const language of ['de', 'pt-BR', 'en'] as const)
             await runCase('native-header-' + language, 'plain-main-w72', 'header-controls', false, language);

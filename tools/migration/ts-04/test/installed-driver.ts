@@ -2,7 +2,8 @@ import * as fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-const [modules, operation, config, receipt, choice] = process.argv.slice(2);
+import type { installedEditorJourney } from './installed-editor-journey.js';
+const [modules, operation, config, receipt, choice, journeyModule] = process.argv.slice(2);
 const load = (name: string, path: string) => import(pathToFileURL(join(modules!, 'statusline-' + name, 'dist/src', path + '.js')).href);
 if (operation === 'appearance-scenarios') {
     const { SCENARIO_SCHEMES } = await load('core','config/scenario-presets');
@@ -232,25 +233,28 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         if (!k.func('bool SetConsoleMode(void *handle, uint32_t mode)')(output, outputMode()! & ~4)) throw new Error('Cannot prepare VT-disabled fixture');
     }
     const beforeOutput = outputMode();
+    const navigationKeys: Record<string, number> = { '\x1b[A': 0x26, '\x1b[B': 0x28, '\x1b[F': 0x23 };
     const sendKeys = (keys: string) => {
-        const records = Buffer.alloc(keys.length * 40);
-        for (let i = 0; i < keys.length; i++) for (let down = 0; down < 2; down++) {
-            const offset = i * 40 + down * 20, code = keys.charCodeAt(i);
-            records.writeUInt16LE(1, offset); records.writeInt32LE(down === 0 ? 1 : 0, offset + 4);
-            records.writeUInt16LE(1, offset + 8); records.writeUInt16LE(code === 19 ? 0x53 : code, offset + 10);
-            records.writeUInt16LE(code, offset + 14); records.writeUInt32LE(code === 19 ? 8 : 0, offset + 16);
+        const strokes = keys.match(/\x1b\[[ABF]|[\s\S]/gu) ?? [];
+        const records = Buffer.alloc(strokes.length * 40);
+        for (const [i, key] of strokes.entries()) {
+            const navigation = navigationKeys[key], code = navigation ? 0 : key.charCodeAt(0);
+            const ctrl = code === 3 || code === 7 || code === 19;
+            const virtualKey = navigation ?? (ctrl ? 0x40 + code : key.toUpperCase().charCodeAt(0));
+            for (let down = 0; down < 2; down++) {
+                const offset = i * 40 + down * 20;
+                records.writeUInt16LE(1, offset); records.writeInt32LE(down === 0 ? 1 : 0, offset + 4);
+                records.writeUInt16LE(1, offset + 8); records.writeUInt16LE(virtualKey, offset + 10);
+                records.writeUInt16LE(code, offset + 14); records.writeUInt32LE(ctrl ? 8 : 0, offset + 16);
+            }
         }
-        const count = keys.length * 2, written = [0];
+        const count = strokes.length * 2, written = [0];
         if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, count, written) || written[0] !== count) throw new Error('WriteConsoleInputW did not send every key record');
     };
-    const discardEditor = operation === 'windows-editor' && choice !== 'save';
-    const toggleThenSave = operation === 'windows-editor' && choice === 'save';
-    const protectedFiles = toggleThenSave ? ['claude-statusline.json', 'settings.json'].map(name => {
-        const path = join(config!, name);
-        return { path, bytes: fs.readFileSync(path), mode: fs.statSync(path).mode };
-    }) : [];
+    const journey: ReturnType<typeof installedEditorJourney> | null = journeyModule
+        ? (await import(pathToFileURL(journeyModule).href)).installedEditorJourney(config, choice) : null;
+    const discardEditor = operation === 'windows-editor' && !journey;
     let previewCancelled = false, discardConfirmed = false;
-    let toggledBeforeSave = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     // The production editor can move to an independent runtime. Preserve its
     // real console handles and record its writes through a fixture-only preload,
@@ -265,21 +269,18 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
     const capturedOutput=()=>chunks.join('')+fs.readFileSync(capturedPath,'utf8');
     const observeOutput=()=>{
         const output=capturedOutput();
+        if (journey) {
+            const keys = journey.next(output);
+            if (keys !== null) sendKeys(keys);
+            return;
+        }
         if (!scheduled && output.includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
             scheduled = true;
             setTimeout(() => {
                 const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
-                    : discardEditor ? ' \x1b' : '\r';
+                    : ' \x1b';
                 sendKeys(keys);
             }, 50);
-        }
-        if (toggleThenSave && scheduled && !toggledBeforeSave && output.includes('Configure Status Line *')) {
-            toggledBeforeSave = true;
-            for (const { path, bytes, mode } of protectedFiles) {
-                assert.deepEqual(fs.readFileSync(path), bytes, 'Enter changed ' + path);
-                assert.equal(fs.statSync(path).mode, mode, 'Enter changed the mode of ' + path);
-            }
-            setTimeout(() => sendKeys('\x13'), 50);
         }
         if (choice === 'preview-cancel' && !previewCancelled && output.includes('Statusline theme')) {
             previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
@@ -297,13 +298,16 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         return (write as any)(chunk, ...args);
     };
     const poll=setInterval(observeOutput,25);
-    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', operation, choice, columns, rows, scheduled, discardConfirmed, output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
+    timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', operation, choice, columns, rows, scheduled, discardConfirmed, waiting_for: journey?.waitingFor, output: capturedOutput().slice(-2000) })); process.exit(1); }, 10000);
     fs.writeFileSync(receipt!,JSON.stringify({stage:'loading_editor',pid:process.pid}),{mode:0o600});
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        assert(!toggleThenSave || toggledBeforeSave, 'Windows editor saved before the Enter toggle was visible');
+        if (journey) {
+            assert(journey.complete, 'Windows editor exited before ' + journey.waitingFor);
+            discardConfirmed = choice === 'cancel';
+        }
         fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, discard_confirmed: discardConfirmed, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: capturedOutput() }));
         process.exitCode = status;
     }

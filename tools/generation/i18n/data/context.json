@@ -66,6 +66,46 @@
       "version": 1,
       "description": "Task report in the external editor. The view displays previously published evidence.",
       "terms": []
+    },
+    "quick.preset-ready": {
+      "version": 1,
+      "description": "In Quick setup, a preset has been loaded into the wizard candidate. The user is on the appearance step and can advance to its review.",
+      "terms": []
+    },
+    "shortcuts.color-help": {
+      "version": 1,
+      "description": "Color panel with no text input active. Apply accepts the candidate into the display draft. Cancel leaves the panel.",
+      "terms": []
+    },
+    "shortcuts.color-input-help": {
+      "version": 1,
+      "description": "Editing a text field within the color panel. Accept finishes the field and cancel leaves just the text edit.",
+      "terms": []
+    },
+    "shortcuts.host-preferences-pending": {
+      "version": 1,
+      "description": "The display is saved. The host preference edits still need a separate Apply. The user can then finish or close to discard the remaining host edits.",
+      "terms": []
+    },
+    "shortcuts.interrupt-key": {
+      "version": 1,
+      "description": "The terminal editor declined Ctrl+C as a binding after catching it during recording. Ctrl+C interrupts the editor outside recording.",
+      "terms": []
+    },
+    "shortcuts.native-preset-applied": {
+      "version": 1,
+      "description": "The Native editor loaded a preset into the display draft. Save writes the draft and stays open. Close discards it.",
+      "terms": []
+    },
+    "shortcuts.read-busy": {
+      "version": 1,
+      "description": "Reason for a failed readback. The configuration is being written, so the user should read saved shortcuts again.",
+      "terms": []
+    },
+    "shortcuts.read-recovery": {
+      "version": 1,
+      "description": "Reason for a failed readback. The user should resolve the unfinished configuration transaction with the literal command and then read the saved map again.",
+      "terms": []
     }
   }
 }

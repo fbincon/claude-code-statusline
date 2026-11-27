@@ -74,7 +74,7 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
     repair: scenario({ 'close-history': ['Q'], 'accept-repair': ['A'] }, ['Enter']),
     colors: scenario({ 'apply-color': ['Ctrl+S'] }, ['Enter', 'Left', 'Right']),
     profiles: scenario({ 'reload-profiles': ['R'] }, ['Enter']),
-    sources: scenario({ 'reload-sources': ['R'] }, ['Enter']),
+    sources: scenario({ 'reload-sources': ['R'] }, ['Enter', 'Left', 'Right']),
     'source-form': scenario({ 'save-source': ['Ctrl+S'] }, ['Enter', 'Left', 'Right', 'Space']),
     reuse: scenario(reuse, ['Enter', 'Space', 'Left', 'Right']),
     'reuse-review': scenario({ ...reuse, 'accept-reuse': ['A'] }, ['Enter']),
@@ -86,11 +86,19 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
 }
 
 const scenarios = { terminal: editorScenarios('terminal'), native: editorScenarios('native') };
-const legacyTerminalList = scenarios.terminal.list;
-const legacyScenarios = {
+// Before Settings reserved Enter, Save also used Enter on the terminal refresh row.
+const previousRefresh = scenarios.terminal['refresh-settings'];
+const beforeSettingsEnter = {
+  ...scenarios,
+  terminal: { ...scenarios.terminal,
+    'refresh-settings': scenario({ ...previousRefresh.defaults, save: ['Ctrl+S', 'Enter'] }, previousRefresh.fixed.filter(key => key !== 'Enter')),
+  },
+};
+const previousList = scenarios.terminal.list;
+const beforeHostReservations = {
   terminal: {
-    ...scenarios.terminal,
-    list: scenario({ ...legacyTerminalList.defaults, save: ['Enter', 'Ctrl+S'], 'toggle-item': ['Space'] }, legacyTerminalList.fixed),
+    ...beforeSettingsEnter.terminal,
+    list: scenario({ ...previousList.defaults, save: ['Enter', 'Ctrl+S'], 'toggle-item': ['Space'] }, previousList.fixed),
   },
   native: editorScenarios('native', true),
 };
@@ -184,20 +192,27 @@ export function shortcutConflict(bindings: ShortcutBindings): ShortcutConflict |
   return findConflict(bindings, scenarios);
 }
 
-/** Project a formerly valid map onto the current host rules without changing its revision. */
-export function readShortcutBindings(value: unknown): { bindings: ShortcutBindings; warning: LocalizedText | null } | null {
+/** Project only maps accepted by an earlier editor, preserving the revision of the original bytes. */
+export function readShortcutBindings(value: unknown, previouslyIgnored: readonly string[] = []): { bindings: ShortcutBindings; warning: LocalizedText | null } | null {
   if (isBindingMap(value) && !shortcutConflict(value)) return { bindings: value, warning: null };
-  if (!bindingMap(value, assignableInContexts) || findConflict(value, legacyScenarios)) return null;
+  if (!bindingMap(value, (action, key) => assignableInContexts(action, key) ||
+    action === 'event-refresh' && key === 'Enter' || action === 'reload-sources' && (key === 'Left' || key === 'Right'))) return null;
+  // Validate the original map before restoring presets. The host-reserved overrides
+  // predate both Enter changes; source arrows alone were still writable afterwards.
+  const retired = actions.filter(action => value[action] !== undefined && !canAssignKey(action, value[action]!));
+  if (!retired.length) return null;
+  const hasHostOverrides = retired.some(action => isNativeReservedKey(action, value[action]!));
+  // Backends that reported skipped bindings already enforced the host reservations.
+  if (previouslyIgnored.length && hasHostOverrides) return null;
+  const previous = hasHostOverrides ? beforeHostReservations :
+    value['event-refresh'] === 'Enter' ? beforeSettingsEnter : scenarios;
+  if (findConflict(value, previous)) return null;
   const bindings = { ...value };
-  const ignored = new Set<string>();
-  for (const action of actions) {
-    const key = bindings[action];
-    if (key !== undefined && isNativeReservedKey(action, key)) {
-      ignored.add(key);
-      delete bindings[action];
-    }
+  const ignored = new Set(previouslyIgnored);
+  for (const action of retired) {
+    ignored.add(bindings[action]!);
+    delete bindings[action];
   }
-  if (!ignored.size) return null;
   // Any new collision is with a preset restored by dropping an override.
   for (let conflict = shortcutConflict(bindings); conflict; conflict = shortcutConflict(bindings)) {
     const action = bindings[conflict.first] === undefined ? conflict.second : conflict.first;

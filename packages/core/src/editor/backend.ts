@@ -461,11 +461,13 @@ export function parseResponse<O extends Operation>(
         !object(bindings) ||
         !(result.revision === null ? !Object.keys(bindings).length : typeof result.revision === 'string' && result.revision.length === 64 && /^[a-f0-9]{64}$/u.test(result.revision)) ||
         !(result.warning === null || operation === 'read_editor_shortcuts' && isLocalizedText(result.warning))) fail();
-    if (operation === 'read_editor_shortcuts' && result.warning === null) {
-      const decoded = readShortcutBindings(bindings);
+    const skipped = isLocalizedText(result.warning) && result.warning.key === 'shortcuts.ignored-bindings'
+      ? result.warning.params.keys : undefined;
+    if (operation === 'read_editor_shortcuts' && (result.warning === null || typeof skipped === 'string')) {
+      const decoded = readShortcutBindings(bindings, typeof skipped === 'string' ? skipped.split(', ') : []);
       if (!decoded) fail();
       result.bindings = decoded.bindings;
-      result.warning = decoded.warning;
+      result.warning = decoded.warning ?? result.warning;
     } else if (!isBindingMap(bindings) || shortcutConflict(bindings)) fail();
   } else if (operation === 'read' || operation === 'apply') {
     if (result.configuration !== undefined && !isConfiguration(result.configuration)) fail();

@@ -27,6 +27,7 @@ export interface Storage {
 export function jsonBytes(value: unknown): Buffer { return Buffer.from(pythonJson(value, { ensureAscii: false, indent: 2 }) + '\n'); }
 export const errorDetail = errorDescription;
 export { privateDirectory } from '@fbincon/statusline-platform/files';
+export const configurationLockPath = (directory: string): string => join(directory, 'statusline_runtime', 'install.lock');
 export function timestamp(now: Date): string {
     const pad = (n: number, size = 2) => String(n).padStart(size, '0');
     const zone = -now.getTimezoneOffset();
@@ -44,7 +45,7 @@ export function createStorage(now: () => Date = () => new Date()): Storage {
         } },
         write(path, raw) { atomicWrite(path, raw); },
         remove: durableUnlink,
-        lock(directory, action) { const runtime = join(directory, 'statusline_runtime'); privateDirectory(runtime); return withLock(join(runtime, 'install.lock'), action); },
+        lock(directory, action) { const path = configurationLockPath(directory); privateDirectory(dirname(path)); return withLock(path, action); },
         backup(directory, action, artifacts) {
             try {
                 const root = join(directory, 'backups/statusline');

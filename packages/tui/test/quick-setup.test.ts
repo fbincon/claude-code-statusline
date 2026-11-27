@@ -4,6 +4,29 @@ import { fixture, plain } from './fixtures.js';
 import { receivePreset, type QuickSetup } from '@fbincon/statusline-core/editor/quick-setup';
 import { applyPreset } from '@fbincon/statusline-core/config/presets';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
+import { Session, type Backend } from '../src/session.js';
+import { t } from '@fbincon/statusline-core/i18n/messages';
+
+test('loading a quick setup candidate shows the appearance step and keeps the display save key inactive', async () => {
+  const state = fixture(), editor = state.editor;
+  editor.shortcuts.snapshot.bindings = { save: 'Z' };
+  const calls: string[] = [];
+  const session = new Session(state, { request(operation: string) {
+    calls.push(operation);
+    if (operation === 'preset') return { draft: editor.draft };
+    if (operation === 'preview') return state.preview;
+    throw new Error('Unexpected ' + operation);
+  } } as Backend);
+  await session.key({ key: 'p', ctrl: true });
+  await session.key({ key: 'return' });
+  assert.equal(editor.quick?.step, 'appearance');
+  assert(plain(state).join('\n').includes(t('quick.preset-ready', 'en')));
+  assert.equal(await session.key({ key: 'z' }), null);
+  assert.equal(editor.quick?.step, 'appearance');
+  assert(!calls.includes('apply'));
+  await session.key({ key: 'escape' });
+  assert(!plain(state).join('\n').includes(t('quick.preset-ready', 'en')));
+});
 
 test('quick setup cancels without changing dirty drafts and only accepts at the final step', () => {
   const state=fixture(), e=state.editor; const quick = () => e.quick as QuickSetup; e.draft.display.use_colors=false;

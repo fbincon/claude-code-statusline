@@ -57,12 +57,13 @@ test('terminal Settings reserve Enter and use the active save binding', () => {
 });
 
 test('refresh event mode retains its preset and accepts remaps that leave field keys free', () => {
-    for (const key of ['Enter', 'Space', 'Left', 'Right', '0', '9']) {
+    for (const key of ['Space', 'Left', 'Right', '0', '9']) {
         const bindings = { save: 'Z', 'event-refresh': key };
         assert.equal(isBindingMap(bindings), false, key);
         assert.equal(readShortcutBindings(bindings), null, key);
     }
-    assert.equal(readShortcutBindings({ save: 'Z', 'event-refresh': 'Enter', undo: 'Ctrl+Z' }), null);
+    assert.equal(isBindingMap({ save: 'Z', 'event-refresh': 'Enter' }), false);
+    assert.equal(readShortcutBindings({ 'event-refresh': 'Enter' }), null, 'Enter already belonged to the old Save preset');
     assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'e' }, {}), 'event-refresh');
     assert.equal(resolveShortcut('terminal', 'numeric-settings', { key: 'e' }, {}), null);
     assert.equal(resolveShortcut('native', 'settings', { key: 'e' }, {}), null);
@@ -148,6 +149,51 @@ test('legacy reads preserve valid overrides while restoring presets and strict s
     const response = { exitCode: 0, stdout: JSON.stringify({ protocol_version: PROTOCOL_VERSION, result }), stderr: '' };
     assert.deepEqual(parseResponse('read_editor_shortcuts', response), { ...result, ...compatible });
     assert.throws(() => parseResponse('set_editor_shortcuts', response), BackendError);
+});
+
+test('retired source arrows and refresh Enter preserve bindings valid in their editor generation', () => {
+    for (const arrow of ['Left', 'Right']) {
+        const previous = { 'toggle-item': 'Enter', search: 'T', 'reload-sources': arrow };
+        assert.equal(isBindingMap(previous), false);
+        const projected = readShortcutBindings(previous);
+        assert.deepEqual(projected, { bindings: { 'toggle-item': 'Enter', search: 'T' },
+            warning: text('shortcuts.ignored-bindings', { keys: arrow }) });
+        for (const surface of ['native', 'terminal'] as const) {
+            assert.equal(resolveShortcut(surface, 'sources', { key: arrow.toLowerCase() }, projected!.bindings), null);
+            assert.equal(resolveShortcut(surface, 'sources', { key: 'r' }, projected!.bindings), 'reload-sources');
+        }
+    }
+    const previous = { save: 'Z', search: 'T', history: 'E', sources: 'Ctrl+T', 'event-refresh': 'Enter', 'reload-sources': 'Left' };
+    const projected = readShortcutBindings(previous);
+    assert.deepEqual(projected, { bindings: { save: 'Z', search: 'T' },
+        warning: text('shortcuts.ignored-bindings', { keys: 'Enter, Left, E, Ctrl+T' }) });
+    assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'return' }, projected!.bindings), null);
+    assert.equal(resolveShortcut('terminal', 'refresh-settings', { key: 'e' }, projected!.bindings), 'event-refresh');
+
+    const oldest = { save: 'Z', search: 'T', undo: 'Ctrl+Z', redo: 'U', 'event-refresh': 'Enter', 'reload-sources': 'Right' };
+    assert.deepEqual(readShortcutBindings(oldest), { bindings: { save: 'Z', search: 'T' },
+        warning: text('shortcuts.ignored-bindings', { keys: 'Ctrl+Z, Enter, Right, U' }) });
+    for (const invalid of [
+        { 'event-refresh': 'Enter', 'reload-sources': 'Right' },
+        { ...previous, history: 'B', sources: 'B' },
+        { ...oldest, unknown: 'M' },
+        { 'toggle-item': 'Enter', undo: 'Ctrl+Z', 'reload-sources': 'Left' },
+    ]) assert.equal(readShortcutBindings(invalid), null);
+});
+
+test('protocol 33 reads combine prior and current compatibility warnings while writes remain strict', () => {
+    const reply = (bindings: unknown, warning: unknown) => ({ exitCode: 0, stderr: '', stdout: JSON.stringify({
+        protocol_version: PROTOCOL_VERSION, result: { schema_version: 1, bindings, revision: 'a'.repeat(64), warning },
+    }) });
+    const previous = { save: 'Z', search: 'T', 'event-refresh': 'Enter', 'reload-sources': 'Right' };
+    const skipped = text('shortcuts.ignored-bindings', { keys: 'Ctrl+Z, U' });
+    const merged = parseResponse('read_editor_shortcuts', reply(previous, skipped));
+    assert.deepEqual(merged, { schema_version: 1, revision: 'a'.repeat(64), bindings: { save: 'Z', search: 'T' },
+        warning: text('shortcuts.ignored-bindings', { keys: 'Ctrl+Z, U, Enter, Right' }) });
+    assert.deepEqual(parseResponse('read_editor_shortcuts', reply(merged.bindings, merged.warning)), merged);
+    assert.throws(() => parseResponse('read_editor_shortcuts', reply({ 'event-refresh': 'Enter' }, skipped)), BackendError);
+    assert.throws(() => parseResponse('read_editor_shortcuts', reply({ ...previous, undo: 'Ctrl+Z' }, skipped)), BackendError);
+    assert.throws(() => parseResponse('set_editor_shortcuts', reply(previous, null)), BackendError);
 });
 
 test('shortcut settings keep staging, conflict advice and reset separate from active keys', async () => {

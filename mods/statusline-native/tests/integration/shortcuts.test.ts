@@ -1,5 +1,6 @@
 import { expect, test } from 'claude-code/testing';
 import { keys, PANE, RUN, selectSetting, setup, START, visibleText } from '../fixtures.ts';
+import { t } from '../../lib/i18n/index.ts';
 
 test('editing shortcuts preserves the native draft and changes the visible controls', { timeoutMs: 20000 }, async ($, on) => {
   const fixture = setup(on);
@@ -29,5 +30,45 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   await keys(ui, '/', 'Z', 'return', 'z');
   expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(1);
   expect(fixture.store.draft.display.instances[0]!.enabled).toBe(false);
+  await ui.unmount();
+});
+
+test('finishing with pending Claude preferences shows their active apply, finish and close keys', { timeoutMs: 20000 }, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.shortcuts = { schema_version: 1, bindings: { 'apply-host-preferences': 'B', finish: 'J', close: 'Z' }, revision: '3'.repeat(64), warning: null };
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount({ ...PANE, viewport: { columns: 170, rows: 40 }, props: { ...PANE.props, bodyColumns: 140 } });
+  await keys(ui, '3', 'h');
+  await selectSetting(ui, 'host-theme');
+  await keys(ui, 'right', 'j');
+  expect(await visibleText(ui)).toContain(t('shortcuts.host-preferences-pending', 'en', { apply: 'B', finish: 'J', close: 'Z' }));
+  expect(fixture.configCalls).toHaveLength(0);
+  expect(fixture.closes).toHaveLength(0);
+  await keys(ui, 'b');
+  expect(fixture.configCalls).toEqual([{ key: 'theme', value: 'light' }]);
+  await keys(ui, 'j');
+  expect(fixture.closes).toHaveLength(1);
+  await ui.unmount();
+});
+
+test('the native color panel shows its current apply key and Ctrl+G for cancelling edits', { timeoutMs: 20000 }, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.shortcuts = { schema_version: 1, bindings: { 'apply-color': 'J' }, revision: '3'.repeat(64), warning: null };
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, { key: 'e', ctrl: true });
+  await selectSetting(ui, 'item:foreground');
+  await keys(ui, 'return');
+  const help = t('shortcuts.color-help', 'en', { apply: 'J', back: 'Ctrl+G' });
+  expect(await visibleText(ui)).toContain(help);
+  await keys(ui, 'end', 'up', 'up', 'return');
+  expect(await visibleText(ui)).toContain(t('shortcuts.color-input-help', 'en', { back: 'Ctrl+G' }));
+  await keys(ui, { key: 'g', ctrl: true }, { key: 's', ctrl: true });
+  expect(await visibleText(ui)).toContain(help);
+  await keys(ui, 'j');
+  expect((await visibleText(ui)).includes(help)).toBe(false);
+  expect(fixture.calls.filter(c => c.operation === 'apply')).toHaveLength(0);
   await ui.unmount();
 });

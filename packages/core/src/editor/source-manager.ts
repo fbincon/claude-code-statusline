@@ -80,7 +80,7 @@ function count(editor: Editor): number {
     const m = editor.sources!;
     return m.page === 'list' ? (m.library?.sources.length ?? 0) + 2 : m.page === 'actions' ? actions(editor).length : m.page === 'kind' ? 3 : m.page === 'bindings' ? (m.bindingReview?.rows.length ?? 0) : m.page === 'form' ? m.fields.length : m.page === 'bind' || m.page === 'unbind' ? targets(editor).length : 1;
 }
-export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
+export function sourcesKey(editor: Editor, event: TextKey, observedJob?: (editor: Editor) => SourceJob | null): 'sources' | null {
     const m = editor.sources;
     if (!m)
         return null;
@@ -114,22 +114,27 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         }
         return m.effect ? 'sources' : null;
     }
-    if (m.page === 'list' && editor.shortcuts.action('sources', event) === 'reload-sources') {
-        m.effect = 'load'; return 'sources';
+    if (plain && (m.page === 'checks' || m.page === 'bindings') && (key === 'left' || key === 'right')) {
+        const total = m.page === 'checks' ? m.inspection?.total : m.bindingReview?.total;
+        const lastPage = Math.max(0, Math.floor(((total ?? 1) - 1) / 16)) * 16;
+        m.offset = Math.max(0, Math.min(m.offset + (key === 'left' ? -16 : 16), lastPage));
+        m.cursor = 0;
+        m.effect = m.page;
+        return 'sources';
     }
-    if (editor.shortcuts.surface === 'terminal' && m.observation?.id === m.selected &&
-        ['actions','diagnose','checks'].includes(m.page) && editor.shortcuts.action('sources', event) === 'reload-sources') {
-        m.effect = 'observe-job'; return 'sources';
+    if (editor.shortcuts.action('sources', event) === 'reload-sources') {
+        if (m.page === 'list') {
+            m.effect = 'load'; return 'sources';
+        }
+        if (observedJob?.(editor)) {
+            m.effect = 'observe-job'; return 'sources';
+        }
     }
     if (!plain)
         return null;
     if (['review', 'diagnose', 'auto-review', 'checks', 'binding-cleanup'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
         m.scroll = key === 'home' ? 0 : Math.max(0, m.scroll + (key === 'up' ? -1 : key === 'pageup' ? -8 : key === 'pagedown' ? 8 : 1));
         return null;
-    }
-    if (['checks','bindings'].includes(m.page) && ['left','right'].includes(key)) {
-        const total=m.page==='checks'?m.inspection?.total:m.bindingReview?.total;
-        m.offset=Math.max(0,Math.min(m.offset+(key==='left'?-16:16),Math.max(0,Math.floor(((total??1)-1)/16)*16)));m.cursor=0;m.effect=m.page==='checks'?'checks':'bindings';return 'sources';
     }
     if (m.page === 'auto-review' && ['left', 'right'].includes(key)) { m.automaticInterval = Math.max(60, Math.min(86400, m.automaticInterval + (key === 'left' ? -60 : 60))); return null; }
     if (key === 'up' || key === 'down')

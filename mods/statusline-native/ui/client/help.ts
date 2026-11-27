@@ -28,8 +28,10 @@ export function editorShortcuts(view: View): Shortcut[][] {
       [{key:'↑↓',label:'select'},{key:'PgUp/PgDn',label:'page'},{key: keys.hint('packages', 'reload-packages'),label:'reload'}]];
   }
   if (view.busy) return [[focus]];
-  if (e.colors) return [[e.colors.input ? {key: 'Enter', label:'accept'} : {key: keys.hint('colors', 'apply-color'),label:'accept draft'},
-    {key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'Enter',label:'edit'}]];
+  if (e.colors) return [
+    [e.colors.input ? {key: 'Enter', label:'accept'} : {key: keys.hint('colors', 'apply-color'), label:'accept draft'}, {key:'Ctrl+G', label:'back'}, focus],
+    e.colors.input ? [{key:'←→ Home/End', label:'edit'}, {key:'Ctrl+U', label:'clear'}] : [{key:'↑↓', label:'select'}, {key:'Enter', label:'edit'}],
+  ];
   if (e.diagnosis) {
     if (e.diagnosis.report) return [[{ key: 'Ctrl+G', label: 'back' }, focus], [{ key: '↑↓ PgUp/PgDn', label: 'scroll' }]];
     return [[{ key: 'Enter', label: 'accept' }, { key: 'Ctrl+G', label: 'back' }, focus],
@@ -45,6 +47,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     const help: Shortcut[] = [{key:'↑↓',label:'select'}];
     if (e.sources.page === 'form') help.push({key: keys.hint('source-form', 'save-source'),label:'save'});
     if (e.sources.page === 'list') help.push({key: keys.hint('sources', 'reload-sources'),label:'reload'});
+    if (e.sources.page === 'checks' || e.sources.page === 'bindings') help.push({key:'←→',label:'page'});
     return [[{key:'Enter',label:'accept'},{key:'Ctrl+G',label:'back'},focus], help];
   }
   if (e.profiles) return [[{key:'Enter',label:'accept'},{key:'Ctrl+G',label:'back'},focus],
@@ -124,6 +127,14 @@ export function editorShortcuts(view: View): Shortcut[][] {
     {key: keys.hint(context,'preview-scenario','preview-width','preview-row'),label:'preview',optional:0},
   ];
   if (!e.detail) tools.push({ key: keys.hint(context, 'quick-setup'), label: 'quick setup', optional: 0 });
+  const notice = view.localized?.message;
+  if (notice && notice.fallback === view.message && (notice.key === 'shortcuts.native-preset-applied' || notice.key === 'shortcuts.host-preferences-pending')) {
+    // A clipped notice leaves its save, discard and apply instructions to the footer.
+    // Drop navigation before shortening those action labels on small panes.
+    for (const hint of contextual) {
+      if (hint.optional === undefined && hint.label !== 'apply separately') hint.optional = 14;
+    }
+  }
   return [actions, contextual, tools];
 }
 

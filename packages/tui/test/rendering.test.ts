@@ -131,10 +131,11 @@ test('actions contain one bold Enter and item format identifies its scope and re
             state.key({ key: 'g', ctrl: true });
         }
         state.editor.page = 'settings';
-        for (const key of ['preset-apply', 'import-file', 'export-file']) {
+        for (const key of ['preset-apply', 'import-file', 'export-file', 'keyboard-shortcuts']) {
             state.editor.setting = key;
             const value = frame(state, 120, 30);
-            const row = value.rows.find(row => row.some(span => span.reverse && span.text.includes(t('settings.' + key, language))))!;
+            const label = key === 'keyboard-shortcuts' ? t('shortcuts.title', language) : t('settings.' + key, language);
+            const row = value.rows.find(row => row.some(span => span.reverse && span.text.includes(label)))!;
             assert.equal(row.map(span => span.text).join('').match(/Enter/gu)?.length, 1);
             assert.ok(row.some(span => span.text === 'Enter' && span.bold && span.reverse));
         }
