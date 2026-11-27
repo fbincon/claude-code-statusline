@@ -11,7 +11,7 @@ import { emitted, productInputs, runtimeLock, canonical, hash, tree } from '../i
 import { checkAssets, pngDimensions } from '../impact-assets.js';
 import { validateScopedReceipt, maintenanceSourceKind } from '../impact-evidence.js';
 import { assessImpactNeeds, selectImpact } from '../impact-workflow.js';
-import { runScopedTestFiles, scopedTests } from '../impact-runner.js';
+import { runScopedModTests, runScopedTestFiles, scopedTests } from '../impact-runner.js';
 import { checkScopedSchedule, familyEnvelopeMs, scopedSourceFiles, scopedTaskBudget } from '../impact-budget.js';
 import { partitionScopedTasks } from '../impact-schedule.js';
 import { productResponsibilities, runProductChecks, supplementPlan, validateProductChecks, type ProductCheckReceipt } from '../impact-product.js';
@@ -223,6 +223,34 @@ test('planned targets retain platform and host responsibilities without scheduli
     assert.equal(tasksFor(['native'], false).length, 16);
     assert.equal(tasksFor(['agent-rows'], false).length, 0);
     assert(scopedTests('checks').some(path => path.endsWith('ci-trust.test.js')));
+});
+test('scoped Mods hand each planned file to an isolated official process and retain failures', async t => {
+    const root = fs.mkdtempSync(join(tmpdir(), 'scoped-mod-batches-'));
+    t.after(() => { removeTree(root); assert(!fs.existsSync(root)); });
+    const source = join(root, 'plugin'), expected = ['tests/a.test.ts', 'tests/b.test.ts'];
+    fs.mkdirSync(join(source, 'tests'), { recursive: true });
+    for (const path of expected) fs.writeFileSync(join(source, path), '// Test fixture\n');
+    const stub = join(root, 'host.cjs');
+    fs.writeFileSync(stub, `const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
+        const [literal, plugin, test, copy] = process.argv.slice(2);
+        assert.deepEqual([literal, plugin, test], ['literal argument &', 'plugin', 'test']);
+        const files = fs.readdirSync(path.join(copy, 'tests'));
+        assert.equal(files.length, 1);
+        const file = 'tests/' + files[0];
+        if (process.env.FAIL_FILE === file) process.exit(1);
+        console.log(file + ':\\n(pass) fixture\\n1 pass\\n0 fail\\nRan 1 test across 1 file. [1ms]');
+    `);
+    const options = { source, temporary: join(root, 'copies'), logs: join(root, 'pass'), cwd: root,
+        host: { executable: process.execPath, args: [stub, 'literal argument &'] }, env: process.env };
+    await assert.rejects(runScopedModTests(options, expected.slice(0, 1)), /inventory differs/u);
+    assert(!fs.existsSync(options.logs));
+    const result = await runScopedModTests(options, expected);
+    assert.deepEqual(result.batches.map(batch => batch.test_files), expected.map(file => [file]));
+    assert.equal(result.totals.pass, 2);
+    const logs = join(root, 'fail');
+    await assert.rejects(runScopedModTests({ ...options, logs, env: { ...process.env, FAIL_FILE: expected[1] } }, expected), /tests\/b\.test\.ts/u);
+    assert(fs.existsSync(join(logs, 'plugin-batch-0002.log')));
+    assert(!fs.existsSync(options.temporary));
 });
 test('each scoped test file owns a fresh deadline and any failed file keeps the family failed', async t => {
     const root = fs.mkdtempSync(join(tmpdir(), 'scoped-files-'));
