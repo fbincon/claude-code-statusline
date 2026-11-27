@@ -52,8 +52,11 @@ test('ordinary recovery leaves a package handoff to its verified target while th
     const f = fresh(t, [2, 1, 332]), prefix = join(f.temporary, 'installed');
     fs.mkdirSync(prefix);
     const root = globalPackageRoot(prefix), entry = join(root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js');
+    const alias = join(f.temporary, 'selected-prefix');
+    fs.symlinkSync(prefix, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    const selectedEntry = join(globalPackageRoot(alias), 'node_modules/@fbincon/statusline-cli/dist/src/entry.js');
     f.put(BINDING_FILE, { owner: 'claude-code-statusline', schema_version: 1, backend_version: '3.16.5',
-        launch: { executable: process.execPath, args: [entry] }, refresh_disabled: [AGENT_ROWS.name] });
+        launch: { executable: process.execPath, args: [selectedEntry] }, refresh_disabled: [AGENT_ROWS.name] });
     const operation = startOperation(f.root, prefix, '3.7.0', 'https://registry.npmjs.org/',
         { prefix, root, entry, version: '3.16.5', integrity: null, registry: null }, 'rollback');
     operation.integrated = true;

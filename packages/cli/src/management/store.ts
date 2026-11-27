@@ -9,7 +9,7 @@ import { exactVersion } from '@fbincon/statusline-core/management/package';
 import { compatibility } from '@fbincon/statusline-core/management/compatibility';
 import type { PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { globalPackageRoot } from '@fbincon/statusline-platform/npm';
-import { normalizedPath } from '@fbincon/statusline-platform/commands';
+import { normalizedPath, resolvedPath } from '@fbincon/statusline-platform/commands';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import type { RegistryPackage } from '@fbincon/statusline-platform/npm';
 import type { ConfigHashes } from './configuration.js';
@@ -51,14 +51,14 @@ export const pendingPath = (prefix: string) => join(prefix, '.claude-statusline-
 export function integrationHandoffPending(directory: string, binding: LaunchSpec): boolean {
     const entry = binding.args.length === 1 ? binding.args[0] : undefined;
     if (!entry || !isAbsolute(entry)) return false;
-    const expected = normalizedPath(entry);
-    for (let prefix = dirname(entry); ; prefix = dirname(prefix)) {
+    const canonical = resolvedPath(entry), expected = normalizedPath(canonical);
+    for (let prefix = dirname(canonical); ; prefix = dirname(prefix)) {
         const target = join(globalPackageRoot(prefix), 'node_modules/@fbincon/statusline-cli/dist/src/entry.js');
         if (normalizedPath(target) === expected) {
             if (!fs.existsSync(pendingPath(prefix))) return false;
             const operation = readOperation(directory, prefix);
             return operation.integrated === true && operation.before?.entry !== undefined &&
-                normalizedPath(operation.before.entry) === expected;
+                normalizedPath(resolvedPath(operation.before.entry)) === expected;
         }
         if (prefix === dirname(prefix)) return false;
     }

@@ -24,7 +24,7 @@ import { administration } from '../recovery/service.js';
 import { readProfiles } from '../rendering/configuration.js';
 import { deactivateAgentRowRoute, planAgentRowInstall, readAgentRowRoute, type AgentRowInstallPlan } from './agent-row-route.js';
 import { owner } from './mod-ownership.js';
-import { pending, refreshIntents } from '../recovery/journal.js';
+import { pending, refreshIntents, RecoveryRequired } from '../recovery/journal.js';
 export function installContext(configDir: string, launch: LaunchSpec, version: readonly number[] | null, io: Storage = createStorage(), host: (spec: ModSpec) => Host = () => new PluginHost(configDir)): InstallContext {
     return { configDir, launch, version, io, host };
 }
@@ -187,7 +187,12 @@ function settleAgentRowRefresh(context: InstallContext, dryRun: boolean, beforeC
 
 /** Normal recovery restores the opt-out even if a saved forced renderer is currently unavailable. */
 export function restoreDisabledAgentRows(context: InstallContext, dryRun: boolean): void {
-    administration(context, dryRun, tracked => settleAgentRowRefresh(tracked, dryRun));
+    try {
+        administration(context, dryRun, tracked => settleAgentRowRefresh(tracked, dryRun));
+    } catch (error) {
+        if (error instanceof RecoveryRequired) throw error;
+        throw new RecoveryRequired(error instanceof Error ? error.message : String(error));
+    }
 }
 
 /** A failed candidate can change only the route it prepared. Keep newer or third-party decisions. */
