@@ -46,6 +46,12 @@ for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]
         const f = await fixture(t), bytes = f.bytes(), pty = openPty(f.root);
         try {
             await pty.wait(output => output.includes('Configure Status Line'));
+            if (signal === 'SIGINT') {
+                pty.send('\r\t\t\x1b[F\r\r');
+                await pty.wait(output => output.includes('New key for Save display'));
+                pty.send('\x03');
+                await pty.wait(output => output.includes('Ctrl+C interrupts'));
+            }
             pty.child.kill(signal);
             await pty.exited();
             assert.equal(pty.child.exitCode, code);

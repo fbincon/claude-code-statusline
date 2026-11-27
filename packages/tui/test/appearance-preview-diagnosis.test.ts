@@ -65,6 +65,24 @@ test('selected theme bands retain their actual colors while their labels remain 
     assert(bands.every(span => span.foreground !== null && !span.reverse));
     assert(selected.some(span => span.text.includes('Ocean') && span.reverse));
 });
+test('the terminal color panel shows its active apply key and both ways to cancel an edit', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language), editor = state.editor;
+        editor.shortcuts.snapshot.bindings = { 'apply-color': 'J' };
+        state.key({ key: 'e', ctrl: true });
+        openColors(editor, 'item:foreground');
+        const screen = () => plain(state).join('\n');
+        const help = t('shortcuts.color-help', language, { apply: 'J', back: 'Esc/Ctrl+G' });
+        assert(screen().includes(help));
+        for (const key of ['end', 'up', 'up', 'return']) state.key({ key });
+        assert(screen().includes(t('shortcuts.color-input-help', language, { back: 'Esc/Ctrl+G' })));
+        state.key({ key: 'escape' });
+        state.key({ key: 's', ctrl: true });
+        assert(screen().includes(help));
+        state.key({ key: 'j' });
+        assert.equal(editor.colors, null);
+    }
+});
 test('six-language color candidates cancel, apply only to the draft and preserve unknown-save protection', () => {
     for (const language of LANGUAGES) {
         const s = fixture(language), e = s.editor, baseline = JSON.stringify(e.draft);

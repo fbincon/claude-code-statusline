@@ -88,7 +88,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Ctrl+S | Save the display draft and exit outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
 | Esc | Cancel a field or subview. At the top level, close a clean draft or confirm discarding changes, defaulting to keep editing. Available after rebinding Close. |
-| Ctrl+C | Restore the terminal, exit 130 and discard unsaved display edits |
+| Ctrl+C | Outside shortcut recording, restore the terminal, exit 130 and discard unsaved display edits |
 
 On the **Refresh interval** row, Enter opens the editor with its current value. Press Ctrl+U to clear it, enter a whole number from 1 to 3600 seconds or `event`, and press Enter to accept it into the draft. Use the current **Save** shortcut to write the draft. **Set event-only refresh** defaults to E and can use another available key. Enter is reserved on this row.
 
@@ -134,9 +134,11 @@ In either editor, open **Settings → Keyboard shortcuts**. Navigate with the ar
 2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
 3. Resolve any conflicts shown before saving. You can swap two bindings and save them together. Separate pages can reuse a key when their actions cannot run at the same time. Ctrl+G goes back and asks before discarding staged changes.
 
-The current editor applies the keys immediately after saving. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict so you can read the saved map first. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)
+The current editor applies the keys after the save is confirmed. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict. If a write is in progress or recovery is required, the open panel keeps its last confirmed bindings and staged changes. Follow the recovery message when shown, then choose **Read saved**. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)
 
-Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. Ctrl+D, Ctrl+X and Ctrl+Z can be assigned only to terminal-only actions because Claude can intercept them. Invalid shortcut preferences trigger a warning and load the presets. The compatibility rule for keys now reserved by Claude still loads usable overrides. Choose **Save shortcuts** to store your preferences.
+Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. Left/Right are reserved for paging in saved source checks, so choose a different key for source refresh. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. Ctrl+D, Ctrl+X and Ctrl+Z can be assigned only to terminal-only actions because Claude can intercept them. In the terminal editor, trying Ctrl+C while recording rejects that key and keeps both drafts open. Ctrl+C interrupts the terminal editor outside recording.
+
+Invalid preferences trigger a warning and load the presets. The editors retain usable overrides from supported older maps. If an older map uses Left/Right to refresh sources or Enter for event-only refresh, those actions use their R or E presets. Choose **Save shortcuts** to store the resulting map.
 
 Rebinding Save replaces its preset keys, and Enter continues to confirm menu choices. Rebinding terminal Close adds the chosen key alongside Esc. In the terminal component list or catalog, bound characters run their actions and unbound characters filter the list. To include any bound letter or symbol in the query, use the current **Search** key shown on screen to open the input field. Its preset is `/`.
 

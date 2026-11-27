@@ -2,6 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture, plain } from './fixtures.js';
 
+test('typing Ctrl+C during shortcut capture preserves the staged binding and display draft', () => {
+  const state = fixture(), editor = state.editor;
+  const press = (key: string, ctrl = false) => state.key({ key, ctrl });
+  press('return');
+  assert.equal(state.modified, true);
+  const draft = structuredClone(editor.draft), history = structuredClone(editor.history);
+  editor.shortcuts.open();
+  press('return'); press('z');
+  press('down'); press('down'); press('return');
+  const panel = editor.shortcuts.panel!;
+  assert.equal(panel.selected, 'close');
+  assert.equal(press('c', true), null);
+  assert.equal(panel.capture, true);
+  assert.equal(panel.message?.key, 'shortcuts.interrupt-key');
+  assert.deepEqual(panel.draft, { save: 'Z' });
+  assert.deepEqual(editor.shortcuts.snapshot.bindings, {});
+  assert.deepEqual(editor.draft, draft);
+  assert.deepEqual(editor.history, history);
+  press('g', true);
+  assert.equal(panel.capture, false);
+  assert.equal(press('c', true), 'interrupt');
+});
+
 test('external text inputs edit the middle, cancel and reopen without losing suffixes', () => {
   const state = fixture(), e = state.editor;
   state.key({key:'e',ctrl:true}); state.key({key:'return'}); state.key({key:'u',ctrl:true});

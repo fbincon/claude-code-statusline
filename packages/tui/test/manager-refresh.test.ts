@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Operation, ResultFor, SourceContext, SourceDefinition, SourceInspection, SourceJob, SourcesResult } from '@fbincon/statusline-core/contracts/ui';
+import { Editor } from '@fbincon/statusline-core/editor/draft';
+import { readShortcutBindings } from '@fbincon/statusline-core/editor/shortcut-map';
 import { openProfiles, performProfileAction, profilesKey } from '@fbincon/statusline-core/editor/profile-manager';
 import { closeSources, openSources, performSourceAction, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
 import { fixture } from './fixtures.js';
+import { footer } from '../src/drawing/shortcuts.js';
 import type { Backend } from '../src/session.js';
 import { managerRefresh, manualManagerRefresh, sourceObservationJob } from '../src/manager-refresh.js';
 
@@ -130,6 +133,59 @@ test('job observation follows the selected context through provisional expiry an
     assert(!calls.includes('source_release'), 'an observed job does not acquire a consumer');
 });
 
+test('fixed source arrows read both saved check pages in each editor after loading an old binding', async () => {
+    const state = fixture();
+    const checks = Array.from({ length: 32 }, (_, i) => ({ name: 'check-' + i, state: 'success', bucket: 'pass', url: null }));
+    for (const surface of ['terminal', 'native'] as const) {
+        const editor = surface === 'terminal' ? state.editor : new Editor(state.editor.description, state.editor.baseline, surface);
+        editor.shortcuts.snapshot.bindings = readShortcutBindings({ 'reload-sources': surface === 'terminal' ? 'Right' : 'Left' })!.bindings;
+        openSources(editor);
+        const view = editor.sources!;
+        view.library = library; view.selected = 'ci'; view.effect = 'checks';
+        const offsets: number[] = [];
+        const backend = backendFor((op, payload) => {
+            if (op === 'source_context') return context;
+            assert.equal(op, 'source_inspect');
+            const { offset } = payload as { offset: number };
+            offsets.push(offset);
+            return { ...report([job], offset), checks: checks.slice(offset, offset + 16), total: checks.length };
+        });
+        await performSourceAction(editor, backend);
+        for (const [key, offset] of [['right', 16], ['left', 0]] as const) {
+            const effect = surface === 'terminal' ? state.key({ key }) : sourcesKey(editor, { key });
+            assert.equal(effect, 'sources'); assert.equal(view.effect, 'checks');
+            assert.equal(manualManagerRefresh(editor, { key }), false);
+            await performSourceAction(editor, backend);
+            assert.equal(view.inspection!.checks[0]!.name, checks[offset]!.name);
+        }
+        assert.deepEqual(offsets, [0, 16, 0]);
+        if (surface === 'terminal') {
+            assert(footer(state).help.some(([key]) => key === '←→'));
+            assert(footer(state).help.some(([key]) => key === 'R'));
+            assert.equal(state.key({ key: 'r' }), 'sources');
+            assert(manualManagerRefresh(editor, { key: 'r' }));
+        } else assert.equal(sourcesKey(editor, { key: 'r' }), null);
+    }
+});
+
+test('only an observable job enables and advertises the active manual source read key', () => {
+    const state = fixture(), editor = state.editor;
+    editor.shortcuts.snapshot.bindings = { 'reload-sources': 'X' };
+    openSources(editor);
+    const view = editor.sources!;
+    view.library = library; view.selected = 'ci'; view.page = 'checks'; view.effect = null;
+    view.observation = { id: 'ci', revision: 'rev', context };
+    for (const jobs of [[], [{ ...job, context: { ...context, head: 'other' } }], [job]]) {
+        view.inspection = report(jobs);
+        const observable = jobs[0] === job;
+        assert.equal(footer(state).help.some(([key]) => key === 'X'), observable);
+        assert.equal(state.key({ key: 'r' }), null);
+        assert.equal(state.key({ key: 'x' }), observable ? 'sources' : null);
+        assert.equal(view.effect, observable ? 'observe-job' : null);
+        assert.equal(manualManagerRefresh(editor, { key: 'x' }), observable);
+    }
+});
+
 test('release a joined consumer on close during a provisional timeout and ignore late status', async () => {
     const editor = fixture().editor;
     openSources(editor);
@@ -142,7 +198,7 @@ test('release a joined consumer on close during a provisional timeout and ignore
         if (op === 'source_inspect') return report([]);
         assert.equal(op, 'source_release'); assert.deepEqual(payload, { id: job.id, owner: view.owner }); releases++; return provisional;
     });
-    sourcesKey(editor, { key: 'r' });
+    sourcesKey(editor, { key: 'r' }, sourceObservationJob);
     assert(manualManagerRefresh(editor));
     const apply = await managerRefresh(editor, backend)!.read(signal(), 'manual');
     await closeSources(editor, backend);

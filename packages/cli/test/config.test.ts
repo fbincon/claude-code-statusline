@@ -113,14 +113,15 @@ test('damaged shortcuts use defaults until an explicit repair, with future schem
     assert.equal(fs.statSync(path).mode, mode);
 });
 
-test('refresh Enter is a reserved key when saving or reading shortcut preferences', t => {
+test('fixed pagination and Settings keys reject new writes and historically conflicting reads', t => {
     const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
     const settings = fs.readFileSync(f.settingsPath), display = f.read();
     const saved = f.call('set_editor_shortcuts', { bindings: { save: 'Z', 'event-refresh': 'J' }, expected_revision: null });
     assert.equal(saved.status, 0, JSON.stringify(saved.response));
     const { revision } = saved.response.result;
     const valid = fs.readFileSync(path), mode = fs.statSync(path).mode, prior = backups(f.root);
-    for (const bindings of [{ 'event-refresh': 'Enter' }, { save: 'Z', 'event-refresh': 'Enter' }]) {
+    for (const bindings of [{ 'event-refresh': 'Enter' }, { save: 'Z', 'event-refresh': 'Enter' },
+        { 'reload-sources': 'Left' }, { 'reload-sources': 'Right' }]) {
         const rejected = f.call('set_editor_shortcuts', { bindings, expected_revision: revision });
         assert.equal(rejected.response.error.code, 'invalid_request');
         assert.equal(rejected.response.error.localization.key, 'shortcuts.invalid-request');
@@ -130,7 +131,7 @@ test('refresh Enter is a reserved key when saving or reading shortcut preference
     assert.equal(fs.statSync(path).mode, mode);
     assert.deepEqual(backups(f.root), prior);
 
-    const invalid = jsonBytes({ schema_version: 1, bindings: { save: 'Z', 'event-refresh': 'Enter' } });
+    const invalid = jsonBytes({ schema_version: 1, bindings: { search: 'T', 'event-refresh': 'Enter' } });
     fs.writeFileSync(path, invalid);
     const fallback = f.call('read_editor_shortcuts');
     assert.equal(fallback.status, 0);
@@ -147,13 +148,16 @@ test('refresh Enter is a reserved key when saving or reading shortcut preference
 
 test('legacy shortcut reads and doctor preserve bytes and mode until explicit cleanup', t => {
     const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
-    const raw = jsonBytes({ schema_version: 1, bindings: { save: 'Z', undo: 'Ctrl+Z', redo: 'U', 'task-identity': 'Ctrl+D' } });
+    const raw = jsonBytes({ schema_version: 1, bindings: {
+        save: 'Z', undo: 'Ctrl+Z', redo: 'U', 'task-identity': 'Ctrl+D', 'event-refresh': 'Enter', 'reload-sources': 'Left',
+    } });
     fs.writeFileSync(path, raw, { mode: 0o640 });
     const mode = fs.statSync(path).mode;
     const { revision, bindings, warning } = f.call('read_editor_shortcuts').response.result;
     assert.equal(revision, createHash('sha256').update(raw).digest('hex'));
     assert.deepEqual(bindings, { save: 'Z', 'task-identity': 'Ctrl+D' });
     assert.equal((warning as EditorShortcutsResult['warning'])?.key, 'shortcuts.ignored-bindings');
+    assert.deepEqual((warning as EditorShortcutsResult['warning'])?.params, { keys: 'Ctrl+Z, Enter, Left, U' });
     const diagnose = () => doctor(installContext(f.root, f.launch, [2, 1, 294], f.io))
         .filter(row => typeof row.message !== 'string' && row.message.key.startsWith('shortcuts.'));
     assert.deepEqual(diagnose(), [{ level: 'WARN', message: warning }]);
@@ -172,6 +176,9 @@ test('legacy shortcut reads and doctor preserve bytes and mode until explicit cl
     const [backup] = backups(f.root);
     assert.ok(backup && backup.includes('editor-shortcuts'));
     assert.deepEqual(fs.readFileSync(join(f.root, 'backups/statusline', backup, EDITOR_SHORTCUTS_FILENAME + '.before')), raw);
+    assert.equal(f.call('set_editor_shortcuts', { bindings: { save: 'M' }, expected_revision: revision }).response.error.code, 'configuration_conflict');
+    assert.deepEqual(f.call('read_editor_shortcuts').response.result, cleaned.response.result);
+    assert.deepEqual(backups(f.root), [backup]);
     assert.deepEqual(diagnose(), []);
 });
 

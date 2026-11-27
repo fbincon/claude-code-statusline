@@ -21,6 +21,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow, usesReportRows } from './layout.js';
 import { externalTaskRows } from './report-refresh.js';
+import { sourceObservationJob } from './manager-refresh.js';
 import { formPageIndex } from './navigation.js';
 import type { ShortcutContext } from '@fbincon/statusline-core/editor/shortcut-map';
 import { shortcutPanelFits, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
@@ -222,7 +223,7 @@ export class State {
     key(event: Key, columns = 80, rows = 24): Effect {
         const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && !event.meta && (k === 'escape' || (ctrl && k === 'g'));
         const size = dimensions(columns, rows), height = size.listHeight;
-        if (ctrl && k === 'c' && !event.paste && !event.text && !event.meta)
+        if (ctrl && k === 'c' && !event.paste && !event.text && !event.meta && !e.shortcuts.panel?.capture)
             return 'interrupt';
         if (this.exitChoice !== null) {
             if (event.paste || event.text || event.meta || event.overflow) return null;
@@ -261,7 +262,7 @@ export class State {
         if (e.colors) return colorsKey(e, event, this.language);
         if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
-        if (e.sources) return sourcesKey(e, event);
+        if (e.sources) return sourcesKey(e, event, sourceObservationJob);
         if (e.profiles) return profilesKey(e, event);
         if ((event.paste || event.text) && (!this.input || this.input.kind === 'category')) return null;
         const context = e.quick ? 'quick' : e.review ? reviewShortcutContext(e.review) : this.shortcutContext;

@@ -18,6 +18,7 @@ import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
+import { editorJourneys, installedEditorJourney } from './installed-editor-journey.js';
 import { installedTaskEvidence, taskRefreshPty } from './task-refresh-pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import * as bridge from '@fbincon/statusline-platform/terminal/bridge';
@@ -697,14 +698,16 @@ test('installed external editor saves and cancels in a real native terminal', { 
     fs.writeFileSync(settingsPath, JSON.stringify(settings));
     fs.writeFileSync(displayPath, JSON.stringify(defaultDisplay()), { mode: 0o600 });
     const pathEnv = { ...installed.env, PATH: dirname(installed.bin) + delimiter + installed.env.PATH };
-    for (const choice of ['save', 'cancel']) {
+    const journeyModule = join(installed.temporary, 'installed-editor-journey.mjs');
+    if (process.platform === 'win32') fs.copyFileSync(fileURLToPath(new URL('./installed-editor-journey.js', import.meta.url)), journeyModule);
+    for (const choice of editorJourneys) {
         const before = fs.readFileSync(displayPath), beforeMode = fs.statSync(displayPath).mode;
         const settingsBefore = fs.readFileSync(settingsPath), settingsMode = fs.statSync(settingsPath).mode;
         let output: string, columns = 100, rows = 30;
         if (process.platform === 'win32') {
             const invocation = bridge.prepare(config, { executable: installed.node, args: [installed.entry] }, installed.directory);
             const env = { ...pathEnv, [bridge.REQUEST_ENV]: invocation.path, [bridge.NONCE_ENV]: invocation.request.nonce, [bridge.RESULT_ENV]: invocation.result, [bridge.DEADLINE_ENV]: '30' };
-            const receipt = join(installed.temporary, 'console-' + choice + '.json'), child = startWindows([installed.node, driver, installed.modules, 'windows-editor', config, receipt, choice], installed.directory, env);
+            const receipt = join(installed.temporary, 'console-' + choice + '.json'), child = startWindows([installed.node, driver, installed.modules, 'windows-editor', config, receipt, choice, journeyModule], installed.directory, env);
             try {
                 const stop = performance.now() + 16000;
                 while (child.code() === null && performance.now() < stop)
@@ -717,7 +720,7 @@ test('installed external editor saves and cancels in a real native terminal', { 
                 columns = saved.columns;
                 rows = saved.rows;
                 assert.equal(bridge.started(invocation.directory, config, invocation.request.nonce).pid > 0, true);
-                assert.equal(bridge.readResult(invocation.result, config).outcome, choice === 'save' ? 'updated' : 'cancelled');
+                assert.equal(bridge.readResult(invocation.result, config).outcome, choice === 'cancel' ? 'cancelled' : 'updated');
                 report.windows_bridge = { request: true, started: true, result: true, save: true, cancel: true };
             }
             finally {
@@ -728,20 +731,11 @@ test('installed external editor saves and cancels in a real native terminal', { 
         else {
             const p = openPty(config, 100, 30, pathEnv, 'en', { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure', '--config-dir', config] });
             try {
-                await p.wait(value => value.includes('Preview (sample data)'));
-                if (choice === 'save') {
-                    p.send('\r');
-                    await p.wait(value => value.includes('Configure Status Line *'));
-                    assert.equal(p.child.exitCode, null);
-                    assert.deepEqual(fs.readFileSync(displayPath), before);
-                    assert.equal(fs.statSync(displayPath).mode, beforeMode);
-                    assert.deepEqual(fs.readFileSync(settingsPath), settingsBefore);
-                    assert.equal(fs.statSync(settingsPath).mode, settingsMode);
-                    p.send('\x13');
-                } else {
-                    p.send(' \x1b');
-                    await p.wait(value => value.includes('Discard unsaved configuration changes?'));
-                    p.send('\x1b[B\r');
+                const journey = installedEditorJourney(config, choice);
+                while (!journey.complete) {
+                    let keys: string | null = null;
+                    await p.wait(value => { keys = journey.next(value); return keys !== null; });
+                    p.send(keys!);
                 }
                 await p.exited();
                 assert.equal(p.child.exitCode, 0);
@@ -757,10 +751,10 @@ test('installed external editor saves and cancels in a real native terminal', { 
         const capture = new Capture(columns, rows);
         capture.feed(output);
         const lastFrame = (capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n');
-        assert.ok(lastFrame.includes(choice === 'save' ? 'Preview (sample data)' : 'Discard unsaved configuration changes?'));
-        if (choice === 'save') {
+        assert.ok(lastFrame.includes(choice === 'cancel' ? 'Discard unsaved configuration changes?' : 'Preview (sample data)'));
+        if (choice !== 'cancel') {
             const expected = defaultDisplay();
-            expected.instances.find(item => item.id === 'model-with-effort')!.enabled = false;
+            expected.instances.find(item => item.id === 'model-with-effort')!.enabled = choice === 'restore';
             assert.deepEqual(JSON.parse(fs.readFileSync(displayPath, 'utf8')), expected);
         } else {
             assert.deepEqual(fs.readFileSync(displayPath), before);

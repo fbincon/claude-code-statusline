@@ -1,8 +1,9 @@
 import { clientKey } from '../fixtures.ts';
 import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, reply, selectSetting } from '../fixtures.ts';
+import { setup, START, RUN, PANE, keys, reply, selectSetting, visibleText } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
+import { t } from '../../lib/i18n/index.ts';
 
 test('appearance edits save one complete draft without applying host settings', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
@@ -61,6 +62,7 @@ test('item format and explicit layout save a complete draft while text reserves 
 
 test('preset/import only replace drafts; export includes unsaved draft and cancel avoids saves', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
+  fixture.store.shortcuts = { schema_version: 1, bindings: { save: 'Q', close: 'Z', 'close-picker': 'Z' }, revision: '3'.repeat(64), warning: null };
   const imported = copyDraft(fixture.store.draft);
   imported.display.formatting.number_format = 'grouped';
   imported.host.padding = 7;
@@ -77,6 +79,7 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   await selectSetting(ui, 'preset-apply');
   await keys(ui, 'return');
   expect(fixture.calls.some((c) => c.operation === 'preset')).toBe(true);
+  expect(await visibleText(ui)).toContain(t('shortcuts.native-preset-applied', 'en', { save: 'Q', close: 'Z' }));
   expect(fixture.store.draft.host.padding).toBe(0);
   await selectSetting(ui, 'import-file');
   await keys(ui, 'return', {key:'u',ctrl:true}, '/', '中', 'space', '文', '.', 'j', 's', 'o', 'n', 'return');
@@ -88,7 +91,9 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   expect(exported.payload.draft.host.padding).toBe(7);
   expect(exported.payload.overwrite).toBe(false);
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
-  await keys(ui, 'q');
+  await keys(ui, 'z');
+  expect(fixture.closes).toHaveLength(1);
+  expect(fixture.calls.filter(c => c.operation === 'apply')).toHaveLength(0);
   expect(fixture.store.draft.host.padding).toBe(0);
   await ui.unmount();
 });

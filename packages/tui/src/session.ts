@@ -147,8 +147,13 @@ export class Session {
             else if (effect === 'transfer') {
                 if (e.pendingTransfer === 'preset') {
                     const result = await this.backend.request('preset', { draft: e.quick?.base ?? e.draft, preset: e.preset });
-                    if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
-                    state.notice(text('shortcuts.preset-expanded', { key: e.shortcuts.hint('settings', 'save') }));
+                    if (e.quick) {
+                        receivePreset(e.quick, result.draft);
+                        state.notice('');
+                    } else {
+                        e.replaceDraft(result.draft);
+                        state.notice(text('shortcuts.preset-expanded', { key: e.shortcuts.hint(state.shortcutContext, 'save') }));
+                    }
                 }
                 else if (e.pendingTransfer === 'import') {
                     e.review = createReview(await this.backend.request('review_import', { draft: e.draft, path: e.path }), e.draft);

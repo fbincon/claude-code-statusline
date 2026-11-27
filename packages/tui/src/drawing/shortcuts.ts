@@ -67,8 +67,10 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
         return { actions, help };
     }
     if (e.taskViewer) return taskFooter(e.taskViewer, keys);
-    if (e.colors) return { actions: e.colors.input ? [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')] :
-        [[keys.hint('colors', 'apply-color'), t('colors.apply', state.language)], hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓', 'select'), hint('Enter', 'edit')] };
+    if (e.colors) return {
+        actions: [e.colors.input ? hint('Enter', 'accept') : [keys.hint('colors', 'apply-color'), t('colors.apply', state.language)], hint('Esc/Ctrl+G', 'back')],
+        help: e.colors.input ? [hint('←→ Home/End', 'move_cursor'), hint('Ctrl+U', 'clear')] : [hint('↑↓', 'select'), hint('Enter', 'edit')],
+    };
     if (e.diagnosis) {
         if (e.diagnosis.report) return { actions: [hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓ PgUp/PgDn', 'scroll')] };
         return { actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')],
@@ -78,6 +80,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
     if (e.groupManager || e.alignmentManager) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [hint('↑↓','select'),hint('←→','adjust')] };
     if (e.sources) {
         const help: Hint[] = [hint('↑↓','select')];
+        if (e.sources.page === 'checks' || e.sources.page === 'bindings') help.push(hint('←→','page'));
         if (e.sources.page === 'form') help.push([keys.hint('source-form', 'save-source'),t('sources.save',state.language)]);
         if (e.sources.page === 'list') help.push([keys.hint('sources', 'reload-sources'),t('sources.reload',state.language)]);
         else if (sourceObservationJob(e)) help.push([keys.hint('sources', 'reload-sources'), t('ui.refresh.read_now', state.language)]);
@@ -179,7 +182,7 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
             return [paint(parts.join(' · '))];
         }
     }
-    if (e.quick) return [paint(t('quick.sample',state.language))];
+    if (e.quick) return [paint(tr(e.quick.step === 'appearance' ? 'quick.preset-ready' : 'quick.sample'))];
     if (message) return [paint(message, true)];
     if (e.review) return [paint(importShortcutHelp(e.review, e.shortcuts, state.language))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];

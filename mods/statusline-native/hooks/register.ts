@@ -39,6 +39,7 @@ import type { View } from '../lib/session.ts';
 import { withinBudget, frameElements, frameTree, CapacityError } from '../ui/frame.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
+import { shortcutContext } from '../lib/client/settings.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
 import type { PreviewBackground } from '../lib/preview-preferences.ts';
 import { text as localizedText, t } from '../lib/i18n/index.ts';
@@ -342,7 +343,11 @@ async function save(
       editor.advanced = true;
       editor.setting =
         'host-' + state.view.preferences.find(preferenceChanged)!.row.key;
-      setMessage(state.view, "message", localizedText("native.hooks.register.tool_configuration_saved_host_changes_pending_a_apply"));
+      setMessage(state.view, 'message', localizedText('shortcuts.host-preferences-pending', {
+        apply: editor.shortcuts.hint('host-settings', 'apply-host-preferences'),
+        finish: editor.shortcuts.hint('host-settings', 'finish'),
+        close: editor.shortcuts.hint('host-settings', 'close'),
+      }));
       $.ui.invalidate('ui.render');
     } else await close($, state, options);
   }
@@ -381,8 +386,16 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
     } else {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) {
-        if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
-        setMessage(state.view, "message", localizedText("native.hooks.register.draft_replaced_review_preview_and_save_or_discard"));
+        if (e.quick) {
+          receivePreset(e.quick, result.draft);
+          setMessage(state.view, 'message', localizedText('quick.preset-ready'));
+        } else {
+          e.replaceDraft(result.draft);
+          const context = shortcutContext(state.view);
+          setMessage(state.view, 'message', localizedText('shortcuts.native-preset-applied', {
+            save: e.shortcuts.hint(context, 'save'), close: e.shortcuts.hint(context, 'close'),
+          }));
+        }
         state.previewKey = '';
       }
     }

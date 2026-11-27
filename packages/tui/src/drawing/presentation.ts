@@ -42,7 +42,7 @@ export function fieldValue(row: Row, state: State): string {
     if (row.key === 'preset-select') {
         return t('presets.' + row.value, language);
     }
-    if (row.key === 'keyboard-shortcuts') return 'Enter';
+    if (row.key === 'keyboard-shortcuts') return '';
     if (row.kind === 'action') {
         return t('ui.actions.' + row.key, language);
     }

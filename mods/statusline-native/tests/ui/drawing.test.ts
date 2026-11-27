@@ -1,5 +1,6 @@
 import { component } from '../fixtures.ts';
-import { LANGUAGES, t } from '../../lib/i18n/index.ts';
+import { LANGUAGES, t, text as localizedText } from '../../lib/i18n/index.ts';
+import { setMessage } from '../../lib/i18n/messages.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ClientElements } from 'claude-code';
 import { Editor } from '../../lib/editor/draft.ts';
@@ -358,6 +359,28 @@ test('filtered views retain their controls, selected row and real preview at the
     key('g', true);
     expect(e.search.main).toBe('');
     expect(e.category.main).toBe('all');
+  }
+});
+
+test('32×12 keeps save, finish, discard and separate apply legible when a preset or host notice is clipped', () => {
+  for (const language of LANGUAGES) {
+    const state = view(), e = state.editor!;
+    state.language = language;
+    e.page = 'settings';
+    e.toggle('main', e.selected.main);
+    const bindings = { save: 'Q', close: 'Ctrl+S', finish: 'Ctrl+Q', 'close-picker': 'Z', 'apply-host-preferences': 'Ctrl+A' };
+    e.shortcuts.snapshot.bindings = bindings;
+    for (const advanced of [false, true]) {
+      e.advanced = advanced;
+      const message = advanced ? localizedText('shortcuts.host-preferences-pending', { apply: 'Ctrl+A', finish: 'Ctrl+Q', close: 'Ctrl+S' })
+        : localizedText('shortcuts.native-preset-applied', { save: 'Q', close: 'Ctrl+S' });
+      setMessage(state, 'message', message);
+      const screen = render(draw(elements, state, 32, 12) as unknown as Node).join('\n');
+      expect(screen).toContain('Q ' + t('ui.hints.save', language));
+      expect(screen).toContain('Ctrl+Q ' + t('ui.hints.finish', language));
+      expect(screen).toContain('Ctrl+S ' + t('ui.hints.discard', language));
+      if (advanced) expect(screen).toContain('Ctrl+A ' + t('ui.hints.apply', language));
+    }
   }
 });
 

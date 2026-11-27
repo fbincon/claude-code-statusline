@@ -3,13 +3,14 @@ import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, type Editor
 import { isBindingMap, readShortcutBindings, shortcutConflict } from '@fbincon/statusline-core/editor/shortcut-map';
 import { isSchema } from '@fbincon/statusline-core/config/display';
 import { ConfigError, fail, object } from '@fbincon/statusline-core/config/validation';
-import { text } from '@fbincon/statusline-core/i18n/messages';
+import { text, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { integer } from '@fbincon/statusline-core/json';
 import { readJson } from '@fbincon/statusline-core/json-read';
-import { artifact, decodeUtf8, errorDetail, jsonBytes, type Storage } from './storage.js';
+import { FileLockBusyError, readWithExistingLock } from '@fbincon/statusline-platform/files';
+import { artifact, configurationLockPath, decodeUtf8, errorDetail, jsonBytes, type Storage } from './storage.js';
 import { safeTarget } from '../integration/paths.js';
-import { commit } from '../recovery/files.js';
-import { assertClear, hash } from '../recovery/journal.js';
+import { commit, recoverFiles } from '../recovery/files.js';
+import { assertClear, hash, pending, readJournal, type FileEntry } from '../recovery/journal.js';
 
 const version = EDITOR_SHORTCUTS_SCHEMA_VERSION;
 
@@ -33,12 +34,34 @@ function decode(raw: Buffer | null): Pick<EditorShortcutsResult, 'bindings' | 'w
 
 export function readEditorShortcuts(directory: string, io: Storage): EditorShortcutsResult {
     const path = join(directory, EDITOR_SHORTCUTS_FILENAME);
+    const lock = configurationLockPath(directory);
+    const failed = (detail: string | LocalizedText): EditorShortcutsResult => ({
+        schema_version: version, revision: null, bindings: {}, warning: text('shortcuts.read-failed', { detail }),
+    });
     try {
+        safeTarget(directory, lock);
         safeTarget(directory, path);
-        const raw = io.read(path);
-        return { schema_version: version, revision: hash(raw), ...decode(raw) };
+        return readWithExistingLock(lock, locked => {
+            let committed: FileEntry | undefined;
+            try {
+                for (const file of pending(directory)) {
+                    const journal = readJournal(directory, file);
+                    if (journal.kind !== 'files') continue;
+                    const entry = journal.entries.find(item => item.path === EDITOR_SHORTCUTS_FILENAME);
+                    if (!entry) continue;
+                    if (!locked || committed || journal.phase !== 'committed' || journal.progress !== journal.entries.length)
+                        return failed(text('shortcuts.read-recovery'));
+                    // Recovery verifies every target and before-image without clearing the journal.
+                    recoverFiles(journal, io, true);
+                    committed = entry;
+                }
+            } catch { return failed(text('shortcuts.read-recovery')); }
+            const raw = io.read(path), revision = hash(raw);
+            if (committed && committed.after !== revision) return failed(text('shortcuts.read-recovery'));
+            return { schema_version: version, revision, ...decode(raw) };
+        });
     } catch (error) {
-        return { schema_version: version, revision: null, bindings: {}, warning: text('shortcuts.read-failed', { detail: errorDetail(error) }) };
+        return failed(error instanceof FileLockBusyError ? text('shortcuts.read-busy') : errorDetail(error));
     }
 }
 
