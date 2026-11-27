@@ -308,7 +308,7 @@ try {
                 await key('\x1b[F');capture('package-local-details');await key('q');
                 await selectSetting('import-file');
                 await key('\r');
-                await key('\r', t('review.selection.help', language));
+                await key('\r', t('shortcuts.import-help', language, { select: 'S', full: 'F', accept: 'A' }));
                 capture('review');
                 await key('\r');
                 capture('review-expanded');

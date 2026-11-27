@@ -78,6 +78,8 @@ Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使
 
 用户操作见[配置编辑器：终端页面区域与底部提示](../EDITORS.zh-CN.md#terminal-page-regions-and-footer)。历史对等与回归证据保留在[外部 TUI 对等记录](history/migration/external-tui-parity.zh-CN.md)和[外部 TUI 回归记录](history/migration/external-tui-regressions.zh-CN.md)；终端单元格重建不代表人工桌面验收。
 
+快捷键预设、动作分发和冲突场景由共享 core 定义。两端从独立界面偏好读取改绑，并把当前键传入提示。下方的 Linux 安装后快捷键验证在同一隔离配置中执行两端的保存、读取和恢复。
+
 ## 持久安装与恢复
 
 ```bash
@@ -102,6 +104,7 @@ claude-statusline doctor
 ```bash
 npm run test:installed -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/installed.json
 npm run test:mods -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/mods.json
+npm run capture:native-capacity -- --editor-shortcuts --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --output dist/validation/native/editor-shortcuts
 ```
 
 固定候选需核实实际加载、首次点击、Space/Enter、切页/排序/搜索、数值 Ctrl+G、保存/完成/取消、Esc 焦点及关闭、窄窗/CJK、偏好、冲突和继续同一 session。Windows/macOS 真人检查与 CI 分开记录。

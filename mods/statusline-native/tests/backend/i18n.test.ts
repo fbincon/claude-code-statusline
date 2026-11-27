@@ -6,13 +6,14 @@ import { FALLBACK_KEYS, LOCALES } from '../../lib/i18n/generated-locales.ts';
 import { output, reply } from '../fixtures.ts';
 
 test('shared resources have matching keys, placeholders, fallbacks and nested messages', () => {
+  const keys = (Object.keys(LOCALES.en) as (keyof typeof LOCALES.en)[]).sort();
+  const placeholders = (value: string) => [...new Set([...value.matchAll(/\{([A-Za-z_]\w*)\}/g)].map(match => match[1]))].sort().join(',');
+  const english = keys.map(key => placeholders(LOCALES.en[key]));
   for (const language of LANGUAGES) {
-    expect(Object.keys(LOCALES.en).sort()).toEqual(Object.keys(LOCALES[language]).sort());
-    for (const key of Object.keys(LOCALES.en) as (keyof typeof LOCALES.en)[]) {
-      const placeholders = (value: string) => [...new Set([...value.matchAll(/\{([A-Za-z_]\w*)\}/g)].map(match => match[1]))].sort();
-      expect(placeholders(LOCALES[language][key])).toEqual(placeholders(LOCALES.en[key]));
-      expect(messageOrigin(key, language)).toBe((FALLBACK_KEYS[language] as readonly string[]).includes(key) ? 'en' : language);
-    }
+    expect(Object.keys(LOCALES[language]).sort()).toEqual(keys);
+    expect(keys.filter((key, index) => placeholders(LOCALES[language][key]) !== english[index])).toEqual([]);
+    const fallback = new Set<string>(FALLBACK_KEYS[language]);
+    expect(keys.filter(key => messageOrigin(key, language) !== (fallback.has(key) ? 'en' : language))).toEqual([]);
   }
   const value = text('cli.error', { detail: text('errors.host.padding_must_be_an_integer_from_0') });
   expect(renderMessage(value, 'en')).toBe('error: padding must be an integer from 0 through 32');

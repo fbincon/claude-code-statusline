@@ -7,6 +7,7 @@ export interface Shortcut {
   key: string;
   label: string;
   short?: string;
+  optional?: number;
 }
 
 export interface TextSpan {

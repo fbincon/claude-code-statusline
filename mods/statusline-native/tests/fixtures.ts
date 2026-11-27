@@ -1,7 +1,8 @@
 import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
+import type { EditorShortcutsResult } from '../lib/generated-contracts.ts';
 import type { ClientProps } from '../lib/session.ts';
 import type { Frame } from '../ui/frame.ts';
-import { LANGUAGES } from '../lib/i18n/index.ts';
+import { LANGUAGES, text } from '../lib/i18n/index.ts';
 import type {
   CommandInfo,
   ConfigRow,
@@ -222,6 +223,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
   const behavior: Behavior = {};
   const store = {
     uiLanguage: 'en' as import('../lib/i18n/index.ts').Language,
+    shortcuts: { schema_version: 1, bindings: {}, revision: null, warning: null } as EditorShortcutsResult,
     draft: copyDraft(BASE),
     revision: '0'.repeat(64),
     rows: hostRows(),
@@ -298,6 +300,16 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
         return { value: reply(readResult(store.draft, store.revision)) };
       if (request.operation === 'read_ui_preferences')
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'read_editor_shortcuts') return { value: reply(store.shortcuts) };
+      if (request.operation === 'set_editor_shortcuts') {
+        if (request.payload.expected_revision !== store.shortcuts.revision) {
+          const localization = text('shortcuts.changed');
+          return { value: output(JSON.stringify({ protocol_version: PROTOCOL_VERSION, error: { code: 'configuration_conflict', message: localization.fallback, localization } }), 2) };
+        }
+        const bindings = request.payload.bindings;
+        store.shortcuts = { schema_version: 1, bindings, revision: Object.keys(bindings).length ? '3'.repeat(64) : null, warning: null };
+        return { value: reply(store.shortcuts) };
+      }
       if (request.operation === 'source_draft')
         return { value: reply({revision: 'pins'}) };
       if (request.operation === 'review_import') return {value:reply({draft:copyDraft(request.payload.draft),changes:[]})};

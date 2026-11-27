@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
 import { clone, ConfigError } from '@fbincon/statusline-core/config/validation';
-import { PROTOCOL_VERSION, type Draft } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, EDITOR_SHORTCUTS_FILENAME, type Draft, type EditorShortcutsResult } from '@fbincon/statusline-core/contracts/ui';
 import { commandFor, ownedCommand } from '@fbincon/statusline-platform/commands';
 import { ConfigurationService, draft } from '../src/config/service.js';
 import { ConfigurationProtocol } from '../src/ui/protocol.js';
@@ -29,6 +29,7 @@ type Reply = {
         backup_dir: string | null;
         ui_language: string;
         warning: unknown;
+        bindings: EditorShortcutsResult['bindings'];
     };
     error: {
         code: string;
@@ -54,6 +55,60 @@ function setup(t: TestContext, installed = true) {
     return { root, context, io, service, protocol, call, read, save, settingsPath, displayPath, launch };
 }
 function backups(root: string): string[] { const path = join(root, 'backups/statusline'); return fs.existsSync(path) ? fs.readdirSync(path).sort() : []; }
+
+test('shared shortcuts validate overlapping bindings and use a separate revision and backup', t => {
+    const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME), uiLanguage = join(f.root, 'statusline-ui.json');
+    setLanguage(f.root, 'zh-CN', f.io);
+    const settings = fs.readFileSync(f.settingsPath), preferences = fs.readFileSync(uiLanguage), display = f.read();
+    const read = f.call('read_editor_shortcuts');
+    assert.deepEqual(read.response.result, { schema_version: 1, bindings: {}, revision: null, warning: null });
+    assert.equal(fs.existsSync(path), false);
+    assert.equal(f.call('set_editor_shortcuts', { bindings: { save: 'Ctrl+D' }, expected_revision: null }).response.error.code, 'invalid_request');
+    assert.equal(f.call('set_editor_shortcuts', { bindings: { save: 'Z' } }).response.error.code, 'invalid_request');
+    const saved = f.call('set_editor_shortcuts', { bindings: { save: 'Z', 'reload-profiles': 'Z' }, expected_revision: null });
+    assert.equal(saved.status, 0, JSON.stringify(saved.response));
+    const { revision } = saved.response.result, raw = fs.readFileSync(path);
+    assert.deepEqual(f.call('read_editor_shortcuts').response.result, saved.response.result);
+    assert.equal(f.call('set_editor_shortcuts', { bindings: {}, expected_revision: null }).response.error.localization.key, 'shortcuts.changed');
+    assert.deepEqual(fs.readFileSync(path), raw);
+    const prior = backups(f.root);
+    assert.deepEqual(f.call('set_editor_shortcuts', { bindings: { 'reload-profiles': 'Z', save: 'Z' }, expected_revision: revision }).response.result, saved.response.result);
+    assert.deepEqual(backups(f.root), prior);
+
+    assert.equal(f.call('set_editor_shortcuts', { bindings: {}, expected_revision: revision }).status, 0);
+    assert.equal(fs.existsSync(path), false);
+    assert.ok(backups(f.root).some(name => name.includes('editor-shortcuts') && fs.readFileSync(join(f.root, 'backups/statusline', name, EDITOR_SHORTCUTS_FILENAME + '.before')).equals(raw)));
+    assert.deepEqual(f.read(), display);
+    assert.deepEqual(fs.readFileSync(f.settingsPath), settings);
+    assert.deepEqual(fs.readFileSync(uiLanguage), preferences);
+    assert.throws(() => exportFile(path, display.draft, f.root, true), ConfigError);
+});
+
+test('damaged shortcuts use defaults until an explicit repair, with future schemas and failed saves protected', t => {
+    const f = setup(t), path = join(f.root, EDITOR_SHORTCUTS_FILENAME);
+    const damaged = Buffer.from('{"schema_version":1,"bindings":{"save":"S","save":"Q"}}');
+    fs.writeFileSync(path, damaged, { mode: 0o640 });
+    const { revision, bindings, warning } = f.call('read_editor_shortcuts').response.result;
+    assert.deepEqual(bindings, {});
+    assert.equal((warning as EditorShortcutsResult['warning'])?.key, 'shortcuts.invalid');
+    assert.deepEqual(fs.readFileSync(path), damaged);
+    assert.equal(f.call('set_editor_shortcuts', { bindings: {}, expected_revision: revision }).status, 0);
+    assert.equal(fs.existsSync(path), false);
+    const future = Buffer.from('{"schema_version":2,"bindings":{"save":"Z"}}');
+    fs.writeFileSync(path, future, { mode: 0o640 });
+    const next = f.call('read_editor_shortcuts').response.result;
+    assert.equal((next.warning as EditorShortcutsResult['warning'])?.key, 'shortcuts.future');
+    assert.equal(f.call('set_editor_shortcuts', { bindings: {}, expected_revision: next.revision }).response.error.localization.key, 'shortcuts.future');
+    assert.deepEqual(fs.readFileSync(path), future);
+    fs.writeFileSync(path, damaged);
+    const mode = fs.statSync(path).mode;
+    let writes = 0;
+    const io: Storage = { ...f.io, write(target, raw) { f.io.write(target, raw); if (target === path && ++writes === 1) throw new Error('Interrupted after replacement'); } };
+    const failing = new ConfigurationProtocol(new ConfigurationService(f.context, io));
+    assert.equal(f.call('set_editor_shortcuts', { bindings: { save: 'Z' }, expected_revision: revision }, failing).response.error.code, 'io_error');
+    assert.deepEqual(fs.readFileSync(path), damaged);
+    assert.equal(fs.statSync(path).mode, mode);
+});
 test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_two_editors_noop_and_unrelated_settings_preserved', t => {
     const f = setup(t), first = f.read(), second = f.read();
     const settings = JSON.parse(fs.readFileSync(f.settingsPath, 'utf8'));

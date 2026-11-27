@@ -1,3 +1,4 @@
+import { importShortcutHelp, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 /** State-specific hints fitted as indivisible key/action pairs. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { t, renderMessage } from '@fbincon/statusline-core/i18n/messages';
@@ -30,32 +31,57 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    const keys = e.shortcuts;
     if(e.changeReview||e.reuse)return {actions:[['Ctrl+G',t('ui.hints.back',state.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
-    if(e.packages)return {actions:[['Enter',t('ui.hints.select',state.language)],['R',t('profiles.refresh',state.language)],['Q/Esc',t('task.close',state.language)]],help:[['C',t('ui.hints.cancel',state.language)],hint('L','reload'),['↑↓ PgUp/PgDn',t('ui.hints.scroll',state.language)]]};
-    if(e.taskViewer)return {actions:[['R',t('profiles.refresh',e.taskViewer.language)],['Q/Esc',t('task.close',e.taskViewer.language)]],help:[['↑↓ PgUp/PgDn',t('ui.hints.scroll',e.taskViewer.language)],['/ F E S ←→',t('task.viewer.keys',e.taskViewer.language)]]};
-    if(e.colors)return {actions:[['Ctrl+S',t('colors.apply',state.language)],hint('Esc/Ctrl+G','back')],help:[hint('↑↓','select'),hint('Enter','edit')]};
+    if (e.packages) {
+        const actions = [hint('Enter', 'select'), hint('Esc/Ctrl+G', 'back')], help = [hint('↑↓ PgUp/PgDn', 'scroll')];
+        if (!e.packages.input) {
+            actions.splice(1, 0, [keys.hint('packages', 'refresh-package'), t('profiles.refresh', state.language)]);
+            actions[2] = [keys.hint('packages', 'close-packages') + '/Esc', t('task.close', state.language)];
+            help.unshift(hint(keys.hint('packages', 'reload-packages'), 'reload'));
+            if (e.packages.job && !e.packages.execution) help.unshift(hint(keys.hint('packages', 'cancel-package-review'), 'cancel'));
+        }
+        return { actions, help };
+    }
+    if (e.taskViewer) {
+        const lang = e.taskViewer.language;
+        if (e.taskViewer.input) return { actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')], help: [hint('←→', 'move_cursor'), hint('Ctrl+U', 'clear')] };
+        return {
+            actions: [[keys.hint('tasks', 'reload-tasks'), t('profiles.refresh', lang)], [keys.hint('tasks', 'close-tasks') + '/Esc', t('task.close', lang)]],
+            help: [hint('↑↓ PgUp/PgDn', 'scroll'), [(['task-search', 'task-filter', 'task-evidence', 'task-identity'] as const).map(action =>
+                keys.hint('tasks', action)).join(' ') + ' ←→', t('task.viewer.keys', lang)]],
+        };
+    }
+    if (e.colors) return { actions: e.colors.input ? [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')] :
+        [[keys.hint('colors', 'apply-color'), t('colors.apply', state.language)], hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓', 'select'), hint('Enter', 'edit')] };
     if (e.diagnosis) {
         if (e.diagnosis.report) return { actions: [hint('Esc/Ctrl+G', 'back')], help: [hint('↑↓ PgUp/PgDn', 'scroll')] };
         return { actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')],
             help: e.diagnosis.input ? [hint('←→ Home/End', 'edit'), hint('Ctrl+U', 'clear')] : [hint('↑↓', 'select')] };
     }
-    if(e.saveState==='unknown')return {actions:[['Ctrl+K',t('editor.check_saved',state.language)]],help:[['Ctrl+Y',t('sources.title',state.language)]]};
+    if(e.saveState==='unknown')return {actions:[['Ctrl+K',t('editor.check_saved',state.language)]],help:[[keys.hint(state.shortcutContext, 'sources'),t('sources.title',state.language)]]};
     if (e.groupManager || e.alignmentManager) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [hint('↑↓','select'),hint('←→','adjust')] };
     if (e.sources) {
         const help: Hint[] = [hint('↑↓','select')];
-        if (e.sources.page === 'form') help.push(['Ctrl+S',t('sources.save',state.language)]);
-        if (e.sources.page === 'list') help.push(['R',t('sources.reload',state.language)]);
+        if (e.sources.page === 'form') help.push([keys.hint('source-form', 'save-source'),t('sources.save',state.language)]);
+        if (e.sources.page === 'list') help.push([keys.hint('sources', 'reload-sources'),t('sources.reload',state.language)]);
         return { actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help };
     }
-    if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help:[hint('↑↓','select'),['R',t('profiles.refresh',state.language)]] };
+    if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [
+        hint('↑↓','select'), ...(e.profiles.page === 'form' ? [] : [[e.profiles.uncertain ? 'R' : keys.hint('profiles', 'reload-profiles'), t('profiles.refresh', state.language)] as Hint]),
+    ] };
     if (e.quick) return {
         actions: [hint('Enter','accept'),hint('Backspace','back'),hint('Esc/Ctrl+G','cancel')],
-        help: [hint('↑↓','select'),hint('←→','adjust'),hint('Tab','preview'),hint('PgUp/PgDn','scroll')],
+        help: [hint('↑↓','select'),hint('←→','adjust'),hint('Tab','preview'),hint('PgUp/PgDn','scroll'),
+            [keys.hint('quick', 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]],
     };
     if (e.review) {
+        const context = reviewShortcutContext(e.review);
         return {
-            actions: [hint('A', 'accept_draft'), hint('Esc/Ctrl+G', 'cancel_review')],
-            help: [hint('Enter', 'details'), hint('↑↓', 'section'), hint('PgUp/PgDn', 'scroll'), hint('Tab', 'preview')],
+            actions: [...(e.review.choosing ? [] : [hint(keys.hint(context, 'accept-import'), 'accept_draft')]),
+                hint(keys.hint(context, 'cancel-import') + '/Esc', 'cancel_review')],
+            help: [hint('Enter', e.review.choosing ? 'accept' : 'details'), hint('↑↓', 'section'), hint('PgUp/PgDn', 'scroll'), hint('Tab', 'preview'),
+                [keys.hint(context, 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]],
         };
     }
     if (e.guidanceScroll !== null || e.explanation) {
@@ -85,28 +111,30 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     if (e.adding) {
         return {
             actions: [hint('Enter/Space', 'add_enable'), hint('Ctrl+G/Esc', 'back')],
-            help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category'), hint('Ctrl+U', 'clear'), hint('Ctrl+E', 'details')],
+            help: [hint('↑↓', 'select'), hint(keys.hint('picker', 'search'), 'search'), hint(keys.hint('picker', 'category'), 'category'), hint('Ctrl+U', 'clear'), hint(keys.hint('picker', 'item-details'), 'details')],
         };
     }
-    const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
-    actions.push(['Ctrl+Z/R',t('history.undo_redo',state.language)],['Ctrl+T',t('history.title',state.language)]);
-    if(!e.detail) actions.push(['Ctrl+P',t('quick.title',state.language)]);
-    actions.push(['Ctrl+V/W/N',t('preview.controls',state.language)]);
+    const context = state.shortcutContext;
+    const actions: Hint[] = [hint(state.form ? keys.hint(context, 'save') : keys.aliases(context, 'save'), 'save'),
+        hint(keys.hint(context, 'close'), 'cancel'), hint('Ctrl+C', 'interrupt')];
+    actions.push([keys.hint(context, 'undo', 'redo'),t('history.undo_redo',state.language)], [keys.hint(context, 'history'),t('history.title',state.language)]);
+    if(!e.detail) actions.push([keys.hint(context, 'quick-setup'),t('quick.title',state.language)]);
+    actions.push([keys.hint(context, 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]);
     if (e.detail) {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
     if (state.form) {
         return {
             actions,
-            help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', e.page === 'layout' ? 'edit' : 'edit_save')],
+            help: [hint('Tab', 'page'), hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', keys.aliases(context, 'save').includes('Enter') ? 'edit_save' : 'edit')],
         };
     }
-    const help = [hint('Ctrl+A/D/X', 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
-        hint('Space', 'toggle'), hint('Ctrl+E', 'format'), hint('↑↓', 'select')];
+    const help = [hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
+        hint(keys.hint(context, 'toggle-item'), 'toggle'), hint(keys.hint(context, 'item-details'), 'format'), hint('↑↓', 'select')];
     if (e.filtered(state.scope)) {
         help.unshift(hint('Ctrl+G', 'clear_filters'));
-        if (e.category[state.scope] !== 'all') help.unshift(hint('Ctrl+A', 'catalog'));
-    } else help.push(hint('←→', 'order'));
+        if (e.category[state.scope] !== 'all') help.unshift(hint(keys.hint(context, 'add-item'), 'catalog'));
+    } else help.push(hint(keys.hint(context, 'move-left', 'move-right'), 'order'));
     return { actions, help };
 }
 
@@ -117,7 +145,7 @@ export function notice(state: State, width: number): Paint[] {
     if(e.saveState==='unknown')return [paint(tr('editor.save_unknown'),true)];
     if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
-    if (e.review) return [paint(tr(e.review.base ? 'review.selection.help' : 'review.intro'))];
+    if (e.review) return [paint(importShortcutHelp(e.review, e.shortcuts, state.language))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
     if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
     if (e.detail) {
@@ -130,6 +158,7 @@ export function notice(state: State, width: number): Paint[] {
         return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
     }
     const { category, search } = e.listContext(state.scope);
-    return [paint('Ctrl+F', true), paint(' ' + tr('catalog.categories.' + category) + ' · '),
-        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + search)];
+    const context = e.adding ? 'picker' : 'list';
+    return [paint(e.shortcuts.hint(context, 'category'), true), paint(' ' + tr('catalog.categories.' + category) + ' · '),
+        paint(e.shortcuts.hint(context, 'search'), true), paint(' ' + tr('ui.drawing.type_to_search') + search)];
 }

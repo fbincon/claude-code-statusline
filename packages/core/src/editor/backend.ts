@@ -1,4 +1,5 @@
 import { isPackageResult } from './package-validation.js';
+import { isBindingMap, shortcutConflict } from './shortcut-map.js';
 import { isScenario } from './preview-settings.js';
 import { validAlignments } from './alignments.js';
 import { GRADIENT_KEYS, validGradient } from './gradients.js';
@@ -10,7 +11,7 @@ import { STYLE_REASONS, SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENC
 import { text as localizedText } from '../i18n/messages.js';
 /** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
 import {
-  PROTOCOL_VERSION, OPERATIONS,
+  PROTOCOL_VERSION, OPERATIONS, EDITOR_SHORTCUTS_SCHEMA_VERSION,
   MAIN_ITEM_IDS,
   SUBAGENT_ITEM_IDS,
   PALETTE_VALUES, THEME_VALUES, POWERLINEGLYPH_VALUES,
@@ -454,6 +455,11 @@ export function parseResponse<O extends Operation>(
     if (!exact(result, ['schema_version', 'ui_language', 'warning']) || result.schema_version !== 1 ||
         !STATUSLINELANGUAGE_VALUES.some(language => language === result.ui_language) ||
         !(result.warning === null || isLocalizedText(result.warning))) fail();
+  } else if (operation === 'read_editor_shortcuts' || operation === 'set_editor_shortcuts') {
+    if (!exact(result, ['schema_version', 'bindings', 'revision', 'warning']) || result.schema_version !== EDITOR_SHORTCUTS_SCHEMA_VERSION ||
+        !isBindingMap(result.bindings) || shortcutConflict(result.bindings) ||
+        !(result.revision === null ? !Object.keys(result.bindings).length : typeof result.revision === 'string' && result.revision.length === 64 && /^[a-f0-9]{64}$/u.test(result.revision)) ||
+        !(result.warning === null || operation === 'read_editor_shortcuts' && isLocalizedText(result.warning))) fail();
   } else if (operation === 'read' || operation === 'apply') {
     if (result.configuration !== undefined && !isConfiguration(result.configuration)) fail();
     if (

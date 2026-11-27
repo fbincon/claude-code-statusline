@@ -9,6 +9,7 @@
 - [打开编辑器](#open-an-editor)
 - [页面与导航](#pages-and-navigation)
 - [键盘操作](#keyboard-controls)
+- [自定义快捷键](#customize-keyboard-shortcuts)
 - [文本输入](#text-input)
 - [查找显示项与查看条件](#find-items-and-inspect-requirements)
 - [格式与布局](#formats-and-layouts)
@@ -117,6 +118,22 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | 样例场景／宽度／下一预览行 | Ctrl+V / Ctrl+W / Ctrl+N | [样例预览](#sample-preview-and-colors) |
 
 使用草稿历史前，先从管理器返回主编辑器。Unix 上 Claude 可能拦截 Ctrl+Z 并挂起进程，因此 Client 使用上表中的撤销键。在 GNOME Terminal 中使用 Client 时，Ctrl+Shift+- 也发送撤销键，而 Ctrl+- 缩小字体。宿主限制详见历史指南。
+
+<a id="customize-keyboard-shortcuts"></a>
+
+## 自定义快捷键
+
+在任一编辑器中打开 **设置 → 快捷键**。使用方向键和翻页键浏览操作。每项显示当前绑定，方括号内显示预设。内置和外部编辑器共享这份设置，预设不同的操作会显示各自的键。
+
+1. 选中操作并按 Enter，然后按下新键。Ctrl+G 取消录入。Delete 将选中操作恢复为预设。
+2. 用 Tab 切换到操作菜单，再用方向键选中 **保存快捷键** 并按 Enter。要恢复整套预设，在菜单中选择 **恢复全部** 后保存。
+3. 遇到冲突时，根据提示调整涉及的操作。可以先交换两项的键，再一起保存。同一键可用于互斥页面。Ctrl+G 返回，有暂存修改时会先询问是否放弃。
+
+保存后当前编辑器立即使用新绑定。另一个已打开的编辑器可在快捷键面板选择 **读取已保存**，也可关闭后重开。两个编辑器同时修改时，先保存的改动受到保护。后保存的一端会收到冲突提示，可先读取已保存的设置。快捷键作为本机界面偏好独立保存，显示草稿继续通过原有的保存和撤销流程管理。[存储格式](reference/cli.zh-CN.md#editor-shortcut-preferences)
+
+首版支持 ASCII 字母、数字、符号和可辨识的 Ctrl+字母。字母大小写等效。Space、Enter 和左右方向键可在没有固定用途冲突的场景使用。来源表单的保存快捷键须用 Ctrl+字母，以保留文字输入。改键会替换该操作的预设键和别名。例如，外部编辑器改绑保存后，在列表里使用新键保存，在普通菜单里仍用 Enter 确认。宿主焦点、文本编辑、菜单导航、应急退出和故障恢复使用固定键。
+
+本页的按键表列出预设。改键后可查看编辑器页脚和快捷键面板。终端与宿主需要把按键送达编辑区，才能录入或触发。内置 Client 对宿主以单字符按键转发的粘贴无法区分。
 
 <a id="text-input"></a>
 

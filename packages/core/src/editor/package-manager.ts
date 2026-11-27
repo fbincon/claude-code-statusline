@@ -5,6 +5,8 @@ import { t, text, renderMessage, type Language, type LocalizedText } from '../i1
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
 import { BackendError } from './backend.js';
+import { resolveShortcut, shortcutHint } from './shortcut-map.js';
+import type { EditorShortcuts } from './shortcut-settings.js';
 interface Row { key:string; text:string; action?:PackageReviewRequest['action']; backup?:string; selected?:boolean }
 export interface PackageManager {
     owner:string;status:PackageStatus|null;job:PackageReviewJob|null;execution:PackageExecution|null;cleanup:PackageCleanupReview|null;
@@ -34,7 +36,11 @@ function verified(view:PackageManager):boolean {
     const job=view.job,review=job?.review;
     return job?.state==='complete'&&!!review?.compatible&&job.request.action!=='check'&&(review.artifact_verified||job.request.action==='restore-config');
 }
+function refreshKey(shortcuts?: EditorShortcuts): string {
+    return shortcuts?.hint('packages', 'refresh-package') ?? shortcutHint('native', 'packages', {}, 'refresh-package');
+}
 export async function performPackage(view:PackageManager,backend:PackageBackend,editor?:Editor):Promise<void>{
+    const cancellationRequested = () => text('package.ui.cancel_requested', { key: refreshKey(editor?.shortcuts) });
     const effect=view.effect;if(!effect||view.busy)return;view.effect=null;
     if(effect==='close'){await closePackage(view,backend);return;}
     view.busy=true;const generation=view.generation;
@@ -43,7 +49,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
             if(view.job&&view.prefix&&view.job.request.prefix!==view.prefix){
                 const cancelled=await request(view,backend,'package_review_cancel',{id:view.job.id,owner:view.owner});
                 if(view.closed||generation!==view.generation)return;
-                if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=text('package.ui.cancel_requested');view.selected='message';return;}view.job=null;
+                if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=cancellationRequested();view.selected='message';return;}view.job=null;
             }
             const status=await request(view,backend,'package_status',{prefix:view.prefix||null,offset:view.offset});
             if(view.closed||generation!==view.generation)return;
@@ -57,7 +63,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
             let target=view.action==='recover-package'?view.status.pending?.version??view.target:view.target||null,integrity:string|null=null;
             if(view.action==='update'&&previous?.state==='complete'&&previous.request.action==='check'&&previous.request.expected_revision===view.status.revision&&previous.review&&(!target||target===previous.review.target)&&(!view.channel||view.channel===previous.review.channel||!!target)){target=previous.review.target;integrity=previous.review.integrity;}
             const reviewRequest:PackageReviewRequest={action:view.action,prefix:view.status.prefix,expected_revision:view.status.revision,target:view.action==='restore-config'?null:target,channel:!target&&['check','update'].includes(view.action)?view.channel:null,backup_id:view.action==='restore-config'?view.backup:null,expected_integrity:integrity};
-            if(previous){const cancelled=await request(view,backend,'package_review_cancel',{id:previous.id,owner:view.owner});if(view.closed||generation!==view.generation)return;if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=text('package.ui.cancel_requested');view.selected='message';return;}view.job=null;}
+            if(previous){const cancelled=await request(view,backend,'package_review_cancel',{id:previous.id,owner:view.owner});if(view.closed||generation!==view.generation)return;if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=cancellationRequested();view.selected='message';return;}view.job=null;}
             const job=await request(view,backend,'package_review_start',{request:reviewRequest,owner:view.owner});
             if(view.closed||generation!==view.generation){await request(view,backend,'package_review_cancel',{id:job.id,owner:view.owner});return;}
             view.job=job;view.mode='status';view.draftPrepared=false;view.message=null;view.selected='job';
@@ -99,7 +105,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
         }else if(view.job){
             const job=await request(view,backend,effect==='cancel'?'package_review_cancel':'package_review_status',{id:view.job.id,owner:view.owner});
             if(view.closed||generation!==view.generation)return;
-            const cancelled=effect==='cancel'&&job.state==='cancelled';view.job=cancelled?null:job;view.message=effect==='cancel'?text(cancelled?'package.cancelled':'package.ui.cancel_requested'):null;
+            const cancelled=effect==='cancel'&&job.state==='cancelled';view.job=cancelled?null:job;view.message=effect==='cancel'?(cancelled ? text('package.cancelled') : cancellationRequested()):null;
             view.selected=effect==='cancel'?'message':job.review?'verification':job.error?'job-error':'job';
         }
     }catch(error){
@@ -107,7 +113,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
         if(!view.closed&&generation===view.generation){view.message=error instanceof BackendError&&error.localization?error.localization:text('package.reason_io_error');view.selected='message';}
     }finally{if(generation===view.generation)view.busy=false;}
 }
-export function packageView(view:PackageManager,language:Language,width:number,height:number):Row[]{
+export function packageView(view:PackageManager,language:Language,width:number,height:number,shortcuts?: EditorShortcuts):Row[]{
     const tr=(key:string,params:Record<string,unknown>={})=>t('package.ui.'+key,language,params),rows:Row[]=[];
     const add=(key:string,value:string,action?:Row['action'],backup?:string)=>wrapText([value.replace(/[\p{Cc}\p{Cs}]/gu,'')],Math.max(2,width-2)).forEach((line,index)=>rows.push({key:index?key+':'+index:key,text:line,...(action?{action}:{}),...(backup?{backup}:{})}));
     const status=view.status;
@@ -136,17 +142,17 @@ export function packageView(view:PackageManager,language:Language,width:number,h
             for(const record of status.history)add('backup:'+record.id,`${record.id} · ${record.version??'—'} · ${tr('stage_'+record.stage)} · ${tr('backup_'+record.backup)}`,record.backup==='verified'?'restore-config':undefined,record.id);
             if(status.total>16){add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));}
         }
-        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:tr('state_'+job.state)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
+        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:tr('state_'+job.state, { key: refreshKey(shortcuts) })}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
             if(job.review){const review=job.review;add('verification',tr(review.action==='restore-config'?'restore_review':review.artifact_verified?'verified':'unverified'));add('review-target',`${review.current??'—'} → ${review.target??'—'}`);add('review-config',tr('config',{value:review.config_dir}));if(review.registry)add('registry',review.registry);if(review.integrity)add('integrity',review.integrity);if(review.node_engine)add('engine','Node '+review.node_engine);review.reasons.forEach(reason=>add('review-reason:'+reason,t('package.reason_'+reason,language,{},reason)));review.configuration_conflicts.forEach(file=>add('conflict:'+file,file));review.files.forEach(file=>add('restore:'+file,file));if(verified(view))add('execute',tr('execute'));}
         }
-        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:tr('execution_state_'+run.state),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
+        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:tr('execution_state_'+run.state, { key: refreshKey(shortcuts) }),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
     }
     if(view.input&&view.editing==='export_path')add('export-path',tr('export_path',{value:inputView(view.input,Math.max(2,width-16))}));
     if(view.message)add('message',renderMessage(view.message,language));
     let index=rows.findIndex(row=>row.key===view.selected);if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
     return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,text:(row.key===view.selected?'› ':'  ')+row.text,selected:row.key===view.selected}));
 }
-export function packageKey(view:PackageManager,event:TextKey):'packages'|null{
+export function packageKey(view:PackageManager,event:TextKey,shortcuts?: EditorShortcuts):'packages'|null{
     const key=event.key==='return'?'enter':event.key,cancel=!event.text&&!event.paste&&(key==='escape'||event.ctrl&&key.toLowerCase()==='g');
     if(view.input&&view.editing){
         if(cancel){view.input=null;view.editing=null;return null;}
@@ -158,15 +164,17 @@ export function packageKey(view:PackageManager,event:TextKey):'packages'|null{
         }
         const result=inputKey(view.input.value,view.input,event,view.editing==='target'?100:4096);view.input=result.state;if(result.error)view.message=text('input.'+result.error,{limit:view.editing==='target'?100:4096});return null;
     }
-    if(event.text||event.paste||event.meta)return null;
-    if(cancel||!event.ctrl&&key.toLowerCase()==='q'){
+    if(event.text||event.paste||event.meta||event.overflow)return null;
+    const action = shortcuts ? shortcuts.action('packages', event) : resolveShortcut('native', 'packages', event, {});
+    if(cancel||action==='close-packages'){
         if(view.mode!=='status'){view.mode='status';view.draftPrepared=false;return null;}
         view.effect='close';return 'packages';
     }
-    if(event.ctrl||view.busy)return null;
-    if(key.toLowerCase()==='r'){view.effect=view.mode==='cleanup'?'cleanup-review':view.execution||view.job?'status':'load';return 'packages';}
-    if(key.toLowerCase()==='l'){view.effect='load';return 'packages';}
-    if(key.toLowerCase()==='c'&&view.job&&!view.execution){view.effect='cancel';return 'packages';}
+    if(view.busy)return null;
+    if(action==='refresh-package'){view.effect=view.mode==='cleanup'?'cleanup-review':view.execution||view.job?'status':'load';return 'packages';}
+    if(action==='reload-packages'){view.effect='load';return 'packages';}
+    if(action==='cancel-package-review'&&view.job&&!view.execution){view.effect='cancel';return 'packages';}
+    if(event.ctrl)return null;
     let index=Math.max(0,view.rows.findIndex(row=>row.key===view.selected));if(key==='up')index--;if(key==='down')index++;if(key==='pageup')index-=view.capacity;if(key==='pagedown')index+=view.capacity;if(key==='home')index=0;if(key==='end')index=view.rows.length-1;view.selected=view.rows[Math.max(0,Math.min(index,view.rows.length-1))]?.key??'';
     if(key!=='enter')return null;const selectedKey=view.selected.replace(/:\d+$/u,'');
     if(selectedKey==='draft-cancel'){view.mode='status';view.draftPrepared=false;return null;}

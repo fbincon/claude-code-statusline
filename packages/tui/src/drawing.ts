@@ -11,6 +11,7 @@ import { Canvas, type Frame } from './drawing/canvas.js';
 import { drawPage } from './drawing/pages.js';
 import { contentTitle } from './drawing/presentation.js';
 import { footer, notice, shortcuts } from './drawing/shortcuts.js';
+import { shortcutPanelRows } from '@fbincon/statusline-core/editor/shortcut-settings';
 
 export type { Paint } from './theme.js';
 export type { Frame } from './drawing/canvas.js';
@@ -52,6 +53,11 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
+    if (e.shortcuts.panel) {
+        canvas.put(0, 0, [heading(tr('shortcuts.title'))]);
+        shortcutPanelRows(e.shortcuts, state.language, columns, rows - 1).forEach((row, index) => canvas.line(index + 1, row.text, false, row.selected));
+        return canvas.frame();
+    }
     state.ensureVisible(size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
     const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;

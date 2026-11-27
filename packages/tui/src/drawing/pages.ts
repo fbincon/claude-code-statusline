@@ -29,7 +29,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     if(e.changeReview||e.reuse){(e.changeReview?changesView(e,state.language,width,panel.innerHeight-1):reuseView(e,state.language,width,panel.innerHeight-1)).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return ''; }
-    if(e.packages){packageView(e.packages,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return tr('package.ui.help');}
+    if(e.packages){packageView(e.packages,state.language,width,panel.innerHeight-1,e.shortcuts).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return tr('package.ui.help');}
     if(e.taskViewer){taskViewerView(e.taskViewer,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return t('task.readonly',e.taskViewer.language);}
     if (e.diagnosis) {
         const page = diagnosisPage(e, state.language, width, panel.innerHeight - 1);

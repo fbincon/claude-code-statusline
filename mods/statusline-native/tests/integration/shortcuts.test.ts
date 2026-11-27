@@ -1,0 +1,24 @@
+import { expect, test } from 'claude-code/testing';
+import { keys, PANE, RUN, selectSetting, setup, START, visibleText } from '../fixtures.ts';
+
+test('editing shortcuts preserves the native draft and changes the visible controls', { timeoutMs: 20000 }, async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, ' ', '3');
+  await selectSetting(ui, 'keyboard-shortcuts');
+  await keys(ui, 'return', 'return', 'z');
+  expect(fixture.store.shortcuts.bindings).toEqual({});
+  expect(await visibleText(ui)).toContain('Save display');
+  await keys(ui, 'tab', 'return');
+  expect(fixture.store.shortcuts.bindings).toEqual({ save: 'Z' });
+  expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(0);
+  await keys(ui, { key: 'g', ctrl: true }, '1', 's');
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('Z save');
+  expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(0);
+  await keys(ui, '/', 'Z', 'return', 'z');
+  expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(1);
+  expect(fixture.store.draft.display.instances[0]!.enabled).toBe(false);
+  await ui.unmount();
+});

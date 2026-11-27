@@ -1,3 +1,4 @@
+import { EDITOR_SHORTCUTS_FILENAME } from '@fbincon/statusline-core/contracts/ui';
 import * as fs from 'node:fs';
 import { join, dirname, relative, isAbsolute } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
@@ -173,6 +174,6 @@ export function readJournal(directory: string, path: string): Journal {
 export function allowedArtifact(path: string): boolean {
     if (path.includes('\\') || isAbsolute(path) || path.split('/').some(x => !x || x === '.' || x === '..'))
         return false;
-    return ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'statusline-ui.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline_runtime/installation.json'].includes(path) || /^skills\/statusline-(?:config|configure)\/(?:SKILL\.md|\.claude-statusline-owner\.json)$/u.test(path) || /^statusline-(?:native|runtime)\/(?:\.claude-statusline-owner\.json|\.claude-plugin\/marketplace\.json|plugins\/statusline-(?:native|runtime)\/(?:resource-manifest\.json|\.claude-plugin\/plugin\.json|hooks\/hooks\.json|(?:hooks|lib|ui)\/.+\.ts))$/u.test(path);
+    return ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME, 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline_runtime/installation.json'].includes(path) || /^skills\/statusline-(?:config|configure)\/(?:SKILL\.md|\.claude-statusline-owner\.json)$/u.test(path) || /^statusline-(?:native|runtime)\/(?:\.claude-statusline-owner\.json|\.claude-plugin\/marketplace\.json|plugins\/statusline-(?:native|runtime)\/(?:resource-manifest\.json|\.claude-plugin\/plugin\.json|hooks\/hooks\.json|(?:hooks|lib|ui)\/.+\.ts))$/u.test(path);
 }
 export function relativePath(directory: string, path: string): string { safeTarget(directory, path); return relative(directory, path).replaceAll('\\', '/'); }

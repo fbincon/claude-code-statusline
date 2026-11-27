@@ -1,3 +1,4 @@
+import { EDITOR_SHORTCUTS_FILENAME } from '@fbincon/statusline-core/contracts/ui';
 import { unboundDisplay } from '@fbincon/statusline-core/extensions/portable';
 import * as fs from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -55,7 +56,7 @@ export function exportBytes(path: string, raw: Buffer, directory: string, overwr
     path = resolve(expandUser(path));
     const target = resolvedPath(path), root = resolvedPath(directory);
     const same = (left: string, right: string) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
-    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json'].some(name => same(target, join(root, name)));
+    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json', EDITOR_SHORTCUTS_FILENAME].some(name => same(target, join(root, name)));
     const ownedDirectory = ['statusline-native', 'statusline-runtime', 'statusline_runtime'].some(name => {
         const rel = relative(join(root, name), target);
         return rel !== '' && rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);

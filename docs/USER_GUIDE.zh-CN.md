@@ -333,6 +333,8 @@ Windows 使用 `claude-statusline.cmd configure`。要求当前 CLI 接管安装
 
 在 Claude Code 中无参数运行 `/statusline-configure`，需 2.1.258+ 和受支持的启动器。它与会话内入口独立启用，见[安装组合](#编辑器安装组合与兼容性)。保存、取消或错误会返回原会话中的简短结果；启动器及超时条件见[打开编辑器](EDITORS.zh-CN.md#open-an-editor)。启动失败时可直接在终端运行 `claude-statusline configure`。
 
+内置和外部编辑器共用「设置 → 快捷键」。这里可以改键并恢复预设。[自定义快捷键](EDITORS.zh-CN.md#customize-keyboard-shortcuts)
+
 <a id="external-tui-sections"></a>
 <a id="外部-tui-的分组与页面层级"></a>
 

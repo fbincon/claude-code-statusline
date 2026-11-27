@@ -4,7 +4,7 @@ import { packageManager, packageKey } from '@fbincon/statusline-core/editor/pack
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';
-import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '@fbincon/statusline-core/editor/preview-settings';
+import { applyPreviewShortcut, SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '@fbincon/statusline-core/editor/preview-settings';
 import { openAlignments, alignmentsKey } from '@fbincon/statusline-core/editor/alignment-manager';
 import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-manager';
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
@@ -15,13 +15,15 @@ import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-s
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
-import { navigateReview } from '@fbincon/statusline-core/editor/import-review';
+import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'changes' | 'reuse' | 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | null;
+import type { ShortcutContext } from '@fbincon/statusline-core/editor/shortcut-map';
+import { shortcutPanelCapacity, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
+export type Effect = 'changes' | 'reuse' | 'packages' | 'tasks' | 'diagnoseFile' | 'save' | 'reconcile' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | 'sources' | ShortcutEffect | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -61,9 +63,20 @@ export class State {
     pendingLanguage: Language | null = null;
     scroll: Record<string, number> = {};
     private readonly pageSettings: Partial<Record<Page, string>> = { settings: 'colors', layout: 'layout-mode' };
-    constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current); }
+    constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current, 'terminal'); }
     get scope(): Scope { return this.editor.page === 'subagents' ? 'subagent' : 'main'; }
     get form(): boolean { return !!this.editor.detail || ['settings', 'layout'].includes(this.editor.page); }
+    get shortcutContext(): ShortcutContext {
+        const e = this.editor;
+        if (e.detail) return 'detail';
+        if (e.adding) return 'picker';
+        if (e.page === 'layout') return 'layout';
+        if (e.page !== 'settings') return 'list';
+        const row = this.selectedRow();
+        if (row.key === 'padding') return 'numeric-settings';
+        if (row.key === 'refresh_interval') return 'refresh-settings';
+        return row.kind === 'legacy' ? 'legacy-settings' : 'settings';
+    }
     get listScrollKey(): string { return this.editor.adding ? 'catalog' : this.scope; }
     get detailItem() { return this.editor.detailItem; }
     get detailLabel(): string {
@@ -101,6 +114,7 @@ export class State {
             ...['change-history','reuse-groups','diagnose-file','component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             ...['task-details','package-management'].map(key=>row(key,key,'','Inspection','action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
+            row('keyboard-shortcuts', t('shortcuts.title', this.language), '', 'Interface', 'action'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
     }
@@ -225,50 +239,56 @@ export class State {
         if (e.saveState === 'pending') return null;
         if (!size.available && !cancel) return null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
-        if(e.changeReview)return changesKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
-        if(e.reuse)return reuseKey(e,event,this.language,size.content.innerWidth,size.content.innerHeight-1);
-        const draftControl = ctrl && !event.meta && !event.text && !event.paste && !this.input && e.inDraftView && !e.packageLocked;
-        if (draftControl && k.toLowerCase() === 't') { openChanges(e); return null; }
-        if (draftControl && ['z', 'r'].includes(k.toLowerCase())) {
-            this.notice(stepDraftHistory(e, k.toLowerCase() === 'r'));
-            return null;
+        if (e.shortcuts.panel) return e.shortcuts.key(event, shortcutPanelCapacity(rows - 1, columns), event.shift);
+        if (e.changeReview) return changesKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
+        if (e.reuse) return reuseKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
+        if (e.packages) return packageKey(e.packages, event, e.shortcuts);
+        if (e.packageLocked) { this.notice(text('package.ui.editor_locked')); return cancel ? this.requestExit() : null; }
+        if (e.taskViewer) {
+            const effect = taskViewerKey(e.taskViewer, event, e.shortcuts);
+            if (effect === 'close') e.taskViewer = null;
+            return effect === 'read' ? 'tasks' : null;
         }
-        if(e.packages)return packageKey(e.packages,event);
-        if(e.packageLocked){this.notice(text('package.ui.editor_locked'));return cancel?this.requestExit():null;}
-        if(e.taskViewer){const effect=taskViewerKey(e.taskViewer,event);if(effect==='close')e.taskViewer=null;return effect==='read'?'tasks':null;}
         if (e.diagnosis) return diagnosisKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
-        if(e.colors)return colorsKey(e,event,this.language);
-        if (draftControl && k.toLowerCase() === 'l') { openDiagnosis(e); return null; }
+        if (e.colors) return colorsKey(e, event, this.language);
         if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
-        if (draftControl && k.toLowerCase() === 'b') { openGroups(e); return null; }
-        if (e.sources) return sourcesKey(e,event);
-        if (draftControl && k.toLowerCase() === 'y') { openSources(e); return 'sources'; }
+        if (e.sources) return sourcesKey(e, event);
         if (e.profiles) return profilesKey(e, event);
-        if (draftControl && k.toLowerCase() === 'o' && !e.detail) {
-            if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
-            return null;
-        }
         if ((event.paste || event.text) && (!this.input || this.input.kind === 'category')) return null;
-        if(ctrl&&!event.meta&&!event.text&&!event.paste&&!this.input&&(e.inDraftView||e.quick||e.review)&&['v','w','n'].includes(k.toLowerCase())){if(k.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(k.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,this.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
-        if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
+        const context = e.quick ? 'quick' : e.review ? reviewShortcutContext(e.review) : this.shortcutContext;
+        const action = this.input ? null : e.shortcuts.action(context, event);
+        if ((e.inDraftView || e.quick || e.review) && applyPreviewShortcut(e, action, this.preview)) return null;
+        if (e.inDraftView) {
+            if (action === 'history') { openChanges(e); return null; }
+            if (action === 'undo' || action === 'redo') {
+                this.notice(stepDraftHistory(e, action === 'redo'));
+                return null;
+            }
+            if (action === 'diagnose') { openDiagnosis(e); return null; }
+            if (action === 'groups') { openGroups(e); return null; }
+            if (action === 'sources') { openSources(e); return 'sources'; }
+            if (action === 'profiles') {
+                if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
+                return null;
+            }
+        }
+        if (e.explanation) { if (!explanationKey(e.explanation, cancel ? 'cancel' : ctrl || event.meta ? '' : k, height)) e.explanation = null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
-        if (e.saveState === 'unknown') {this.notice(text('editor.save_unknown'));return null;}
-        if (draftControl && k.toLowerCase() === 'p' && !e.detail) {
-            if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
+        if (e.saveState === 'unknown') { this.notice(text('editor.save_unknown')); return null; }
+        if (action === 'quick-setup' && e.inDraftView) {
+            if (e.acceptNumeric()) { e.quick = openQuick(e.draft); this.notice(''); }
             return null;
         }
         if (e.review) {
-            if (cancel || (!ctrl && k.toLowerCase() === 'q')) {
+            if (cancel || action === 'cancel-import') {
                 e.review = null;
                 this.notice(text('review.cancelled'));
-            }
-            else if (!ctrl && k.toLowerCase() === 'a' && !e.review.choosing) {
+            } else if (action === 'accept-import') {
                 e.replaceDraft(copyDraft(e.review.result.draft));
                 this.notice(text('review.accepted'));
-            }
-            else if (!ctrl)
-                navigateReview(e.review, k, this.language, size.content.innerWidth, size.content.innerHeight - 1);
+            } else if (!event.meta)
+                navigateReview(e.review, ctrl ? '' : k, this.language, size.content.innerWidth, size.content.innerHeight - 1, action);
             return null;
         }
         if (e.guidanceScroll !== null) {
@@ -359,26 +379,26 @@ export class State {
                 return null;
             }
             const { category, search, selected } = e.listContext(this.scope);
-            if (ctrl && k === 'a' && !e.adding) {
+            if (action === 'add-item') {
                 e.openPicker(this.scope);
                 this.scroll[this.listScrollKey] = 0;
                 return null;
             }
-            if (ctrl && (k === 'd' || k === 'x') && !e.adding) {
-                if (!e.instanceAction(this.scope, k === 'd' ? 'copy' : 'remove'))
+            if (action === 'copy-item' || action === 'remove-item') {
+                if (!e.instanceAction(this.scope, action === 'copy-item' ? 'copy' : 'remove'))
                     this.notice(e.compositionError);
                 this.ensureVisible(height);
                 return null;
             }
-            if (ctrl && k === 'f') {
+            if (action === 'category') {
                 this.input = { kind: 'category', selected: category };
                 return null;
             }
-            if (k === '/') {
+            if (action === 'search') {
                 this.input = { kind: 'search', original: search, selected };
                 return null;
             }
-            if (ctrl && k === 'e' && selected) {
+            if (action === 'item-details' && selected) {
                 e.detail = { scope: this.scope, id: selected };
                 this.scroll.detail = 0;
                 const keys = this.rows().map(row => row.key);
@@ -388,17 +408,31 @@ export class State {
                 return null;
             }
             if (e.adding && (k === 'return' || k === ' ')) {
-                if (!ctrl && !event.meta) e.activatePicker(this.scope, 'Ctrl+D');
+                if (!ctrl && !event.meta) e.activatePicker(this.scope, e.shortcuts.hint('list', 'copy-item'));
                 return null;
             }
         }
-        if (ctrl && k === 's')
-            return 'save';
-        if (cancel && k === 'escape') return this.requestExit();
-        if (k === 'return') {
-            if (!this.form || this.selectedRow().kind === 'legacy')
-                return 'save';
+        if (action === 'save') return 'save';
+        if (action === 'close' || !size.available && cancel && k === 'escape') return this.requestExit();
+        if (action === 'toggle-item' || action === 'move-left' || action === 'move-right') {
+            const changed = action === 'toggle-item' ? e.toggle(this.scope, e.selected[this.scope]) : e.move(this.scope, action === 'move-left' ? -1 : 1);
+            if (!changed && e.visible(this.scope).length)
+                this.notice(e.filtered(this.scope) && action !== 'toggle-item' ? text('catalog.search.order_disabled') : e.compositionError);
+            this.ensureVisible(height);
+            return null;
+        }
+        if (action === 'event-refresh') {
+            const candidate = copyDraft(e.draft);
+            candidate.host.refresh_interval = 'event';
+            e.commitDraft(candidate);
+            e.cancelNumeric('refresh_interval');
+            return null;
+        }
+        if (event.meta) return null;
+        if (k === 'return' && !ctrl) {
+            if (!this.form || this.selectedRow().kind === 'legacy') return null;
             const row = this.selectedRow();
+            if (row.key === 'keyboard-shortcuts') { e.shortcuts.open(); return null; }
             if(row.key==='change-history'){openChanges(e);return null;}
             if(row.key==='reuse-style'||row.key==='reuse-groups'){openReuse(e,row.key==='reuse-style'?'style':'groups');return null;}
             if(row.key==='package-management'){e.packages=packageManager();return 'packages';}
@@ -448,12 +482,7 @@ export class State {
         else if (k === 'left' || k === 'right' || k === ' ') {
             if (this.form) {
                 const effect = this.adjust(k === 'left' ? -1 : 1);
-                if (effect)
-                    return effect;
-            }
-            else if (!(k === ' ' ? e.toggle(this.scope, e.selected[this.scope]) : e.move(this.scope, k === 'left' ? -1 : 1))) {
-                if (e.visible(this.scope).length)
-                    this.notice(e.filtered(this.scope) && k !== ' ' ? text('catalog.search.order_disabled') : e.compositionError);
+                if (effect) return effect;
             }
         }
         else if (!this.form) {
@@ -466,11 +495,7 @@ export class State {
         }
         else if (!e.detail && e.page === 'settings' && !ctrl) {
             const row = this.selectedRow();
-            if (k === 'e' && row.key === 'refresh_interval') {
-                const candidate=copyDraft(e.draft);candidate.host.refresh_interval='event';e.commitDraft(candidate);
-                e.cancelNumeric('refresh_interval');
-            }
-            else if (/^\d$/u.test(k) && (row.key === 'padding' || row.key === 'refresh_interval'))
+            if (/^\d$/u.test(k) && (row.key === 'padding' || row.key === 'refresh_interval'))
                 this.numeric(row.key, k);
         }
         this.ensureVisible(height);

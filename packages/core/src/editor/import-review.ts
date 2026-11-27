@@ -4,6 +4,8 @@ import { differences } from './import-differences.js';
 import type { Language } from '../i18n/messages.js';
 import { renderMessage, t } from '../i18n/messages.js';
 import { wrapText } from './text.js';
+import { resolveShortcut, type ShortcutAction, type ShortcutContext } from './shortcut-map.js';
+import type { EditorShortcuts } from './shortcut-settings.js';
 
 export const REVIEW_SECTIONS = ['main','subagent','formatting','layout','language','host'] as const;
 export interface ReviewState {
@@ -44,12 +46,22 @@ export function reviewRows(review: ReviewState, language: Language, width: numbe
   }
   return rows.length ? rows : [{text:t('review.empty', language),section:'',heading:false}];
 }
-export function navigateReview(review: ReviewState, key: string, language: Language, width: number, capacity: number): void {
-  if (review.base && review.incoming && key.toLowerCase() === 's') {
+export const reviewShortcutContext = (review: ReviewState): ShortcutContext => review.choosing ? 'import-selection' : 'import-review';
+
+export function importShortcutHelp(review: ReviewState, keys: EditorShortcuts, language: Language): string {
+  if (!review.base) return t('review.intro', language);
+  const full = keys.hint('import-review', 'full-import');
+  if (review.choosing) return t('shortcuts.import-selection-help', language, { full });
+  return t('shortcuts.import-help', language, { select: keys.hint('import-review', 'select-import'), full, accept: keys.hint('import-review', 'accept-import') });
+}
+
+export function navigateReview(review: ReviewState, key: string, language: Language, width: number, capacity: number,
+  action: ShortcutAction | null = resolveShortcut('native', reviewShortcutContext(review), { key }, {})): void {
+  if (review.base && review.incoming && action === 'select-import') {
     review.choosing = true; review.scroll = 0; review.cursor = 0; review.selected = IMPORT_FIELDS[0];
     updateSelection(review); return;
   }
-  if (review.base && review.incoming && key.toLowerCase() === 'f') {
+  if (review.base && review.incoming && action === 'full-import') {
     review.choosing = false; review.result = review.incoming; review.selected = sections(review)[0] ?? ''; review.scroll = 0; return;
   }
   if (review.choosing) {

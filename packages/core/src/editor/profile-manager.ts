@@ -106,8 +106,10 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
         }
         return m.effect ? 'profiles' : null;
     }
+    if (m.uncertain ? plain && key.toLowerCase() === 'r' : e.shortcuts.action('profiles', event) === 'reload-profiles') {
+        m.effect = { kind: 'load' }; return 'profiles';
+    }
     if (!plain) return null;
-    if (key.toLowerCase() === 'r') { m.effect = { kind: 'load' }; return 'profiles'; }
     if (m.uncertain) { m.message = text('profiles.uncertain'); return null; }
     if (m.page === 'dirty') {
         const choices = ['save','discard','cancel'];
@@ -236,6 +238,7 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
 export function profilesView(e: Editor, language: Language, width: number, height: number): { text: string; selected: boolean }[] {
     const m = e.profiles!;
     const tr = (key: string) => t(key, language);
+    const navigation = t('profiles.navigation', language, { key: m.uncertain ? 'R' : e.shortcuts.hint('profiles', 'reload-profiles') });
     const lines: { text: string; selected: boolean }[] = [];
     const add = (value: string, selected = false) => lines.push({ text: value, selected });
     if (m.message) for (const line of wrapText([t(m.message.key, language, m.message.params)], width)) add(line);
@@ -262,7 +265,7 @@ export function profilesView(e: Editor, language: Language, width: number, heigh
         // Keep both confirmation actions reachable even with many bound projects.
         const capacity = Math.max(0, height - 3), start = Math.min(m.detailScroll, Math.max(0, lines.length - capacity));
         return [...lines.slice(start, start + capacity), ...rows.map((row, index) => ({ text: tr(row.label), selected: index === m.cursor })),
-            { text: tr('profiles.navigation'), selected: false }].slice(0, height);
+            { text: navigation, selected: false }].slice(0, height);
     }
     if (m.page === 'actions') {
         add(m.library.profiles.find(p => p.id === m.selected)?.name ?? '');
@@ -270,6 +273,6 @@ export function profilesView(e: Editor, language: Language, width: number, heigh
     }
     const capacity = Math.max(1, height - lines.length - 1), start = Math.max(0, Math.min(m.cursor, rows.length - capacity));
     rows.slice(start,start+capacity).forEach((row,i) => add(('raw' in row && row.raw ? row.label : tr(row.label)), start+i === m.cursor));
-    add(tr('profiles.navigation'));
+    add(navigation);
     return lines.slice(0,height);
 }

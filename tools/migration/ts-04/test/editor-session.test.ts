@@ -7,6 +7,43 @@ import { differences } from '@fbincon/statusline-core/config/import-review';
 import { setFormValue } from '@fbincon/statusline-core/editor/forms';
 import { fields, bestMatch, matchText } from '@fbincon/statusline-core/editor/search';
 import { main } from '@fbincon/statusline-cli/main';
+
+test('external shortcut changes stage independently and apply on save and reopen', async t => {
+    const f = await fixture(t), shortcutPath = join(f.root, 'statusline-shortcuts.json');
+    f.keys(' ');
+    const draft = structuredClone(f.e.draft), history = structuredClone(f.e.history);
+    f.e.page = 'settings'; f.e.setting = 'keyboard-shortcuts';
+    const press = (key: string, ctrl = false) => f.session.key({ key, ctrl });
+    await press('return'); await press('return'); await press('z');
+    assert.equal(fs.existsSync(shortcutPath), false);
+    await press('tab'); await press('return');
+    assert.deepEqual((await f.backend.request('read_editor_shortcuts')).bindings, { save: 'Z' });
+    assert.deepEqual(f.e.draft, draft);
+    assert.deepEqual(f.e.history, history);
+    assert.equal(fs.existsSync(f.displayPath), false);
+    await press('g', true);
+    f.e.page = 'main';
+    assert.equal(await press('s', true), null);
+    assert.equal(await press('return'), null);
+    await press('/');
+    assert.equal(await press('z'), null);
+    assert.equal(f.e.search.main, 'z');
+    await press('g', true);
+    assert.equal(await press('z'), 'save');
+    const other = await Session.open(f.backend);
+    assert.equal(await other.key({ key: 'Z' }), 'save');
+
+    f.e.page = 'settings'; f.e.setting = 'keyboard-shortcuts';
+    await press('return'); await press('return'); await press('delete'); // Unavailable while capturing.
+    await press('g', true); await press('delete');
+    await press('tab'); await press('return');
+    assert.equal(fs.existsSync(shortcutPath), false);
+    await press('g', true);
+    f.e.page = 'main';
+    assert.equal(await press('s', true), 'save');
+    assert.deepEqual(f.e.draft, draft);
+    assert.deepEqual(f.e.history, history);
+});
 async function reviewFixture(t: import('node:test').TestContext) {
     const f = await fixture(t);
     f.e.page = 'settings';

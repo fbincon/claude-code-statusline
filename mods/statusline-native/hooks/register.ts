@@ -5,6 +5,7 @@ import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
 import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
 import { colorDraft } from '../lib/editor/color-manager.ts';
 import { previewWidth } from '../lib/editor/preview-settings.ts';
+import { defaultShortcuts } from '../lib/editor/shortcut-settings.ts';
 import { performSourceAction, closeSources, closeSourceDraft } from '../lib/editor/source-manager.ts';
 import { taskViewer, taskViewerView, taskViewerKey, replaceTaskField, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
@@ -188,7 +189,8 @@ async function load(
         localizedText("native.hooks.register.the_backend_changed_while_opening_reopen_the_editor"),
       );
     }
-    state.view.editor = new Editor(description, current);
+    const editor = new Editor(description, current);
+    state.view.editor = editor;
     try {
       const preference = await callBackend($, options, 'read_ui_preferences');
       if (state.epoch !== opening) return;
@@ -201,6 +203,15 @@ async function load(
         setMessage(state.view, 'message', localizedText('native.language_read_failed', { detail: failureMessage(failure) }));
       }
     }
+    try {
+      const shortcuts = await callBackend($, options, 'read_editor_shortcuts');
+      if (state.epoch !== opening) return;
+      editor.shortcuts.snapshot = shortcuts;
+    } catch (failure) {
+      if (state.epoch !== opening) return;
+      editor.shortcuts.snapshot = defaultShortcuts(localizedText('shortcuts.read-failed', { detail: failureMessage(failure) }));
+    }
+    if (!state.view.message && editor.shortcuts.snapshot.warning) setMessage(state.view, 'message', editor.shortcuts.snapshot.warning);
     try {
       const background = previewBackground(await $.store.get(PREVIEW_BACKGROUND_KEY));
       if (state.epoch === opening) {
@@ -884,6 +895,13 @@ export const register: Register = (on, options) => {
         );
         if (effect === 'save' || effect === 'finish') {
           await save($, state, options, effect === 'finish');
+        } else if ((effect === 'read-shortcuts' || effect === 'save-shortcuts') && state.view.editor) {
+          const editor = state.view.editor;
+          state.writing = true;
+          try {
+            await editor.shortcuts.perform(effect, (operation, payload) => callBackend($, options, operation, payload),
+              () => state.epoch === currentEpoch && state.view.editor === editor);
+          } finally { if (state.epoch === currentEpoch) state.writing = false; }
         } else if ((effect === 'changes' || effect === 'reuse') && state.view.editor) {
           state.writing=true;try { if(effect==='changes')await performChanges(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});else await performReuse(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); } finally {state.writing=false;state.previewKey='';}
         } else if (effect === 'close') await close($, state, options);

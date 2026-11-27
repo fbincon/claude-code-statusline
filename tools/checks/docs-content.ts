@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
 import { SCHEMA_VERSION, defaultDisplay, isSchema, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { COMPLETE_SCHEMES, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
-import { OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { PROTOCOL_VERSION as RUNTIME_PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/runtime';
 import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
@@ -178,6 +178,9 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
         check(`docs/SETUP${suffix}.md`, body => { example(body, 'setup-powershell', 'powershell'); });
         check(`docs/reference/cli${suffix}.md`, body => {
             displayExample(body);
+            const shortcuts = body.split(/\r?\n/u).find(line => line.startsWith(suffix ? '| 编辑器快捷键偏好 |' : '| Editor shortcut preferences |'));
+            assert.equal(Number(shortcuts?.split('|')[2]?.trim()), EDITOR_SHORTCUTS_SCHEMA_VERSION, 'Editor shortcut preference schema differs from core');
+            assert(body.includes('| `' + EDITOR_SHORTCUTS_FILENAME + '` |'), 'Missing the canonical editor shortcut preference filename');
             const sourceRange = body.split(/\r?\n/u).filter(row => row.startsWith('| ') && row.includes('`sources`'));
             assert.equal(sourceRange.length, 1, 'Expected one source registry read range');
             const bounds = /^\| [^|]+\| `\[(\d+), (\d+)\]` \|$/u.exec(sourceRange[0]!);
@@ -210,6 +213,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                     break;
                 case 'docs/development/contracts':
                     numeric(zh ? '全部 ' + NUMBER + ' 项' : 'all ' + NUMBER + ' current OPERATIONS', [OPERATIONS.length], 'Operation count differs from core');
+                    for (const operation of OPERATIONS.filter(name => name.endsWith('_editor_shortcuts'))) expected('`' + operation + '`', 'Missing shortcut operation ' + operation);
                     numeric(NUMBER + (zh ? ' 个主栏类型和 ' : ' main and ') + NUMBER + (zh ? ' 个子代理类型' : ' subagent types'),
                         [mainTypeCount!, subagentTypeCount!], 'Catalog type count differs from core');
                     numeric((zh ? '显示 schema ' : 'Display schema ') + NUMBER, [SCHEMA_VERSION], 'Display schema differs from core');
