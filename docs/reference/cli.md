@@ -245,7 +245,7 @@ Use JSON output for scripts or automation:
 claude-statusline config show --json
 ```
 
-The top-level JSON `installed` indicates whether the invoked backend owns the main `statusLine.command`. Under `subagent_statusline`, `enabled` is the display preference, and `installed` and `state` describe row integration. `owned`, `absent`, `foreign` and `unsupported` describe legacy or host availability. `standby` means the old command still serves rows during migration. For the Mod, `mod-pending` awaits a session, `mod-loaded` records a session load and `mod-verified` records a successful batch. `doctor` also reports restrictions and failures. It shows the most recent session load and the most recent verification of a session's first batch independently for this host and installation.
+The top-level JSON `installed` indicates whether the invoked backend owns the main `statusLine.command`. Under `subagent_statusline`, `enabled` is the display preference, and `installed` and `state` describe row integration. `owned`, `absent`, `foreign` and `unsupported` describe legacy or host availability. `standby` means the old command still serves rows during migration. For the Mod, `mod-pending` awaits a session, `mod-loaded` records a session load and `mod-verified` records a successful batch. If the session evidence is unreadable, `state` is `mod-unverified` and `doctor` reports the error. The diagnostic also reports restrictions and the most recent session load and first-batch verification independently for this host and installation.
 
 ### `config list-items`
 
@@ -431,7 +431,7 @@ claude-statusline config set statusline-language zh-CN
 
 Display options can be configured before installing the status line. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` modify `settings.json/statusLine`, so they require the current status line to be managed by this `claude-statusline` executable. Otherwise, writes are rejected to protect other implementations.
 
-`subagent-statusline` saves whether the display configuration uses custom rows. Turning it off leaves the rows to the host or another renderer. Rerun `install` to reconcile owned integration after changing the setting. A bound project Profile can still request custom rows for that project. Choose the integration for the installation with `install --subagent-renderer`.
+`subagent-statusline` saves whether the display configuration uses custom rows. Turning it off leaves the rows to the host or another renderer. A bound project Profile can still request custom rows for that project. If every configuration had rows turned off at installation, run `install` after first enabling them to set up the Mod. On a host with a verified legacy callback, `auto` can use the command in the meantime. Choose the integration for the installation with `install --subagent-renderer`.
 
 See [display and host options](#display-and-host-options) for all valid `set` values.
 

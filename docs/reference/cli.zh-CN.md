@@ -241,7 +241,7 @@ Hide Vim mode indicator: no
 claude-statusline config show --json
 ```
 
-JSON 顶层的 `installed` 表示当前调用的后端是否拥有主栏的 `statusLine.command`。`subagent_statusline` 下的 `enabled` 是显示偏好，`installed` 和 `state` 描述子代理行的接入状态。`owned`、`absent`、`foreign` 和 `unsupported` 表示旧命令的归属或宿主可用性。`standby` 表示迁移期间仍由旧命令绘制。对于 Mod，`mod-pending` 表示等待会话，`mod-loaded` 表示会话已加载，`mod-verified` 表示已验证一批行。`doctor` 还会说明限制与失败原因。对于当前宿主和安装，它分别列出最近一次会话加载与最近一次会话首批行验证的时间。
+JSON 顶层的 `installed` 表示当前调用的后端是否拥有主栏的 `statusLine.command`。`subagent_statusline` 下的 `enabled` 是显示偏好，`installed` 和 `state` 描述子代理行的接入状态。`owned`、`absent`、`foreign` 和 `unsupported` 表示旧命令的归属或宿主可用性。`standby` 表示迁移期间仍由旧命令绘制。对于 Mod，`mod-pending` 表示等待会话，`mod-loaded` 表示会话已加载，`mod-verified` 表示已验证一批行。如果无法读取会话证据，`state` 为 `mod-unverified`，`doctor` 将报告错误。诊断还会说明宿主限制，并对当前宿主和安装分别列出最近一次会话加载与最近一次会话首批行验证的时间。
 
 ### `config list-items`
 
@@ -427,7 +427,7 @@ claude-statusline config set statusline-language zh-CN
 
 显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
 
-`subagent-statusline` 保存该显示配置是否启用自定义行。关闭时由宿主或其他渲染器绘制。修改开关后，重跑 `install` 可按当前设置调整本工具的接入。已绑定项目的方案仍可为该项目启用自定义行。用 `install --subagent-renderer` 选择本机安装的接入方式。
+`subagent-statusline` 保存该显示配置是否启用自定义行。关闭时由宿主或其他渲染器绘制。已绑定项目的方案仍可为该项目启用自定义行。如果安装时所有配置都关闭了自定义行，首次启用后请运行 `install` 配置 Mod。在已验证支持旧回调的宿主上，`auto` 在此期间可以先使用命令回调。用 `install --subagent-renderer` 选择本机安装的接入方式。
 
 所有 `set` 的合法值见[显示与宿主选项](#显示与宿主选项)。
 
