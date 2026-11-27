@@ -134,8 +134,8 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     const filtered = e.filtered(state.scope);
     const help = [hint(keys.hint(context, 'search'), 'search')];
     if (filtered) {
-        help.push(hint('Ctrl+G', 'clear_filters'));
         if (e.category[state.scope] !== 'all') help.push(hint(keys.hint(context, 'add-item'), 'catalog'));
+        help.push(hint('Ctrl+G', 'clear_filters'));
     }
     help.push(hint(keys.hint(context, 'add-item', 'copy-item', 'remove-item'), 'add_copy_remove', 'add_copy_remove_short'), hint('Tab', 'page'),
         hint(keys.hint(context, 'toggle-item'), 'toggle'), hint(keys.hint(context, 'item-details'), 'format'), hint('↑↓', 'select'));
