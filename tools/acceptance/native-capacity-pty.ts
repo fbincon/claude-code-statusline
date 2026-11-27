@@ -555,7 +555,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             const enterEdit = 'Enter ' + t('ui.hints.edit', 'en');
             const enterAccept = 'Enter ' + t('ui.hints.accept', 'en');
             const selectRefresh = async (tty: ReturnType<typeof openPty>, wait: ExternalWait) => {
-                const selected = (screen: string) => /› ([^:\n]+):/u.exec(screen)?.[1];
+                const selected = (screen: string) => /^│ › (.*?)(?::|…)/mu.exec(screen)?.[1];
                 tty.send('\t\t\x1b[H');
                 let frame = await wait('› ' + t('settings.colors', 'en') + ':');
                 for (let i = 0; i < 32 && selected(frame) !== refreshLabel; i++) {
