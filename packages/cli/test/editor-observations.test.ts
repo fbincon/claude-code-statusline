@@ -131,6 +131,7 @@ test('execution observation uses only the acquired control, original arguments a
 test('profiles need no host process and closing a completed-review observation reaps its version probe', { timeout: 30_000 }, async t => {
     const f = setup(t);
     const bin = join(f.root, 'bin'), marker = join(f.root, 'probe-pid');
+    const closingMarker = join(f.root, 'closing'), survived = join(f.root, 'probe-still-running');
     mkdirSync(bin);
     const windows = process.platform === 'win32';
     // Match the supported npm layout for Windows shims, and an ordinary executable on POSIX.
@@ -141,8 +142,19 @@ test('profiles need no host process and closing a completed-review observation r
         writeFileSync(join(packageRoot, 'package.json'), JSON.stringify({ bin: { claude: 'cli.cjs' } }));
         writeFileSync(join(bin, 'claude.cmd'), '@echo off\r\n');
     }
-    writeFileSync(cli, '#!/usr/bin/env node\nrequire("node:fs").writeFileSync(' + JSON.stringify(marker) +
-        ', String(process.pid));setTimeout(()=>{},20000);', { mode: 0o755 });
+    writeFileSync(cli, [
+        '#!/usr/bin/env node',
+        'const fs = require("node:fs");',
+        'const marker = ' + JSON.stringify(marker) + ';',
+        'fs.writeFileSync(marker + ".tmp", String(process.pid));',
+        'fs.renameSync(marker + ".tmp", marker);',
+        'const check = setInterval(() => {',
+        '  if (!fs.existsSync(' + JSON.stringify(closingMarker) + ')) return;',
+        '  clearInterval(check);',
+        '  setTimeout(() => fs.writeFileSync(' + JSON.stringify(survived) + ', "still running"), 1000);',
+        '}, 20);',
+        'setTimeout(() => clearInterval(check), 20000);',
+    ].join('\n'), { mode: 0o755 });
     const oldPath = process.env.PATH;
     process.env.PATH = [bin, dirname(process.execPath), oldPath].join(delimiter);
     t.after(() => { if (oldPath === undefined) delete process.env.PATH; else process.env.PATH = oldPath; });
@@ -168,9 +180,20 @@ test('profiles need no host process and closing a completed-review observation r
     while (!existsSync(marker) && Date.now() < deadline) await delay(10);
     const pid = Number(readFileSync(marker, 'utf8')), token = processToken(pid);
     assert.ok(token);
-    await reader.close();
-    await cancelled;
-    assert.equal(processAlive(pid, token), false);
+    writeFileSync(closingMarker, 'close');
+    // A Windows Job terminates its members asynchronously when the supervisor
+    // closes. Confirm the original process exits before the normal 5-second
+    // probe timeout, even if close() itself accidentally waits for that timeout.
+    const exitDeadline = performance.now() + 2500;
+    const closing = reader.close();
+    let alive = processAlive(pid, token);
+    while (alive !== false && performance.now() < exitDeadline) {
+        await delay(20);
+        alive = processAlive(pid, token);
+    }
+    await Promise.all([closing, cancelled]);
+    assert.equal(alive, false, 'the cancelled host probe must exit within 2.5 seconds');
+    assert.equal(existsSync(survived), false, 'the host probe kept running after cancellation');
     writeFileSync(cli, '#!/usr/bin/env node\nconsole.log("2.1.330");');
     const next = new EditorObservations(configuration);
     t.after(() => next.close());
