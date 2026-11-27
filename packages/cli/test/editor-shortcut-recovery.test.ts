@@ -141,8 +141,9 @@ test('fresh shortcut reads create no storage and return the first fully locked p
 
 test('the wire reader returns a distinct retryable warning while a live writer holds the lock', t => {
     const dir = fixture(t), io = createStorage(), saved = setEditorShortcuts(dir, set, null, io);
+    // Windows enforces the writer's byte-range lock even for the fixture's own reads.
+    const disk = state(dir);
     io.lock(dir, () => {
-        const disk = state(dir);
         const reply = spawnSync(process.execPath, [entry, 'ui', '--config-dir', dir], {
             input: JSON.stringify({ operation: 'read_editor_shortcuts', protocol_version: PROTOCOL_VERSION, payload: {} }),
             encoding: 'utf8', timeout: 10000,
@@ -151,7 +152,7 @@ test('the wire reader returns a distinct retryable warning while a live writer h
         assert.deepEqual(JSON.parse(reply.stdout), { protocol_version: PROTOCOL_VERSION, result: {
             schema_version: 1, revision: null, bindings: {}, warning: text('shortcuts.read-failed', { detail: text('shortcuts.read-busy') }),
         } });
-        assert.deepEqual(state(dir), disk);
     });
+    assert.deepEqual(state(dir), disk);
     assert.deepEqual(readEditorShortcuts(dir, io), saved);
 });
