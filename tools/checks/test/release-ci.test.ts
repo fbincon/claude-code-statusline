@@ -22,6 +22,8 @@ test('ordinary events have no runner, and the release stages depend on their ver
     assert.deepEqual(diagnostics.jobs['agent-rows'].strategy.matrix, {
         os: ['ubuntu-24.04', 'windows-2025', 'macos-15'], host: ['2.1.326', '2.1.332'],
     });
+    const workerRegressions = diagnostics.jobs['agent-rows'].steps.find((step: any) => step.name === 'Check host version queue and bounded official test workers');
+    for (const test of ['host-version-gate', 'official-tests', 'native-capacity', 'impact-plan']) assert(workerRegressions.run.includes(test + '.test.js'));
     assert.equal(ci.jobs['candidate-check'].env.HOST_VERSION, '${{ matrix.host }}');
     assert(!JSON.stringify(diagnostics.jobs).includes('ci-evidence.js record'));
     assert.deepEqual(ci.on.push, { tags: ['v3.*'] });

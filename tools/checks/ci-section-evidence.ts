@@ -105,9 +105,16 @@ function verifyOfficialInventory(receipt: any, original: Record<string,string>, 
     }
     const paths=Object.keys(files).filter(isTest).sort(), limit=capacity===null?180_000:300_000;
     assert(paths.length>0);assert.deepEqual(receipt.source_files,files);assert.deepEqual(receipt.test_files,paths);
+    if (receipt.concurrency !== undefined) {
+        const { limit: workers, peak } = receipt.concurrency;
+        assert(Number.isInteger(workers) && workers >= 1 && workers <= 8 &&
+            Number.isInteger(peak) && peak >= 1 && peak <= Math.min(workers, paths.length), 'Invalid official test concurrency');
+    }
     assert.equal(receipt.status,'pass');assert.equal(receipt.timeout_ms,limit);assert.equal(receipt.source_sha256,digest(JSON.stringify(ordered(files))));
     assert.equal(receipt.host_sha256,digest(JSON.stringify(ordered(receipt.host_files))));
     assert.equal(receipt.batches.length,paths.length);
+    if (receipt.elapsed_ms !== undefined) assert(Number.isFinite(receipt.elapsed_ms) && receipt.elapsed_ms >= 0 &&
+        receipt.batches.every((batch: {elapsed_ms: number}) => batch.elapsed_ms <= receipt.elapsed_ms), 'Invalid official test family duration');
     for(const [i,path] of paths.entries()) {
         const b=receipt.batches[i]; assert.equal(b.index,i);assert.deepEqual(b.test_files,[path]);assert.deepEqual(b.test_hashes,{[path]:files[path]});
         assert.equal(b.host_sha256,receipt.host_sha256);assert.equal(b.timeout_ms,limit);assert(Number.isFinite(b.elapsed_ms)&&b.elapsed_ms>=0&&b.elapsed_ms<=limit);

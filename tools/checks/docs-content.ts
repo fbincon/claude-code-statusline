@@ -23,7 +23,8 @@ import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, MAX_REFRESH_BACKOFF_MS } from '@fbi
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 import { candidateCasesForNode } from './release-ci-policy.js';
 import { AGENT_ROWS_MANIFEST } from './runtime-inputs.js';
-import { SCOPED_HOSTED_JOB_MS } from './impact-budget.js';
+import { SCOPED_HOSTED_JOB_MS, SCOPED_MOD_FILE_MS } from './impact-budget.js';
+import { MAX_OFFICIAL_MOD_TEST_JOBS, officialModTestJobs } from '../acceptance/official-tests.js';
 
 export type Documents = ReadonlyMap<string, string>;
 export function contentDocuments(root: string): Documents {
@@ -263,6 +264,13 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
                 case 'docs/development/impact-checks':
                     numeric(zh ? NUMBER + ' 分钟的托管作业上限' : 'hosted job limit of ' + NUMBER + ' minutes',
                         [SCOPED_HOSTED_JOB_MS / 60_000], 'Scoped job limit differs from the scheduling policy');
+                    expected('`STATUSLINE_MOD_TEST_JOBS`', 'Missing the official Mod file concurrency setting');
+                    numeric(zh ? '默认最多同时执行 ' + NUMBER + ' 个测试文件' : 'execute ' + NUMBER + ' test files concurrently by default',
+                        [officialModTestJobs({})], 'Default Mod file concurrency differs from the runner');
+                    numeric(zh ? '上限设为 ' + NUMBER + ' 至 ' + NUMBER + ' 的整数' : 'an integer from ' + NUMBER + ' to ' + NUMBER + ' to adjust that limit',
+                        [1, MAX_OFFICIAL_MOD_TEST_JOBS], 'Mod concurrency range differs from the runner');
+                    numeric(zh ? '已启动的文件最多可以运行 ' + NUMBER + ' 秒' : 'gets up to ' + NUMBER + ' seconds to finish',
+                        [SCOPED_MOD_FILE_MS / 1_000], 'Scoped Mod file timeout differs from the runner');
                     break;
                 case 'docs/development/live':
                     for (const [unit, bound] of [[zh ? ' 个 turn' : ' turns', MAX_TURNS], [zh ? ' 个工具' : ' tools', MAX_TOOLS],

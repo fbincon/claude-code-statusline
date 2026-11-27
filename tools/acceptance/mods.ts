@@ -17,9 +17,10 @@ import { retainLog, sanitizeLog } from './diagnostics.js';
 import { sha256 } from '../build/files.js';
 import assert from 'node:assert/strict';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
-import { runOfficialTestBatches, type OfficialTestExecute } from './official-tests.js';
+import { runOfficialTestBatches } from './official-tests.js';
 import { admitOfficialCommand } from './physical-budgets.js';
 import { createAcceptanceEnvelope } from '../checks/receipt.js';
+import { acquireHostVersionGate } from '../checks/host-version-gate.js';
 import { AGENT_ROW_HOSTS, HOSTS, LEGACY_HOSTS, officialModsForHost } from '../checks/runtime-inputs.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' }, 'physical-window-ms': { type: 'string' }, 'release-smoke': { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
@@ -29,12 +30,12 @@ assert(!releaseSmoke || windowMs === null, 'Release smoke and physical history a
 if (windowMs !== null) {
     assert(Number.isSafeInteger(windowMs) && windowMs > 0 && windowMs < HOSTED_JOB_MS); phaseEvent('official', 'start');
 }
-const startedHost = performance.now();
 const artifact = resolve(values.artifact), reportPath = resolve(values.report), candidate = verifyCandidate(artifact, values.commit);
 const temporary = fs.mkdtempSync(join(tmpdir(), 'ts05-mod-validation-')), host = claudeLaunch(values.claude);
 const environment = isolatedHostEnvironment(process.env, temporary);
+let startedHost = 0;
+let releaseHost: (() => void) | undefined;
 function admit(timeout: number) { if (windowMs !== null) admitOfficialCommand(startedHost, windowMs, timeout); }
-const batch: OfficialTestExecute = (file, args, options) => { admit(options.timeout); return spawnSync(file, args, options); };
 const report: Record<string, any> = { status: 'fail', commit: values.commit, tarball_sha256: candidate.sha256, model_calls: 0, mods: {}, phases: [], node: process.version,
     execution: { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null, runner: process.env.RUNNER_OS ?? process.platform } };
 if (releaseSmoke) Object.assign(report, { schema_version: 1, kind: 'release-host-smoke', host_arch: architecture().host_arch, arch: process.arch, workflow_sha: process.env.GITHUB_WORKFLOW_SHA });
@@ -53,6 +54,8 @@ function run(executable: string, args: string[], env = environment, timeout = 18
     return result.stdout;
 }
 try {
+    releaseHost = await acquireHostVersionGate(process.env.TS05_PHYSICAL_EXPECT_HOST ?? 'official Mods');
+    startedHost = performance.now();
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
     const agentRows = candidate.entries.includes('node_modules/@fbincon/statusline-cli/resources/statusline-agent-rows/resource-manifest.json');
     if (!version || !(agentRows ? HOSTS : LEGACY_HOSTS).some(row => row.claude === version)) throw new Error('Unsupported unpinned host');
@@ -71,8 +74,8 @@ try {
         const runtimeValidation = name !== 'statusline-agent-rows' && AGENT_ROW_HOSTS.some(host => host === version);
         const validation = run(host.executable, [...host.args, 'plugin', 'validate', runtimeValidation ? '--json' : '--strict', directory]);
         const warnings = runtimeValidation ? checkModValidation(validation, directory, version) : null;
-        const official_test_batches = runOfficialTestBatches({ source: directory, temporary: join(temporary, name + '-tests'), logs: join(dirname(reportPath), 'logs'),
-            host, cwd: repoRoot, env: environment, onCommand: phase => report.phases.push(phase) }, batch);
+        const official_test_batches = await runOfficialTestBatches({ source: directory, temporary: join(temporary, name + '-tests'), logs: join(dirname(reportPath), 'logs'),
+            host, cwd: repoRoot, env: environment, beforeCommand: admit, onCommand: phase => report.phases.push(phase) });
         let types: Record<string, string>;
         if (version === '2.1.296') types = { status: 'unavailable', reason: 'This exact host does not emit /plugin-types declarations; no typecheck pass is claimed' };
         else {
@@ -81,7 +84,8 @@ try {
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', ...(warnings ? { host_validator_warnings: warnings } : {}), official_tests: 'pass', official_test_batches, types, ...(name === 'statusline-native' && !releaseSmoke ? { capacity: nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), batch) } : {}) };
+        report.mods[name] = { validation: 'pass', ...(warnings ? { host_validator_warnings: warnings } : {}), official_tests: 'pass', official_test_batches, types,
+            ...(name === 'statusline-native' && !releaseSmoke ? { capacity: await nativeCapacity(host, join(temporary, 'capacity'), join(dirname(reportPath), 'logs'), undefined, admit) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {
@@ -104,8 +108,13 @@ try {
     report.status = 'pass';
 } catch (error) { report.error = sanitizeLog(String(error)); process.exitCode = 1; }
 finally {
+    try {
+        try { removeTree(temporary); assert(!fs.existsSync(temporary), 'Mod validation workspace was not removed'); }
+        finally { await releaseHost?.(); }
+    } catch (error) {
+        report.status = 'fail'; report.error = sanitizeLog(String(error)); delete report.envelope; process.exitCode = 1;
+    }
     fs.mkdirSync(dirname(reportPath), { recursive: true }); fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
-    removeTree(temporary); assert(!fs.existsSync(temporary), 'Mod validation workspace was not removed');
     if (windowMs !== null) phaseEvent('official', report.status === 'pass' ? 'end' : 'fail');
 }
 console.log(JSON.stringify({ status: report.status, host: report.host, mods: report.mods, error: report.error }));

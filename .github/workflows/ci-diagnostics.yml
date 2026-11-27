@@ -221,6 +221,10 @@ jobs:
       - run: npm run build
       - name: Check batched rendering, routing and package recovery
         run: node --test packages/cli/dist/test/*agent-row*.test.js packages/cli/dist/test/package-management.test.js packages/cli/dist/test/recovery-file-identity.test.js
+      - name: Check host version queue and bounded official test workers
+        run: |
+          node --test dist/typescript/tools/checks/test/host-version-gate.test.js dist/typescript/tools/acceptance/test/official-tests.test.js dist/typescript/tools/acceptance/test/native-capacity.test.js
+          node --test --test-name-pattern='scoped Mods hand' dist/typescript/tools/checks/test/impact-plan.test.js
       - uses: ./.github/actions/transfer-artifact
         with:
           operation: download

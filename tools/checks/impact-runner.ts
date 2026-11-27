@@ -59,9 +59,15 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
             'Scoped compiled test inventory differs from the planned source: ' + check);
         return runScopedTestFiles(files, reportPath + '.' + check);
     };
+    let releaseHost: (() => void) | undefined;
     try {
         if (task.checks.some(check => !['actions', 'docs', 'assets'].includes(check))) {
             const { npmEntry } = await import('../build/files.ts'); run([npmEntry(), 'run', 'build']);
+        }
+        if (task.host) {
+            const built = pathToFileURL(resolve('dist/typescript/tools/checks/host-version-gate.js')).href;
+            const { acquireHostVersionGate } = await import(built) as typeof import('./host-version-gate.js');
+            releaseHost = await acquireHostVersionGate(task.host);
         }
         for (const check of task.checks) {
             if (check === 'actions') run(['tools/checks/actions.ts']);
@@ -115,8 +121,14 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
         receipt.status = 'pass';
     } catch (error) { receipt.error = error instanceof Error ? error.message : String(error); throw error; }
     finally {
-        receipt.completed_at = new Date().toISOString(); fs.mkdirSync(dirname(reportPath), { recursive: true });
-        fs.writeFileSync(reportPath, JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+        try { await releaseHost?.(); }
+        catch (error) {
+            receipt.status = 'fail'; receipt.error = error instanceof Error ? error.message : String(error);
+            throw error;
+        } finally {
+            receipt.completed_at = new Date().toISOString(); fs.mkdirSync(dirname(reportPath), { recursive: true });
+            fs.writeFileSync(reportPath, JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+        }
     }
     return receipt;
 }

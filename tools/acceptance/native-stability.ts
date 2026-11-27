@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawnSync } from 'node:child_process';
 import ts from 'typescript';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { sha256 } from '../build/files.js';
@@ -12,6 +11,8 @@ import { isolatedHostEnvironment } from './mod-types.js';
 import { retainLog } from './diagnostics.js';
 import { phaseEvent } from './installed-supervisor.js';
 import { STABILITY_PHASE } from './physical-budgets.js';
+import { acquireHostVersionGate } from '../checks/host-version-gate.js';
+import { runOfficialTestCommand } from './official-tests/command.js';
 const [reportPath, executable = 'claude', physical] = process.argv.slice(2); assert(reportPath);
 if (physical !== undefined) { assert.equal(physical, '--physical'); phaseEvent(STABILITY_PHASE.name, 'start'); }
 const output = resolve(reportPath), host = claudeLaunch(executable), root = fs.mkdtempSync(join(tmpdir(), 'native-stability-'));
@@ -32,15 +33,18 @@ function copy(from: string, to: string): void {
         else if (entry.isFile() && !/\.test\.tsx?$/u.test(entry.name)) fs.copyFileSync(join(from, entry.name), join(to, entry.name));
     }
 }
+let release: (() => void) | undefined;
 try {
+    release = await acquireHostVersionGate(process.env.TS05_PHYSICAL_EXPECT_HOST ?? 'unversioned');
     const mod = join(root, 'statusline-native'); copy(join(repoRoot, 'mods/statusline-native'), mod);
     fs.writeFileSync(join(mod, 'tests/integration/advanced.test.ts'), source);
     const env = isolatedHostEnvironment(process.env, join(root, 'host'));
-    const version = spawnSync(host.executable, [...host.args, '--version'], { env, encoding: 'utf8', timeout: 30000 });
-    assert.equal(version.status, 0); report.host = version.stdout.trim();
+    const options = { cwd: process.cwd(), env, encoding: 'utf8' as const, maxBuffer: 8 * 1024 * 1024 };
+    const version = await runOfficialTestCommand(host.executable, [...host.args, '--version'], { ...options, timeout: 30000 });
+    assert.ifError(version.error); assert.equal(version.status, 0); assert(version.stdout); report.host = version.stdout.trim();
     for (let round = 1; round <= 10; round++) {
         const started = performance.now();
-        const result = spawnSync(host.executable, [...host.args, 'plugin', 'test', mod], { env, encoding: 'utf8', timeout: 180000, maxBuffer: 8 * 1024 * 1024 });
+        const result = await runOfficialTestCommand(host.executable, [...host.args, 'plugin', 'test', mod], { ...options, timeout: 180000 });
         const text = (result.stdout ?? '') + (result.stderr ?? '');
         const log = retainLog(join(dirname(output), 'native-stability-logs'), `round-${round}.log`, text);
         // Keep the official per-test duration, not just process startup time.
@@ -54,6 +58,8 @@ try {
     }
     report.status = 'pass';
 } finally {
-    fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n'); fs.rmSync(root, { recursive: true, force: true });
-    if (physical) phaseEvent(STABILITY_PHASE.name, report.status === 'pass' ? 'end' : 'fail');
+    try {
+        fs.mkdirSync(dirname(output), { recursive: true }); fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n'); fs.rmSync(root, { recursive: true, force: true });
+        if (physical) phaseEvent(STABILITY_PHASE.name, report.status === 'pass' ? 'end' : 'fail');
+    } finally { release?.(); }
 }

@@ -240,10 +240,18 @@ test('scoped Mods hand each planned file to an isolated official process and ret
         assert.equal(files.length, 1);
         const file = 'tests/' + files[0];
         if (process.env.FAIL_FILE === file) process.exit(1);
+        if (process.env.MEET_DIRECTORY) {
+            fs.writeFileSync(path.join(process.env.MEET_DIRECTORY, files[0]), '');
+            const deadline = Date.now() + 10_000, sleeper = new Int32Array(new SharedArrayBuffer(4));
+            while (fs.readdirSync(process.env.MEET_DIRECTORY).length < 2) {
+                assert(Date.now() < deadline, 'Expected two live scoped workers');
+                Atomics.wait(sleeper, 0, 0, 20);
+            }
+        }
         console.log(file + ':\\n(pass) fixture\\n1 pass\\n0 fail\\nRan 1 test across 1 file. [1ms]');
     `);
     const options = { source, temporary: join(root, 'copies'), logs: join(root, 'pass'), cwd: root,
-        host: { executable: process.execPath, args: [stub, 'literal argument &'] }, env: process.env };
+        host: { executable: process.execPath, args: [stub, 'literal argument &'] }, env: { ...process.env, STATUSLINE_MOD_TEST_JOBS: '1' } };
     await assert.rejects(runScopedModTests(options, expected.slice(0, 1)), /inventory differs/u);
     assert(!fs.existsSync(options.logs));
     let clock = 0;
@@ -251,6 +259,7 @@ test('scoped Mods hand each planned file to an isolated official process and ret
     const result = await runScopedModTests({ ...options, onCommand() { clock = clock === 0 ? admission - 1 : clock + 20_000; } },
         expected, () => clock);
     assert.deepEqual(result.batches.map(batch => batch.test_files), expected.map(file => [file]));
+    assert.deepEqual(result.concurrency, { limit: 1, peak: 1 });
     assert(result.batches.every(batch => batch.timeout_ms === OFFICIAL_TEST_TIMEOUT_MS));
     assert.equal(result.totals.pass, 2); assert(clock > admission, 'Last admitted file can finish after admission closes');
     clock = 0;
@@ -259,9 +268,15 @@ test('scoped Mods hand each planned file to an isolated official process and ret
         expected, () => clock), /tests\/b\.test\.ts/u);
     assert.match(fs.readFileSync(join(expiredLogs, 'plugin-batch-0002.log'), 'utf8'), /Scoped Mod file admission expired/u);
     const logs = join(root, 'fail');
-    await assert.rejects(runScopedModTests({ ...options, logs, env: { ...process.env, FAIL_FILE: expected[1] } }, expected), /tests\/b\.test\.ts/u);
+    await assert.rejects(runScopedModTests({ ...options, logs, env: { ...options.env, FAIL_FILE: expected[1] } }, expected), /tests\/b\.test\.ts/u);
     assert(fs.existsSync(join(logs, 'plugin-batch-0002.log')));
     assert(!fs.existsSync(options.temporary));
+    const meet = join(root, 'both-running'); fs.mkdirSync(meet);
+    const parallelEnv: NodeJS.ProcessEnv = { ...process.env, MEET_DIRECTORY: meet };
+    delete parallelEnv.STATUSLINE_MOD_TEST_JOBS;
+    const parallel = await runScopedModTests({ ...options, env: parallelEnv, logs: join(root, 'parallel') }, expected);
+    assert.deepEqual(parallel.concurrency, { limit: 4, peak: 2 });
+    assert.deepEqual(parallel.test_files, expected); assert.equal(parallel.totals.pass, 2);
 
     // The 46 native files on Windows 2.1.326 took 716.58 seconds in official batches.
     const nativeFiles = Array.from({ length: 46 }, (_, index) => 'tests/' + String(index).padStart(2, '0') + '.test.ts');
@@ -307,7 +322,7 @@ test('scheduling budgets use the selected Git source inventory and reject an inf
     assert.throws(() => scopedTaskBudget(task, oversized), /partition the task/);
     assert.throws(() => partitionScopedTasks([task], oversized), /partition the task/);
 });
-test('scoped Mod estimates cover the source-bound serial policy and preserve historical hosted budgets', () => {
+test('scoped Mod estimates cover the single-worker setting and preserve historical hosted budgets', () => {
     const task = tasksFor(['native']).find(row => row.os === 'windows-2025' && row.host === '2.1.326')!;
     const paths = Array.from({ length: 46 }, (_, index) => 'mods/statusline-native/tests/' + index + '.test.ts');
     const historical = [...paths, 'mods/statusline-runtime/tests/other.test.ts', 'mods/statusline-native/tests/support.ts'];

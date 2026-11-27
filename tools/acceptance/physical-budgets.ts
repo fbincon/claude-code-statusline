@@ -17,8 +17,8 @@ export function requiresStability(os: string, host: string): boolean {
     return os === 'windows-2025' && ['2.1.289', '2.1.294'].includes(host);
 }
 
-/** Official tests admit one independently bounded command at a time. Reserve
- * the entire selected history and stability workers before starting any batch. */
+/** Reserve history and stability first. Each official command must fit its
+ * own deadline when it starts, including files that run concurrently. */
 export function officialPhases(windows: boolean, depth: 'full' | 'short', stable: boolean) {
     const history = officialHistoryProfilePhases(windows, depth);
     const remaining = supervisionBudget(history) + (stable ? supervisionBudget([STABILITY_PHASE]) : 0);

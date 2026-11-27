@@ -5,7 +5,6 @@ import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 /** Actual-host acceptance of projected production states, separate from UI reducers. */
 import * as fs from 'node:fs';
 import { join, resolve, basename } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
@@ -14,7 +13,8 @@ import { isolatedHostEnvironment } from './mod-types.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { retainLog } from './diagnostics.js';
-import { officialTestInventory, runOfficialTestBatches, verifyOfficialTestBatches, type OfficialTestExecute } from './official-tests.js';
+import { officialTestInventory, runOfficialTestBatches, verifyOfficialTestBatches, type OfficialCommandResult, type OfficialTestExecute } from './official-tests.js';
+import { runOfficialTestCommand } from './official-tests/command.js';
 export const NATIVE_CAPACITY_CASES = 197;
 export const NATIVE_CAPACITY_ADDITIONAL_CASES = 56 + 5 * LANGUAGES.length;
 export const NATIVE_CAPACITY_TOTAL_CASES = NATIVE_CAPACITY_CASES + NATIVE_CAPACITY_ADDITIONAL_CASES;
@@ -40,7 +40,8 @@ export function nativeCapacitySourceInventory(originalSource: Readonly<Record<st
     return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 }
 
-export function nativeCapacity(host: LaunchSpec, destination: string, logs = destination + '-logs', execute: OfficialTestExecute = (file, args, options) => spawnSync(file, args, options)) {
+export async function nativeCapacity(host: LaunchSpec, destination: string, logs = destination + '-logs',
+    execute: OfficialTestExecute = runOfficialTestCommand, beforeCommand?: (timeoutMs: number) => void) {
     assert(!fs.existsSync(destination), 'Native capacity requires a fresh destination');
     assert(!fs.existsSync(join(logs, 'native-capacity-validate.log')), 'Use a new native capacity log directory');
     const source = join(repoRoot, 'mods/statusline-native');
@@ -65,18 +66,21 @@ export function nativeCapacity(host: LaunchSpec, destination: string, logs = des
     assert.deepEqual(officialTestInventory(source).source_files, originalSource, 'Native source changed while preparing capacity tests');
     const environment = isolatedHostEnvironment(process.env, destination + '-config');
     const started = performance.now();
-    let result: ReturnType<OfficialTestExecute>;
-    try { result = execute(host.executable, [...host.args, 'plugin', 'validate', '--strict', destination], { cwd: repoRoot, env: environment, encoding: 'utf8', timeout: NATIVE_CAPACITY_TIMEOUT_MS, maxBuffer: 8 * 1024 * 1024 }); }
+    let result: OfficialCommandResult;
+    try {
+        beforeCommand?.(NATIVE_CAPACITY_TIMEOUT_MS);
+        const args = [...host.args, 'plugin', 'validate', '--strict', destination];
+        const options = { cwd: repoRoot, env: environment, encoding: 'utf8' as const, timeout: NATIVE_CAPACITY_TIMEOUT_MS, maxBuffer: 8 * 1024 * 1024 };
+        result = await execute(host.executable, args, options);
+    }
     catch (error) { result = { status: null, error: error instanceof Error ? error : new Error(String(error)) }; }
     const elapsed_ms = performance.now() - started, output = (result.stdout ?? '') + (result.stderr ?? '');
     const log = retainLog(logs, 'native-capacity-validate.log', output + (result.error ? '\n' + String(result.error) : ''));
     assert(result.status === 0 && !result.error && !result.signal && elapsed_ms <= NATIVE_CAPACITY_TIMEOUT_MS, 'Native capacity validation failed; see ' + log);
     const validation = { status: 'pass', timeout_ms: NATIVE_CAPACITY_TIMEOUT_MS, elapsed_ms, log, log_sha256: hash(fs.readFileSync(join(logs, log))) };
     assert.deepEqual(officialTestInventory(destination), copied, 'Capacity validation changed its source copy');
-    // The host runs test files concurrently within one invocation. Run the same
-    // bounded files serially so seven sandboxes cannot exhaust host memory.
-    const execution = runOfficialTestBatches({ source: destination, temporary: destination + '-batches', logs, host, cwd: repoRoot, env: environment,
-        timeoutMs: NATIVE_CAPACITY_TIMEOUT_MS, logPrefix: 'native-capacity' }, execute);
+    const execution = await runOfficialTestBatches({ source: destination, temporary: destination + '-batches', logs, host, cwd: repoRoot, env: environment,
+        timeoutMs: NATIVE_CAPACITY_TIMEOUT_MS, logPrefix: 'native-capacity', beforeCommand }, execute);
     verifyOfficialTestBatches(execution, expectedSource, NATIVE_CAPACITY_TIMEOUT_MS);
     assert.equal(execution.totals.tests, NATIVE_CAPACITY_TOTAL_CASES);
     assert.equal(execution.totals.files, NATIVE_CAPACITY_TEST_FILES);
@@ -91,5 +95,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     if (!values.output) throw new Error('Require --output NEW_DIRECTORY');
     const destination = resolve(values.output);
     if (fs.existsSync(destination)) throw new Error('Capacity output directory already exists');
-    console.log(JSON.stringify(nativeCapacity(claudeLaunch(values.claude), destination)));
+    const { acquireHostVersionGate } = await import('../checks/host-version-gate.js');
+    const release = await acquireHostVersionGate(process.env.TS05_PHYSICAL_EXPECT_HOST ?? 'unversioned');
+    try { console.log(JSON.stringify(await nativeCapacity(claudeLaunch(values.claude), destination))); }
+    finally { release(); }
 }

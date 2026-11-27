@@ -94,6 +94,8 @@ test('physical readiness rejects section substitution, incomplete short transiti
     rejects(short,v=>{v.identity.attempt=3;});
     rejects(short,v=>{v.report.official.mods['statusline-native'].capacity.total_cases=197;});
     rejects(short,v=>{delete v.report.official.mods['statusline-native'].official_test_batches.source_files['tests/integration/advanced.test.ts'];});
+    rejects(short,v=>{v.report.official.mods['statusline-native'].official_test_batches.concurrency={limit:4,peak:5};});
+    rejects(short,v=>{v.report.official.mods['statusline-native'].official_test_batches.elapsed_ms=-1;});
     rejects(stable,v=>{v.report.stability.samples.pop();});
     rejects(stable,v=>{v.report.stability.selected_sha256='a'.repeat(64);});
     const sample=join(directory,stable.artifact,'native-stability-logs/round-1.log'),original=readFileSync(sample);writeFileSync(sample,'changed');assert.throws(()=>assess());writeFileSync(sample,original);

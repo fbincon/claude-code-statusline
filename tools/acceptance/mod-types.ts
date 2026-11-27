@@ -118,5 +118,8 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { plugin: { type: 'string', default: 'mods/statusline-native' }, claude: { type: 'string', default: 'claude' } } });
-    console.log(JSON.stringify({ host: await prepareModTypes(values.plugin!, values.claude), plugin: values.plugin }));
+    const { acquireHostVersionGate } = await import('../checks/host-version-gate.js');
+    const release = await acquireHostVersionGate(process.env.TS05_PHYSICAL_EXPECT_HOST ?? 'unversioned');
+    try { console.log(JSON.stringify({ host: await prepareModTypes(values.plugin!, values.claude), plugin: values.plugin })); }
+    finally { release(); }
 }

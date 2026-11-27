@@ -34,19 +34,32 @@ test('capacity source transformation binds exact hooks, entrypoint ranges and re
     assert.equal(NATIVE_CAPACITY_TEST_FILES, 7); assert.equal(NATIVE_CAPACITY_TOTAL_CASES, 313);
 });
 
-test('capacity executes all unchanged generated files serially with exact source receipts and retained logs', t => {
+test('capacity admits bounded concurrent files with independent 300-second deadlines and retained source receipts', async t => {
     const f = fixture(t), source = join(repoRoot, 'mods/statusline-native'), original = officialTestInventory(source).source_files;
-    const expected = nativeCapacitySourceInventory(original), seen: number[] = [], deadlines: number[] = [];
-    let validations = 0;
-    const result = nativeCapacity({ executable: 'fixture-host', args: ['literal host argument'] }, f.destination, f.logs, (_executable, args, options) => {
+    const expected = nativeCapacitySourceInventory(original), seen: number[] = [], deadlines: number[] = [], admitted: number[] = [];
+    const configurations = new Set<string>();
+    const previous = process.env.STATUSLINE_MOD_TEST_JOBS;
+    process.env.STATUSLINE_MOD_TEST_JOBS = '3';
+    t.after(() => { if (previous === undefined) delete process.env.STATUSLINE_MOD_TEST_JOBS; else process.env.STATUSLINE_MOD_TEST_JOBS = previous; });
+    let release!: () => void;
+    const firstGroup = new Promise<void>(resolve => { release = resolve; });
+    const fallback = setTimeout(release, 10_000); t.after(() => clearTimeout(fallback));
+    let validations = 0, active = 0, peak = 0;
+    const result = await nativeCapacity({ executable: 'fixture-host', args: ['literal host argument'] }, f.destination, f.logs, async (_executable, args, options) => {
         deadlines.push(options.timeout); assert.equal(options.timeout, 300_000);
         assert.equal(args[0], 'literal host argument');
-        assert.equal(options.env.CLAUDE_CONFIG_DIR, f.destination + '-config');
         if (args[2] === 'validate') {
+            assert.equal(options.env.CLAUDE_CONFIG_DIR, f.destination + '-config');
             validations++; assert.deepEqual(officialTestInventory(args.at(-1)!).source_files, expected);
             return { status: 0, stdout: 'Validation passed\n' };
         }
         assert.equal(args[2], 'test');
+        const config = options.env.CLAUDE_CONFIG_DIR;
+        assert(config && !configurations.has(config), 'Each file needs its own writable host configuration');
+        configurations.add(config);
+        active++; peak = Math.max(peak, active);
+        if (active === 3) release();
+        await firstGroup;
         const copy = args.at(-1)!, inventory = officialTestInventory(copy);
         assert.equal(inventory.test_files.length, 1);
         assert(!fs.existsSync(join(copy, 'config')), 'Host configuration must stay outside source inputs');
@@ -56,9 +69,13 @@ test('capacity executes all unchanged generated files serially with exact source
         const start = Number(range[1]), end = Number(range[2]);
         for (let index = start; index < end; index++) seen.push(index);
         const count = end - start;
+        active--;
         return { status: 0, stdout: file + ':\n' + Array.from({ length: count }, (_, index) => '(pass) capacity ' + (start + index) + ' [1ms]\n').join('') + `\n ${count} pass\n 0 fail\nRan ${count} tests across 1 file. [0.1s]\n` };
-    });
+    }, timeout => { admitted.push(timeout); });
+    assert.equal(peak, 3); assert.equal(active, 0);
+    assert.deepEqual(result.execution.concurrency, { limit: 3, peak: 3 });
     assert.equal(validations, 1); assert.equal(deadlines.length, 8);
+    assert.deepEqual(admitted, deadlines);
     assert.deepEqual(seen.sort((a, b) => a - b), Array.from({ length: 313 }, (_, index) => index));
     assert.deepEqual(result.execution.totals, { files: 7, tests: 313, pass: 313, fail: 0, skip: 0 });
     verifyOfficialTestBatches(result.execution, expected, NATIVE_CAPACITY_TIMEOUT_MS);
@@ -74,10 +91,10 @@ test('capacity executes all unchanged generated files serially with exact source
     assert.throws(() => verifyOfficialTestBatches(result.execution, omitted, NATIVE_CAPACITY_TIMEOUT_MS));
 });
 
-test('capacity validation and batch failures preserve diagnostics without relaxing command budgets', t => {
+test('capacity validation and batch failures preserve diagnostics without relaxing command budgets', async t => {
     for (const validate of [true, false]) {
         const f = fixture(t);
-        assert.throws(() => nativeCapacity({ executable: 'fixture-host', args: [] }, f.destination, f.logs, (_executable, args, options) => {
+        await assert.rejects(nativeCapacity({ executable: 'fixture-host', args: [] }, f.destination, f.logs, (_executable, args, options) => {
             assert.equal(options.timeout, NATIVE_CAPACITY_TIMEOUT_MS);
             if (!validate && args[1] === 'validate') return { status: 0, stdout: 'Validation passed\n' };
             return { status: null, stderr: 'retained partial capacity diagnostic\n', error: new Error('ETIMEDOUT') };
@@ -88,14 +105,28 @@ test('capacity validation and batch failures preserve diagnostics without relaxi
     }
 });
 
-test('capacity refuses reused destinations and validation logs before copying source or invoking a host', t => {
+test('a closed physical window prevents the next capacity host process and retains the admission failure', async t => {
+    const f = fixture(t), invoked: string[] = [];
+    await assert.rejects(nativeCapacity({ executable: 'fixture-host', args: [] }, f.destination, f.logs, (_executable, args) => {
+        invoked.push(args[1]!);
+        return { status: 0, stdout: 'Validation passed\n' };
+    }, timeout => {
+        assert.equal(timeout, NATIVE_CAPACITY_TIMEOUT_MS);
+        if (invoked.length) throw new Error('Capacity fixture window has closed');
+    }), /batch failed/u);
+    assert.deepEqual(invoked, ['validate']);
+    assert.match(fs.readFileSync(join(f.logs, 'native-capacity-batch-0001.log'), 'utf8'), /fixture window has closed/u);
+    assert(!fs.existsSync(f.destination + '-batches'));
+});
+
+test('capacity refuses reused destinations and validation logs before copying source or invoking a host', async t => {
     for (const destinationExists of [true, false]) {
         const f = fixture(t), directory = destinationExists ? f.destination : f.logs;
         fs.mkdirSync(directory);
         const preserved = join(directory, destinationExists ? 'owned-marker.txt' : 'native-capacity-validate.log');
         fs.writeFileSync(preserved, 'preserve earlier evidence\n');
         let invoked = false;
-        assert.throws(() => nativeCapacity({ executable: 'fixture-host', args: [] }, f.destination, f.logs, () => {
+        await assert.rejects(nativeCapacity({ executable: 'fixture-host', args: [] }, f.destination, f.logs, () => {
             invoked = true; throw new Error('A reused location must fail before invoking the host');
         }), destinationExists ? /fresh destination/u : /new native capacity log directory/u);
         assert.equal(invoked, false);

@@ -37,6 +37,7 @@ export function estimatedScopedTaskMs(task: ImpactTask, files: readonly string[]
         else if (check === 'packaging') total += 60 * MINUTE; // optional four 10m build commands and installation smoke
         else if (check === 'native' || check === 'runtime' || check === 'agent-rows') {
             if (files.includes('tools/checks/impact-mod-batches.ts')) {
+                // Admission and the longest already started file bound elapsed time at any concurrency, including one.
                 const admission = familyAdmissionMs(scopedModFiles(check, files).length);
                 total += SCOPED_MOD_VERSION_MS + SCOPED_MOD_VALIDATE_MS + admission + SCOPED_MOD_FILE_MS;
                 if (task.host !== '2.1.296') total += MINUTE + SCOPED_COMMAND_MS; // obtain exact declarations and run tsc

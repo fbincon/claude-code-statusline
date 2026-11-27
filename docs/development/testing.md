@@ -111,6 +111,8 @@ Use the branch-only `tiered-probe` dispatch to exercise representative full and 
 
 Use a clean checkout per fixed host when running official Mod diagnostics locally. A previous host can leave ignored declarations under the plugin’s `.claude-plugin/types` directory. Record the exact host and declaration headers before accepting its type or test results. [Measured samples](ci-efficiency.md)
 
+The official Mod receipt records its file concurrency limit, peak active files and elapsed time. When tuning concurrency, run one host version on the machine and measure the elapsed time and peak memory of its entire process tree. Record the host version and source commit with the results. On Linux, a dedicated cgroup v2 scope provides the kernel’s peak memory accounting. Report sampled total RSS separately with the sampling interval because the sum includes shared pages in each process. Retain the individual file logs, timeouts and results at every concurrency level. [Host scheduling and file concurrency](impact-checks.md#responsibilities-and-checks)
+
 <a id="acceptance-receipt-envelope"></a>
 
 ## Acceptance receipts

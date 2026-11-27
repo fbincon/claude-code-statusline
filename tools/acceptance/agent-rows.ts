@@ -9,6 +9,7 @@ import { quoteArgument, splitCommand } from '@fbincon/statusline-platform/comman
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { installCandidate } from './install.js';
 import { verifyDelivery } from '../build/verify.js';
+import { acquireHostVersionGate } from '../checks/host-version-gate.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { FOREIGN, inspectSession, NAME_BACKGROUND, NAME_COLOR, SAMPLE_KEY, TASK_GRADIENT, type ExpectedRows } from './agent-rows/terminal.js';
 import { verifiedHost, VERSIONS, type Version } from './agent-rows/hosts.js';
@@ -141,7 +142,7 @@ async function matrix(options: Options) {
     const candidate = installCandidate(options.artifact, options.commit);
     const results: Awaited<ReturnType<typeof runStage>>[] = [];
     const driverFiles = ['tools/acceptance/agent-rows', 'tools/acceptance/agent-rows/hosts', 'tools/acceptance/agent-rows/provider',
-        'tools/acceptance/agent-rows/terminal', 'tools/migration/ts-04/capture', 'tools/migration/ts-04/test/pty'];
+        'tools/acceptance/agent-rows/terminal', 'tools/checks/host-version-gate', 'tools/migration/ts-04/capture', 'tools/migration/ts-04/test/pty'];
     const driver = driverFiles.map(file => {
         const source = file + '.ts', archived = delivery.sourceEntries.get(source);
         return { source, source_sha256: sha256(fs.readFileSync(join(repoRoot, source))),
@@ -219,10 +220,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         await matrix({ artifact: resolve(values.artifact), commit: values.commit, hosts: resolve(values.hosts), output: resolve(values.output), selected: values.case });
     } else {
         assert.equal(process.platform, 'linux', 'This probe requires Linux user and network namespaces');
-        const result = spawnSync('unshare', ['--user', '--map-root-user', '--net', process.execPath, fileURLToPath(import.meta.url), ...process.argv.slice(2), '--isolated'],
-            { stdio: 'inherit', env: { PATH: [dirname(process.execPath), SYSTEM_PATH].join(delimiter), LANG: 'C.UTF-8', TMPDIR: process.env.TMPDIR || '/var/tmp',
-                ROW_PROBE_PARENT_NET: fs.readlinkSync('/proc/self/ns/net') } });
-        if (result.error) throw result.error;
-        process.exitCode = result.status ?? 1;
+        const release = await acquireHostVersionGate('AgentRow terminal probe');
+        try {
+            const result = spawnSync('unshare', ['--user', '--map-root-user', '--net', process.execPath, fileURLToPath(import.meta.url), ...process.argv.slice(2), '--isolated'],
+                { stdio: 'inherit', env: { PATH: [dirname(process.execPath), SYSTEM_PATH].join(delimiter), LANG: 'C.UTF-8', TMPDIR: process.env.TMPDIR || '/var/tmp',
+                    ROW_PROBE_PARENT_NET: fs.readlinkSync('/proc/self/ns/net') } });
+            if (result.error) throw result.error;
+            process.exitCode = result.status ?? 1;
+        } finally { release(); }
     }
 }
