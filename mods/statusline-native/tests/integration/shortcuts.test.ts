@@ -15,7 +15,7 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   expect(fixture.store.shortcuts.bindings).toEqual({ save: 'Z' });
   expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(0);
   await keys(ui, { key: 'g', ctrl: true }, '1', 's');
-  expect(await visibleText(ui)).toContain('Z save');
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('Z save');
   expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(0);
   await keys(ui, '/', 'Z', 'return', 'z');
   expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(1);

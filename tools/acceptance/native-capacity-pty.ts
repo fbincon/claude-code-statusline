@@ -374,7 +374,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert.equal(fs.statSync(displayPath).mode, beforeMode);
             capture('native-custom');
             await key('\x071', 'return to main editor');
-            await until(text => text.includes('Z save'), 'native footer shows Z');
+            await until(text => /\bZ +save\b/u.test(text), 'native footer shows Z');
             await key('s', 'try previous native save key');
             assert.equal(records().filter(row => row.operation === 'apply').length, 0);
             await key('z', 'use new native save key');
@@ -407,7 +407,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\t\x1b[B\x1b[B\r', 'read saved defaults in the open native pane');
             await until(text => text.includes('Read the saved shortcuts'), 'native loaded restored defaults');
             await key('\x071', 'restore normal editor focus');
-            await until(text => text.includes('S save') && !text.includes('Z save'), 'native shows the preset save key');
+            await until(text => /\bS +save\b/u.test(text) && !/\bZ +save\b/u.test(text), 'native shows the preset save key');
             assert.deepEqual(fs.readFileSync(displayPath), savedDisplay);
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settingsBytes);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
