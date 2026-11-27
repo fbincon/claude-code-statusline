@@ -35,7 +35,7 @@ function valueLabel(value: string, language: Language) {
 export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[] {
   const language = view.language ?? 'en';
   return rows.map(row => {
-    let label = fieldMessage(row, view);
+    let label = row.key === 'keyboard-shortcuts' ? text('shortcuts.title') : fieldMessage(row, view);
     let group = t(groupKey(row.group), language, {}, row.group);
     let value = row.value;
     if (row.key.startsWith('host-')) {

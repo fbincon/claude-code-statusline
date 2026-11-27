@@ -6,6 +6,15 @@ import type { View } from '../session.ts';
 import { formRows, adjustForm } from './forms.ts';
 import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
 import { LANGUAGES, LANGUAGE_NAMES } from '../i18n/index.ts';
+import type { ShortcutContext } from '../editor/shortcut-map.ts';
+
+export function shortcutContext(view: View): ShortcutContext {
+  const e = view.editor!;
+  if (e.detail) return 'detail';
+  if (e.adding) return 'picker';
+  if (e.page === 'settings') return e.advanced ? 'host-settings' : 'settings';
+  return e.page === 'layout' ? 'layout' : 'list';
+}
 
 export interface SettingRow {
   key: string;
@@ -104,6 +113,7 @@ export function settingRows(view: View): SettingRow[] {
   rows.push(
     {key:'preview-scenario',label:'Sample scenario',group:'Preview',value:e.previewScenario,editable:true},
     {key:'preview-width',label:'Preview width',group:'Preview',value:e.previewWidth,editable:true},    {key:'diagnose-file',label:'Diagnose input file',group:'Presets / portable files',value:'Enter',editable:true},    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
+    { key: 'keyboard-shortcuts', label: 'Keyboard shortcuts', group: 'Interface', value: 'Enter', editable: true },
     { key: 'component-groups', label: 'Component groups', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'sources', label: 'Data sources', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'profiles', label: 'Display schemes and projects', group: 'Presets / portable files', value: 'Enter', editable: true },

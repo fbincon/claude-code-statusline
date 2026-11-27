@@ -28,8 +28,9 @@ import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentatio
 import { itemSpans } from '../components/catalog.ts';
 import { catalogMarker } from '../../lib/editor/instances.ts';
 import { guidanceLines } from '../../lib/editor/guidance.ts';
-import { reviewRows } from '../../lib/editor/import-review.ts';
+import { importShortcutHelp, reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
+import { shortcutPanelRows } from '../../lib/editor/shortcut-settings.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = '', paneColumns = columns): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
@@ -47,6 +48,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
+  if (e.shortcuts.panel) return ui.Box({ width: columns, height: rows, flexDirection: 'column', overflow: 'hidden', children: [
+    line(tr('shortcuts.title'), styles.accent, columns),
+    ...shortcutPanelRows(e.shortcuts, view.language ?? 'en', columns, rows - 1).map(row => line(row.text, rowStyle(!!row.selected), columns)),
+  ] });
   const inputDisplay = (width: number) => {
     const input = view.input;
     if (!input || input.kind === 'category') return '';
@@ -57,7 +62,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const pickerNotice = !view.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
-  let notice = e.review ? tr(e.review.base ? 'review.selection.help' : 'review.intro') :
+  let notice = e.review ? importShortcutHelp(e.review, e.shortcuts, view.language ?? 'en') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
     viewMessage(view, 'busy') || viewMessage(view, 'error') ||
     (pickerNotice ? renderMessage(pickerNotice, view.language) : '') || viewMessage(view, 'message') ||
@@ -69,7 +74,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const content: RenderElement[] = [];
   let title = '';
   if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,view.language??'en',inner,layout.bodyRows):reuseView(e,view.language??'en',inner,layout.bodyRows)).map(row=>line(row.text,rowStyle(row.selected===true))));
-  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected===true))));
+  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows,e.shortcuts).map(row=>line(row.text,rowStyle(row.selected===true))));
   } else if (e.diagnosis) {
     title = tr('diagnosis.title');
     const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);
@@ -163,8 +168,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     title = types ? tr('composition.picker') : scope === 'main' ? tr('composition.configured_title')
       : tr('composition.configured_subagents', { state: tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off')) });
     content.push(shortcuts(ui, [
-      {key: 'Ctrl+F', label: tr('catalog.categories.' + category), short: category === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + category), 8)},
-      {key: '/', label: tr('native.ui.client.draw.search')},
+      {key: e.shortcuts.hint(e.adding ? 'picker' : 'list', 'category'), label: tr('catalog.categories.' + category), short: category === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + category), 8)},
+      {key: e.shortcuts.hint(e.adding ? 'picker' : 'list', 'search'), label: tr('native.ui.client.draw.search')},
     ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + search + '  '));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map(item => item.id), selected, layout.itemCapacity);

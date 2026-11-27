@@ -129,7 +129,7 @@ export function colorsKey(e: Editor, event: TextKey, language: Language): null {
     if (key === 'end')
         m.cursor = rows.length - 1;
     const selected = rows[m.cursor]!;
-    if (event.ctrl && key.toLowerCase() === 's' || key === 'return' && selected.id === 'apply') {
+    if (e.shortcuts.action('colors', event) === 'apply-color' || key === 'return' && selected.id === 'apply') {
         if (e.canMutateDraft(m.generation)) {
             e.commitDraft(colorDraft(e));
             e.colors = null;

@@ -938,6 +938,7 @@ All files below are relative to the selected Claude configuration directory. JSO
 | `claude-statusline-profiles.json` | Profile library and project bindings in the current profile format; `config profile/project` |
 | `claude-statusline-sources.json` | Local source definitions, permissions and bindings in the current source-registry format; `source` |
 | `statusline-ui.json` | UI language in the current preferences schema; `config language` |
+| `statusline-shortcuts.json` | Shortcut overrides shared by the two editors. |
 | `claude-statusline-features.json / claude-statusline-native.json` | Editor preferences in the current preferences schema; explicit install flags |
 | `claude-statusline-runtime.json` | Collector preferences in the current preferences schema; explicit install flags |
 | `settings.json` | Claude-owned settings with merged integration and host options; install/uninstall and owned host writes |
@@ -1078,6 +1079,18 @@ If display configuration is corrupted:
 
 Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru` and `id`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
 
+<a id="editor-shortcut-preferences"></a>
+
+### Editor shortcut preferences
+
+`<CLAUDE_CONFIG_DIR>/statusline-shortcuts.json` stores overrides shared by both editors for that directory.
+
+```json
+{"schema_version": 1, "bindings": {"save": "Z"}}
+```
+
+The shared registry defines action IDs and their contexts. Missing overrides use the editor's presets. Saving an empty map backs up and removes the file. Reads leave the configuration on disk as found. A future schema refuses writes. Older packages can read their own configuration normally, and a subsequent upgrade can read the saved overrides. [Shortcut workflow](../EDITORS.md#customize-keyboard-shortcuts)
+
 ### Editor enablement preferences
 
 Both independent files use the same preferences schema:
@@ -1132,7 +1145,7 @@ This chapter is the current source of truth for interface and stored-format vers
 
 | Interface or format | Current version | Read and save compatibility | Specification |
 | --- | --- | --- | --- |
-| Editor UI protocol | `editor protocol 32` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
+| Editor UI protocol | `editor protocol 33` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
 | Display configuration | `display schema 17` | Reads schemas 1–16 in memory without rewriting; an explicit save backs up the old bytes and writes the current schema. | `packages/core/src/config/display.ts`; [display configuration](#display-configuration) |
 | Runtime observation protocol | 3 | Retains v1/v2 `observe`/`read`; `source_lifecycle` requires version 3. | [Live collection](../development/live.md); `packages/core/src/contracts/runtime.ts` |
 | Task lifecycle | 4 | Retains the schema-1 compatibility mirror. | `packages/core/src/runtime/tasks/model.ts`; [timer contracts](../development/timer.md) |
@@ -1140,6 +1153,7 @@ This chapter is the current source of truth for interface and stored-format vers
 | Portable configuration envelope | 1 | Import also accepts display-only files within the current display read range. | `packages/core/src/config/transfer.ts`; [import, export and reuse](#import-export-and-reuse) |
 | Profile collection and single-profile export | 1 each | Collection and export evolve independently. | `packages/core/src/config/profiles.ts`; [Profiles and projects](../PROFILES.md#files-conflicts-and-recovery) |
 | UI preferences | 1 | Future schemas refuse overwrite. | [Shared interface preference](#shared-interface-preference) |
+| Editor shortcut preferences | 1 | Future schemas refuse writes. | [Editor shortcut preferences](#editor-shortcut-preferences) |
 | Native and external editor preferences | 1 each | Separate files; unsupported hosts suspend without rewriting. | [Editor enablement preferences](#editor-enablement-preferences) |
 | Runtime preferences | 2 | Missing file defaults native timing and live metrics off. | [Live-collection preference](#live-collection-preference) |
 | Source registry | 2 by default, 3 after adding command automation, 4 after saving a following GitHub source | Reads registries 1–4. Reads preserve the stored bytes and grant no new permission. | `packages/core/src/extensions/model.ts`; [source management](#source-management) |
@@ -1164,7 +1178,7 @@ The `statuslineCompatibility` record schema 1 declares these configuration read 
 | External preferences (`external_preferences`) | `[1, 1]` |
 | UI preferences (`ui_preferences`) | `[1, 1]` |
 
-The record also declares `editor_protocol` 32, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
+The record also declares `editor_protocol` 33, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
 
 ### Unversioned and host-owned interfaces
 

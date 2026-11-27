@@ -1,7 +1,24 @@
 /** Session-only controls; never part of a display draft or portable file. */
+import type { PreviewResult } from '../contracts/ui.js';
+import type { Editor } from './draft.js';
+import type { ShortcutAction } from './shortcut-map.js';
+
 export const SCENARIO_IDS = ['normal', 'warning', 'critical', 'zero', 'missing', 'source-stale', 'source-failed', 'long-content', 'git-clean', 'git-modified', 'git-conflicted', 'no-agents', 'few-agents', 'many-agents'] as const;
 export type PreviewScenario = typeof SCENARIO_IDS[number];
 export const PREVIEW_WIDTHS = ['auto', '40', '80', '120'] as const;
 export function isScenario(value: unknown): value is PreviewScenario { return typeof value === 'string' && (SCENARIO_IDS as readonly string[]).includes(value); }
 export function previewWidth(available: number, requested: string): number { return Math.max(2, Math.min(available, requested === 'auto' ? available : Number(requested))); }
 export function cyclePreview<T>(values: readonly T[], value: T, delta: number): T { return values[(values.indexOf(value) + delta + values.length) % values.length]!; }
+
+export function applyPreviewShortcut(editor: Editor, action: ShortcutAction | null, preview: PreviewResult | null): boolean {
+    if (action === 'preview-scenario') {
+        editor.previewScenario = cyclePreview(SCENARIO_IDS, editor.previewScenario, 1);
+        editor.previewOffset = 0;
+    } else if (action === 'preview-width') {
+        editor.previewWidth = cyclePreview(PREVIEW_WIDTHS, editor.previewWidth as typeof PREVIEW_WIDTHS[number], 1);
+    } else if (action === 'preview-row') {
+        const scope = editor.quick?.previewScope ?? editor.review?.previewScope ?? (editor.page === 'subagents' ? 'subagent' : 'main');
+        editor.previewOffset = (editor.previewOffset + 1) % Math.max(1, preview?.[scope === 'main' ? 'main' : 'subagents'].length ?? 0);
+    } else return false;
+    return true;
+}

@@ -29,6 +29,7 @@ import { readJson, JsonSyntaxError } from '@fbincon/statusline-core/json-read';
 import { safeInteger } from '@fbincon/statusline-core/json';
 import { ConfigurationService, atLeast, draft, type EffectiveConfig } from '../config/service.js';
 import { readPreferences, setLanguage } from '../config/preferences.js';
+import { readEditorShortcuts, setEditorShortcuts } from '../config/editor-shortcuts.js';
 import { importFile, exportFile } from '../config/transfer.js';
 import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
@@ -145,6 +146,11 @@ export class ConfigurationProtocol {
         if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
             requestObject(payload, operation === 'read_ui_preferences' ? [] : ['ui_language'], 'payload');
             return operation === 'read_ui_preferences' ? readPreferences(this.service.context.configDir, this.service.io) : setLanguage(this.service.context.configDir, payload.ui_language, this.service.io);
+        }
+        if (operation === 'read_editor_shortcuts' || operation === 'set_editor_shortcuts') {
+            const { context, io } = this.service;
+            requestObject(payload, operation === 'read_editor_shortcuts' ? [] : ['bindings', 'expected_revision'], 'payload');
+            return operation === 'read_editor_shortcuts' ? readEditorShortcuts(context.configDir, io) : setEditorShortcuts(context.configDir, payload.bindings, payload.expected_revision, io);
         }
         if (['import', 'review_import', 'export', 'preset'].includes(operation)) {
             requestObject(payload, operation === 'export' ? ['draft', 'path', 'overwrite'] : operation === 'preset' ? ['draft', 'preset'] : ['draft', 'path', ...(object(payload) && Object.hasOwn(payload, 'selection') ? ['selection'] : [])], 'payload');

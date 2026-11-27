@@ -141,8 +141,14 @@ test('tests.i18n.test_registry.LanguageRegistryTests.test_order_autonyms_coverag
   assert.deepEqual(registry.map(entry => entry.code), ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko', 'es', 'fr', 'de', 'pt-BR', 'ru', 'id']);
   assert.deepEqual(registry.map(entry => entry.name), ['English', '简体中文', '繁體中文（台灣）', '繁體中文（香港）', '日本語', '한국어', 'Español', 'Français', 'Deutsch', 'Português (Brasil)', 'Русский', 'Bahasa Indonesia']);
   const report = languageCoverage(directory);
-  for (const value of Object.values(report)) {
-    assert.equal(value.percent, 100); assert.deepEqual(value.missing, []);
+  const analysis = analyze(readLanguageInputs(ROOT));
+  assert.equal(analysis.report.development_ready, true);
+  for (const [code, value] of Object.entries(report)) {
+    const policy = analysis.report.languages[code]!;
+    if (policy.level === 'A') { assert.equal(value.percent, 100); assert.deepEqual(value.missing, []); }
+    assert.deepEqual([...value.missing].sort(), [...policy.missing].sort());
+    assert.deepEqual(Object.keys(analysis.effective[code]!).sort(), Object.keys(analysis.effective.en!).sort());
+    for (const key of policy.fallback) assert.equal(analysis.effective[code]![key], analysis.effective.en![key]);
     assert.equal(value.statusline_messages, report.en!.statusline_messages);
   }
 });

@@ -5,6 +5,8 @@ import { inputKey, inputView, textInput, type TextInput, type TextKey } from './
 import { wrapText } from '../../ui/text.ts';
 import { clip as clipText } from '../unicode.ts';
 import { BackendError } from '../backend.ts';
+import { resolveShortcut } from './shortcut-map.ts';
+import type { EditorShortcuts } from './shortcut-settings.ts';
 export interface TaskRow {
     key: string;
     text: string;
@@ -242,7 +244,7 @@ export function replaceTaskField(view: TaskViewer, field: 'session' | 'prompt' |
     else view.searchInput = result.state;
     return true;
 }
-export function taskViewerKey(view: TaskViewer, event: TextKey): 'read' | 'close' | null {
+export function taskViewerKey(view: TaskViewer, event: TextKey, shortcuts?: EditorShortcuts): 'read' | 'close' | null {
     const key = event.key === 'return' ? 'enter' : event.key;
     const cancel = !event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
     if (view.input) {
@@ -287,37 +289,37 @@ export function taskViewerKey(view: TaskViewer, event: TextKey): 'read' | 'close
             view.error = text('input.' + result.error, { limit: field === 'searchInput' ? 256 : 1024 });
         return null;
     }
-    if (event.text || event.paste || event.meta)
+    if (event.text || event.paste || event.meta || event.overflow)
         return null;
-    if (cancel || !event.ctrl && key.toLowerCase() === 'q') {
+    const action = shortcuts ? shortcuts.action('tasks', event) : resolveShortcut('terminal', 'tasks', event, {});
+    if (cancel || action === 'close-tasks') {
         view.closed = true;
         view.generation++;
         return 'close';
     }
-    if (event.ctrl)
-        return null;
-    if (key.toLowerCase() === 'r')
+    if (action === 'reload-tasks')
         return 'read';
-    if (key.toLowerCase() === 's') {
+    if (action === 'task-identity') {
         view.sessionInput = textInput(view.session);
         view.promptInput = textInput(view.prompt ?? '');
         view.input = 'session';
         return null;
     }
-    if (key === '/') {
+    if (action === 'task-search') {
         view.searchInput = textInput(view.query);
         view.input = 'search';
         return null;
     }
-    if (key.toLowerCase() === 'e') {
+    if (action === 'task-evidence') {
         view.evidence = !view.evidence;
         return null;
     }
-    if (key.toLowerCase() === 'f') {
+    if (action === 'task-filter') {
         const statuses = ['', ...new Set(view.report?.agents.map(agent => agent.status ?? 'unknown') ?? [])].sort();
         view.status = statuses[(statuses.indexOf(view.status) + 1) % statuses.length]!;
         return null;
     }
+    if (event.ctrl) return null;
     let index = Math.max(0, view.rows.findIndex(row => row.key === view.selected));
     if (key === 'up')
         index--;

@@ -15,6 +15,7 @@ import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { terminal, type TerminalOptions } from '@fbincon/statusline-platform/terminal/session';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
 import { isSaveConflict } from '@fbincon/statusline-core/editor/draft';
+import { defaultShortcuts } from '@fbincon/statusline-core/editor/shortcut-settings';
 import { EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import { State } from './state.js';
 import { frame, ansiFrame } from './drawing.js';
@@ -46,13 +47,15 @@ export class Session {
         if (!current.installed)
             throw new BackendError('not_installed', text('ui.session.status_line_is_not_installed_for_this'));
         const state = new State(description, current, language ?? preference.ui_language);
-        if (preference.warning)
-            state.notice(preference.warning);
+        try { state.editor.shortcuts.snapshot = await backend.request('read_editor_shortcuts'); }
+        catch (error) { state.editor.shortcuts.snapshot = defaultShortcuts(text('shortcuts.read-failed', { detail: error instanceof Error ? error.message : String(error) })); }
+        const warning = preference.warning ?? state.editor.shortcuts.snapshot.warning;
+        if (warning) state.notice(warning);
         return new Session(state, backend, guard, languageOverride);
     }
     async preview(columns: number, rows: number): Promise<void> {
         const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.changeReview ? changePreview(e) : e.reuse?.result && !e.reuse.result.blocked.length ? e.reuse.result.draft : e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-        if(e.diagnosis || e.taskViewer || e.packages)return;
+        if(e.diagnosis || e.taskViewer || e.packages || e.shortcuts.panel)return;
         const key = JSON.stringify([draft, width,e.previewScenario]);
         if(e.explanation) {
             const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
@@ -77,6 +80,10 @@ export class Session {
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
         try {
             if(!e.packageLocked)this.guard();
+            if (effect === 'save-shortcuts' || effect === 'read-shortcuts') {
+                await e.shortcuts.perform(effect, async (operation, payload) => this.backend.request(operation, payload));
+                return null;
+            }
             if(effect==='packages' && e.packages){await performPackage(e.packages,this.backend,e);if(e.packages.closed)e.packages=null;return null;}
             if(effect==='tasks' && e.taskViewer){await readTask(e.taskViewer,this.backend,undefined,this.languageOverride);return null;}
             if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
@@ -96,7 +103,7 @@ export class Session {
                 if (e.pendingTransfer === 'preset') {
                     const result = await this.backend.request('preset', { draft: e.quick?.base ?? e.draft, preset: e.preset });
                     if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
-                    state.notice(text('ui.session.preset_expanded_ctrl_s_saves_esc_discards'));
+                    state.notice(text('shortcuts.preset-expanded', { key: e.shortcuts.hint('settings', 'save') }));
                 }
                 else if (e.pendingTransfer === 'import') {
                     e.review = createReview(await this.backend.request('review_import', { draft: e.draft, path: e.path }), e.draft);

@@ -9,6 +9,8 @@ import { t, text, type Language } from '../i18n/messages.js';
 import { emptyHistory, remember, snapshot, boundHistory, semantic, type DraftHistory } from './history.js';
 import { repairStructure, type StructureProposal } from './structure.js';
 import { openChanges, targetIdentity, type ChangeReview } from './change-review.js';
+import { EditorShortcuts } from './shortcut-settings.js';
+import type { EditorSurface } from './shortcut-map.js';
 import { componentTypes, instanceUnit, nodes, newInstance, reconcileRows, swapAdjacentUnits } from './instances.js';
 import { isDraft } from './backend.js';
 import type {
@@ -59,6 +61,7 @@ interface Picker extends ItemListContext {
 /** Pure tool draft. Persistence and host configuration calls live in the hook. */
 export class Editor {
   draft: Draft;
+  readonly shortcuts: EditorShortcuts;
   reuse: import('./reuse-manager.js').ReuseManager | null = null;
   history: DraftHistory = emptyHistory();
   changeReview: ChangeReview | null = null;
@@ -138,7 +141,9 @@ export class Editor {
   constructor(
     public readonly description: DescribeResult,
     current: ReadResult,
+    surface: EditorSurface = 'native',
   ) {
+    this.shortcuts = new EditorShortcuts(surface);
     description.catalog.forEach(item => fields(item));
     this.baseline = { ...current, draft: copyDraft(current.draft) };
     this.draft = copyDraft(current.draft);
@@ -228,7 +233,7 @@ export class Editor {
 
   /** A manager, picker or read-only page owns its input until the user leaves it. */
   get inDraftView(): boolean {
-    return !this.adding && this.guidanceScroll === null &&
+    return !this.adding && this.guidanceScroll === null && !this.shortcuts.panel &&
       !(this.changeReview || this.reuse || this.packages || this.taskViewer || this.diagnosis ||
         this.colors || this.alignmentManager || this.groupManager || this.sources || this.profiles ||
         this.explanation || this.quick || this.review);

@@ -37,6 +37,12 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.deepEqual(call('review_reuse',{draft:baseline.draft,path:null,profile:false,request:{kind:'style',scope:'main',from_scope:'main',from_id:baseline.draft.display.instances[0].id,to_ids:[baseline.draft.display.instances[0].id],fields:['foreground']}}).draft,baseline.draft);
     assert.equal(call('read_ui_preferences').ui_language, 'en');
     assert.equal(call('set_ui_language', { ui_language: 'zh-CN' }).ui_language, 'zh-CN');
+    const shortcuts = call('read_editor_shortcuts');
+    assert.deepEqual(shortcuts, { schema_version: 1, bindings: {}, revision: null, warning: null });
+    const rebound = call('set_editor_shortcuts', { bindings: { save: 'Z' }, expected_revision: shortcuts.revision });
+    assert.deepEqual(rebound.bindings, { save: 'Z' });
+    assert.deepEqual(call('read_editor_shortcuts'), rebound);
+    assert.equal(call('set_editor_shortcuts', { bindings: {}, expected_revision: rebound.revision }).revision, null);
     const changed = call('preset', { draft: baseline.draft, preset: 'left-right' }).draft;
     changed.display.statusline_language = 'ja';
     const file = join(f.root, 'portable 日本語.json');

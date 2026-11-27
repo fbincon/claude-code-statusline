@@ -78,6 +78,8 @@ Claude 外观／时间／标题及模型／effort／thinking／fast 行为只使
 
 用户操作见[配置编辑器：终端页面区域与底部提示](../EDITORS.zh-CN.md#terminal-page-regions-and-footer)。历史对等与回归证据保留在[外部 TUI 对等记录](history/migration/external-tui-parity.zh-CN.md)和[外部 TUI 回归记录](history/migration/external-tui-regressions.zh-CN.md)；终端单元格重建不代表人工桌面验收。
 
+快捷键预设、动作分发和冲突场景由共享 core 定义。两端从独立界面偏好读取改绑，并把当前键传入提示。Linux 安装候选包的往返验证可使用 `npm run capture:native-capacity -- --editor-shortcuts` 配合下列候选包及输出参数。该场景在同一隔离配置中执行两端的保存、读取和恢复。
+
 ## 持久安装与恢复
 
 ```bash

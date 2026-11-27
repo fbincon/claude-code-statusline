@@ -341,6 +341,8 @@ On Windows use `claude-statusline.cmd configure`. The current CLI must own the i
 
 Run `/statusline-configure` without arguments inside Claude Code, using 2.1.258+ and a supported launcher. This entry is enabled independently of Client; see [installation combinations](#editor-installation-combinations-and-compatibility). Save, cancellation and errors return a short result to the original conversation. [Opening an editor](EDITORS.md#open-an-editor) covers launchers and timeouts. If launching fails, run `claude-statusline configure` directly in a terminal.
 
+Open **Settings → Keyboard shortcuts** in either editor to change or restore the shared bindings. [Customize keyboard shortcuts](EDITORS.md#customize-keyboard-shortcuts)
+
 <a id="external-tui-sections"></a>
 <a id="external-tui-sections-and-page-hierarchy"></a>
 

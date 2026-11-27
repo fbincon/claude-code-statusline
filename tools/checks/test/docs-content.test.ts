@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { contentDocuments, contentErrors, example, sourceExample } from '../docs-content.js';
 import { ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
 import { SCHEMA_VERSION } from '@fbincon/statusline-core/config/display';
-import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { developmentFacts, sourceReader, type SourceReader } from '../docs-source-facts.js';
@@ -45,6 +45,10 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/SCHEMES${suffix}.md`, '`repeated-metrics`', '`wrong-preset`'],
             [`docs/reference/cli${suffix}.md`, (suffix ? '显示 schema ' : 'display schema ') + SCHEMA_VERSION, (suffix ? '显示 schema 999' : 'display schema 999')],
             [`docs/reference/cli${suffix}.md`, (suffix ? '编辑器协议 ' : 'editor protocol ') + PROTOCOL_VERSION, (suffix ? '编辑器协议 999' : 'editor protocol 999')],
+            [`docs/reference/cli${suffix}.md`, (suffix ? '| 编辑器快捷键偏好 | ' : '| Editor shortcut preferences | ') + EDITOR_SHORTCUTS_SCHEMA_VERSION,
+                (suffix ? '| 编辑器快捷键偏好 | ' : '| Editor shortcut preferences | ') + (EDITOR_SHORTCUTS_SCHEMA_VERSION + 1)],
+            [`docs/reference/cli${suffix}.md`, EDITOR_SHORTCUTS_FILENAME, 'different-shortcuts.json'],
+            [`docs/development/contracts${suffix}.md`, '`read_editor_shortcuts`', '`read_shortcut_map`'],
             [`docs/reference/cli${suffix}.md`, `\`[${PACKAGE_COMPATIBILITY.read.sources.join(', ')}]\``, '`[1, 3]`'],
             [`docs/reference/cli${suffix}.md`, '"schema_version": ' + SCHEMA_VERSION, '"schema_version": ' + (SCHEMA_VERSION - 1)],
         ] as const) {
@@ -141,7 +145,8 @@ test('development content checks reject changed current facts and historical fra
         for (const [path, before, after] of [
             [`docs/development/testing${suffix}.md`, suffix ? '27 类检查' : '27 check categories', suffix ? '20 类检查' : '20 check categories'],
             [`docs/development/testing${suffix}.md`, suffix ? '7 安装目标' : '7 installations', suffix ? '9 安装目标' : '9 installations'],
-            [`docs/development/contracts${suffix}.md`, suffix ? '全部 41 项' : 'all 41 current `OPERATIONS`', suffix ? '全部 40 项' : 'all 40 current `OPERATIONS`'],
+            [`docs/development/contracts${suffix}.md`, suffix ? `全部 ${OPERATIONS.length} 项` : `all ${OPERATIONS.length} current \`OPERATIONS\``,
+                suffix ? `全部 ${OPERATIONS.length - 1} 项` : `all ${OPERATIONS.length - 1} current \`OPERATIONS\``],
             [`docs/development/contracts${suffix}.md`, suffix ? '67 个主栏类型和 17 个子代理类型' : '67 main and 17 subagent types', suffix ? '66 个主栏类型和 17 个子代理类型' : '66 main and 17 subagent types'],
             [`docs/development/i18n${suffix}.md`, '`pt-BR`', '`xx-XX`'],
             [`docs/development/node-regional-languages${suffix}.md`, '`pt-BR`', '`xx-XX`'],

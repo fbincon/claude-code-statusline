@@ -9,6 +9,7 @@ Use the terminal editor or in-session Client to edit the same display configurat
 - [Open an editor](#open-an-editor)
 - [Pages and navigation](#pages-and-navigation)
 - [Keyboard controls](#keyboard-controls)
+- [Customize keyboard shortcuts](#customize-keyboard-shortcuts)
 - [Text input](#text-input)
 - [Find items and inspect requirements](#find-items-and-inspect-requirements)
 - [Formats and layouts](#formats-and-layouts)
@@ -117,6 +118,22 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Sample scenario / width / next preview row | Ctrl+V / Ctrl+W / Ctrl+N | [Sample preview](#sample-preview-and-colors) |
 
 Return from a manager to the main editor to use draft history. On Unix, Claude may intercept Ctrl+Z to suspend the process; use the Client undo keys above. For the Client in GNOME Terminal, Ctrl+Shift+- also sends the undo key, while Ctrl+- zooms out. See the history guide for host limitations.
+
+<a id="customize-keyboard-shortcuts"></a>
+
+## Customize keyboard shortcuts
+
+In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ.
+
+1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
+2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
+3. Resolve any conflicts shown before saving. You can swap two bindings and save them together. Separate pages can reuse a key when their actions cannot run at the same time. Ctrl+G goes back and asks before discarding staged changes.
+
+The current editor applies the keys immediately after saving. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict so you can read the saved map first. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)
+
+Choose an ASCII letter, digit, symbol, or a distinguishable Ctrl+letter. Letter case is equivalent. Space, Enter, and Left/Right are available wherever they have no fixed role. The source form requires Ctrl+letter for its save shortcut so ordinary text remains editable. A new binding replaces the preset and its aliases for that operation. For example, rebind terminal Save to use the new key on the item list, while Enter still confirms regular menu choices. Host focus, text editing, menu navigation, emergency exit, and recovery use fixed controls.
+
+The tables on this page show presets. After a change, look at the footer or shortcut panel for active bindings. Your terminal and host must deliver the key to the editor for recording and dispatch. The Client cannot distinguish paste that the host delivers as an ordinary single-character key event.
 
 <a id="text-input"></a>
 

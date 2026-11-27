@@ -3,7 +3,7 @@ import { openReuse, reuseKey } from '../editor/reuse-manager.ts';
 import { packageManager, packageKey, packageView } from '../editor/package-manager.ts';
 import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
 import { openColors, colorsKey } from '../editor/color-manager.ts';
-import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
+import { applyPreviewShortcut } from '../editor/preview-settings.ts';
 import { openAlignments, alignmentsKey } from '../editor/alignment-manager.ts';
 import { openGroups, groupsKey } from '../editor/group-manager.ts';
 import { openSources, sourcesKey } from '../editor/source-manager.ts';
@@ -15,16 +15,17 @@ import type { NativeKeyEvent } from './messages.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
 import type { View } from '../session.ts';
-import { settingRows, adjustSetting } from './settings.ts';
+import { settingRows, adjustSetting, shortcutContext } from './settings.ts';
 import { formRows, setFormValue } from './forms.ts';
 import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { contentColumns } from '../../ui/layout.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
-import { navigateReview } from '../editor/import-review.ts';
+import { navigateReview, reviewShortcutContext } from '../editor/import-review.ts';
+import { shortcutPanelCapacity, type ShortcutEffect } from '../editor/shortcut-settings.ts';
 
-export type Effect = 'changes' | 'reuse' | 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | null;
+export type Effect = 'changes' | 'reuse' | 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | ShortcutEffect | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -53,49 +54,63 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e) e.setSaveState(view.uncertain ? 'unknown' : view.busy ? 'pending' : 'idle');
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
-  if(e.changeReview)return changesKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
-  if(e.reuse)return reuseKey(e,event,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);
-  const draftControl = event.ctrl && !event.meta && !event.text && !view.input && e.inDraftView && !e.packageLocked;
-  if (draftControl && shortcut === 't') { openChanges(e); return null; }
-  // Legacy terminals encode Ctrl+/ and Ctrl+_ alike. Keep forwarded Ctrl+Z as well.
-  if (draftControl && ['/', '_', 'z', 'r'].includes(shortcut)) {
-    setMessage(view, 'message', stepDraftHistory(e, shortcut === 'r'));
-    return null;
+  if ((columns < 32 || rows < 12) && !view.input && !e.packages && !event.ctrl && !event.meta && !event.text && shortcut === 'q') return 'close';
+  if (e.shortcuts.panel) return e.shortcuts.key(event, shortcutPanelCapacity(rows - 1, columns), event.shift);
+  if (e.changeReview) return changesKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
+  if (e.reuse) return reuseKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
+  if (e.packages) {
+    packageView(e.packages, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows, e.shortcuts);
+    return packageKey(e.packages, event, e.shortcuts);
   }
-  if(e.packages){packageView(e.packages,view.language??'en',contentColumns(columns,rows),editorLayout(view,columns,rows).bodyRows);return packageKey(e.packages,event);}
-  if(e.packageLocked){setMessage(view,'message',localizedText('package.ui.editor_locked'));return key==='escape'||event.ctrl&&key.toLowerCase()==='g'?'close':null;}
+  if (e.packageLocked) {
+    setMessage(view, 'message', localizedText('package.ui.editor_locked'));
+    return key === 'escape' || event.ctrl && shortcut === 'g' ? 'close' : null;
+  }
   if (e.diagnosis) return diagnosisKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows - 1);
-  if(e.colors)return colorsKey(e,event,view.language ?? 'en');
-  if (draftControl && shortcut === 'l') { openDiagnosis(e); return null; }
-  if (e.alignmentManager) return alignmentsKey(e,event);
+  if (e.colors) return colorsKey(e, event, view.language ?? 'en');
+  if (e.alignmentManager) return alignmentsKey(e, event);
   if (e.groupManager) return groupsKey(e, event);
-  if (draftControl && shortcut === 'b' && !view.uncertain) { openGroups(e); return null; }
-  if (e.sources) return sourcesKey(e,event);
-  if (draftControl && shortcut === 'y') { openSources(e); return 'sources'; }
-  if (e.profiles) return profilesKey(e, { ...event, key: key === 'return' ? 'enter' : key });
-  if (draftControl && shortcut === 'o' && !e.detail && !view.uncertain) {
-    if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
+  if (e.sources) return sourcesKey(e, event);
+  if (e.profiles) return profilesKey(e, event);
+  if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  const context = e.quick ? 'quick' : e.review ? reviewShortcutContext(e.review) : shortcutContext(view);
+  const action = view.input ? null : e.shortcuts.action(context, event);
+  if ((e.inDraftView || e.quick || e.review) && applyPreviewShortcut(e, action, view.preview)) return null;
+  if (e.inDraftView) {
+    if (action === 'history') { openChanges(e); return null; }
+    if (action === 'undo' || action === 'redo') {
+      setMessage(view, 'message', stepDraftHistory(e, action === 'redo'));
+      return null;
+    }
+    if (action === 'diagnose') { openDiagnosis(e); return null; }
+    if (action === 'groups' && !view.uncertain) { openGroups(e); return null; }
+    if (action === 'sources') { openSources(e); return 'sources'; }
+    if (action === 'profiles' && !view.uncertain) {
+      if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
+      return null;
+    }
+  }
+  if (e.explanation) {
+    if (!explanationKey(e.explanation, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key, Math.max(1, rows - 10))) e.explanation = null;
     return null;
   }
-  if (event.text && (!view.input || view.input.kind === 'category')) return null;
-  if(event.ctrl&&!event.meta&&!event.text&&!view.input&&(e.inDraftView||e.quick||e.review)&&['v','w','n'].includes(shortcut)){if(key.toLowerCase()==='v'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,1);e.previewOffset=0;}else if(key.toLowerCase()==='w')e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],1);else {const scope=e.quick?.previewScope??e.review?.previewScope??(e.page==='subagents'?'subagent':'main');e.previewOffset=(e.previewOffset+1)%Math.max(1,view.preview?.[scope==='main'?'main':'subagents'].length??0);}return null;}
-  if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
-  if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
-  if (draftControl && shortcut === 'p' && !e.detail && !view.uncertain) {
-    if(e.acceptNumeric()) e.quick=openQuick(e.draft); return null;
+  if (e.quick) return controlQuick(e, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
+  if (action === 'quick-setup' && !view.uncertain && e.inDraftView) {
+    if (e.acceptNumeric()) e.quick = openQuick(e.draft);
+    return null;
   }
-  if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
+  if (event.ctrl && shortcut === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
-    if (event.ctrl || event.meta) return null;
-    if (shortcut === 'a' && !e.review.choosing) {
+    if (action === 'accept-import') {
       e.replaceDraft(e.review.result.draft);
       setMessage(view, 'message', localizedText('review.accepted'));
       return 'reviewPreview';
     }
-    if (shortcut === 'q') { cancelInput(view); return 'reviewPreview'; }
+    if (action === 'cancel-import') { cancelInput(view); return 'reviewPreview'; }
+    if (event.meta || event.ctrl && !action) return null;
     const layout = editorLayout(view, columns, rows);
-    navigateReview(e.review, key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1));
+    navigateReview(e.review, event.ctrl ? '' : key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1), action);
     return 'reviewPreview';
   }
   if (e.guidanceScroll !== null && e.detail) {
@@ -170,21 +185,21 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   }
   if(!e.detail&&(e.page==='main'||e.page==='subagents')){
     const scope=e.page==='main'?'main':'subagent';
-    if(!event.meta && key.toLowerCase()==='a'&&!e.adding){e.openPicker(scope);return null;}
-    if(!event.meta && ['d','x'].includes(key.toLowerCase())&&!e.adding){
-      if(!e.instanceAction(scope,key.toLowerCase()==='d'?'copy':'remove'))
+    if(action === 'add-item'){e.openPicker(scope);return null;}
+    if(action === 'copy-item' || action === 'remove-item'){
+      if(!e.instanceAction(scope,action === 'copy-item' ? 'copy' : 'remove'))
         setMessage(view,'message',e.compositionError);
       return null;
     }
     if(e.adding&&!event.ctrl&&!event.meta&&(key==='return'||key===' ')){
-      e.activatePicker(scope, 'D');
+      e.activatePicker(scope, e.shortcuts.hint('list', 'copy-item'));
       return null;
     }
-    if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker();return null;}
+    if(action === 'close-picker'){e.closePicker();return null;}
     if(event.ctrl&&!event.meta&&shortcut==='u'){e.filter(scope, '');return null;}
     if(e.adding&&['tab','1','2','3','4'].includes(key))return null;
   }
-  if (event.ctrl && !event.meta && shortcut === 'e' && (e.page === 'main' || e.page === 'subagents')) {
+  if (action === 'item-details' && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
     const { selected } = e.listContext(scope);
     if (selected) {
@@ -194,20 +209,33 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     }
     return null;
   }
-  if (event.ctrl && key.toLowerCase() === 'f' && !e.detail && (e.page === 'main' || e.page === 'subagents')) {
+  if (action === 'category') {
     const scope = e.page === 'main' ? 'main' : 'subagent';
     view.input = {kind: 'category', scope, selected: e.listContext(scope).category};
     return null;
   }
+  if (action === 'close' || action === 'save' || action === 'finish' || action === 'reload') return action;
+  if (action === 'retry-preview') return 'retry';
+  if (action === 'apply-host-preferences') return 'applyPreferences';
+  if (action === 'show-host-preferences') {
+    e.advanced = !e.advanced;
+    e.setting = e.advanced ? settingRows(view).find(r => r.key.startsWith('host-'))!.key : 'colors';
+    return null;
+  }
+  if (action === 'search') {
+    const scope = e.page === 'main' ? 'main' : 'subagent', { search, selected } = e.listContext(scope);
+    view.input = { kind: 'search', scope, original: search, selected };
+    return null;
+  }
+  if (action === 'toggle-item' || action === 'move-left' || action === 'move-right') {
+    const scope = e.page === 'main' ? 'main' : 'subagent';
+    if (action !== 'toggle-item' && e.filtered(scope)) setMessage(view, 'message', localizedText('catalog.search.order_disabled'));
+    else if (!(action === 'toggle-item' ? e.toggle(scope, e.listContext(scope).selected) : e.move(scope, action === 'move-left' ? -1 : 1)))
+      setMessage(view, 'message', e.compositionError);
+    return null;
+  }
   if (event.ctrl || event.meta) return null;
-  if (shortcut === 'q') return 'close';
-  if (shortcut === 's') return 'save';
-  if (shortcut === 'f') return 'finish';
-  if (shortcut === 'r') return 'reload';
-  if (shortcut === 'v') return 'retry';
   if (shortcut === 'k') return 'reconcile';
-  if (shortcut === 'a' && e.page === 'settings' && !e.detail && e.advanced) return 'applyPreferences';
-  if (shortcut === 'h' && e.page === 'settings' && !e.detail) { e.advanced = !e.advanced; e.setting = e.advanced ? settingRows(view).find((r) => r.key.startsWith('host-'))!.key : 'colors'; return null; }
   const pages = ['main', 'subagents', 'settings', 'layout'] as const;
   if (key === 'tab') { e.page = pages[(pages.indexOf(e.page) + (event.shift ? 3 : 1)) % 4]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
   if (['1', '2', '3', '4'].includes(key)) { e.page = pages[Number(key) - 1]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
@@ -217,8 +245,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   const scope = e.page === 'main' ? 'main' : 'subagent';
   const settings = isSettings ? settingRows(view) : [];
   const keys = isSettings ? settings.map((row) => row.key) : e.visible(scope).map((row) => row.id as string);
-  const context = e.listContext(scope);
-  const selected = isSettings ? e.setting : context.selected;
+  const selected = isSettings ? e.setting : e.listContext(scope).selected;
   let index = Math.max(0, keys.indexOf(selected));
   if (key === 'up') index--;
   else if (key === 'down') index++;
@@ -230,18 +257,12 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   }
   else if (key === 'home') index = 0;
   else if (key === 'end') index = keys.length - 1;
-  else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:context.search,selected}; return null; }
-  else if (key === 'left' || key === 'right') {
-    if (!isSettings && e.filtered(scope)) { setMessage(view, 'message', localizedText('catalog.search.order_disabled')); return null; }
-    if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1);
-    else {
-      const delta = key === 'left' ? -1 : 1;
-      if (keys[index + delta] && !e.move(scope, delta)) setMessage(view, 'message', e.compositionError);
-    }
-    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
-  } else if (key === 'return' || key === ' ' || key === 'space') {
-    if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",e.compositionError); }
-    else if(e.setting==='change-history'){openChanges(e);return null;}
+  else if (isSettings && (key === 'left' || key === 'right')) {
+    adjustSetting(view, key === 'left' ? -1 : 1);
+    return e.setting === 'preview-background' ? 'previewBackground' : e.setting === 'ui-language' ? 'uiLanguage' : null;
+  } else if (isSettings && (key === 'return' || key === ' ')) {
+    if (e.setting === 'keyboard-shortcuts') { e.shortcuts.open(); return null; }
+    if(e.setting==='change-history'){openChanges(e);return null;}
     else if(e.setting==='reuse-style'||e.setting==='reuse-groups'){openReuse(e,e.setting==='reuse-style'?'style':'groups');return null;}
     else if(e.setting==='diagnose-file'){openDiagnosis(e);return null;}
     else if(openColors(e,e.setting))return null;

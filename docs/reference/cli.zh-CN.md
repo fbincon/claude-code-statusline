@@ -910,6 +910,7 @@ Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `
 | `claude-statusline-profiles.json` | 当前格式的 Profile 库及项目绑定；`config profile/project` |
 | `claude-statusline-sources.json` | 当前格式的本机来源定义、许可及绑定；`source` |
 | `statusline-ui.json` | 当前偏好 schema 的界面语言；`config language` |
+| `statusline-shortcuts.json` | 内置和外部编辑器共享的快捷键改绑。 |
 | `claude-statusline-features.json / claude-statusline-native.json` | 当前偏好 schema 的编辑器偏好；显式安装参数 |
 | `claude-statusline-runtime.json` | 当前偏好 schema 的采集偏好；显式安装参数 |
 | `settings.json` | Claude 设置及合并的接入／宿主选项；安装、卸载及有归属的宿主写入 |
@@ -1046,6 +1047,18 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 接受 `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru` 和 `id`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
 
+<a id="editor-shortcut-preferences"></a>
+
+### 编辑器快捷键偏好
+
+`<CLAUDE_CONFIG_DIR>/statusline-shortcuts.json` 保存同一配置目录下两种编辑器共享的改绑项。
+
+```json
+{"schema_version": 1, "bindings": {"save": "Z"}}
+```
+
+操作 ID 和场景由共享注册表定义。没有改绑项时使用各编辑器的预设。保存空映射会备份并移除文件。读取不会迁移配置。未来 schema 拒绝覆盖。该文件是本机偏好，旧软件包可照常读取原有配置，升级回来即可继续使用已保存的改绑。[快捷键操作](../EDITORS.zh-CN.md#customize-keyboard-shortcuts)
+
 ### 编辑器启用偏好
 
 两个独立文件均使用相同的偏好 schema：
@@ -1098,7 +1111,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 | 接口或格式 | 当前版本 | 读取与保存兼容性 | 规范 |
 | --- | --- | --- | --- |
-| 编辑器 UI 协议 | `编辑器协议 32` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
+| 编辑器 UI 协议 | `编辑器协议 33` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
 | 显示配置 | `显示 schema 17` | 读取 1–16 时在内存中迁移，不改写文件；显式保存先备份旧字节，再写当前 schema。 | `packages/core/src/config/display.ts`；[显示配置](#显示配置) |
 | 运行时观测协议 | 3 | 保留 v1/v2 `observe`/`read`；`source_lifecycle` 要求版本 3。 | [实时采集](../development/live.zh-CN.md)；`packages/core/src/contracts/runtime.ts` |
 | 任务生命周期 | 4 | 保留 schema-1 兼容镜像。 | `packages/core/src/runtime/tasks/model.ts`；[计时契约](../development/timer.zh-CN.md) |
@@ -1106,6 +1119,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | 可移植配置外层 | 1 | 导入也接受当前显示读取范围内的仅显示文件。 | `packages/core/src/config/transfer.ts`；[导入、导出与复用](#导入导出与复用) |
 | Profile 集合与单方案导出 | 各 1 | 集合与导出独立演进。 | `packages/core/src/config/profiles.ts`；[方案与项目](../PROFILES.zh-CN.md#文件冲突与恢复) |
 | UI 偏好 | 1 | 未来 schema 拒绝覆盖。 | [共享界面偏好](#共享界面偏好) |
+| 编辑器快捷键偏好 | 1 | 未来 schema 拒绝覆盖。 | [编辑器快捷键偏好](#editor-shortcut-preferences) |
 | 原生与外部编辑器偏好 | 各 1 | 独立文件；不支持的宿主暂停但不改写。 | [编辑器启用偏好](#编辑器启用偏好) |
 | 运行时偏好 | 2 | 文件缺失时原生计时和实时指标均关闭。 | [实时采集偏好](#实时采集偏好) |
 | 数据源注册表 | 默认 2，添加命令自动策略后为 3，保存跟随分支的 GitHub 来源后为 4 | 读取 1–4。读取保留已存字节，不授予新权限。 | `packages/core/src/extensions/model.ts`；[数据源管理](#数据源管理) |
@@ -1130,7 +1144,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | 外部偏好（`external_preferences`） | `[1, 1]` |
 | UI 偏好（`ui_preferences`） | `[1, 1]` |
 
-该记录还声明 `editor_protocol` 32、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
+该记录还声明 `editor_protocol` 33、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
 
 ### 未版本化与宿主所有的接口
 

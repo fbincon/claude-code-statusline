@@ -3,6 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { atomicWrite, durableUnlink, withLock, privateDirectory, syncDirectory } from '@fbincon/statusline-platform/files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
+import { readBoundedRegularFile } from '@fbincon/statusline-platform/regular-file';
 import { safeTarget } from '../integration/paths.js';
 export { decodeUtf8 };
 import { readJson } from '@fbincon/statusline-core/json-read';
@@ -10,6 +11,7 @@ import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { ConfigError, fail, object } from '@fbincon/statusline-core/config/validation';
 import { CONFIG_FILENAME, defaultDisplay, validateDisplay } from '@fbincon/statusline-core/config/display';
 import type { DisplayDraft } from '@fbincon/statusline-core/contracts/ui';
+import { EDITOR_SHORTCUTS_FILENAME } from '@fbincon/statusline-core/contracts/ui';
 export interface Artifact {
     name: string;
     path: string;
@@ -32,7 +34,7 @@ export function timestamp(now: Date): string {
 }
 export function createStorage(now: () => Date = () => new Date()): Storage {
     return {
-        read(path) { try {
+        read(path) { if (basename(path) === EDITOR_SHORTCUTS_FILENAME) return readBoundedRegularFile(path, 16 * 1024); try {
             return fs.readFileSync(path);
         }
         catch (e) {

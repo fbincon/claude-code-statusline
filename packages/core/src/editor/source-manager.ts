@@ -90,7 +90,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     if (m.page === 'form') {
         if (plain && ['tab', 'up', 'down'].includes(key))
             m.cursor = Math.max(0, Math.min(m.fields.length - 1, m.cursor + (key === 'up' ? -1 : 1)));
-        else if ((plain && key === 'enter') || (commandKey && event.ctrl && key.toLowerCase() === 's')) {
+        else if ((plain && key === 'enter') || editor.shortcuts.action('source-form', event) === 'save-source') {
             if (key === 'enter' && m.cursor < m.fields.length - 1)
                 m.cursor++;
             else
@@ -106,6 +106,9 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         }
         return m.effect ? 'sources' : null;
     }
+    if (m.page === 'list' && editor.shortcuts.action('sources', event) === 'reload-sources') {
+        m.effect = 'load'; return 'sources';
+    }
     if (!plain)
         return null;
     if (['review', 'diagnose', 'auto-review', 'checks', 'binding-cleanup'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
@@ -119,8 +122,6 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     if (m.page === 'auto-review' && ['left', 'right'].includes(key)) { m.automaticInterval = Math.max(60, Math.min(86400, m.automaticInterval + (key === 'left' ? -60 : 60))); return null; }
     if (key === 'up' || key === 'down')
         m.cursor = Math.max(0, Math.min(count(editor) - 1, m.cursor + (key === 'up' ? -1 : 1)));
-    if (key.toLowerCase() === 'r' && m.page === 'list')
-        m.effect = 'load';
     if (key === 'enter') {
         if (m.page === 'list') {
             const selected = m.library?.sources[m.cursor];
@@ -311,7 +312,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
             const view = inputView({ ...field.input }, space);
             add(label + view, m.cursor === i);
         });
-        add(tr('form_help'));
+        add(t('sources.form_help', language, { key: editor.shortcuts.hint('source-form', 'save-source') }));
     }
     else if (m.page === 'bind' || m.page === 'unbind') {
         const entries = targets(editor);

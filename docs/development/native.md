@@ -76,6 +76,8 @@ The editor exchanges current UI protocol operations through its injected `Backen
 
 User operations are documented in [configuration editors: terminal page regions and footer](../EDITORS.md#terminal-page-regions-and-footer). Historical parity and regression evidence remains in the [external TUI parity](history/migration/external-tui-parity.md) and [external TUI regressions](history/migration/external-tui-regressions.md) records; reconstructed terminal cells do not establish human desktop acceptance.
 
+Core owns shortcut presets, action dispatch and conflict contexts. Both editors load the separate shortcut preferences and pass active bindings to their hints. Use `npm run capture:native-capacity -- --editor-shortcuts` with the candidate and output arguments below for the installed Linux round trip. The same isolated configuration is used for saving, reading and restoring the bindings across both editors.
+
 ## Persistent installation and recovery
 
 ```bash

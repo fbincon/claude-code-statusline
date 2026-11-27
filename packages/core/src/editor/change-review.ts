@@ -42,37 +42,38 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
     else m.input = inputKey(m.input.value, m.input, event, 4096).state;
     return null;
   }
-  if (event.text || event.paste || event.ctrl || event.meta) return null;
+  if (event.text || event.paste || event.meta) return null;
   if (m.confirm) {
-    if (key === 'return' && e.canMutateDraft()) { m.effect = 'reload'; return 'changes'; }
+    if (!event.ctrl && key === 'return' && e.canMutateDraft()) { m.effect = 'reload'; return 'changes'; }
     return null;
   }
-  if (key.toLowerCase() === 'q') { e.changeReview = null; e.structureProposal = null; return null; }
-  if (key.toLowerCase() === 'a' && m.kind === 'structure') {
+  const action = e.shortcuts.action(m.kind === 'changes' ? 'history' : 'repair', event);
+  if (action === 'close-history') { e.changeReview = null; e.structureProposal = null; return null; }
+  if (action === 'accept-repair') {
     if (!e.acceptProposal()) m.message = text('history.stale');
     return null;
   }
   if (m.kind === 'changes') {
-    if (['u','r'].includes(key.toLowerCase())) {
-      if (e.undo(key.toLowerCase() === 'r')) openChanges(e);
+    if (action === 'undo' || action === 'redo') {
+      if (e.undo(action === 'redo')) openChanges(e);
       else m.message = e.compositionError;
       return null;
     }
-    if (key.toLowerCase() === 'c') { m.effect = 'read'; return 'changes'; }
-    if (key.toLowerCase() === 'e') { m.input = textInput('statusline-draft.json'); return null; }
-    if (key.toLowerCase() === 'l') {
+    if (action === 'compare-saved') { m.effect = 'read'; return 'changes'; }
+    if (action === 'export-draft') { m.input = textInput('statusline-draft.json'); return null; }
+    if (action === 'discard-to-saved') {
       if (!e.canMutateDraft()) m.message = e.compositionError;
       else m.confirm = true;
       return null;
     }
-    if (key.toLowerCase() === 'k') {
+    if (!event.ctrl && key.toLowerCase() === 'k') {
       if (m.current && e.adoptRevision(m.current, m.generation, m.target)) { e.changeReview = null; e.compositionError = text('history.retry_ready'); }
       else m.message = text('history.retry_blocked');
       return null;
     }
-    if (key === 'tab' && m.current) { m.comparison = (m.comparison + 1) % 3; return null; }
+    if (!event.ctrl && key === 'tab' && m.current) { m.comparison = (m.comparison + 1) % 3; return null; }
   }
-  navigateReview(active(m), key, language, width, Math.max(1, height - 3));
+  if (!event.ctrl) navigateReview(active(m), key, language, width, Math.max(1, height - 3), null);
   return null;
 }
 export function changesView(e: Editor, language: Language, width: number, height: number): { text: string; selected?: boolean }[] {
@@ -83,9 +84,14 @@ export function changesView(e: Editor, language: Language, width: number, height
   const scroll = Math.max(0, Math.min(view.scroll, rows.length - capacity));
   const summary = m.kind === 'structure' ? t('history.repairs', language, { ids: e.structureProposal?.repairs.map(r => r.id).join(', ') ?? '' })
     : t('history.counts', language, { undo: e.history.undo.length, redo: e.history.redo.length }) + ' · ' + t('history.comparison.' + m.comparison, language);
+  const keys = e.shortcuts;
+  const help = m.kind === 'structure'
+    ? t('history.structure_help', language, { accept: keys.hint('repair', 'accept-repair'), close: keys.hint('repair', 'close-history') })
+    : t('history.help', language, { undo: keys.hint('history', 'undo'), redo: keys.hint('history', 'redo'), compare: keys.hint('history', 'compare-saved'),
+      export: keys.hint('history', 'export-draft'), reload: keys.hint('history', 'discard-to-saved'), close: keys.hint('history', 'close-history') });
   return [{ text: title }, { text: wrapText([m.message ? renderMessage(m.message, language) : summary], width)[0] ?? '' },
     ...rows.slice(scroll, scroll + capacity).map(row => ({ text: row.text, selected: row.heading && row.section === view.selected })),
-    { text: t(m.kind === 'structure' ? 'history.structure_help' : 'history.help', language) + (e.history.trimmed ? ' · ' + t('history.trimmed', language) : '') }].slice(0, height);
+    { text: help + (e.history.trimmed ? ' · ' + t('history.trimmed', language) : '') }].slice(0, height);
 }
 export interface ReviewBackend { request<O extends Operation>(operation: O, payload?: unknown): Promise<ResultFor<O>> | ResultFor<O> }
 export async function performChanges(e: Editor, backend: ReviewBackend): Promise<void> {

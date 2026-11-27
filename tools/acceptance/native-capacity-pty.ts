@@ -16,15 +16,16 @@ import { sha256 } from '../build/files.js';
 import { nativeCapacityData } from '../generation/native-capacity.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture } from '../migration/ts-04/capture.js';
-import type { Draft } from '@fbincon/statusline-core/contracts/ui';
+import { EDITOR_SHORTCUTS_FILENAME, type Draft } from '@fbincon/statusline-core/contracts/ui';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
     claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' }, 'header-controls': { type: 'boolean' },
+    'editor-shortcuts': { type: 'boolean' },
 } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls]');
-assert(!(values['component-picker'] && values['header-controls']), 'Select one focused PTY journey');
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts]');
+assert([values['component-picker'], values['header-controls'], values['editor-shortcuts']].filter(Boolean).length <= 1, 'Select one focused PTY journey');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
 assert.deepEqual(artifact.source.source_hashes, sourceHashes(), 'PTY collector differs from the candidate source');
@@ -328,6 +329,89 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\r','edit file path');await key(diagnosticPath,'insert explicit input path');await key('\r','accept path');
             await key('\x1b[B'.repeat(4)+'\r','diagnose input only');await until(text=>(external||completed('diagnose_file'))&&text.includes('File diagnosis output')&&text.includes('File-input-model')&&text.includes('Evidence: supplied input only'),'file result visible');capture('after');
             await key('\x07','back to form');await key('\x07','back to retained editor');
+        } else if (action === 'editor-shortcuts') {
+            const preference = join(config, EDITOR_SHORTCUTS_FILENAME), languageBytes = fs.readFileSync(join(config, 'statusline-ui.json'));
+            const settingsBytes = fs.readFileSync(join(config, 'settings.json'));
+            const openNativeSettings = async () => {
+                await key('3', 'open native Settings');
+                await key('\x1b[F', 'start at last setting');
+                for (let i = 0; i < 16 && !/›.*Keyboard shortcuts/u.test(read()); i++) await key('\x1b[A', 'find shortcut setting');
+                await until(text => /›.*Keyboard shortcuts/u.test(text), 'native shortcut setting selected');
+                await key('\r', 'open native shortcut list');
+                await until(text => /›.*Save display/u.test(text), 'native save binding selected');
+            };
+            const runExternal = async (label: string, journey: (tty: ReturnType<typeof openPty>, wait: (text: string) => Promise<void>) => Promise<void>) => {
+                const child = openPty(config, 120, 30, environment, 'en', { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project });
+                const capture = new Capture(120, 30);
+                let offset = 0;
+                const screenText = () => {
+                    const bytes = child.captured(); capture.feed(bytes.subarray(offset)); offset = bytes.length;
+                    return capture.buffer.map(row => row.map(cell => cell.data).join('')).join('\n');
+                };
+                try {
+                    await journey(child, async value => {
+                        await child.wait(() => screenText().includes(value));
+                        steps.push({ name: label + ': ' + value, elapsed_ms: Date.now() - start });
+                    });
+                    await child.exited();
+                    assert.equal(child.child.exitCode, 0);
+                    assert.deepEqual(child.attributes(), child.before);
+                } finally {
+                    fs.writeFileSync(join(directory, label + '.txt'), screenText());
+                    fs.writeFileSync(join(directory, label + '.ansi'), child.captured());
+                    await child.close();
+                }
+            };
+            await openNativeSettings();
+            await key('\r', 'capture save binding');
+            await until(text => text.includes('New key for Save display'), 'native recorder visible');
+            await key('z', 'stage Z for save');
+            assert.equal(fs.existsSync(preference), false);
+            await key('\t\r', 'save shortcut changes');
+            await until(text => text.includes('Keyboard shortcuts saved'), 'native shortcut save confirmed');
+            assert.deepEqual(JSON.parse(fs.readFileSync(preference, 'utf8')).bindings, { save: 'Z' });
+            assert.deepEqual(fs.readFileSync(displayPath), before);
+            assert.equal(fs.statSync(displayPath).mode, beforeMode);
+            capture('native-custom');
+            await key('\x071', 'return to main editor');
+            await until(text => text.includes('Z save'), 'native footer shows Z');
+            await key('s', 'try previous native save key');
+            assert.equal(records().filter(row => row.operation === 'apply').length, 0);
+            await key('z', 'use new native save key');
+            await until(() => completed('apply'), 'native saves through Z');
+            assert.deepEqual(fs.readFileSync(displayPath), before, 'Clean native save changed the display');
+
+            await runExternal('terminal-custom', async (tty, wait) => {
+                await wait('Z save');
+                tty.send(' ');
+                await wait('Configure Status Line *');
+                tty.send('\x13\r');
+                await delay(350);
+                assert.equal(tty.child.exitCode, null);
+                assert.deepEqual(fs.readFileSync(displayPath), before);
+                tty.send('z');
+                await tty.exited();
+                assert.equal(JSON.parse(fs.readFileSync(displayPath, 'utf8')).instances[0].enabled, false);
+            });
+            const savedDisplay = fs.readFileSync(displayPath);
+            await runExternal('terminal-restore', async (tty, wait) => {
+                await wait('Z save');
+                tty.send('\t\t\x1b[F\r');
+                await wait('Save display');
+                tty.send('\t\x1b[B\r\x1b[A\r');
+                await wait('Keyboard shortcuts saved');
+                assert.equal(fs.existsSync(preference), false);
+                tty.send('\x07\x1b');
+            });
+            await openNativeSettings();
+            await key('\t\x1b[B\x1b[B\r', 'read saved defaults in the open native pane');
+            await until(text => text.includes('Read the saved shortcuts'), 'native loaded restored defaults');
+            await key('\x071', 'restore normal editor focus');
+            await until(text => text.includes('S save') && !text.includes('Z save'), 'native shows the preset save key');
+            assert.deepEqual(fs.readFileSync(displayPath), savedDisplay);
+            assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settingsBytes);
+            assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
+            capture('after');
         } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
@@ -375,7 +459,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await p.exited(); assert.equal(p.child.exitCode, 0); assert.deepEqual(p.attributes(), p.before);
         }
         else if (!nativeTask && !header) { await key('q', 'close without another save'); await until(text => !text.includes('Configure Status Line'), 'pane closed'); }
-        if (action !== 'save' && !pickerSave) {
+        if (action !== 'save' && action !== 'editor-shortcuts' && !pickerSave) {
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
             if (pickerDiscard || header) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
         }
@@ -394,13 +478,15 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
-const expectedJourneys = values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
+const expectedJourneys = values['editor-shortcuts'] ? 1 : values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
     fs.copyFileSync(fileURLToPath(new URL('../migration/ts-04/test/installed-driver.js', import.meta.url)), driver);
     command(installed.node, [driver, installed.modules, 'prepare-host', template, join(installed.temporary, 'prepared.json'), request], { ...env, CLAUDE_CONFIG_DIR: template });
-    if (values['header-controls']) {
+    if (values['editor-shortcuts']) {
+        await runCase('editor-shortcuts', 'plain-main-w72', 'editor-shortcuts');
+    } else if (values['header-controls']) {
         for (const language of ['de', 'pt-BR', 'en'] as const)
             await runCase('native-header-' + language, 'plain-main-w72', 'header-controls', false, language);
     } else if (values['component-picker']) {
