@@ -2,7 +2,7 @@
 
 [English](architecture.md) | **简体中文**
 
-产品是 TypeScript／Node 应用。core 负责纯规则，platform 负责系统副作用，CLI 编排应用服务，TUI 负责外部终端交互。Native 和 runtime Mod 适配官方宿主，分别通过 JSON 协议调用后端。
+产品是 TypeScript／Node 应用。core 负责纯规则，platform 负责系统副作用，CLI 编排应用服务，TUI 负责外部终端交互。三个独立的 Mod 分别连接官方宿主与编辑器、运行时观测及子代理行服务。
 
 ## 架构概览
 
@@ -12,6 +12,7 @@
 flowchart TD
     Native[Native 编辑器 Mod] -. UI 协议 .-> CLI[CLI 应用服务]
     Runtime[Runtime Mod] -. Runtime 协议 .-> CLI
+    Rows[AgentRow Mod] -. 有序行批次 .-> CLI
     CLI --> TUI[外部 TUI]
     CLI --> Platform[Platform 适配器]
     CLI --> Core[Core 规则]
@@ -37,6 +38,7 @@ packages/
 mods/
   statusline-native/              官方宿主编辑器及生成的纯资源
   statusline-runtime/             官方宿主观测及生命周期集成
+  statusline-agent-rows/          官方宿主自定义子代理行
 tools/
   generation/                    资源生成
   checks/                        仓库、文档及 CI 策略检查

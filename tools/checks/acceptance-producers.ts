@@ -42,7 +42,7 @@ const ENVELOPES = new Set<string>(['adopted', 'planned', 'embedded-via-parent', 
     'diagnostic-opt-out', 'manual-opt-out', 'not-applicable']);
 const VALIDATIONS = new Set<string>(['ci', 'official-host', 'local', 'manual', 'paid', 'physical', 'none']);
 const NON_PRODUCERS = new Set<string>(['helper', 'wrapper', 'driver']);
-const PLANNED_ALLOWED = new Set<string>(['installed.ts', 'mods.ts', 'integration-smoke.ts']);
+const PLANNED_ALLOWED = new Set<string>(['installed.ts', 'integration-smoke.ts']);
 const FILE_PATTERN = /^[a-z0-9][a-z0-9-]*\.ts$/u;
 const OUTPUT_PATTERN = /^[a-z0-9][a-z0-9_.:-]*$/u;
 const ANCHOR = '<a id="acceptance-receipt-producers"></a>';
@@ -57,6 +57,7 @@ const HEADINGS = ['## Acceptance receipt producers', '## 验收回执生产者']
 const COLUMNS = ['file', 'role', 'outputs', 'promotable', 'evidence', 'envelope', 'validation'] as const;
 
 export const ACCEPTANCE_PRODUCERS: readonly AcceptanceProducer[] = [
+    { file: 'agent-rows.ts', role: 'diagnostic', outputs: ['receipt.json'], promotable: false, evidence: 'diagnostic', envelope: 'diagnostic-opt-out', validation: 'manual' },
     { file: 'artifact.ts', role: 'helper', outputs: [], promotable: false, evidence: 'none', envelope: 'not-applicable', validation: 'none' },
     { file: 'budget.ts', role: 'helper', outputs: [], promotable: false, evidence: 'none', envelope: 'not-applicable', validation: 'none' },
     { file: 'budgets.ts', role: 'helper', outputs: [], promotable: false, evidence: 'none', envelope: 'not-applicable', validation: 'none' },
@@ -82,7 +83,7 @@ export const ACCEPTANCE_PRODUCERS: readonly AcceptanceProducer[] = [
     { file: 'language-budget.ts', role: 'helper', outputs: [], promotable: false, evidence: 'none', envelope: 'not-applicable', validation: 'none' },
     { file: 'language-comparison.ts', role: 'diagnostic', outputs: ['installed-language-comparison'], promotable: false, evidence: 'diagnostic', envelope: 'diagnostic-opt-out', validation: 'ci' },
     { file: 'mod-types.ts', role: 'helper', outputs: [], promotable: false, evidence: 'none', envelope: 'not-applicable', validation: 'none' },
-    { file: 'mods.ts', role: 'producer', outputs: ['mods.json'], promotable: true, evidence: 'official-host', envelope: 'planned', validation: 'official-host' },
+    { file: 'mods.ts', role: 'producer', outputs: ['mods.json'], promotable: true, evidence: 'official-host', envelope: 'adopted', validation: 'official-host' },
     { file: 'native-capacity-pty.ts', role: 'producer', outputs: ['pty-reports'], promotable: false, evidence: 'manual', envelope: 'manual-opt-out', validation: 'manual' },
     { file: 'native-capacity.ts', role: 'producer', outputs: ['mods.json:capacity'], promotable: true, evidence: 'official-host', envelope: 'embedded-via-parent', validation: 'official-host' },
     { file: 'native-stability.ts', role: 'producer', outputs: ['native-stability.json'], promotable: true, evidence: 'official-host', envelope: 'embedded-via-parent', validation: 'official-host' },
@@ -268,9 +269,10 @@ export function validateKnownExceptions(entries: readonly AcceptanceProducer[]):
         expect(file, entry => entry.role === 'producer' && !entry.promotable
             && entry.evidence === 'demonstration' && entry.envelope === 'adopted',
         'remain a non-promotable demonstration producer with adopted envelope');
-    for (const file of ['installed.ts', 'mods.ts'])
-        expect(file, entry => entry.role === 'producer' && entry.promotable && entry.envelope === 'planned',
-            'remain a promotable producer with planned envelope');
+    expect('installed.ts', entry => entry.role === 'producer' && entry.promotable && entry.envelope === 'planned',
+        'remain a promotable producer with planned envelope');
+    expect('mods.ts', entry => entry.role === 'producer' && entry.promotable && entry.evidence === 'official-host' && entry.envelope === 'adopted',
+        'retain the adopted official-host envelope');
     expect('integration-smoke.ts', entry => entry.role === 'producer' && entry.promotable
         && entry.evidence === 'additional-smoke' && entry.envelope === 'planned',
     'remain a promotable additional-smoke producer with planned envelope');

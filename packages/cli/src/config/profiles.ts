@@ -12,27 +12,35 @@ import { revision } from '@fbincon/statusline-platform/hash';
 import { projectPaths, explicitProjectPath } from '@fbincon/statusline-platform/project-paths';
 import { commandFor } from '@fbincon/statusline-platform/commands';
 import { readDiagnosticFile } from '@fbincon/statusline-platform/diagnostic-files';
-import { type ConfigurationService, atLeast } from './service.js';
+import type { ConfigurationService } from './service.js';
 import { readProfiles, resolveProfile } from '../rendering/configuration.js';
 import { artifact, decodeUtf8, jsonBytes, readDisplay, readSettings } from './storage.js';
 import { installationIdentity, settingsWithHost } from './host.js';
 import { commit } from '../recovery/files.js';
 import { assertClear } from '../recovery/journal.js';
 import { exportBytes } from './transfer.js';
+import { configuredAgentRows } from './agent-rows.js';
 
 /** This changes only our display callback, never collection or Claude preferences. */
 export function profileRowsSettings(service: ConfigurationService, settings: Record<string, unknown>, display: DisplayDraft, collection: ProfileCollection): Record<string, unknown> {
     const identity = installationIdentity(settings, service.context.launch);
     if (identity.statusLine!.state !== 'owned') return settings;
-    const needed = display.subagents.enabled || collection.bindings.some(b => collection.profiles.some(p => p.id === b.profile_id && p.display.subagents.enabled));
-    if (!atLeast(service.context.hostVersion(), [2, 1, 205])) return settings;
-    if (identity.subagentStatusLine!.state === 'foreign') {
-        if (needed) throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
+    const needed = configuredAgentRows(display, collection);
+    const route = service.agentRowRoute(settings, needed);
+    const legacy = identity.subagentStatusLine!.state;
+    if (legacy === 'foreign') {
+        if (route.legacy === 'write')
+            throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
         return settings;
     }
+    if (route.legacy === 'keep') return settings;
+    if (route.legacy === 'write') {
+        return legacy === 'owned' ? settings : { ...settings,
+            subagentStatusLine: { type: 'command', command: commandFor(service.context.launch, 'render-subagents') } };
+    }
+    if (legacy !== 'owned') return settings;
     const updated = { ...settings };
-    if (needed) updated.subagentStatusLine = { type: 'command', command: commandFor(service.context.launch, 'render-subagents') };
-    else delete updated.subagentStatusLine;
+    delete updated.subagentStatusLine;
     return updated;
 }
 export class ProfileService {
@@ -41,7 +49,7 @@ export class ProfileService {
         const { configDir } = this.service.context, io = this.service.io;
         const [display, displayRaw] = readDisplay(configDir, io), [settings, settingsRaw] = readSettings(configDir, io);
         const [collection, collectionRaw] = readProfiles(configDir, io);
-        const base = this.service.snapshot(display, settings);
+        const base = this.service.snapshot(display, settings, configuredAgentRows(display, collection));
         return { display, displayRaw, settings, settingsRaw, collection, collectionRaw, base,
             revision: revision({ profiles_version: 1, collection, configuration: base.revision }) };
     }
@@ -53,7 +61,7 @@ export class ProfileService {
         const parsed = configTarget(value), target = parsed.kind === 'project' ? { ...parsed, path: explicitProjectPath(parsed.path) } : parsed, loaded = this.load();
         const selected = resolveProfile(loaded.display, loaded.collection, target);
         if (target.kind === 'profile' && !selected.configuration.profile_id) profileError('missing', target.id);
-        return { ...this.service.snapshot(selected.display, loaded.settings), configuration: selected.configuration,
+        return { ...this.service.snapshot(selected.display, loaded.settings, configuredAgentRows(loaded.display, loaded.collection)), configuration: selected.configuration,
             revision: revision({ revision: loaded.revision, target, configuration: selected.configuration }) };
     }
     private publish(action: string, loaded: ReturnType<ProfileService['load']>, display: DisplayDraft, collection: ProfileCollection, requestedSettings = loaded.settings, materializeDefault = false): string | null {
@@ -80,8 +88,7 @@ export class ProfileService {
             const current = this.readTarget(target);
             if (current.revision !== expected) profileError('conflict');
             const loaded = this.load();
-            if (loaded.base.installation.subagentStatusLine!.state === 'foreign')
-                throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
+            this.service.assertRowOwnership(loaded.settings, loaded.base.installation);
             let display = loaded.display;
             const collection = clone(loaded.collection);
             if (current.configuration.profile_id) {

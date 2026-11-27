@@ -216,8 +216,12 @@ test('product identity excludes maintenance source but binds code, instruction r
 });
 test('planned targets retain platform and host responsibilities without scheduling unrelated product matrices', () => {
     assert.deepEqual(tasksFor(['docs']).map(task => task.id), ['linux']);
-    assert.equal(tasksFor(['checks']).length, 3); assert.equal(tasksFor(['native']).length, 16);
-    assert.equal(tasksFor(['runtime']).length, 12);
+    assert.equal(tasksFor(['checks']).length, 3); assert.equal(tasksFor(['native']).length, 22);
+    assert.equal(tasksFor(['runtime']).length, 18);
+    assert.deepEqual(tasksFor(['agent-rows']).map(task => task.id), ['ubuntu-24.04', 'windows-2025', 'macos-15']
+        .flatMap(os => [os + '-2.1.326', os + '-2.1.332']));
+    assert.equal(tasksFor(['native'], false).length, 16);
+    assert.equal(tasksFor(['agent-rows'], false).length, 0);
     assert(scopedTests('checks').some(path => path.endsWith('ci-trust.test.js')));
 });
 test('each scoped test file owns a fresh deadline and any failed file keeps the family failed', async t => {
@@ -266,7 +270,7 @@ test('oversized package-sensitive plans split complete checks while historical t
     const originalHead = commit();
     const original = createImpactPlan(base, originalHead);
     assert.equal(original.route, 'compare');
-    assert.deepEqual(original.tasks, tasksFor(original.checks));
+    assert.deepEqual(original.tasks, tasksFor(original.checks, false));
     assert.throws(() => scopedTaskBudget(original.tasks[0]!, [...tree(originalHead).keys()]), /partition the task/);
     const comparison = { route: 'maintenance' as const, comparison_sha256: 'a'.repeat(64) };
     assertPlan({ ...original, ...comparison });

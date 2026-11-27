@@ -97,7 +97,9 @@ claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix
 claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix --config-dir /chosen/claude --yes
 ```
 
-Replace `pkg-BACKUP_ID` with the exact UUID-based ID printed by the operation. The review lists files and revisions. With an explicit prefix, this restoration works without npm. Restoration covers the saved display and profile collection, including project bindings, and adjusts only the owned subagent callback when the restored layout requires it. It preserves current source execution grants, independent editor/collector choices, interface preferences and unrelated Claude settings. It never silently re-enables old authorization.
+Replace `pkg-BACKUP_ID` with the exact UUID-based ID printed by the operation. The review lists files and revisions. With an explicit prefix, this restoration works without npm. It restores the display and Profile collection, including project bindings. Reconciliation follows the current installation's subagent renderer preference and ownership rules. Current source execution grants, editor and collector choices, interface preferences and unrelated Claude settings are preserved.
+
+When downgrading to a package that predates the AgentRow Mod, the newer recovery runner removes the owned row plugin and cancels any pending handover before the older installer runs. On hosts with a verified callback, enabled custom rows can return to the legacy command. The process preserves third-party row settings and manual plugin disablement.
 
 Restoration validates snapshot hashes, rechecks current revisions under the configuration lock, and backs up the content being replaced through the existing file transaction. Missing or changed snapshots and concurrent edits block it. Incompatible rollback stops before package replacement; restore an applicable snapshot separately, then review rollback again. Do not edit schema numbers to force acceptance.
 

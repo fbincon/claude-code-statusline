@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { install, uninstall, installContext } from '@fbincon/statusline-cli/integration/install';
-import { NATIVE, RUNTIME, type Host, type ModSpec, type InstallOptions } from '@fbincon/statusline-cli/integration/model';
+import { AGENT_ROWS, MANAGED_MODS, NATIVE, RUNTIME, type Host, type ModSpec, type InstallOptions } from '@fbincon/statusline-cli/integration/model';
 import { doctor } from '@fbincon/statusline-cli/integration/doctor';
 import { createStorage, jsonBytes } from '@fbincon/statusline-cli/config/storage';
 import { repoRoot } from '../../ts-03/common.js';
@@ -76,12 +76,12 @@ export function fresh(t: TestContext, version: readonly number[] | null = [2, 1,
     const temporary = fs.mkdtempSync(join(tmpdir(), 'ts04-install 中文 ')), root = join(temporary, 'config 中文 $` & spaces');
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     const launch = { executable: process.execPath, args: [join(repoRoot, 'packages/cli/dist/src/entry.js')] }, io = createStorage();
-    const hosts = new Map([NATIVE, RUNTIME].map(spec => [spec.name, new FakeHost(root, spec)]));
+    const hosts = new Map(MANAGED_MODS.map(spec => [spec.name, new FakeHost(root, spec)]));
     const context = installContext(root, launch, version, io, spec => hosts.get(spec.name)!);
     const put = (name: string, value: unknown) => { const path = join(root, name); fs.mkdirSync(dirname(path), { recursive: true, mode: 0o700 }); fs.writeFileSync(path, Buffer.isBuffer(value) ? value : jsonBytes(value), { mode: 0o600 }); return path; };
     const read = (name: string) => fs.readFileSync(join(root, name));
     const json = (name: string) => JSON.parse(read(name).toString('utf8'));
-    return { temporary, root, launch, io, context, hosts, host: hosts.get(NATIVE.name)!, runtime: hosts.get(RUNTIME.name)!, put, read, json, install: (options: InstallOptions = {}) => install(context, options), uninstall: (options: InstallOptions = {}) => uninstall(context, options) };
+    return { temporary, root, launch, io, context, hosts, host: hosts.get(NATIVE.name)!, runtime: hosts.get(RUNTIME.name)!, agentRows: hosts.get(AGENT_ROWS.name)!, put, read, json, install: (options: InstallOptions = {}) => install(context, options), uninstall: (options: InstallOptions = {}) => uninstall(context, options) };
 }
 export function snapshot(root: string): Record<string, string> {
     const values: Record<string, string> = {};

@@ -41,7 +41,7 @@ export async function restoreConfiguration(flags: ManagementOptions, configDir: 
         if (!equalSettings(settings, updated))
             changes.push({ ...artifact(join(configDir, 'settings.json'), raw), desired: jsonBytes(updated) });
     }
-    const review: ConfigurationRestoreReview = { schema_version: 1, action: 'restore-config', backup_id: operation.id, source_version: operation.before.version, prefix, files: changes.map(change => ({ path: change.path, current: hashes[change.name] ?? null, backup: operation.snapshot![change.name] ?? null })), preserved: ['source_authorization', 'runtime_preferences', 'editor_preferences', 'unrelated_claude_settings'] };
+    const review: ConfigurationRestoreReview = { schema_version: 1, action: 'restore-config', backup_id: operation.id, source_version: operation.before.version, prefix, files: changes.map(change => ({ path: change.path, current: hashes[change.name] ?? null, backup: operation.snapshot![change.name] ?? null })), preserved: ['source_authorization', 'runtime_preferences', 'editor_preferences', 'subagent_renderer', 'unrelated_claude_settings'] };
     onReview?.(review);
     if (!flags.json)
         stdout(t('management.restore_review', language) + '\n');

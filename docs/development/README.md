@@ -194,6 +194,8 @@ These examples read `claude-statusline.json` from the current configuration dire
 
 ### `render-subagents`
 
+The `statusline-agent-rows` Mod uses the private `--agent-row-batch` form for ordered, per-row widths. Its `--agent-row-loaded` and `--agent-row-ready` calls bind session evidence to the installation selected by `install`. The callback form below remains available on [compatible hosts](../USER_GUIDE.md#requirements). [Rendering](rendering.md) · [Host validation](testing.md)
+
 Read official Claude Code `subagentStatusLine` JSON from stdin and render each valid task as one `{"id":"...","content":"..."}` NDJSON line. Invalid top-level JSON, `tasks`, or individual fields degrade silently with exit code 0. Stdout contains only protocol results. Ordinary payload metrics do not scan transcripts or query the network; completed timing can read existing local end evidence. Enabled, bound external values may read selected JSON, inspect local Git identity and save observation caches; command/GitHub providers are not executed during rendering. See [CLI rendering boundaries](../reference/cli.md#subagent-rows-and-the-three-scopes).
 
 Linux / macOS:

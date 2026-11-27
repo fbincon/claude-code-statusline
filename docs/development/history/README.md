@@ -20,6 +20,7 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 
 | Area | Delivery records |
 | --- | --- |
+| Subagent row compatibility | [AgentRow and legacy subagent rows](deliveries/agent-row-compatibility.md) |
 | Editor shortcuts | [Custom shortcuts in both editors](deliveries/editor-shortcuts.md) · [Shortcut reliability](deliveries/editor-shortcut-reliability.md) · [Component list shortcuts](deliveries/editor-list-shortcuts.md) · [Terminal Settings shortcuts](deliveries/terminal-settings-shortcuts.md) · [Shortcut correctness and committed saves](deliveries/editor-shortcut-correctness.md) |
 | External editor refresh | [Task reports, job progress and list reloads](deliveries/external-editor-live-refresh.md) |
 | Component editing | [Group movement](deliveries/editor-group-movement.md) · [Catalog states and continuous additions](deliveries/component-catalog.md) |

@@ -107,7 +107,7 @@ jobs:
       DELIVERY_HASHES: ${{ needs.build.outputs.delivery }}
       RELEASE_CASE: ${{ matrix.id }}
       DEVELOPMENT_ARCH: ${{ matrix.arch }}
-      HOST_VERSION: '2.1.310'
+      HOST_VERSION: ${{ matrix.host }}
       DISABLE_AUTOUPDATER: '1'
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
     steps:

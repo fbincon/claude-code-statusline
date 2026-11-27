@@ -12,6 +12,7 @@ import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { PROFILE_FORMAT, PROFILE_VERSION } from '@fbincon/statusline-core/config/profiles';
 import { ITEM_DEFAULTS, FORMAT_CHOICES, FORMAT_DEFAULTS, VISIBILITY_ITEMS } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
+import { bundledModProtocols, PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { nativeCapacityFixtures } from './native-capacity.js';
 import { analyze, assertReady, requiresLanguageEvidence, type Analysis } from './i18n/analysis.js';
 import { readLanguageInputs } from '../checks/i18n-evidence.js';
@@ -169,7 +170,7 @@ export function outputs(root = ROOT): Map<string, string> {
     body = body.replace(/(from ['"][^'"]+)\.js(['"])/gu, '$1.ts$2');
     result.set(destination, header + body);
   }
-  for (const name of ['statusline-native', 'statusline-runtime']) {
+  for (const name of Object.keys(bundledModProtocols(PACKAGE_COMPATIBILITY))) {
     const manifest = `mods/${name}/.claude-plugin/plugin.json`;
     result.set(manifest, JSON.stringify({ ...JSON.parse(utf8(join(root, manifest))), version: VERSION }, null, 2) + '\n');
     result.set(`mods/${name}/lib/launch.ts`, header + utf8(join(root, 'packages/core/src/integration/binding.ts')));

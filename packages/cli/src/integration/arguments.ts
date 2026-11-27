@@ -29,6 +29,19 @@ export function parseAdministration(command: string, args: readonly string[]): I
             result.force = true;
             continue;
         }
+        const renderer = '--subagent-renderer';
+        if (command === 'install' && (arg === renderer || arg.startsWith(renderer + '='))) {
+            if (seen.has(renderer))
+                throw new ArgumentError('duplicate ' + renderer, 'cli.not_allowed', { argument: renderer });
+            seen.add(renderer);
+            const value = arg === renderer ? args[++i] : arg.slice(renderer.length + 1);
+            if (value === undefined || optionToken(value))
+                throw new ArgumentError(renderer + ' requires auto, mod or legacy');
+            if (value !== 'auto' && value !== 'mod' && value !== 'legacy')
+                throw new ArgumentError('invalid subagent renderer: ' + value, 'cli.invalid_choice', { value, choices: 'auto, mod, legacy' });
+            result.subagentRenderer = value;
+            continue;
+        }
         const disabled = arg.startsWith('--no-'), name = arg.slice(disabled ? 5 : 2);
         if (command === 'install' && arg.startsWith('--') && Object.hasOwn(FLAGS, name)) {
             const field = FLAGS[name as keyof typeof FLAGS];

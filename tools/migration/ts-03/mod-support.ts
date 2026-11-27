@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { repoRoot } from './common.js';
 /** Compile original pure Mod libraries into an isolated test tree; never edit installed bindings. */
 export function compileModLibraries(root: string): void {
-    for (const name of ['statusline-native', 'statusline-runtime']) {
+    for (const name of ['statusline-native', 'statusline-runtime', 'statusline-agent-rows']) {
         const source = join(repoRoot, 'mods', name, 'lib'), target = join(root, name, 'lib');
         for (const path of readdirSync(source, { recursive: true }).map(String).filter(path => path.endsWith('.ts') && !path.endsWith('.d.ts'))) {
             const input = readFileSync(join(source, path), 'utf8');

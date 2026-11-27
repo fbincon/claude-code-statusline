@@ -10,10 +10,13 @@ import { verifyTagIdentity } from './ci-tag.ts';
 import { exportBaseVerifiers } from './ci-trust.ts';
 import { CI_REPOSITORY, githubRead } from './ci-watch.ts';
 import {
-    buildChecks, candidateBuild, candidateCases, candidateGate, digestPattern, hostVersion, integrationCases, integrationGate,
+    buildChecks, candidateBuild, candidateCases, candidateGate, digestPattern, integrationCases, integrationGate,
     integrationPreflight, isReleaseBranch, packageSmokeChecks, recordDigest, releaseFilenames, releasePackageArtifact,
     releasePolicyAt, releaseWorkflow, shaPattern, sourceVersion, tagGate, validateDeliveryHashes, type Case, type Producer,
 } from './release-ci-policy.ts';
+import { officialModsForHost } from './runtime-inputs.ts';
+import { validateAcceptanceEnvelope } from './receipt.ts';
+import { agentRowsAt } from './ci-coverage.ts';
 
 type Execution = { run_id: number; attempt: number; workflow_sha: string };
 export type Pull = { pr: number; head: string; base: string; branch: string; tree: string };
@@ -140,7 +143,7 @@ async function receipts(run: any, execution: Execution, specs: readonly Producer
     }));
 }
 
-function verifySmoke(report: any, spec: Case, commit: string, head: string, sha256: string, job: string) {
+function verifySmoke(report: any, spec: Case, commit: string, head: string, sha256: string, job: string, diagnostic = false) {
     assert.equal(report.schema_version, 1);
     assert.equal(report.node, 'v' + spec.node); assert.match(report.node_sha256, digestPattern);
     assert.equal(report.platform, spec.platform); assert.equal(report.arch, spec.arch); assert.equal(report.host_arch, spec.host_arch);
@@ -152,13 +155,32 @@ function verifySmoke(report: any, spec: Case, commit: string, head: string, sha2
         assert.equal(report.lifecycle_scripts, false); assert.deepEqual(report.checks, packageSmokeChecks);
     } else {
         assert.equal(report.kind, 'release-host-smoke'); assert.equal(report.commit, head);
-        assert.equal(report.host, hostVersion); assert.match(report.host_sha256, digestPattern);
-        assert.deepEqual(Object.keys(report.mods).sort(), ['statusline-native', 'statusline-runtime']);
+        assert(spec.host);
+        assert.equal(report.host, spec.host); assert.match(report.host_sha256, digestPattern);
+        const current = agentRowsAt(head), mods = officialModsForHost(spec.host, current);
+        assert.deepEqual(Object.keys(report.mods).sort(), [...mods].sort());
         for (const mod of Object.values<any>(report.mods)) {
             assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
-            assert.deepEqual(mod.types, { status: 'pass', host: hostVersion });
+            assert.deepEqual(mod.types, { status: 'pass', host: spec.host });
         }
         assert.equal(report.installed.status, 'pass'); assert.equal(report.installed.tarball_sha256, sha256);
+        if (current) {
+            assert.equal(report.installed.source.commit, head);
+            assert.deepEqual(report.installed.result.installed_mods, mods);
+            if (diagnostic) assert.equal(report.envelope, undefined, 'A diagnostic cannot claim release acceptance');
+            else {
+                validateAcceptanceEnvelope(report.envelope);
+                assert.equal(report.envelope.producer.kind, 'official Mods');
+                assert.equal(report.envelope.source.commit, head);
+                assert.equal(report.envelope.source.files_sha256, report.installed.source.source_manifest_sha256);
+                assert.equal(report.envelope.artifact?.sha256, sha256);
+                assert.equal(report.envelope.runtime.host, spec.host);
+                assert.equal(report.envelope.runtime.node_sha256, report.node_sha256);
+                assert.equal(report.envelope.runtime.platform, report.platform);
+                assert.equal(report.envelope.runtime.arch, report.arch);
+                assert.deepEqual(report.envelope.checks, [...mods, 'installed integration'].map(name => ({ name, status: 'pass' })));
+            }
+        }
     }
 }
 
@@ -180,7 +202,7 @@ async function candidateCoverage(run: any, execution: Execution, target: Extract
     withinJob(raw, build.job);
     assert.equal(original.id, report.package_id); assert.equal(original.digest, report.package_digest);
     for (const [index, spec] of cases.entries())
-        verifySmoke(smokes[index]!.report, spec, commit, commit, delivery[releaseFilenames(version).package]!, 'candidate-check');
+        verifySmoke(smokes[index]!.report, spec, commit, commit, delivery[releaseFilenames(version).package]!, 'candidate-check', target.phase === 'diagnostic');
     return { version, delivery, package: original, jobs: [build, ...smokes].map(row => row.ref) };
 }
 

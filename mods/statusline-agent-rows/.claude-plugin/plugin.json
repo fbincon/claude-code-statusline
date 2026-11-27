@@ -1,0 +1,43 @@
+{
+  "name": "statusline-agent-rows",
+  "version": "3.16.5",
+  "description": "Custom subagent rows in the Claude Code terminal",
+  "author": {
+    "name": "fbincon"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/fbincon/claude-code-statusline",
+  "userConfig": {
+    "backendExecutable": {
+      "type": "string",
+      "title": "Backend executable",
+      "description": "Matching backend executable; an executable environment override replaces the complete executable/args binding.",
+      "default": "claude-statusline"
+    },
+    "backendArgs": {
+      "type": "string",
+      "multiple": true,
+      "title": "Backend arguments",
+      "description": "Argument prefix for the matching backend, including the absolute installed JavaScript entry for Node installations.",
+      "default": []
+    },
+    "configDir": {
+      "type": "string",
+      "title": "Configuration directory",
+      "description": "Owned Claude configuration directory",
+      "default": ""
+    },
+    "backendVersion": {
+      "type": "string",
+      "title": "Expected backend version",
+      "description": "Version bound by the installer",
+      "default": ""
+    },
+    "installationId": {
+      "type": "string",
+      "title": "Installation identity",
+      "description": "Identity bound to this copy by the statusline installer.",
+      "default": ""
+    }
+  }
+}

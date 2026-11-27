@@ -11,6 +11,7 @@ import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { npmEntry, readTar, sha256 } from '../build/files.js';
 import { dependencyFileMatches } from '../build/dependencies.js';
 import { BUSINESS } from '../build/model.js';
+import { verifyAgentRowResources } from '../build/agent-row-resources.js';
 import { NPM_PACKAGE, REPOSITORY } from './npm-registry.js';
 
 export interface SignatureOptions { version: string; commit: string; artifact: string; output: string }
@@ -45,6 +46,7 @@ export function verifiedInventory(entries: Map<string, Buffer>, options: Pick<Si
     if (source.dependency_manifests === 'sanitized') assert.equal(manifest.scripts, undefined, 'Product manifest scripts');
   assert.deepEqual(Object.keys(source.files).sort(), [...entries.keys()].filter(name => name !== 'candidate.json').sort(), 'Incomplete package inventory');
   for (const [name, hash] of Object.entries(source.files)) assert.equal(sha256(entries.get(name)!), hash, 'Changed package file: ' + name);
+  verifyAgentRowResources(entries, source.source_hashes ?? {}, manifest.statuslineCompatibility?.agent_rows_protocol, options.version);
   const internal = BUSINESS.map(name => '@fbincon/statusline-' + name);
   const dependencies = { ...manifest.dependencies, ...manifest.optionalDependencies };
   assert.deepEqual([...manifest.bundleDependencies].sort(), Object.keys(dependencies).sort());

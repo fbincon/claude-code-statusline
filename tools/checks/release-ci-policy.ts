@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { digest, git } from './ci-evidence.ts';
+import { agentRowsAt } from './ci-coverage.ts';
+import { AGENT_ROW_HOSTS } from './runtime-inputs.ts';
 
 export const RELEASE_POLICY_PATH = 'tools/checks/release-ci-v1.json';
 const activation = '{"schema_version":1,"policy":"release-smoke"}';
@@ -31,6 +33,7 @@ export const buildChecks = ['development', 'independent-builds', 'archive-rebuil
 export type Case = {
     id: string; kind: 'package' | 'host'; node: string;
     os: string; platform: string; arch: string; host_arch: string;
+    host?: string;
 };
 export type Producer = { job: string; os: string; artifact: string };
 export const candidateBuild: Producer = { job: 'Build release candidate', os: 'ubuntu-24.04', artifact: 'ci-release-build' };
@@ -59,14 +62,17 @@ export function sourceVersion(commit: string): string {
 }
 
 export function candidateCases(commit: string) {
-    return candidateCasesForNode(sourceNode(commit));
+    return candidateCasesForNode(sourceNode(commit), agentRowsAt(commit));
 }
 
-export function candidateCasesForNode(node: string) {
+export function candidateCasesForNode(node: string, agentRows = false) {
     return [
         ...installTargets.map(target => workflowCase({ ...target, id: target.id + '-node22', kind: 'package', node: '22.0.0' }, 'candidate')),
         workflowCase({ ...platforms[0], id: 'linux-node24', kind: 'package', node: '24.0.0' }, 'candidate'),
-        ...platforms.map(target => workflowCase({ ...target, id: target.id + '-claude', kind: 'host', node }, 'candidate')),
+        ...platforms.map(target => workflowCase({ ...target, id: target.id + '-claude', kind: 'host', node, host: hostVersion }, 'candidate')),
+        ...(agentRows ? AGENT_ROW_HOSTS.flatMap(host => platforms.map(target => workflowCase({
+            ...target, id: target.id + '-claude-' + host, kind: 'host', node, host,
+        }, 'candidate'))) : []),
     ];
 }
 

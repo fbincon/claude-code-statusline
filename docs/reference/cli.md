@@ -109,6 +109,7 @@ The current display schema includes required `statusline_language`; current vers
 ```text
 claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline install [--config-dir PATH] [--dry-run] [--force]
+  [--subagent-renderer auto|mod|legacy]
   [--native-editor | --no-native-editor]
   [--experimental-slash-tui | --no-experimental-slash-tui]
   [--native-timing | --no-native-timing] [--live-metrics | --no-live-metrics]
@@ -122,7 +123,8 @@ After installing the npm package, use `setup` to preview a display and review Cl
 | --- | --- |
 | `install` | Merge owned integration into Claude settings; back up actual changes |
 | `install --dry-run` | Report planned changes without installing resources or writing files |
-| `install --force` | Permit replacement of conflicting main/subagent settings or same-name skills; native plugin identity conflicts still require resolving ownership |
+| `install --subagent-renderer auto\|mod\|legacy` | Save the renderer preference for this installation. `auto` selects the AgentRow Mod where available or the verified command callback. `mod` and `legacy` require the requested integration. |
+| `install --force` | Permit replacement of a conflicting main command or same-name skill. With legacy row integration it also permits replacing a third-party subagent command. Plugin identity conflicts require resolving ownership. |
 | `uninstall [--dry-run]` | Remove or preview removal of owned integration; retain display settings, preferences, state, and backups |
 | `doctor` | Diagnose installation without rewriting settings or opening an editor |
 | `configure` | Open the Node terminal editor in the current terminal; requires valid settings, installation ownership, TTY input/output, and at least 64×18 |
@@ -243,7 +245,7 @@ Use JSON output for scripts or automation:
 claude-statusline config show --json
 ```
 
-The top-level JSON `installed` indicates whether `settings.json/statusLine.command` is an owned render binding for the invoked backend entry, not merely whether the npm package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
+The top-level JSON `installed` indicates whether the invoked backend owns the main `statusLine.command`. Under `subagent_statusline`, `enabled` is the display preference, and `installed` and `state` describe row integration. `owned`, `absent`, `foreign` and `unsupported` describe legacy or host availability. `standby` means the old command still serves rows during migration. For the Mod, `mod-pending` awaits a session, `mod-loaded` records a session load and `mod-verified` records a successful batch. If the session evidence is unreadable, `state` is `mod-unverified` and `doctor` reports the error. The diagnostic also reports restrictions and the most recent session load and first-batch verification independently for this host and installation.
 
 ### `config list-items`
 
@@ -429,7 +431,7 @@ claude-statusline config set statusline-language zh-CN
 
 Display options can be configured before installing the status line. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` modify `settings.json/statusLine`, so they require the current status line to be managed by this `claude-statusline` executable. Otherwise, writes are rejected to protect other implementations.
 
-`subagent-statusline` saves the desired enabled state. With it off, `render-subagents` emits no overrides, preserving the host's default rows; rerunning `install` also removes the owned `subagentStatusLine`. Enabling and rerunning `install` restores it on compatible versions. This separation lets `config set subagent-statusline off` resolve an installation conflict without touching third-party settings.
+`subagent-statusline` saves whether the display configuration uses custom rows. Turning it off leaves the rows to the host or another renderer. A bound project Profile can still request custom rows for that project. If every configuration had rows turned off at installation, run `install` after first enabling them to set up the Mod. On a host with a verified legacy callback, `auto` can use the command in the meantime. Choose the integration for the installation with `install --subagent-renderer`.
 
 See [display and host options](#display-and-host-options) for all valid `set` values.
 
@@ -918,9 +920,11 @@ See the [metric definitions](../DISPLAY_ITEMS.md#timer-definitions) for task clo
 
 ### Subagent rows and the three scopes
 
-Claude Code 2.1.205–2.1.322 passes the official `subagentStatusLine` payload to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. Ordinary payload metrics do not scan transcripts or query the network. Completed-agent timing may read existing local end evidence. Session effort fallback can read a private observation when an enabled effort instance uses `session` and needs a fallback value. Enabled, bound external values can read their selected JSON files, inspect local Git identity and publish observation caches. Command/GitHub values read published results without executing the provider during rendering. These source effects are separate from the pure row formatter. [Host compatibility](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
+On hosts that run the `subagentStatusLine` command, Claude Code passes its official payload to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one `{"id":"...","content":"..."}` NDJSON line per valid nonempty string ID. The AgentRow Mod supplies an ordered batch to the same renderer and sets each row's body by ID. The row limit counts visible rows. Turning custom rows off passes the host row through, while an enabled template can explicitly hide a filtered or empty row. [Host compatibility](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
-The renderer uses the positive integer `columns` from the payload, with a fallback of 80. It uses the full width for the row and sanitizes newlines, tabs and control characters in input text.
+Ordinary payload metrics do not scan transcripts or query the network. Completed-agent timing may read existing local end evidence. Session effort fallback can read a private observation when an enabled effort instance uses `session` and needs a fallback value. Enabled, bound external values can read their selected JSON files, inspect local Git identity and publish observation caches. Command/GitHub values read published results without executing the provider during rendering.
+
+The callback uses the positive integer `columns` from the payload, with a fallback of 80. The Mod fits each body to its available width after nested tree connectors. Both sanitize newlines, tabs and control characters in input text.
 
 Basic fitting shortens task text, then omits optional fields in the order `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task`. It prioritizes enabled status fields, and very narrow widths may reduce `status-elapsed` to its icon. Groups, adaptive indicators, Powerline and custom priorities use their respective fitting rules. Each path fits a single row by visible terminal cells.
 
@@ -941,6 +945,7 @@ All files below are relative to the selected Claude configuration directory. JSO
 | `statusline-shortcuts.json` | Shortcut overrides shared by the two editors. |
 | `claude-statusline-features.json / claude-statusline-native.json` | Editor preferences in the current preferences schema; explicit install flags |
 | `claude-statusline-runtime.json` | Collector preferences in the current preferences schema; explicit install flags |
+| `statusline_runtime/agent-row-route.json` and `statusline_runtime/agent-row-evidence.json` | Private installation preference, selected integration and recent session verification. Use `install` to change the preference and `doctor` to inspect it. |
 | `settings.json` | Claude-owned settings with merged integration and host options; install/uninstall and owned host writes |
 
 Current version numbers and package read ranges are in [protocol and schema versions](#protocol-and-schema-versions).
@@ -1135,7 +1140,7 @@ The following settings belong to the `statusLine` object in user-level `settings
 
 The installer manages `command`; the other three fields can be changed with `config set` or the wizard. Some fields are omitted from JSON when set to default behavior, such as `padding 0`, `refresh-interval event`, and `hide-vim-mode-indicator off`.
 
-The installer manages a separate `subagentStatusLine` in `settings.json` with `type: "command"` and a `command` pointing to `render-subagents`. Only hosts with the callback run this command. With `subagents.enabled=false`, rerunning `install` removes the owned entry and keeps third-party settings. Both subagent lifecycle hooks remain for end-to-end timing. [Host compatibility](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
+Legacy integration uses a separate `subagentStatusLine` entry in `settings.json` with `type: "command"` and a command pointing to `render-subagents`. Mod integration uses the independent `statusline-agent-rows` plugin. During migration the owned command keeps working until the Mod verifies its first applicable batch. The installer then removes that command after rechecking ownership. Subagent lifecycle hooks continue to support timing with either renderer. [Host compatibility and migration](../USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
 ## Protocol and schema versions
 
@@ -1148,6 +1153,7 @@ This chapter is the current source of truth for interface and stored-format vers
 | Editor UI protocol | `editor protocol 33` | Frontend and backend resources must come from the same package; mismatches are refused. | [Shared contracts](../development/contracts.md#transport-and-response-envelopes); `packages/core/src/contracts/ui.ts` |
 | Display configuration | `display schema 17` | Reads schemas 1–16 in memory without rewriting; an explicit save backs up the old bytes and writes the current schema. | `packages/core/src/config/display.ts`; [display configuration](#display-configuration) |
 | Runtime observation protocol | 3 | Retains v1/v2 `observe`/`read`; `source_lifecycle` requires version 3. | [Live collection](../development/live.md); `packages/core/src/contracts/runtime.ts` |
+| AgentRow Mod protocol | 1 | The matching plugin and backend exchange a session-bound ordered batch and installation verification. | [Subagent rendering](../development/rendering.md) |
 | Task lifecycle | 4 | Retains the schema-1 compatibility mirror. | `packages/core/src/runtime/tasks/model.ts`; [timer contracts](../development/timer.md) |
 | Task detail read model | 1 | `task_details` response; missing evidence is unavailable rather than invented. | [Shared contracts](../development/contracts.md#operation-inventory) |
 | Portable configuration envelope | 1 | Import also accepts display-only files within the current display read range. | `packages/core/src/config/transfer.ts`; [import, export and reuse](#import-export-and-reuse) |
@@ -1178,7 +1184,7 @@ The `statuslineCompatibility` record schema 1 declares these configuration read 
 | External preferences (`external_preferences`) | `[1, 1]` |
 | UI preferences (`ui_preferences`) | `[1, 1]` |
 
-The record also declares `editor_protocol` 33, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. The protocol values must match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`; package review and recovery behavior are in [package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis).
+The record also declares `editor_protocol` 33, `runtime_protocol` 3, `minimum_host` 2.1.205, supported Node majors and targets. Packages bundling the AgentRow Mod declare `agent_rows_protocol` 1. Earlier package records omit that optional field and retain their original plugin requirements. Protocol values match the current versions above. Canonical declarations are in `packages/core/src/management/compatibility.ts`. [Package operation diagnosis](../PACKAGE_MANAGEMENT.md#package-operation-diagnosis)
 
 ### Unversioned and host-owned interfaces
 

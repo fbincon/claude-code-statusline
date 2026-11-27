@@ -1,5 +1,5 @@
 import { artifactIdentity, type CompleteEvidenceV1 } from '../../ci-evidence.js';
-import { LEGACY_TARGETS as TARGETS, HOSTS, runtimeInputs } from '../../runtime-inputs.js';
+import { LEGACY_TARGETS as TARGETS, LEGACY_HOSTS as HOSTS, runtimeInputs } from '../../runtime-inputs.js';
 import { CI_REPOSITORY } from '../../ci-watch.js';
 export const commit = 'a'.repeat(40), hash = 'b'.repeat(64), now = Date.now();
 export const run = { id: 12, run_attempt: 2, head_sha: commit, head_branch: 'main', event: 'push', repository: { full_name: CI_REPOSITORY }, head_repository: { full_name: CI_REPOSITORY }, path: '.github/workflows/ci.yml', status: 'completed', conclusion: 'success' };

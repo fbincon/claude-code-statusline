@@ -22,6 +22,8 @@ export interface PackageCompatibility {
     ]>;
     editor_protocol: number;
     runtime_protocol: number;
+    /** Absent in packages published before the AgentRow integration. */
+    agent_rows_protocol?: number;
 }
 // Historical compatibility is independent of later package declarations.
 const LEGACY_370_COMPATIBILITY: PackageCompatibility = {
@@ -32,9 +34,17 @@ const LEGACY_370_COMPATIBILITY: PackageCompatibility = {
     read: { display: [1, 13], profiles: [1, 1], sources: [1, 2], runtime_preferences: [1, 2], native_preferences: [1, 1], external_preferences: [1, 1], ui_preferences: [1, 1] },
     editor_protocol: 21, runtime_protocol: 3,
 };
-export const PACKAGE_COMPATIBILITY: PackageCompatibility = { ...JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY)), editor_protocol: PROTOCOL_VERSION };
+export const PACKAGE_COMPATIBILITY: PackageCompatibility = { ...JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY)), editor_protocol: PROTOCOL_VERSION, agent_rows_protocol: 1 };
 PACKAGE_COMPATIBILITY.read.display = [1, SCHEMA_VERSION];
 PACKAGE_COMPATIBILITY.read.sources = [1, SOURCE_REGISTRY_VERSION];
+export function bundledModProtocols(target: PackageCompatibility): Record<string, number> {
+    const mods: Record<string, number> = {
+        'statusline-native': target.editor_protocol,
+        'statusline-runtime': target.runtime_protocol,
+    };
+    if (target.agent_rows_protocol !== undefined) mods['statusline-agent-rows'] = target.agent_rows_protocol;
+    return mods;
+}
 export const LEGACY_370_SHA256 = 'b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95';
 export function compareVersions(left: string, right: string): number {
     if (!exactVersion(left) || !exactVersion(right))
@@ -77,7 +87,8 @@ export function compatibility(value: unknown, version: string): PackageCompatibi
         !exactVersion(value.minimum_host) || value.minimum_host.includes('-') || !object(value.read) ||
         Object.keys(value.read).sort().join(',') !== Object.values(CONFIG_FORMATS).sort().join(',') ||
         Object.values(value.read).some(range => !Array.isArray(range) || range.length !== 2 || range.some(n => !Number.isSafeInteger(n) || n < 1 || n > 1000) || range[0] > range[1]) ||
-        !Number.isSafeInteger(value.editor_protocol) || value.editor_protocol < 1 || !Number.isSafeInteger(value.runtime_protocol) || value.runtime_protocol < 1)
+        !Number.isSafeInteger(value.editor_protocol) || value.editor_protocol < 1 || !Number.isSafeInteger(value.runtime_protocol) || value.runtime_protocol < 1 ||
+        (Object.hasOwn(value, 'agent_rows_protocol') && (!Number.isSafeInteger(value.agent_rows_protocol) || value.agent_rows_protocol < 1)))
         throw new PackageError('compatibility_unknown');
     return JSON.parse(JSON.stringify(value)) as PackageCompatibility;
 }

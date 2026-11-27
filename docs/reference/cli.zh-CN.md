@@ -107,6 +107,7 @@ claude-statusline configure --config-dir "/path/to/claude config" --user
 ```text
 claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline install [--config-dir PATH] [--dry-run] [--force]
+  [--subagent-renderer auto|mod|legacy]
   [--native-editor | --no-native-editor]
   [--experimental-slash-tui | --no-experimental-slash-tui]
   [--native-timing | --no-native-timing] [--live-metrics | --no-live-metrics]
@@ -120,7 +121,8 @@ claude-statusline configure [--config-dir PATH] [--user | --profile NAME_OR_ID |
 | --- | --- |
 | `install` | 合并归属本工具的 Claude 接入，实际修改前备份 |
 | `install --dry-run` | 预览修改，不安装资源、不写入文件 |
-| `install --force` | 允许替换冲突的主栏、子 Agent 设置或同名 skill；原生插件身份冲突仍需解决归属 |
+| `install --subagent-renderer auto\|mod\|legacy` | 保存本机安装的渲染器偏好。`auto` 优先选择可用的 AgentRow Mod，也可选择已验证的命令回调。`mod` 和 `legacy` 要求使用指定接入。 |
+| `install --force` | 允许替换冲突的主栏命令或同名 skill。采用旧回调接入时也允许替换第三方子代理命令。插件身份发生冲突时需先解决归属。 |
 | `uninstall [--dry-run]` | 移除或预览移除本工具接入，保留显示文件、偏好、状态和备份 |
 | `doctor` | 诊断安装，不重写配置、不打开编辑器 |
 | `configure` | 在当前终端打开 Node 终端编辑器，要求配置有效、接入归属正确、输入输出为 TTY、尺寸至少 64×18 |
@@ -239,7 +241,7 @@ Hide Vim mode indicator: no
 claude-statusline config show --json
 ```
 
-JSON 顶层的 `installed` 表示 `settings.json/statusLine.command` 是否为当前调用后端入口所拥有的渲染绑定，而非仅表示 npm 包存在。`subagent_statusline` 另含 `enabled`、`installed` 和 `state`；`state` 只会是 `owned`、`absent`、`foreign`、`unsupported`。
+JSON 顶层的 `installed` 表示当前调用的后端是否拥有主栏的 `statusLine.command`。`subagent_statusline` 下的 `enabled` 是显示偏好，`installed` 和 `state` 描述子代理行的接入状态。`owned`、`absent`、`foreign` 和 `unsupported` 表示旧命令的归属或宿主可用性。`standby` 表示迁移期间仍由旧命令绘制。对于 Mod，`mod-pending` 表示等待会话，`mod-loaded` 表示会话已加载，`mod-verified` 表示已验证一批行。如果无法读取会话证据，`state` 为 `mod-unverified`，`doctor` 将报告错误。诊断还会说明宿主限制，并对当前宿主和安装分别列出最近一次会话加载与最近一次会话首批行验证的时间。
 
 ### `config list-items`
 
@@ -425,7 +427,7 @@ claude-statusline config set statusline-language zh-CN
 
 显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
 
-`subagent-statusline` 保存期望的启用状态。关闭时 `render-subagents` 不输出覆盖结果，保留宿主默认行；重跑 `install` 会进一步移除 owned `subagentStatusLine`。重新启用并运行 `install` 会在兼容版本上恢复接入。这个分离使 `config set subagent-statusline off` 可以在不触碰第三方设置的前提下解除安装冲突。
+`subagent-statusline` 保存该显示配置是否启用自定义行。关闭时由宿主或其他渲染器绘制。已绑定项目的方案仍可为该项目启用自定义行。如果安装时所有配置都关闭了自定义行，首次启用后请运行 `install` 配置 Mod。在已验证支持旧回调的宿主上，`auto` 在此期间可以先使用命令回调。用 `install --subagent-renderer` 选择本机安装的接入方式。
 
 所有 `set` 的合法值见[显示与宿主选项](#显示与宿主选项)。
 
@@ -892,9 +894,11 @@ claude-statusline config enable project-name hostname context-used
 
 ### 子 Agent 行与三种作用域
 
-Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。渲染器保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。普通 payload 指标不扫描 transcript 或查询网络。已完成代理计时可以读取已有本地结束证据。已启用的强度实例采用 `session` 且需要回退值时，可读取主栏渲染发布的私有观测。启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存。命令／GitHub 值在渲染时读取已发布结果，不执行 provider。这些来源效果与纯行格式化器分离。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
+在支持 `subagentStatusLine` 命令的宿主上，Claude Code 将官方 payload 交给 `claude-statusline render-subagents`。渲染器保持 `tasks` 输入顺序，忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 `{"id":"...","content":"..."}` NDJSON。AgentRow Mod 将有序的任务列表交给同一渲染器，按 ID 设置每行的正文。行数上限只计可见行。关闭自定义行时继续使用宿主行，启用时过滤规则或空模板可以隐藏相应行。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
-宽度直接使用 payload 中的正整数 `columns`，无效时回退 80 列。每行使用完整宽度预算，输入文本中的换行、制表符和控制字符会被清理。
+普通 payload 指标不扫描 transcript 或查询网络。已完成代理计时可以读取已有本地结束证据。已启用的强度实例采用 `session` 且需要回退值时，可读取主栏渲染发布的私有观测。启用并绑定的外部值可以读取选定 JSON 文件、检查本地 Git 身份并发布观测缓存。命令／GitHub 值在渲染时读取已发布结果，不执行 provider。
+
+命令回调使用 payload 中的正整数 `columns`，无效时回退 80 列。Mod 按扣除嵌套树连接符后的可用列数排列每行正文。两种接入都清理输入文本中的换行、制表符和控制字符。
 
 普通行拟合先截短任务文本，再按 `current-dir → tokens → context-window-size → context-tokens → context-used → context-remaining → model-with-effort → effort → model → task` 的顺序省略可选字段。启用的状态字段优先保留，极窄时 `status-elapsed` 可能只显示图标。使用组、自适应指标、Powerline 或自定义优先级时，拟合由对应的布局和优先级规则决定。各路径均按可见终端单元格限制单行宽度。
 
@@ -913,6 +917,7 @@ Claude Code 2.1.205–2.1.322 会把官方 `subagentStatusLine` payload 交给 `
 | `statusline-shortcuts.json` | 内置和外部编辑器共享的快捷键改绑。 |
 | `claude-statusline-features.json / claude-statusline-native.json` | 当前偏好 schema 的编辑器偏好；显式安装参数 |
 | `claude-statusline-runtime.json` | 当前偏好 schema 的采集偏好；显式安装参数 |
+| `statusline_runtime/agent-row-route.json` 和 `statusline_runtime/agent-row-evidence.json` | 私有的本机安装偏好、选定的接入方式及最近会话的验证记录。使用 `install` 修改偏好，使用 `doctor` 查看状态。 |
 | `settings.json` | Claude 设置及合并的接入／宿主选项；安装、卸载及有归属的宿主写入 |
 
 当前版本数字与包读取范围见[协议与 schema 版本](#协议与-schema-版本)。
@@ -1101,7 +1106,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 
 其中 `command` 由安装器管理；后三项可以使用 `config set` 或向导修改。设置为默认行为时，某些字段会从 JSON 中省略，例如 `padding 0`、`refresh-interval event` 和 `hide-vim-mode-indicator off`。
 
-安装器在 `settings.json` 中管理独立的 `subagentStatusLine`，包含 `type: "command"` 和指向 `render-subagents` 的 `command`。支持该回调的宿主会运行此命令。`subagents.enabled=false` 时重跑 `install` 会移除本工具拥有的条目并保留第三方设置。两个子代理生命周期 hooks 仍用于端到端计时。[宿主兼容性](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
+旧接入在 `settings.json` 中使用独立的 `subagentStatusLine` 条目，包含 `type: "command"` 和指向 `render-subagents` 的命令。Mod 接入使用独立的 `statusline-agent-rows` 插件。迁移中，本工具的旧命令会继续工作，直至 Mod 成功验证首批适用行。安装器随后复核归属并移除旧命令。两种接入都可通过子代理生命周期 hooks 计时。[宿主兼容性与迁移](../USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 ## 协议与 schema 版本
 
@@ -1114,6 +1119,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | 编辑器 UI 协议 | `编辑器协议 33` | 前后端资源必须来自同一软件包；不匹配时拒绝。 | [共享契约](../development/contracts.zh-CN.md#传输与操作)；`packages/core/src/contracts/ui.ts` |
 | 显示配置 | `显示 schema 17` | 读取 1–16 时在内存中迁移，不改写文件；显式保存先备份旧字节，再写当前 schema。 | `packages/core/src/config/display.ts`；[显示配置](#显示配置) |
 | 运行时观测协议 | 3 | 保留 v1/v2 `observe`/`read`；`source_lifecycle` 要求版本 3。 | [实时采集](../development/live.zh-CN.md)；`packages/core/src/contracts/runtime.ts` |
+| AgentRow Mod 协议 | 1 | 配套的插件和后端交换与会话关联的有序批次及安装验证信息。 | [子代理渲染](../development/rendering.zh-CN.md) |
 | 任务生命周期 | 4 | 保留 schema-1 兼容镜像。 | `packages/core/src/runtime/tasks/model.ts`；[计时契约](../development/timer.zh-CN.md) |
 | 任务详情读取模型 | 1 | `task_details` 响应；缺失证据表示为不可用，不推测。 | [共享契约](../development/contracts.zh-CN.md#操作清单) |
 | 可移植配置外层 | 1 | 导入也接受当前显示读取范围内的仅显示文件。 | `packages/core/src/config/transfer.ts`；[导入、导出与复用](#导入导出与复用) |
@@ -1144,7 +1150,7 @@ Profile 存储限制及恢复见[方案指南](../PROFILES.zh-CN.md#文件冲突
 | 外部偏好（`external_preferences`） | `[1, 1]` |
 | UI 偏好（`ui_preferences`） | `[1, 1]` |
 
-该记录还声明 `editor_protocol` 33、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。协议值必须与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`；包审核与恢复行为见[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)。
+该记录还声明 `editor_protocol` 33、`runtime_protocol` 3、`minimum_host` 2.1.205、支持的 Node 主版本及目标。包含 AgentRow Mod 的包声明 `agent_rows_protocol` 1。早期包记录省略该可选字段，仍使用各自原有的插件要求。协议值与上表当前版本一致。权威声明位于 `packages/core/src/management/compatibility.ts`。[包操作诊断](../PACKAGE_MANAGEMENT.zh-CN.md#包操作诊断)
 
 ### 未版本化与宿主所有的接口
 

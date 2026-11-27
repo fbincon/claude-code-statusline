@@ -47,6 +47,8 @@ Powerline 在适配后组合可见色块，计算内边距／边界并逐行复�
 
 ## TypeScript 开发渲染器
 
-生产 TypeScript 入口支持 `render`（UTF-8 JSON stdin、主行 stdout）和 `render-subagents`（每个有效 ID 一条紧凑 NDJSON）。两者接受 UTF-8 BOM，静默忽略无效输入，并在显示配置无效时使用默认值。`CLAUDE_CONFIG_DIR` 选择配置目录，渲染命令不接受 `--config-dir`。主栏内容预算为 `COLUMNS - 2`，缺省 118 列，最小两列；当前编辑器协议返回两作用域的语义 span，宿主 padding 仅应用于主栏预览。
+生产 TypeScript 入口支持 `render`（UTF-8 JSON stdin、主行 stdout）和旧式 `render-subagents` 命令（每个有效 ID 一条紧凑 NDJSON）。两者接受 UTF-8 BOM，静默忽略无效输入，并在显示配置无效时使用默认值。这两种调用使用 `CLAUDE_CONFIG_DIR` 选择配置目录。主栏内容预算为 `COLUMNS - 2`，缺省 118 列，最小两列。当前编辑器协议返回两作用域的语义 span，宿主 padding 仅应用于主栏预览。
+
+AgentRow Mod 将宿主的 `kind`、`type`、`taskStatus` 分别映射为渲染任务的 `type`、`agentType`、`status`。它按宿主行 ID 排列任务，提供扣除树形缩进后的逐行正文宽度。共享渲染器只将非空行计入行数上限，并按实际显示的块在各行之间延续 Powerline 配色。Mod 将带样式的正文写入 `body`，行首指针、树连接符和行操作由宿主处理。[子代理行与三种作用域](../reference/cli.zh-CN.md#子-agent-行与三种作用域)
 
 `RenderEnvironment` 连接时钟、路径及所选观测。重复组件共享 Git、用量、实时、分支差异及任务快照，格式化结果不参与计数。已结束代理需要记录的终态证据并保持冻结时长。十二种小型状态栏语言包与 UI 词库分离。Unicode 18 排版数据固定，载荷大小写转换及旧十进制解析保留冻结 Python 3.14／UCD 16 的兼容语义。

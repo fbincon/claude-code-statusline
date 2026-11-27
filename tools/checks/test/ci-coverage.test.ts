@@ -8,7 +8,7 @@ import test from 'node:test';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { baselineObligations, COVERAGE_ACTIVATION, COVERAGE_ACTIVATION_PATH, RUNNER_ACTIVATION, RUNNER_ACTIVATION_PATH, coverageVersionAt, coverageVersionInArchive,
     createCoveragePlan, historyCounts, verifyCoveragePlan } from '../ci-coverage.js';
-import { runtimeInputs, type RunnerPolicy } from '../runtime-inputs.js';
+import { AGENT_ROWS_MANIFEST, runtimeInputs, type RunnerPolicy } from '../runtime-inputs.js';
 
 const inputs = (devShared = false, policy: RunnerPolicy = 'legacy') =>
     runtimeInputs([{ version: 'v22.23.4' }, { version: devShared ? 'v24.21.0' : 'v24.22.2' }], '24.21.0', policy);
@@ -68,6 +68,24 @@ test('runner migration moves the Node floor without reinterpreting old v2 receip
     fs.unlinkSync(RUNNER_ACTIVATION_PATH);
     const reverted = r.save('Remove runner activation');
     assert.throws(() => createCoveragePlan(head, reverted, inputs()), /Runner activation was removed/u);
+});
+
+test('new AgentRow host obligations start at the immutable Mod source and preserve older host plans', t => {
+    const r = repository(t);
+    r.write('README.md', 'Before AgentRow'); const old = r.save('Record pre-Mod coverage');
+    const oldPlan = createCoveragePlan(r.activated, old, inputs());
+    r.write(AGENT_ROWS_MANIFEST, '{"name":"statusline-agent-rows"}');
+    const first = r.save('Register AgentRow Mod');
+    r.write('README.md', 'After AgentRow'); const head = r.save('Documentation change');
+    const plan = createCoveragePlan(first, head, inputs());
+    assert.deepEqual(historyCounts(plan.obligations).host, { full: 9, short: 13 });
+    const changed = createCoveragePlan(old, first, inputs());
+    const rowHosts = changed.obligations.filter(row => row.host && ['2.1.326','2.1.332'].includes(row.host));
+    assert.equal(rowHosts.length, 6); assert(rowHosts.every(row => row.depth === 'full'));
+    assert.equal(oldPlan.obligations.filter(row => row.host).length, 16);
+    verifyCoveragePlan(oldPlan, r.activated, old, inputs());
+    fs.unlinkSync(AGENT_ROWS_MANIFEST); const removed = r.save('Drop host coverage');
+    assert.throws(() => createCoveragePlan(head, removed, inputs()), /activation was removed/u);
 });
 
 test('PR depth uses the unique actual merge base, sees both rename endpoints and rejects reporter-selected reductions', t => {

@@ -9,15 +9,20 @@ import { VERSION } from '@fbincon/statusline-core/release';
 import { digest } from '../ci-evidence.js';
 import { CI_REPOSITORY } from '../ci-watch.js';
 import { mainCandidate, mergeSource, publishedReleaseTag, pullSource, recordCandidate, recordMain, recordTag, selectReleaseTag, verifyMainPackage } from '../release-ci-evidence.js';
-import { buildChecks, candidateBuild, candidateCases, candidateGate, hostVersion, integrationCases, integrationGate, integrationPreflight,
+import { buildChecks, candidateBuild, candidateCases, candidateGate, integrationCases, integrationGate, integrationPreflight,
     packageSmokeChecks, RELEASE_POLICY_PATH, releaseFilenames, releasePackageArtifact, releaseWorkflow, tagGate } from '../release-ci-policy.js';
 import { prepareBundle, resolveRelease } from '../../release/npm.js';
 import { envelope } from './fixtures/evidence-envelope.js';
+import { AGENT_ROWS_MANIFEST, officialModsForHost } from '../runtime-inputs.js';
 
 test('ordinary events have no runner, and the release stages depend on their verified producers', () => {
     const ci = parse(fs.readFileSync(releaseWorkflow, 'utf8'));
     const diagnostics = parse(fs.readFileSync('.github/workflows/ci-diagnostics.yml', 'utf8'));
     assert.deepEqual(Object.keys(diagnostics.on), ['workflow_dispatch']);
+    assert.deepEqual(diagnostics.jobs['agent-rows'].strategy.matrix, {
+        os: ['ubuntu-24.04', 'windows-2025', 'macos-15'], host: ['2.1.326', '2.1.332'],
+    });
+    assert.equal(ci.jobs['candidate-check'].env.HOST_VERSION, '${{ matrix.host }}');
     assert(!JSON.stringify(diagnostics.jobs).includes('ci-evidence.js record'));
     assert.deepEqual(ci.on.push, { tags: ['v3.*'] });
     assert.deepEqual(ci.on.pull_request.branches, ['main']);
@@ -45,7 +50,7 @@ test('ordinary events have no runner, and the release stages depend on their ver
     assert.equal(ci.permissions['id-token'], undefined);
 });
 
-test('release evidence follows the real PR, first-parent merge, annotated tag and npm selection through retries', async t => {
+for (const agentRows of [false, true]) test('release evidence binds PR, merge and tag to the original ' + (agentRows ? 'AgentRow' : 'two-Mod') + ' host matrix', async t => {
     const original = process.cwd(), root = fs.mkdtempSync(join(tmpdir(), 'statusline-release-ci-'));
     const env = ['GH_TOKEN', 'GITHUB_REPOSITORY', 'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_WORKFLOW_SHA', 'GITHUB_EVENT_NAME',
         'GITHUB_REF_NAME', 'GITHUB_REF', 'GITHUB_OUTPUT', 'RELEASE_TAG', 'DRY_RUN'];
@@ -73,6 +78,7 @@ test('release evidence follows the real PR, first-parent merge, annotated tag an
     copy('tools/checks');
     copy('tools/generation/i18n');
     for (const file of [releaseWorkflow, '.node-version', 'tools/release/approval.ts', RELEASE_POLICY_PATH]) write(file, fs.readFileSync(join(original, file)));
+    if (agentRows) write(AGENT_ROWS_MANIFEST, '{"name":"statusline-agent-rows"}\n');
     git('add', '.'); git('commit', '-m', 'Install verifier on protected main');
     const base = git('rev-parse', 'HEAD'), branch = 'release/fixture';
     git('switch', '-c', branch);
@@ -173,15 +179,22 @@ test('release evidence follows the real PR, first-parent merge, annotated tag an
         ]);
         for (const spec of cases) {
             job(execution, spec.job, spec.os);
+            const mods = spec.host ? officialModsForHost(spec.host, agentRows) : [];
             artifact(execution, spec.artifact, { schema_version: 1, status: 'pass', workflow_sha: head,
                 node: 'v' + spec.node, node_sha256: toolHash, platform: spec.platform, arch: spec.arch, host_arch: spec.host_arch,
                 tarball_sha256: packageHash, model_calls: 0, execution: { ...stamp, job: 'candidate-check' },
                 ...(spec.kind === 'package' ? { kind: 'integration-smoke', target: spec.id, source_commit: head, integration_commit: head,
                     lifecycle_scripts: false, checks: packageSmokeChecks } : {
-                    kind: 'release-host-smoke', commit: head, host: hostVersion, host_sha256: toolHash,
-                    mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name,
-                        { validation: 'pass', official_tests: 'pass', types: { status: 'pass', host: hostVersion } }])),
-                    installed: { status: 'pass', tarball_sha256: packageHash },
+                    kind: 'release-host-smoke', commit: head, host: spec.host, host_sha256: toolHash,
+                    mods: Object.fromEntries(mods.map(name => [name,
+                        { validation: 'pass', official_tests: 'pass', types: { status: 'pass', host: spec.host } }])),
+                    installed: { status: 'pass', tarball_sha256: packageHash, source: { commit: head, source_manifest_sha256: toolHash }, result: { installed_mods: mods } },
+                    ...(agentRows && execution === prRun ? { envelope: {
+                        schema_version: 1, kind: 'acceptance-envelope', status: 'pass', producer: { kind: 'official Mods' },
+                        source: { commit: head, files_sha256: toolHash }, artifact: { sha256: packageHash },
+                        runtime: { host: spec.host, node: 'v' + spec.node, node_sha256: toolHash, platform: spec.platform, arch: spec.arch },
+                        checks: [...mods, 'installed integration'].map(name => ({ name, status: 'pass' })), limitations: ['Automated fixture.'],
+                    } } : {}),
                 }) });
         }
     }
@@ -192,7 +205,7 @@ test('release evidence follows the real PR, first-parent merge, annotated tag an
     use(prRun, head);
     const candidate = await recordCandidate(pullSource(pr), head);
     assert.equal(candidate.kind, 'release-candidate');
-    assert.equal(candidate.jobs.length, 10);
+    assert.equal(candidate.jobs.length, agentRows ? 16 : 10);
     job(prRun, candidateGate);
     artifact(prRun, 'ci-release-accepted', candidate);
     const merge = await mergeSource(pr), chosen = await mainCandidate(merge);

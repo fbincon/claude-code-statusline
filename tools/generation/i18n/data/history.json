@@ -28576,6 +28576,311 @@
         "terms": []
       },
       "terms": {}
+    },
+    "e01c01e5614a381d2628c900b1933c696e46da5cceea5e7ec6f1824ca5488bea": {
+      "key": "agent_rows.disk.absent",
+      "english": "absent",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.disk.absent",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "edaa2111d5488f4788162466950b30c4650bed5d91a02efb798868e48601c16c": {
+      "key": "agent_rows.disk.disabled",
+      "english": "installed and disabled",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.disk.disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "56b3c9d475fe41abc9cd84e0d0db1a5356db993ffc25da9eb9f0354b6c4d990a": {
+      "key": "agent_rows.disk.mismatch",
+      "english": "installation incomplete or mismatched, run install again",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.disk.mismatch",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "38c3c86f05d6bdfe0923cc4d00ac89838f64b4ea434918bec89035274620455c": {
+      "key": "agent_rows.disk.suspended",
+      "english": "suspended on this host",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.disk.suspended",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2c2b01e721745ceadd5589988a6853b4fff3e5eecec62a00a584eadcf19a473c": {
+      "key": "agent_rows.disk.verified",
+      "english": "installed, enabled and bound to the matching backend",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.disk.verified",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6054b21f669b59bdd5e6fa3c9648cd9094c810ff8fdc940f1d972b3dc8708531": {
+      "key": "agent_rows.doctor.disk",
+      "english": "AgentRow installation on disk: {state}.",
+      "placeholders": [
+        "state"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.doctor.disk",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "8ec60d1a1d8fdb320637fa81e549e43b02d9abe1792c2026fca34dcf71a61d01": {
+      "key": "agent_rows.doctor.evidence",
+      "english": "AgentRow session evidence: last loaded {loaded}, first verified batch {verified}.",
+      "placeholders": [
+        "loaded",
+        "verified"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.doctor.evidence",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5f9471866570a3d10f5ea082cd5fa77ddfe574a044236170888cf7c4081d5af5": {
+      "key": "agent_rows.doctor.route",
+      "english": "Subagent row route {mode}. Preference {preference}. Legacy command {legacy}. {reason}",
+      "placeholders": [
+        "legacy",
+        "mode",
+        "preference",
+        "reason"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.doctor.route",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "acc2e5c07e406eb5f5ddfebe605279f691dce53061ac7cd791589e70cb337f40": {
+      "key": "agent_rows.help",
+      "english": "Choose the host renderer for subagent rows and save this installation preference.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "576f8cf8fcf9da83f90435fa8de092737f0deddca40699cc0084a64bf93d5a6f": {
+      "key": "agent_rows.install.plugin",
+      "english": "Subagent row Mod {plugin} has installation state {state}.",
+      "placeholders": [
+        "plugin",
+        "state"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.install.plugin",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7a9b3d066fcc798a716910a6e0d66568a3720738a344ddb5067e013a38efc0da": {
+      "key": "agent_rows.install.route",
+      "english": "Subagent row renderer {mode}. {reason}",
+      "placeholders": [
+        "mode",
+        "reason"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.install.route",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f15f183e4eb473f9dd55e9844042b4639e1470a1a95bf141ba0ecb860b140623": {
+      "key": "agent_rows.install.unavailable",
+      "english": "Cannot select subagent row renderer {preference}. {reason}",
+      "placeholders": [
+        "preference",
+        "reason"
+      ],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.install.unavailable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "65e55b9b71c77df2e176812e5d33bfae30f8052da1d61ba372161a42a07fd03a": {
+      "key": "agent_rows.reason.awaiting-mod",
+      "english": "The owned legacy command stays active until the Mod verifies its first batch.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.awaiting-mod",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "282a93c6cd331b3c38a211da3075e41e9af307f5fe3838d57356057be803d1ff": {
+      "key": "agent_rows.reason.callback-gap",
+      "english": "Claude Code 2.1.323–2.1.325 always draws its built-in subagent rows.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.callback-gap",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "48d8c1583c3f622add5ffb138dd25b72bb2815a15635521bbb7ace8660aa6c26": {
+      "key": "agent_rows.reason.disabled",
+      "english": "Custom subagent rows are turned off.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c865ec1a6d5fb5e08632c98607fa15b020dd0b1ba2b63d97c68334debac88935": {
+      "key": "agent_rows.reason.foreign",
+      "english": "The existing subagent row command belongs to another renderer.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.foreign",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "833ac8b7b11c791cd2d509850f588b0c0f18d3e4f77dcc3226288c221e985712": {
+      "key": "agent_rows.reason.legacy",
+      "english": "This host can run the legacy command.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.legacy",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "29c16a01fc50e7eef71f26de710952504593700230747ffecd184e4f09693b5a": {
+      "key": "agent_rows.reason.mod-disabled",
+      "english": "The AgentRow Mod is disabled.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.mod-disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "dbf96cab4eb71ebca21a99ef8e87489335a8f0094f9ccf5d2417adcc3d1d41ed": {
+      "key": "agent_rows.reason.mod-failed",
+      "english": "The AgentRow Mod could not be installed or verified.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.mod-failed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9e88669384ac84354741f6641acd48e29ee87597adebb327f8618339f4d79455": {
+      "key": "agent_rows.reason.mod-selected",
+      "english": "AgentRow is the selected renderer.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.mod-selected",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a05cd76c1322c01bd54b5ff5be5744478872a93d8d2eb50444b9e21c0f4ca353": {
+      "key": "agent_rows.reason.not-installed",
+      "english": "Run install to configure the renderer for this host.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.not-installed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b": {
+      "key": "agent_rows.reason.ownership-changed",
+      "english": "The reviewed legacy command or installation identity has changed.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.ownership-changed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5683a17e438cc435a31d8050c3bf2ed282ef4cd088d493c8abf3f894759901a1": {
+      "key": "agent_rows.reason.restricted",
+      "english": "Host policy restricts subagent row integration.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.restricted",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "41b620ce43e546c8738901949eccefc2f47d584b051d22f64daaf9aebc3b60a0": {
+      "key": "agent_rows.reason.unavailable",
+      "english": "The requested renderer is unavailable on this host.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.unavailable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "acf7c880e93c16743ac0eb4a55bf1088008adf88163b3f182fda32f3c7a085d6": {
+      "key": "agent_rows.reason.unknown-host",
+      "english": "The Claude Code version could not be determined.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.unknown-host",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "42107b4fad9bd1906e273df8be5ae58a62c029e681539d378c9098fe58790a81": {
+      "key": "agent_rows.reason.unsupported-host",
+      "english": "This Claude Code version does not support custom subagent rows.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "agent_rows.reason.unsupported-host",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -30398,6 +30703,15 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "agent_rows.reason.ownership-changed": [
+        {
+          "source": "9f29e596d77bbf07bdcc70935f5a9940858aefb5924d60a5ab85fd73fe99743b",
+          "translation": "efe542dbf10ace5d5834ccaa4210913fdd13132dccbf18f257408aa1ce4ed3c9",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "dbd28010256c5fa1b121a19ec79e1e1557eec2fca4dbd5a9c9e6f7a720f64834"
         }
       ]
     },

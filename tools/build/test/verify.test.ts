@@ -9,6 +9,7 @@ import { readTar, sha256, sums, verifyChecksums } from '../files.js';
 import { verifyCandidate, verifyContents } from '../verify.js';
 import { PACKAGE, version, identity, publicChannel, channel } from '../model.js';
 import { candidateEntries as fixture } from './fixtures/delivery.js';
+import { agentRowsResourceRoot } from '../agent-row-resources.js';
 const commit = 'a'.repeat(40);
 function replaceDependencyManifest(entries: Map<string, Buffer>, name: string, manifest: unknown) {
     const raw = Buffer.from(JSON.stringify(manifest));
@@ -20,6 +21,28 @@ function replaceDependencyManifest(entries: Map<string, Buffer>, name: string, m
     return entries;
 }
 test('tests.integration.test_publish_package.DistributionTests.test_accepts_only_the_expected_packages_and_entry_point', () => { assert.equal(verifyContents(fixture(), commit).source.commit, commit); });
+test('two-Mod packages remain readable while AgentRow packages bind every runtime resource to the original source', () => {
+    const historical = fixture('candidate', commit, {});
+    assert.doesNotThrow(() => verifyContents(historical, commit));
+    assert.throws(() => verifyContents(historical, commit, true), /must include the AgentRow source/);
+    for (const removed of ['hooks/register.ts', 'resource-manifest.json']) {
+        const entries = fixture(), source = JSON.parse(entries.get('candidate.json')!.toString());
+        entries.delete(agentRowsResourceRoot + removed);
+        delete source.files[agentRowsResourceRoot + removed];
+        entries.set('candidate.json', Buffer.from(JSON.stringify(source)));
+        assert.throws(() => verifyContents(entries, commit), /AgentRow package contents differ/);
+    }
+    const entries = fixture(), source = JSON.parse(entries.get('candidate.json')!.toString());
+    const manifestPath = agentRowsResourceRoot + 'resource-manifest.json';
+    const descriptor = JSON.parse(entries.get(manifestPath)!.toString());
+    const path = agentRowsResourceRoot + 'hooks/register.ts';
+    entries.set(path, Buffer.from('export function register() { return 42; }'));
+    descriptor.files['hooks/register.ts'] = source.files[path] = sha256(entries.get(path)!);
+    entries.set(manifestPath, Buffer.from(JSON.stringify(descriptor)));
+    source.files[manifestPath] = sha256(entries.get(manifestPath)!);
+    entries.set('candidate.json', Buffer.from(JSON.stringify(source)));
+    assert.throws(() => verifyContents(entries, commit), /AgentRow inventory differs from source/);
+});
 test('tests.integration.test_publish_package.DistributionTests.test_sanitized_candidates_reject_dependency_lifecycle_scripts', () => {
     const sanitized = fixture();
     assert.equal(JSON.parse(sanitized.get('node_modules/koffi/package.json')!.toString()).scripts, undefined);

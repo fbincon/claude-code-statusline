@@ -7,13 +7,14 @@ import { object } from '@fbincon/statusline-core/config/validation';
 import { atLeast } from '../config/service.js';
 import { jsonBytes, readSettings } from '../config/storage.js';
 import { loadRuntime } from '../config/backend-preferences.js';
-import { OWNER, OWNER_FILE, type InstallContext, type ModSpec, type ModResult } from './model.js';
+import { AGENT_ROWS, OWNER, OWNER_FILE, type InstallContext, type ModSpec, type ModResult } from './model.js';
 import { bundledFiles, digest, type Bundle } from './resources.js';
 import { owner, ownedPath, registered, cacheOwned, prune, type Marker } from './mod-ownership.js';
 import { commit, safeTarget, type Change } from './transaction.js';
 import { BINDING_FILE, bindingRecord } from './ownership.js';
-import { refreshIntents } from '../recovery/journal.js';
-import { MOD_BLOCKED_NOTICE } from './mod-diagnostic.js';
+import { refreshIntents, RecoveryRequired } from '../recovery/journal.js';
+import { modFailureDetail, MOD_BLOCKED_NOTICE } from './mod-diagnostic.js';
+import { readAgentRowRoute } from './agent-row-route.js';
 function rememberDisabled(context: InstallContext, spec: ModSpec, enabled: boolean): void {
     context.io.lock(context.configDir, () => {
         const current = bindingRecord(context.configDir, context.io);
@@ -104,15 +105,54 @@ function removeResources(context: InstallContext, spec: ModSpec, marker: Marker)
 }
 export function bindingValues(context: InstallContext, spec: ModSpec, backendVersion?: string): Record<string, string> {
     const modes = spec.name === 'statusline-runtime' ? loadRuntime(context.configDir, context.io) : null;
-    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: backendVersion ?? bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
+    const values: Record<string, string> = { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: backendVersion ?? bundledFiles(spec).inventory.backend_version };
+    if (modes) Object.assign(values, { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) });
+    if (spec.name === AGENT_ROWS.name) {
+        const installationId = readAgentRowRoute(context.configDir)?.installationId;
+        if (!installationId) throw new Error('Subagent row Mod has no current installation identity');
+        values.installationId = installationId;
+    }
+    return values;
 }
 export function bindingMatches(options: unknown, values: Record<string, string>): boolean {
     return object(options) && object(options.inputs) && Object.entries(values).every(([key, value]) => options.inputs && (options.inputs as Record<string, unknown>)[key] === value);
 }
+
+/** A disabled row plugin is never installed or enabled just to finish its interrupted refresh. */
+export function settleDisabledAgentRowPlugin(context: InstallContext, dryRun: boolean, preserveChoice: () => void): void {
+    const {configDir, io} = context, spec = AGENT_ROWS;
+    if (!refreshIntents(configDir).includes(spec.name)) return;
+    const host = context.host(spec);
+    function inspect() {
+        const marker = owner(configDir, spec, io, true);
+        const [markets, plugins] = host.listing();
+        const [market, row] = registered(configDir, spec, markets, plugins, marker);
+        const cached = row ? cacheOwned(configDir, spec, row, marker!, io) : null;
+        const current = !!(market && marker && cached && equalSettings(cached, {mod_version: marker.mod_version, files: marker.files}));
+        if (row && typeof row.enabled !== 'boolean') throw new RecoveryRequired('Cannot verify the row plugin enablement');
+        return {row, current};
+    }
+    const before = inspect();
+    if (dryRun) return;
+    preserveChoice();
+    if (!before.current) {
+        // The interrupted replacement left either no plugin or a verified older cache.
+        const removed = integrate(context, spec, false, true);
+        if (removed.state !== 'disabled') throw new RecoveryRequired(modFailureDetail(removed.messages) ?? 'Cannot remove incomplete row plugin refresh');
+        return;
+    }
+    if (before.row!.enabled) host.run(['disable', spec.plugin, '--scope', 'user', '--json']);
+    const after = inspect();
+    if (!after.current || after.row!.enabled !== false) throw new RecoveryRequired('Cannot confirm the disabled row plugin');
+    rememberDisabled(context, spec, false);
+}
+
 export function integrate(context: InstallContext, spec: ModSpec, requested: boolean, uninstall = false, provided?: Bundle): ModResult {
     const { configDir, version, io } = context;
     let changed = false;
     const result = (state: ModResult['state'], message: string): ModResult => {
+        if (spec.name === AGENT_ROWS.name)
+            return { state, active: state === 'installed', changed, messages: state === 'disabled' && !changed ? [] : [text('agent_rows.install.plugin', { plugin: spec.plugin, state })] };
         const key = state === 'installed' ? 'native_plugin_installed_enabled_on_disk_restart' : state === 'plugin-disabled' ? 'is_explicitly_disabled_owned_resources_and_backend' : state === 'suspended' ? 'native_editor_suspended_preference_retained' : message === 'disabled by preference' ? 'native_editor_is_disabled_enable_with_install' : 'owned_native_plugin_and_marketplace_removed_preference';
         return { state, active: state === 'installed', changed, messages: [text((spec.name === 'statusline-runtime' ? 'runtime.' : '') + 'native.notice.' + key, { value0: state === 'plugin-disabled' ? spec.plugin : message })] };
     };

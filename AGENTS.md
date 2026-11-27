@@ -15,6 +15,7 @@ The active product is TypeScript. Follow the [current architecture](docs/develop
 | `packages/tui` | External terminal editor using shared core and injected backend services |
 | `mods/statusline-native` | Official-host native editor integration |
 | `mods/statusline-runtime` | Official-host live/runtime observation integration |
+| `mods/statusline-agent-rows` | Official-host subagent rows using the shared ordered renderer |
 | `tools` | Generation, checks, packaging, benchmarks and acceptance tooling |
 | `archive/python` | Frozen historical implementation and comparison evidence |
 

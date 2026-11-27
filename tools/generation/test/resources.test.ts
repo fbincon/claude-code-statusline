@@ -69,7 +69,8 @@ test('one generation pass renders current accepted translations and pending fall
   for (const path of ['packages/core/src/contracts/ui.ts', 'packages/core/src/contracts/runtime.ts', 'packages/core/src/integration/binding.ts',
     'packages/core/src/unicode/index.ts', 'packages/core/src/i18n/messages.ts', 'packages/core/src/terminal/spans.ts',
     'tests/fixtures/editor-search.json', 'tests/fixtures/appearance.json', 'tests/fixtures/graphemes.json',
-    'mods/statusline-native/.claude-plugin/plugin.json', 'mods/statusline-runtime/.claude-plugin/plugin.json']) {
+    'mods/statusline-native/.claude-plugin/plugin.json', 'mods/statusline-runtime/.claude-plugin/plugin.json',
+    'mods/statusline-agent-rows/.claude-plugin/plugin.json']) {
     fs.mkdirSync(dirname(join(root, path)), { recursive: true }); fs.copyFileSync(join(ROOT, path), join(root, path));
   }
   generateResources(root);

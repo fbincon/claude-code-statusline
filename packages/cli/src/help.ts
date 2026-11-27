@@ -71,6 +71,7 @@ export function helpText(command: string | undefined, language: Language): strin
             'no-native-timing': 'disable_native_timing_while_retaining_hook_transcript_timing',
         };
         for (const [flag, key] of Object.entries(options)) lines.push('  --' + flag.padEnd(25) + t('cli.help.' + key, language));
+        lines.push('  --subagent-renderer auto|mod|legacy  ' + t('agent_rows.help', language));
     }
     if (command === 'diagnose') lines.push('', '  --input FILE|- [--scope main|subagent] [--width 120]', '  --json [--input-only] [--observed-at ISO_TIME]', '  ' + t('diagnose.help', language));
     if (command === 'source') lines.push('', '  list|add|edit|review|enable|disable|remove|bind|unbind|refresh|status|cancel|diagnose|auto-on|auto-off', '  --json --file FILE --review REVISION --project PATH --session ID --agent ID', '  --instance ID --scope main|subagent --profile NAME --no-wait --interval SECONDS', '  ' + t('sources.help',language));

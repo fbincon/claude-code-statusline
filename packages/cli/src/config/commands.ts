@@ -17,7 +17,7 @@ import { t, text, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { ConfigurationProtocol } from '../ui/protocol.js';
 import { ConfigurationService, UNCHANGED, draft, publicConfig, type EffectiveConfig, type MutationResult } from './service.js';
 import { displayOption, legacyIds, selectedItems, selection, setOption } from './operations.js';
-import { hostOption, installationIdentity, settingsWithHost } from './host.js';
+import { hostOption, settingsWithHost } from './host.js';
 import { readPreferences, setLanguage } from './preferences.js';
 import { parseConfig, type ConfigArguments } from './arguments.js';
 import { splitCommand } from '@fbincon/statusline-platform/commands';
@@ -52,8 +52,7 @@ function applyFlags(service: ConfigurationService, flags: ConfigArguments['flags
     for (const name of ['padding', 'refresh-interval', 'hide-vim-mode-indicator'])
         host = hostOption(host, name, flags[name]);
     return service.mutate('config-apply', (current, settings) => {
-        if (installationIdentity(settings, service.context.launch).subagentStatusLine!.state === 'foreign')
-            throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
+        service.assertRowOwnership(settings);
         let display = selectedItems(current, 'main', 'set-items', flags.items as string[]);
         if (flags['subagent-items'] !== undefined)
             display = selectedItems(display, 'subagent', 'set-items', flags['subagent-items'] as string[]);

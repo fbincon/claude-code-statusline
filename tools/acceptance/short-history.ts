@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { readTar, sha256 } from '../build/files.js';
-import { NATIVE, RUNTIME } from '@fbincon/statusline-cli/integration/model';
+import { AGENT_ROWS, NATIVE, RUNTIME } from '@fbincon/statusline-cli/integration/model';
 import type { VersionHost } from './version-management.js';
 
 type Command = { code: number | null; stdout: string; stderr: string; elapsed_ms: number };
@@ -34,7 +34,8 @@ export function verifyShortInstalledArchive(root: string, archive: string): stri
 export function shortHistoryObserver(ctx: Context) {
     const display = join(ctx.config, 'claude-statusline.json'), profiles = join(ctx.config, 'claude-statusline-profiles.json');
     const settings = () => json(join(ctx.config, 'settings.json'));
-    const plugins = [NATIVE, RUNTIME], specs = ctx.host ? plugins.filter(spec => Number(ctx.host!.version.split('.')[2]) >= spec.minimum[2]!) : [];
+    const plugins = [NATIVE, RUNTIME, AGENT_ROWS], compatible = ctx.host ? plugins.filter(spec => Number(ctx.host!.version.split('.')[2]) >= spec.minimum[2]!) : [];
+    const hasRowResources = () => fs.existsSync(join(ctx.root, 'node_modules/@fbincon/statusline-cli/resources/statusline-agent-rows/resource-manifest.json'));
     const officialJson = async (args: string[]) => JSON.parse((await ctx.invoke([ctx.shim, 'plugin', ...args, '--json'])).stdout);
     const enabled = async (): Promise<string[]> => {
         if (!ctx.host) return plugins.filter(spec => settings().enabledPlugins?.[spec.plugin] === true).map(spec => spec.name);
@@ -53,6 +54,7 @@ export function shortHistoryObserver(ctx: Context) {
             const nodeHash = hashFile(ctx.node), launch = binding(state.launch.executable, state.launch.args, nodeHash);
             assert.equal(state.backend_version, version);
             const keep = settings().env?.KEEP; assert.equal(keep, 'unchanged');
+            const specs = compatible.filter(spec => spec !== AGENT_ROWS || phase === 'upgrade' && hasRowResources());
             assert.deepEqual(await enabled(), specs.map(spec => spec.name));
             const bindings = [];
             for (const spec of specs) {
@@ -81,7 +83,8 @@ export function shortHistoryObserver(ctx: Context) {
             const explicit = { reinstall_exit_code: reinstall.code, native_preference: json(join(ctx.config, 'claude-statusline-native.json')).native_editor,
                 runtime_preference: runtime.native_timing, enabled_managed_mods: await enabled(), third_party_keep: settings().env.KEEP };
             assert.equal(explicit.native_preference, false); assert.equal(runtime.live_metrics, false); assert.equal(explicit.runtime_preference, false);
-            assert.deepEqual(explicit.enabled_managed_mods, []); assert.equal(explicit.third_party_keep, 'unchanged');
+            assert.deepEqual(explicit.enabled_managed_mods, compatible.filter(spec => spec === AGENT_ROWS && hasRowResources()).map(spec => spec.name));
+            assert.equal(explicit.third_party_keep, 'unchanged');
             assert.equal(json(join(ctx.config, 'statusline_runtime/installation.json')).backend_version, target);
             return explicit;
         },

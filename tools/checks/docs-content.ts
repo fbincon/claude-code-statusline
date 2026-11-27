@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
+import { BY_SCOPE, ITEMS, NODE_TYPES } from '@fbincon/statusline-core/config/catalog';
 import { SCHEMA_VERSION, defaultDisplay, isSchema, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { COMPLETE_SCHEMES, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
 import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
@@ -12,15 +12,17 @@ import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
+import { AGENT_ROW_MINIMUM, LEGACY_ROW_RANGES } from '@fbincon/statusline-core/integration/agent-row-capabilities';
 import { MAX_REQUESTS, MAX_TASKS, MAX_TOOLS, MAX_TURNS } from '@fbincon/statusline-core/runtime/live/model';
 import { DEVELOPMENT_CONTENT_PATHS, DOCUMENT_CONTENT_PATHS } from './impact-documentation.js';
 import { developmentFacts, sourceReader, type SourceReader } from './docs-source-facts.js';
 import { checkInterfaceVersions, checkNpmScripts, documentationProse, NUMBER, numericClaims } from './docs-markdown.js';
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
-import { NATIVE } from '@fbincon/statusline-cli/integration/model';
+import { AGENT_ROWS, NATIVE } from '@fbincon/statusline-cli/integration/model';
 import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, MAX_REFRESH_BACKOFF_MS } from '@fbincon/statusline-tui/foreground-refresh';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 import { candidateCasesForNode } from './release-ci-policy.js';
+import { AGENT_ROWS_MANIFEST } from './runtime-inputs.js';
 import { SCOPED_HOSTED_JOB_MS } from './impact-budget.js';
 
 export type Documents = ReadonlyMap<string, string>;
@@ -82,7 +84,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
     const toolDirs = readdirSync(join(root, 'tools'), { withFileTypes: true })
         .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
     const facts = developmentFacts(root, readSource);
-    const releaseCases = candidateCasesForNode(readFileSync(join(root, '.node-version'), 'utf8').trim());
+    const releaseCases = candidateCasesForNode(readFileSync(join(root, '.node-version'), 'utf8').trim(), existsSync(join(root, AGENT_ROWS_MANIFEST)));
     for (const suffix of ['', '.zh-CN']) {
         const readme = `README${suffix}.md`, metrics = `docs/DISPLAY_ITEMS${suffix}.md`, guide = `docs/USER_GUIDE${suffix}.md`, schemes = `docs/SCHEMES${suffix}.md`;
         for (const path of [readme, metrics, guide]) check(path, body => {
@@ -114,19 +116,25 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             const presetMatches = body.match(/(\w+) complete display schemes and (\w+) original presets|([0-9]+|[零一二三四五六七八九十]+)套完整显示方案与([0-9]+|[零一二三四五六七八九十]+)种原有预设/u);
             assert(presetMatches, 'Missing scheme/preset counts');
             assert.deepEqual(presetMatches.slice(1).filter((value): value is string => value !== undefined).map(count), [COMPLETE_SCHEMES.length, originals.length], 'Scheme/preset counts differ from the catalog');
+            const listSeparator = suffix ? '、' : ', ';
+            const legacyRanges = LEGACY_ROW_RANGES.map(([first, last]) => first.join('.') + '–' + last.join('.')).join(listSeparator);
+            const agentRowRange = AGENT_ROW_MINIMUM.join('.') + '+';
+            const effortRange = BY_SCOPE.subagent.get('effort')!.minimum_version + '–' + LEGACY_ROW_RANGES[0][1].join('.') + listSeparator + agentRowRange;
             const requiredRows = suffix
                 ? [
-                    '| 自定义子代理行 | 2.1.205–2.1.322 |',
+                    `| 通过命令回调自定义子代理行 | ${legacyRanges} |`,
+                    `| 通过 AgentRow Mod 自定义子代理行 | ${agentRowRange} |`,
                     '| 子代理生命周期 hooks | 2.1.205+ |',
-                    '| 自定义子代理行中的显式强度 | 2.1.214–2.1.322 |',
+                    `| 自定义子代理行中的显式强度 | ${effortRange} |`,
                     '| 带参数 slash 命令的本地执行、外部入口 | 2.1.258+ |',
                     '| 会话内 Client 编辑器 | 2.1.287+ |',
                     '| 原生计时及高级实时指标采集 | 2.1.289+ |',
                 ]
                 : [
-                    '| Custom subagent rows | 2.1.205–2.1.322 |',
+                    `| Custom subagent rows via the command callback | ${legacyRanges} |`,
+                    `| Custom subagent rows via the AgentRow Mod | ${agentRowRange} |`,
                     '| Subagent lifecycle hooks | 2.1.205+ |',
-                    '| Configured effort in custom subagent rows | 2.1.214–2.1.322 |',
+                    `| Configured effort in custom subagent rows | ${effortRange} |`,
                     '| Local argument-based slash commands, external entry | 2.1.258+ |',
                     '| In-session Client editor | 2.1.287+ |',
                     '| Native timing and advanced live-metrics collection | 2.1.289+ |',
@@ -176,7 +184,13 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             // A compatibility range such as v1–v17 is not a current-version claim.
             const schemas = [...body.matchAll(/(?:display schema|显示 schema)\s*v?(\d+)(?![\d–-])/giu)];
             const protocols = [...body.matchAll(/(?:editor protocol|编辑器协议)\s*(\d+)/giu)];
-            if (base === 'docs/reference/cli') assert(schemas.length && protocols.length, 'Missing centralized current interface versions');
+            if (base === 'docs/reference/cli') {
+                assert(schemas.length && protocols.length, 'Missing centralized current interface versions');
+                const rowLabel = suffix ? 'AgentRow Mod 协议' : 'AgentRow Mod protocol';
+                assert(body.includes(`| ${rowLabel} | ${AGENT_ROWS.protocol} |`), 'AgentRow protocol differs from the plugin integration');
+                const declared = body.match(/`agent_rows_protocol`\s+(\d+)\b/gu) ?? [];
+                assert.deepEqual(declared, [`\`agent_rows_protocol\` ${PACKAGE_COMPATIBILITY.agent_rows_protocol}`], 'AgentRow protocol differs from package compatibility');
+            }
             if (['docs/COMPOSITION', 'docs/EXTENSIONS'].includes(base)) {
                 const link = suffix ? 'reference/cli.zh-CN.md#协议与-schema-版本' : 'reference/cli.md#protocol-and-schema-versions';
                 assert(body.includes(link), 'Missing centralized version link');

@@ -13,6 +13,9 @@ import { commit } from '../recovery/files.js';
 import { assertClear } from '../recovery/journal.js';
 import { readProfiles } from '../rendering/configuration.js';
 import { profileRowsSettings } from './profiles.js';
+import { configuredAgentRows, hasAgentRowBinding } from './agent-rows.js';
+import { agentRowCapabilities, inspectAgentRowRoute } from '../integration/agent-row-route.js';
+import { latestAgentRowEvidence } from '../integration/agent-row-evidence.js';
 export interface ConfigurationContext {
     configDir: string;
     launch: LaunchSpec;
@@ -58,14 +61,41 @@ export function publicConfig(effective: EffectiveConfig): Omit<EffectiveConfig, 
 export function draft(effective: EffectiveConfig): Draft { return { display: effective.display, host: effective.host }; }
 export class ConfigurationService {
     constructor(public readonly context: ConfigurationContext, public readonly io: Storage = createStorage()) { }
-    snapshot(display: DisplayDraft, settings: Record<string, unknown>): EffectiveConfig {
+    agentRowRoute(settings: Record<string, unknown>, requested: boolean, version = this.context.hostVersion()) {
+        return inspectAgentRowRoute({ ...this.context, io: this.io, version }, settings, requested, {evidence: false});
+    }
+    assertRowOwnership(settings: Record<string, unknown>, identity = installationIdentity(settings, this.context.launch)): void {
+        if (identity.subagentStatusLine!.state === 'foreign' && this.agentRowRoute(settings, true).legacy === 'write')
+            throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
+    }
+    snapshot(display: DisplayDraft, settings: Record<string, unknown>, requestedRows?: boolean): EffectiveConfig {
         const { configDir, launch } = this.context;
         const { host, installed } = hostFromSettings(settings, launch);
         const installation = installationIdentity(settings, launch);
-        const state = atLeast(this.context.hostVersion(), [2, 1, 205]) ? String(installation.subagentStatusLine!.state) : 'unsupported';
+        const version = this.context.hostVersion(), capabilities = agentRowCapabilities(version);
+        const rows = requestedRows ?? (display.subagents.enabled || configuredAgentRows(display, readProfiles(configDir, this.io)[0]));
+        const route = this.agentRowRoute(settings, rows, version);
+        const legacy = String(installation.subagentStatusLine!.state);
+        let state = capabilities.legacy ? legacy : capabilities.mod ? 'absent' : 'unsupported';
+        if (route.installationId || route.preference !== 'auto') {
+            // Revisions bind edits to the reviewed route. Session timestamps must never stale a draft.
+            installation.agentRows = { preference: route.preference, generation: route.installationId && revision(route.installationId), mode: route.mode };
+        }
+        if (route.mode === 'mod') {
+            // Session evidence is observational. Damaged evidence belongs in doctor and must not block a display save.
+            try {
+                const observed = latestAgentRowEvidence(configDir, route.installationId, version?.join('.') ?? '');
+                state = observed.verifiedAt !== null ? 'mod-verified' : observed.loadedAt !== null ? 'mod-loaded' : 'mod-pending';
+            } catch { state = 'mod-unverified'; }
+        } else if (route.mode === 'standby') state = 'standby';
+        else if (route.mode === 'preserve' && legacy === 'foreign') state = 'foreign';
+        else if (route.mode === 'builtin' && ['restricted', 'mod-disabled', 'mod-failed', 'unavailable'].includes(route.reason)) state = route.reason;
+        const bound = route.mode === 'mod' && hasAgentRowBinding(settings, route.installationId);
+        const rowInstalled = bound || state === 'owned' || state === 'mod-verified' || state === 'mod-loaded' ||
+            (state === 'standby' && legacy === 'owned');
         return {
             scope: 'user', config_path: join(configDir, CONFIG_FILENAME), installed, display, host,
-            subagent_statusline: { enabled: display.subagents.enabled, installed: state === 'owned', state },
+            subagent_statusline: { enabled: display.subagents.enabled, installed: rowInstalled, state },
             revision: revision({ revision_version: 1, display, host, installation }), installation,
         };
     }
@@ -126,14 +156,12 @@ export class ConfigurationService {
     }
     apply(value: unknown, expectedRevision?: string, beforeCommit?: () => void): MutationResult {
         const parsed = validateDraft(value, true);
-        return this.mutate('config-apply', (display, settings, host) => {
+        return this.mutate('config-apply', (display, settings) => {
             beforeCommit?.();
-            const installation = installationIdentity(settings, this.context.launch);
-            const current = revision({ revision_version: 1, display, host, installation });
-            if (expectedRevision !== undefined && current !== expectedRevision)
+            const current = this.snapshot(display, settings);
+            if (expectedRevision !== undefined && current.revision !== expectedRevision)
                 throw new ConfigError('errors.service.status_line_configuration_changed_while_the_editor', {}, 'configuration_conflict');
-            if (installation.subagentStatusLine!.state === 'foreign')
-                throw new ConfigError('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer', {}, 'ownership_mismatch');
+            this.assertRowOwnership(settings, current.installation);
             return [parsed.display, settingsWithHost(settings, this.context.launch, parsed.host)];
         });
     }
