@@ -52,7 +52,7 @@ The clip copies a metric, then shows Undo, Redo, Save and reopening the editor. 
 
 Windows ARM devices use x64 Node under emulation. Git fields require Git. Claude Code supports local slash arguments and the external entry from 2.1.258, the in-session editor from 2.1.287 and native timing and live collection from 2.1.289. [Platform and feature requirements](docs/USER_GUIDE.md#requirements)
 
-For custom subagent rows, `install` selects the command callback on Claude Code 2.1.205–2.1.322 and prefers the AgentRow Mod from 2.1.326. Versions 2.1.323–2.1.325 show Claude's built-in rows. Both integrations use the same display settings. [Subagent row setup](docs/USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
+In builds that include the AgentRow Mod, `install` selects the command callback on Claude Code 2.1.205–2.1.322 and prefers the Mod from 2.1.326. Versions 2.1.323–2.1.325 show Claude's built-in rows. Both integrations use the same display settings. [Subagent row setup](docs/USER_GUIDE.md#subagent-rows-are-missing-or-ownership-conflicts-occur)
 
 <a id="install-current-source"></a>
 <a id="install-from-a-release-recommended"></a>

@@ -12,8 +12,8 @@ import { bundledFiles, digest, type Bundle } from './resources.js';
 import { owner, ownedPath, registered, cacheOwned, prune, type Marker } from './mod-ownership.js';
 import { commit, safeTarget, type Change } from './transaction.js';
 import { BINDING_FILE, bindingRecord } from './ownership.js';
-import { refreshIntents } from '../recovery/journal.js';
-import { MOD_BLOCKED_NOTICE } from './mod-diagnostic.js';
+import { refreshIntents, RecoveryRequired } from '../recovery/journal.js';
+import { modFailureDetail, MOD_BLOCKED_NOTICE } from './mod-diagnostic.js';
 import { readAgentRowRoute } from './agent-row-route.js';
 function rememberDisabled(context: InstallContext, spec: ModSpec, enabled: boolean): void {
     context.io.lock(context.configDir, () => {
@@ -117,6 +117,36 @@ export function bindingValues(context: InstallContext, spec: ModSpec, backendVer
 export function bindingMatches(options: unknown, values: Record<string, string>): boolean {
     return object(options) && object(options.inputs) && Object.entries(values).every(([key, value]) => options.inputs && (options.inputs as Record<string, unknown>)[key] === value);
 }
+
+/** A disabled row plugin is never installed or enabled just to finish its interrupted refresh. */
+export function settleDisabledAgentRowPlugin(context: InstallContext, dryRun: boolean, preserveChoice: () => void): void {
+    const {configDir, io} = context, spec = AGENT_ROWS;
+    if (!refreshIntents(configDir).includes(spec.name)) return;
+    const host = context.host(spec);
+    function inspect() {
+        const marker = owner(configDir, spec, io, true);
+        const [markets, plugins] = host.listing();
+        const [market, row] = registered(configDir, spec, markets, plugins, marker);
+        const cached = row ? cacheOwned(configDir, spec, row, marker!, io) : null;
+        const current = !!(market && marker && cached && equalSettings(cached, {mod_version: marker.mod_version, files: marker.files}));
+        if (row && typeof row.enabled !== 'boolean') throw new RecoveryRequired('Cannot verify the row plugin enablement');
+        return {row, current};
+    }
+    const before = inspect();
+    if (dryRun) return;
+    preserveChoice();
+    if (!before.current) {
+        // The interrupted replacement left either no plugin or a verified older cache.
+        const removed = integrate(context, spec, false, true);
+        if (removed.state !== 'disabled') throw new RecoveryRequired(modFailureDetail(removed.messages) ?? 'Cannot remove incomplete row plugin refresh');
+        return;
+    }
+    if (before.row!.enabled) host.run(['disable', spec.plugin, '--scope', 'user', '--json']);
+    const after = inspect();
+    if (!after.current || after.row!.enabled !== false) throw new RecoveryRequired('Cannot confirm the disabled row plugin');
+    rememberDisabled(context, spec, false);
+}
+
 export function integrate(context: InstallContext, spec: ModSpec, requested: boolean, uninstall = false, provided?: Bundle): ModResult {
     const { configDir, version, io } = context;
     let changed = false;

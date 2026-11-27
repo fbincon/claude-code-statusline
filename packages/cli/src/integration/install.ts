@@ -18,7 +18,7 @@ import { OWNER, OWNER_FILE, SKILL, EXTERNAL, NATIVE, RUNTIME, AGENT_ROWS, VERSIO
 import { BINDING_FILE, previousBinding, bindingRecord, skillOwned } from './ownership.js';
 import { bundledFiles, renderSkill } from './resources.js';
 import { setLegacyRows, settingsPlan } from './plan.js';
-import { commandPreflight, integrate } from './mods.js';
+import { commandPreflight, integrate, settleDisabledAgentRowPlugin } from './mods.js';
 import { commit, safeTarget, type Change } from './transaction.js';
 import { administration } from '../recovery/service.js';
 import { readProfiles } from '../rendering/configuration.js';
@@ -47,7 +47,9 @@ function agentRowPlan(context: InstallContext, settings: Record<string, unknown>
         try { modSuspended = owner(context.configDir, AGENT_ROWS, context.io, true)?.suspended === true; }
         catch { /* A foreign or unverifiable marker cannot authorize enabling a disabled plugin. */ }
     }
-    const request = { preference: options.subagentRenderer, force: options.force, modUnavailable, modSuspended };
+    const pendingDisabled = refreshIntents(context.configDir).includes(AGENT_ROWS.name);
+    const request = { preference: options.subagentRenderer, force: options.force,
+        modUnavailable: modUnavailable ?? (pendingDisabled ? 'disabled' as const : undefined), modSuspended };
     try {
         return planAgentRowInstall(context, settings, rows, { ...request, resourceRevision() {
             try { return revision(bundledFiles(AGENT_ROWS).inventory); }
@@ -91,7 +93,7 @@ function prepare(context: InstallContext, options: InstallOptions, uninstall: bo
     }
     const library = uninstall ? null : readProfiles(configDir, io)[0];
     const routing = uninstall ? null : agentRowPlan(context, settings, configuredAgentRows(display, library), options);
-    if (routing?.unsupported)
+    if (routing?.unsupported && !options.finishDisabledRefresh)
         fail('agent_rows.install.unavailable', { preference: routing.preference, reason: text('agent_rows.reason.' + routing.reason) });
     const updated = settingsPlan(settings, { directory: configDir, launch, previous, force: options.force ?? false, fast: atLeast(version, [2, 1, 258]), external: active, subagentLifecycle: atLeast(version, [2, 1, 205]), legacyRows: routing?.legacy ?? 'remove' }, uninstall);
     if (!equalSettings(settings, updated))
@@ -164,6 +166,30 @@ function integrateAgentRows(context: InstallContext, plan: AgentRowInstallPlan):
     return integrate(context, AGENT_ROWS, plan.wantMod || suspend);
 }
 
+function settleAgentRowRefresh(context: InstallContext, dryRun: boolean, beforeCommit?: () => void): boolean {
+    const { configDir, io } = context;
+    if (!refreshIntents(configDir).includes(AGENT_ROWS.name)) return false;
+    settleDisabledAgentRowPlugin(context, dryRun, () => io.lock(configDir, () => {
+        beforeCommit?.();
+        const [settings, raw] = readSettings(configDir, io), updated = { ...settings };
+        const [display] = readDisplay(configDir, io), [profiles] = readProfiles(configDir, io);
+        const plan = agentRowPlan(context, settings, configuredAgentRows(display, profiles), {}, 'disabled');
+        const route = plan.reason === 'mod-disabled' && !plan.unsupported ? plan.change : deactivateAgentRowRoute(configDir, true);
+        const changes = route ? [route] : [];
+        if (plan.legacy !== 'write' || settings.subagentStatusLine == null)
+            setLegacyRows(updated, { launch: context.launch, previous: previousBinding(configDir, io), force: false }, plan.legacy);
+        if (!equalSettings(settings, updated))
+            changes.push({ name: 'settings.json', path: join(configDir, 'settings.json'), raw, desired: jsonBytes(updated) });
+        commit(configDir, 'subagent-renderer-restore-disabled', changes, io);
+    }));
+    return !dryRun;
+}
+
+/** Normal recovery restores the opt-out even if a saved forced renderer is currently unavailable. */
+export function restoreDisabledAgentRows(context: InstallContext, dryRun: boolean): void {
+    administration(context, dryRun, tracked => settleAgentRowRefresh(tracked, dryRun));
+}
+
 /** A failed candidate can change only the route it prepared. Keep newer or third-party decisions. */
 function recoverAgentRowRoute(context: InstallContext, options: InstallOptions, prepared: FileResult, mod: ModResult): AgentRowInstallPlan {
     const route = prepared.routing!;
@@ -212,7 +238,9 @@ function installImpl(context: InstallContext, options: InstallOptions): ChangeRe
     if (requested && compatible)
         commandPreflight(configDir, NATIVE);
     const externalMessage = text(!external ? 'install.external_disabled' : atLeast(version, [2, 1, 258]) ? 'install.external_enabled' : 'install.external_suspended', { fallback: text('install.external_fallback') });
-    const prepared = changeFiles(context, options, false), { result, routing } = prepared;
+    const restored = !options.dryRun && settleAgentRowRefresh(context, false, options.beforeCommit);
+    const prepared = changeFiles(context, restored ? { ...options, beforeCommit: undefined } : options, false), { result, routing } = prepared;
+    if (restored) result.changed = true;
     if (options.dryRun)
         return { ...result, nativeState: requested ? compatible ? 'requested' : 'suspended' : 'disabled', messages: [externalMessage, routeNotice(routing!), 'Plugin operations are not executed by dry-run.'] };
     const native = integrate(context, NATIVE, requested), live = integrate(context, RUNTIME, runtime);
@@ -246,6 +274,8 @@ function uninstallImpl(context: InstallContext, options: InstallOptions): Change
 }
 export function install(context: InstallContext, options: InstallOptions = {}): ChangeResult {
     // Validation precedes even the administration lock file on invalid input.
+    if (options.subagentRenderer === undefined && refreshIntents(context.configDir).includes(AGENT_ROWS.name))
+        options = { ...options, finishDisabledRefresh: true };
     if (!options.dryRun) installImpl(context, { ...options, dryRun: true });
     return administration(context, options.dryRun ?? false, tracked => installImpl(tracked, options));
 }

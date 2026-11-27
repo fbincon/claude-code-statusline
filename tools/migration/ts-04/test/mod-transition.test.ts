@@ -110,6 +110,15 @@ test('an edited AgentRow cache blocks retirement before the route or user config
     assert.ok(expected[AGENT_ROW_ROUTE_FILE]);
 });
 
+test('a package without a row registration leaves an unrelated namesake directory alone during downgrade', t => {
+    const f = fresh(t);
+    f.put(AGENT_ROWS.name + '/unrelated.json', { keep: true });
+    const root = target(f), expected = configurationHashes(configurationBytes(f.root)), before = snapshot(f.root);
+    assert.deepEqual(prepareModDowngrade(f.context, root, '3.7.0', expected, false), expected);
+    assert.deepEqual(snapshot(f.root), before);
+    assert.equal(f.agentRows.calls.length, 0);
+});
+
 test('an equal-version target refreshes an owned AgentRow when its verified resource inventory differs', t => {
     const f = fresh(t, [2, 1, 332]);
     assert.equal(f.install({ native: false, nativeTiming: false }).failed, false);

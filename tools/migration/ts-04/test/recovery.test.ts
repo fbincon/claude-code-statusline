@@ -12,6 +12,9 @@ import { UnconfirmedOperation } from '@fbincon/statusline-platform/plugin-host';
 import { main } from '@fbincon/statusline-cli/main';
 import { AGENT_ROWS } from '@fbincon/statusline-cli/integration/model';
 import { AGENT_ROW_ROUTE_FILE, AGENT_ROW_EVIDENCE_FILE } from '@fbincon/statusline-cli/integration/agent-row-paths';
+import { BINDING_FILE } from '@fbincon/statusline-cli/integration/ownership';
+import { startOperation, saveOperation } from '@fbincon/statusline-cli/management/store';
+import { globalPackageRoot } from '@fbincon/statusline-platform/npm';
 const helper = fileURLToPath(new URL('./recovery-child.js', import.meta.url));
 
 test('the AgentRow transaction whitelist matches its exact plugin roots and excludes observations', () => {
@@ -43,6 +46,45 @@ test('uncertain AgentRow operations reconcile against the owned row plugin witho
         assert.equal(f.agentRows.calls.filter(call => call.args[0] === 'install').length, Number(applied));
         assert.equal(f.install({ native: false, nativeTiming: false }).failed, false);
     }
+});
+
+test('ordinary recovery leaves a package handoff to its verified target while the original CLI is missing', t => {
+    const f = fresh(t, [2, 1, 332]), prefix = join(f.temporary, 'installed');
+    fs.mkdirSync(prefix);
+    const root = globalPackageRoot(prefix), entry = join(root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js');
+    f.put(BINDING_FILE, { owner: 'claude-code-statusline', schema_version: 1, backend_version: '3.16.5',
+        launch: { executable: process.execPath, args: [entry] }, refresh_disabled: [AGENT_ROWS.name] });
+    const operation = startOperation(f.root, prefix, '3.7.0', 'https://registry.npmjs.org/',
+        { prefix, root, entry, version: '3.16.5', integrity: null, registry: null }, 'rollback');
+    operation.integrated = true;
+    operation.stage = 'integrating';
+    saveOperation(operation);
+    const before = snapshot(f.root);
+    for (const dryRun of [true, false]) {
+        assert.deepEqual(recover(f.context, dryRun), { changed: false,
+            transactions: [{ id: AGENT_ROWS.name, kind: 'plugin-refresh', outcome: 'recover --package' }] });
+        assert.deepEqual(snapshot(f.root), before);
+    }
+    assert.deepEqual(refreshIntents(f.root), [AGENT_ROWS.name]);
+    assert.equal(fs.existsSync(entry), false);
+});
+
+test('mixed refresh intents preserve explicit disablement and the installed binding when recovery runs from another copy', t => {
+    const f = fresh(t, [2, 1, 332]);
+    assert.equal(f.install({ native: true, subagentRenderer: 'mod' }).failed, false);
+    f.host.enabled(false);
+    f.agentRows.enabled(false);
+    f.put(BINDING_FILE, { ...f.json(BINDING_FILE), refresh_disabled: [NATIVE.name, AGENT_ROWS.name] });
+    const context = { ...f.context, launch: { executable: process.execPath, args: [join(f.temporary, 'recovery-runner', 'entry.js')] } };
+    const before = snapshot(f.root);
+    assert.equal(recover(context, true).transactions.length, 2);
+    assert.deepEqual(snapshot(f.root), before);
+    assert.equal(recover(context).transactions.length, 2);
+    assert.deepEqual(refreshIntents(f.root), []);
+    assert.deepEqual(f.json(BINDING_FILE).launch, f.launch);
+    assert.equal(f.host.listing()[1][0]!.enabled, false);
+    assert.equal(f.agentRows.listing()[1][0]!.enabled, false);
+    assert.equal(f.json(AGENT_ROW_ROUTE_FILE).preference, 'mod');
 });
 test('canonical cache identity never conceals a link inside the configuration tree', t => {
     const f = fresh(t); f.install({ native: true, nativeTiming: false });

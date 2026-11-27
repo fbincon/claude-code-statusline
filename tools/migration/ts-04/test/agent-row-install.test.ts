@@ -2,6 +2,9 @@ import test from 'node:test';
 import { text } from '@fbincon/statusline-core/i18n/messages';
 import { AGENT_ROWS, OWNER_FILE } from '@fbincon/statusline-cli/integration/model';
 import { AGENT_ROW_ROUTE_FILE, readAgentRowRoute } from '@fbincon/statusline-cli/integration/agent-row-route';
+import { BINDING_FILE } from '@fbincon/statusline-cli/integration/ownership';
+import { refreshIntents } from '@fbincon/statusline-cli/recovery/journal';
+import { recover } from '@fbincon/statusline-cli/recovery/service';
 import { assert, doctor, fresh, fs, join, snapshot } from './install-support.js';
 
 const rowsOnly = { native: false, external: false, nativeTiming: false, liveMetrics: false };
@@ -129,4 +132,38 @@ test('a newer row Mod ownership protocol blocks removal without changing the plu
     assert.equal(f.uninstall().failed, true);
     assert.deepEqual(snapshot(f.root), before);
     assert.equal(f.agentRows.listing()[1][0]?.enabled, true);
+});
+
+for (const stage of ['disabled', 'temporarily-enabled', 'not-reinstalled'] as const)
+    test('row refresh recovery restores the disabled preference after ' + stage, t => {
+        const f = fresh(t, [2, 1, 332]);
+        assert.equal(f.install(rowsOnly).failed, false);
+        f.agentRows.enabled(false);
+        f.put(BINDING_FILE, { ...f.json(BINDING_FILE), refresh_disabled: [AGENT_ROWS.name] });
+        if (stage === 'temporarily-enabled') f.agentRows.enabled(true);
+        if (stage === 'not-reinstalled') f.agentRows.run(['uninstall', AGENT_ROWS.plugin, '--scope', 'user']);
+        const before = snapshot(f.root);
+        assert.equal(recover(f.context, true).changed, false);
+        assert.deepEqual(snapshot(f.root), before);
+        f.agentRows.calls.length = 0;
+        assert.equal(recover(f.context).changed, true);
+        assert.deepEqual(refreshIntents(f.root), []);
+        assert.equal(readAgentRowRoute(f.root)?.reason, 'mod-disabled');
+        assert(f.json('settings.json').subagentStatusLine?.command);
+        assert.equal(f.agentRows.listing()[1][0]?.enabled, stage === 'not-reinstalled' ? undefined : false);
+        assert.equal(f.agentRows.calls.some(call => ['install', 'enable'].includes(call.args[0]!)), false);
+        assert.equal(recover(f.context).changed, false);
+    });
+
+test('ordinary install can finish a disabled row refresh with a stored forced renderer', t => {
+    const f = fresh(t, [2, 1, 332]);
+    assert.equal(f.install({ ...rowsOnly, subagentRenderer: 'mod' }).failed, false);
+    f.agentRows.enabled(false);
+    f.put(BINDING_FILE, { ...f.json(BINDING_FILE), refresh_disabled: [AGENT_ROWS.name] });
+    const result = f.install();
+    assert.equal(result.changed, true);
+    assert.equal(result.failed, false);
+    assert.equal(f.agentRows.listing()[1][0]?.enabled, false);
+    assert.equal(readAgentRowRoute(f.root)?.preference, 'mod');
+    assert.deepEqual(refreshIntents(f.root), []);
 });

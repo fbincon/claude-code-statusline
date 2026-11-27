@@ -45,6 +45,8 @@ export interface InstallOptions {
     liveMetrics?: boolean;
     nativeTiming?: boolean;
     subagentRenderer?: 'auto' | 'mod' | 'legacy';
+    /** Finish a retained plugin opt-out without selecting an unavailable renderer. */
+    finishDisabledRefresh?: boolean;
     /** Internal review guard, evaluated under the file transaction lock. */
     beforeCommit?: () => void;
 }

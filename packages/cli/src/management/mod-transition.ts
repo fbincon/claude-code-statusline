@@ -1,5 +1,6 @@
 /** Refresh owned Mod bytes with the newer ownership reader before an older installer runs. */
 import { join } from 'node:path';
+import { lstatSync } from 'node:fs';
 import { bundledModProtocols, compatibility, compareVersions } from '@fbincon/statusline-core/management/compatibility';
 import { PACKAGE_NAME, VERSION } from '@fbincon/statusline-core/release';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
@@ -10,7 +11,8 @@ import { readPackageManifest } from '@fbincon/statusline-platform/npm';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { agentRowCapabilities } from '@fbincon/statusline-core/integration/agent-row-capabilities';
 import { commandFor } from '@fbincon/statusline-platform/commands';
-import { AGENT_ROWS, MANAGED_MODS, NATIVE, RUNTIME, type InstallContext, type ModSpec } from '../integration/model.js';
+import { isLinkOrReparse } from '@fbincon/statusline-platform/files';
+import { AGENT_ROWS, MANAGED_MODS, NATIVE, RUNTIME, OWNER_FILE, type InstallContext, type ModSpec } from '../integration/model.js';
 import { owner, registered, cacheOwned } from '../integration/mod-ownership.js';
 import { bundledFiles, digest, type Bundle } from '../integration/resources.js';
 import { integrate } from '../integration/mods.js';
@@ -35,13 +37,25 @@ interface Transition {
     disabled: boolean;
 }
 
+function ownedRows(context: InstallContext, recorded: boolean) {
+    const root = join(context.configDir, AGENT_ROWS.name);
+    // An older installation may share its configuration with an unrelated
+    // directory of this name. Only a registration we recorded or an ownership
+    // marker gives this transition a reason to inspect it.
+    if (!recorded) {
+        const parent = lstatSync(root, { throwIfNoEntry: false });
+        if (!parent?.isDirectory() || isLinkOrReparse(root) || !lstatSync(join(root, OWNER_FILE), { throwIfNoEntry: false })) return null;
+    }
+    return owner(context.configDir, AGENT_ROWS, context.io, true);
+}
+
 /** Revoke the current Mod's authority before detaching its marketplace. An old
  * target can already serve its command throughout the rest of the transaction. */
 function retireAgentRows(context: InstallContext, intents: string[]): { changes: Change[]; transition?: Transition } {
     const { configDir, io } = context;
-    const marker = owner(configDir, AGENT_ROWS, io, true);
     const route = readAgentRowRoute(configDir);
     const intent = intents.includes(AGENT_ROWS.name);
+    const marker = ownedRows(context, !!route?.installationId || intent);
     if (!marker && !route && !intent) return { changes: [] };
     const [settings, raw] = readSettings(configDir, io);
     let disabled = intent;
@@ -77,7 +91,9 @@ export function prepareModDowngrade(context: InstallContext, root: string, versi
     for (const original of MANAGED_MODS) {
         const protocol = protocols[original.name];
         if (protocol === undefined) continue;
-        const marker = owner(context.configDir, original, context.io, true);
+        const agentRoute = original.name === AGENT_ROWS.name ? readAgentRowRoute(context.configDir) : null;
+        const marker = original.name === AGENT_ROWS.name ? ownedRows(context, !!agentRoute?.installationId || intents.includes(original.name)) :
+            owner(context.configDir, original, context.io, true);
         const newerTarget = compareVersions(VERSION, version) < 0;
         if (!marker || newerTarget && marker.protocol_version <= protocol && compareVersions(marker.mod_version, version) <= 0 &&
             target.editor_protocol >= PROTOCOL_VERSION) continue;
@@ -85,9 +101,9 @@ export function prepareModDowngrade(context: InstallContext, root: string, versi
         const bundle = bundledFiles(spec, { root: join(root, 'node_modules/@fbincon/statusline-cli/resources', spec.name), version });
         if (version === VERSION && marker.mod_version === version && marker.protocol_version === protocol &&
             marker.files['plugins/' + spec.name + '/resource-manifest.json'] === digest(bundle.files.get('resource-manifest.json')!)) continue;
-        const requested = original.name === NATIVE.name ? loadNative(context.configDir, undefined, version, context.io)
-            : original.name === RUNTIME.name ? modes.native_timing || modes.live_metrics || automaticRequested(context.configDir)
-            : !!readAgentRowRoute(context.configDir)?.installationId;
+        let requested = !!agentRoute?.installationId;
+        if (original.name === NATIVE.name) requested = loadNative(context.configDir, undefined, version, context.io);
+        if (original.name === RUNTIME.name) requested = modes.native_timing || modes.live_metrics || automaticRequested(context.configDir);
         transitions.push({ spec, bundle, requested, disabled: !requested || restricted || intents.includes(spec.name) || !atLeast(context.version, spec.minimum) });
     }
     if (dryRun || !transitions.length && !retirement.changes.length) return expected;

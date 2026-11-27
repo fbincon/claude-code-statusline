@@ -6,10 +6,15 @@ import { openPty } from '../../migration/ts-04/test/pty.js';
 import { AGENTS, openProvider } from './provider.js';
 
 export const NAME_COLOR = '14afd2';
+export const NAME_BACKGROUND = '312a70';
+export const TASK_GRADIENT = ['ff006e', '5e60ce'] as const;
 export const FOREIGN = 'FOREIGN-ROW';
 type Appearance = 'custom' | 'default' | 'foreign';
 export interface ExpectedRows { appearance: Appearance; count: number }
-export interface VisibleRow { label: string; text: string; custom: boolean; foreign: boolean; body: string }
+type Paint = Pick<Cell, 'fg' | 'bg' | 'bold'>;
+interface RowStyle { name: Paint; task: Paint[] }
+export interface VisibleRow { label: string; text: string; custom: boolean; foreign: boolean; body: string; style?: RowStyle }
+const paint = ({ fg, bg, bold }: Cell): Paint => ({ fg, bg, bold });
 
 export function visibleRows(buffer: Cell[][], nameColor = NAME_COLOR): VisibleRow[] {
     return buffer.flatMap(cells => {
@@ -20,8 +25,18 @@ export function visibleRows(buffer: Cell[][], nameColor = NAME_COLOR): VisibleRo
         const foreign = text.includes(FOREIGN);
         // Capture only actual row bodies. A tool notice or command output can mention a task's label too.
         if (!custom && !foreign && !/general-purpose\s+/u.test(text)) return [];
-        return [{ label: agent.label, text: text.trimStart(), custom, foreign, body: custom ? text.slice(text.indexOf('General Purpose')) : '' }];
+        const name = custom && cells.find(cell => cell.data === 'G' && cell.fg === nameColor);
+        const task = cells.filter(cell => cell.data !== '' && [...agent.label].includes(cell.data)).map(paint);
+        return [{ label: agent.label, text: text.trimStart(), custom, foreign, body: custom ? text.slice(text.indexOf('General Purpose')) : '',
+            ...(name ? { style: { name: paint(name), task } } : {}) }];
     });
+}
+
+export function colouredLikeFixture(style?: RowStyle): boolean {
+    if (!style || style.name.fg !== NAME_COLOR || style.name.bg !== NAME_BACKGROUND || !style.name.bold) return false;
+    const colours = style.task.map(cell => cell.fg);
+    return colours.length === 3 && colours[0] === TASK_GRADIENT[0] && colours[2] === TASK_GRADIENT[1] &&
+        new Set(colours).size === 3 && style.task.every(cell => cell.bold);
 }
 
 export function matchRows(rows: VisibleRow[], expected: ExpectedRows): boolean {
@@ -63,6 +78,7 @@ interface Session {
     expected: ExpectedRows; settingsOverride?: Record<string, unknown>;
     readyAfterRender?: () => boolean;
     setNameColor?: (colour: string) => void;
+    verifyColours?: boolean;
 }
 const COLUMNS = 154, HEIGHT = 45;
 export const SAMPLE_KEY = 'local-test-key-for-agent-row-fixtures';
@@ -126,6 +142,7 @@ export async function inspectSession(session: Session) {
         }
         const rows = visibleRows(screen.buffer);
         assert(matchRows(rows, session.expected));
+        if (session.verifyColours) assert(rows.every(row => colouredLikeFixture(row.style)), 'The terminal changed the configured name or gradient');
         return { columns: COLUMNS, rows, agent_ids: agentIds as string[], local_requests: [...provider.requests],
             name_colour: rows.some(row => row.custom) ? '#' + NAME_COLOR : null, same_session_recolour_after_handoff: changeObserved,
             fake_requests_with_distinct_prompts: provider.received.size, external_model_calls: 0, billed_usd: 0 };

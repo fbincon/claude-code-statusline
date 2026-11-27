@@ -10,7 +10,7 @@ import { sha256 } from '@fbincon/statusline-platform/hash';
 import { installCandidate } from './install.js';
 import { verifyDelivery } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
-import { FOREIGN, inspectSession, NAME_COLOR, SAMPLE_KEY, type ExpectedRows } from './agent-rows/terminal.js';
+import { FOREIGN, inspectSession, NAME_BACKGROUND, NAME_COLOR, SAMPLE_KEY, TASK_GRADIENT, type ExpectedRows } from './agent-rows/terminal.js';
 import { verifiedHost, VERSIONS, type Version } from './agent-rows/hosts.js';
 
 const MOD = 'statusline-agent-rows@claude-statusline-agent-rows-local';
@@ -65,6 +65,8 @@ function configure(candidate: Candidate, w: Workspace, env: NodeJS.ProcessEnv, l
     for (const args of [
         ['config', 'subagents', 'set-items', 'name', 'task'],
         ['config', 'item', 'subagent', 'name', 'foreground', '#' + NAME_COLOR],
+        ['config', 'item', 'subagent', 'name', 'background', '#' + NAME_BACKGROUND],
+        ['config', 'instance', 'subagent', 'set', 'task', 'foreground-gradient', TASK_GRADIENT.map(rgb => '#' + rgb).join(',')],
         ['config', 'set', 'statusline-language', 'zh-CN'],
         ...(limit === undefined ? [] : [['config', 'set', 'subagent-row-limit', String(limit)]]),
     ]) invoke(candidate, w, env, args);
@@ -102,7 +104,7 @@ async function runStage(candidate: Candidate, host: Host, work: Workspace, outpu
         else assert.equal(start.legacy, null);
     }
     const actual = await inspectSession({ executable: host.executable, config: work.config, project: work.project, env, output,
-        expected: { appearance: scenario.appearance, count: scenario.limit ?? 2 },
+        expected: { appearance: scenario.appearance, count: scenario.limit ?? 2 }, verifyColours: scenario.appearance === 'custom',
         ...(scenario.gap ? { settingsOverride: { subagentStatusLine: foreign!.setting } } : {}),
         ...(options.handoff ? { readyAfterRender: () => installation(settings).legacy === null,
             setNameColor: (colour: string) => { invoke(candidate, work, env, ['config', 'item', 'subagent', 'name', 'foreground', '#' + colour]); } } : {}) });
@@ -187,9 +189,11 @@ async function matrix(options: Options) {
             assert.deepEqual(fs.readFileSync(join(work.config, 'claude-statusline.json')), display, 'Migration changed the display configuration');
         }
         if (!options.selected) {
-            const expected = results[0]!.rows.map(row => row.body).sort();
+            const bodies = (rows: typeof results[number]['rows']) => rows
+                .map(({ body, style }) => ({ body, style })).sort((a, b) => a.body.localeCompare(b.body));
+            const expected = bodies(results[0]!.rows);
             for (const result of results.filter(r => r.rows.length === 2 && r.rows.every(row => row.custom))) {
-                assert.deepEqual(result.rows.map(row => row.body).sort(), expected, 'Rendered bodies differ from the legacy reference: ' + result.scenario);
+                assert.deepEqual(bodies(result.rows), expected, 'Rendered text or cell styles differ from the legacy reference: ' + result.scenario);
             }
             assert.equal(results.find(r => r.scenario === 'limited-332')!.rows[0]!.label,
                 results.find(r => r.scenario === 'auto-332')!.rows[0]!.label, 'The single visible row must be the first eligible host row');

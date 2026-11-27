@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { join, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -24,7 +24,7 @@ export function checkModValidation(raw: string, plugin: string, version: string)
         assert.deepEqual(row.errors, []); assert(Array.isArray(row.warnings));
         const name = relative(resolve(plugin), resolve(row.file)).split(sep).join('/');
         for (const warning of row.warnings) {
-            assert.equal(row.type, 'hooks'); assert(name.endsWith('.ts') && !name.startsWith('../'));
+            assert.equal(row.type, 'hooks'); assert(name.endsWith('.ts') && !isAbsolute(name) && !name.startsWith('../'));
             if (warning.message === "error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.") {
                 observed.import_extension++;
             } else {

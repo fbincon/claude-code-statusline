@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { atomicWrite, privateDirectory, durableUnlink } from '@fbincon/statusline-platform/files';
 import { PackageError, type PackageIdentity } from '@fbincon/statusline-core/management/package';
@@ -9,6 +9,8 @@ import { exactVersion } from '@fbincon/statusline-core/management/package';
 import { compatibility } from '@fbincon/statusline-core/management/compatibility';
 import type { PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { globalPackageRoot } from '@fbincon/statusline-platform/npm';
+import { normalizedPath } from '@fbincon/statusline-platform/commands';
+import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import type { RegistryPackage } from '@fbincon/statusline-platform/npm';
 import type { ConfigHashes } from './configuration.js';
 import { processToken, processAlive } from '@fbincon/statusline-platform/processes';
@@ -44,6 +46,23 @@ export interface PackageOperation {
 }
 export const prefixKey = (prefix: string) => createHash('sha256').update(prefix).digest('hex');
 export const pendingPath = (prefix: string) => join(prefix, '.claude-statusline-operation.json');
+/** During package replacement the target CLI entry may be absent. The stable
+ * installation binding still identifies its npm prefix and owned operation. */
+export function integrationHandoffPending(directory: string, binding: LaunchSpec): boolean {
+    const entry = binding.args.length === 1 ? binding.args[0] : undefined;
+    if (!entry || !isAbsolute(entry)) return false;
+    const expected = normalizedPath(entry);
+    for (let prefix = dirname(entry); ; prefix = dirname(prefix)) {
+        const target = join(globalPackageRoot(prefix), 'node_modules/@fbincon/statusline-cli/dist/src/entry.js');
+        if (normalizedPath(target) === expected) {
+            if (!fs.existsSync(pendingPath(prefix))) return false;
+            const operation = readOperation(directory, prefix);
+            return operation.integrated === true && operation.before?.entry !== undefined &&
+                normalizedPath(operation.before.entry) === expected;
+        }
+        if (prefix === dirname(prefix)) return false;
+    }
+}
 export function operationPath(operation: PackageOperation): string { return join(operation.configDir, MANAGEMENT_ROOT, 'transactions', operation.id, 'operation.json'); }
 export function saveOperation(operation: PackageOperation): void {
     const path = operationPath(operation);

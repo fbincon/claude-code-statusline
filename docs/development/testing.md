@@ -26,6 +26,8 @@ The full manual diagnostic suite covers 7 installations, 28 Node cases, 22 hosts
 
 Run `npm run test:agent-rows -- --artifact TGZ --commit FULL_SHA --hosts DIR --output NEW_DIR` with official Linux executables named by exact version in `DIR`. The PTY probe starts real subagents with a loopback model service and verifies visible rows at the legacy, unsupported and Mod boundaries. The `agent-rows` CI diagnostic runs focused CLI/rendering/recovery tests and installed official Mod checks on Linux, Windows and macOS using one source-bound package. Both diagnostics use zero paid model calls.
 
+AgentRow uses strict plugin validation on both hosts. Their runtime validator reports TS5097 for explicit `.ts` imports in the Native and Runtime Mods and can miss the Native capacity test’s local host-version file. The checker accepts just these reproduced diagnostics, verifies the version file for the latter, and runs TypeScript against each host’s emitted declarations.
+
 For maintenance, run `npm run ci:plan` and the selected `ci:check` tasks. For core changes, run `npm run check` and the applicable complete product acceptance. [Impact checks](impact-checks.md)
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 

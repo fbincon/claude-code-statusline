@@ -90,7 +90,9 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
                 try {
                     const env = isolatedHostEnvironment(process.env, temporary), plugin = 'mods/statusline-' + check;
                     const version = spawnSync(host.executable, [...host.args, '--version'], { env, encoding: 'utf8', timeout: 10000 });
-                    assert.equal(version.status, 0); assert(version.stdout.includes(task.host)); recordModHost(plugin, task.host);
+                    assert.equal(version.status, 0);
+                    assert.equal(version.stdout.match(/\d+\.\d+\.\d+/u)?.[0], task.host, 'Scoped Mod host identity differs');
+                    recordModHost(plugin, task.host);
                     const checkedJson: boolean = check !== 'agent-rows' && AGENT_ROW_HOSTS.some((version): boolean => version === task.host);
                     const validation = spawnSync(host.executable, [...host.args, 'plugin', 'validate', checkedJson ? '--json' : '--strict', plugin],
                         { env, encoding: 'utf8', timeout: 600000, maxBuffer: 8 * 1024 * 1024 });
@@ -98,7 +100,10 @@ export async function runScoped(plan: ImpactPlan, taskId: string, reportPath: st
                     if (checkedJson) checkModValidation(validation.stdout, plugin, task.host);
                     const result = spawnSync(host.executable, [...host.args, 'plugin', 'test', plugin], { env, stdio: 'inherit', timeout: 600000 });
                     assert.ifError(result.error); assert.equal(result.status, 0, 'Scoped Mod tests failed');
-                    if (task.host !== '2.1.296') { await prepareModTypes(plugin); run(['node_modules/typescript/bin/tsc', '--noEmit', '--project', plugin + '/tsconfig.json']); }
+                    if (task.host !== '2.1.296') {
+                        assert.equal(await prepareModTypes(plugin), task.host);
+                        run(['node_modules/typescript/bin/tsc', '--noEmit', '--project', plugin + '/tsconfig.json']);
+                    }
                 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
             } else await runFamily(check);
             receipt.checks.push(check);

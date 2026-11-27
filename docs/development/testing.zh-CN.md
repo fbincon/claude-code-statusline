@@ -26,6 +26,8 @@
 
 执行 `npm run test:agent-rows -- --artifact TGZ --commit FULL_SHA --hosts DIR --output NEW_DIR`，在 `DIR` 放置按精确版本命名的 Linux 官方可执行文件。PTY 探针使用本地回环模拟服务启动真实子代理，对照旧回调、空窗和 Mod 版本的可见行。CI 的 `agent-rows` 诊断在 Linux、Windows 和 macOS 上用同一源码绑定包验证 CLI、渲染、恢复及已安装的官方 Mod。两类诊断的付费模型调用均为零。
 
+在这两个宿主上，AgentRow 运行严格插件校验。Native 和 Runtime 的运行时校验会把显式 `.ts` 导入标为 TS5097，并可能在 Native 容量测试中漏看测试用版本文件。检查器仅接纳这两种已复现的诊断，核验实际版本文件后再使用宿主导出的精确声明运行 TypeScript。
+
 维护改动按[影响计划](impact-checks.zh-CN.md)执行 `npm run ci:plan` 与选中的 `ci:check` 任务。核心改动执行 `npm run check` 及适用的完整产品验收。
 默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
 

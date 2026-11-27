@@ -48,7 +48,7 @@
 
 Windows ARM 设备使用模拟 x64 Node。Git 字段需要 Git。Claude Code 从 2.1.258 起支持本地 slash 参数和外部入口，2.1.287 起支持会话内编辑器，2.1.289 起支持原生计时和实时采集。[平台与功能要求](docs/USER_GUIDE.zh-CN.md#运行要求)
 
-对于自定义子代理行，`install` 在 Claude Code 2.1.205–2.1.322 使用命令回调，从 2.1.326 起优先使用 AgentRow Mod。2.1.323–2.1.325 显示 Claude 内置行。两种接入共用同一份显示配置。[子代理行设置](docs/USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
+在包含 AgentRow Mod 的安装包中，`install` 在 Claude Code 2.1.205–2.1.322 使用命令回调，从 2.1.326 起优先使用 Mod。2.1.323–2.1.325 显示 Claude 内置行。两种接入共用同一份显示配置。[子代理行设置](docs/USER_GUIDE.zh-CN.md#子-agent-行不显示或发生所有权冲突)
 
 <a id="从-release-安装推荐"></a>
 <a id="从固定标签源码安装"></a>

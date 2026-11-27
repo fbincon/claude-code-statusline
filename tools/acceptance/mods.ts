@@ -77,7 +77,7 @@ try {
         if (version === '2.1.296') types = { status: 'unavailable', reason: 'This exact host does not emit /plugin-types declarations; no typecheck pass is claimed' };
         else {
             admit(60_000);
-            await prepareModTypes(directory, values.claude);
+            assert.equal(await prepareModTypes(directory, values.claude), version, 'Declaration host differs from validated binary');
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
