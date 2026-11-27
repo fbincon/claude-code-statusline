@@ -10,6 +10,12 @@ import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { openPty } from './pty.js';
 
 type Pty = ReturnType<typeof openPty>;
+export function installedTaskEvidence(languages: number, foreground: Awaited<ReturnType<typeof taskRefreshPty>> | null) {
+    // Published evidence readers match the original task_viewer fields exactly.
+    const task_viewer = { languages, views: languages * 3, standalone_non_tty: true, readonly: true, installed_modules: true };
+    return foreground ? { task_viewer, task_foreground_pty: foreground } : { task_viewer };
+}
+
 const mark = (pty: Pty) => pty.captured().toString('utf8').length;
 const snapshot = (path: string) => existsSync(path) ? { bytes: readFileSync(path), mode: statSync(path).mode } : null;
 

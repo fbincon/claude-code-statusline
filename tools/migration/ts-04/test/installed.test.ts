@@ -18,7 +18,7 @@ import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
-import { taskRefreshPty } from './task-refresh-pty.js';
+import { installedTaskEvidence, taskRefreshPty } from './task-refresh-pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import * as bridge from '@fbincon/statusline-platform/terminal/bridge';
 import { Capture } from '../capture.js';
@@ -637,8 +637,8 @@ test('installed task viewer is available without installation and shares registe
     assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).views,LANGUAGES.length*3);assert(!fs.existsSync(config));
     const foreground = process.platform === 'win32' ? null : await taskRefreshPty(setup('task-viewer-foreground'),
         { executable: installed.node, args: [installed.entry] }, installed.directory, installed.env);
-    report.task_viewer={languages:LANGUAGES.length,views:LANGUAGES.length*3,standalone_non_tty:true,readonly:true,installed_modules:true,
-        foreground_pty:foreground};checks.task_viewer=true;
+    Object.assign(report, installedTaskEvidence(LANGUAGES.length, foreground));
+    checks.task_viewer = true;
 });
 test('installed setup checks, previews, cancels, saves and integrates in a real terminal', { timeout: 90000 }, async () => {
     const readonly = join(installed.temporary, 'setup readonly');
