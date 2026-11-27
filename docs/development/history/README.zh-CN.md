@@ -20,6 +20,7 @@
 
 | 领域 | 交付记录 |
 | --- | --- |
+| 编辑器快捷键 | [两种编辑器的自定义快捷键](deliveries/editor-shortcuts.zh-CN.md) |
 | 组件编辑 | [分组移动](deliveries/editor-group-movement.zh-CN.md) · [目录状态与连续添加](deliveries/component-catalog.zh-CN.md) |
 | v3.16.5 宿主兼容 | [宿主兼容与恢复交付](deliveries/v3-16-5.zh-CN.md#final-release) |
 | v3.16.4 npm 设置 | [安装与状态栏交付](deliveries/v3-16-4.zh-CN.md#final-release) |
