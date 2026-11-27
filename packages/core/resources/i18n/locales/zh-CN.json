@@ -2432,7 +2432,6 @@
   "shortcuts.invalid": "快捷键偏好无效，现已使用预设。可用「恢复全部」修复。",
   "shortcuts.invalid-request": "快捷键绑定或修订无效。",
   "shortcuts.keep": "继续编辑",
-  "shortcuts.legacy-settings-short": "原有设置行",
   "shortcuts.list-help": "/ 筛选 · Enter 改键 · Delete 恢复",
   "shortcuts.native": "内置编辑器",
   "shortcuts.native-short": "内置",

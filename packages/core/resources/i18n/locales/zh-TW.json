@@ -2347,5 +2347,5 @@
   "task.controls.focus": "按 Ctrl+X 再按 Tab 將焦點移至工作窗格，或點選控制項。",
   "task.controls.field_help": "Enter 確認 · Tab 移至取消按鈕",
   "task.controls.focus_field": "點選欄位，或按 Ctrl+X 再按 Tab。看到 ⏎ 後再輸入。",
-  "shortcuts.legacy-settings-short": "原有設定列"
+  "shortcuts.action.event-refresh": "只在事件發生時重新整理"
 }

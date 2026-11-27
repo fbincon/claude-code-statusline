@@ -50,6 +50,7 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
   const listSelection: Defaults = { search: ['/'], category: ['Ctrl+F'], 'item-details': ['Ctrl+E'] };
   const pageKeys = native ? ['1', '2', '3', '4', 'K'] : [];
   const formKeys = [...pageKeys, 'Enter', 'Space', 'Left', 'Right'];
+  const numericKeys = [...formKeys, ...'0123456789'];
   const importActions = { ...preview, 'cancel-import': ['Q'] };
   const reuse = { 'close-reuse': ['Q'] };
   return {
@@ -65,9 +66,8 @@ function editorScenarios(surface: EditorSurface, legacyNativeAliases = false) {
     layout: scenario({ ...root, ...pageTools }, formKeys),
     settings: scenario({ ...root, ...pageTools, ...(native ? { 'show-host-preferences': ['H'] } : {}) }, formKeys),
     'host-settings': scenario(native ? { ...root, ...pageTools, 'show-host-preferences': ['H'], 'apply-host-preferences': ['A'] } : {}, formKeys),
-    'legacy-settings': scenario(native ? {} : { ...root, ...pageTools, save: ['Ctrl+S', 'Enter'] }, ['Space', 'Left', 'Right']),
-    'numeric-settings': scenario(native ? {} : { ...root, ...pageTools, save: ['Ctrl+S', 'Enter'] }, ['Space', 'Left', 'Right', ...'0123456789']),
-    'refresh-settings': scenario(native ? {} : { ...root, ...pageTools, save: ['Ctrl+S', 'Enter'], 'event-refresh': ['E'] }, ['Space', 'Left', 'Right', ...'0123456789']),
+    'numeric-settings': scenario(native ? {} : { ...root, ...pageTools }, numericKeys),
+    'refresh-settings': scenario(native ? {} : { ...root, ...pageTools, 'event-refresh': ['E'] }, numericKeys),
     quick: scenario(preview, ['Enter', 'Left', 'Right']),
     'import-review': scenario({ ...importActions, 'accept-import': ['A'], 'select-import': ['S'], 'full-import': ['F'] }, ['Enter']),
     'import-selection': scenario({ ...importActions, 'select-import': ['S'], 'full-import': ['F'] }, ['Enter', 'Space']),
@@ -233,9 +233,7 @@ export function shortcutAliases(surface: EditorSurface, context: ShortcutContext
   return effectiveKeys(scenarios[surface][context].defaults, bindings, action).map(shortcutKeyLabel).join('/');
 }
 
-export function listedShortcut(surface: EditorSurface, action: ShortcutAction, bindings: ShortcutBindings, contexts?: readonly ShortcutContext[]): string {
-  const registry = scenarios[surface];
-  const settings = contexts ? contexts.map(context => registry[context]) : Object.values(registry);
-  const keys = settings.flatMap(({ defaults }) => effectiveKeys(defaults, bindings, action));
+export function listedShortcut(surface: EditorSurface, action: ShortcutAction, bindings: ShortcutBindings): string {
+  const keys = Object.values(scenarios[surface]).flatMap(({ defaults }) => effectiveKeys(defaults, bindings, action));
   return [...new Set(keys)].map(shortcutKeyLabel).join(' / ');
 }

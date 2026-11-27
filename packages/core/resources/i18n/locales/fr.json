@@ -2347,5 +2347,5 @@
   "task.controls.focus": "Appuyez sur Ctrl+X puis sur Tab pour activer le volet des tâches, ou cliquez sur une commande.",
   "task.controls.field_help": "Entrée pour confirmer · Tab pour atteindre Annuler",
   "task.controls.focus_field": "Cliquez dans le champ ou appuyez sur Ctrl+X puis Tab. Saisissez le texte une fois ⏎ affiché.",
-  "shortcuts.legacy-settings-short": "Anciens réglages"
+  "shortcuts.action.event-refresh": "Actualiser uniquement sur événement"
 }

@@ -16558,11 +16558,11 @@
       "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
     },
     "shortcuts.action.event-refresh": {
-      "source": "e6f415aafedbff183a2b79f9242289755fb9bd0f3bcd8a250670eef9cdf12c75",
+      "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
       "translation": "edd0b8853aca15e9c88408a9381eeb327433aed8d032e52689ff517abb6fd7d9",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+      "evidence": "95421acda5aac0b5a308a5ae801fdade172d6371b97c5196c88182b2d8b5fb2e"
     },
     "shortcuts.action.export-draft": {
       "source": "0ee9090a5d6794ded0a1a608d7ef2d38df99075f5961960ec72daee13e86ef91",

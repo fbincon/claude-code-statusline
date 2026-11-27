@@ -37,9 +37,9 @@
       "description": "Compact component list footer. Clear both the search query and the selected category.",
       "terms": []
     },
-    "shortcuts.legacy-settings-short": {
+    "shortcuts.action.event-refresh": {
       "version": 1,
-      "description": "Shortcut details label for the original terminal Settings rows with an additional Save binding.",
+      "description": "Terminal keyboard shortcut action. Switch the refresh interval to the event-only mode in the current display draft.",
       "terms": []
     }
   }

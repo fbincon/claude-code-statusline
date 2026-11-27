@@ -107,7 +107,9 @@ test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_indep
     for (const [page, setting, save] of [
         ['main', null, 'Ctrl+S'],
         ['subagents', null, 'Ctrl+S'],
-        ['settings', 'colors', 'Ctrl+S/Enter'],
+        ['settings', 'colors', 'Ctrl+S'],
+        ['settings', 'padding', 'Ctrl+S'],
+        ['settings', 'refresh_interval', 'Ctrl+S'],
         ['settings', 'keyboard-shortcuts', 'Ctrl+S'],
         ['layout', 'layout-mode', 'Ctrl+S'],
     ] as const) {
@@ -121,6 +123,11 @@ test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_indep
             const help = rows[29]!;
             assert.ok(help.some(s => s.text === 'Enter/Space' && s.bold && !s.reverse));
             assert.ok(help.some(s => s.text.startsWith(' ' + tMessage('ui.hints.toggle', 'en') + ' · ') && !s.bold && !s.reverse));
+        }
+        if (setting === 'padding' || setting === 'refresh_interval') {
+            const help = rows[29]!;
+            assert.ok(help.some(s => s.text === 'Enter' && s.bold && !s.reverse));
+            assert.ok(help.some(s => s.text.trimStart().startsWith(tMessage('ui.hints.edit', 'en')) && !s.bold && !s.reverse));
         }
     }
 });

@@ -6,6 +6,8 @@ import { prepare, cleanup, readResult } from '@fbincon/statusline-platform/termi
 import { bridgeEnvironment } from '@fbincon/statusline-platform/terminal/launchers';
 import { lock } from '@fbincon/statusline-platform/files';
 import { processToken } from '@fbincon/statusline-platform/processes';
+import { t as message } from '@fbincon/statusline-core/i18n/messages';
+import { strip } from '@fbincon/statusline-core/rendering/layout';
 const posix = { skip: process.platform === 'win32' ? 'POSIX PTY; Windows has separate console acceptance' : false, timeout: 15000 };
 const ready = (p: ReturnType<typeof openPty>) => p.wait(o => o.includes('Preview (sample data)'));
 function bridge(f: {
@@ -48,16 +50,28 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_toggle_move_settings
     const f = await fixture(t);
     f.e.page = 'settings';
     const down = f.state.rows().findIndex(r => r.key === 'padding');
+    assert.ok(down >= 0);
+    const before = f.bytes(), mode = fs.statSync(f.settingsPath).mode;
     const p = openPty(f.root);
     try {
         await ready(p);
-        p.send(' \x1b[C\t\t' + '\x1b[B'.repeat(down) + '3\r\x13');
+        p.send(' \x1b[C\t\t' + '\x1b[B'.repeat(down));
+        await p.wait(output => output.includes('› ' + message('settings.padding', 'en') + ':'));
+        p.send('\r');
+        await p.wait(output => output.includes('0▏'));
+        const offset = p.captured().toString('utf8').length;
+        p.send('\x153\r');
+        await p.wait(output => strip(output.slice(offset)).includes('Enter ' + message('ui.hints.edit', 'en')));
+        assert.deepEqual(f.bytes(), before);
+        assert.equal(fs.statSync(f.settingsPath).mode, mode);
+        p.send('\x13');
         await p.exited();
         assert.equal(p.child.exitCode, 0);
         const settings = JSON.parse(fs.readFileSync(f.settingsPath, 'utf8'));
         assert.equal(settings.statusLine.padding, 3);
         const display = JSON.parse(fs.readFileSync(f.displayPath, 'utf8'));
         assert.equal(display.instances.find((i: any) => i.id === 'model-with-effort').enabled, false);
+        assert.deepEqual(p.attributes(), p.before);
     }
     finally {
         await p.close();

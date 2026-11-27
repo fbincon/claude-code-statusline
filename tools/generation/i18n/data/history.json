@@ -28410,6 +28410,17 @@
         "terms": []
       },
       "terms": {}
+    },
+    "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857": {
+      "key": "shortcuts.action.event-refresh",
+      "english": "Set event-only refresh",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Terminal keyboard shortcut action. Switch the refresh interval to the event-only mode in the current display draft.",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -28648,6 +28659,15 @@
         {
           "source": "689ae4e1769d6a442fcf0f87faf67f8ac7bdea357d8306e6e4f833cdbd49d871",
           "translation": "e7c9b863af8792c1c50efc11c27d501b689b8198fbdfa7227d899263254beaba",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        }
+      ],
+      "shortcuts.action.event-refresh": [
+        {
+          "source": "e6f415aafedbff183a2b79f9242289755fb9bd0f3bcd8a250670eef9cdf12c75",
+          "translation": "edd0b8853aca15e9c88408a9381eeb327433aed8d032e52689ff517abb6fd7d9",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
@@ -29173,6 +29193,15 @@
         {
           "source": "689ae4e1769d6a442fcf0f87faf67f8ac7bdea357d8306e6e4f833cdbd49d871",
           "translation": "bc864e49beeac4308e53d3248e706ebf883dcb04a8705ef1de5a5233ede3c96e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        }
+      ],
+      "shortcuts.action.event-refresh": [
+        {
+          "source": "e6f415aafedbff183a2b79f9242289755fb9bd0f3bcd8a250670eef9cdf12c75",
+          "translation": "275188a29a62a0e4f3679917636ce6125125ed448fb03090beeaac29f29579fc",
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"

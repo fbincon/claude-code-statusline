@@ -62345,6 +62345,99 @@
       },
       "review": "Reviewed the editor-specific save outcomes, filter reset and the extra Save key on original terminal Settings rows in all registered languages.",
       "validated_inputs_sha256": "098ff0d379e3ea4841e651867acca10327a821beeaf7ac31e773bda58bbd2623"
+    },
+    "95421acda5aac0b5a308a5ae801fdade172d6371b97c5196c88182b2d8b5fb2e": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "8914ff6a400df2187deded084aa2eb8ec9e475d2c559c806f42672955c42f3f8"
+          }
+        },
+        "en": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "edd0b8853aca15e9c88408a9381eeb327433aed8d032e52689ff517abb6fd7d9"
+          }
+        },
+        "es": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "08a5839bff32919ac8ba18df6c2532c36c5599e51606fd0618bf27f04f7ba1c4"
+          }
+        },
+        "fr": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "77a2c93b5e641a95b8ac0a7f72e918be85cd5810fcbf450bd06dc1f6c23bb746"
+          }
+        },
+        "id": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "90aa7df4f525d37793fc4ef15253f9daab21c0ecb5a5c75fc98e4dd7db64b91c"
+          }
+        },
+        "ja": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "db3bda5316bd852f520865db0a1644c4ba4473db41ff4e22acca202cee3e11c9"
+          }
+        },
+        "ko": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "e32056fa15ee957f63804efa317773051441053de98b8d601224935d78bac57a"
+          }
+        },
+        "pt-BR": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "9ee9abc52d36be57bdc3dc82acbd3eb120fb1a1b86ec6b30c164599737fc3302"
+          }
+        },
+        "ru": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "61ea578341a7e448cd2567cf177a22e0719ebd99754ec76e77c8555239614c9e"
+          }
+        },
+        "zh-CN": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "275188a29a62a0e4f3679917636ce6125125ed448fb03090beeaac29f29579fc"
+          }
+        },
+        "zh-HK": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "b38905aa847021346a79e0466c41a00e7ccdc66e94024c6a17bb03f0856e908e"
+          }
+        },
+        "zh-TW": {
+          "shortcuts.action.event-refresh": {
+            "source": "f8929f93645c6d35f6cc903be599f110104d3b4f0343981f4aa608bf647b2857",
+            "translation": "fbda442326f584bbb853a858f6fc6b7fea394681845fe61102c8d5b3c20d5fb3"
+          }
+        }
+      },
+      "review": "Reviewed event-only refresh wording in all 12 locales for the terminal shortcut action",
+      "validated_inputs_sha256": "07982666741f0731aa5a1b0a7d6b117330d615290b6165b48f9b7909f511df3b"
     }
   }
 }
