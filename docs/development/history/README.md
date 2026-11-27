@@ -20,7 +20,7 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 
 | Area | Delivery records |
 | --- | --- |
-| Editor shortcuts | [Custom shortcuts in both editors](deliveries/editor-shortcuts.md) · [Shortcut reliability](deliveries/editor-shortcut-reliability.md) · [Component list shortcuts](deliveries/editor-list-shortcuts.md) |
+| Editor shortcuts | [Custom shortcuts in both editors](deliveries/editor-shortcuts.md) · [Shortcut reliability](deliveries/editor-shortcut-reliability.md) · [Component list shortcuts](deliveries/editor-list-shortcuts.md) · [Terminal Settings shortcuts](deliveries/terminal-settings-shortcuts.md) |
 | Component editing | [Group movement](deliveries/editor-group-movement.md) · [Catalog states and continuous additions](deliveries/component-catalog.md) |
 | v3.16.5 host compatibility | [Host compatibility and recovery delivery](deliveries/v3-16-5.md#final-release) |
 | Runtime prompt ownership | [Task timing and current status](deliveries/runtime-prompt-ownership.md) |
