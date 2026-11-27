@@ -37,8 +37,53 @@ assert(versionRun.status === 0 && version?.[2]! >= 289, 'An official host with b
 const matrix = nativeCapacityData(), reports: Record<string, unknown>[] = [];
 const project = join(installed.temporary, 'project 中文 &'), template = join(installed.temporary, 'template'), shim = join(installed.temporary, 'backend-entry.mjs');
 fs.mkdirSync(project); fs.mkdirSync(template);
-const main = pathToFileURL(join(installed.modules, 'statusline-cli/dist/src/main.js')).href;
-fs.writeFileSync(shim, `import fs from 'node:fs';import path from 'node:path';import {createHash} from 'node:crypto';import {main} from ${JSON.stringify(main)};const args=process.argv.slice(2);const raw=['ui','runtime','render','render-subagents','hook','slash-hook'].includes(args[0])?fs.readFileSync(0,'utf8'):'';let operation=null,sourceValue=null,preview={};try{const request=JSON.parse(raw);operation=request.operation??null;if(operation==='preview')preview={width:request.payload.width,draft_sha256:createHash('sha256').update(JSON.stringify(request.payload.draft)).digest('hex')}}catch{}const log=path.join(process.env.CLAUDE_CONFIG_DIR,'backend.jsonl');fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'request'})+'\\n');process.exitCode=await main(args,{launch:{executable:process.execPath,args:[${JSON.stringify(shim)}]},hostVersion:()=>${JSON.stringify(version)},stdin:()=>raw,stdout:value=>{process.stdout.write(value);if(operation==='source_inspect')try{sourceValue=JSON.parse(value).result?.view?.value??null}catch{}}});fs.appendFileSync(log,JSON.stringify({command:args[0],operation,phase:'complete',status:process.exitCode,...preview,...(operation==='source_inspect'?{source_value:sourceValue}:{})})+'\\n');\n`);
+const cliModule = (path: string) => JSON.stringify(pathToFileURL(join(installed.modules, 'statusline-cli/dist/src', path)).href);
+fs.writeFileSync(shim, `import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { main } from ${cliModule('main.js')};
+
+const args = process.argv.slice(2), command = args[0];
+const raw = ['ui', 'runtime', 'render', 'render-subagents', 'hook', 'slash-hook'].includes(command) ? fs.readFileSync(0, 'utf8') : '';
+const log = path.join(process.env.CLAUDE_CONFIG_DIR, 'backend.jsonl');
+const record = value => fs.appendFileSync(log, JSON.stringify(value) + '\\n');
+
+if (command === 'configure') {
+  // External editor requests go directly through the in-process protocol.
+  const { ConfigurationProtocol } = await import(${cliModule('ui/protocol.js')});
+  const handle = ConfigurationProtocol.prototype.handle;
+  ConfigurationProtocol.prototype.handle = function (request, diagnostics) {
+    if (JSON.parse(request).operation === 'apply') record({ command, operation: 'apply', phase: 'request' });
+    return handle.call(this, request, diagnostics);
+  };
+}
+
+let operation = null, sourceValue = null, preview = {};
+try {
+  const request = JSON.parse(raw);
+  operation = request.operation ?? null;
+  if (operation === 'preview') preview = {
+    width: request.payload.width,
+    draft_sha256: createHash('sha256').update(JSON.stringify(request.payload.draft)).digest('hex'),
+  };
+} catch { /* Only JSON requests carry operation and preview data. */ }
+record({ command, operation, phase: 'request' });
+process.exitCode = await main(args, {
+  launch: { executable: process.execPath, args: [${JSON.stringify(shim)}] },
+  hostVersion: () => ${JSON.stringify(version)},
+  stdin: () => raw,
+  stdout(value) {
+    process.stdout.write(value);
+    if (operation === 'source_inspect') {
+      try { sourceValue = JSON.parse(value).result?.view?.value ?? null; }
+      catch { /* A partial response cannot supply the source value. */ }
+    }
+  },
+});
+record({ command, operation, phase: 'complete', status: process.exitCode, ...preview,
+  ...(operation === 'source_inspect' ? { source_value: sourceValue } : {}),
+});
+`);
 const env = officialEnvironment(installed);
 function command(executable: string, args: string[], environment = env, timeout = 180000) {
     const result = spawnSync(executable, args, { cwd: project, env: environment, encoding: 'utf8', timeout, maxBuffer: 8 * 1024 * 1024 });
@@ -104,6 +149,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const steps: { name: string; elapsed_ms: number }[] = [], start = Date.now();
     const records = () => fs.readFileSync(join(config, 'backend.jsonl'), 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
     const completed = (operation: string) => records().some(row => row.operation === operation && row.phase === 'complete' && row.status === 0);
+    const applyRequests = () => records().filter(row => row.operation === 'apply' && row.phase === 'request').length;
     const read = () => {
         const bytes = p.captured(), next = bytes.subarray(offset); offset = bytes.length; screen.feed(next);
         if (next.includes(Buffer.from('\x1b[6n'))) p.send('\x1b[1;1R');
@@ -199,7 +245,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 });
                 await until(text => text.includes(totals), 'configured and unconfigured counts visible');
                 await query('model-with-effort');
-                await key(' ', 'disable the configured model instance');
+                await key('\r', 'toggle the configured model instance with Enter');
+                await until(text => marker(text, ' '), 'configured instance disabled in the draft');
                 await key(external ? '\x01' : 'a', 'open component catalog');
                 await until(text => text.includes('Component catalog') && text.includes('model-with-effort') && marker(text, '–'), 'inherited search and disabled type');
                 await key('\r', 'enable the existing instance');
@@ -224,17 +271,18 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             }
             assert.deepEqual(fs.readFileSync(displayPath), before);
             assert.equal(fs.statSync(displayPath).mode, beforeMode);
-            assert(!records().some(row => row.operation === 'apply'), 'Activating catalog rows saved the draft');
+            assert.equal(applyRequests(), 0, 'Activating configured or catalog rows applied the draft');
             await until(text => text.includes('Preview'), 'sample preview visible before save');
             capture('after');
             if (pickerSave) {
                 if (external) {
-                    await key('\r', 'save with configured-list Enter');
+                    await key('\x13', 'save with external Ctrl+S');
                     await p.exited();
                 } else {
                     await key('s', 'save with Native S');
                     await until(text => completed('apply') && /saved/iu.test(text), 'saved draft visible');
                 }
+                assert.equal(applyRequests(), 1, 'Explicit save must apply the draft exactly once');
                 const saved = JSON.parse(fs.readFileSync(displayPath, 'utf8')) as Draft['display'];
                 for (const scope of ['main', 'subagent'] as const) {
                     const instances = scope === 'main' ? saved.instances : saved.subagents.instances;
@@ -406,36 +454,44 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(() => completed('apply'), 'native saves through Z');
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Clean native save changed the display');
 
+            const customSave = 'Z ' + t('ui.hints.save_and_exit', 'en');
+            const customClose = 'M/Esc ' + t('ui.hints.close', 'en');
+            const toggleHint = 'Enter/Space ' + t('ui.hints.toggle', 'en');
+            const appliesBeforeCustom = applyRequests();
             await runExternal('terminal-custom', async (tty, wait) => {
-                await wait('Z save');
+                await wait(customSave);
                 await wait('Y search');
-                await wait('M/Esc cancel');
+                await wait(customClose);
                 tty.send('yz');
                 await wait('z▏');
                 assert.deepEqual(fs.readFileSync(displayPath), before);
                 tty.send('\x1b');
-                await wait('Y search');
-                tty.send(' ');
+                await wait(toggleHint);
+                tty.send('\r');
                 await wait('Configure Status Line *');
+                await wait('› [ ]');
                 tty.send('\x1b');
                 await wait('› ' + t('ui.exit.keep', 'en'));
                 tty.send('\r');
                 await wait('Configure Status Line *');
-                tty.send('\x13\r');
+                tty.send('\x13');
                 await delay(350);
                 assert.equal(tty.child.exitCode, null);
+                assert.equal(applyRequests(), appliesBeforeCustom);
                 assert.deepEqual(fs.readFileSync(displayPath), before);
+                assert.equal(fs.statSync(displayPath).mode, beforeMode);
                 tty.send('z');
-                await tty.exited();
-                assert.equal(JSON.parse(fs.readFileSync(displayPath, 'utf8')).instances[0].enabled, false);
             });
+            assert.equal(applyRequests(), appliesBeforeCustom + 1);
+            assert.equal(JSON.parse(fs.readFileSync(displayPath, 'utf8')).instances[0].enabled, false);
             const savedDisplay = fs.readFileSync(displayPath);
+            const savedMode = fs.statSync(displayPath).mode;
             await runExternal('terminal-escape', async (tty, wait) => {
-                await wait('M/Esc cancel');
+                await wait(customClose);
                 tty.send('\x1b');
             });
             await runExternal('terminal-restore', async (tty, wait) => {
-                await wait('Z save');
+                await wait(customSave);
                 tty.send('\t\t\x1b[F\r');
                 await wait('Save display');
                 tty.send('\t\x1b[B\r\x1b[A\r');
@@ -449,9 +505,40 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\x071', 'restore normal editor focus');
             await until(text => /\bS +save\b/u.test(text) && !/\bZ +save\b/u.test(text), 'native shows the preset save key');
             assert.deepEqual(fs.readFileSync(displayPath), savedDisplay);
+            assert.equal(fs.statSync(displayPath).mode, savedMode);
+            capture('after');
+
+            const appliesBeforeDefault = applyRequests();
+            await runExternal('terminal-default', async (tty, wait) => {
+                await wait('Ctrl+S ' + t('ui.hints.save_and_exit', 'en'));
+                await wait(toggleHint);
+                await wait('› [ ]');
+                tty.send('\r');
+                await wait('Configure Status Line *');
+                await wait('› [x]');
+                tty.send('\x14');
+                await wait(t('history.counts', 'en', { undo: 1, redo: 0 }));
+                tty.send('q');
+                await wait(toggleHint);
+                assert.equal(applyRequests(), appliesBeforeDefault);
+                assert.deepEqual(fs.readFileSync(displayPath), savedDisplay);
+                assert.equal(fs.statSync(displayPath).mode, savedMode);
+                tty.send('\x13');
+            });
+            assert.equal(applyRequests(), appliesBeforeDefault + 1);
+            const expected = JSON.parse(savedDisplay.toString('utf8')) as Draft['display'];
+            expected.instances[0]!.enabled = true;
+            const committedDisplay = fs.readFileSync(displayPath);
+            assert.deepEqual(JSON.parse(committedDisplay.toString('utf8')), expected);
+            await runExternal('terminal-default-reopened', async (tty, wait) => {
+                await wait(toggleHint);
+                await wait('› [x]');
+                tty.send('\x1b');
+            });
+            assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
+            assert.equal(applyRequests(), appliesBeforeDefault + 1);
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settingsBytes);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
-            capture('after');
         } else if (action === 'quick') {
             await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');

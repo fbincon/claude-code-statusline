@@ -38,7 +38,7 @@ instances of the same type; it follows their current order.
 | Open the component catalog | A / Ctrl+A |
 | Copy the selected instance | D / Ctrl+D |
 | Remove the selected instance from the draft | X / Ctrl+X |
-| Enable or disable | Space |
+| Enable or disable | Enter / Space |
 | Edit the selected instance | Ctrl+E |
 | Reorder the selected component or its group | Left / Right |
 | Search / choose category | `/` / Ctrl+F |

@@ -17172,6 +17172,34 @@
       "method": "validated_accepted",
       "validation_version": 1,
       "evidence": "35bb741009a85c07c00b7cb3f04e4b466ed3ef40ffa02938eb49357aa71d8165"
+    },
+    "shortcuts.legacy-settings-short": {
+      "source": "3f08f3f60e7880a5a483e277346c5db0a25809ff963b99ce2bac97365c2119e2",
+      "translation": "810771978784632738b918df7f70bf5d87ef3ef4b2cb72b7de5bdba81d386f8f",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "886cfd8873deda808bd0d3780cf9fb0c8f14b223ebba328c9b01ddfceca6c8da"
+    },
+    "ui.hints.clear_filters_short": {
+      "source": "8cb7444dc03b8b5cd96b7cc65da1c48c25554326a16a3a4e76bfd697fbdf9bd8",
+      "translation": "2e16d45369163c73e4b260dc6b20594c592970dd8f8caa9e27b2736b00b4093d",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "886cfd8873deda808bd0d3780cf9fb0c8f14b223ebba328c9b01ddfceca6c8da"
+    },
+    "ui.hints.save_and_continue": {
+      "source": "23cc3dd691da756e36dfbd69f2f037d9170eb613983b9d162be2f1c4728e4d14",
+      "translation": "63ec50121ae3fb3867445f5e4bb9cd7fdf21e68db2eda3d97bf622a747deb7b5",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "886cfd8873deda808bd0d3780cf9fb0c8f14b223ebba328c9b01ddfceca6c8da"
+    },
+    "ui.hints.save_and_exit": {
+      "source": "c02789de7bbdeedb142a96c580844f138b0dd9b0d5dcb5242ea072718c5ea321",
+      "translation": "ed2c563efd0e4263b521fcf9a8d1c77af22741b402a81c9aa83d1335ef48936e",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "886cfd8873deda808bd0d3780cf9fb0c8f14b223ebba328c9b01ddfceca6c8da"
     }
   }
 }

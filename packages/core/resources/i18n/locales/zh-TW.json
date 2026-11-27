@@ -604,6 +604,8 @@
   "ui.hints.select": "選擇",
   "ui.hints.edit": "編輯",
   "ui.hints.save": "儲存",
+  "ui.hints.save_and_continue": "儲存並繼續",
+  "ui.hints.save_and_exit": "儲存並離開",
   "ui.hints.cancel": "取消",
   "ui.hints.interrupt": "中斷",
   "ui.drawing.type_to_search": "輸入搜索 > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "元件目錄",
   "ui.hints.add_enable": "新增或啟用",
   "ui.hints.clear_filters": "清除篩選",
+  "ui.hints.clear_filters_short": "清除",
   "composition.close_picker": "關閉選擇器",
   "composition.actions": "新增 / 複製 / 移除",
   "review.component": "元件 {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "摺疊",
   "task.controls.focus": "按 Ctrl+X 再按 Tab 將焦點移至工作窗格，或點選控制項。",
   "task.controls.field_help": "Enter 確認 · Tab 移至取消按鈕",
-  "task.controls.focus_field": "點選欄位，或按 Ctrl+X 再按 Tab。看到 ⏎ 後再輸入。"
+  "task.controls.focus_field": "點選欄位，或按 Ctrl+X 再按 Tab。看到 ⏎ 後再輸入。",
+  "shortcuts.legacy-settings-short": "原有設定列"
 }

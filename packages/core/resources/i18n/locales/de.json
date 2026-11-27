@@ -603,6 +603,8 @@
   "ui.hints.select": "wählen",
   "ui.hints.edit": "bearbeiten",
   "ui.hints.save": "speichern",
+  "ui.hints.save_and_continue": "speichern und fortfahren",
+  "ui.hints.save_and_exit": "speichern und beenden",
   "ui.hints.cancel": "abbrechen",
   "ui.hints.interrupt": "unterbrechen",
   "ui.drawing.type_to_search": "Zum Suchen tippen > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "Katalog",
   "ui.hints.add_enable": "hinzufügen/aktivieren",
   "ui.hints.clear_filters": "Filter löschen",
+  "ui.hints.clear_filters_short": "Filter aus",
   "composition.close_picker": "Auswahl schließen",
   "composition.actions": "Hinzufügen / kopieren / entfernen",
   "review.component": "Komponente {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "Einklappen",
   "task.controls.focus": "Strg+X und dann Tab drücken, um den Aufgabenbereich zu fokussieren, oder ein Bedienelement anklicken.",
   "task.controls.field_help": "Eingabe bestätigt · Tab wechselt zu Abbrechen",
-  "task.controls.focus_field": "Feld anklicken oder Strg+X und dann Tab drücken. Erst tippen, wenn ⏎ erscheint."
+  "task.controls.focus_field": "Feld anklicken oder Strg+X und dann Tab drücken. Erst tippen, wenn ⏎ erscheint.",
+  "shortcuts.legacy-settings-short": "Bisherige Einstellungen"
 }

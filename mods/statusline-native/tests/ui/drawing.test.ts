@@ -188,10 +188,11 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'Ctrl+P', 'A/D/X', 'Enter/Space', '↑↓', '←→', 'Ctrl+E', '/']
-      : page === 'settings' ? ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'R']
-      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter'];
+      ? ['Tab', '↑↓', 'Enter/Space', '/', 'Ctrl+F', 'A/D/X', '←→', 'Ctrl+E']
+      : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
+      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
+    expect(groups[2]!.some((hint) => hint.key === 'Ctrl+P')).toBe(page !== 'detail');
     expect(groups.flat().every((hint) => hint.label === hint.label.toLowerCase())).toBe(true);
     const tree = draw(elements, state, 120, 30) as unknown as Node;
     const heading = (tree.children[0] as Node).children[0] as Node;
@@ -204,9 +205,22 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     expect(text(tree.children[3]!)).not.toContain('Ctrl+G');
     const footer = tree.children[5] as Node;
     expect(footer.props.key).toBe('shortcut-region');
-    expect(text(footer)).toContain('S save');
+    expect(text(footer)).toContain('S save and continue');
+    expect(text(footer)).toContain('F save and exit');
     expect(text(footer)).toContain('Esc focus');
   }
+});
+
+test('filtered lists and the picker show their available remapped controls in order', () => {
+  const state = view(), e = state.editor!;
+  e.shortcuts.snapshot.bindings = { save: 'Z', 'toggle-item': 'T', search: 'Y', category: 'C', 'add-item': 'M' };
+  e.chooseCategory('main', 'test');
+  const hints = editorShortcuts(state)[1]!;
+  expect(hints.map(({ key }) => key)).toEqual(['Tab', '↑↓', 'T', 'Ctrl+G', 'Y', 'C', 'M', 'M/D/X', 'Ctrl+E']);
+  e.openPicker('main');
+  const picker = editorLayout(state, 120, 30).footer.flat();
+  expect(picker.map(({ key }) => key)).toEqual(['Enter/Space', 'Q/Ctrl+G', 'Esc', '↑↓', 'Y', 'C', 'Ctrl+U', 'Ctrl+E', 'Z', 'F']);
+  expect(picker.find(({ key }) => key === 'Z')!.label).toBe('save and continue');
 });
 
 test('the header reserves the recovery control area at narrow widths', () => {
@@ -336,6 +350,8 @@ test('filtered views retain their controls, selected row and real preview at the
     expect(output()).toContain('› [x]');
     expect(output()).toContain('Enter/Space');
     expect(output()).toContain('visible sample');
+    const pickerHints = editorLayout(state, 32, 12).footer.flat().map(({ key }) => key);
+    expect(pickerHints.filter(key => ['Enter/Space', 'Q/Ctrl+G', '↑↓'].includes(key))).toEqual(['Enter/Space', 'Q/Ctrl+G', '↑↓']);
     key('g', true);
     expect(e.search.main).toBe('model-with-effort');
     expect(e.category.main).toBe('model');
@@ -351,7 +367,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('show preferences');
   expect(editorShortcuts(state).flat().some((hint) => hint.key === 'A')).toBe(false);
   e.advanced = true;
-  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
+  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('hide preferences');
   for (const page of ['main', 'subagents', 'layout']) {
     e.page = page as typeof e.page;
@@ -444,12 +460,14 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
-test('long translated action labels retain selection and a real preview at the minimum viewport', () => {
-  for (const language of LANGUAGES) for (const page of ['main', 'subagents'] as const) {
+test('translated list footers retain primary controls, selection and a real preview at the minimum viewport', () => {
+  for (const language of LANGUAGES) for (const page of ['main', 'subagents'] as const) for (const filtered of [false, true]) {
     const state = view(), editor = state.editor!;
     state.language = language; editor.page = page;
+    const scope = page === 'main' ? 'main' : 'subagent';
+    if (filtered) editor.chooseCategory(scope, 'test');
     state.preview = { sample: true, main: [[{text: 'main sample'}]], subagents: [[{text: 'agent sample'}]] } as View['preview'];
-    const before = JSON.stringify(editor.draft), selected = editor.selected[page === 'main' ? 'main' : 'subagent'];
+    const before = JSON.stringify(editor.draft), selected = editor.selected[scope];
     const geometry = editorLayout(state, 32, 12);
     expect(geometry.footerRows <= 4).toBe(true);
     expect(geometry.bodyRows >= 2).toBe(true);
@@ -458,9 +476,11 @@ test('long translated action labels retain selection and a real preview at the m
     expect(render(tree)).toHaveLength(12);
     expect(text(tree.children[3]!)).toContain('›');
     expect(text(tree.children[4]!)).toContain(page === 'main' ? 'main sample' : 'agent sample');
-    expect(geometry.footer.flat().filter(hint => ['S', 'F', 'Q'].includes(hint.key)).map(hint => hint.key)).toEqual(['S', 'F', 'Q']);
-    expect(geometry.footer.flat().some(hint => hint.key === 'Tab')).toBe(true);
-    expect(editor.selected[page === 'main' ? 'main' : 'subagent']).toBe(selected);
+    const primary = ['S', 'F', 'Q', 'Tab', '↑↓', 'Enter/Space', ...(filtered ? ['Ctrl+G'] : []), '/'];
+    const hints = geometry.footer.flat().filter(({ key }) => primary.includes(key));
+    expect(hints.map(({ key }) => key)).toEqual(primary);
+    expect(hints.every(({ label }) => label.length > 0)).toBe(true);
+    expect(editor.selected[scope]).toBe(selected);
     expect(JSON.stringify(editor.draft)).toBe(before);
   }
 });

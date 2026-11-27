@@ -603,6 +603,8 @@
   "ui.hints.select": "選択",
   "ui.hints.edit": "編集",
   "ui.hints.save": "保存",
+  "ui.hints.save_and_continue": "保存して続行",
+  "ui.hints.save_and_exit": "保存して終了",
   "ui.hints.cancel": "キャンセル",
   "ui.hints.interrupt": "中断",
   "ui.drawing.type_to_search": "検索文字を入力 > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "一覧",
   "ui.hints.add_enable": "追加・有効化",
   "ui.hints.clear_filters": "絞り込み解除",
+  "ui.hints.clear_filters_short": "絞込解除",
   "composition.close_picker": "選択画面を閉じる",
   "composition.actions": "追加 / 複製 / 削除",
   "review.component": "コンポーネント {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "折りたたむ",
   "task.controls.focus": "Ctrl+X の後に Tab を押してタスクペインにフォーカスを移すか、操作ボタンをクリックしてください。",
   "task.controls.field_help": "Enter で確定 · Tab でキャンセルに移動",
-  "task.controls.focus_field": "入力欄をクリックするか、Ctrl+X の後に Tab を押します。⏎ が表示されたら入力してください。"
+  "task.controls.focus_field": "入力欄をクリックするか、Ctrl+X の後に Tab を押します。⏎ が表示されたら入力してください。",
+  "shortcuts.legacy-settings-short": "従来の設定項目"
 }

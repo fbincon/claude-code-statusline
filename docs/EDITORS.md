@@ -53,13 +53,13 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 Content and `Preview (sample data)` occupy separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`; settings and forms show `OPTION`, `VALUE`.
 
-The footer changes with the current operation. Item pages show Enter/Ctrl+S for saving; filtered lists hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
+The footer changes with the current operation. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
 
 <a id="client-pagination-and-footer"></a>
 
 ### Client pagination and footer
 
-At 64×20 and above, frames separate content and preview; compact panes use titled separators. Active tabs, group headings and selected fields have distinct styles. Save/finish/close/preview controls form a separate group from page controls. The page group starts with Tab; Settings shows H for Claude preferences and A only when those preferences are expanded.
+At 64×20 and above, frames separate content and preview; compact panes use titled separators. Active tabs, group headings and selected fields have distinct styles. Save and close controls form a separate group from page controls. Component lists lead with page, selection and toggle controls. Settings shows H for Claude preferences and A when those preferences are expanded.
 
 Input editing replaces ordinary shortcuts with accept/cancel/clear/delete controls. Busy operations and unknown saves show their applicable controls. Hints wrap as complete key/action pairs. At 32×12, compact descriptions and fewer detail rows preserve the selection, basic operations and a sample preview; secondary hints may be omitted. Resizing recomputes field pages while retaining the selected field and input buffer.
 
@@ -74,15 +74,15 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Key | Action |
 | --- | --- |
 | Tab / Shift+Tab | Cycle Main, Subagents, Settings and Layout outside input editing |
-| Space | Toggle the selected component |
+| Enter / Space | Toggle the selected component in the Main or Subagents list |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
 | ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
 | `/`; printable text; Backspace / Ctrl+U | Enter or update item search; delete/clear it |
 | Ctrl+F | Choose a category |
 | Ctrl+E / Ctrl+G | Open item details / return, cancel input or clear list filters |
 | Ctrl+A / Ctrl+D / Ctrl+X | Open the catalog / copy / remove an instance on an item page |
-| Enter | Save on Main/Subagents pages and original settings rows; edit or accept advanced fields |
-| Ctrl+S | Save the display draft outside input editing |
+| Enter | Save on original Settings rows. On other fields, open or accept editing. |
+| Ctrl+S | Save the display draft and exit outside input editing |
 | Ctrl+K | Check saved state while a save outcome is unknown |
 | Esc | Cancel a field or subview. At the top level, close a clean draft or confirm discarding changes, defaulting to keep editing. Available after rebinding Close. |
 | Ctrl+C | Restore the terminal, exit 130 and discard unsaved display edits |
@@ -94,7 +94,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 | Tab / Shift+Tab; 1 / 2 / 3 / 4 | Switch Main, Subagents, Settings and Layout outside input editing |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
 | ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
-| Space / Enter | Toggle components; operate settings or enter/accept field editing |
+| Enter / Space | Toggle components, operate settings or open and accept field editing |
 | `/`; Ctrl+U; Ctrl+G | Enter search; clear input; cancel and restore its prior state |
 | Ctrl+F | Choose a category |
 | Ctrl+E / Ctrl+G | Open item details / return from the form or clear list filters |
@@ -123,7 +123,7 @@ Return from a manager to the main editor to use draft history. On Unix, Claude m
 
 ## Customize keyboard shortcuts
 
-In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The open shortcut panel fits in 32×12.
+In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The Save details identify the additional key for original terminal Settings rows. The open shortcut panel fits in 32×12.
 
 1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
 2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
@@ -203,7 +203,7 @@ Client controls follow Claude's applied theme. **Preview background (UI only)** 
 
 | Operation | Terminal editor | Client |
 | --- | --- | --- |
-| Save display | Ctrl+S outside input editing; Enter also saves on Main/Subagents pages and original settings rows | S saves and continues; F saves successfully before closing. If Claude preferences have pending changes, the panel remains for a separate Apply |
+| Save display | Ctrl+S saves and exits outside input editing. Enter also saves on original Settings rows. | S saves and continues. F saves successfully before closing. If Claude preferences have pending changes, the panel remains for a separate Apply. |
 | Cancel display edits | Top-level Esc; confirm **Discard changes and close** if modified | Q discards unsaved display edits and closes |
 | Unknown save outcome | Ctrl+K checks the submitted snapshot | K checks the submitted snapshot |
 

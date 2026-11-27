@@ -603,6 +603,8 @@
   "ui.hints.select": "선택",
   "ui.hints.edit": "편집",
   "ui.hints.save": "저장",
+  "ui.hints.save_and_continue": "저장 후 계속",
+  "ui.hints.save_and_exit": "저장 후 종료",
   "ui.hints.cancel": "취소",
   "ui.hints.interrupt": "중단",
   "ui.drawing.type_to_search": "검색어 입력 > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "카탈로그",
   "ui.hints.add_enable": "추가/활성화",
   "ui.hints.clear_filters": "필터 지우기",
+  "ui.hints.clear_filters_short": "필터 해제",
   "composition.close_picker": "선택 창 닫기",
   "composition.actions": "추가 / 복제 / 제거",
   "review.component": "구성 요소 {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "접기",
   "task.controls.focus": "Ctrl+X 다음 Tab을 눌러 작업 창으로 포커스를 이동하거나 컨트롤을 클릭하세요.",
   "task.controls.field_help": "Enter로 확인 · Tab으로 취소 버튼 이동",
-  "task.controls.focus_field": "필드를 클릭하거나 Ctrl+X 다음 Tab을 누르세요. ⏎가 표시되면 입력하세요."
+  "task.controls.focus_field": "필드를 클릭하거나 Ctrl+X 다음 Tab을 누르세요. ⏎가 표시되면 입력하세요.",
+  "shortcuts.legacy-settings-short": "기존 설정 항목"
 }

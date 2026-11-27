@@ -28366,6 +28366,50 @@
         "terms": []
       },
       "terms": {}
+    },
+    "3f08f3f60e7880a5a483e277346c5db0a25809ff963b99ce2bac97365c2119e2": {
+      "key": "shortcuts.legacy-settings-short",
+      "english": "Original settings",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Shortcut details label for the original terminal Settings rows with an additional Save binding.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "8cb7444dc03b8b5cd96b7cc65da1c48c25554326a16a3a4e76bfd697fbdf9bd8": {
+      "key": "ui.hints.clear_filters_short",
+      "english": "clear",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Compact component list footer. Clear both the search query and the selected category.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "23cc3dd691da756e36dfbd69f2f037d9170eb613983b9d162be2f1c4728e4d14": {
+      "key": "ui.hints.save_and_continue",
+      "english": "save and continue",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Native editor footer. Save the display draft and keep the editor open.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c02789de7bbdeedb142a96c580844f138b0dd9b0d5dcb5242ea072718c5ea321": {
+      "key": "ui.hints.save_and_exit",
+      "english": "save and exit",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Editor footer. Save the display draft and close the editor after a successful save.",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {

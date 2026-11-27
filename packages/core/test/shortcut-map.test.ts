@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BackendError, parseResponse } from '../src/editor/backend.js';
 import { PROTOCOL_VERSION } from '../src/contracts/ui.js';
-import { text } from '../src/i18n/messages.js';
-import { SHORTCUT_GROUPS, isBindingMap, listedShortcut, readShortcutBindings, resolveShortcut, shortcutAliases, shortcutConflict } from '../src/editor/shortcut-map.js';
+import { t, text } from '../src/i18n/messages.js';
+import { SHORTCUT_GROUPS, isBindingMap, listedShortcut, readShortcutBindings, resolveShortcut, shortcutAliases, shortcutConflict, shortcutHint } from '../src/editor/shortcut-map.js';
 import { EditorShortcuts, shortcutPanelRows } from '../src/editor/shortcut-settings.js';
 
 test('presets are reachable and shared overrides replace context-specific aliases', () => {
@@ -12,9 +12,6 @@ test('presets are reachable and shared overrides replace context-specific aliase
         assert.ok(listedShortcut('terminal', action, {}) || listedShortcut('native', action, {}), action);
     assert.equal(resolveShortcut('native', 'list', { key: 'A', ctrl: true }, {}), 'add-item');
     assert.equal(resolveShortcut('native', 'list', { key: '_', ctrl: true }, {}), 'undo');
-    assert.equal(resolveShortcut('terminal', 'list', { key: 'return' }, {}), 'save');
-    assert.equal(resolveShortcut('native', 'list', { key: 'return' }, {}), 'toggle-item');
-
     const bindings = { save: 'Z', undo: 'Ctrl+Q', 'toggle-item': 'Enter', 'move-left': 'Right', 'move-right': 'Left' } as const;
     assert.ok(isBindingMap(bindings));
     assert.equal(shortcutConflict(bindings), null);
@@ -29,6 +26,42 @@ test('presets are reachable and shared overrides replace context-specific aliase
             assert.equal(resolveShortcut(surface, 'list', { key: 'z', ...flags }, bindings), null);
     }
     assert.equal(resolveShortcut('native', 'list', { key: '/', ctrl: true }, bindings), null);
+});
+
+test('configured lists share toggle keys and keep their own save bindings', () => {
+    for (const surface of ['terminal', 'native'] as const) {
+        const saveKey = { key: 's', ctrl: surface === 'terminal' };
+        const saveLabel = surface === 'terminal' ? 'Ctrl+S' : 'S';
+        assert.equal(resolveShortcut(surface, 'list', { key: 'return' }, {}), 'toggle-item');
+        assert.equal(resolveShortcut(surface, 'list', { key: ' ' }, {}), 'toggle-item');
+        assert.equal(resolveShortcut(surface, 'list', saveKey, {}), 'save');
+        assert.equal(shortcutAliases(surface, 'list', {}, 'toggle-item'), 'Enter/Space');
+        assert.equal(shortcutHint(surface, 'list', {}, 'save'), saveLabel);
+        assert.equal(shortcutAliases(surface, 'list', {}, 'save'), saveLabel);
+        for (const context of ['picker', 'settings', 'detail', 'layout'] as const)
+            assert.equal(resolveShortcut(surface, context, { key: 'return' }, {}), null);
+    }
+    for (const context of ['legacy-settings', 'numeric-settings', 'refresh-settings'] as const) {
+        assert.equal(resolveShortcut('terminal', context, { key: 'return' }, {}), 'save');
+        assert.equal(shortcutAliases('terminal', context, {}, 'save'), 'Ctrl+S/Enter');
+    }
+});
+
+test('existing shared remaps keep precedence over the configured list presets', () => {
+    const remapped = { save: 'Z', 'toggle-item': 'T', 'add-item': 'Enter' };
+    const spaceOnly = { 'toggle-item': 'Space' };
+    for (const bindings of [remapped, spaceOnly])
+        assert.deepEqual(readShortcutBindings(bindings), { bindings, warning: null });
+    for (const surface of ['terminal', 'native'] as const) {
+        assert.equal(resolveShortcut(surface, 'list', { key: 'return' }, remapped), 'add-item');
+        assert.equal(resolveShortcut(surface, 'list', { key: 't' }, remapped), 'toggle-item');
+        assert.equal(shortcutAliases(surface, 'list', remapped, 'save'), 'Z');
+        assert.equal(resolveShortcut(surface, 'list', { key: 'return' }, spaceOnly), null);
+        assert.equal(shortcutAliases(surface, 'list', spaceOnly, 'toggle-item'), 'Space');
+    }
+    const enterOnly = { 'toggle-item': 'Enter' };
+    assert.deepEqual(readShortcutBindings(enterOnly), { bindings: enterOnly, warning: null });
+    assert.equal(shortcutAliases('terminal', 'list', enterOnly, 'toggle-item'), 'Enter');
 });
 
 test('conflicts include defaults and the other editor while disjoint contexts can reuse keys', () => {
@@ -85,6 +118,7 @@ test('legacy reads preserve valid overrides while restoring presets and strict s
     assert.equal(readShortcutBindings({ finish: 'Ctrl+X' }), null, 'The old Client preset also conflicted');
     assert.equal(readShortcutBindings({ save: '1' }), null);
     assert.equal(readShortcutBindings({ undo: 'Ctrl+Z', redo: 'U', 'open-unknown': 'O' }), null);
+    assert.equal(readShortcutBindings({ 'toggle-item': 'Enter', 'reload-profiles': 'Ctrl+D' }), null, 'The old terminal Enter save also conflicted');
     const result = { schema_version: 1, bindings, revision: '1'.repeat(64), warning: null };
     const response = { exitCode: 0, stdout: JSON.stringify({ protocol_version: PROTOCOL_VERSION, result }), stderr: '' };
     assert.deepEqual(parseResponse('read_editor_shortcuts', response), { ...result, ...compatible });
@@ -169,20 +203,57 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     assert.deepEqual(panel.draft, { 'task-evidence': 'Z' });
 });
 
+test('shortcut settings put common editor and component actions first', () => {
+    const keys = new EditorShortcuts('terminal');
+    keys.open();
+    for (const action of [
+        'save', 'finish', 'close', 'undo', 'redo', 'history', 'reload', 'retry-preview',
+        'toggle-item', 'search', 'category', 'item-details', 'add-item', 'copy-item', 'remove-item',
+    ]) {
+        assert.equal(keys.panel!.selected, action);
+        keys.key({ key: 'down' }, 'en', 32, 11);
+    }
+});
+
+test('shortcut settings show the original settings save separately at narrow widths', () => {
+    for (const surface of ['terminal', 'native'] as const) {
+        for (const language of ['en', 'zh-CN'] as const) {
+            const keys = new EditorShortcuts(surface);
+            keys.open();
+            const tr = (key: string) => t('shortcuts.' + key, language);
+            const rows = () => shortcutPanelRows(keys, language, 32, 11);
+            const panelText = () => rows().map(row => row.text).join(' ');
+            const label = tr('legacy-settings-short');
+            assert.notEqual(label, 'shortcuts.legacy-settings-short');
+            assert.equal(rows().find(row => row.selected)?.text,
+                `› ${surface === 'terminal' ? 'Ctrl+S' : 'S'}  ${tr('action.save')}`);
+            assert.ok(panelText().includes(`${tr('terminal-short')} Ctrl+S [Ctrl+S]`));
+            assert.ok(panelText().includes(`${tr('native-short')} S [S]`));
+            assert.ok(panelText().includes(`${label} Ctrl+S / Enter [Ctrl+S / Enter]`));
+            keys.panel!.draft.save = 'Z';
+            assert.ok(panelText().includes(`${tr('terminal-short')} Z [Ctrl+S]`));
+            assert.ok(panelText().includes(`${label} Z [Ctrl+S / Enter]`));
+            assert.ok(panelText().includes(tr('back-help')));
+        }
+    }
+});
+
 test('page movement uses the action rows visible with wrapped warnings', () => {
     const keys = new EditorShortcuts('terminal');
     keys.open();
     const panel = keys.panel!;
     panel.message = text('shortcuts.read-failed', { detail: 'Simulated long warning. '.repeat(15) });
-    const actions = Object.values(SHORTCUT_GROUPS).flat();
     for (const [width, height] of [[32, 11], [64, 13], [80, 23]] as const) {
         keys.key({ key: 'home' }, 'en', width, height);
         const rows = shortcutPanelRows(keys, 'en', width, height);
         const count = rows.filter(row => row.selected !== undefined).length;
         assert.ok(count > 0);
         if (width === 32) assert.equal(count, 1);
+        for (let i = 0; i < count; i++) keys.key({ key: 'down' }, 'en', width, height);
+        const expected = panel.selected;
+        keys.key({ key: 'home' }, 'en', width, height);
         keys.key({ key: 'pagedown' }, 'en', width, height);
-        assert.equal(panel.selected, actions[count]);
+        assert.equal(panel.selected, expected);
         keys.key({ key: 'home' }, 'en', width, height);
         assert.equal(panel.selected, 'save');
     }

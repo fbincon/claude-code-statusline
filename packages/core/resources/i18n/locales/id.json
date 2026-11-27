@@ -603,6 +603,8 @@
   "ui.hints.select": "pilih",
   "ui.hints.edit": "edit",
   "ui.hints.save": "simpan",
+  "ui.hints.save_and_continue": "simpan dan lanjutkan",
+  "ui.hints.save_and_exit": "simpan dan keluar",
   "ui.hints.cancel": "batal",
   "ui.hints.interrupt": "interupsi",
   "ui.drawing.type_to_search": "Ketik untuk mencari > ",
@@ -1333,6 +1335,7 @@
   "ui.hints.catalog": "katalog",
   "ui.hints.add_enable": "tambah/aktifkan",
   "ui.hints.clear_filters": "hapus filter",
+  "ui.hints.clear_filters_short": "hapus filter",
   "composition.close_picker": "Tutup pemilih",
   "composition.actions": "Tambah / salin / hapus",
   "review.component": "Komponen {item}",
@@ -2343,5 +2346,6 @@
   "task.controls.fold": "Lipat",
   "task.controls.focus": "Tekan Ctrl+X lalu Tab untuk memindahkan fokus ke panel tugas, atau klik salah satu kontrol.",
   "task.controls.field_help": "Enter untuk mengonfirmasi · Tab untuk menuju Batal",
-  "task.controls.focus_field": "Klik kolom atau tekan Ctrl+X lalu Tab. Mulai mengetik setelah ⏎ muncul."
+  "task.controls.focus_field": "Klik kolom atau tekan Ctrl+X lalu Tab. Mulai mengetik setelah ⏎ muncul.",
+  "shortcuts.legacy-settings-short": "Pengaturan lama"
 }

@@ -1,5 +1,6 @@
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
+import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { strip } from '@fbincon/statusline-core/rendering/layout';
 import { before, after } from 'node:test';
@@ -687,11 +688,14 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
 test('installed external editor saves and cancels in a real native terminal', { timeout: 45000 }, async () => {
     const config = setup('external-editor');
     const settingsPath = join(config, 'settings.json'), settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    const displayPath = join(config, 'claude-statusline.json');
     settings.statusLine.command = 'claude-statusline render';
     fs.writeFileSync(settingsPath, JSON.stringify(settings));
+    fs.writeFileSync(displayPath, JSON.stringify(defaultDisplay()), { mode: 0o600 });
     const pathEnv = { ...installed.env, PATH: dirname(installed.bin) + delimiter + installed.env.PATH };
     for (const choice of ['save', 'cancel']) {
-        const path = join(config, 'claude-statusline.json'), before = fs.existsSync(path) ? fs.readFileSync(path) : null;
+        const before = fs.readFileSync(displayPath), beforeMode = fs.statSync(displayPath).mode;
+        const settingsBefore = fs.readFileSync(settingsPath), settingsMode = fs.statSync(settingsPath).mode;
         let output: string, columns = 100, rows = 30;
         if (process.platform === 'win32') {
             const invocation = bridge.prepare(config, { executable: installed.node, args: [installed.entry] }, installed.directory);
@@ -721,8 +725,17 @@ test('installed external editor saves and cancels in a real native terminal', { 
             const p = openPty(config, 100, 30, pathEnv, 'en', { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure', '--config-dir', config] });
             try {
                 await p.wait(value => value.includes('Preview (sample data)'));
-                p.send(choice === 'save' ? ' \x13' : ' \x1b');
-                if (choice === 'cancel') {
+                if (choice === 'save') {
+                    p.send('\r');
+                    await p.wait(value => value.includes('Configure Status Line *'));
+                    assert.equal(p.child.exitCode, null);
+                    assert.deepEqual(fs.readFileSync(displayPath), before);
+                    assert.equal(fs.statSync(displayPath).mode, beforeMode);
+                    assert.deepEqual(fs.readFileSync(settingsPath), settingsBefore);
+                    assert.equal(fs.statSync(settingsPath).mode, settingsMode);
+                    p.send('\x13');
+                } else {
+                    p.send(' \x1b');
                     await p.wait(value => value.includes('Discard unsaved configuration changes?'));
                     p.send('\x1b[B\r');
                 }
@@ -741,10 +754,16 @@ test('installed external editor saves and cancels in a real native terminal', { 
         capture.feed(output);
         const lastFrame = (capture.lastAlternate ?? capture.buffer).map(row => row.map(cell => cell.data).join('')).join('\n');
         assert.ok(lastFrame.includes(choice === 'save' ? 'Preview (sample data)' : 'Discard unsaved configuration changes?'));
-        if (choice === 'save')
-            assert.equal(JSON.parse(fs.readFileSync(path, 'utf8')).instances.find((item: any) => item.id === 'model-with-effort').enabled, false);
-        else
-            assert.deepEqual(fs.readFileSync(path), before);
+        if (choice === 'save') {
+            const expected = defaultDisplay();
+            expected.instances.find(item => item.id === 'model-with-effort')!.enabled = false;
+            assert.deepEqual(JSON.parse(fs.readFileSync(displayPath, 'utf8')), expected);
+        } else {
+            assert.deepEqual(fs.readFileSync(displayPath), before);
+            assert.equal(fs.statSync(displayPath).mode, beforeMode);
+        }
+        assert.deepEqual(fs.readFileSync(settingsPath), settingsBefore);
+        assert.equal(fs.statSync(settingsPath).mode, settingsMode);
     }
     checks.external_editor = true;
 });

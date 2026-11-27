@@ -105,18 +105,23 @@ test('all framed pages retain complete borders, aligned columns and full-width s
 test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_independent_styles_on_every_page', async (t) => {
     const f = await fixture(t);
     for (const [page, setting, save] of [
-        ['main', null, 'Enter/Ctrl+S'],
-        ['subagents', null, 'Enter/Ctrl+S'],
+        ['main', null, 'Ctrl+S'],
+        ['subagents', null, 'Ctrl+S'],
         ['settings', 'colors', 'Ctrl+S/Enter'],
         ['settings', 'keyboard-shortcuts', 'Ctrl+S'],
         ['layout', 'layout-mode', 'Ctrl+S'],
     ] as const) {
         f.e.page = page;
         if (setting) f.e.setting = setting;
-        const rows = bounded(f.state, 120, 30).rows;
+        const rows = bounded(f.state, 190, 30).rows;
         const action = rows[28]!;
         assert.ok(action.some(s => s.text === save && s.bold && !s.reverse));
-        assert.ok(action.some(s => s.text.includes('save') && !s.reverse));
+        assert.ok(action.some(s => s.text.startsWith(' ' + tMessage('ui.hints.save_and_exit', 'en') + ' · ') && !s.bold && !s.reverse));
+        if (page === 'main' || page === 'subagents') {
+            const help = rows[29]!;
+            assert.ok(help.some(s => s.text === 'Enter/Space' && s.bold && !s.reverse));
+            assert.ok(help.some(s => s.text.startsWith(' ' + tMessage('ui.hints.toggle', 'en') + ' · ') && !s.bold && !s.reverse));
+        }
     }
 });
 test('tests.ui.test_layout.DrawingTests.test_shortcut_groups_clip_at_cell_boundaries_without_partial_bindings', async (t) => {

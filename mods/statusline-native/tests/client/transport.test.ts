@@ -76,7 +76,10 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   let stored: any;
   let listener!: (event: ClientKeyEvent) => void;
   const sent: any[] = [];
+  // Newer hosts also provide window state that the input transport does not use.
+  const windowState = { beneath: [], isWindowFocused: true, isMotionReduced: false };
   const surface: ClientSurface<any> = {
+    ...windowState,
     get state() {
       return stored;
     },

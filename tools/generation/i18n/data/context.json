@@ -21,6 +21,26 @@
       "terms": [
         "statusline-language"
       ]
+    },
+    "ui.hints.save_and_continue": {
+      "version": 1,
+      "description": "Native editor footer. Save the display draft and keep the editor open.",
+      "terms": []
+    },
+    "ui.hints.save_and_exit": {
+      "version": 1,
+      "description": "Editor footer. Save the display draft and close the editor after a successful save.",
+      "terms": []
+    },
+    "ui.hints.clear_filters_short": {
+      "version": 1,
+      "description": "Compact component list footer. Clear both the search query and the selected category.",
+      "terms": []
+    },
+    "shortcuts.legacy-settings-short": {
+      "version": 1,
+      "description": "Shortcut details label for the original terminal Settings rows with an additional Save binding.",
+      "terms": []
     }
   }
 }

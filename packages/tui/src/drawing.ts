@@ -81,7 +81,9 @@ export function frame(state: State, columns: number, rows: number): Frame {
         canvas.put(2, tabX, [paint(label, page === e.page, page === e.page)]);
         tabX += displayWidth(label) + 2;
     }
-    canvas.put(3, 0, notice(state, canvas.columns));
+    const { actions, help, primaryActions } = footer(state);
+    const visibleHelp = shortcuts(help, canvas.columns);
+    canvas.put(3, 0, notice(state, canvas.columns, visibleHelp));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
     const summaryHints = state.form && !e.diagnosis && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
@@ -115,8 +117,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
             remaining === 1 ? 'ui.drawing.more_line' : 'ui.drawing.more_lines', { remaining },
         ))]);
     }
-    const { actions, help } = footer(state);
-    canvas.put(size.actionsY, 0, shortcuts(actions, canvas.columns));
-    canvas.put(size.helpY, 0, shortcuts(help, canvas.columns));
+    canvas.put(size.actionsY, 0, shortcuts(actions, canvas.columns, primaryActions));
+    canvas.put(size.helpY, 0, visibleHelp);
     return canvas.frame();
 }
