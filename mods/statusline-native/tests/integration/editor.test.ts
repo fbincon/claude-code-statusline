@@ -359,7 +359,7 @@ test(`a scoped native profile conflict permits ordinary close when inspection ${
   expect(await visibleText(ui)).toContain('Changes and history');expect(applies).toBe(1);expect(fixture.closes).toHaveLength(0);
   if(readFails)expect(await visibleText(ui)).toContain('Conflict details unavailable');
   await keys(ui,'q');expect(JSON.stringify(previewDraft(fixture))).toBe(retained);
-  await keys(ui,{key:'z',ctrl:true});expect(previewDraft(fixture).display.use_colors).toBe(true);
+  await keys(ui,{key:'_',ctrl:true});expect(previewDraft(fixture).display.use_colors).toBe(true);
   await keys(ui,{key:'r',ctrl:true});expect(JSON.stringify(previewDraft(fixture))).toBe(retained);
   await keys(ui,'q');expect(fixture.closes).toHaveLength(1);expect(applies).toBe(1);expect(JSON.stringify(fixture.store)).toBe(winner);
   await ui.unmount();

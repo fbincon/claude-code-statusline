@@ -17,11 +17,12 @@ test('native undo alternative and redo retain text-input and pending-save bounda
   const state=view(),e=state.editor!,count=e.draft.display.instances.length;
   handleKey(state,{key:'r',ctrl:true},80,24);expect(state.localized?.message?.key).toBe('history.no_redo');
   e.instanceAction('main','copy');
-  for (const key of ['/', '_', 'z']) {
+  for (const key of ['/', '_']) {
     handleKey(state,{key,ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count);
     expect(state.localized?.message?.key).toBe('history.counts');
     handleKey(state,{key:'r',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
   }
+  handleKey(state,{key:'z',ctrl:true},80,24);expect(e.draft.display.instances.length).toBe(count+1);
   handleKey(state,{key:'t',ctrl:true},80,24);
   handleKey(state,{key:'r'},80,24);expect(e.changeReview?.message?.key).toBe('history.no_redo');
   handleKey(state,{key:'u'},80,24);handleKey(state,{key:'u'},80,24);expect(e.changeReview?.message?.key).toBe('history.no_undo');
