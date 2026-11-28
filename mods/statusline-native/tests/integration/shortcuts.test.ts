@@ -17,11 +17,7 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   expect(compact).toContain('OPTION VALUE');
   expect(compact).toContain('─ Editor and draft ─');
   await ui.resize({ columns: 100, rows: 30 });
-  const wide = await visibleText(ui);
-  expect(wide).toContain('╭─ Keyboard shortcuts');
-  expect(wide.replace(/ +/gu, ' ')).toContain('OPTION CURRENT KEY DEFAULT KEY');
-  expect(wide.indexOf('Save shortcuts') < wide.indexOf('╰─')).toBe(true);
-  expect(wide.indexOf('╰─') < wide.indexOf('Tab switch')).toBe(true);
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('› Save display S');
   await keys(ui, 'return');
   expect(await visibleText(ui)).toContain('Claude reserves Ctrl+D, Ctrl+X, Ctrl+Z');
   await keys(ui, { key: 'd', ctrl: true });

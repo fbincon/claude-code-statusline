@@ -509,16 +509,31 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
-test('native shortcut settings style the actionable keys in the body at the minimum size', () => {
+test('native shortcut settings put the action menu inside the panel and style keys in the footer', () => {
   const state = view();
   state.language = 'zh-CN';
   state.editor!.shortcuts.open();
-  const tree = draw(elements, state, 32, 12) as unknown as Node;
-  expect(render(tree)).toHaveLength(12);
-  const keyNodes = tree.children.slice(1).flatMap(row => typeof row === 'string' ? [] : row.children)
-    .filter((child): child is Node => typeof child !== 'string' && child.props.bold === true);
-  expect(new Set(keyNodes.map(text))).toEqual(new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']));
-  expect(keyNodes.every(node => node.props.color === 'text')).toBe(true);
+  for (const [columns, rows] of [[32, 12], [64, 18], [79, 20], [80, 20], [120, 30]] as const) {
+    const tree = draw(elements, state, columns, rows) as unknown as Node;
+    const lines = render(tree);
+    expect(lines).toHaveLength(rows);
+    const title = lines.findIndex(row => row.includes('─ 快捷键 ─'));
+    const menu = lines.findIndex(row => row.includes('保存快捷键'));
+    expect(title >= 1 && title < menu).toBe(true);
+    const body = lines.slice(title + 1, menu);
+    expect(body.some(row => row.includes('─ 编辑器与草稿 ─'))).toBe(true);
+    expect(body.some(row => row.includes('选项') && row.includes(columns >= 80 ? '当前键' : '值'))).toBe(true);
+    expect(body.some(row => row.includes('默认键'))).toBe(columns >= 80);
+    if (rows >= 20) expect(lines[menu + 1]?.startsWith('╰─')).toBe(true);
+    const section = tree.children.findIndex(node => typeof node !== 'string' && node.props.key === 'content-region');
+    expect(section >= 1).toBe(true);
+    const keyNodes = tree.children.slice(section + 1)
+      .flatMap(row => typeof row === 'string' ? [] : row.children)
+      .flatMap(child => typeof child === 'string' ? [] : child.children)
+      .filter((child): child is Node => typeof child !== 'string' && child.props.bold === true);
+    for (const key of ['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G'])
+      expect(keyNodes.some(node => text(node) === key && node.props.color === 'text')).toBe(true);
+  }
 });
 
 test('native decoration fields keep their full names and active control on a compact pane', () => {
