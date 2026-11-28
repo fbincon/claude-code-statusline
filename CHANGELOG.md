@@ -2,6 +2,16 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.17.0 — 2026-11-28
+
+- Render custom subagent lines through the AgentRow Mod or the compatible Claude Code command callback.
+- Customize shared keyboard shortcuts and use consistent component-list controls across both editors.
+- Find Layout before Settings in both editors and see examples after component descriptions in the external editor.
+- Use the external editor launched from Claude Code for up to 30 minutes, with automatic updates to visible task reports and job progress.
+- Keep task timing, current state and tool activity tied to the prompt that owns them.
+- Upgrade with display schema 17, matching editor protocol 33 and shortcut preferences schema 1.
+- Published on npm, GitHub and Gitee on 2026-11-28. [Release notes](docs/releases/v3.17.0.md) · [Delivery record](docs/development/history/deliveries/v3-17-0.md#final-release).
+
 ## 3.16.5 — 2026-11-21
 
 - Install, upgrade and recover bundled plugins on Claude Code 2.1.330 and report validation failures. [#292](https://github.com/fbincon/claude-code-statusline/issues/292)

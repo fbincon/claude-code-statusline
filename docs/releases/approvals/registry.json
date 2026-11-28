@@ -140,6 +140,11 @@
       "version": "3.16.5",
       "path": "docs/releases/approvals/v3.16.5.json",
       "approved_on": "2026-11-21"
+    },
+    {
+      "version": "3.17.0",
+      "path": "docs/releases/approvals/v3.17.0.json",
+      "approved_on": "2026-11-28"
     }
   ]
 }

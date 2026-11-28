@@ -4,6 +4,16 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## 3.17.0 — 2026-11-28
+
+- 通过 AgentRow Mod 或兼容的 Claude Code 命令回调显示自定义子代理状态行。
+- 在两种编辑器中自定义共享快捷键，并使用一致的组件列表操作。
+- 在两种编辑器中将「布局」放在「设置」之前，并在外部编辑器的组件说明后显示示例。
+- 从 Claude Code 打开的外部编辑器可使用至多 30 分钟，当前显示的任务报告和作业进度会自动更新。
+- 将任务计时、当前状态和工具活动关联到对应的用户提示词。
+- 升级沿用显示 schema 17，使用配套的编辑器协议 33 和快捷键偏好 schema 1。
+- 已于 2026-11-28 在 npm、GitHub 和 Gitee 发布。[发布说明](docs/releases/v3.17.0.zh-CN.md) · [交付记录](docs/development/history/deliveries/v3-17-0.zh-CN.md#final-release)。
+
 ## 3.16.5 — 2026-11-21
 
 - 在 Claude Code 2.1.330 上安装、升级和恢复内置插件，并显示具体校验失败原因。 [#292](https://github.com/fbincon/claude-code-statusline/issues/292)
