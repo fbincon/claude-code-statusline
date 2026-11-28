@@ -57,7 +57,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if ((columns < 32 || rows < 12) && !view.input && !e.packages && !event.ctrl && !event.meta && !event.text && shortcut === 'q') return 'close';
-  if (e.shortcuts.panel) return e.shortcuts.key(event, view.language ?? 'en', columns, rows - 1, event.shift);
+  if (e.shortcuts.panel) return e.shortcuts.key(event, view.language ?? 'en', columns, rows, event.shift);
   if (e.changeReview) return changesKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
   if (e.reuse) return reuseKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
   if (e.packages) {

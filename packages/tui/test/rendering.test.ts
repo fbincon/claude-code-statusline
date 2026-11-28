@@ -204,16 +204,35 @@ test('external item format pairs preset controls with independent custom input',
     assert.ok(plain(state, 64, 18).some(row => row.includes('自定义标签') && row.includes('跟随预设')));
 });
 
-test('external shortcut settings bold keys in body rows at both panel widths', () => {
+test('external shortcut settings frame the list and action menu above the bold footer hints', () => {
     const state = fixture('zh-CN');
     state.editor.shortcuts.open();
-    for (const [width, height] of [[32, 12], [120, 30]] as const) {
+    for (const [width, height] of [[32, 12], [64, 18], [64, 20], [120, 30]] as const) {
         const terminal = frame(state, width, height);
-        const help = terminal.rows.slice(1).flat().filter(span => span.bold);
+        const screen = terminal.rows.map(row => row.map(span => span.text).join(''));
+        const title = screen.findIndex(row => row.includes('─') && row.includes(t('shortcuts.title', 'zh-CN')));
+        const bottom = screen.findIndex(row => row.startsWith('└─'));
+        const menu = screen.findIndex(row => row.includes('保存快捷键'));
+        const footer = screen.findIndex(row => row.includes('Enter 改键') || row.includes('Tab 切换'));
+        assert.ok(title >= 1 && title < menu && menu < footer);
+        assert.ok(screen.slice(title + 1, menu).some(row => row.includes('─ 编辑器与草稿 ─')));
+        assert.ok(screen.slice(title + 1, menu).some(row => row.includes('选项') && row.includes(width >= 80 ? '默认键' : '值')));
+        assert.equal(screen.some(row => row.includes(t('ui.drawing.preview_sample_data', 'zh-CN'))), false);
+        if (height >= 20) assert.ok(bottom === menu + 1 && bottom < footer);
+        else assert.equal(bottom, -1);
+        const help = terminal.rows.slice(footer).flat().filter(span => span.bold);
         for (const key of ['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']) assert.ok(help.some(span => span.text === key), key);
         assert.ok(help.every(span => !/筛选|改键|恢复|切换|返回/u.test(span.text)));
         assert.ok(terminal.rows.every(row => displayWidth(row.map(span => span.text).join('')) === width));
     }
+    state.key({ key: 'tab' }, 32, 12);
+    state.key({ key: 'right' }, 32, 12);
+    const menu = frame(state, 120, 30).rows.find(row => row.some(span => span.text.includes('恢复全部')))!;
+    assert.ok(menu.some(span => span.reverse && span.text === '› 恢复全部'));
+    assert.ok(menu.some(span => !span.reverse && span.text.includes('保存快捷键')));
+    const german = fixture('de');
+    german.editor.shortcuts.open();
+    assert.ok(plain(german, 64, 18)[1]?.includes(t('ui.drawing.settings', 'de')));
 });
 
 test('actions contain one bold Enter and item format identifies its scope and return key', () => {

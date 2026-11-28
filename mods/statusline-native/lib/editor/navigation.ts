@@ -89,7 +89,7 @@ export function formWindow(rows: readonly GroupedRow[], selected: string, height
   return { ...pages[page]!, page: page + 1, pages: pages.length };
 }
 
-export function formSelection(rows: readonly GroupedRow[], selected: string, height: number, delta: -1 | 1): string {
+export function formSelection<Key extends string>(rows: readonly (GroupedRow & { key: Key })[], selected: string, height: number, delta: -1 | 1): Key | '' {
   const pages = formPages(rows, height);
   const window = formWindow(rows, selected, height);
   const target = pages[Math.max(0, Math.min(pages.length - 1, window.page - 1 + delta))]!;

@@ -29904,6 +29904,28 @@
         "terms": []
       },
       "terms": {}
+    },
+    "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a": {
+      "key": "shortcuts.current-key",
+      "english": "CURRENT KEY",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.current-key",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0": {
+      "key": "shortcuts.default-key",
+      "english": "DEFAULT KEY",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.default-key",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {

@@ -2448,6 +2448,8 @@
   "shortcuts.confirm-help": "{arrows} 選擇 · {enter} 確認 · {back} 取消",
   "shortcuts.confirm-reload": "要捨棄這份草稿並讀取已儲存的快捷鍵嗎？",
   "shortcuts.conflict": "{editor}的 {key} 同時指定給「{first}」和「{second}」。",
+  "shortcuts.current-key": "目前按鍵",
+  "shortcuts.default-key": "預設按鍵",
   "shortcuts.discard": "捨棄快捷鍵變更",
   "shortcuts.failed": "快捷鍵操作失敗。{detail}",
   "shortcuts.filter": "篩選",

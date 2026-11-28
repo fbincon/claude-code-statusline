@@ -1,6 +1,6 @@
 import { EDITOR_SHORTCUTS_SCHEMA_VERSION, type EditorShortcutsResult } from '../contracts/ui.js';
 import { isLocalizedText, renderMessage, t, text, type Language, type LocalizedText } from '../i18n/messages.js';
-import { displayWidth } from '../unicode/index.js';
+import { clip, displayWidth } from '../unicode/index.js';
 import { BackendError } from './backend.js';
 import {
   SHORTCUT_GROUPS, canAssignKey, isNativeReservedKey, keyToken, listedShortcut, reservedNativeKeys,
@@ -8,9 +8,10 @@ import {
   type EditorSurface, type ShortcutAction, type ShortcutBindings, type ShortcutConflict, type ShortcutContext,
 } from './shortcut-map.js';
 import { matchText } from './search.js';
+import { formSelection, formWindow } from './navigation.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
-import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
+import { hintLine, sectionDivider, wrapEditorHints, wrapEditorLine, type EditorLine } from './hints.js';
 
 export type ShortcutEffect = 'read-shortcuts' | 'save-shortcuts';
 export const SHORTCUT_PANEL_MIN_COLUMNS = 32;
@@ -27,9 +28,14 @@ const firstActions: Partial<Record<string, readonly ShortcutAction[]>> = {
 };
 const actions = Object.entries(SHORTCUT_GROUPS).flatMap(([group, entries]) => {
   const first = firstActions[group] ?? [];
-  return [...first, ...entries.filter(action => !first.includes(action))].map(action => ({ group, action }));
+  return [...first, ...entries.filter(action => !first.includes(action))].map(key => ({
+    group, key, presets: { terminal: listedShortcut('terminal', key, {}), native: listedShortcut('native', key, {}) },
+  }));
 });
 const commands = ['save', 'restore-all', 'reload'] as const;
+const surfaces = ['terminal', 'native'] as const;
+const widestPreset = Math.max(...actions.flatMap(({ presets }) => surfaces.map(surface => displayWidth(presets[surface]))));
+const customKeyWidth = displayWidth('Ctrl+A');
 
 export function defaultShortcuts(warning: LocalizedText | null = null): EditorShortcutsResult {
   return { schema_version: EDITOR_SHORTCUTS_SCHEMA_VERSION, bindings: {}, revision: null, warning };
@@ -42,9 +48,8 @@ function sameBindings(a: ShortcutBindings, b: ShortcutBindings): boolean {
 interface ShortcutPanel {
   draft: ShortcutBindings;
   selected: ShortcutAction | null;
-  scroll: number;
   query: string;
-  filter: { input: TextInput; selected: ShortcutAction | null; scroll: number } | null;
+  filter: { input: TextInput; selected: ShortcutAction | null } | null;
   command: number | null;
   capture: boolean;
   confirm: { kind: 'close' | 'reload'; discard: boolean } | null;
@@ -58,8 +63,8 @@ const actionMessage = (action: ShortcutAction) => text('shortcuts.action.' + act
 
 function matchingActions(panel: ShortcutPanel, language: Language): typeof actions {
   const query = panel.filter?.input.value ?? panel.query;
-  return query.trim() ? actions.filter(({ action }) => matchText(action, query) ||
-    matchText(renderMessage(actionMessage(action), language), query)) : actions;
+  return query.trim() ? actions.filter(({ key }) => matchText(key, query) ||
+    matchText(renderMessage(actionMessage(key), language), query)) : actions;
 }
 
 function conflictMessage(conflict: ShortcutConflict): LocalizedText {
@@ -87,7 +92,7 @@ export class EditorShortcuts {
 
   open(): void {
     const warning = this.reloadReason ?? (this.snapshot.warning?.key === 'shortcuts.read-failed' ? this.snapshot.warning : null);
-    this.panel = { draft: { ...this.snapshot.bindings }, selected: actions[0]!.action, scroll: 0, query: '', filter: null, command: null,
+    this.panel = { draft: { ...this.snapshot.bindings }, selected: actions[0]!.key, query: '', filter: null, command: null,
       capture: false, confirm: null, message: warning, busy: false, restore: false, needsReload: warning !== null };
   }
 
@@ -105,7 +110,6 @@ export class EditorShortcuts {
       const filter = panel.filter;
       if (cancel) {
         panel.selected = filter.selected;
-        panel.scroll = filter.scroll;
         panel.filter = null;
         panel.message = null;
       } else if (commandKey && !event.ctrl && key === 'return') {
@@ -119,8 +123,7 @@ export class EditorShortcuts {
         panel.message = result.error ? text('input.' + result.error, { limit: 256 }) : null;
         if (before !== result.state.value) {
           const matches = matchingActions(panel, language);
-          if (!matches.some(({ action }) => action === panel.selected)) panel.selected = matches[0]?.action ?? null;
-          panel.scroll = 0;
+          if (!matches.some(({ key }) => key === panel.selected)) panel.selected = matches[0]?.key ?? null;
         }
       }
       return null;
@@ -175,7 +178,7 @@ export class EditorShortcuts {
         else panel.confirm = { kind: 'reload', discard: false };
       }
     } else if (key === '/') {
-      panel.filter = { input: textInput(panel.query), selected: panel.selected, scroll: panel.scroll };
+      panel.filter = { input: textInput(panel.query), selected: panel.selected };
       panel.message = null;
     } else if (!panel.selected) return null;
     else if (key === 'return') {
@@ -184,13 +187,16 @@ export class EditorShortcuts {
     } else if (key === 'delete') {
       delete panel.draft[panel.selected];
       panel.message = null;
-    } else if (['up', 'down', 'pageup', 'pagedown', 'home', 'end'].includes(key)) {
+    } else if (key === 'pageup' || key === 'pagedown') {
       const matches = matchingActions(panel, language);
-      const index = matches.findIndex(({ action }) => action === panel.selected);
-      const capacity = key === 'pageup' || key === 'pagedown' ? shortcutPanelLayout(this, language, width, height).capacity : 1;
-      const delta = key === 'up' || key === 'pageup' ? -capacity : capacity;
-      const next = key === 'home' ? 0 : key === 'end' ? matches.length - 1 : Math.max(0, Math.min(matches.length - 1, index + delta));
-      panel.selected = matches[next]?.action ?? null;
+      const { listRows } = shortcutPanelLayout(this, language, width, height, matches);
+      panel.selected = formSelection(matches, panel.selected, listRows, key === 'pageup' ? -1 : 1) || null;
+    } else if (['up', 'down', 'home', 'end'].includes(key)) {
+      const matches = matchingActions(panel, language);
+      const index = matches.findIndex(row => row.key === panel.selected);
+      const next = key === 'home' ? 0 : key === 'end' ? matches.length - 1
+        : Math.max(0, Math.min(matches.length - 1, index + (key === 'up' ? -1 : 1)));
+      panel.selected = matches[next]?.key ?? null;
     }
     return null;
   }
@@ -254,88 +260,165 @@ export class EditorShortcuts {
   }
 }
 
-interface PanelRow extends EditorLine { selected?: boolean }
+type PanelAction = (typeof actions)[number];
+interface PanelRow extends EditorLine { kind?: 'columns' | 'group' | 'detail'; selected?: boolean }
+interface MenuSpan { text: string; selected: boolean }
 
-function shortcutPanelLayout(editor: EditorShortcuts, language: Language, width: number, height: number) {
+function currentKeys(action: PanelAction, surface: EditorSurface, bindings: ShortcutBindings): string {
+  return bindings[action.key] ? listedShortcut(surface, action.key, bindings) : action.presets[surface];
+}
+
+function actionDetails(action: PanelAction, language: Language, bindings: ShortcutBindings, width: number): PanelRow[] {
+  const compact = width < 48;
+  const keyText = (key: string) => compact ? key.replaceAll(' / ', '/') : key;
+  const sides = surfaces.flatMap(surface => action.presets[surface] ? [{
+    label: t('shortcuts.' + surface + '-short', language),
+    keys: keyText(currentKeys(action, surface, bindings)) + ' [' + keyText(action.presets[surface]) + ']',
+  }] : []);
+  const details = compact && sides.length === 2 && sides[0]!.keys === sides[1]!.keys
+    ? [sides.map(side => side.label).join('/') + ' ' + sides[0]!.keys]
+    : sides.map(side => side.label + ' ' + side.keys);
+  const combined = details.join(' · ');
+  const lines = displayWidth(combined) <= width ? [combined] : wrapText(details, width);
+  return lines.map(text => ({ text, kind: 'detail' }));
+}
+
+function shortcutMenu(command: number | null, language: Language, width: number): MenuSpan[] {
+  const items = commands.map((key, index) => {
+    const selected = command === index;
+    return { text: (selected ? '› ' : '  ') + t('shortcuts.' + key, language), selected };
+  });
+  const divider = { text: ' · ', selected: false };
+  if (displayWidth(items.map(item => item.text).join(divider.text)) > width) return [items[command ?? 0]!];
+  return items.flatMap((item, index) => index ? [divider, item] : [item]);
+}
+
+function shortcutTable(editor: EditorShortcuts, language: Language, width: number, showDefaults: boolean) {
+  const option = t('ui.drawing.option', language).trim();
+  const current = t(showDefaults ? 'shortcuts.current-key' : 'ui.drawing.value', language).trim();
+  const preset = t('shortcuts.default-key', language);
+  const alternate = editor.surface === 'native' ? 'terminal' : 'native';
+  const otherLabel = t('shortcuts.' + alternate + '-short', language);
+  const otherKeyWidth = Math.max(customKeyWidth, ...actions.filter(row => !row.presets[editor.surface])
+    .map(row => displayWidth(row.presets[alternate])));
+  const keyWidth = Math.max(displayWidth(current), widestPreset, displayWidth(otherLabel) + 1 + otherKeyWidth);
+  const presetWidth = Math.max(displayWidth(preset), widestPreset);
+  const optionWidth = Math.max(1, Math.min(44, width - 4 - keyWidth - (showDefaults ? 2 + presetWidth : 0)));
+  const pad = (value: string, cells: number) => {
+    const visible = clip(value, cells);
+    return visible + ' '.repeat(cells - displayWidth(visible));
+  };
+  const line = (marker: string, label: string, binding: string, defaultBinding: string) => {
+    const prefix = marker + pad(label, optionWidth) + '  ';
+    return showDefaults ? prefix + pad(binding, keyWidth) + '  ' + defaultBinding : prefix + binding;
+  };
+  return {
+    heading: line('  ', option, current, preset),
+    row(action: PanelAction, selected: boolean): PanelRow {
+      const surface = action.presets[editor.surface] ? editor.surface : alternate;
+      const value = currentKeys(action, surface, editor.panel!.draft) + (surface === alternate ? ' ' + otherLabel : '');
+      return { selected, text: line(selected ? '› ' : '  ', renderMessage(actionMessage(action.key), language), value, action.presets[surface]) };
+    },
+  };
+}
+
+function shortcutPanelLayout(editor: EditorShortcuts, language: Language, columns: number, rows: number, matches: PanelAction[]) {
   const panel = editor.panel!;
+  const framed = columns >= 64 && rows >= 20;
+  const headerRows = columns >= 64 && rows >= 18 ? 2 : 1;
+  const width = columns - (framed ? 2 : 0) - (editor.surface === 'terminal' ? 2 : 0);
+  const height = rows - headerRows - (framed ? 2 : 1);
+  const geometry = { framed, headerRows, innerWidth: width, height };
   const tr = (key: string, params?: Record<string, unknown>) => t('shortcuts.' + key, language, params);
-  const hint = (key: string, keys: Record<string, string>) => hintLine('shortcuts.' + key, language, keys);
-  const selected = actions.find(({ action }) => action === panel.selected);
-  const filtering = panel.filter !== null;
-  const query = panel.filter?.input.value ?? panel.query;
-  const before: PanelRow[] = [];
-  if (filtering || query.trim()) {
-    const prefix = tr('filter') + ' ';
-    const value = panel.filter ? inputView({ ...panel.filter.input }, width - displayWidth(prefix)) : query;
-    before.push({ text: prefix + value });
+  const hint = (key: string, keys: Record<string, string>) => wrapEditorHints(hintLine('shortcuts.' + key, language, keys), columns);
+  const paragraphs = (value: string): PanelRow[] => wrapText([value], width).map(text => ({ text }));
+
+  if (panel.confirm) {
+    const { kind, discard } = panel.confirm;
+    const footer = hint('confirm-help', { arrows: '↑↓', enter: 'Enter', back: 'Ctrl+G' });
+    const before = paragraphs(tr(kind === 'close' ? 'confirm-close' : 'confirm-reload'))
+      .slice(0, Math.max(0, height - footer.length - 2));
+    before.push(
+      { text: clip((discard ? '  ' : '› ') + tr('keep'), width), selected: !discard },
+      { text: clip((discard ? '› ' : '  ') + tr('discard'), width), selected: discard },
+    );
+    return { ...geometry, before, after: [], listRows: 0, tableHeading: false, menu: [], footer };
   }
-  const details: PanelRow[] = [];
-  if (selected && !filtering) {
-    const { group, action } = selected;
-    before.push({ text: panel.capture ? tr('capture-action', { action: actionMessage(action) }) : tr('group.' + group) });
-    const keys = (surface: EditorSurface) => {
-      const preset = listedShortcut(surface, action, {});
-      return preset ? `${tr(surface + '-short')} ${listedShortcut(surface, action, panel.draft)} [${preset}]` : '';
-    };
-    const keyRow = [keys('terminal'), keys('native')].filter(Boolean);
-    const combined = keyRow.join(' · ');
-    details.push(...(displayWidth(combined) <= width ? [combined] : wrapText(keyRow, width)).map(text => ({ text })));
-  } else if (!selected) before.push({ text: tr('no-matches') });
-  const conflict = shortcutConflict(panel.draft);
+
+  const selected = matches.find(row => row.key === panel.selected);
+  const filtering = panel.filter !== null;
+  const conflict = !filtering && !panel.capture && !panel.busy && !panel.message ? shortcutConflict(panel.draft) : null;
   const notice = panel.busy ? text('shortcuts.working') : panel.message ??
     (panel.capture || filtering ? null : conflict ? conflictMessage(conflict) : editor.snapshot.warning);
   const detail = notice?.key === 'shortcuts.read-failed' ? notice.params.detail : notice;
-  const instruction = isLocalizedText(detail) && ['shortcuts.read-busy', 'shortcuts.read-recovery'].includes(detail.key) ? detail : null;
-  const reserved = panel.capture && selected ? reservedNativeKeys(selected.action) : [];
-  const help = panel.capture
-    ? { text: reserved.length ? tr('capture-host-help', { keys: reserved.join(', ') }) : tr('capture') }
-    : panel.command !== null ? hint('command-help', { arrows: '←→', enter: 'Enter' })
-    : selected ? hint('list-help', { filter: '/', enter: 'Enter', restore: 'Delete' })
-    : hint('filter-only', { filter: '/' });
-  const fixedHelp = panel.busy ? [] : wrapEditorLine(filtering
-    ? hint('filter-help', { enter: 'Enter', back: 'Ctrl+G', clear: 'Ctrl+U' })
-    : panel.capture ? hint('cancel-help', { back: 'Ctrl+G' })
-    : hint('back-help', { tab: 'Tab', back: 'Ctrl+G' }), width);
-  const commandRows = commands.map((command, index) => ({ text: (panel.command === index ? '› ' : '  ') + tr(command), selected: panel.command === index }));
-  const controls = commandRows.map(row => row.text.trim()).join(' · ');
-  let options: PanelRow[] = [];
-  if (!filtering && !panel.capture && !panel.busy) {
-    if (displayWidth(controls) <= width) options = [{ text: controls }];
-    else options = panel.command === null ? [hint('options', { tab: 'Tab' })] : [commandRows[panel.command]!];
+  const instruction = isLocalizedText(detail) && ['shortcuts.read-busy', 'shortcuts.read-recovery'].includes(detail.key);
+  const messages = notice ? paragraphs(renderMessage(instruction ? detail : notice, language)) : [];
+  const details = selected && !filtering ? actionDetails(selected, language, panel.draft, width) : [];
+  if (panel.capture && selected) {
+    const reserved = reservedNativeKeys(selected.key);
+    const captureHelp = reserved.length ? tr('capture-host-help', { keys: reserved.join(', ') }) : tr('capture');
+    const footer = [...wrapEditorLine({ text: captureHelp }, columns), ...hint('cancel-help', { back: 'Ctrl+G' })];
+    const before = [...paragraphs(tr('capture-action', { action: actionMessage(selected.key) })), ...messages, ...details]
+      .slice(0, height - footer.length);
+    return { ...geometry, before, after: [], listRows: 0, tableHeading: false, menu: [], footer };
   }
-  const messageRows = notice ? wrapEditorLine({ text: renderMessage(instruction ?? notice, language) }, width) : [];
-  const helpRows = filtering || panel.busy || instruction ? [] : wrapEditorLine(help, width);
-  // Leave space for the selected action and preserve controls even when a warning wraps.
-  const available = Math.max(0, height - before.length - options.length - fixedHelp.length - 1);
-  const messages = messageRows.slice(0, instruction ? available : Math.min(4, available, Math.max(1, available - details.length)));
-  // Warnings and key details leave at least two list rows before optional help.
-  const helpBudget = notice ? available - messages.length - details.length - 1 : available;
-  const helpShown = helpRows.slice(0, Math.max(0, helpBudget));
-  const after = [...details.slice(0, Math.max(0, available - messages.length - helpShown.length)), ...messages,
-    ...helpShown, ...options, ...fixedHelp];
-  return { before, after, capacity: Math.max(1, height - before.length - after.length) };
+
+  const before: PanelRow[] = [];
+  const query = panel.filter?.input.value ?? panel.query;
+  if (filtering || query.trim()) {
+    const prefix = tr('filter') + ' ';
+    const value = panel.filter ? inputView({ ...panel.filter.input }, width - displayWidth(prefix)) : query;
+    before.push({ text: clip(prefix + value, width) });
+  }
+  if (!matches.length) before.push(...paragraphs(tr('no-matches')));
+  const menu = filtering || panel.busy ? [] : shortcutMenu(panel.command, language, width);
+  const fixedHelp = panel.busy ? [] : filtering
+    ? hint('filter-help', { enter: 'Enter', back: 'Ctrl+G', clear: 'Ctrl+U' })
+    : hint('back-help', { tab: 'Tab', back: 'Ctrl+G' });
+  const contextHelp = panel.busy || filtering || instruction ? [] : panel.command !== null
+    ? hint('command-help', { arrows: '←→', enter: 'Enter' })
+    : matches.length ? hint('list-help', { filter: '/', enter: 'Enter', restore: 'Delete' })
+      : hint('filter-only', { filter: '/' });
+  const minimumList = matches.length ? 2 : 0; // One action and its group.
+  const requiredRows = before.length + Number(menu.length > 0) + minimumList;
+  const instructionRows = instruction ? messages.length : 0;
+  const footer = [...contextHelp, ...fixedHelp];
+  const navigation = '↑↓ PgUp/PgDn Home/End';
+  const detailHeight = width >= 90 ? 1 : 2;
+  if (!panel.busy && !filtering && panel.command === null && matches.length && !instruction && columns >= 64 &&
+      height - requiredRows - footer.length > detailHeight + 1) {
+    footer.unshift({ text: navigation + ' ' + t('ui.hints.select', language), keys: [{ start: 0, end: navigation.length }] });
+  }
+  let remaining = height - footer.length - requiredRows;
+  const tableHeading = matches.length > 0 && remaining > instructionRows;
+  remaining -= Number(tableHeading);
+  const shownMessages = messages.slice(0, Math.max(0, instruction ? remaining : Math.min(4, remaining)));
+  // Reserve a fixed detail area so paging does not change when bindings wrap on a new selection.
+  const detailRows = selected && !filtering ? Math.max(0, Math.min(detailHeight, remaining - shownMessages.length)) : 0;
+  const listRows = minimumList + Math.max(0, remaining - shownMessages.length - detailRows);
+  const after = [...details.slice(0, detailRows), ...shownMessages];
+  return { ...geometry, before, after, listRows, tableHeading, menu, footer };
 }
 
-export function shortcutPanelRows(editor: EditorShortcuts, language: Language, width: number, height: number): PanelRow[] {
+export function shortcutPanelView(editor: EditorShortcuts, language: Language, columns: number, rows: number) {
   const panel = editor.panel!;
-  const tr = (key: string) => t('shortcuts.' + key, language);
-  if (panel.confirm) return [
-    ...wrapText([tr(panel.confirm.kind === 'close' ? 'confirm-close' : 'confirm-reload')], width).map(text => ({ text })),
-    { text: (panel.confirm.discard ? '  ' : '› ') + tr('keep'), selected: !panel.confirm.discard },
-    { text: (panel.confirm.discard ? '› ' : '  ') + tr('discard'), selected: panel.confirm.discard },
-    ...wrapEditorLine(hintLine('shortcuts.confirm-help', language, { arrows: '↑↓', enter: 'Enter', back: 'Ctrl+G' }), width),
-  ].slice(0, height);
   const matches = matchingActions(panel, language);
-  const { before, after, capacity } = shortcutPanelLayout(editor, language, width, height);
-  const index = matches.findIndex(({ action }) => action === panel.selected);
-  const start = Math.max(0, Math.min(panel.scroll, index, matches.length - capacity));
-  panel.scroll = Math.max(start, index - capacity + 1);
-  const alternate = editor.surface === 'native' ? 'terminal' : 'native';
-  const visible = matches.slice(panel.scroll, panel.scroll + capacity).map(({ action }) => {
-    const selected = panel.command === null && action === panel.selected;
-    const key = listedShortcut(editor.surface, action, panel.draft) || listedShortcut(alternate, action, panel.draft);
-    const label = renderMessage(actionMessage(action), language);
-    return { selected, text: `${selected ? '›' : ' '} ${key}  ${label}` };
-  });
-  return [...before, ...visible, ...after].slice(0, height);
+  const { height, before, after, listRows, tableHeading, ...geometry } = shortcutPanelLayout(editor, language, columns, rows, matches);
+  const width = geometry.innerWidth;
+  const body = [...before];
+  if (listRows > 0 && matches.length) {
+    const table = shortcutTable(editor, language, width, columns >= 80);
+    if (tableHeading) body.push({ text: table.heading, kind: 'columns' });
+    const window = formWindow(matches, panel.selected ?? '', listRows);
+    for (const line of window.lines) {
+      if (line.index === null) {
+        body.push({ text: sectionDivider(t('shortcuts.group.' + line.group, language), width), kind: 'group' });
+      } else {
+        const action = matches[line.index]!;
+        body.push(table.row(action, panel.command === null && action.key === panel.selected));
+      }
+    }
+  }
+  body.push(...after);
+  return { ...geometry, body, bodyHeight: height - geometry.footer.length };
 }

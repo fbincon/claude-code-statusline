@@ -10,6 +10,12 @@ export interface EditorLine {
   keys?: readonly KeyRange[];
 }
 
+export function sectionDivider(title: string, width: number): string {
+  if (width < 4) return '─'.repeat(Math.max(0, width));
+  const label = clip(title, width - 4).trimEnd();
+  return '─ ' + label + ' ' + '─'.repeat(width - displayWidth(label) - 3);
+}
+
 /** Only the explicitly supplied parameters are keys, even when other text repeats them. */
 export function hintLine(key: string, language: Language, keys: Record<string, string | EditorLine>, params: Record<string, unknown> = {}): EditorLine {
   const values = Object.fromEntries(Object.entries(keys).map(([name, value]) => [name, typeof value === 'string' ? value : value.text]));
@@ -54,6 +60,23 @@ export function wrapEditorLine(line: EditorLine, width: number): EditorLine[] {
     while (line.text[start] === ' ') start++;
   }
   return result;
+}
+
+/** Keep the translated description beside its key when adjacent hints wrap. */
+export function wrapEditorHints(line: EditorLine, width: number): EditorLine[] {
+  const separator = ' · ';
+  const rows: EditorLine[] = [];
+  let start = 0;
+  for (const part of line.text.split(separator)) {
+    const hint = lineSlice(line, start, start + part.length);
+    start += part.length + separator.length;
+    const previous = rows.at(-1);
+    if (previous && displayWidth(previous.text + separator + part) <= width) {
+      const joined = prependLine(previous.text + separator, hint);
+      rows[rows.length - 1] = { ...joined, keys: [...(previous.keys ?? []), ...(joined.keys ?? [])] };
+    } else rows.push(...wrapEditorLine(hint, width));
+  }
+  return rows;
 }
 
 export function clipEditorLine(line: EditorLine, width: number): EditorLine {

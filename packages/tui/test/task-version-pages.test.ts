@@ -162,6 +162,10 @@ test('external version navigation shows the current controls and returns to the 
     assert(view);
     const overview = plain(state, 64, 18).join('\n');
     assert(overview.includes('3.17.0') && overview.includes('Enter 编辑') && overview.includes('Enter 选择'));
+    assert(overview.includes('─ ' + t('package.ui.version_options', 'zh-CN') + ' ─'));
+    const wide = plain(state, 120, 30);
+    for (const group of ['version_options', 'version_actions', 'installation_actions'])
+        assert(wide.some(row => row.includes('─ ' + t('package.ui.' + group, 'zh-CN') + ' ─')));
     assert(!overview.includes(local.entry!));
     await session.key({ key: 'down' }, 64, 18);
     assert.equal(view.selected, 'channel');

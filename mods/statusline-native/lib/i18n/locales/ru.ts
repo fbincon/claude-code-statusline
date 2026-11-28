@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} выбор · {enter} подтвердить · {back} отмена",
   "shortcuts.confirm-reload": "Отбросить этот черновик и загрузить сохранённые сочетания?",
   "shortcuts.conflict": "{editor} — клавиша {key} назначена для «{first}» и «{second}».",
+  "shortcuts.current-key": "ТЕКУЩАЯ КЛАВИША",
+  "shortcuts.default-key": "КЛАВИША ПО УМОЛЧАНИЮ",
   "shortcuts.discard": "Отбросить изменения сочетаний",
   "shortcuts.failed": "Не удалось выполнить действие с сочетаниями клавиш. {detail}",
   "shortcuts.filter": "Фильтр",

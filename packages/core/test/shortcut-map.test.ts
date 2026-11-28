@@ -6,7 +6,12 @@ import { LANGUAGES, t, text } from '../src/i18n/messages.js';
 import { editorLineSpans, hintLine, wrapEditorLine } from '../src/editor/hints.js';
 import { displayWidth } from '../src/unicode/index.js';
 import { SHORTCUT_GROUPS, isBindingMap, listedShortcut, readShortcutBindings, resolveShortcut, shortcutAliases, shortcutConflict, shortcutHint } from '../src/editor/shortcut-map.js';
-import { EditorShortcuts, shortcutPanelRows } from '../src/editor/shortcut-settings.js';
+import { EditorShortcuts, shortcutPanelView } from '../src/editor/shortcut-settings.js';
+
+function panelText(keys: EditorShortcuts, language: 'en' | 'zh-CN' = 'en', width = 32, height = 12): string {
+    const panel = shortcutPanelView(keys, language, width, height);
+    return [...panel.body, ...panel.menu, ...panel.footer].map(row => row.text).join(' ');
+}
 
 test('presets are reachable and shared overrides replace context-specific aliases', () => {
     assert.equal(shortcutConflict({}), null);
@@ -201,18 +206,17 @@ test('protocol 33 reads combine prior and current compatibility warnings while w
 test('shortcut settings keep staging, conflict advice and reset separate from active keys', async () => {
     const keys = new EditorShortcuts('native');
     keys.open();
-    const press = (key: string, ctrl = false) => keys.key({ key, ctrl }, 'en', 32, 11);
+    const press = (key: string, ctrl = false) => keys.key({ key, ctrl }, 'en', 32, 12);
     press('return');
-    const panelText = () => shortcutPanelRows(keys, 'en', 32, 11).map(row => row.text).join(' ');
-    assert.match(panelText(), /Claude reserves Ctrl\+D, Ctrl\+X, Ctrl\+Z/);
-    keys.key({ key: 'P', text: true }, 'en', 32, 11);
+    assert.match(panelText(keys), /Claude reserves Ctrl\+D, Ctrl\+X, Ctrl\+Z/);
+    keys.key({ key: 'P', text: true }, 'en', 32, 12);
     assert.equal(keys.panel!.capture, true);
     press('d', true);
     assert.equal(keys.panel!.capture, true);
     assert.equal(keys.panel!.message?.key, 'shortcuts.host-key');
     assert.deepEqual(keys.panel!.draft, {});
     press('a', true);
-    assert.match(panelText(), /Terminal editor.*Ctrl\+A.*Save display.*Open component catalog/);
+    assert.match(panelText(keys), /Terminal editor.*Ctrl\+A.*Save display.*Open component catalog/);
     assert.equal(press('tab'), null);
     assert.equal(press('return'), null);
     press('tab'); press('delete');
@@ -241,7 +245,7 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     const keys = new EditorShortcuts('terminal');
     keys.open();
     const panel = keys.panel!;
-    const press = (key: string, flags = {}) => keys.key({ key, ...flags }, 'zh-CN', 32, 11);
+    const press = (key: string, flags = {}) => keys.key({ key, ...flags }, 'zh-CN', 32, 12);
     press('down');
     assert.equal(panel.selected, 'finish');
     press('/');
@@ -256,8 +260,11 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     press('return');
     assert.equal(panel.selected, 'task-evidence');
     assert.equal(panel.query, 'task-evidence');
-    assert.ok(shortcutPanelRows(keys, 'zh-CN', 32, 11).some(row => row.selected && row.text.includes('切换任务证据')));
-    assert.ok(shortcutPanelRows(keys, 'zh-CN', 96, 29).some(row => row.selected && row.text.includes('切换任务证据')));
+    for (const [width, height] of [[32, 12], [96, 30]] as const) {
+        const view = shortcutPanelView(keys, 'zh-CN', width, height);
+        assert.ok(view.body.some(row => row.selected && row.text.includes('切换任务证据')));
+        assert.deepEqual(view.body.filter(row => row.kind === 'group').map(row => row.text.split(/ +/u)[1]), ['任务详情']);
+    }
     press('return');
     press('z');
     assert.deepEqual(panel.draft, { 'task-evidence': 'Z' });
@@ -270,7 +277,10 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     press('delete');
     assert.equal(panel.selected, null);
     assert.equal(panel.capture, false);
-    assert.ok(shortcutPanelRows(keys, 'zh-CN', 32, 11).some(row => row.text.includes('没有匹配的动作')));
+    const empty = shortcutPanelView(keys, 'zh-CN', 32, 12);
+    assert.ok(empty.body.some(row => row.text.includes('没有匹配的动作')));
+    assert.ok(empty.body.every(row => row.kind !== 'group'));
+    assert.ok(empty.menu.some(row => row.text.includes('保存快捷键')));
     press('tab');
     assert.equal(press('return'), 'save-shortcuts');
     assert.deepEqual(panel.draft, { 'task-evidence': 'Z' });
@@ -284,7 +294,7 @@ test('shortcut settings put common editor and component actions first', () => {
         'toggle-item', 'search', 'category', 'item-details', 'add-item', 'copy-item', 'remove-item',
     ]) {
         assert.equal(keys.panel!.selected, action);
-        keys.key({ key: 'down' }, 'en', 32, 11);
+        keys.key({ key: 'down' }, 'en', 32, 12);
     }
 });
 
@@ -294,18 +304,54 @@ test('shortcut settings show each editor’s save key at narrow widths', () => {
             const keys = new EditorShortcuts(surface);
             keys.open();
             const tr = (key: string) => t('shortcuts.' + key, language);
-            const rows = () => shortcutPanelRows(keys, language, 32, 11);
-            const panelText = () => rows().map(row => row.text).join(' ');
-            assert.equal(rows().find(row => row.selected)?.text,
-                `› ${surface === 'terminal' ? 'Ctrl+S' : 'S'}  ${tr('action.save')}`);
-            assert.ok(panelText().includes(`${tr('terminal-short')} Ctrl+S [Ctrl+S]`));
-            assert.ok(panelText().includes(`${tr('native-short')} S [S]`));
+            const selected = shortcutPanelView(keys, language, 32, 12).body.find(row => row.selected);
+            assert.equal(selected?.text.replace(/ +/gu, ' '), `› ${tr('action.save')} ${surface === 'terminal' ? 'Ctrl+S' : 'S'}`);
+            assert.ok(panelText(keys, language).includes(`${tr('terminal-short')} Ctrl+S [Ctrl+S]`));
+            assert.ok(panelText(keys, language).includes(`${tr('native-short')} S [S]`));
             keys.panel!.draft.save = 'Z';
-            assert.ok(panelText().includes(`${tr('terminal-short')} Z [Ctrl+S]`));
-            assert.ok(panelText().includes(`${tr('native-short')} Z [S]`));
-            assert.ok(!panelText().includes('[Ctrl+S / Enter]'));
-            assert.ok(panelText().includes(t('shortcuts.back-help', language, { tab: 'Tab', back: 'Ctrl+G' })));
+            assert.ok(panelText(keys, language).includes(`${tr('terminal-short')} Z [Ctrl+S]`));
+            assert.ok(panelText(keys, language).includes(`${tr('native-short')} Z [S]`));
+            assert.ok(!panelText(keys, language).includes('[Ctrl+S / Enter]'));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.back-help', language, { tab: 'Tab', back: 'Ctrl+G' })));
         }
+    }
+});
+
+test('shortcut tables align option and value cells, and keep focus within the selected menu command', () => {
+    const offset = (row: string, part: string) => displayWidth(row.slice(0, row.lastIndexOf(part)));
+    for (const language of LANGUAGES) for (const surface of ['terminal', 'native'] as const) {
+        const editor = new EditorShortcuts(surface);
+        editor.open();
+        editor.panel!.draft.save = 'Z';
+        for (const columns of [79, 80, 120]) {
+            const view = shortcutPanelView(editor, language, columns, 24);
+            const heading = view.body.find(row => row.kind === 'columns')!.text;
+            const selected = view.body.find(row => row.selected)!.text;
+            const current = t(columns >= 80 ? 'shortcuts.current-key' : 'ui.drawing.value', language).trim();
+            assert.equal(offset(heading, current), offset(selected, 'Z'), language);
+            const preset = t('shortcuts.default-key', language);
+            assert.equal(heading.endsWith(preset), columns >= 80, language);
+            if (columns >= 80) assert.equal(offset(heading, preset), offset(selected, surface === 'terminal' ? 'Ctrl+S' : 'S'), language);
+            for (const row of view.body.filter(row => row.kind === 'group')) {
+                assert.match(row.text, /^─ .+ ─+$/u);
+                assert.equal(displayWidth(row.text), view.innerWidth);
+            }
+        }
+        if (surface === 'terminal') {
+            const view = shortcutPanelView(editor, language, 120, 30);
+            const other = t('shortcuts.native-short', language);
+            assert.ok(view.body.some(row => row.text.includes('F ' + other) && row.text.endsWith('F')));
+        }
+        editor.key({ key: 'tab' }, language, 32, 12);
+        editor.key({ key: 'right' }, language, 32, 12);
+        for (const columns of [32, 120]) {
+            const view = shortcutPanelView(editor, language, columns, 24);
+            assert.ok(view.menu.some(item => item.selected && item.text === '› ' + t('shortcuts.restore-all', language)));
+            assert.ok(view.body.every(row => !row.selected));
+        }
+        editor.key({ key: 'tab' }, language, 32, 12);
+        assert.equal(editor.panel!.selected, 'save');
+        assert.deepEqual(editor.snapshot.bindings, {});
     }
 });
 
@@ -313,11 +359,12 @@ test('shortcut help keeps complete keys and shows controls for the active panel 
     for (const language of LANGUAGES) {
         const editor = new EditorShortcuts('terminal');
         editor.open();
-        const press = (key: string, ctrl = false, paste = false) => editor.key({ key, ctrl, paste }, language, 32, 11);
+        const press = (key: string, ctrl = false, paste = false) => editor.key({ key, ctrl, paste }, language, 32, 12);
         const bold = () => {
-            const rows = shortcutPanelRows(editor, language, 32, 11);
-            assert.ok(rows.length <= 11, language);
-            return new Set(rows.flatMap(row => editorLineSpans(row, 32)).filter(span => span.bold).map(span => span.text));
+            const view = shortcutPanelView(editor, language, 32, 12);
+            assert.ok(view.body.length + Number(view.menu.length > 0) <= view.bodyHeight, language);
+            assert.ok(view.body.every(row => displayWidth(row.text) <= view.innerWidth), language);
+            return new Set(view.footer.flatMap(row => editorLineSpans(row, 32)).filter(span => span.bold).map(span => span.text));
         };
         assert.deepEqual(bold(), new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']), language);
         press('/');
@@ -357,13 +404,12 @@ test('shortcut settings refuse Enter when capturing the refresh event action', (
         const keys = new EditorShortcuts(surface);
         keys.snapshot.bindings = { save: 'Z' };
         keys.open();
-        const press = (key: string, paste = false) => keys.key({ key, paste }, 'en', 32, 11);
-        const panelText = () => shortcutPanelRows(keys, 'en', 32, 11).map(row => row.text).join(' ');
+        const press = (key: string, paste = false) => keys.key({ key, paste }, 'en', 32, 12);
         press('/');
         press('event-refresh', true);
         press('return');
         assert.equal(keys.panel!.selected, 'event-refresh');
-        assert.match(panelText(), /Terminal E \[E\]/);
+        assert.match(panelText(keys), /Terminal E \[E\]/);
 
         press('return');
         press('return');
@@ -375,7 +421,7 @@ test('shortcut settings refuse Enter when capturing the refresh event action', (
         assert.equal(keys.panel!.capture, false);
         assert.equal(keys.panel!.message, null);
         assert.deepEqual(keys.panel!.draft, { save: 'Z', 'event-refresh': 'J' });
-        assert.match(panelText(), /Terminal J \[E\]/);
+        assert.match(panelText(keys), /Terminal J \[E\]/);
     }
 });
 
@@ -384,17 +430,21 @@ test('page movement uses the action rows visible with wrapped warnings', () => {
     keys.open();
     const panel = keys.panel!;
     panel.message = text('shortcuts.read-failed', { detail: 'Simulated long warning. '.repeat(15) });
-    for (const [width, height] of [[32, 11], [64, 13], [80, 23]] as const) {
+    for (const [width, height] of [[32, 12], [64, 18], [80, 24]] as const) {
         keys.key({ key: 'home' }, 'en', width, height);
-        const rows = shortcutPanelRows(keys, 'en', width, height);
-        const count = rows.filter(row => row.selected !== undefined).length;
+        const view = shortcutPanelView(keys, 'en', width, height);
+        const count = view.body.filter(row => row.selected !== undefined).length;
         assert.ok(count > 0);
-        if (width === 32) assert.equal(count, 2);
+        assert.ok(view.body.some(row => row.kind === 'group'));
         for (let i = 0; i < count; i++) keys.key({ key: 'down' }, 'en', width, height);
         const expected = panel.selected;
         keys.key({ key: 'home' }, 'en', width, height);
         keys.key({ key: 'pagedown' }, 'en', width, height);
         assert.equal(panel.selected, expected);
+        keys.key({ key: 'end' }, 'en', width, height);
+        const resized = shortcutPanelView(keys, 'en', 32, 12);
+        assert.ok(resized.body.some(row => row.selected));
+        assert.ok(resized.body.some(row => row.kind === 'group' && row.text.includes('Task details')));
         keys.key({ key: 'home' }, 'en', width, height);
         assert.equal(panel.selected, 'save');
     }
@@ -405,7 +455,7 @@ test('an ignored binding warning survives readback and permits an explicit clean
     const warning = text('shortcuts.ignored-bindings', { keys: 'Ctrl+D' });
     const result = { schema_version: 1 as const, bindings: { save: 'Z' }, revision, warning };
     keys.open();
-    const press = (key: string, ctrl = false) => keys.key({ key, ctrl }, 'en', 80, 23);
+    const press = (key: string, ctrl = false) => keys.key({ key, ctrl }, 'en', 80, 24);
     await keys.perform('read-shortcuts', async () => result);
     assert.equal(keys.panel!.message?.key, warning.key);
     press('g', true);

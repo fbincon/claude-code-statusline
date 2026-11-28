@@ -16,7 +16,7 @@ import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
 import { settingRows } from '../../lib/client/settings.ts';
 import { formWindow, pageWindow } from '../../lib/editor/navigation.ts';
-import { clip, column, displayWidth, contentColumns, headerColumns } from '../layout.ts';
+import { clip, column, displayWidth, contentColumns, headerColumns, MIN_COLUMNS, MIN_ROWS } from '../layout.ts';
 import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
@@ -31,33 +31,72 @@ import { catalogMarker } from '../../lib/editor/instances.ts';
 import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { importShortcutHelp, reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
-import { shortcutPanelRows } from '../../lib/editor/shortcut-settings.ts';
-import { editorLineSpans, hintLine, prependLine, type EditorLine } from '../../lib/editor/hints.ts';
+import { shortcutPanelView } from '../../lib/editor/shortcut-settings.ts';
+import { editorLineSpans, hintLine, prependLine, sectionDivider, type EditorLine } from '../../lib/editor/hints.ts';
 import { itemDecorationNotice } from '../../lib/editor/forms.ts';
+
+function tabSpans(labels: readonly string[], active: (typeof EDITOR_PAGES)[number], numbered: boolean): TextSpan[] {
+  const tabs: TextSpan[] = [];
+  labels.forEach((label, i) => {
+    const selected = EDITOR_PAGES[i] === active;
+    const number = String(i + 1);
+    if (numbered) {
+      tabs.push({ text: (i ? ' ' : '') + (selected ? '[' + number + ']' : number), style: selected ? styles.accent : styles.key });
+      return;
+    }
+    if (i) tabs.push({ text: ' · ', style: styles.muted });
+    tabs.push({ text: number, style: styles.key });
+    tabs.push({ text: ' ' + (selected ? '[' + label + ']' : label), style: { ...(selected ? styles.accent : styles.muted), bold: false } });
+  });
+  return tabs;
+}
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = '', paneColumns = columns): RenderElement {
   const language = view.language ?? 'en';
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params);
   const e = view.editor;
-  const layout = editorLayout(view, columns, rows);
+  const available = columns >= MIN_COLUMNS && rows >= MIN_ROWS;
   const inner = contentColumns(columns, rows);
   const line = (value: string | EditorLine, style: TextProps = {}, width = inner) => {
     if (typeof value !== 'string' && value.keys?.length) return editorLine(ui, value, width, style);
     return ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(typeof value === 'string' ? value : value.text, width)] });
   };
-  if (!layout.available || !e)
+  if (!available || !e)
     return ui.Box({
       backgroundColor: styles.text.backgroundColor,
       width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
       children: [
-        line(!layout.available ? tr("native.ui.client.draw.resize_pane_to_32x12_draft_kept") : tr("native.ui.client.draw.loading_configuration")),
+        line(!available ? tr("native.ui.client.draw.resize_pane_to_32x12_draft_kept") : tr("native.ui.client.draw.loading_configuration")),
         shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
-  if (e.shortcuts.panel) return ui.Box({ width: columns, height: rows, flexDirection: 'column', overflow: 'hidden', children: [
-    line(tr('shortcuts.title'), styles.accent, columns),
-    ...shortcutPanelRows(e.shortcuts, language, columns, rows - 1).map(row => line(row, rowStyle(!!row.selected), columns)),
-  ] });
+  const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
+  const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
+  const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
+  const header = (title: string) => chromeRow(ui, line(title, { ...styles.accent, bold: true },
+    headerColumns(columns, rows, language, paneColumns)), columns);
+  const editorTitle = tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') +
+    (e.baseline.configuration ? ' · ' + targetLabel(e, language) : '');
+  if (e.shortcuts.panel) {
+    const shortcuts = shortcutPanelView(e.shortcuts, language, columns, rows);
+    const content = shortcuts.body.map(row => line(row, row.kind === 'group' ? { ...styles.accent, bold: true }
+      : row.kind === 'columns' ? { ...styles.muted, bold: true } : rowStyle(row.selected === true, row.kind !== 'detail'), shortcuts.innerWidth));
+    if (shortcuts.menu.length) {
+      const gap = shortcuts.bodyHeight - content.length - 1;
+      if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
+      content.push(spanLine(ui, shortcuts.menu.map(item => ({
+        text: item.text, style: item.selected ? { ...styles.selected, bold: true } : styles.text,
+      })), shortcuts.innerWidth));
+    }
+    const title = (capacityNotice ? capacityNotice + ' · ' : '') + tr('shortcuts.title');
+    return ui.Box({ width: columns, height: rows, flexDirection: 'column', overflow: 'hidden', children: [
+      header(shortcuts.headerRows === 2 ? editorTitle : tr('native.tabs.settings')),
+      ...(shortcuts.headerRows === 2 ? [chromeRow(ui, spanLine(ui, tabSpans(labels, 'settings', tabWidth > columns), columns), columns)] : []),
+      section(ui, 'content-region', title, content, columns, rows - shortcuts.headerRows - shortcuts.footer.length, shortcuts.framed),
+      ...shortcuts.footer.map(row => chromeRow(ui, line(row, styles.muted, columns), columns)),
+    ] });
+  }
+  const layout = editorLayout(view, columns, rows);
   const inputDisplay = (width: number) => {
     const input = view.input;
     if (!input || input.kind === 'category') return '';
@@ -65,7 +104,6 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
     return inputView(edit, width);
   };
-  const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const pickerNotice = !view.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
   const message = view.localized?.message;
@@ -152,8 +190,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       content.push(line('  ' + column(tr("native.ui.client.draw.option"), labelWidth) + tr("native.ui.client.draw.value"), { ...styles.muted, bold: true }));
     for (const entry of window.lines) {
       if (entry.index === null) {
-        const group = clip('─ ' + entry.group + ' ', inner);
-        content.push(line(group + '─'.repeat(Math.max(0, inner - displayWidth(group))), { ...styles.accent, bold: true }));
+        content.push(line(sectionDivider(entry.group, inner), { ...styles.accent, bold: true }));
         continue;
       }
       const row = settings[entry.index]!;
@@ -224,23 +261,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   if (overflow) preview.push(previewText(ui, tr("native.ui.client.draw.more_preview_rows", {value0: sample.length - shown.length}), inner, background));
   if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
-  const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
   const focusHint = hintLine('native.ui.client.draw.click_region_for_keys', language, { escape: 'Esc' });
   const hasNotice = Boolean(notice || capacityNotice);
-  const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
   // Keep both the notice and the click instruction. On narrow panes the numbered tabs suffice.
   const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(focusHint.text) > columns;
-  const tabs: TextSpan[] = [];
-  labels.forEach((label, i) => {
-    if (numberedTabs) {
-      const n = String(i + 1);
-      tabs.push({ text: (i ? ' ' : '') + (EDITOR_PAGES[i] === e.page ? '[' + n + ']' : n), style: EDITOR_PAGES[i] === e.page ? styles.accent : styles.key });
-      return;
-    }
-    if (i) tabs.push({ text: ' · ', style: styles.muted });
-    tabs.push({ text: String(i + 1), style: styles.key });
-    tabs.push({ text: ' ' + (EDITOR_PAGES[i] === e.page ? '[' + label + ']' : label), style: { ...(EDITOR_PAGES[i] === e.page ? styles.accent : styles.muted), bold: false } });
-  });
+  const tabs = tabSpans(labels, e.page, numberedTabs);
   if (hasNotice) {
     const room = columns - displayWidth(tabs.map(span => span.text).join(''));
     const hint = prependLine(numberedTabs ? ' ' : ' · ', focusHint);
@@ -249,7 +274,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }, headerColumns(columns, rows, view.language, paneColumns)), columns),
+      header(editorTitle),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(capacityNotice || focusHint, styles.muted), columns),

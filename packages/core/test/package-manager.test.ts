@@ -121,7 +121,14 @@ test('the overview keeps its summary visible and moves only between actions', ()
     assert(rows.some(row => row.key === 'summary' && row.text.includes(status.current!)));
     assert(rows.some(row => row.selected && row.key === 'target' && row.keys?.length));
     assert(!view.rows.some(row => row.text.includes(status.config_dir) || row.text.includes(status.entry!)));
-    assert(view.rows.filter(row => row.heading).every(row => !row.command && !row.selected));
+    const headings = view.rows.filter(row => row.heading);
+    assert.equal(headings.length, 3);
+    for (const row of headings) {
+        assert.equal(row.part, 0);
+        assert(!row.command && !row.selected);
+        assert.match(row.text, /^─ .+ ─+$/u);
+        assert.equal(displayWidth(row.text), 32);
+    }
     press(view, 'down');
     assert.equal(view.selected, 'channel');
     press(view, 'down');
