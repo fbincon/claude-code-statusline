@@ -28,7 +28,7 @@ function view(): View {
     message: '', busy: '', uncertain: false };
 }
 function text(node: Node | string): string { return typeof node === 'string' ? node : node.children.map(text).join(''); }
-function detailTextNodes(tree: Node, framed: boolean): Node[] {
+function detailNodes(tree: Node, framed: boolean): Node[] {
   const section = tree.children[3] as Node;
   const body = section.children[1] as Node;
   return (body.children[Number(framed)] as Node).children as Node[];
@@ -163,7 +163,7 @@ test('static guidance scrolls and returns to the item form without applying chan
     const firstPage = draw(elements, state, columns, rows) as unknown as Node;
     render(firstPage);
     if (columns === 120) {
-      const body = detailTextNodes(firstPage, layout.framed);
+      const body = detailNodes(firstPage, layout.framed);
       const heading = body.find(row => text(row) === t('guidance.overview', language))!;
       const scope = body.find(row => text(row).trim() === t('guidance.scope', language, { value: t('guidance.scopes.main', language) }))!;
       expect(heading.props.bold).toBe(true);
@@ -212,7 +212,7 @@ test('configuration explanation styles its rows and pages by the current pane si
 
   const tree = draw(elements, state, ...large) as unknown as Node;
   const rendered = render(tree);
-  const body = detailTextNodes(tree, true);
+  const body = detailNodes(tree, true);
   const heading = body.find(row => text(row) === t('explain.examples', language))!;
   const example = body.find(row => text(row).trim() === e.detailItem!.examples[0])!;
   const explanationLine = body.find(row => text(row).includes(t('explain.reason.configured_on', language)))!;
@@ -221,6 +221,12 @@ test('configuration explanation styles its rows and pages by the current pane si
   expect(example.props.bold).toBe(false);
   expect(example.props.color).toBe('suggestion');
   expect(text(example).startsWith(' ')).toBe(true);
+  const divider = body[body.indexOf(example) + 1]!;
+  expect(divider.type).toBe('Box');
+  expect(divider.props.height).toBe(1);
+  expect(divider.props.flexShrink).toBe(0);
+  expect(divider.children).toHaveLength(0);
+  expect(text(body[body.indexOf(divider) + 1]!)).toBe(t('explain.configuration', language));
   expect(explanationLine.props.bold).toBe(false);
   expect(explanationLine.props.color).toBe('text');
   expect(rendered.some(row => row.includes('Fixed draft preview'))).toBe(true);

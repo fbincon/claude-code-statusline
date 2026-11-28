@@ -879,6 +879,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         } else if (itemDetails) {
             const explanation = t('explain.title', language), guidance = t('guidance.title', language);
             const scenario = t('preview.scenario.warning', language);
+            const reference = 'claude-opus high';
             const configuration = t('explain.configuration', language);
             const overview = t('guidance.overview', language);
             const currentSample = t('explain.sample_result', language, { scenario, width: 40 });
@@ -927,8 +928,19 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(text => text.includes(explanation) && completed('explain') && showsText(screen, configuration, true),
                 'read-only explanation result visible');
             assert.ok(read().includes(detailPreview), 'The configured sample preview must remain visible beside the reference example');
+            const referenceRow = screen.buffer.findIndex(row => cellColumn(row, reference) >= 0);
+            const configurationRow = screen.buffer.findIndex(row => cellColumn(row, configuration) >= 0);
+            assert(referenceRow >= 0 && configurationRow >= 0, 'The reference and draft configuration must both be on the first report page');
+            assert.equal(configurationRow - referenceRow, 2, 'The reference and draft configuration must be one empty row apart');
+            const referenceColumn = cellColumn(screen.buffer[referenceRow]!, reference);
+            const configurationColumn = cellColumn(screen.buffer[configurationRow]!, configuration);
+            const firstContentColumn = Math.min(referenceColumn, configurationColumn);
+            const endContentColumn = Math.max(referenceColumn + displayWidth(reference), configurationColumn + displayWidth(configuration));
+            assert(screen.buffer[referenceRow + 1]!.slice(firstContentColumn, endContentColumn).every(cell => !cell.data.trim()),
+                'The report separator must be empty across the adjacent content, inside the pane');
+            steps.push({ name: 'empty separator visible below the reference example', elapsed_ms: Date.now() - start });
             await inspectReport('explanation', explanation, [
-                [t('explain.examples', language), true], ['claude-opus high', false],
+                [t('explain.examples', language), true], [reference, false],
                 [configuration, true], [t('explain.reason.configured_on', language), false],
                 [currentSample, true], [t('explain.row.main', language), true], [t('explain.reason.sample_visible', language), false],
                 [t('explain.requirements', language), true],

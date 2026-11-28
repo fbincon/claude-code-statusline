@@ -169,7 +169,9 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const item = e.detailItem;
     const detailRows = e.explanation ? explanationRows(e, language, inner) : item ? guidanceRows(item, language, inner) : [];
     const page = itemDetailWindow(detailRows, e.explanation?.scroll ?? e.guidanceScroll ?? 0, layout.bodyRows - 1);
-    content.push(...page.rows.map(row => line(row.text, itemDetailStyles[row.kind])));
+    // Empty host Text nodes have zero height.
+    content.push(...page.rows.map(row => row.text ? line(row.text, itemDetailStyles[row.kind])
+      : ui.Box({ height: 1, flexShrink: 0, children: [] })));
     if (page.summary && layout.bodyRows > 1) content.push(line(page.summary, itemDetailStyles.note));
   } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
