@@ -314,13 +314,14 @@ test('footers follow actual category, numeric, filtered and add actions', () => 
     assert.ok(!beforeInput.at(-2)!.includes('Enter'));
     assert.ok(beforeInput.at(-1)!.includes('Enter ' + t('ui.hints.edit', 'zh-CN')));
     state.key({ key: '9' });
-    assert.ok(plain(state).join('\n').includes('9▏'));
+    const paddingRow = () => frame(state, 120, 30).rows.find(row => row.some(span => span.reverse && span.text.includes(t('settings.padding', 'zh-CN'))));
+    assert(paddingRow()?.some((span, index, row) => !span.reverse && span.text === ' ' && row[index - 1]?.text.endsWith('9')));
     assert.ok(plain(state).at(-2)!.includes('Enter ' + t('ui.hints.accept', 'zh-CN')));
     assert.ok(!plain(state).at(-2)!.includes('Ctrl+S'));
     assert.ok(plain(state).at(-1)!.includes('Home/End'));
     assert.ok(plain(state).at(-1)!.includes('Ctrl+U'));
     state.key({ key: 'backspace' });
-    assert.ok(plain(state).join('\n').includes('▏'));
+    assert(paddingRow()?.some(span => !span.reverse && span.text === ' '));
     state.key({ key: 'escape' });
     assert.equal(state.editor.draft.host.padding, 0);
 });
@@ -406,9 +407,17 @@ test('pending configuration input marks modifications without marking open or pa
     state.key({ key: 'g', ctrl: true });
     state.editor.page = 'settings';
     state.editor.setting = 'import-file';
-    state.key({ key: 'return' });
-    state.key({ key: 'x' });
+    state.key({ key: 'return' }, 64, 18);
+    const path = '/tmp/目录 with spaces/'.repeat(4) + '输入 A.json';
+    state.key({ key: 'u', ctrl: true }, 64, 18);
+    state.key({ key: path, paste: true }, 64, 18);
+    state.key({ key: 'left' }, 64, 18);
+    const screen = frame(state, 64, 18);
+    assert(screen.rows.some(row => row.some((span, index) =>
+        !span.reverse && span.text === 'n' && row[index - 1]?.text.endsWith('输入 A.jso'))));
     assert.equal(state.modified, false);
+    assert.equal(state.key({ key: 'return' }, 64, 18), 'transfer');
+    assert.equal(state.editor.path, path);
 });
 
 test('small terminals retain title, current dimensions and complete exit bindings', () => {

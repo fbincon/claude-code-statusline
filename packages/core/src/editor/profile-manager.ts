@@ -2,8 +2,9 @@ import { createReview, navigateReview } from './import-review.js';
 import { differences } from './import-differences.js';
 import type { ConfigTarget, DisplayDraft, Operation, ProfilesResult, ResultFor } from '../contracts/ui.js';
 import { t, text, type Language, type LocalizedText } from '../i18n/messages.js';
+import { clip } from '../unicode/index.js';
 import type { Editor } from './draft.js';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { inputKey, prefixedInputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
 import { hintLine, type EditorLine } from './hints.js';
 import { BackendError } from './backend.js';
@@ -267,8 +268,12 @@ export function profilesView(e: Editor, language: Language, width: number, heigh
     if (!m.library) { add(tr('profiles.loading')); return lines.slice(0, height); }
     if (m.page === 'form') {
         add(tr('profiles.action.' + m.action));
-        m.fields.forEach((f,i) => add(tr('profiles.field.' + f.key) + ': ' + inputView({ ...f.input }, Math.max(1, width - 12)), i === m.field));
-        add(hintLine('profiles.form_help', language, { enter: 'Enter', tab: 'Tab', back: 'Ctrl+G' })); return lines.slice(0, height);
+        m.fields.forEach((field, i) => {
+            const label = tr('profiles.field.' + field.key) + ': ', selected = i === m.field;
+            add(selected ? prefixedInputView(label, { ...field.input }, width) : clip(label + field.input.value, width), selected);
+        });
+        add(hintLine('profiles.form_help', language, { enter: 'Enter', tab: 'Tab', back: 'Ctrl+G' }));
+        return lines.slice(0, height);
     }
     const rows = m.page === 'confirm' ? [{ key:'confirm',label:'profiles.confirm' },{ key:'cancel',label:'profiles.cancel' }] :
         m.page === 'dirty' ? ['save','discard','cancel'].map(key => ({ key, label:'profiles.'+key })) : entries(m);

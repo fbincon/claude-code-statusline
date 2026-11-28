@@ -41,20 +41,19 @@ export function shortcutRows(groups: readonly (readonly Shortcut[])[], width: nu
 }
 
 /** Fit complete shortcut groups, with shorter descriptions in narrow panes. */
-export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix = ''): TextSpan[] {
+export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix: string | readonly TextSpan[] = ''): TextSpan[] {
   const spans: TextSpan[] = [];
-  let used = 0;
-  if (prefix) {
-    const text = clip(prefix, width);
-    spans.push({ text, style: styles.muted });
-    used = displayWidth(text);
-  }
+  const styledPrefix = typeof prefix !== 'string';
+  if (styledPrefix) spans.push(...prefix);
+  else if (prefix) spans.push({ text: clip(prefix, width), style: styles.muted });
+  let used = displayWidth(spans.map(span => span.text).join(''));
+  const firstSeparator = styledPrefix ? '  ' : '';
   const full = hints.map((h) => h.key + ' ' + h.label).join(' · ');
-  const compact = used + displayWidth(full) > width;
+  const compact = used + displayWidth(firstSeparator + full) > width;
   let count = 0;
   for (const hint of hints) {
     const label = compact ? hint.short ?? hint.label : hint.label;
-    const separator = count ? ' · ' : '';
+    const separator = count ? ' · ' : firstSeparator;
     const size = displayWidth(separator + hint.key + ' ' + label);
     if (used + size > width) break;
     if (separator) spans.push({ text: separator, style: styles.muted });
@@ -84,11 +83,19 @@ export function spanLine(ui: ClientElements, spans: readonly TextSpan[], width: 
   return ui.Text({ wrap: 'truncate', bold: false, ...styles.text, ...style, children });
 }
 
-export function shortcuts(ui: ClientElements, hints: readonly Shortcut[], width: number, prefix = ''): RenderElement {
+export function shortcuts(ui: ClientElements, hints: readonly Shortcut[], width: number, prefix: string | readonly TextSpan[] = ''): RenderElement {
   return spanLine(ui, shortcutSpans(hints, width, prefix), width);
 }
 
+export function inputSpans(line: EditorLine, width: number): TextSpan[] {
+  return editorLineSpans(line, width).map(({ text, caret, bold }) => {
+    const style = caret ? styles.selected : styles.text;
+    return { text, style: bold ? { ...style, bold } : style };
+  });
+}
+
 export function editorLine(ui: ClientElements, line: EditorLine, width: number, style: TextProps): RenderElement {
+  if (line.caret) return spanLine(ui, inputSpans(line, width), width);
   const spans = editorLineSpans(line, width).map(({ text, bold }): TextSpan => ({
     text,
     style: bold ? { ...styles.key, ...(style.color === styles.selected.color && { color: style.color }) } : { bold: false },

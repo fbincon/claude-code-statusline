@@ -3,7 +3,9 @@ import type { ClientElements } from 'claude-code';
 import { Editor } from '../../lib/editor/draft.ts';
 import type { View } from '../../lib/session.ts';
 import { draw } from '../../ui/client/draw.ts';
+import { handleKey } from '../../lib/client/keys.ts';
 import { settingRows } from '../../lib/client/settings.ts';
+import { t } from '../../lib/i18n/index.ts';
 import { description, readResult } from '../fixtures.ts';
 
 interface Node { type: string; props: any; children: (Node | string)[] }
@@ -38,6 +40,64 @@ test('all pages explicitly pair selected colors and keep chrome on host tokens',
       expect(colors.every((c) => ['text', 'inverseText', 'inactive', 'suggestion', 'error'].includes(c))).toBe(true);
       expect(chrome.flatMap(nodes).some((n) => n.props.dimColor === true)).toBe(false);
     }
+  }
+});
+
+test('editing highlights complete original graphemes and keeps the selected field label', () => {
+  const state = view(), e = state.editor!;
+  const before = JSON.stringify(e.draft);
+  e.detail = { scope: 'main', id: 'model-with-effort' };
+  e.setting = 'item:label';
+  const key = (event: Parameters<typeof handleKey>[1]) => handleKey(state, event, 80, 24);
+  const expectCaret = (value: string, caret: string) => {
+    for (const [columns, rows] of [[80, 24], [32, 12]]) {
+      const tree = draw(elements, state, columns!, rows!) as unknown as Node;
+      const field = nodes(tree.children[3] as Node).find(node => node.props.key === 'setting-item:label')!;
+      const row = field.children[0] as Node;
+      const [label, ...runs] = row.children as Node[];
+      expect(text(label!).startsWith('› ')).toBe(true);
+      expect(row.props.backgroundColor).toBe('text');
+      expect(runs.map(text).join('')).toBe(' ' + value);
+      expect(text(runs[0]!).startsWith(' ')).toBe(true);
+      expect(runs[0]!.props.backgroundColor).toBe('inverseText');
+      const highlighted = runs.filter(run => run.props.backgroundColor === 'text');
+      expect(highlighted.map(text)).toEqual([caret]);
+      expect(highlighted[0]!.props.color).toBe('inverseText');
+      expect(runs.filter(run => run !== highlighted[0]).every(run =>
+        run.props.color === 'text' && run.props.backgroundColor === 'inverseText')).toBe(true);
+    }
+  };
+  key({ key: 'return' });
+  key({ key: 'u', ctrl: true });
+  expectCaret(' ', ' ');
+  const value = 'A中é👩🏽‍💻B';
+  key({ key: value, text: true });
+  expectCaret(value + ' ', ' ');
+  for (const cluster of ['B', '👩🏽‍💻', 'é', '中']) {
+    key({ key: 'left' });
+    expectCaret(value, cluster);
+  }
+  key({ key: 'x' });
+  expectCaret('Ax中é👩🏽‍💻B', '中');
+  key({ key: 'g', ctrl: true });
+  expect(state.input).toBe(null);
+  expect(JSON.stringify(e.draft)).toBe(before);
+});
+
+test('catalog search fits its translated label and shortcuts around the styled input', () => {
+  const state = view(), language = 'zh-CN';
+  state.language = language;
+  handleKey(state, { key: '/' }, 80, 24);
+  handleKey(state, { key: '中文', text: true }, 80, 24);
+  handleKey(state, { key: 'left' }, 80, 24);
+  const label = t('native.ui.client.draw.filter', language);
+  for (const [columns, rows] of [[80, 24], [32, 12]]) {
+    const tree = draw(elements, state, columns!, rows!) as unknown as Node;
+    const filter = nodes(tree.children[3] as Node).find(node => node.type === 'Text' && text(node).startsWith(label))!;
+    expect(text(filter).startsWith(label + '中文')).toBe(true);
+    expect(filter.children.some(child => typeof child !== 'string' && text(child) === '文' &&
+      child.props.color === 'inverseText' && child.props.backgroundColor === 'text')).toBe(true);
+    expect(text(filter)).toContain('/ ' + t('native.ui.client.draw.search', language));
   }
 });
 

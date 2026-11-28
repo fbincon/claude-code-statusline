@@ -1,6 +1,6 @@
 import { t } from '../../lib/i18n/index.ts';
 import { expect, test } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, selectSetting, previewDraft, clientKey, reply } from '../fixtures.ts';
+import { setup, START, RUN, PANE, keys, selectSetting, previewDraft, clientKey, reply, presentation, nodeText } from '../fixtures.ts';
 import { withinBudget } from '../../ui/frame.ts';
 import { Editor } from '../../lib/editor/draft.ts';
 import { openColors, colorsKey, colorDraft } from '../../lib/editor/color-manager.ts';
@@ -89,8 +89,11 @@ test('short native diagnosis pane keeps the active path and selected action visi
     await $.session.start(START);
     await $.command.run(RUN);
     const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 32, scroll: { offset: 0, bodyRows: 12 } } });
-    await keys(ui, { key: 'l', ctrl: true }, 'return', '目录/'.repeat(25) + '📁尾');
-    expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: /📁尾▏/ })).toBeDefined();
+    await keys(ui, { key: 'l', ctrl: true }, 'return', '目录/'.repeat(25) + '📁尾', 'left');
+    const { frame } = await presentation(ui);
+    expect(frame.some(([kind], index) => kind === 'Text' && nodeText(frame, index).endsWith('📁尾'))).toBe(true);
+    expect(frame.some(([kind, props, children]) => kind === 'Text' && props.color === 'inverseText' &&
+        props.backgroundColor === 'text' && children.join('') === '尾')).toBe(true);
     await keys(ui, { key: 'g', ctrl: true }, 'end');
     expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: new RegExp('› ' + t('colors.cancel', 'en')) })).toBeDefined();
     expect(f.calls.some(c => c.operation === 'apply' || c.operation === 'diagnose_file')).toBe(false);

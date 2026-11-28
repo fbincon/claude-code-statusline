@@ -8,6 +8,7 @@ import { lock } from '@fbincon/statusline-platform/files';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { t as message } from '@fbincon/statusline-core/i18n/messages';
 import { strip } from '@fbincon/statusline-core/rendering/layout';
+import { Capture, cellColumn, showsInputCaret } from '../capture.js';
 const posix = { skip: process.platform === 'win32' ? 'POSIX PTY; Windows has separate console acceptance' : false, timeout: 15000 };
 const ready = (p: ReturnType<typeof openPty>) => p.wait(o => o.includes('Preview (sample data)'));
 function bridge(f: {
@@ -52,13 +53,20 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_toggle_move_settings
     const down = f.state.rows().findIndex(r => r.key === 'padding');
     assert.ok(down >= 0);
     const before = f.bytes(), mode = fs.statSync(f.settingsPath).mode;
-    const p = openPty(f.root);
+    const columns = 80, rows = 24;
+    const p = openPty(f.root, columns, rows);
+    const padding = '› ' + message('settings.padding', 'en') + ':';
     try {
         await ready(p);
         p.send(' \x1b[C\t\t\t' + '\x1b[B'.repeat(down));
-        await p.wait(output => output.includes('› ' + message('settings.padding', 'en') + ':'));
+        await p.wait(output => output.includes(padding));
         p.send('\r');
-        await p.wait(output => output.includes('0▏'));
+        await p.wait(output => {
+            const screen = new Capture(columns, rows);
+            screen.feed(output.slice(output.lastIndexOf('\x1b[H')));
+            return screen.buffer.some(row => cellColumn(row, padding) >= 0 &&
+                showsInputCaret(row, cellColumn(row, '0'), '0', '0', cell => !cell.reverse));
+        });
         const offset = p.captured().toString('utf8').length;
         p.send('\x153\r');
         await p.wait(output => strip(output.slice(offset)).includes('Enter ' + message('ui.hints.edit', 'en')));

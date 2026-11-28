@@ -14,8 +14,8 @@ export interface Frame {
 }
 
 export function paintLine(line: EditorLine, width: number, selected = false): Paint[] {
-    if (!line.keys?.length) return [paint(line.text, false, selected)];
-    return editorLineSpans(line, width).map(span => paint(span.text, span.bold, selected));
+    if (!line.keys?.length && !line.caret) return [paint(line.text, false, selected)];
+    return editorLineSpans(line, width).map(span => paint(span.text, span.bold, span.caret ? !selected : selected));
 }
 
 export const safe = (text: string): string => text.replace(/[\p{Cc}\p{Cs}]/gu, ' ');

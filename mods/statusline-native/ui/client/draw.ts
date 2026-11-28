@@ -21,7 +21,7 @@ import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
 import { previewLine, previewText, previewTitle } from '../components/preview.ts';
-import { editorLine, shortcuts, spanLine } from '../components/shortcuts.ts';
+import { editorLine, inputSpans, shortcuts, spanLine } from '../components/shortcuts.ts';
 import type { TextSpan } from '../components/shortcuts.ts';
 import { t, renderMessage } from '../../lib/i18n/index.ts';
 import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
@@ -58,7 +58,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const available = columns >= MIN_COLUMNS && rows >= MIN_ROWS;
   const inner = contentColumns(columns, rows);
   const line = (value: string | EditorLine, style: TextProps = {}, width = inner) => {
-    if (typeof value !== 'string' && value.keys?.length) return editorLine(ui, value, width, style);
+    if (typeof value !== 'string' && (value.caret || value.keys?.length)) return editorLine(ui, value, width, style);
     return ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(typeof value === 'string' ? value : value.text, width)] });
   };
   if (!available || !e)
@@ -101,9 +101,9 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
   const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
   const layout = editorLayout(view, columns, rows);
-  const inputDisplay = (width: number) => {
+  const inputDisplay = (width: number): EditorLine => {
     const input = view.input;
-    if (!input || input.kind === 'category') return '';
+    if (!input || input.kind === 'category') return { text: '' };
     const value = input.kind === 'search' ? e.listContext(input.scope).search : input.kind === 'numeric' ? e.buffers[input.field] : input.buffer;
     const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
     return inputView(edit, width);
@@ -137,9 +137,12 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   } else if (e.diagnosis) {
     title = tr('diagnosis.title');
     const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);
-    content.push(...page.lines.map(text => line(text)));
+    content.push(...page.lines.map(row => line(row)));
     if (layout.bodyRows > 1) content.push(line(page.summary, styles.muted));
-  } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
+  } else if (e.colors) {
+    title = tr('colors.title');
+    content.push(...colorsView(e, language, inner, layout.bodyRows).map(row => 'spans' in row
+      ? previewLine(ui, row.spans, inner, view.previewBackground ?? 'dark') : line(row)));
   } else if(e.alignmentManager) {
     title=tr('alignment.title');
     content.push(...alignmentsView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected === true))));
@@ -201,13 +204,16 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       const editing = (view.input?.kind === 'numeric' && view.input.field === row.key) ||
         (view.input?.kind === 'field' && view.input.key === row.key) ||
         (view.input?.kind === 'path' && row.key === view.input.action + '-file');
-      const displayed = editing && (view.input?.kind === 'field' || view.input?.kind === 'path') ? view.input.buffer : row.value;
       const preference = view.preferences.find((p) => 'host-' + p.row.key === row.key);
-      const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)} `;
-      const valueWidth = Math.max(1, inner - displayWidth(label));
-      const valueSpans = !editing && row.valueHint ? editorLineSpans(row.valueHint, valueWidth).map(({text, bold}) => ({text, style: {bold}}))
-        : [{ text: (editing ? inputDisplay(valueWidth) : displayed) + (preference && preferenceChanged(preference) ? ' *' : '') }];
-      const spans: TextSpan[] = [{ text: label }, ...valueSpans];
+      const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)}`;
+      const suffix = (editing || !row.valueHint) && preference && preferenceChanged(preference) ? ' *' : '';
+      const valueWidth = Math.max(1, inner - displayWidth(label + ' ' + suffix));
+      const valueSpans = editing ? inputSpans(inputDisplay(valueWidth), valueWidth)
+        : row.valueHint ? editorLineSpans(row.valueHint, valueWidth).map(({ text, bold }) => ({ text, style: { bold } }))
+          : [{ text: row.value }];
+      // Keep a normal cell between the selected label and the caret in an empty field.
+      const spans: TextSpan[] = [{ text: label }, { text: ' ', style: editing ? styles.text : undefined }, ...valueSpans];
+      if (suffix) spans.push({ text: suffix });
       content.push(ui.Box({
         key: 'setting-' + row.key, flexShrink: 0,
         children: [spanLine(ui, spans, inner, rowStyle(e.setting === row.key, row.editable))],
@@ -225,10 +231,15 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const enabled = types ? null : new Set(e.items(scope));
     title = types ? tr('composition.picker') : scope === 'main' ? tr('composition.configured_title')
       : tr('composition.configured_subagents', { state: tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off')) });
+    const filterLabel = tr('native.ui.client.draw.filter');
+    const filterWidth = Math.max(1, inner - displayWidth(filterLabel));
+    const filter = view.input?.kind === 'search'
+      ? [{ text: filterLabel, style: styles.muted }, ...inputSpans(inputDisplay(filterWidth), filterWidth)]
+      : filterLabel + search + '  ';
     content.push(shortcuts(ui, [
       {key: e.shortcuts.hint(e.adding ? 'picker' : 'list', 'category'), label: tr('catalog.categories.' + category), short: category === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + category), 8)},
       {key: e.shortcuts.hint(e.adding ? 'picker' : 'list', 'search'), label: tr('native.ui.client.draw.search')},
-    ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + search + '  '));
+    ], inner, filter));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map(item => item.id), selected, layout.itemCapacity);
     for (const {item, match} of matches.slice(window.start, window.end)) {

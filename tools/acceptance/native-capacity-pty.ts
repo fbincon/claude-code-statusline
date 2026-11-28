@@ -15,9 +15,10 @@ import { sourceHashes } from '../migration/ts-03/common.js';
 import { sha256 } from '../build/files.js';
 import { nativeCapacityData } from '../generation/native-capacity.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
-import { Capture } from '../migration/ts-04/capture.js';
+import { Capture, cellColors, cellColumn, showsInputCaret, type Cell } from '../migration/ts-04/capture.js';
 import { EDITOR_SHORTCUTS_FILENAME, type Draft } from '@fbincon/statusline-core/contracts/ui';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
+import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
@@ -486,7 +487,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await key('\r', 'open native shortcut list');
                 await until(text => /›.*Save display/u.test(text), 'native save binding selected');
             };
-            type ExternalWait = (label: string, matches?: (text: string) => boolean) => Promise<string>;
+            type ExternalWait = (label: string, matches?: (text: string, screen: Capture) => boolean) => Promise<string>;
             const runExternal = async (label: string, journey: (
                 tty: ReturnType<typeof openPty>, wait: ExternalWait, resize: (width: number, height: number) => void,
             ) => Promise<void>) => {
@@ -507,7 +508,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                         let frame = '';
                         await child.wait(() => {
                             frame = screenText();
-                            return matches(frame);
+                            return matches(frame, capture);
                         });
                         steps.push({ name: label + ': ' + value, elapsed_ms: Date.now() - start });
                         return frame;
@@ -549,7 +550,30 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(text => /\bZ +save\b/u.test(text), 'native footer shows Z');
             await key('y', 'use remapped native search');
             await key('z', 'type the bound save key in search');
-            await until(text => text.includes('z▏'), 'native search treats Z as input');
+            const filterLabel = t('native.ui.client.draw.filter', language);
+            const inverse = (normal: Cell) => {
+                const [foreground, background] = cellColors(normal);
+                return (cell: Cell) => {
+                    const [fg, bg] = cellColors(cell);
+                    return foreground !== background && bg === foreground && (cell.data === ' ' || fg === background);
+                };
+            };
+            await until(() => screen.buffer.some(row => {
+                const filter = cellColumn(row, filterLabel + 'z');
+                const x = filter + displayWidth(filterLabel);
+                return filter >= 0 && showsInputCaret(row, x, 'z', 'z', inverse(row[x]!));
+            }), 'native search treats Z as input with a caret on the trailing blank');
+            const y = screen.buffer.findIndex(row => cellColumn(row, filterLabel + 'z') >= 0);
+            const x = cellColumn(screen.buffer[y]!, filterLabel) + displayWidth(filterLabel);
+            const marked = inverse(screen.buffer[y]![x]!);
+            await key('\x1b[D', 'move the native caret to the first letter');
+            await until(() => showsInputCaret(screen.buffer[y]!, x, 'z', '', marked), 'native caret overlays Z without moving it');
+            await key('a', 'insert before the native caret');
+            await until(() => showsInputCaret(screen.buffer[y]!, x, 'az', 'a', marked), 'native insertion keeps both letters adjacent and marks Z');
+            capture('native-search-caret');
+            await key('\x1b[F', 'move the native caret to the end');
+            await until(() => showsInputCaret(screen.buffer[y]!, x, 'az', 'az', marked), 'native caret moves to the blank after the same letters');
+            capture('native-search-caret-end');
             assert.equal(records().filter(row => row.operation === 'apply').length, 0);
             await key('\x07', 'cancel native search');
             await key('s', 'try previous native save key');
@@ -567,7 +591,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await wait('Y search');
                 await wait(customClose);
                 tty.send('yz');
-                await wait('z▏');
+                await wait('terminal search treats Z as input with a caret on the trailing blank', (_text, screen) =>
+                    showsInputCaret(screen.buffer[3]!, 0, 'z', 'z', cell => cell.reverse));
                 assert.deepEqual(fs.readFileSync(displayPath), before);
                 tty.send('\x1b');
                 await wait(toggleHint);
@@ -675,10 +700,15 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 }
                 await wait(refreshRow);
             };
-            const waitForRefresh = (wait: ExternalWait, value: string) => wait(refreshLabel + ' = ' + value, text =>
-                text.split('\n').some(line => {
-                    const index = line.indexOf(refreshRow);
-                    return index >= 0 && line.slice(index + refreshRow.length).split('│')[0]?.trim() === value;
+            const waitForRefresh = (wait: ExternalWait, value: string, editing = false) => wait(
+                refreshLabel + ' = ' + value + (editing ? ' (editing)' : ''), (_text, screen) => screen.buffer.some(row => {
+                    const label = cellColumn(row, refreshRow);
+                    if (label < 0) return false;
+                    const afterLabel = label + displayWidth(refreshRow);
+                    const start = row.findIndex((cell, column) => column >= afterLabel && cell.data !== ' ');
+                    if (start < 0 || row.slice(start).map(cell => cell.data).join('').split('│')[0]?.trim() !== value) return false;
+                    return editing ? showsInputCaret(row, start, value, value, cell => !cell.reverse)
+                        : row[start + displayWidth(value)]?.reverse === true;
                 }));
             const appliesBeforeSettings = applyRequests(), committedDisplayMode = fs.statSync(displayPath).mode;
             const assertRefreshReadOnly = () => {
@@ -693,10 +723,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await wait('E ' + t('shortcuts.action.event-refresh', 'en'));
                 await wait(enterEdit);
                 tty.send('\r');
-                await waitForRefresh(wait, previousRefresh + '▏');
+                await waitForRefresh(wait, previousRefresh, true);
                 await wait(enterAccept);
                 tty.send('\x153601\r');
-                await waitForRefresh(wait, '3601▏');
+                await waitForRefresh(wait, '3601', true);
                 await wait(t('native.numeric.event', 'en', { minimum: 1, maximum: 3600 }));
                 assertRefreshReadOnly();
                 tty.send('\x07');
@@ -707,7 +737,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                     tty.send('\r');
                     await wait(enterAccept);
                     tty.send('\x15' + value);
-                    await waitForRefresh(wait, value + '▏');
+                    await waitForRefresh(wait, value, true);
                     tty.send('\r');
                     await waitForRefresh(wait, value);
                     await wait(enterEdit);

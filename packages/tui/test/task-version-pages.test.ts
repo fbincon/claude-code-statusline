@@ -8,6 +8,7 @@ import { packageManager } from '@fbincon/statusline-core/editor/package-manager'
 import { packageView } from '@fbincon/statusline-core/editor/package-view';
 import { openSources } from '@fbincon/statusline-core/editor/source-manager';
 import { textInput } from '@fbincon/statusline-core/editor/text-input';
+import { frame } from '../src/drawing.js';
 import { dimensions } from '../src/layout.js';
 import { fixture, plain } from './fixtures.js';
 import { Session, type Backend } from '../src/session.js';
@@ -137,6 +138,23 @@ test('report controls follow embedded remaps, input and confirmation; standalone
     const packageInput = plain(state, 120, 40);
     assert(!packageInput.at(-2)!.includes(t('ui.refresh.read_now', 'en')));
     assert(packageInput.at(-1)!.includes(t('ui.hints.move_cursor', 'en')));
+});
+
+test('embedded and standalone task identity inputs style the same grapheme without shifting the suffix', () => {
+    const state = fixture('de');
+    const view = state.editor.taskViewer = taskViewer('', null, 'de');
+    const value = 'ab 中👩🏽‍💻z';
+    state.key({ key: value, paste: true });
+    state.key({ key: 'left' });
+    state.key({ key: 'left' });
+    const identity = t('task.session', view.language, { value });
+    for (const rendered of [frame(state, 64, 18), taskFrame(view, 32, 8)]) {
+        const row = rendered.rows.find(row => row.map(span => span.text).join('').includes(identity));
+        assert.ok(row);
+        assert.deepEqual(row.filter(span => span.reverse).map(span => span.text), ['👩🏽‍💻']);
+    }
+    state.key({ key: 'return' });
+    assert.equal(view.session, value);
 });
 
 test('external version navigation shows the current controls and returns to the original row after resize', async () => {

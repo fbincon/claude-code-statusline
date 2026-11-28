@@ -131,7 +131,7 @@ function detailRows(m:ReuseManager,language:Language):{text:string;heading:boole
 export function reuseView(e:Editor,language:Language,width:number,height:number):(EditorLine & {selected?:boolean})[]{
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language),header=tr(m.kind==='style'?'style':'groups');
   const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
-  if(m.page==='path')return [{text:header},{text:tr('path')},{text:inputView({...m.input},width)},hintLine('reuse.path_help', language, { enter: 'Enter', back })].slice(0,height).map(row=>clipEditorLine(row,width));
+  if(m.page==='path')return [{text:header},{text:tr('path')},inputView({...m.input},width),hintLine('reuse.path_help', language, { enter: 'Enter', back })].slice(0,height).map(row=>clipEditorLine(row,width));
   if(m.page==='review'){
     const capacity=reviewCapacity(m,height),review=m.review;
     const context = reuseShortcutContext(m), keys = e.shortcuts;

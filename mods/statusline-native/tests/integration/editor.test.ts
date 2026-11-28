@@ -18,6 +18,7 @@ import {
   component,
   previewDraft,
   presentation,
+  nodeText,
 } from '../fixtures.ts';
 
 const REGION = 'statusline-client';
@@ -263,7 +264,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   expect(fixture.closes).toHaveLength(0);
   await keys(ui, {key: 'g', ctrl: true}, '4');
   await selectSetting(ui, 'padding');
-  await keys(ui, 'return', {key: 'u', ctrl: true}, '9');
+  await keys(ui, 'return', {key: 'u', ctrl: true}, '2', '9', 'left');
   // Focus exit (Esc) is host-owned and does not cancel Client editing.
   await $.ui.focus({
     component: 'Pane',
@@ -271,9 +272,11 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
     origin: { kind: 'person' },
   });
   await ui.redraw();
-  expect(
-    await ui.find({ in: await clientKey(ui), type: 'Text', text: '9▏' }),
-  ).toBeDefined();
+  const { frame } = await presentation(ui);
+  const setting = frame.findIndex(node => node[1].key === 'setting-padding');
+  expect(nodeText(frame, setting).endsWith('29')).toBe(true);
+  expect(frame.some(([kind, props, children]) => kind === 'Text' && props.color === 'inverseText' &&
+    props.backgroundColor === 'text' && children.join('') === '9')).toBe(true);
   await keys(ui, { key: 'g', ctrl: true }, 's');
   expect(fixture.store.draft.host.padding).toBe(0);
   await ui.unmount();

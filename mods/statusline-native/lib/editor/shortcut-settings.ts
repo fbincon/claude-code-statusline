@@ -10,7 +10,7 @@ import {
 } from './shortcut-map.ts';
 import { matchText } from './search.ts';
 import { formSelection, formWindow } from './navigation.ts';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
+import { inputKey, prefixedInputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { wrapText } from '../../ui/text.ts';
 import { editorLineSpans, hintLine, joinEditorLines, sectionDivider, wrapEditorHints, type EditorLine } from './hints.ts';
 
@@ -396,8 +396,7 @@ function shortcutPanelLayout(editor: EditorShortcuts, language: Language, column
   const query = panel.filter?.input.value ?? panel.query;
   if (filtering || query.trim()) {
     const prefix = tr('filter') + ' ';
-    const value = panel.filter ? inputView({ ...panel.filter.input }, width - displayWidth(prefix)) : query;
-    before.push({ text: clip(prefix + value, width) });
+    before.push(panel.filter ? prefixedInputView(prefix, { ...panel.filter.input }, width) : { text: clip(prefix + query, width) });
   }
   if (!matches.length) before.push(...paragraphs(tr('no-matches')));
   const minimumList = matches.length ? 2 : 0; // One action and its group.

@@ -152,7 +152,9 @@ The tables on this page show presets. After a change, look at the footer or shor
 
 ## Text input
 
-Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. `▏` marks the caret. Deletion preserves complete grapheme clusters. Ctrl+U clears input, Enter accepts and Ctrl+G cancels; terminal Esc also cancels, while Client Esc belongs to the host. Refresh accepts a number or `event`.
+Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. The caret highlights the next complete character in reverse video. The text stays in its original columns while the caret moves within the visible part of the field. A highlighted blank cell marks the caret in an empty field or at the end of the text.
+
+Deletion preserves complete grapheme clusters. Ctrl+U clears input, Enter accepts and Ctrl+G cancels. Terminal Esc also cancels. In the Client, the host handles Esc. Refresh accepts a number or `event`.
 
 Text/search allow 256 Unicode code points and paths 4096. The padding/refresh numeric buffers allow 32; other fields also enforce their own value rules. Oversized or control-containing insertions are rejected with a message, leaving the original value intact. Field input consumes ordinary characters instead of executing letter shortcuts.
 

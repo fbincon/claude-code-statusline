@@ -152,7 +152,9 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 
 ## 文本输入
 
-文本、搜索、数值和文件路径支持 ←/→、Home/End、光标处插入、Backspace 和 Delete，长内容水平滚动。`▏` 标识光标，删除保留完整字素簇。Ctrl+U 清空，Enter 接受，Ctrl+G 取消；终端 Esc 也可取消，Client Esc 由宿主管理。刷新接受数字或 `event`。
+文本、搜索、数值和文件路径支持 ←/→、Home/End、光标处插入、Backspace 和 Delete，长内容水平滚动。光标以反显标记下一个完整字符。在字段的可见范围内移动光标时，文字保持在原列。空字段或行尾用一格反显空白标记光标。
+
+删除以完整字素簇为单位。Ctrl+U 清空，Enter 接受，Ctrl+G 取消。终端 Esc 也可取消。Client 的 Esc 由宿主管理。刷新接受数字或 `event`。
 
 文本／搜索最多 256 个 Unicode 码点，路径最多 4096。padding／refresh 数值缓冲最多 32，其他字段还会校验自身值域。超长或含控制字符的插入整体拒绝并提示，保留原值。字段中的普通字符作为输入，不执行字母快捷键。
 

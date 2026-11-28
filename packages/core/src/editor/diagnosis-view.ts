@@ -1,10 +1,10 @@
 import type { DiagnoseResult, Scope } from '../contracts/ui.js';
 import type { Editor } from './draft.js';
 import { copyDraft } from './draft.js';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { inputKey, prefixedInputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { t, type Language } from '../i18n/messages.js';
 import { wrapText } from './text.js';
-import { clip, displayWidth } from '../unicode/index.js';
+import { clip } from '../unicode/index.js';
 import { targetLabel } from './profile-manager.js';
 import { hintLine, type EditorLine } from './hints.js';
 export interface DiagnosisView {
@@ -124,13 +124,13 @@ function reportLines(e: Editor, language: Language, width: number): string[] {
     return wrapText(lines, width);
 }
 
-export function diagnosisPage(e: Editor, language: Language, width: number, capacity: number): { lines: string[]; summary: EditorLine } {
+export function diagnosisPage(e: Editor, language: Language, width: number, capacity: number): { lines: EditorLine[]; summary: EditorLine } {
     const v = e.diagnosis!;
     const count = Math.max(1, capacity);
     if (v.report && v.result) {
         const lines = reportLines(e, language, width);
         const start = Math.min(v.scroll, Math.max(0, lines.length - count));
-        return { lines: lines.slice(start, start + count), summary: { text: `${start + 1}–${Math.min(start + count, lines.length)}/${lines.length}` } };
+        return { lines: lines.slice(start, start + count).map(text => ({ text })), summary: { text: `${start + 1}–${Math.min(start + count, lines.length)}/${lines.length}` } };
     }
 
     const fields = [
@@ -142,14 +142,14 @@ export function diagnosisPage(e: Editor, language: Language, width: number, capa
         [t('diagnosis.previous', language)],
         [t('colors.cancel', language)],
     ] as const;
-    const lines = [clip(t('diagnosis.target', language, { target: targetLabel(e, language) }), width)];
+    const lines: EditorLine[] = [{ text: clip(t('diagnosis.target', language, { target: targetLabel(e, language) }), width) }];
     for (const [index, [label, value]] of fields.entries()) {
         if (index === v.cursor && v.input) {
             const prefix = '› ' + clip(label, Math.floor(width / 2)) + ' ';
-            lines.push(prefix + inputView({ ...v.input }, width - displayWidth(prefix)));
+            lines.push(prefixedInputView(prefix, { ...v.input }, width));
         } else {
             const content = value === undefined ? label : label + ': ' + value;
-            lines.push(clip((index === v.cursor ? '› ' : '  ') + content, width));
+            lines.push({ text: clip((index === v.cursor ? '› ' : '  ') + content, width) });
         }
     }
     const start = Math.max(0, v.cursor + 2 - count);

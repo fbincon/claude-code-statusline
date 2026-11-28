@@ -5,7 +5,7 @@ import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
 import { groupsHelp, groupsView } from '@fbincon/statusline-core/editor/group-manager';
-import { sectionDivider, type EditorLine } from '@fbincon/statusline-core/editor/hints';
+import { prependLine, sectionDivider, type EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
@@ -50,10 +50,18 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     }
     if (e.diagnosis) {
         const page = diagnosisPage(e, state.language, width, panel.innerHeight - 1);
-        page.lines.forEach((line, index) => canvas.content(panel, index, [paint(line)]));
+        page.lines.forEach(drawRow);
         return page.summary;
     }
-    if(e.colors){colorsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,row.spans.map(span=>({...span,reverse:row.selected && span.foreground === null})),row.selected));return ''; }
+    if (e.colors) {
+        colorsView(e, state.language, width, panel.innerHeight - 1).forEach((row, index) => {
+            if ('spans' in row) {
+                const spans = row.spans.map(span => ({ ...span, reverse: row.selected && span.foreground === null }));
+                canvas.content(panel, index, spans, row.selected);
+            } else drawRow(row, index);
+        });
+        return '';
+    }
     if (e.alignmentManager) {
         alignmentsView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
         return '';
@@ -130,9 +138,13 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
             const selected = row.key === e.setting;
             const prefix = (selected ? '› ' : '  ') + column(fieldLabel(row, state) + ':', labelWidth) + '  ';
             const isInput = state.input && (state.input.kind === 'numeric' ? state.input.field === row.key : (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key);
-            const value = isInput ? state.inputDisplay(Math.max(1, width - displayWidth(prefix))) : fieldValue(row, state);
-            const editing = state.input && (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key;
-            const spans = row.kind === 'action' && !editing
+            if (isInput) {
+                const value = state.inputDisplay(width - displayWidth(prefix));
+                drawRow({ ...prependLine(prefix, value), selected }, index + 1);
+                return;
+            }
+            const value = fieldValue(row, state);
+            const spans = row.kind === 'action'
                 ? [paint(prefix, false, selected), paint('Enter', true, selected), paint(' ' + value, false, selected)]
                 : [paint(prefix + value, false, selected)];
             canvas.content(panel, index + 1, spans, selected);
