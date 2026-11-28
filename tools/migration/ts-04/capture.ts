@@ -1,6 +1,6 @@
 /** Streaming acceptance oracle. It interprets terminal bytes independently of TUI drawing. */
 import { StringDecoder } from 'node:string_decoder';
-import { graphemes, clusterWidth } from '@fbincon/statusline-core/unicode/index';
+import { graphemes, clusterWidth, displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { advance, DEFAULT, type Style, type Color } from '@fbincon/statusline-core/rendering/styles';
 import { dimensions } from '@fbincon/statusline-tui/layout';
 export interface Cell {
@@ -10,6 +10,23 @@ export interface Cell {
     bold: boolean;
     reverse: boolean;
 }
+
+export function cellColumn(row: readonly Cell[], text: string): number {
+    const width = displayWidth(text);
+    return row.findIndex((cell, column) => cell.data !== '' && column + width <= row.length &&
+        row.slice(column, column + width).map(cell => cell.data).join('') === text);
+}
+
+export function showsInputCaret(row: readonly Cell[], start: number, value: string, beforeCaret: string, marked: (cell: Cell) => boolean): boolean {
+    const end = start + displayWidth(value);
+    if (!value.startsWith(beforeCaret) || start < 0 || row[end]?.data !== ' ' || row.slice(start, end).map(cell => cell.data).join('') !== value)
+        return false;
+    const caret = displayWidth(beforeCaret);
+    const target = graphemes(value.slice(beforeCaret.length))[0];
+    const width = target ? clusterWidth(target) : 1;
+    return row.slice(start, end + 1).every((cell, index) => marked(cell) === (index >= caret && index < caret + width));
+}
+
 const names = ['black', 'red', 'green', 'brown', 'blue', 'magenta', 'cyan', 'white', 'brightblack', 'brightred', 'brightgreen', 'brightyellow', 'brightblue', 'brightmagenta', 'brightcyan', 'brightwhite'];
 export const XTERM_PALETTE: Record<string, string> = Object.fromEntries(names.map((name, i) => [name, ['000000', '800000', '008000', '808000', '000080', '800080', '008080', 'c0c0c0', '808080', 'ff0000', '00ff00', 'ffff00', '0000ff', 'ff00ff', '00ffff', 'ffffff'][i]!]));
 export const TERMINAL_THEMES = { dark: ['#dedee7', '#17191e'], light: ['#17191e', '#ffffff'] } as const;

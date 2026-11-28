@@ -228,7 +228,7 @@ function inputRows(view: PackageManager, language: Language, width: number): Pac
     const label = t('package.ui.' + field, language, { value: '' }).trim();
     const help = field === 'target' || field === 'prefix' ? [t('package.ui.' + field + '_help', language)] : [];
     return [...[label, ...help].flatMap(line => wrapEditorLine({ text: line }, width)),
-        { text: safe(inputView(view.input!, width)) }]
+        inputView(view.input!, width)]
         .map((line, part, rows) => ({
             ...prependLine(part === rows.length - 1 ? '› ' : '  ', line),
             key: 'input', part, selected: part === rows.length - 1,

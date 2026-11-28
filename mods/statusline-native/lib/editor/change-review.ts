@@ -82,7 +82,8 @@ export function changesView(e: Editor, language: Language, width: number, height
   const m = e.changeReview!, title = t(m.kind === 'structure' ? 'history.structure' : 'history.title', language);
   const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
   if (m.input) return [
-    ...wrapText([title, t('history.export_path', language), inputView({ ...m.input }, width)], width).map(text => ({ text })),
+    ...wrapText([title, t('history.export_path', language)], width).map(text => ({ text })),
+    inputView({ ...m.input }, width),
     ...wrapEditorLine(hintLine('history.input_help', language, { enter: 'Enter', back }), width),
   ].slice(0, height);
   if (m.confirm) return [

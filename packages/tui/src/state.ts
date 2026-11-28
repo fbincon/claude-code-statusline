@@ -14,6 +14,7 @@ import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profi
 import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
+import type { EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { Editor, copyDraft, cycleEditorPage, type NumericField, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
@@ -146,9 +147,9 @@ export class State {
         if ([...value].length > 256) { this.notice(text('input.limit', {limit:256})); return; }
         this.editor.filter(this.scope, value);
     }
-    inputDisplay(width: number): string {
+    inputDisplay(width: number): EditorLine {
         const input = this.input;
-        if (!input || input.kind === 'category') return '';
+        if (!input || input.kind === 'category') return { text: '' };
         const value = input.kind === 'search' ? this.editor.listContext(this.scope).search : input.buffer;
         if (input.edit?.value !== value) input.edit = textInput(value);
         return inputView(input.edit, width);

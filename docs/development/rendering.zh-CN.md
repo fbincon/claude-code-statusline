@@ -31,6 +31,8 @@ npm run generate:check
 
 Native 预览在独立的浅／深底色内应用 span 背景；默认背景恢复该底色，填充空格不继承最后一段颜色。外部编辑器通过 `packages/tui/src/drawing/canvas.ts` 生成有界帧与 ANSI 输出，将前景／背景映射到检测出的 0／8／16／256 色能力。平台终端适配器管理 raw 输入、缩放和退出恢复。完整文本及编辑操作保留字符簇，缩短重绘清理先前行。
 
+共享输入视口按本地化标签和同一行的其他内容所剩的终端列宽容纳完整字素簇。只有当前可编辑字段携带光标范围。光标在下一个可见字素簇的原单元格上反显。字段为空、光标位于值末尾，或下一个字素簇宽于输入区域时，用一格反显空白标记光标。外部编辑器在所有受支持的色深下使用 ANSI 反显。Native 编辑器使用宿主主题色提供光标对比度。
+
 当前采集工具位于 `tools/acceptance`：`capture:editor` 在真实 PTY 中运行匹配的已安装外部编辑器，`capture:render` 用明确字体重建已记录终端单元格。输出标明软件包／源码、单元格输入、裁剪、渲染器和字体摘要。`capture:native-capacity` 提供实际宿主 Native 捕获覆盖，其独立要求见[候选验收](testing.zh-CN.md#candidate-build-and-isolated-installation)及[容量／恢复](native-capacity.zh-CN.md)。
 
 重建验证记录的终端输出，不证明物理终端字体或人工验收。方法标识与脱敏复现输入见[图片来源](../images/README.zh-CN.md)和 [SHOWCASE-01 采集](showcase.zh-CN.md)。历史 Python／pyte 命令保留在冻结归档及原始捕获记录，不属于当前开发流程。

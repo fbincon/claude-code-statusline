@@ -7,7 +7,7 @@ import { GRADIENT_PRESETS, GRADIENT_SURFACES, parseGradient, gradientName } from
 import { normalizeColor, validColor } from './appearance.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { t, type Language } from '../i18n/index.ts';
-import { editorLineSpans, hintLine } from './hints.ts';
+import { editorLineSpans, hintLine, type EditorLine } from './hints.ts';
 export interface ColorManager {
     kind: 'theme' | 'solid' | 'gradient';
     key: string;
@@ -166,15 +166,16 @@ export function colorsKey(e: Editor, event: TextKey, language: Language): null {
     return null;
 }
 const plain = (text: string): Span => ({ text, bold: false, foreground: null, background: null });
-export function colorsView(e: Editor, language: Language, width: number, height: number): {
-    spans: Span[];
-    selected: boolean;
-}[] {
+export function colorsView(e: Editor, language: Language, width: number, height: number): ((EditorLine | { spans: Span[] }) & { selected: boolean })[] {
     const m = e.colors!, tr = (key: string) => t('colors.' + key, language);
     const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
     if (m.input) {
         const help = m.error ? { text: tr('invalid') } : hintLine('shortcuts.color-input-help', language, { enter: 'Enter', back, clear: 'Ctrl+U' });
-        return [{ spans: [plain(tr('input'))], selected: false }, { spans: [plain(inputView(m.input, width))], selected: true }, { spans: editorLineSpans(help, width).map(span => ({ ...plain(span.text), ...span })), selected: false }];
+        return [
+            { spans: [plain(tr('input'))], selected: false },
+            { ...inputView(m.input, width), selected: true },
+            { spans: editorLineSpans(help, width).map(span => ({ ...plain(span.text), ...span })), selected: false },
+        ];
     }
     const rows = choices(e, language), capacity = Math.max(1, height - 2), start = Math.floor(m.cursor / capacity) * capacity;
     const help = hintLine('shortcuts.color-help', language, { enter: 'Enter', apply: e.shortcuts.hint('colors', 'apply-color'), back });

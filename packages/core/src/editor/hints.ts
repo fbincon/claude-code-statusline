@@ -2,11 +2,12 @@ import { messageParts, type Language } from '../i18n/messages.js';
 import { clip, displayWidth } from '../unicode/index.js';
 import { wrapLineEnd, wrapText } from './text.js';
 
-interface KeyRange { start: number; end: number }
+interface TextRange { start: number; end: number }
 
 export interface EditorLine {
   text: string;
-  keys?: readonly KeyRange[];
+  keys?: readonly TextRange[];
+  caret?: TextRange;
 }
 
 export function sectionDivider(title: string, width: number): string {
@@ -19,7 +20,7 @@ export function sectionDivider(title: string, width: number): string {
 export function hintLine(key: string, language: Language, keys: Record<string, string | EditorLine>, params: Record<string, unknown> = {}): EditorLine {
   const values = Object.fromEntries(Object.entries(keys).map(([name, value]) => [name, typeof value === 'string' ? value : value.text]));
   let text = '';
-  const ranges: KeyRange[] = [];
+  const ranges: TextRange[] = [];
   for (const part of messageParts(key, language, { ...params, ...values })) {
     if (part.text && part.parameter && Object.hasOwn(keys, part.parameter)) {
       const value = keys[part.parameter]!;
@@ -32,22 +33,27 @@ export function hintLine(key: string, language: Language, keys: Record<string, s
 }
 
 export function prependLine(prefix: string, line: EditorLine): EditorLine {
+  const shift = ({ start, end }: TextRange) => ({ start: start + prefix.length, end: end + prefix.length });
   return { text: prefix + line.text, ...(line.keys && {
-    keys: line.keys.map(({ start, end }) => ({ start: start + prefix.length, end: end + prefix.length })),
-  }) };
+    keys: line.keys.map(shift),
+  }), ...(line.caret && { caret: shift(line.caret) }) };
 }
 
 export function joinEditorLines(first: EditorLine, separator: string, second: EditorLine): EditorLine {
   const joined = prependLine(first.text + separator, second);
-  return { text: joined.text, keys: [...(first.keys ?? []), ...(joined.keys ?? [])] };
+  const caret = first.caret ?? joined.caret;
+  return { text: joined.text, keys: [...(first.keys ?? []), ...(joined.keys ?? [])], ...(caret && { caret }) };
 }
 
 function lineSlice(line: EditorLine, start: number, end: number): EditorLine {
-  return { text: line.text.slice(start, end), keys: line.keys?.filter(key => start <= key.start && key.end <= end)
-    .map(key => ({ start: key.start - start, end: key.end - start })) };
+  const contains = (range: TextRange) => start <= range.start && range.end <= end;
+  const shift = (range: TextRange) => ({ start: range.start - start, end: range.end - start });
+  return { text: line.text.slice(start, end), keys: line.keys?.filter(contains).map(shift),
+    ...(line.caret && contains(line.caret) && { caret: shift(line.caret) }) };
 }
 
 export function wrapEditorLine(line: EditorLine, width: number): EditorLine[] {
+  if (line.caret) return [clipEditorLine(line, width)];
   if (!line.keys?.length) return wrapText([line.text], width).map(text => ({ text }));
   const result: EditorLine[] = [];
   let start = 0;
@@ -92,15 +98,22 @@ export function clipEditorLine(line: EditorLine, width: number): EditorLine {
   return { ...prefix, text: prefix.text + (width > 0 ? '…' : '') };
 }
 
-export function editorLineSpans(line: EditorLine, width: number): { text: string; bold: boolean }[] {
-  const { text, keys } = clipEditorLine(line, width);
-  const spans: { text: string; bold: boolean }[] = [];
+export function editorLineSpans(line: EditorLine, width: number): { text: string; bold: boolean; caret?: true }[] {
+  const { text, keys, caret } = clipEditorLine(line, width);
+  const spans: { text: string; bold: boolean; caret?: true }[] = [];
   let start = 0;
+  const append = (end: number, bold: boolean) => {
+    if (caret && caret.start < end && start < caret.end) {
+      if (start < caret.start) spans.push({ text: text.slice(start, caret.start), bold });
+      spans.push({ text: text.slice(Math.max(start, caret.start), Math.min(end, caret.end)), bold, caret: true });
+      if (caret.end < end) spans.push({ text: text.slice(caret.end, end), bold });
+    } else spans.push({ text: text.slice(start, end), bold });
+    start = end;
+  };
   for (const key of keys ?? []) {
-    if (key.start > start) spans.push({ text: text.slice(start, key.start), bold: false });
-    spans.push({ text: text.slice(key.start, key.end), bold: true });
-    start = key.end;
+    if (key.start > start) append(key.start, false);
+    append(key.end, true);
   }
-  if (start < text.length) spans.push({ text: text.slice(start), bold: false });
+  if (start < text.length) append(text.length, false);
   return spans;
 }

@@ -4,7 +4,8 @@ import { sourceSummary, sourceReviewLines } from './source-summary.js';
 import type { Operation, ResultFor, SourcesResult, SourceDefinition, SourceContext, SourceJob, SourceReview, SourceInspection, BindingReview, Scope } from '../contracts/ui.js';
 import type { Editor } from './draft.js';
 import { t, text, type Language, type LocalizedText } from '../i18n/messages.js';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { clip } from '../unicode/index.js';
+import { inputKey, prefixedInputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { BackendError } from './backend.js';
 import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'auto-review' | 'auto-off' | 'checks' | 'raw';
@@ -336,9 +337,9 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
         ['json', 'github', 'command'].forEach((kind, i) => add(tr(kind), m.cursor === i));
     else if (m.page === 'form') {
         m.fields.forEach((field, i) => {
-            const label = tr('field.' + field.key) + ': ', space = Math.max(2, width - label.length);
-            const view = inputView({ ...field.input }, space);
-            add(label + view, m.cursor === i);
+            const label = tr('field.' + field.key) + ': ', selected = m.cursor === i;
+            const editable = !m.editing || field.key !== 'id';
+            add(selected && editable ? prefixedInputView(label, { ...field.input }, width) : clip(label + field.input.value, width), selected);
         });
         add(hint('form_help', { next: 'Tab/Enter', key: editor.shortcuts.hint('source-form', 'save-source') }));
     }

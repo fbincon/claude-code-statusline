@@ -61,6 +61,23 @@ test('a complete host text replacement keeps spaces and rejects the entire inval
     taskViewerKey(view, { key: 'enter' });
     assert.equal(view.query, 'ok');
 });
+test('the terminal task editor budgets the active field against its translated label', () => {
+    const view = taskViewer('session', 'A界👩🏽‍💻', 'ru');
+    taskViewerKey(view, { key: 's' });
+    taskViewerKey(view, { key: 'tab' });
+    taskViewerKey(view, { key: 'left' });
+    const label = t('task.prompt', view.language, { value: '' });
+    for (const width of [displayWidth(label) + 2, 64]) {
+        const rows = taskViewerView(view, width, 12);
+        const active = rows.find(row => row.caret)!;
+        assert.equal(rows.filter(row => row.caret).length, 1);
+        assert.equal(active.key, 'identity-prompt');
+        assert.ok(active.text.startsWith(label));
+        assert.equal(active.text.slice(active.caret!.start, active.caret!.end), '👩🏽‍💻');
+        assert.ok(displayWidth(active.text) <= width);
+    }
+    assert.equal(view.promptInput.value, 'A界👩🏽‍💻');
+});
 test('refresh and Unicode resize retain the selected agent, while identity change clears old results', () => {
     const view = taskViewer('session');
     receiveTask(view, report());

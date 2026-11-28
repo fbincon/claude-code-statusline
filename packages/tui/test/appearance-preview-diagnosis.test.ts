@@ -14,11 +14,17 @@ test('diagnosis keeps the current field and grapheme caret visible on short term
         const s = fixture(language);
         s.key({ key: 'l', ctrl: true });
         s.key({ key: 'return' });
-        s.key({ key: '目录/'.repeat(25) + '📁尾', paste: true });
+        const path = '目录/'.repeat(25) + '📁尾';
+        s.key({ key: path, paste: true });
         for (const rows of [18, 19, 20, 24]) {
-            const screen = plain(s, 64, rows).join('\n');
-            assert(screen.includes('📁尾▏'));
+            const screen = frame(s, 64, rows);
+            assert(screen.rows.some(row => row.some((span, index) => span.reverse && span.text === ' ' &&
+                row[index - 1]?.text.endsWith('📁尾'))));
         }
+        s.key({ key: 'left' });
+        s.key({ key: 'left' });
+        assert(frame(s, 64, 18).rows.some(row => row.some(span => span.reverse && span.text === '📁')));
+        assert.equal(s.editor.diagnosis!.input?.value, path);
         s.key({ key: 'g', ctrl: true });
         s.key({ key: 'end' }, 64, 18);
         assert(plain(s, 64, 18).join('\n').includes('› ' + t('colors.cancel', language)));

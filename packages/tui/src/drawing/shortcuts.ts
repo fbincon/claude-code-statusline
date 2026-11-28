@@ -202,7 +202,7 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
     const decorationNotice = itemDecorationNotice(state);
     if (e.review) return paintLine(importShortcutHelp(e.review, e.shortcuts, state.language), width);
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
-    if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
+    if (state.input?.kind === 'search') return paintLine(state.inputDisplay(width), width);
     if (e.detail) {
         const prefix = tr('ui.drawing.item_format');
         if (state.input && decorationNotice) return [paint(decorationNotice)];

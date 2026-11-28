@@ -1,9 +1,9 @@
 import type { TaskDetails, TaskEvidence, TaskAgentDetail } from '../contracts/ui.js';
-import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/messages.js';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { t, text, renderMessage, messageParts, type Language, type LocalizedText } from '../i18n/messages.js';
+import { inputKey, prefixedInputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
 import { clipEditorLine, hintLine, type EditorLine } from './hints.js';
-import { clip as clipText } from '../unicode/index.js';
+import { clip as clipText, displayWidth } from '../unicode/index.js';
 import { BackendError } from './backend.js';
 import { resolveShortcut } from './shortcut-map.js';
 import type { EditorShortcuts } from './shortcut-settings.js';
@@ -198,17 +198,31 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     view.cache = { report, key: cacheKey, rows, agentStart, agentEnd };
     return rows;
 }
+function taskIdentityLine(key: string, language: Language, input: TextInput, width: number): EditorLine {
+    const parts = messageParts(key, language, { value: '' });
+    const field = parts.findIndex(part => part.parameter === 'value');
+    const index = field < 0 ? parts.length : field;
+    const prefix = parts.slice(0, index).map(part => part.text).join('');
+    const suffix = clipText(parts.slice(index + 1).map(part => part.text).join(''), width - displayWidth(prefix) - 1);
+    const line = prefixedInputView(prefix, input, width - displayWidth(suffix));
+    return { ...line, text: line.text + suffix };
+}
+
 /** Header identity and error remain visible while the evidence body pages. */
 export function taskViewerView(view: TaskViewer, width: number, height: number): TaskRow[] {
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language, params);
+    const identity = (field: 'session' | 'prompt', input: TextInput, value: string): TaskRow => {
+        const key = 'task.' + field;
+        return { key: 'identity-' + field, ...(view.input === field ? taskIdentityLine(key, view.language, input, width) : { text: tr(key, { value }) }) };
+    };
     const header: TaskRow[] = [
-        { key: 'identity-session', text: tr('task.session', { value: view.input === 'session' ? inputView(view.sessionInput, Math.max(2, width - 12)) : view.session || tr('task.unknown') }) },
-        { key: 'identity-prompt', text: tr('task.prompt', { value: view.input === 'prompt' ? inputView(view.promptInput, Math.max(2, width - 12)) : view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current') }) },
+        identity('session', view.sessionInput, view.session || tr('task.unknown')),
+        identity('prompt', view.promptInput, view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current')),
     ];
     const detail = view.input === 'session' || view.input === 'prompt'
         ? hintLine('task.viewer.identity_help', view.language, { tab: 'Tab', enter: 'Enter', back: 'Esc/Ctrl+G' })
-        : { text: view.input === 'search' ? '/ ' + inputView(view.searchInput, Math.max(2, width - 2)) :
-            tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' }) };
+        : view.input === 'search' ? prefixedInputView('/ ', view.searchInput, width)
+        : { text: tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' }) };
     header.push({ key: 'controls', ...detail });
     if (view.warning)
         header.push({ key: 'warning', text: renderMessage(view.warning, view.language) });
@@ -240,7 +254,7 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
         view.scroll = index - view.capacity + 1;
     // Body rows were sanitized and wrapped for this width once. Re-scanning every
     // grapheme on each page or native capacity probe makes large reports costly.
-    const boundedHeader = header.map(row => row.keys?.length
+    const boundedHeader = header.map(row => row.keys?.length || row.caret
         ? { ...row, ...clipEditorLine(row, Math.max(1, width)) }
         : { ...row, text: clipText(safe(row.text), Math.max(1, width)) });
     const body = rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row,

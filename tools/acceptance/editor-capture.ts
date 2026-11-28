@@ -12,7 +12,7 @@ import { sha256 } from '../build/files.js';
 import { sourceHashes } from '../migration/ts-03/common.js';
 import { createAcceptanceEnvelope, validateAcceptanceEnvelope } from '../checks/receipt.ts';
 import { openPty } from '../migration/ts-04/test/pty.js';
-import { Capture, TERMINAL_THEMES, verifyColors } from '../migration/ts-04/capture.js';
+import { Capture, TERMINAL_THEMES, cellColumn, showsInputCaret, verifyColors } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { t } from '@fbincon/statusline-core/i18n/messages';
@@ -56,6 +56,11 @@ try {
         let pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
+            const latestScreen = (raw: Buffer | string, width = columns, height = rows) => {
+                const screen = new Capture(width, height);
+                screen.feed(raw.slice(Math.max(0, raw.lastIndexOf('\x1b[H'))));
+                return screen;
+            };
             const key = async (value: string, contains?: string) => {
                 const length = pty.captured().length;
                 pty.send(value);
@@ -65,8 +70,7 @@ try {
             };
             const capture = (page: string, width = columns, height = rows, expectedPreview?: Capture['buffer']) => {
                 const raw = pty.captured();
-                const screen = new Capture(width, height);
-                screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
+                const screen = latestScreen(raw, width, height);
                 const directory = join(output, language);
                 fs.mkdirSync(directory, { recursive: true });
                 fs.writeFileSync(join(directory, page + '.ansi'), raw);
@@ -95,6 +99,23 @@ try {
                         width: image.width, height: image.height });
                 }
                 return screen.buffer.map(row => row.map(cell => cell.data).join(''));
+            };
+            const inputPosition = async (value: string, beforeCaret: string, label?: string) => {
+                const { innerX, innerY, innerHeight } = dimensions(columns, rows).content;
+                let location: { x: number; y: number } | undefined;
+                await pty.wait(raw => {
+                    const { buffer } = latestScreen(raw);
+                    for (let y = innerY; y < innerY + innerHeight; y++) {
+                        const row = buffer[y]!, marker = row[innerX];
+                        if (marker?.data !== '›' || !marker.reverse || (label && cellColumn(row, '› ' + label + ':') !== innerX)) continue;
+                        const x = cellColumn(row, value);
+                        if (!showsInputCaret(row, x, value, beforeCaret, cell => !cell.reverse)) continue;
+                        location = { x, y };
+                        return true;
+                    }
+                    return false;
+                });
+                return location!;
             };
             const schemePreview = async (id: string): Promise<Capture['buffer'] | undefined> => {
                 if (!['powerline-daily','agent-workbench','quota-cost','narrow-terminal','light-readable'].includes(id)) return;
@@ -264,10 +285,16 @@ try {
                 assert.equal(detail.find(line => line.includes(t('settings.item-guidance', language)))?.match(/Enter/gu)?.length, 1);
                 await key('\r');
                 await key('\x15');
-                await key('中文 é 👩🏽‍💻', '👩🏽‍💻');
+                const input = '中文 é 👩🏽‍💻';
+                await key(input, '👩🏽‍💻');
                 assert(capture('text-edit')[0]!.includes('*'));
+                const textPosition = await inputPosition(input, input);
+                await key('\x1b[D');
+                assert.deepEqual(await inputPosition(input, '中文 é '), textPosition, 'Moving onto the emoji moved the input');
                 await key('\x1b[H\x1b[C');
-                await key('标','中标▏文');
+                assert.deepEqual(await inputPosition(input, '中'), textPosition, 'Moving onto the wide character moved the input');
+                await key('标');
+                assert.deepEqual(await inputPosition('中标文 é 👩🏽‍💻', '中标'), textPosition, 'Inserting in the middle moved the input start');
                 capture('text-cursor');
                 await key('\x1b');
                 await key('\x1b[H');
@@ -290,7 +317,8 @@ try {
                 capture('powerline-controls');
                 await selectSetting('padding');
                 await key('9');
-                assert(capture('numeric').some(line => line.includes('9▏')));
+                await inputPosition('9', '9', t('settings.padding', language));
+                capture('numeric');
                 await key('9');
                 capture('numeric-error');
                 await key('\x1b');
