@@ -108,11 +108,16 @@ function assertShortcutHelp(screen: Capture): void {
     const body = lines.slice(top + 1, bottom);
     assert(body.some(line => line.includes('─ Editor and draft ─')), 'Shortcut group divider is inside the frame');
     assert(body.some(line => /OPTION +(?:VALUE|CURRENT KEY +DEFAULT KEY)/u.test(line)), 'Shortcut columns are inside the frame');
-    assert(body.at(-1)?.includes('Save shortcuts'), 'Shortcut action menu is at the bottom of the frame');
-    const footer = screen.buffer.slice(bottom + 1);
-    for (const [key, label] of [['/', 'filter'], ['Enter', 'change'], ['Delete', 'restore'], ['Tab', 'switch'], ['Ctrl+G', 'back']] as const) {
+    for (const label of ['Save shortcuts', 'Restore all defaults', 'Read saved'])
+        assert(body[0]?.includes('[' + label + ']'), 'Shortcut button is at the top of the frame: ' + label);
+    assert.match(body.at(-1) ?? '', /Terminal (?:Ctrl\+S|Z) \[Ctrl\+S\] · Client (?:S|Z) \[S\]/u,
+        'Selected keys are pinned against the bottom edge');
+    const toolbar = screen.buffer.slice(top + 1, top + 3);
+    const footer = screen.buffer.slice(bottom + 1, bottom + 2);
+    for (const [area, key, label] of [[toolbar, 'Tab', 'to actions'], [footer, '/', 'filter'],
+        [footer, 'Enter', 'change'], [footer, 'Delete', 'reset key'], [footer, 'Ctrl+G', 'back']] as const) {
         const hint = `${key} ${label}`;
-        assert.ok(footer.some(row => row.some((cell, start) => {
+        assert.ok(area.some(row => row.some((cell, start) => {
             if (!cell.bold || cell.data !== key[0]) return false;
             const cells = row.slice(start, start + hint.length);
             return cells.map(value => value.data).join('') === hint && cells.every((value, index) => value.bold === (index < key.length));
@@ -518,7 +523,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             };
             await openNativeSettings();
             await until(text => text.includes('Skipped unavailable or conflicting keys'), 'incompatible legacy shortcuts reported');
-            await until(text => text.includes('/ filter') && text.includes('Tab switch'), 'native shortcut help visible');
+            await until(text => text.includes('/ filter') && text.includes('Tab to actions'), 'native shortcut help visible');
             assertShortcutHelp(screen);
             capture('native-shortcut-help');
             await key('/', 'open shortcut filter');
@@ -598,12 +603,13 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 assertShortcutHelp(help);
                 resize(32, 12);
                 await wait('save row and two column headings survive a resize to 32×12', text =>
-                    /OPTION +VALUE/u.test(text) && /› Save display +Z/u.test(text));
+                    /OPTION +VALUE/u.test(text) && /› Save display +Z/u.test(text) &&
+                    ['[Save]', '[Defaults]', '[Reload]', 'Tab to actions'].every(value => text.includes(value)));
                 tty.send('\t\x1b[C');
-                await wait('› Restore all');
+                await wait('compact Restore defaults button has focus', text => text.includes('›[Defaults]') && text.includes('Tab to list'));
                 resize(120, 30);
-                await wait('menu focus and three column headings survive widening', text =>
-                    /OPTION +CURRENT KEY +DEFAULT KEY/u.test(text) && text.includes('› Restore all'));
+                await wait('button focus and three column headings survive widening', text =>
+                    /OPTION +CURRENT KEY +DEFAULT KEY/u.test(text) && text.includes('›[Restore all defaults]') && text.includes('Tab to list'));
                 tty.send('\r\x1b[A\r');
                 await wait('Keyboard shortcuts saved');
                 assert.equal(fs.existsSync(preference), false);

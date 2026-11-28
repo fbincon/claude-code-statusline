@@ -509,7 +509,7 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
-test('native shortcut settings put the action menu inside the panel and style keys in the footer', () => {
+test('native shortcuts show a top toolbar and keep selection details against the bottom edge', () => {
   const state = view();
   state.language = 'zh-CN';
   state.editor!.shortcuts.open();
@@ -518,22 +518,40 @@ test('native shortcut settings put the action menu inside the panel and style ke
     const lines = render(tree);
     expect(lines).toHaveLength(rows);
     const title = lines.findIndex(row => row.includes('─ 快捷键 ─'));
-    const menu = lines.findIndex(row => row.includes('保存快捷键'));
-    expect(title >= 1 && title < menu).toBe(true);
-    const body = lines.slice(title + 1, menu);
+    const bottom = lines.findIndex(row => row.startsWith('╰─'));
+    const footer = lines.findIndex(row => row.includes('/ 筛选'));
+    expect(title).toBe(1);
+    for (const key of ['save', 'restore-all', 'reload'])
+      expect(lines[title + 1]).toContain('[' + t('shortcuts.' + key + (columns === 32 ? '-short' : ''), 'zh-CN') + ']');
+    const body = lines.slice(title + 2, bottom < 0 ? footer : bottom);
     expect(body.some(row => row.includes('─ 编辑器与草稿 ─'))).toBe(true);
     expect(body.some(row => row.includes('选项') && row.includes(columns >= 80 ? '当前键' : '值'))).toBe(true);
     expect(body.some(row => row.includes('默认键'))).toBe(columns >= 80);
-    if (rows >= 20) expect(lines[menu + 1]?.startsWith('╰─')).toBe(true);
+    expect(body.at(-1)).toContain('内置 S [S]');
+    expect(lines.slice(title + 1, title + 3).some(row => row.includes('Tab 到操作区'))).toBe(true);
+    expect(rows - footer <= 2).toBe(true);
+    if (rows >= 20) expect(bottom).toBe(footer - 1);
+    if (columns === 120) expect(rows - footer).toBe(1);
     const section = tree.children.findIndex(node => typeof node !== 'string' && node.props.key === 'content-region');
     expect(section >= 1).toBe(true);
     const keyNodes = tree.children.slice(section + 1)
       .flatMap(row => typeof row === 'string' ? [] : row.children)
       .flatMap(child => typeof child === 'string' ? [] : child.children)
       .filter((child): child is Node => typeof child !== 'string' && child.props.bold === true);
-    for (const key of ['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G'])
+    for (const key of ['/', 'Enter', 'Delete', 'Ctrl+G'])
       expect(keyNodes.some(node => text(node) === key && node.props.color === 'text')).toBe(true);
   }
+  handleKey(state, { key: 'tab', shift: true }, 32, 12);
+  const focused = render(draw(elements, state, 120, 30) as unknown as Node);
+  expect(focused[2]).toContain('›[读取已保存]');
+  expect(focused[2]).toContain('Tab 回列表');
+  for (const event of [{ key: 'tab' }, { key: '/' }, { key: 'task-evidence', paste: true }, { key: 'return' }])
+    handleKey(state, event, 120, 30);
+  const filtered = render(draw(elements, state, 120, 30) as unknown as Node);
+  expect(filtered.some(row => row.includes('› 切换任务证据'))).toBe(true);
+  const bottom = filtered.findIndex(row => row.startsWith('╰─'));
+  expect(bottom).toBe(28);
+  expect(filtered[bottom - 1]).toContain('外部 E [E]');
 });
 
 test('native decoration fields keep their full names and active control on a compact pane', () => {

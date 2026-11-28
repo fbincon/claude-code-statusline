@@ -58,22 +58,22 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const editorTitle = () => tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language);
     if (e.shortcuts.panel && shortcutPanelFits(canvas.columns, canvas.rows)) {
         const view = shortcutPanelView(e.shortcuts, state.language, canvas.columns, canvas.rows);
-        if (view.headerRows === 2) {
-            canvas.put(0, 0, [heading(editorTitle())]);
-            drawTabs(canvas, state.language, 'settings', 1);
-        } else canvas.put(0, 0, [heading(tr('ui.drawing.settings'))]);
+        canvas.put(0, 0, [heading(view.fullTitle ? editorTitle() : tr('ui.drawing.settings'))]);
         const panel = {
-            y: view.headerRows, width: canvas.columns, height: canvas.rows - view.headerRows - view.footer.length,
-            framed: view.framed, innerY: view.headerRows + 1, innerX: (canvas.columns - view.innerWidth) / 2,
+            y: 1, width: canvas.columns, height: canvas.rows - 1 - view.footer.length,
+            framed: view.framed, innerY: 2, innerX: (canvas.columns - view.innerWidth) / 2,
             innerWidth: view.innerWidth, innerHeight: view.bodyHeight,
         };
         canvas.panel(panel, tr('shortcuts.title'));
-        view.body.forEach((row, index) => {
+        view.toolbar.forEach((row, index) => canvas.content(panel, index, row.map(({ text, kind }) =>
+            kind === 'button' ? heading(text) : paint(text, kind !== 'hint', kind === 'focused'))));
+        const drawRow = (row: typeof view.body[number], index: number) => {
             const spans = row.kind === 'group' ? [heading(row.text)] : row.kind === 'columns' ? [paint(row.text, true)]
                 : paintLine(row, view.innerWidth, row.selected);
             canvas.content(panel, index, spans, row.selected);
-        });
-        if (view.menu.length) canvas.content(panel, view.bodyHeight - 1, view.menu.map(item => paint(item.text, item.selected, item.selected)));
+        };
+        view.body.forEach((row, index) => drawRow(row, view.toolbar.length + index));
+        view.bottom.forEach((row, index) => drawRow(row, view.bottomOffset + index));
         view.footer.forEach((row, index) => canvas.put(canvas.rows - view.footer.length + index, 0, paintLine(row, canvas.columns)));
         return canvas.frame();
     }

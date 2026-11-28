@@ -16894,11 +16894,11 @@
       "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
     },
     "shortcuts.back-help": {
-      "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
-      "translation": "9039e5623854e33823be15c5dd2082879935820579236f6a1f617c3a15f85eed",
+      "source": "fd8989486773ce67cf9e6fd6be23ecb02a5ac1b40ae1986b7a064ad344ac5cc4",
+      "translation": "d78e5bfeae444e7e0ea8837445c13311b5040ea817b060e5c0344d34f7389019",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     },
     "shortcuts.capture": {
       "source": "2869bd48f32d56d2944ef9877846d7badb062f5f666aa4b5eb5d9d492bc645fb",
@@ -16943,11 +16943,11 @@
       "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
     },
     "shortcuts.command-help": {
-      "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
-      "translation": "cae0e41f1110559f8e7cd5ed956e58305a4d7a5c28d47b3914a8ca7c5e3c6039",
+      "source": "55e816e09f28e1f7b2d22b58b7dc9b100269379e2886d75c02d8dc851168d68d",
+      "translation": "a2db6ee25955e23f56dd7932b29a587eec758ad5fcd76e517aa17ee7942cd887",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     },
     "shortcuts.confirm-close": {
       "source": "de7d1ab7bc430325f02b5f24c56b2466b74d8eba4a606079228485d9d63600be",
@@ -17097,11 +17097,11 @@
       "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
     },
     "shortcuts.invalid": {
-      "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
-      "translation": "7538d63797913230149fd06b6c6595b3ca8eea6ea0f28ff02d2fa33d7877f576",
+      "source": "3f0852a2f4c7e1acc912590e659aca2e067b60d3d98ffe7472cbcbd6d165b973",
+      "translation": "ed68ba7854eaf6ca56dd5889f88c44a0f6645b8baa32e591c42691cf674826d6",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     },
     "shortcuts.invalid-request": {
       "source": "92fdbe7b5754bbfa58bad7e748fafc8ea7c4e330e745e08ccd09ec6558567736",
@@ -17118,11 +17118,11 @@
       "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
     },
     "shortcuts.list-help": {
-      "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
-      "translation": "fc6cd5bdc26f42e14ea63512752cee1216f4f5bfc0423829319940e0efe41b21",
+      "source": "58955872a3b180148fc195483ab05b9ccbcaa4af73df22f19b2990760d1e31ce",
+      "translation": "e3253053b594dc9a464861251f717391803b3de5c29909cdf7253d52ad3ff342",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     },
     "shortcuts.native": {
       "source": "4ea2c2313790e5380ebd36f42a917284e3497fd051b06f217f9f88f5ec047475",
@@ -17209,11 +17209,11 @@
       "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
     },
     "shortcuts.restore-all": {
-      "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
-      "translation": "649cec0cafdc775332b5ee5942bddd205e93016474d1383807af7bca432bb688",
+      "source": "b511155cd71f10129db82fc45c74c4f76f2b2f0e7aefa49272a7b73886046299",
+      "translation": "cc3656a13d12f13a9e86ac94c87b8d122a4323f6f0d3dd546fc09f356e6b7f68",
       "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     },
     "shortcuts.restored": {
       "source": "24cde7d69237abe80ab15312b423f2ef303ae9c3216b67e50d86278b4273abcc",
@@ -17711,6 +17711,41 @@
       "method": "validated_accepted",
       "validation_version": 1,
       "evidence": "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136"
+    },
+    "shortcuts.focus-actions": {
+      "source": "d992e6456ac6c54acc73dde1247077f728e41f8eb63ee32cb308824a3647637a",
+      "translation": "d614c9413c379099cbeb5af321c471e5bef1783eb00647f57463ff980ed778cc",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
+    },
+    "shortcuts.focus-list": {
+      "source": "8dac77ba9b43f02e49c449d4d2ea1f2c85a6b69138e3188eb88b801f6a66f759",
+      "translation": "286195e591795a5356afed8feac90c9e7cb138a8745d1efb6cdd210d879c9462",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
+    },
+    "shortcuts.reload-short": {
+      "source": "c6b56236ef236089abdcb8efea8a6aa867107cca748358249f7916be7f3dcb61",
+      "translation": "00d5d22d958b0aa98c6de3609b4479d6520c338ccc0ca503c4900cd96aabf19c",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
+    },
+    "shortcuts.restore-all-short": {
+      "source": "e02b7f746d2bf6a75be1190c1e3bb1d500f28f5439a7fc60005199a5efc5e615",
+      "translation": "d54f536d8b781a1d9eb23dcc1be2500a0b7c4aaadca20ff04c1e74d60aca0f16",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
+    },
+    "shortcuts.save-short": {
+      "source": "91fd66fb81e30924a07d9b64d4807ee868902c6fdcef28a5cbf17948fc417e9c",
+      "translation": "6cd1a144c3a5f9f318f99cfd456f2d683b8b8d0d6e50a4999c2447a3519256b3",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "c152b999408e256a23e5069529812161b90e955fc66d86dcb9cb363efe8687ae"
     }
   }
 }

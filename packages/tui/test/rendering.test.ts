@@ -204,35 +204,50 @@ test('external item format pairs preset controls with independent custom input',
     assert.ok(plain(state, 64, 18).some(row => row.includes('自定义标签') && row.includes('跟随预设')));
 });
 
-test('external shortcut settings frame the list and action menu above the bold footer hints', () => {
+test('external shortcuts show a top toolbar, pinned details and a compact footer', () => {
     const state = fixture('zh-CN');
     state.editor.shortcuts.open();
-    for (const [width, height] of [[32, 12], [64, 18], [64, 20], [120, 30]] as const) {
+    for (const [width, height] of [[32, 12], [64, 18], [79, 20], [80, 20], [120, 30]] as const) {
         const terminal = frame(state, width, height);
         const screen = terminal.rows.map(row => row.map(span => span.text).join(''));
         const title = screen.findIndex(row => row.includes('─') && row.includes(t('shortcuts.title', 'zh-CN')));
         const bottom = screen.findIndex(row => row.startsWith('└─'));
-        const menu = screen.findIndex(row => row.includes('保存快捷键'));
-        const footer = screen.findIndex(row => row.includes('Enter 改键') || row.includes('Tab 切换'));
-        assert.ok(title >= 1 && title < menu && menu < footer);
-        assert.ok(screen.slice(title + 1, menu).some(row => row.includes('─ 编辑器与草稿 ─')));
-        assert.ok(screen.slice(title + 1, menu).some(row => row.includes('选项') && row.includes(width >= 80 ? '默认键' : '值')));
+        const footer = screen.findIndex(row => row.includes('/ 筛选'));
+        const suffix = width === 32 ? '-short' : '';
+        assert.equal(title, 1);
+        for (const key of ['save', 'restore-all', 'reload'])
+            assert.ok(screen[title + 1]?.includes('[' + t('shortcuts.' + key + suffix, 'zh-CN') + ']'), key);
+        const group = screen.findIndex(row => row.includes('─ 编辑器与草稿 ─'));
+        assert.ok(group > title + 1 && group < footer);
+        assert.ok(screen.slice(title + 2, group).some(row => row.includes('选项') && row.includes(width >= 80 ? '默认键' : '值')));
         assert.equal(screen.some(row => row.includes(t('ui.drawing.preview_sample_data', 'zh-CN'))), false);
-        if (height >= 20) assert.ok(bottom === menu + 1 && bottom < footer);
+        if (height >= 20) assert.equal(bottom, footer - 1);
         else assert.equal(bottom, -1);
+        assert.ok(screen[(bottom < 0 ? footer : bottom) - 1]?.includes('内置 S [S]'));
+        assert.ok(screen.slice(title + 1, group).some(row => row.includes('Tab 到操作区')));
+        assert.ok(terminal.rows.slice(title + 1, group).flat().some(span => span.bold && span.text === 'Tab'));
+        assert.ok(height - footer <= 2);
+        if (width === 120) assert.equal(height - footer, 1);
         const help = terminal.rows.slice(footer).flat().filter(span => span.bold);
-        for (const key of ['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']) assert.ok(help.some(span => span.text === key), key);
-        assert.ok(help.every(span => !/筛选|改键|恢复|切换|返回/u.test(span.text)));
+        for (const key of ['/', 'Enter', 'Delete', 'Ctrl+G']) assert.ok(help.some(span => span.text === key), key);
+        assert.ok(help.every(span => !/筛选|改键|恢复|返回/u.test(span.text)));
         assert.ok(terminal.rows.every(row => displayWidth(row.map(span => span.text).join('')) === width));
     }
     state.key({ key: 'tab' }, 32, 12);
     state.key({ key: 'right' }, 32, 12);
-    const menu = frame(state, 120, 30).rows.find(row => row.some(span => span.text.includes('恢复全部')))!;
-    assert.ok(menu.some(span => span.reverse && span.text === '› 恢复全部'));
-    assert.ok(menu.some(span => !span.reverse && span.text.includes('保存快捷键')));
-    const german = fixture('de');
-    german.editor.shortcuts.open();
-    assert.ok(plain(german, 64, 18)[1]?.includes(t('ui.drawing.settings', 'de')));
+    const toolbar = frame(state, 120, 30).rows[2]!;
+    assert.ok(toolbar.some(span => span.reverse && span.text.trimStart() === '›[恢复全部预设]'));
+    assert.ok(toolbar.some(span => !span.reverse && span.text.includes('[保存快捷键]')));
+    assert.ok(plain(state, 120, 30)[2]?.includes('Tab 回列表'));
+    state.key({ key: 'tab' }, 120, 30);
+    state.key({ key: '/' }, 120, 30);
+    state.key({ key: 'task-evidence', paste: true }, 120, 30);
+    state.key({ key: 'return' }, 120, 30);
+    const filtered = plain(state, 120, 30);
+    assert.ok(filtered.some(row => row.includes('› 切换任务证据')));
+    const bottom = filtered.findIndex(row => row.startsWith('└─'));
+    assert.equal(bottom, 28);
+    assert.ok(filtered[bottom - 1]?.includes('外部 E [E]'));
 });
 
 test('actions contain one bold Enter and item format identifies its scope and return key', () => {

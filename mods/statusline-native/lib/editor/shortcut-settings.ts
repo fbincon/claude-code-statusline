@@ -12,7 +12,7 @@ import { matchText } from './search.ts';
 import { formSelection, formWindow } from './navigation.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { wrapText } from '../../ui/text.ts';
-import { hintLine, sectionDivider, wrapEditorHints, wrapEditorLine, type EditorLine } from './hints.ts';
+import { editorLineSpans, hintLine, joinEditorLines, sectionDivider, wrapEditorHints, type EditorLine } from './hints.ts';
 
 export type ShortcutEffect = 'read-shortcuts' | 'save-shortcuts';
 export const SHORTCUT_PANEL_MIN_COLUMNS = 32;
@@ -263,7 +263,7 @@ export class EditorShortcuts {
 
 type PanelAction = (typeof actions)[number];
 interface PanelRow extends EditorLine { kind?: 'columns' | 'group' | 'detail'; selected?: boolean }
-interface MenuSpan { text: string; selected: boolean }
+interface ToolbarSpan { text: string; kind: 'button' | 'focused' | 'key' | 'hint' }
 
 function currentKeys(action: PanelAction, surface: EditorSurface, bindings: ShortcutBindings): string {
   return bindings[action.key] ? listedShortcut(surface, action.key, bindings) : action.presets[surface];
@@ -284,14 +284,41 @@ function actionDetails(action: PanelAction, language: Language, bindings: Shortc
   return lines.map(text => ({ text, kind: 'detail' }));
 }
 
-function shortcutMenu(command: number | null, language: Language, width: number): MenuSpan[] {
-  const items = commands.map((key, index) => {
-    const selected = command === index;
-    return { text: (selected ? '› ' : '  ') + t('shortcuts.' + key, language), selected };
+function toolbarButtons(command: number | null, language: Language, width: number): ToolbarSpan[] {
+  const labels = (suffix = '') => commands.map(key => t('shortcuts.' + key + suffix, language));
+  const full = labels();
+  // Budget the brackets, inter-button spaces and one focus marker.
+  const visible = full.reduce((cells, label) => cells + displayWidth(label) + 3, 0) <= width ? full : labels('-short');
+  return visible.map((label, index) => {
+    const focused = command === index;
+    const prefix = (index ? ' ' : '') + (focused ? '›[' : '[');
+    return { text: prefix + label + ']', kind: focused ? 'focused' : 'button' };
   });
-  const divider = { text: ' · ', selected: false };
-  if (displayWidth(items.map(item => item.text).join(divider.text)) > width) return [items[command ?? 0]!];
-  return items.flatMap((item, index) => index ? [divider, item] : [item]);
+}
+
+function shortcutToolbar(
+  command: number | null, language: Language, width: number, focusInFooter: boolean,
+): { toolbar: ToolbarSpan[][]; focus: EditorLine } {
+  const buttons = toolbarButtons(command, language, width);
+  const toActions = hintLine('shortcuts.focus-actions', language, { tab: 'Tab' });
+  const toList = hintLine('shortcuts.focus-list', language, { tab: 'Tab' });
+  const focus = command === null ? toActions : toList;
+  if (focusInFooter) return { toolbar: [buttons], focus };
+  const help = editorLineSpans(focus, width).map(({ text, bold }): ToolbarSpan => ({ text, kind: bold ? 'key' : 'hint' }));
+  const buttonWidth = displayWidth(buttons.map(button => button.text).join('')) + Number(command === null);
+  const inline = buttonWidth + 3 + Math.max(displayWidth(toActions.text), displayWidth(toList.text)) <= width;
+  return { toolbar: inline ? [[...buttons, { text: '   ', kind: 'hint' }, ...help]] : [buttons, help], focus };
+}
+
+function listHelp(language: Language, columns: number, context: EditorLine): EditorLine[] {
+  const select = t('ui.hints.select', language);
+  const navigation = (key: string) => joinEditorLines(
+    { text: key + ' ' + select, keys: [{ start: 0, end: key.length }] }, ' · ', context,
+  );
+  const full = navigation('↑↓ PgUp/PgDn Home/End');
+  if (displayWidth(full.text) <= columns) return [full];
+  const compact = wrapEditorHints(navigation('↑↓'), columns);
+  return compact.length <= 2 ? compact : wrapEditorHints(context, columns);
 }
 
 function shortcutTable(editor: EditorShortcuts, language: Language, width: number, showDefaults: boolean) {
@@ -326,24 +353,25 @@ function shortcutTable(editor: EditorShortcuts, language: Language, width: numbe
 function shortcutPanelLayout(editor: EditorShortcuts, language: Language, columns: number, rows: number, matches: PanelAction[]) {
   const panel = editor.panel!;
   const framed = columns >= 64 && rows >= 20;
-  const headerRows = columns >= 64 && rows >= 18 ? 2 : 1;
+  const fullTitle = columns >= 64 && rows >= 18;
   const width = columns - (framed ? 2 : 0) - (editor.surface === 'terminal' ? 2 : 0);
-  const height = rows - headerRows - (framed ? 2 : 1);
-  const geometry = { framed, headerRows, innerWidth: width, height };
+  const height = rows - 1 - (framed ? 2 : 1);
+  const geometry = { framed, fullTitle, innerWidth: width, height };
   const tr = (key: string, params?: Record<string, unknown>) => t('shortcuts.' + key, language, params);
-  const hint = (key: string, keys: Record<string, string>) => wrapEditorHints(hintLine('shortcuts.' + key, language, keys), columns);
+  const hint = (key: string, keys: Record<string, string>) => hintLine('shortcuts.' + key, language, keys);
+  const wrap = (line: EditorLine) => wrapEditorHints(line, columns);
   const paragraphs = (value: string): PanelRow[] => wrapText([value], width).map(text => ({ text }));
 
   if (panel.confirm) {
     const { kind, discard } = panel.confirm;
-    const footer = hint('confirm-help', { arrows: '↑↓', enter: 'Enter', back: 'Ctrl+G' });
+    const footer = wrap(hint('confirm-help', { arrows: '↑↓', enter: 'Enter', back: 'Ctrl+G' }));
     const before = paragraphs(tr(kind === 'close' ? 'confirm-close' : 'confirm-reload'))
       .slice(0, Math.max(0, height - footer.length - 2));
     before.push(
       { text: clip((discard ? '  ' : '› ') + tr('keep'), width), selected: !discard },
       { text: clip((discard ? '› ' : '  ') + tr('discard'), width), selected: discard },
     );
-    return { ...geometry, before, after: [], listRows: 0, tableHeading: false, menu: [], footer };
+    return { ...geometry, before, bottom: [], listRows: 0, tableHeading: false, toolbar: [], footer };
   }
 
   const selected = matches.find(row => row.key === panel.selected);
@@ -358,10 +386,10 @@ function shortcutPanelLayout(editor: EditorShortcuts, language: Language, column
   if (panel.capture && selected) {
     const reserved = reservedNativeKeys(selected.key);
     const captureHelp = reserved.length ? tr('capture-host-help', { keys: reserved.join(', ') }) : tr('capture');
-    const footer = [...wrapEditorLine({ text: captureHelp }, columns), ...hint('cancel-help', { back: 'Ctrl+G' })];
-    const before = [...paragraphs(tr('capture-action', { action: actionMessage(selected.key) })), ...messages, ...details]
-      .slice(0, height - footer.length);
-    return { ...geometry, before, after: [], listRows: 0, tableHeading: false, menu: [], footer };
+    const footer = wrap(hint('cancel-help', { back: 'Ctrl+G' }));
+    const before = [...paragraphs(tr('capture-action', { action: actionMessage(selected.key) })), ...paragraphs(captureHelp), ...messages]
+      .slice(0, height - footer.length - details.length);
+    return { ...geometry, before, bottom: details, listRows: 0, tableHeading: false, toolbar: [], footer };
   }
 
   const before: PanelRow[] = [];
@@ -372,39 +400,42 @@ function shortcutPanelLayout(editor: EditorShortcuts, language: Language, column
     before.push({ text: clip(prefix + value, width) });
   }
   if (!matches.length) before.push(...paragraphs(tr('no-matches')));
-  const menu = filtering || panel.busy ? [] : shortcutMenu(panel.command, language, width);
-  const fixedHelp = panel.busy ? [] : filtering
-    ? hint('filter-help', { enter: 'Enter', back: 'Ctrl+G', clear: 'Ctrl+U' })
-    : hint('back-help', { tab: 'Tab', back: 'Ctrl+G' });
-  const contextHelp = panel.busy || filtering || instruction ? [] : panel.command !== null
-    ? hint('command-help', { arrows: '←→', enter: 'Enter' })
-    : matches.length ? hint('list-help', { filter: '/', enter: 'Enter', restore: 'Delete' })
-      : hint('filter-only', { filter: '/' });
   const minimumList = matches.length ? 2 : 0; // One action and its group.
-  const requiredRows = before.length + Number(menu.length > 0) + minimumList;
-  const instructionRows = instruction ? messages.length : 0;
-  const footer = [...contextHelp, ...fixedHelp];
-  const navigation = '↑↓ PgUp/PgDn Home/End';
-  const detailHeight = width >= 90 ? 1 : 2;
-  if (!panel.busy && !filtering && panel.command === null && matches.length && !instruction && columns >= 64 &&
-      height - requiredRows - footer.length > detailHeight + 1) {
-    footer.unshift({ text: navigation + ' ' + t('ui.hints.select', language), keys: [{ start: 0, end: navigation.length }] });
+  const focusInFooter = instruction && columns < 48;
+  const { toolbar, focus } = panel.busy || filtering
+    ? { toolbar: [], focus: null }
+    : shortcutToolbar(panel.command, language, width, focusInFooter);
+  const backHint = hint('back-help', { back: 'Ctrl+G' });
+  const back = focus && focusInFooter ? joinEditorLines(focus, ' · ', backHint) : backHint;
+  let footer: EditorLine[] = [];
+  if (filtering) footer = wrap(hint('filter-help', { enter: 'Enter', back: 'Ctrl+G', clear: 'Ctrl+U' }));
+  else if (!panel.busy) {
+    const commandsFocused = panel.command !== null;
+    const context = commandsFocused ? hint('command-help', { arrows: '←→', enter: 'Enter' })
+      : matches.length ? hint('list-help', { filter: '/', enter: 'Enter', restore: 'Delete' })
+        : hint('filter-only', { filter: '/' });
+    const help = joinEditorLines(context, ' · ', back);
+    footer = !commandsFocused && matches.length && !instruction ? listHelp(language, columns, help) : wrap(help);
+    const helpBudget = height - before.length - minimumList - toolbar.length - messages.length;
+    if (instruction && footer.length > Math.min(2, helpBudget)) footer = wrap(back);
   }
-  let remaining = height - footer.length - requiredRows;
-  const tableHeading = matches.length > 0 && remaining > instructionRows;
-  remaining -= Number(tableHeading);
-  const shownMessages = messages.slice(0, Math.max(0, instruction ? remaining : Math.min(4, remaining)));
-  // Reserve a fixed detail area so paging does not change when bindings wrap on a new selection.
-  const detailRows = selected && !filtering ? Math.max(0, Math.min(detailHeight, remaining - shownMessages.length)) : 0;
-  const listRows = minimumList + Math.max(0, remaining - shownMessages.length - detailRows);
-  const after = [...details.slice(0, detailRows), ...shownMessages];
-  return { ...geometry, before, after, listRows, tableHeading, menu, footer };
+
+  const remaining = Math.max(0, height - before.length - minimumList - toolbar.length - footer.length);
+  // Reserve the same space for details as selection moves between actions.
+  const detailHeight = details.length ? (width >= 90 ? 1 : 2) : 0;
+  const messageRows = instruction ? remaining : Math.max(0, Math.min(4, remaining - Number(detailHeight > 0)));
+  const shownMessages = messages.slice(0, messageRows);
+  const detailRows = Math.min(detailHeight, remaining - shownMessages.length);
+  const tableHeading = matches.length > 0 && remaining > shownMessages.length + detailRows;
+  const listRows = minimumList + remaining - shownMessages.length - detailRows - Number(tableHeading);
+  const bottom = [...shownMessages, ...details.slice(0, detailRows)];
+  return { ...geometry, before, bottom, listRows, tableHeading, toolbar, footer };
 }
 
 export function shortcutPanelView(editor: EditorShortcuts, language: Language, columns: number, rows: number) {
   const panel = editor.panel!;
   const matches = matchingActions(panel, language);
-  const { height, before, after, listRows, tableHeading, ...geometry } = shortcutPanelLayout(editor, language, columns, rows, matches);
+  const { height, before, bottom, listRows, tableHeading, ...geometry } = shortcutPanelLayout(editor, language, columns, rows, matches);
   const width = geometry.innerWidth;
   const body = [...before];
   if (listRows > 0 && matches.length) {
@@ -420,6 +451,6 @@ export function shortcutPanelView(editor: EditorShortcuts, language: Language, c
       }
     }
   }
-  body.push(...after);
-  return { ...geometry, body, bodyHeight: height - geometry.footer.length };
+  const bodyHeight = height - geometry.footer.length;
+  return { ...geometry, body, bottom, bodyHeight, bottomOffset: bodyHeight - bottom.length };
 }

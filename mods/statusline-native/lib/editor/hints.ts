@@ -38,6 +38,11 @@ export function prependLine(prefix: string, line: EditorLine): EditorLine {
   }) };
 }
 
+export function joinEditorLines(first: EditorLine, separator: string, second: EditorLine): EditorLine {
+  const joined = prependLine(first.text + separator, second);
+  return { text: joined.text, keys: [...(first.keys ?? []), ...(joined.keys ?? [])] };
+}
+
 function lineSlice(line: EditorLine, start: number, end: number): EditorLine {
   return { text: line.text.slice(start, end), keys: line.keys?.filter(key => start <= key.start && key.end <= end)
     .map(key => ({ start: key.start - start, end: key.end - start })) };
@@ -72,8 +77,7 @@ export function wrapEditorHints(line: EditorLine, width: number): EditorLine[] {
     start += part.length + separator.length;
     const previous = rows.at(-1);
     if (previous && displayWidth(previous.text + separator + part) <= width) {
-      const joined = prependLine(previous.text + separator, hint);
-      rows[rows.length - 1] = { ...joined, keys: [...(previous.keys ?? []), ...(joined.keys ?? [])] };
+      rows[rows.length - 1] = joinEditorLines(previous, separator, hint);
     } else rows.push(...wrapEditorLine(hint, width));
   }
   return rows;
