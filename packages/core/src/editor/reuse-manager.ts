@@ -3,7 +3,7 @@ import type { Editor } from './draft.js';
 import type { ShortcutContext } from './shortcut-map.js';
 import type { ReviewBackend } from './change-review.js';
 import { targetIdentity } from './change-review.js';
-import { clip } from '../unicode/index.js';
+import { clipEditorLine, hintLine, prependLine, type EditorLine } from './hints.js';
 import { clone } from './history.js';
 import { STYLE_FIELDS, styleFields, reuseDraft } from './reuse.js';
 import { createReview, navigateReview, reviewRows, type ReviewState } from './import-review.js';
@@ -41,11 +41,11 @@ function reviewCapacity(m: ReuseManager,height:number):number {
   const headers=1+Number(height>=4)+Number(m.kind==='style'&&height>=5)+Number(m.kind==='groups'&&height>=6)+Number(m.kind==='groups'&&height>=7);
   return Math.max(1,height-headers-1);
 }
-function rows(e: Editor, language: Language): string[] {
+function rows(e: Editor, language: Language): (string | EditorLine)[] {
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language);
   if(m.page==='source')return ['current','portable','profile_file','profiles'].map(tr);
   if(m.page==='profiles')return m.library?.profiles.map(p=>p.name)??[];
-  if(m.page==='complete')return [tr('accepted'),...(m.result?.unresolved.map(u=>`${u.id} · ${u.hint} · ${tr('unbound')}`)??[]),t('reuse.bind_help', language, { sources: e.shortcuts.hint('reuse-complete', 'reuse-sources'), close: e.shortcuts.hint('reuse-complete', 'close-reuse') })];
+  if(m.page==='complete')return [tr('accepted'),...(m.result?.unresolved.map(u=>`${u.id} · ${u.hint} · ${tr('unbound')}`)??[]),hintLine('reuse.bind_help', language, { sources: e.shortcuts.hint('reuse-complete', 'reuse-sources'), close: e.shortcuts.hint('reuse-complete', 'close-reuse') })];
   if(m.page==='select'){
     const values=m.kind==='style'?source(e).instances.filter(n=>n.type_id!=='spacer').map(n=>`${n.id} · ${n.options.label??t('items.'+m.fromScope+'.'+n.type_id+'.label',language)}`)
       :source(e).groups.map(g=>`[${m.groups.includes(g.id)?'x':' '}] ${g.id} · ${g.member_ids.join(', ')}`);
@@ -127,26 +127,32 @@ function detailRows(m:ReuseManager,language:Language):{text:string;heading:boole
     ...(m.result?.unresolved.map(u=>({text:tr('unbound')+': '+u.id+' · '+u.hint,heading:false,section:''}))??[])
   ];
 }
-export function reuseView(e:Editor,language:Language,width:number,height:number):{text:string;selected?:boolean}[]{
+export function reuseView(e:Editor,language:Language,width:number,height:number):(EditorLine & {selected?:boolean})[]{
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language),header=tr(m.kind==='style'?'style':'groups');
-  if(m.page==='path')return [{text:header},{text:tr('path')},{text:inputView({...m.input},width)},{text:tr('path_help')}].slice(0,height).map(row=>({...row,text:clip(row.text,width)}));
+  const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
+  if(m.page==='path')return [{text:header},{text:tr('path')},{text:inputView({...m.input},width)},hintLine('reuse.path_help', language, { enter: 'Enter', back })].slice(0,height).map(row=>clipEditorLine(row,width));
   if(m.page==='review'){
     const capacity=reviewCapacity(m,height),review=m.review;
     const context = reuseShortcutContext(m), keys = e.shortcuts;
     const help = m.kind === 'groups'
-      ? t('reuse.review_groups_help', language, { accept: keys.hint(context, 'accept-reuse'), close: keys.hint(context, 'close-reuse'),
-          references: keys.hint(context, 'reuse-references'), layout: keys.hint(context, 'reuse-layout') })
-      : t('reuse.review_style_help', language, { accept: keys.hint(context, 'accept-reuse'), close: keys.hint(context, 'close-reuse') });
+      ? hintLine('reuse.review_groups_help', language, { accept: keys.hint(context, 'accept-reuse'), close: keys.hint(context, 'close-reuse'),
+          references: keys.hint(context, 'reuse-references'), layout: keys.hint(context, 'reuse-layout'), edit: 'Backspace', tab: 'Tab' })
+      : hintLine('reuse.review_style_help', language, { accept: keys.hint(context, 'accept-reuse'), close: keys.hint(context, 'close-reuse'), enter: 'Enter', edit: 'Backspace' });
     const values=m.details?detailRows(m,language):review?reviewRows(review,language,width):[];
     const offset=m.details?Math.max(0,Math.min(m.scroll,values.length-capacity)):Math.max(0,Math.min(review?.scroll??0,values.length-capacity));
     return [{text:header},...(height>=4?[{text:m.message?renderMessage(m.message,language):tr('draft_only')}]:[]),
       ...(m.kind==='groups'&&height>=6?[{text:tr(m.references)+' · '+tr('reference_policy')}]:[]),
       ...(m.kind==='groups'&&height>=7?[{text:t('values.'+(m.explicit?'on':'off'),language)+': '+tr('layout')}]:[]),
       ...(m.kind==='style'&&height>=5?[{text:tr('scope')+': '+m.fromScope+' · '+m.from+' → '+m.destination}]:[]),
-      ...values.slice(offset,offset+capacity).map(r=>({text:r.text,selected:r.heading&&r.section===review?.selected})),{text:help}].slice(0,height).map(row=>({...row,text:clip(row.text,width)}));
+      ...values.slice(offset,offset+capacity).map(r=>({text:r.text,selected:r.heading&&r.section===review?.selected})),help].slice(0,height).map(row=>({...row,...clipEditorLine(row,width)}));
   }
   const values=rows(e,language),capacity=Math.max(1,height-3);let start=Math.max(0,Math.min(m.scroll,m.cursor));if(m.cursor>=start+capacity)start=m.cursor-capacity+1;
-  return [{text:header},{text:m.message?renderMessage(m.message,language):tr('help')},...values.slice(start,start+capacity).map((value,index)=>({text:(start+index===m.cursor?'› ':'  ')+value,selected:start+index===m.cursor})),{text:tr('cancel_help')}].slice(0,height).map(row=>({...row,text:clip(row.text,width)}));
+  const visible = values.slice(start,start+capacity).map((value,index) => {
+    const selected = start + index === m.cursor;
+    return { ...prependLine(selected ? '› ' : '  ', typeof value === 'string' ? { text: value } : value), selected };
+  });
+  const controls = m.page === 'complete' ? [] : [hintLine('reuse.cancel_help', language, { enter: 'Enter', space: 'Space', back })];
+  return [{text:header},{text:m.message?renderMessage(m.message,language):tr('help')},...visible,...controls].slice(0,height).map(row=>({...row,...clipEditorLine(row,width)}));
 }
 export async function performReuse(e:Editor,backend:ReviewBackend):Promise<void>{
   const m=e.reuse,effect=m?.effect;if(!m||!effect)return;m.effect=null;

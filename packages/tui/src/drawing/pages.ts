@@ -4,7 +4,8 @@ import { packageView } from '@fbincon/statusline-core/editor/package-manager';
 import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
-import { groupsView } from '@fbincon/statusline-core/editor/group-manager';
+import { groupsHelp, groupsView } from '@fbincon/statusline-core/editor/group-manager';
+import type { EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
@@ -20,24 +21,27 @@ import { formWindow, type dimensions, type Panel } from '../layout.js';
 import { externalTaskRows, packageRefreshError, packageRefreshInterval } from '../report-refresh.js';
 import { paint, heading } from '../theme.js';
 import type { State } from '../state.js';
-import { Canvas, column } from './canvas.js';
-import { fieldLabel, fieldValue, groupKey, itemDetailRows, taskReportStatus } from './presentation.js';
+import { Canvas, column, paintLine } from './canvas.js';
+import { fieldLabel, fieldValue, groupKey, itemExample, taskReportStatus } from './presentation.js';
 
-export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof dimensions>, panel: Panel): string {
+export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof dimensions>, panel: Panel): string | EditorLine {
     const e = state.editor;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
-    if(e.changeReview||e.reuse){(e.changeReview?changesView(e,state.language,width,panel.innerHeight-1):reuseView(e,state.language,width,panel.innerHeight-1)).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));return ''; }
+    const drawRow = (row: EditorLine & { selected?: boolean }, index: number) =>
+        canvas.content(panel, index, paintLine(row, width, row.selected), row.selected);
+    if (e.changeReview || e.reuse) {
+        (e.changeReview ? changesView(e, state.language, width, panel.innerHeight - 1) : reuseView(e, state.language, width, panel.innerHeight - 1)).forEach(drawRow);
+        return '';
+    }
     if (e.packages) {
-        packageView(e.packages, state.language, width, panel.innerHeight - 1, e.shortcuts, true)
-            .forEach((row, index) => canvas.content(panel, index, [paint(row.text, false, row.selected)], row.selected));
+        packageView(e.packages, state.language, width, panel.innerHeight - 1, e.shortcuts, true).forEach(drawRow);
         const error = packageRefreshError(e.packages);
         if (error) return renderMessage(error, state.language);
         return packageRefreshInterval(e.packages) === null ? '' : tr('ui.refresh.auto');
     }
     if (e.taskViewer) {
-        externalTaskRows(e.taskViewer, width, panel.innerHeight - 1)
-            .forEach((row, index) => canvas.content(panel, index, [paint(row.text, false, row.selected)], row.selected));
+        externalTaskRows(e.taskViewer, width, panel.innerHeight - 1).forEach(drawRow);
         return taskReportStatus(e.taskViewer);
     }
     if (e.diagnosis) {
@@ -47,19 +51,19 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     }
     if(e.colors){colorsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,row.spans.map(span=>({...span,reverse:row.selected && span.foreground === null})),row.selected));return ''; }
     if (e.alignmentManager) {
-        alignmentsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        alignmentsView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
         return '';
     }
     if (e.groupManager) {
-        groupsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
-        return tr('composition.groups.help');
+        groupsView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
+        return groupsHelp(state.language);
     }
     if (e.sources) {
-        sourcesView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        sourcesView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
         return tr('sources.help');
     }
     if (e.profiles) {
-        profilesView(e, state.language, width, panel.innerHeight - 1).forEach((row,index) => canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        profilesView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
         return tr('profiles.sample');
     }
 
@@ -70,7 +74,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;
     }
     if (e.quick) {
-        quickView(e.quick,state.language,width,panel.innerHeight-1,e.baseline.configuration?.shared_projects).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        quickView(e.quick, state.language, width, panel.innerHeight - 1, e.baseline.configuration?.shared_projects).forEach(drawRow);
         return tr('quick.steps');
     }
     if (e.review || e.guidanceScroll !== null) {
@@ -170,10 +174,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         canvas.content(panel, 1, [paint(tr('ui.drawing.no_matching_items'))]);
     }
     const current = values.find(({ item }) => item.id === selectedId)?.item;
-    if (current) {
-        itemDetailRows(current, state.language, width)
-            .forEach((line, index) => canvas.content(panel, size.listHeight + 1 + index, [paint(line)]));
-    }
+    if (current) canvas.content(panel, size.listHeight + 1, [paint(itemExample(current, state.language))]);
     const range = values.length > size.listHeight ? ` · ${start + 1}–${end}/${values.length}` : '';
     if (types) return tr('composition.catalog_enabled', {
         enabled: values.filter(({ item }) => types.get(item.id)?.enabled).length, total: values.length,

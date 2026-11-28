@@ -7,6 +7,7 @@ import { translatedShortcuts } from '../../lib/i18n/presentation.ts';
 
 import { shortcutContext } from '../../lib/client/settings.ts';
 import { reviewShortcutContext } from '../../lib/editor/import-review.ts';
+import { itemDecorationKind } from '../../lib/editor/forms.ts';
 
 const focus: Shortcut = { key: 'Esc', label: 'focus', optional: 6 };
 
@@ -109,10 +110,12 @@ export function editorShortcuts(view: View): Shortcut[][] {
     if (!filtered) contextual.push({ key: keys.hint(context, 'move-left', 'move-right'), label: 'order', optional: 7 });
     contextual.push({ key: keys.hint(context, 'item-details'), label: 'format', optional: 7 });
   } else {
-    contextual.push(
-      { key: '←→', label: 'adjust', optional: 8 },
-      { key: 'Enter', label: 'edit' },
-    );
+    const decoration = e.detail && itemDecorationKind(e.setting);
+    if (decoration === 'preset') contextual.push({ key: '←→/Enter', label: 'switch preset', short: 'adjust' });
+    else {
+      if (decoration !== 'custom') contextual.push({ key: '←→', label: 'adjust', optional: 8 });
+      contextual.push({ key: 'Enter', label: 'edit' });
+    }
     if (e.detail) contextual.push({ key: 'Ctrl+G', label: 'back' });
     else if (e.page === 'settings') {
       contextual.push({ key: keys.hint(context, 'show-host-preferences'), label: (e.advanced ? 'hide' : 'show') + ' preferences', short: (e.advanced ? 'hide' : 'show') + ' prefs' });

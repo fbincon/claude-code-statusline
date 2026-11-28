@@ -7,6 +7,7 @@ import { differences } from './import-differences.js';
 import { clone, semantic } from './history.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 
 export interface ChangeReview {
   kind: 'changes' | 'structure'; generation: number; target: string; comparison: number;
@@ -76,22 +77,30 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
   if (!event.ctrl) navigateReview(active(m), key, language, width, Math.max(1, height - 3), null);
   return null;
 }
-export function changesView(e: Editor, language: Language, width: number, height: number): { text: string; selected?: boolean }[] {
+export function changesView(e: Editor, language: Language, width: number, height: number): (EditorLine & { selected?: boolean })[] {
   const m = e.changeReview!, title = t(m.kind === 'structure' ? 'history.structure' : 'history.title', language);
-  if (m.input) return wrapText([title, t('history.export_path', language), inputView({ ...m.input }, width), t('history.input_help', language)], width).slice(0, height).map(text => ({ text }));
-  if (m.confirm) return wrapText([title, t('history.confirm_discard', language)], width).slice(0, height).map(text => ({ text }));
+  const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
+  if (m.input) return [
+    ...wrapText([title, t('history.export_path', language), inputView({ ...m.input }, width)], width).map(text => ({ text })),
+    ...wrapEditorLine(hintLine('history.input_help', language, { enter: 'Enter', back }), width),
+  ].slice(0, height);
+  if (m.confirm) return [
+    { text: title }, ...wrapEditorLine(hintLine('history.confirm_discard', language, { enter: 'Enter', back }), width),
+  ].slice(0, height);
   const view = active(m), rows = reviewRows(view, language, width), capacity = Math.max(1, height - 3);
   const scroll = Math.max(0, Math.min(view.scroll, rows.length - capacity));
   const summary = m.kind === 'structure' ? t('history.repairs', language, { ids: e.structureProposal?.repairs.map(r => r.id).join(', ') ?? '' })
     : t('history.counts', language, { undo: e.history.undo.length, redo: e.history.redo.length }) + ' · ' + t('history.comparison.' + m.comparison, language);
   const keys = e.shortcuts;
   const help = m.kind === 'structure'
-    ? t('history.structure_help', language, { accept: keys.hint('repair', 'accept-repair'), close: keys.hint('repair', 'close-history') })
-    : t('history.help', language, { undo: keys.hint('history', 'undo'), redo: keys.hint('history', 'redo'), compare: keys.hint('history', 'compare-saved'),
-      export: keys.hint('history', 'export-draft'), reload: keys.hint('history', 'discard-to-saved'), close: keys.hint('history', 'close-history') });
+    ? hintLine('history.structure_help', language, { accept: keys.hint('repair', 'accept-repair'), enter: 'Enter', close: keys.hint('repair', 'close-history') })
+    : hintLine('history.help', language, { undo: keys.hint('history', 'undo'), redo: keys.hint('history', 'redo'), compare: keys.hint('history', 'compare-saved'),
+      ...(m.current ? { tab: 'Tab', retry: 'K' } : {}),
+      export: keys.hint('history', 'export-draft'), reload: keys.hint('history', 'discard-to-saved'), close: keys.hint('history', 'close-history') },
+      { tab: 'Tab', retry: 'K' });
   return [{ text: title }, { text: wrapText([m.message ? renderMessage(m.message, language) : summary], width)[0] ?? '' },
     ...rows.slice(scroll, scroll + capacity).map(row => ({ text: row.text, selected: row.heading && row.section === view.selected })),
-    { text: help + (e.history.trimmed ? ' · ' + t('history.trimmed', language) : '') }].slice(0, height);
+    { ...help, text: help.text + (e.history.trimmed ? ' · ' + t('history.trimmed', language) : '') }].slice(0, height);
 }
 export interface ReviewBackend { request<O extends Operation>(operation: O, payload?: unknown): Promise<ResultFor<O>> | ResultFor<O> }
 export async function performChanges(e: Editor, backend: ReviewBackend): Promise<void> {

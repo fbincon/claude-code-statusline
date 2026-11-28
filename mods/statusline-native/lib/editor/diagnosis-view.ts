@@ -7,6 +7,7 @@ import { t, type Language } from '../i18n/index.ts';
 import { wrapText } from '../../ui/text.ts';
 import { clip, displayWidth } from '../unicode.ts';
 import { targetLabel } from './profile-manager.ts';
+import { hintLine, type EditorLine } from './hints.ts';
 export interface DiagnosisView {
     path: string;
     scope: Scope;
@@ -124,13 +125,13 @@ function reportLines(e: Editor, language: Language, width: number): string[] {
     return wrapText(lines, width);
 }
 
-export function diagnosisPage(e: Editor, language: Language, width: number, capacity: number) {
+export function diagnosisPage(e: Editor, language: Language, width: number, capacity: number): { lines: string[]; summary: EditorLine } {
     const v = e.diagnosis!;
     const count = Math.max(1, capacity);
     if (v.report && v.result) {
         const lines = reportLines(e, language, width);
         const start = Math.min(v.scroll, Math.max(0, lines.length - count));
-        return { lines: lines.slice(start, start + count), summary: `${start + 1}–${Math.min(start + count, lines.length)}/${lines.length}` };
+        return { lines: lines.slice(start, start + count), summary: { text: `${start + 1}–${Math.min(start + count, lines.length)}/${lines.length}` } };
     }
 
     const fields = [
@@ -153,5 +154,6 @@ export function diagnosisPage(e: Editor, language: Language, width: number, capa
         }
     }
     const start = Math.max(0, v.cursor + 2 - count);
-    return { lines: lines.slice(start, start + count), summary: v.error || t('diagnosis.help', language) };
+    const summary = v.error ? { text: v.error } : hintLine('diagnosis.help', language, { enter: 'Enter', back: 'Ctrl+G' });
+    return { lines: lines.slice(start, start + count), summary };
 }

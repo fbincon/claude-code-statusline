@@ -6,8 +6,8 @@ import type { Operation, ResultFor, SourcesResult, SourceDefinition, SourceConte
 import type { Editor } from './draft.ts';
 import { t, text, type Language, type LocalizedText } from '../i18n/index.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
-import { wrapText } from '../../ui/text.ts';
 import { BackendError } from '../backend.ts';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.ts';
 type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'auto-review' | 'auto-off' | 'checks' | 'raw';
 export interface SourceManager {
     library: SourcesResult | null;
@@ -310,16 +310,12 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         m.message = error instanceof BackendError ? error.localization ?? text('sources.failed') : text('sources.failed');
     }
 }
-export function sourcesView(editor: Editor, language: Language, width: number, height: number): {
-    text: string;
-    selected: boolean;
-}[] {
+export function sourcesView(editor: Editor, language: Language, width: number, height: number): (EditorLine & { selected: boolean })[] {
     const m = editor.sources!;
-    const tr = (key: string) => t('sources.' + key, language), rows: {
-        text: string;
-        selected: boolean;
-    }[] = [];
-    const add = (value: string, selected = false) => rows.push({ text: value, selected });
+    const tr = (key: string) => t('sources.' + key, language), rows: (EditorLine & { selected: boolean })[] = [];
+    const hint = (key: string, keys: Record<string, string>) => hintLine('sources.' + key, language, keys);
+    const add = (value: string | EditorLine, selected = false) => rows.push({ ...(typeof value === 'string' ? { text: value } : value), selected });
+    const back = editor.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
     add(tr('separate_save'));
     if (m.message)
         add(t(m.message.key, language, m.message.params));
@@ -332,7 +328,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
         add(tr('bindings'),m.cursor===(m.library?.sources.length??0)+1);
     }
     else if(m.page==='bindings'){
-        add(tr(m.bindingReview?.uncertain?'bindings_uncertain':'bindings_help'));
+        add(m.bindingReview?.uncertain ? tr('bindings_uncertain') : hint('bindings_help', { arrows: '←/→', enter: 'Enter' }));
         m.bindingReview?.rows.forEach((row,i)=>add(`${row.id} · ${row.source_id} · ${tr(row.removable?'binding_unused':'binding_protected')}${row.duplicate?' · '+tr('binding_duplicate'):''} · ${row.references.join(', ')}`,m.cursor===i));
     }
     else if (m.page === 'actions')
@@ -345,7 +341,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
             const view = inputView({ ...field.input }, space);
             add(label + view, m.cursor === i);
         });
-        add(t('sources.form_help', language, { key: editor.shortcuts.hint('source-form', 'save-source') }));
+        add(hint('form_help', { next: 'Tab/Enter', key: editor.shortcuts.hint('source-form', 'save-source') }));
     }
     else if (m.page === 'bind' || m.page === 'unbind') {
         const entries = targets(editor);
@@ -353,12 +349,23 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
             add(tr('no_components'));
         entries.forEach((target, i) => add(`${target.scope}: ${editor.instanceLabel(target.scope, target.id, language)}`, m.cursor === i));
     }
-    else if (m.page === 'remove')
-        add(tr('remove_confirm') + ' ' + source(editor)?.name, true);
+    else if (m.page === 'remove') {
+        const confirmation = hint('remove_confirm', { enter: 'Enter' });
+        add({ ...confirmation, text: confirmation.text + ' ' + source(editor)?.name }, true);
+    }
     else {
-        const readable=m.page==='checks'?[tr('checks_help'),...(m.inspection?[[m.inspection.source.settings.repository,m.inspection.checks_context?.branch ?? m.inspection.source.settings.branch,m.inspection.checks_context?.head].filter(Boolean).join(' · ')]:[]),m.inspection?.checks_observed_at??t('task.unknown',language),...(m.inspection?.checks.flatMap(c=>[`${c.name} · ${c.state} · ${tr('check.'+c.bucket)}`,...(c.url?[c.url]:[])])??[])]:m.page==='binding-cleanup'?[tr('binding_cleanup_confirm'),m.bindingSelection??'']:m.inspection?sourceSummary(m.inspection,language):m.details;
-        const lines = ['review', 'auto-review'].includes(m.page) ? [tr(m.page === 'auto-review' ? 'automatic_review' : 'enable_review'), ...(m.page === 'auto-review' ? [tr('interval') + ': ' + m.automaticInterval + ' s (←/→)'] : []), ...(m.review?sourceReviewLines(m.review.source,language):[])] : m.details.length?m.details:readable;
-        const wrapped = lines.flatMap(line => wrapText([line], width));
+        const checks = m.inspection?.checks.flatMap(c => [`${c.name} · ${c.state} · ${tr('check.' + c.bucket)}`, ...(c.url ? [c.url] : [])]) ?? [];
+        const checkedRef = m.inspection ? [[m.inspection.source.settings.repository,
+            m.inspection.checks_context?.branch ?? m.inspection.source.settings.branch, m.inspection.checks_context?.head].filter(Boolean).join(' · ')] : [];
+        const readable = m.page === 'checks' ? [hint('checks_help', { arrows: '←/→' }), ...checkedRef, m.inspection?.checks_observed_at ?? t('task.unknown', language), ...checks]
+            : m.page === 'binding-cleanup' ? [hint('binding_cleanup_confirm', { enter: 'Enter', back }), m.bindingSelection ?? '']
+            : m.inspection ? sourceSummary(m.inspection, language) : m.details;
+        const lines = m.page === 'review' || m.page === 'auto-review' ? [
+            ...(m.page === 'auto-review' ? [hint('automatic_review', { enter: 'Enter', arrows: '←/→' }), tr('interval') + ': ' + m.automaticInterval + ' s']
+                : [hint('enable_review', { enter: 'Enter', back })]),
+            ...(m.review ? sourceReviewLines(m.review.source, language) : []),
+        ] : m.details.length ? m.details : readable;
+        const wrapped = lines.flatMap(line => wrapEditorLine(typeof line === 'string' ? { text: line } : line, width));
         const capacity = Math.max(1, height - rows.length);
         const start = Math.min(m.scroll, Math.max(0, wrapped.length - capacity));
         wrapped.slice(start, start + capacity).forEach(line => add(line));

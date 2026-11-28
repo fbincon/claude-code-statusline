@@ -97,6 +97,17 @@ function caseData(name: string): any {
 }
 const failures = /props serializes to more than|a tree serializing to more than|too many nodes|too deep|a hook returned a tree that does not validate|instance unmounted|returned a tree that does not validate/u;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+function assertShortcutHelp(screen: Capture): void {
+    for (const [key, label] of [['/', 'filter'], ['Enter', 'change'], ['Delete', 'restore'], ['Tab', 'switch'], ['Ctrl+G', 'back']] as const) {
+        const hint = `${key} ${label}`;
+        assert.ok(screen.buffer.some(row => row.some((cell, start) => {
+            if (!cell.bold || cell.data !== key[0]) return false;
+            const cells = row.slice(start, start + hint.length);
+            return cells.map(value => value.data).join('') === hint && cells.every((value, index) => value.bold === (index < key.length));
+        })), `Missing styled shortcut help: ${hint}`);
+    }
+}
+
 async function runCase(name: string, fixtureName: string, action: string, external = false, language: Language = 'en') {
     const directory = join(output, name); fs.mkdirSync(directory);
     const config = join(installed.temporary, name);
@@ -431,6 +442,9 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             };
             await openNativeSettings();
             await until(text => text.includes('Skipped unavailable or conflicting keys'), 'incompatible legacy shortcuts reported');
+            await until(text => text.includes('/ filter') && text.includes('Tab switch'), 'native shortcut help visible');
+            assertShortcutHelp(screen);
+            capture('native-shortcut-help');
             await key('/', 'open shortcut filter');
             await key('save display', 'filter shortcut actions');
             await key('\r', 'accept shortcut filter');
@@ -502,7 +516,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await runExternal('terminal-restore', async (tty, wait) => {
                 await wait(customSave);
                 tty.send('\t\t\t\x1b[F\r');
-                await wait('Save display');
+                await wait('/ filter');
+                const help = new Capture(120, 30);
+                help.feed(tty.captured());
+                assertShortcutHelp(help);
                 tty.send('\t\x1b[B\r\x1b[A\r');
                 await wait('Keyboard shortcuts saved');
                 assert.equal(fs.existsSync(preference), false);
@@ -631,6 +648,40 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
             assert.equal(fs.statSync(displayPath).mode, committedDisplayMode);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
+
+            const labelPresets = ['inherit', 'legacy', 'short', 'off'];
+            const formatted = JSON.parse(committedDisplay.toString('utf8')) as Draft['display'];
+            const item = formatted.instances[0]!.options;
+            const preset = labelPresets[(labelPresets.indexOf(item.formatting.labels ?? 'inherit') + 1) % labelPresets.length]!;
+            const customLabel = 'PTY custom label';
+            await runExternal('terminal-item-format', async (tty, wait) => {
+                await wait(toggleHint);
+                tty.send('\x05');
+                const form = await wait('› Custom label:');
+                const fields = ['Label preset:', 'Custom label:', 'Icon preset:', 'Custom icon:'];
+                const indexes = fields.map(field => form.indexOf(field));
+                assert.ok(indexes.every((position, index) => position > (indexes[index - 1] ?? -1)));
+                tty.send('\x1b[A\x1b[C');
+                await wait('←→/Enter switch preset');
+                tty.send('\x1b[B\r\x15' + customLabel + '\r');
+                await wait('custom label in sample preview', text => text.slice(text.lastIndexOf('Preview (sample data)')).includes(customLabel));
+                assert.deepEqual(fs.readFileSync(displayPath), committedDisplay);
+                tty.send('\x13');
+            });
+            item.label = customLabel;
+            if (preset === 'inherit') delete item.formatting.labels;
+            else item.formatting.labels = preset;
+            assert.deepEqual(JSON.parse(fs.readFileSync(displayPath, 'utf8')), formatted);
+            await runExternal('terminal-item-format-reopened', async (tty, wait) => {
+                await wait(toggleHint);
+                tty.send('\x05');
+                await wait('saved custom label and preset visible', text => text.split('\n').some(line => line.includes('Custom label:') && line.includes(customLabel)) &&
+                    text.split('\n').some(line => line.includes('Label preset:') && line.includes(preset)));
+                tty.send('\x07');
+                await wait(toggleHint);
+                tty.send('\x1b');
+            });
+            assert.deepEqual(fs.readFileSync(settingsPath), savedSettings);
         } else if (action === 'shortcut-preset') {
             await key('4', 'open native Settings');
             await key('\x1b[F', 'start at the last setting');

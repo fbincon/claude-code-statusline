@@ -6,6 +6,7 @@ import { renderMessage, t } from '../i18n/messages.js';
 import { wrapText } from './text.js';
 import { resolveShortcut, type ShortcutAction, type ShortcutContext } from './shortcut-map.js';
 import type { EditorShortcuts } from './shortcut-settings.js';
+import { hintLine, type EditorLine } from './hints.js';
 
 export const REVIEW_SECTIONS = ['main','subagent','formatting','layout','language','host'] as const;
 export interface ReviewState {
@@ -48,11 +49,11 @@ export function reviewRows(review: ReviewState, language: Language, width: numbe
 }
 export const reviewShortcutContext = (review: ReviewState): ShortcutContext => review.choosing ? 'import-selection' : 'import-review';
 
-export function importShortcutHelp(review: ReviewState, keys: EditorShortcuts, language: Language): string {
-  if (!review.base) return t('review.intro', language);
+export function importShortcutHelp(review: ReviewState, keys: EditorShortcuts, language: Language): EditorLine {
+  if (!review.base) return { text: t('review.intro', language) };
   const full = keys.hint('import-review', 'full-import');
-  if (review.choosing) return t('shortcuts.import-selection-help', language, { full });
-  return t('shortcuts.import-help', language, { select: keys.hint('import-review', 'select-import'), full, accept: keys.hint('import-review', 'accept-import') });
+  if (review.choosing) return hintLine('shortcuts.import-selection-help', language, { space: 'Space', enter: 'Enter', full });
+  return hintLine('shortcuts.import-help', language, { select: keys.hint('import-review', 'select-import'), full, accept: keys.hint('import-review', 'accept-import') });
 }
 
 export function navigateReview(review: ReviewState, key: string, language: Language, width: number, capacity: number,

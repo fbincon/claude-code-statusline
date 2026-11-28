@@ -87,6 +87,39 @@ test('native editor saves and reopens independent timer components and session e
   expect(fixture.store.draft.display.subagents.instances.slice(3).map(instance => instance.options.effort_fallback)).toEqual(['session', 'session']);
   await reopened.unmount();
 });
+
+test('native item format saves a preset and custom text independently across reopen', { timeoutMs: 20000 }, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.uiLanguage = 'zh-CN';
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const pane = { ...PANE, props: { ...PANE.props, bodyColumns: 100 } };
+  const ui = await $.ui.mount(pane);
+  await keys(ui, { key: 'e', ctrl: true });
+  await selectSetting(ui, 'item:labels');
+  expect(await visibleText(ui)).toContain('标签预设');
+  await keys(ui, 'right', 'down', 'return', { key: 'u', ctrl: true }, '自定义示例', 'return');
+  await keys(ui, 'up');
+  expect(await visibleText(ui)).toContain('自定义值优先');
+  await selectSetting(ui, 'item:icon');
+  await keys(ui, 'return', { key: 'u', ctrl: true }, 'return');
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
+  await keys(ui, 's');
+  const item = () => fixture.store.draft.display.instances[0]!.options;
+  expect(item()).toMatchObject({ label: '自定义示例', icon: '', formatting: { labels: 'legacy' } });
+  await keys(ui, { key: 'g', ctrl: true }, 'q');
+  await ui.unmount();
+  await $.command.run(RUN);
+  const reopened = await $.ui.mount(pane);
+  await keys(reopened, { key: 'e', ctrl: true });
+  await selectSetting(reopened, 'item:label');
+  expect(await visibleText(reopened)).toContain('自定义示例');
+  await keys(reopened, 'return', { key: 'u', ctrl: true }, 'inherit', 'return');
+  expect(await visibleText(reopened)).toContain('跟随预设');
+  await keys(reopened, 's');
+  expect(item()).toMatchObject({ label: null, icon: '', formatting: { labels: 'legacy' } });
+  await reopened.unmount();
+});
 test('native Layout alignment form renders through the Client and persists only after Save', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.store.draft.display.instances = ['a','b'].map(id => ({ ...component('text'), id, text: id }));

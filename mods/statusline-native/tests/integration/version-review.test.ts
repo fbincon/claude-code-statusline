@@ -34,8 +34,10 @@ for (const language of LANGUAGES)
         expect(f.calls.filter(call => call.operation === 'package_status').length).toBe(1);
         expect(f.calls.some(call => call.operation === 'package_review_start')).toBe(false);
         expect((await visibleText(ui)).replace(/\s+/gu,' ')).toContain(t('package.ui.local_notice', language));
-        for (let step = 0; step < 80 && !(await visibleText(ui)).includes('› Enter · ' + t('package.ui.check', language)); step++)
+        const checkSelected = async () => (await visibleText(ui)).replace(/\s+/gu, ' ').includes('› Enter · ' + t('package.ui.check', language));
+        for (let step = 0; step < 80 && !(await checkSelected()); step++)
             await keys(ui, 'down');
+        expect(await checkSelected()).toBe(true);
         await keys(ui, 'return');
         expect(f.calls.find(call => call.operation === 'package_review_start')?.payload.request.action).toBe('check');
         await keys(ui, 'r');

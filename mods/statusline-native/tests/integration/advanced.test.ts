@@ -79,7 +79,7 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   await selectSetting(ui, 'preset-apply');
   await keys(ui, 'return');
   expect(fixture.calls.some((c) => c.operation === 'preset')).toBe(true);
-  expect(await visibleText(ui)).toContain(t('shortcuts.native-preset-applied', 'en', { save: 'Q', close: 'Z' }));
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain(t('shortcuts.native-preset-applied', 'en', { save: 'Q', close: 'Z' }));
   expect(fixture.store.draft.host.padding).toBe(0);
   await selectSetting(ui, 'import-file');
   await keys(ui, 'return', {key:'u',ctrl:true}, '/', '中', 'space', '文', '.', 'j', 's', 'o', 'n', 'return');

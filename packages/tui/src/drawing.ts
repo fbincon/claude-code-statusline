@@ -8,7 +8,7 @@ import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
 import { dimensions, MIN_COLUMNS, MIN_ROWS } from './layout.js';
 import { paint, heading } from './theme.js';
-import { Canvas, type Frame } from './drawing/canvas.js';
+import { Canvas, paintLine, type Frame } from './drawing/canvas.js';
 import { drawPage } from './drawing/pages.js';
 import { contentTitle } from './drawing/presentation.js';
 import { footer, notice, shortcuts } from './drawing/shortcuts.js';
@@ -47,7 +47,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     if (e.shortcuts.panel && shortcutPanelFits(canvas.columns, canvas.rows)) {
         canvas.put(0, 0, [heading(tr('shortcuts.title'))]);
         shortcutPanelRows(e.shortcuts, state.language, canvas.columns, canvas.rows - 1)
-            .forEach((row, index) => canvas.line(index + 1, row.text, false, row.selected));
+            .forEach((row, index) => canvas.put(index + 1, 0, paintLine(row, canvas.columns, row.selected)));
         return canvas.frame();
     }
 
@@ -89,11 +89,12 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns, visibleHelp));
     canvas.panel(panel, contentTitle(state));
     const summary = drawPage(canvas, state, size, panel);
+    const summaryLine = typeof summary === 'string' ? { text: summary } : summary;
     const summaryHints = state.form && !e.diagnosis && !e.packages && !e.taskViewer && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
-        ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
+        ? shortcuts([['↑↓', tr('ui.hints.select')]], panel.innerWidth - displayWidth(summaryLine.text + ' · '))
         : [];
     canvas.content(panel, panel.innerHeight - 1, [
-        paint(summary + (summaryHints.length ? ' · ' : '')), ...summaryHints,
+        ...paintLine(summaryLine, panel.innerWidth), ...(summaryHints.length ? [paint(' · '), ...summaryHints] : []),
     ]);
     canvas.put(size.actionsY, 0, shortcuts(actions, canvas.columns, primaryActions));
     canvas.put(size.helpY, 0, visibleHelp);

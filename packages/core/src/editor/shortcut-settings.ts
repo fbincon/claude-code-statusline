@@ -10,6 +10,7 @@ import {
 import { matchText } from './search.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 
 export type ShortcutEffect = 'read-shortcuts' | 'save-shortcuts';
 export const SHORTCUT_PANEL_MIN_COLUMNS = 32;
@@ -253,11 +254,12 @@ export class EditorShortcuts {
   }
 }
 
-interface PanelRow { text: string; selected?: boolean }
+interface PanelRow extends EditorLine { selected?: boolean }
 
 function shortcutPanelLayout(editor: EditorShortcuts, language: Language, width: number, height: number) {
   const panel = editor.panel!;
   const tr = (key: string, params?: Record<string, unknown>) => t('shortcuts.' + key, language, params);
+  const hint = (key: string, keys: Record<string, string>) => hintLine('shortcuts.' + key, language, keys);
   const selected = actions.find(({ action }) => action === panel.selected);
   const filtering = panel.filter !== null;
   const query = panel.filter?.input.value ?? panel.query;
@@ -284,25 +286,33 @@ function shortcutPanelLayout(editor: EditorShortcuts, language: Language, width:
     (panel.capture || filtering ? null : conflict ? conflictMessage(conflict) : editor.snapshot.warning);
   const detail = notice?.key === 'shortcuts.read-failed' ? notice.params.detail : notice;
   const instruction = isLocalizedText(detail) && ['shortcuts.read-busy', 'shortcuts.read-recovery'].includes(detail.key) ? detail : null;
-  let help = panel.command === null ? tr('list-help') : tr('command-help');
-  if (panel.capture && selected) {
-    const keys = reservedNativeKeys(selected.action);
-    help = keys.length ? tr('capture-host-help', { keys: keys.join(', ') }) : tr('capture');
-  }
-  const fixedHelp = filtering ? wrapText([tr('filter-help')], width) : [tr('back-help')];
+  const reserved = panel.capture && selected ? reservedNativeKeys(selected.action) : [];
+  const help = panel.capture
+    ? { text: reserved.length ? tr('capture-host-help', { keys: reserved.join(', ') }) : tr('capture') }
+    : panel.command !== null ? hint('command-help', { arrows: '←→', enter: 'Enter' })
+    : selected ? hint('list-help', { filter: '/', enter: 'Enter', restore: 'Delete' })
+    : hint('filter-only', { filter: '/' });
+  const fixedHelp = panel.busy ? [] : wrapEditorLine(filtering
+    ? hint('filter-help', { enter: 'Enter', back: 'Ctrl+G', clear: 'Ctrl+U' })
+    : panel.capture ? hint('cancel-help', { back: 'Ctrl+G' })
+    : hint('back-help', { tab: 'Tab', back: 'Ctrl+G' }), width);
   const commandRows = commands.map((command, index) => ({ text: (panel.command === index ? '› ' : '  ') + tr(command), selected: panel.command === index }));
   const controls = commandRows.map(row => row.text.trim()).join(' · ');
   let options: PanelRow[] = [];
-  if (!filtering) {
+  if (!filtering && !panel.capture && !panel.busy) {
     if (displayWidth(controls) <= width) options = [{ text: controls }];
-    else options = panel.command === null ? [{ text: tr('options') }] : [commandRows[panel.command]!];
+    else options = panel.command === null ? [hint('options', { tab: 'Tab' })] : [commandRows[panel.command]!];
   }
-  const messageRows = notice || !filtering ? wrapText([notice ? renderMessage(instruction ?? notice, language) : help], width) : [];
+  const messageRows = notice ? wrapEditorLine({ text: renderMessage(instruction ?? notice, language) }, width) : [];
+  const helpRows = filtering || panel.busy || instruction ? [] : wrapEditorLine(help, width);
   // Leave space for the selected action and preserve controls even when a warning wraps.
   const available = Math.max(0, height - before.length - options.length - fixedHelp.length - 1);
   const messages = messageRows.slice(0, instruction ? available : Math.min(4, available, Math.max(1, available - details.length)));
-  const after = [...details.slice(0, Math.max(0, available - messages.length)), ...messages.map(text => ({ text })),
-    ...options, ...fixedHelp.map(text => ({ text }))];
+  // Warnings and key details leave at least two list rows before optional help.
+  const helpBudget = notice ? available - messages.length - details.length - 1 : available;
+  const helpShown = helpRows.slice(0, Math.max(0, helpBudget));
+  const after = [...details.slice(0, Math.max(0, available - messages.length - helpShown.length)), ...messages,
+    ...helpShown, ...options, ...fixedHelp];
   return { before, after, capacity: Math.max(1, height - before.length - after.length) };
 }
 
@@ -313,8 +323,8 @@ export function shortcutPanelRows(editor: EditorShortcuts, language: Language, w
     ...wrapText([tr(panel.confirm.kind === 'close' ? 'confirm-close' : 'confirm-reload')], width).map(text => ({ text })),
     { text: (panel.confirm.discard ? '  ' : '› ') + tr('keep'), selected: !panel.confirm.discard },
     { text: (panel.confirm.discard ? '› ' : '  ') + tr('discard'), selected: panel.confirm.discard },
-    { text: tr('confirm-help') },
-  ];
+    ...wrapEditorLine(hintLine('shortcuts.confirm-help', language, { arrows: '↑↓', enter: 'Enter', back: 'Ctrl+G' }), width),
+  ].slice(0, height);
   const matches = matchingActions(panel, language);
   const { before, after, capacity } = shortcutPanelLayout(editor, language, width, height);
   const index = matches.findIndex(({ action }) => action === panel.selected);

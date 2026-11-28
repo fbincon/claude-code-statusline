@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { stripVTControlCharacters } from 'node:util';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { mirrorState, newRecord, type TaskStore } from '@fbincon/statusline-core/runtime/tasks/model';
 import { applyPrompt, finishRecord, reopenForContinuation } from '@fbincon/statusline-core/runtime/tasks/transitions';
@@ -24,7 +25,8 @@ async function waitForFrame(pty: Pty, start: number, expected: string[], limit =
     await pty.wait(output => {
         const fresh = output.slice(start);
         const frame = fresh.slice(Math.max(0, fresh.lastIndexOf('\x1b[H')));
-        return expected.every(text => frame.includes(text));
+        const visible = stripVTControlCharacters(frame);
+        return expected.every(text => (text.startsWith('\x1b') ? frame : visible).includes(text));
     }, limit);
 }
 

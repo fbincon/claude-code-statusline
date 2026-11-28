@@ -1,4 +1,5 @@
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
+import { editorLineSpans, type EditorLine } from '../../lib/editor/hints.ts';
 import { clip, displayWidth } from '../layout.ts';
 import { clipSpans } from '../styled-text.ts';
 import { styles } from '../theme.ts';
@@ -85,4 +86,12 @@ export function spanLine(ui: ClientElements, spans: readonly TextSpan[], width: 
 
 export function shortcuts(ui: ClientElements, hints: readonly Shortcut[], width: number, prefix = ''): RenderElement {
   return spanLine(ui, shortcutSpans(hints, width, prefix), width);
+}
+
+export function editorLine(ui: ClientElements, line: EditorLine, width: number, style: TextProps): RenderElement {
+  const spans = editorLineSpans(line, width).map(({ text, bold }): TextSpan => ({
+    text,
+    style: bold ? { ...styles.key, ...(style.color === styles.selected.color && { color: style.color }) } : { bold: false },
+  }));
+  return spanLine(ui, spans, width, style);
 }

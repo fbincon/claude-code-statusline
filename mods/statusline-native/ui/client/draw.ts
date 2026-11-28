@@ -21,7 +21,7 @@ import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
 import { previewLine, previewText, previewTitle } from '../components/preview.ts';
-import { shortcuts, spanLine } from '../components/shortcuts.ts';
+import { editorLine, shortcuts, spanLine } from '../components/shortcuts.ts';
 import type { TextSpan } from '../components/shortcuts.ts';
 import { t, renderMessage } from '../../lib/i18n/index.ts';
 import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
@@ -32,14 +32,19 @@ import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { importShortcutHelp, reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 import { shortcutPanelRows } from '../../lib/editor/shortcut-settings.ts';
+import { editorLineSpans, hintLine, prependLine, type EditorLine } from '../../lib/editor/hints.ts';
+import { itemDecorationNotice } from '../../lib/editor/forms.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = '', paneColumns = columns): RenderElement {
-  const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
+  const language = view.language ?? 'en';
+  const tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
   const inner = contentColumns(columns, rows);
-  const line = (label: string, style: TextProps = {}, width = inner) =>
-    ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(label, width)] });
+  const line = (value: string | EditorLine, style: TextProps = {}, width = inner) => {
+    if (typeof value !== 'string' && value.keys?.length) return editorLine(ui, value, width, style);
+    return ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(typeof value === 'string' ? value : value.text, width)] });
+  };
   if (!layout.available || !e)
     return ui.Box({
       backgroundColor: styles.text.backgroundColor,
@@ -51,7 +56,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     });
   if (e.shortcuts.panel) return ui.Box({ width: columns, height: rows, flexDirection: 'column', overflow: 'hidden', children: [
     line(tr('shortcuts.title'), styles.accent, columns),
-    ...shortcutPanelRows(e.shortcuts, view.language ?? 'en', columns, rows - 1).map(row => line(row.text, rowStyle(!!row.selected), columns)),
+    ...shortcutPanelRows(e.shortcuts, language, columns, rows - 1).map(row => line(row, rowStyle(!!row.selected), columns)),
   ] });
   const inputDisplay = (width: number) => {
     const input = view.input;
@@ -63,19 +68,25 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const pickerNotice = !view.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
-  let notice = e.review ? importShortcutHelp(e.review, e.shortcuts, view.language ?? 'en') :
+  const message = view.localized?.message;
+  const messageBindings = message?.fallback === view.message && message.key === 'shortcuts.native-preset-applied' ? ['save', 'close']
+    : message?.fallback === view.message && message.key === 'shortcuts.host-preferences-pending' ? ['apply', 'finish', 'close'] : [];
+  const editorMessage = messageBindings.length && message
+    ? hintLine(message.key, language, Object.fromEntries(messageBindings.map(key => [key, String(message.params[key])])))
+    : viewMessage(view, 'message');
+  let notice: string | EditorLine = e.review ? importShortcutHelp(e.review, e.shortcuts, language) :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
     viewMessage(view, 'busy') || viewMessage(view, 'error') ||
-    (pickerNotice ? renderMessage(pickerNotice, view.language) : '') || viewMessage(view, 'message') ||
+    (pickerNotice ? renderMessage(pickerNotice, view.language) : '') || editorMessage ||
     (e.advanced
       ? viewMessage(view, 'preferencesError') ||
         (selectedPreference?.result ? preferenceLabel(selectedPreference, view.language) + ': ' + preferenceResult(selectedPreference, view.language) : '') ||
         view.preferences.map((p) => p.result ? preferenceLabel(p, view.language) + ': ' + preferenceResult(p, view.language) : '').filter(Boolean).join(' · ')
-      : '');
+      : '') || itemDecorationNotice(view);
   const content: RenderElement[] = [];
   let title = '';
-  if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,view.language??'en',inner,layout.bodyRows):reuseView(e,view.language??'en',inner,layout.bodyRows)).map(row=>line(row.text,rowStyle(row.selected===true))));
-  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},view.language??'en',inner,layout.bodyRows,e.shortcuts).map(row=>line(row.text,rowStyle(row.selected===true))));
+  if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,language,inner,layout.bodyRows):reuseView(e,language,inner,layout.bodyRows)).map(row=>line(row,rowStyle(row.selected===true))));
+  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},language,inner,layout.bodyRows,e.shortcuts).map(row=>line(row,rowStyle(row.selected===true))));
   } else if (e.diagnosis) {
     title = tr('diagnosis.title');
     const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);
@@ -84,16 +95,16 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   } else if(e.colors){title=tr('colors.title');content.push(...colorsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>previewLine(ui,row.spans,inner,view.previewBackground ?? 'dark')));
   } else if(e.alignmentManager) {
     title=tr('alignment.title');
-    content.push(...alignmentsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
+    content.push(...alignmentsView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected === true))));
   } else if(e.groupManager) {
     title=tr('composition.groups.title');
-    content.push(...groupsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
+    content.push(...groupsView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected === true))));
   } else if(e.sources) {
     title=tr('sources.title');
-    content.push(...sourcesView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+    content.push(...sourcesView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected))));
   } else if(e.profiles) {
     title = tr('profiles.title');
-    content.push(...profilesView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+    content.push(...profilesView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected))));
   } else if(e.explanation) {
     title=tr('explain.title');
     const lines=explanationLines(e,view.language ?? 'en',inner), capacity=Math.max(1,layout.bodyRows-1);
@@ -102,7 +113,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
   } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
-    content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows,e.baseline.configuration?.shared_projects).map(row=>line(row.text,rowStyle(row.selected))));
+    content.push(...quickView(e.quick,language,inner,layout.bodyRows,e.baseline.configuration?.shared_projects).map(row=>line(row,rowStyle(row.selected))));
   } else if (e.review) {
     title = tr('review.title');
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
@@ -147,10 +158,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       const displayed = editing && (view.input?.kind === 'field' || view.input?.kind === 'path') ? view.input.buffer : row.value;
       const preference = view.preferences.find((p) => 'host-' + p.row.key === row.key);
       const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)} `;
-      const spans: TextSpan[] = [
-        { text: label },
-        { text: (editing ? inputDisplay(Math.max(1, inner - displayWidth(label))) : displayed) + (preference && preferenceChanged(preference) ? ' *' : '') },
-      ];
+      const valueWidth = Math.max(1, inner - displayWidth(label));
+      const valueSpans = !editing && row.valueHint ? editorLineSpans(row.valueHint, valueWidth).map(({text, bold}) => ({text, style: {bold}}))
+        : [{ text: (editing ? inputDisplay(valueWidth) : displayed) + (preference && preferenceChanged(preference) ? ' *' : '') }];
+      const spans: TextSpan[] = [{ text: label }, ...valueSpans];
       content.push(ui.Box({
         key: 'setting-' + row.key, flexShrink: 0,
         children: [spanLine(ui, spans, inner, rowStyle(e.setting === row.key, row.editable))],
@@ -209,11 +220,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
   const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
-  const focusHint = tr('native.ui.client.draw.click_region_for_keys');
+  const focusHint = hintLine('native.ui.client.draw.click_region_for_keys', language, { escape: 'Esc' });
   const hasNotice = Boolean(notice || capacityNotice);
   const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
   // Keep both the notice and the click instruction. On narrow panes the numbered tabs suffice.
-  const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(focusHint) > columns;
+  const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(focusHint.text) > columns;
   const tabs: TextSpan[] = [];
   labels.forEach((label, i) => {
     if (numberedTabs) {
@@ -225,7 +236,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     tabs.push({ text: String(i + 1), style: styles.key });
     tabs.push({ text: ' ' + (EDITOR_PAGES[i] === e.page ? '[' + label + ']' : label), style: { ...(EDITOR_PAGES[i] === e.page ? styles.accent : styles.muted), bold: false } });
   });
-  if (hasNotice) tabs.push({ text: (numberedTabs ? ' ' : ' · ') + focusHint, style: styles.muted });
+  if (hasNotice) {
+    const room = columns - displayWidth(tabs.map(span => span.text).join(''));
+    const hint = prependLine(numberedTabs ? ' ' : ' · ', focusHint);
+    tabs.push(...editorLineSpans(hint, room).map(({ text, bold }) => ({ text, style: bold ? styles.key : styles.muted })));
+  }
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [

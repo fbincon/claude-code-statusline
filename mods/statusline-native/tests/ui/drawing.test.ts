@@ -227,7 +227,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     expect(heading.props.color).toBe('suggestion');
     expect(heading.props.bold).toBe(true);
     expect(text(tree.children[1]!).replace(/[\[\]]/g, '')).toContain('2 Subagents');
-    expect(text(tree.children[2]!)).toBe(t('native.ui.client.draw.click_region_for_keys','en'));
+    expect(text(tree.children[2]!)).toBe(t('native.ui.client.draw.click_region_for_keys', 'en', { escape: 'Esc' }));
     expect(text(tree.children[3]!)).not.toContain('H show');
     expect(text(tree.children[3]!)).not.toContain('Ctrl+G');
     const footer = tree.children[5] as Node;
@@ -506,6 +506,37 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
     const parts = shortcutSpans([{ key: 'Enter', label: '保存中文 é', short: '保存' }], width);
     expect(displayWidth(parts.map((s) => s.text).join('')) <= width).toBe(true);
     expect(displayWidth(clip('é中文', width)) <= width).toBe(true);
+  }
+});
+
+test('native shortcut settings style the actionable keys in the body at the minimum size', () => {
+  const state = view();
+  state.language = 'zh-CN';
+  state.editor!.shortcuts.open();
+  const tree = draw(elements, state, 32, 12) as unknown as Node;
+  expect(render(tree)).toHaveLength(12);
+  const keyNodes = tree.children.slice(1).flatMap(row => typeof row === 'string' ? [] : row.children)
+    .filter((child): child is Node => typeof child !== 'string' && child.props.bold === true);
+  expect(new Set(keyNodes.map(text))).toEqual(new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']));
+  expect(keyNodes.every(node => node.props.color === 'text')).toBe(true);
+});
+
+test('native decoration fields keep their full names and active control on a compact pane', () => {
+  for (const language of LANGUAGES) {
+    const state = view(), e = state.editor!;
+    state.language = language;
+    handleKey(state, { key: 'e', ctrl: true }, 32, 12);
+    const fields = formRows(state).filter(row => /^item:(?:labels?|icons?)$/u.test(row.key));
+    expect(fields.map(row => row.key)).toEqual(['item:labels', 'item:label', 'item:icons', 'item:icon']);
+    for (const row of fields) {
+      e.setting = row.key;
+      const tree = draw(elements, state, 32, 12) as unknown as Node;
+      const lines = render(tree);
+      const label = t('fields.item.' + row.spec.key + '.label', language);
+      expect(lines.find(line => line.includes('›') && line.includes(label))).toBeDefined();
+      const key = row.spec.kind === 'choice' ? '←→/Enter' : 'Enter';
+      expect(text(tree.children.at(-1)!).includes(key)).toBe(true);
+    }
   }
 });
 

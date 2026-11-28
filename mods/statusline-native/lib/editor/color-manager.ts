@@ -7,6 +7,7 @@ import { GRADIENT_PRESETS, GRADIENT_SURFACES, parseGradient, gradientName } from
 import { normalizeColor, validColor } from './appearance.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { t, type Language } from '../i18n/index.ts';
+import { editorLineSpans, hintLine } from './hints.ts';
 export interface ColorManager {
     kind: 'theme' | 'solid' | 'gradient';
     key: string;
@@ -172,12 +173,12 @@ export function colorsView(e: Editor, language: Language, width: number, height:
     const m = e.colors!, tr = (key: string) => t('colors.' + key, language);
     const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
     if (m.input) {
-        const help = m.error ? tr('invalid') : t('shortcuts.color-input-help', language, { back });
-        return [{ spans: [plain(tr('input'))], selected: false }, { spans: [plain(inputView(m.input, width))], selected: true }, { spans: [plain(help)], selected: false }];
+        const help = m.error ? { text: tr('invalid') } : hintLine('shortcuts.color-input-help', language, { enter: 'Enter', back, clear: 'Ctrl+U' });
+        return [{ spans: [plain(tr('input'))], selected: false }, { spans: [plain(inputView(m.input, width))], selected: true }, { spans: editorLineSpans(help, width).map(span => ({ ...plain(span.text), ...span })), selected: false }];
     }
     const rows = choices(e, language), capacity = Math.max(1, height - 2), start = Math.floor(m.cursor / capacity) * capacity;
-    const help = t('shortcuts.color-help', language, { apply: e.shortcuts.hint('colors', 'apply-color'), back });
-    return [{ spans: [plain(help)], selected: false }, ...rows.slice(start, start + capacity).map((row, index) => {
+    const help = hintLine('shortcuts.color-help', language, { enter: 'Enter', apply: e.shortcuts.hint('colors', 'apply-color'), back });
+    return [{ spans: editorLineSpans(help, width).map(span => ({ ...plain(span.text), ...span })), selected: false }, ...rows.slice(start, start + capacity).map((row, index) => {
             const selected = start + index === m.cursor;
             const spans = [plain(selected ? '› ' : '  '), ...(row.colors ?? []).map(color => ({ ...plain('██'), foreground: color.startsWith('ansi:') ? { kind: 'ansi' as const, value: Number(color.slice(5)) } : { kind: 'rgb' as const, value: color } })), plain(' ' + row.label + (row.surface ? ' · ' + tr((m.kind === 'theme' ? 'theme_surface_' : 'surface_') + row.surface) : ''))];
             return { spans, selected };

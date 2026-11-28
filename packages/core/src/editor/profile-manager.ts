@@ -5,6 +5,7 @@ import { t, text, type Language, type LocalizedText } from '../i18n/messages.js'
 import type { Editor } from './draft.js';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
 import { wrapText } from './text.js';
+import { hintLine, type EditorLine } from './hints.js';
 import { BackendError } from './backend.js';
 
 type Action = 'edit' | 'activate' | 'save' | 'save_bind' | 'rename' | 'delete' | 'bind' | 'unbind' | 'import' | 'reuse' | 'export';
@@ -254,19 +255,20 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
         }
     }
 }
-export function profilesView(e: Editor, language: Language, width: number, height: number): { text: string; selected: boolean }[] {
+export function profilesView(e: Editor, language: Language, width: number, height: number): (EditorLine & { selected: boolean })[] {
     const m = e.profiles!;
     const tr = (key: string) => t(key, language);
-    const navigation = t('profiles.navigation', language, { key: m.uncertain ? 'R' : e.shortcuts.hint('profiles', 'reload-profiles') });
-    const lines: { text: string; selected: boolean }[] = [];
-    const add = (value: string, selected = false) => lines.push({ text: value, selected });
+    const navigation = hintLine('profiles.navigation', language, { arrows: '↑↓', enter: 'Enter',
+        key: m.uncertain ? 'R' : e.shortcuts.hint('profiles', 'reload-profiles'), back: 'Ctrl+G' });
+    const lines: (EditorLine & { selected: boolean })[] = [];
+    const add = (value: string | EditorLine, selected = false) => lines.push({ ...(typeof value === 'string' ? { text: value } : value), selected });
     if (m.message) for (const line of wrapText([t(m.message.key, language, m.message.params)], width)) add(line);
     if (m.uncertain) add(tr('profiles.uncertain'));
     if (!m.library) { add(tr('profiles.loading')); return lines.slice(0, height); }
     if (m.page === 'form') {
         add(tr('profiles.action.' + m.action));
         m.fields.forEach((f,i) => add(tr('profiles.field.' + f.key) + ': ' + inputView({ ...f.input }, Math.max(1, width - 12)), i === m.field));
-        add(tr('profiles.form_help')); return lines.slice(0, height);
+        add(hintLine('profiles.form_help', language, { enter: 'Enter', tab: 'Tab', back: 'Ctrl+G' })); return lines.slice(0, height);
     }
     const rows = m.page === 'confirm' ? [{ key:'confirm',label:'profiles.confirm' },{ key:'cancel',label:'profiles.cancel' }] :
         m.page === 'dirty' ? ['save','discard','cancel'].map(key => ({ key, label:'profiles.'+key })) : entries(m);
@@ -284,7 +286,7 @@ export function profilesView(e: Editor, language: Language, width: number, heigh
         // Keep both confirmation actions reachable even with many bound projects.
         const capacity = Math.max(0, height - 3), start = Math.min(m.detailScroll, Math.max(0, lines.length - capacity));
         return [...lines.slice(start, start + capacity), ...rows.map((row, index) => ({ text: tr(row.label), selected: index === m.cursor })),
-            { text: navigation, selected: false }].slice(0, height);
+            { ...navigation, selected: false }].slice(0, height);
     }
     if (m.page === 'actions') {
         add(m.library.profiles.find(p => p.id === m.selected)?.name ?? '');

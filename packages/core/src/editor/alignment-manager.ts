@@ -4,7 +4,7 @@ import type { TextKey } from './text-input.js';
 import { alignmentUnits, editAlignment, refKey } from './alignments.js';
 import { newInstance } from './instances.js';
 import { t, type Language } from '../i18n/messages.js';
-import { wrapText } from './text.js';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 export interface AlignmentManager {
   page:'list'|'actions'|'form';cursor:number;selected:string|null;column:number;columns:AlignmentRef[][];error:boolean;
 }
@@ -49,11 +49,13 @@ export function alignmentsKey(e:Editor,event:TextKey):null {
   }
   return null;
 }
-export function alignmentsView(e:Editor,language:Language,width:number,height:number):{text:string;selected?:boolean}[] {
+export function alignmentsView(e:Editor,language:Language,width:number,height:number):(EditorLine & {selected?:boolean})[] {
   const m=e.alignmentManager!,d=e.draft.display,tr=(key:string)=>t('alignment.'+key,language),units=alignmentUnits(d.layout,d.instances,d.groups);
   const label=(ref:AlignmentRef)=>{const u=units.find(u=>refKey(u.ref)===refKey(ref));return u?e.instanceLabel('main',ref.kind==='group'?d.groups.find(g=>g.id===ref.id)!.primary_id:ref.id,language)+(ref.kind==='group'?' · '+tr('group'):'')+' ('+ref.id+')':'—';};
   const values=m.page==='list'?[...(d.layout.alignments??[]).map(v=>v.id+' · '+v.columns.length),tr('create')]:m.page==='actions'?[tr('edit'),tr('remove')]:
     [tr('column')+': '+(m.column+1)+'/'+m.columns.length,...d.layout.rows.map((_,row)=>tr('row')+' '+(row+1)+': '+(m.columns[m.column]!.find(ref=>units.some(u=>u.row===row&&refKey(u.ref)===refKey(ref))) ? label(m.columns[m.column]!.find(ref=>units.some(u=>u.row===row&&refKey(u.ref)===refKey(ref)))!) : '—')),tr('add_column'),tr('remove_column'),tr('apply')];
-  const note=wrapText([tr(d.layout.mode!=='explicit'?'explicit':m.error?'invalid':'help')],width),capacity=Math.max(1,height-Math.min(2,note.length)),start=Math.max(0,m.cursor-capacity+1);
-  return [...values.slice(start,start+capacity).map((text,i)=>({text:(start+i===m.cursor?'› ':'  ')+text,selected:start+i===m.cursor})),...note.slice(0,Math.max(0,height-Math.min(capacity,values.length))).map(text=>({text}))];
+  const help = d.layout.mode !== 'explicit' || m.error ? { text: tr(d.layout.mode !== 'explicit' ? 'explicit' : 'invalid') }
+    : m.page === 'form' ? hintLine('alignment.help', language, { arrows: '←/→' }) : { text: t('alignment.help', language, { arrows: '←/→' }) };
+  const note=wrapEditorLine(help,width),capacity=Math.max(1,height-Math.min(2,note.length)),start=Math.max(0,m.cursor-capacity+1);
+  return [...values.slice(start,start+capacity).map((text,i)=>({text:(start+i===m.cursor?'› ':'  ')+text,selected:start+i===m.cursor})),...note.slice(0,Math.max(0,height-Math.min(capacity,values.length)))];
 }

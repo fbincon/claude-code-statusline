@@ -22,7 +22,8 @@ function groupKey(group: string): string {
 }
 
 export { fieldMessage } from '../editor/forms.ts';
-import { fieldMessage } from '../editor/forms.ts';
+import { fieldMessage, itemDecorationValue } from '../editor/forms.ts';
+import { hintLine } from '../editor/hints.ts';
 
 const VALUE_KEYS = new Set(['on','off','inherit','default','ansi','full','home','project-relative','basename','classic','compact','powerline','terminal','git-dirty','nonzero','used-at-least',
   'when-subagents','always','event','hide','show','auto','explicit','original','short','legacy','grouped','unicode','ascii',
@@ -37,7 +38,8 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
   return rows.map(row => {
     let label = row.key === 'keyboard-shortcuts' ? text('shortcuts.title') : fieldMessage(row, view);
     let group = t(groupKey(row.group), language, {}, row.group);
-    let value = row.value;
+    let value = ('valueRaw' in row ? itemDecorationValue(row.key, row.valueRaw, language) : undefined) ?? row.value;
+    let valueHint = row.valueHint;
     if (row.key.startsWith('host-')) {
       const p = view.preferences.find(p => 'host-' + p.row.key === row.key);
       const spec = p ? specFor(p) : PREFERENCE_SPECS.find(s => 'host-' + s.id === row.key);
@@ -62,8 +64,11 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
     else if (row.key === 'field:statusline_language') {
       value = LANGUAGE_NAMES[view.editor!.draft.display.statusline_language];
     } else if (row.key === 'preset-select') value = t('presets.' + value, language);
-    else if (['preset-apply','import-file','export-file','item-guidance'].includes(row.key)) value = t('native.actions.' + row.key, language);
+    else if (row.key === 'item-guidance') {
+      valueHint = hintLine('native.actions.item-guidance', language, { enter: 'Enter' });
+      value = valueHint.text;
+    } else if (['preset-apply','import-file','export-file'].includes(row.key)) value = t('native.actions.' + row.key, language);
     else if (!row.key.endsWith(':label') && !row.key.endsWith(':icon') && !row.key.endsWith(':text') && !row.key.endsWith('base_ref')) value = valueLabel(value, language);
-    return {...row, label: t(label.key, language, label.params, row.label), group, value};
+    return {...row, label: t(label.key, language, label.params, row.label), group, value, ...(valueHint && { valueHint })};
   });
 }

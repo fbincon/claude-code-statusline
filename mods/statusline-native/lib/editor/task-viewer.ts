@@ -3,13 +3,13 @@ import type { TaskDetails, TaskEvidence, TaskAgentDetail } from '../generated-co
 import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/index.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { wrapText } from '../../ui/text.ts';
+import { clipEditorLine, hintLine, type EditorLine } from './hints.ts';
 import { clip as clipText } from '../unicode.ts';
 import { BackendError } from '../backend.ts';
 import { resolveShortcut } from './shortcut-map.ts';
 import type { EditorShortcuts } from './shortcut-settings.ts';
-export interface TaskRow {
+export interface TaskRow extends EditorLine {
     key: string;
-    text: string;
     agent?: string;
     selected?: boolean;
 }
@@ -206,9 +206,11 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
         { key: 'identity-session', text: tr('task.session', { value: view.input === 'session' ? inputView(view.sessionInput, Math.max(2, width - 12)) : view.session || tr('task.unknown') }) },
         { key: 'identity-prompt', text: tr('task.prompt', { value: view.input === 'prompt' ? inputView(view.promptInput, Math.max(2, width - 12)) : view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current') }) },
     ];
-    const detail = view.input === 'session' || view.input === 'prompt' ? tr('task.viewer.identity_help') : view.input === 'search' ? '/ ' + inputView(view.searchInput, Math.max(2, width - 2)) :
-        tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' });
-    header.push({ key: 'controls', text: detail });
+    const detail = view.input === 'session' || view.input === 'prompt'
+        ? hintLine('task.viewer.identity_help', view.language, { tab: 'Tab', enter: 'Enter', back: 'Esc/Ctrl+G' })
+        : { text: view.input === 'search' ? '/ ' + inputView(view.searchInput, Math.max(2, width - 2)) :
+            tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' }) };
+    header.push({ key: 'controls', ...detail });
     if (view.warning)
         header.push({ key: 'warning', text: renderMessage(view.warning, view.language) });
     if (view.error)
@@ -239,7 +241,9 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
         view.scroll = index - view.capacity + 1;
     // Body rows were sanitized and wrapped for this width once. Re-scanning every
     // grapheme on each page or native capacity probe makes large reports costly.
-    const boundedHeader = header.map(row => ({ ...row, text: clipText(safe(row.text), Math.max(1, width)) }));
+    const boundedHeader = header.map(row => row.keys?.length
+        ? { ...row, ...clipEditorLine(row, Math.max(1, width)) }
+        : { ...row, text: clipText(safe(row.text), Math.max(1, width)) });
     const body = rows.slice(view.scroll, view.scroll + view.capacity).map(row => ({ ...row,
         ...(width < 2 ? { text: clipText(row.text, 1) } : {}), selected: row.key === view.selected }));
     return [...boundedHeader, ...body].slice(0, Math.max(1, height));

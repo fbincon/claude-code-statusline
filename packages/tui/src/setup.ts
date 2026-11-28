@@ -6,7 +6,7 @@ import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { t, renderMessage, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { terminal, type TerminalOptions } from '@fbincon/statusline-platform/terminal/session';
 import { colorCapacity } from './session.js';
-import { Canvas, ansiFrame, safe } from './drawing/canvas.js';
+import { Canvas, ansiFrame, paintLine, safe } from './drawing/canvas.js';
 import { paint } from './theme.js';
 
 export interface SetupAdapter {
@@ -26,7 +26,7 @@ export function setupFrame(state: SetupState, adapter: SetupAdapter, columns: nu
     const previewRows=allRows.slice(state.previewOffset%Math.max(1,allRows.length)).slice(0,Math.max(2,Math.min(6,Math.floor(rows/4))));
     const bottom = rows - 3 - previewRows.length - Number(preview !== null), height = bottom - 3;
     if (state.phase === 'quick') {
-        quickView(state.quick!, state.language, columns - 2, height).forEach((row, index) => canvas.line(index + 3, row.text, false, row.selected, 1));
+        quickView(state.quick!, state.language, columns - 2, height).forEach((row, index) => canvas.put(index + 3, 1, paintLine(row, columns - 2, row.selected)));
     } else {
         const menu = state.phase === 'checks' ? [tr(state.facts.canSave ? 'continue' : 'blocked')]
             : state.phase === 'choice' ? [tr('keep'), tr('choose')]
