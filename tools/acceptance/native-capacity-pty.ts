@@ -23,10 +23,10 @@ import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
     claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' }, 'header-controls': { type: 'boolean' },
-    'editor-shortcuts': { type: 'boolean' }, 'version-installation': { type: 'boolean' },
+    'editor-shortcuts': { type: 'boolean' }, 'version-installation': { type: 'boolean' }, 'item-details': { type: 'boolean' },
 } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts | --version-installation]');
-assert([values['component-picker'], values['header-controls'], values['editor-shortcuts'], values['version-installation']]
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts | --version-installation | --item-details]');
+assert([values['component-picker'], values['header-controls'], values['editor-shortcuts'], values['version-installation'], values['item-details']]
     .filter(Boolean).length <= 1, 'Select one focused PTY journey');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
@@ -56,9 +56,11 @@ if (command === 'configure') {
   const handle = ConfigurationProtocol.prototype.handle;
   ConfigurationProtocol.prototype.handle = function (request, diagnostics) {
     const { operation } = JSON.parse(request);
-    if (typeof operation === 'string' && (operation === 'apply' || operation.startsWith('package_')))
+    if (typeof operation === 'string' && (['apply', 'explain', 'source_refresh', 'sources_apply'].includes(operation) || operation.startsWith('package_')))
         record({ command, operation, phase: 'request' });
-    return handle.call(this, request, diagnostics);
+    const result = handle.call(this, request, diagnostics);
+    if (operation === 'explain') record({ command, operation, phase: 'complete', status: result.status });
+    return result;
   };
 }
 
@@ -126,6 +128,22 @@ function assertShortcutHelp(screen: Capture): void {
     }
 }
 
+const detailLabel = 'Probe 样例';
+const detailPreview = detailLabel + ' Opus high';
+
+function reportRange(text: string) {
+    const match = /\b(\d+)–(\d+)\/(\d+)\b/u.exec(text);
+    return match ? { start: Number(match[1]), end: Number(match[2]), total: Number(match[3]) } : null;
+}
+
+function showsText(screen: Capture, text: string, bold: boolean): boolean {
+    return screen.buffer.some(row => {
+        const start = cellColumn(row, text);
+        return start >= 0 && row.slice(start, start + displayWidth(text))
+            .every(cell => !cell.data.trim() || cell.bold === bold);
+    });
+}
+
 async function runCase(name: string, fixtureName: string, action: string, external = false, language: Language = 'en') {
     const directory = join(output, name); fs.mkdirSync(directory);
     const config = join(installed.temporary, name);
@@ -133,6 +151,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     // checks correctly refuse registrations copied from another config root.
     if (action === 'live-command') fs.mkdirSync(config); else fs.cpSync(template, config, { recursive: true });
     const data = caseData(fixtureName), draft = (fixtureName === 'import-four-gradients' ? data.review.result.draft : data.draft) as Draft;
+    const itemDetails = action === 'item-details';
+    if (itemDetails) {
+        const item = draft.display.instances[0]!;
+        assert.equal(item.type_id, 'model-with-effort');
+        // The catalog example retains the full model ID. The preview follows the configured label and short model format.
+        item.options.label = detailLabel;
+        draft.display.formatting.model_name = 'short';
+    }
     record(join(config, '.claude.json'), { hasCompletedOnboarding: true, theme: 'dark', projects: { [project]: { hasTrustDialogAccepted: true } } });
     record(join(config, 'claude-statusline.json'), draft.display);
     record(join(config, 'statusline-ui.json'), { schema_version: 1, ui_language: language });
@@ -163,6 +189,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     }
     const displayPath = join(config, 'claude-statusline.json');
     const before = fs.readFileSync(displayPath), beforeMode = fs.statSync(displayPath).mode;
+    const preferences = itemDetails ? ['settings.json', 'statusline-ui.json'].map(file => {
+        const path = join(config, file);
+        return { path, bytes: fs.readFileSync(path), mode: fs.statSync(path).mode };
+    }) : [];
     const pickerSave = action === 'picker-save';
     const pickerDiscard = action === 'picker-discard';
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
@@ -171,9 +201,9 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const compactTask = nativeTask && name === 'native-task-viewer';
     const header = action === 'header-controls';
     const initialColumns = header ? 190 : nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
-    const initialRows = header ? 40 : nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
+    const initialRows = itemDetails ? 26 : header ? 40 : nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
     let columns = initialColumns, rows = initialRows;
-    const p = openPty(config, columns, rows, environment, 'en', external
+    const p = openPty(config, columns, rows, environment, language, external
         ? { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project }
         : { executable: host.executable, args: [...host.args, '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
     let screen = new Capture(columns, rows), offset = 0, accepted = false;
@@ -846,6 +876,96 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\x05', 'item format'); await key('\x1b[H', 'explanation setting'); await key('\r', 'open explanation');
             await until(text => text.includes('Configuration and sample explanation') && completed('explain'), 'explanation result visible'); capture('after');
             await key('\x07', 'back from explanation'); await key('\x07', 'back from format');
+        } else if (itemDetails) {
+            const explanation = t('explain.title', language), guidance = t('guidance.title', language);
+            const scenario = t('preview.scenario.warning', language);
+            const configuration = t('explain.configuration', language);
+            const overview = t('guidance.overview', language);
+            const currentSample = t('explain.sample_result', language, { scenario, width: 40 });
+            const format = t(external ? 'ui.drawing.item_format_2' : 'native.ui.client.draw.item_format', language).trim();
+            const selected = (text: string, label: string) => text.split('\n').some(line => line.includes('›') && line.includes(label));
+            const selectedFormat = (text: string, actionLabel: string) =>
+                text.includes(format) && text.includes(detailLabel) && selected(text, actionLabel);
+
+            const inspectReport = async (label: string, title: string, evidence: readonly (readonly [string, boolean])[]) => {
+                const first = reportRange(read());
+                assert(first && first.start === 1 && first.end < first.total, title + ' must start in a scrollable report');
+                const capacity = first.end, lastStart = first.total - capacity + 1;
+                const waitForStart = (start: number, step: string) => until(text => {
+                    const range = reportRange(text);
+                    return text.includes(title) && range?.start === start && range.total === first.total &&
+                        range.end === Math.min(first.total, start + capacity - 1);
+                }, step);
+                const remaining = new Set(evidence);
+                for (let start = 1; ; start = Math.min(lastStart, start + capacity)) {
+                    for (const expected of remaining)
+                        if (showsText(screen, ...expected)) remaining.delete(expected);
+                    capture(label + '-' + start);
+                    if (start === lastStart) break;
+                    await key('\x1b[6~', 'page down in ' + title);
+                    await waitForStart(Math.min(lastStart, start + capacity), 'next report page');
+                }
+                assert.deepEqual([...remaining], [], title + ' text or emphasis is missing');
+                await key('\x1b[H', 'return to the start of ' + title);
+                await waitForStart(1, 'Home reached the first row');
+                await key('\x1b[F', 'jump to the end of ' + title);
+                await waitForStart(lastStart, 'End reached the last row');
+                await key('\x1b[A', 'scroll up one row from the end');
+                await waitForStart(lastStart - 1, 'Up moved one row from End');
+                await key('\x1b[5~', 'page up in ' + title);
+                await waitForStart(Math.max(1, lastStart - 1 - capacity), 'Page Up moved by the visible row count');
+            };
+
+            await key('\x16', 'select the warning sample');
+            await until(text => text.includes(scenario), 'warning sample identity visible');
+            await key('\x17', 'choose the 40-column sample');
+            await until(text => text.includes('40c') && text.includes(detailPreview), 'formatted production sample visible');
+            await key('\x05', 'open the selected item format');
+            await key('\x1b[H', 'select the explanation action');
+            await until(text => selectedFormat(text, explanation), 'explanation selected in the item format');
+            await key('\r', 'open configuration and sample explanation');
+            await until(text => text.includes(explanation) && completed('explain') && showsText(screen, configuration, true),
+                'read-only explanation result visible');
+            assert.ok(read().includes(detailPreview), 'The configured sample preview must remain visible beside the reference example');
+            await inspectReport('explanation', explanation, [
+                [t('explain.examples', language), true], ['claude-opus high', false],
+                [configuration, true], [t('explain.reason.configured_on', language), false],
+                [currentSample, true], [t('explain.row.main', language), true], [t('explain.reason.sample_visible', language), false],
+                [t('explain.requirements', language), true],
+            ]);
+            await key('\x07', 'return from the explanation');
+            await until(text => selectedFormat(text, explanation), 'the explanation action regained selection');
+
+            await key('\x1b[B', 'select the sources action');
+            await until(text => selectedFormat(text, guidance), 'sources selected in the item format');
+            await key('\r', 'open sources and requirements');
+            await until(text => text.includes(guidance) && showsText(screen, overview, true), 'sources and the source overview visible');
+            await inspectReport('guidance', guidance, [
+                [overview, true], [t('guidance.sources.official_input', language), false],
+                [t('guidance.requirements', language), true], [t('guidance.details', language), true],
+                ['model.id', false], ['effort.level', false], ['claude-statusline doctor', false],
+            ]);
+            if (external) {
+                await key('\x1b[F', 'go to the end before reducing the viewport');
+                await until(text => {
+                    const range = reportRange(text);
+                    return range !== null && range.start > 1 && range.end === range.total;
+                }, 'source report scrolled before resize');
+                columns = 64; rows = 18; offset = p.captured().length;
+                screen = new Capture(columns, rows); p.resize(columns, rows);
+                await until(text => text.includes(guidance) && (reportRange(text)?.start ?? 0) > 1,
+                    'compact source report kept its reading position');
+                capture('guidance-compact');
+                await key('\x1b[H', 'go to the start in the compact report');
+                await until(text => reportRange(text)?.start === 1 && showsText(screen, overview, true),
+                    'source overview visible again at 64×18');
+            }
+            await key('\x07', 'return from sources');
+            await until(text => selectedFormat(text, guidance), 'the sources action regained selection');
+            await key('\x07', 'return to the selected component');
+            await until(text => text.includes(t('composition.configured_title', language)) && selected(text, detailLabel),
+                'the original component regained selection');
+            capture('after');
         } else if (action === 'tall') {
             await key('d', 'unsaved copy before resize'); capture('after');
             rows = 50; offset = p.captured().length; screen = new Capture(columns, rows); p.resize(columns, rows);
@@ -861,14 +981,22 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         }
         else if (!nativeTask && !header) {
             await key(action === 'shortcut-preset' ? 'z' : 'q', 'close without another save');
-            await until(text => !text.includes('Configure Status Line'), 'pane closed');
+            await until(text => !text.includes(title), 'pane closed');
         }
         if (action === 'shortcut-preset') assert.equal(applyRequests(), 0, 'Discarding the native preset requested a configuration save');
         if (action !== 'save' && action !== 'editor-shortcuts' && !pickerSave) {
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
-            if (pickerDiscard || header || action === 'shortcut-preset') assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
+            if (pickerDiscard || header || action === 'shortcut-preset' || itemDetails) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
         }
         assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
+        if (itemDetails) {
+            assert(!records().some(row => ['apply', 'sources_apply'].includes(row.operation)), 'Reading item details requested a configuration change');
+            for (const preference of preferences) {
+                assert.deepEqual(fs.readFileSync(preference.path), preference.bytes, preference.path + ' bytes changed while reading item details');
+                assert.equal(fs.statSync(preference.path).mode, preference.mode, preference.path + ' mode changed while reading item details');
+            }
+            steps.push({ name: 'display, settings and UI preference bytes and modes preserved', elapsed_ms: Date.now() - start });
+        }
         status = 'pass';
     } catch (failure) { error = String(failure); capture('failure'); }
     finally {
@@ -884,7 +1012,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     }
 }
 const expectedJourneys = values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 :
-    values['component-picker'] || values['version-installation'] ? 4 : 43;
+    values['component-picker'] || values['version-installation'] || values['item-details'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
@@ -904,6 +1032,9 @@ try {
         for (const external of [false, true]) for (const action of ['version-status', 'package-cleanup']) {
             await runCase((external ? 'external-' : 'native-') + action, 'plain-main-w72', action, external);
         }
+    } else if (values['item-details']) {
+        for (const external of [false, true]) for (const language of ['en', 'zh-CN'] as const)
+            await runCase((external ? 'external' : 'native') + '-item-details-' + language, 'plain-main-w72', 'item-details', external, language);
     } else {
     for (const [name, fixture, action] of [
         ['quick-opening','plain-main-w72','quick'], ['import-identical','plain-main-w72','import'],

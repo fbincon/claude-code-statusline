@@ -5,7 +5,7 @@ import { ansiFrame, shortcuts } from '@fbincon/statusline-tui/drawing';
 import { colorCapacity } from '@fbincon/statusline-tui/session';
 import { LANGUAGES, t as tMessage } from '@fbincon/statusline-core/i18n/messages';
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
-import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
+import { guidanceRows } from '@fbincon/statusline-core/editor/guidance';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { terminalColor } from '@fbincon/statusline-core/rendering/colors';
 test('tests.ui.test_layout.GroupWindowTests.test_all_selections_fit_with_group_headings_and_sticky_context', async (t) => {
@@ -197,8 +197,8 @@ test('tests.ui.test_guidance.GuidanceTests.test_all_explanations_wrap_inside_ter
     for (const language of LANGUAGES)
         for (const item of f.e.description.catalog)
             for (const width of [2, 20, 60])
-                for (const line of guidanceLines(item, language, width))
-                    assert.ok(displayWidth(line) <= width);
+                for (const row of guidanceRows(item, language, width))
+                    assert.ok(displayWidth(row.text) <= width);
     for (const line of wrapText(['👩🏽‍💻中文 é '.repeat(10)], 4))
         assert.ok(displayWidth(line) <= 4);
 });
@@ -207,7 +207,9 @@ test('tests.ui.test_guidance.GuidanceTests.test_all_items_have_scoped_translated
     const count = f.calls.length;
     for (const language of LANGUAGES)
         for (const item of f.e.description.catalog) {
-            const lines = guidanceLines(item, language, 10000).join(' ');
+            const rows = guidanceRows(item, language, 10000);
+            const lines = rows.map(row => row.text).join(' ');
+            assert.ok(rows.some(row => row.kind === 'heading' && row.text === tMessage('guidance.overview', language)));
             assert.ok(lines.includes(item.id));
             assert.ok(lines.includes(tMessage('guidance.static', language)));
             assert.ok(!lines.includes('undefined'));

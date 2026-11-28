@@ -7,13 +7,11 @@ import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manage
 import { groupsHelp, groupsView } from '@fbincon/statusline-core/editor/group-manager';
 import { prependLine, sectionDivider, type EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
-import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
 import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
 import { clip, displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { catalogMarker } from '@fbincon/statusline-core/editor/instances';
-import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
 import { reviewRows } from '@fbincon/statusline-core/editor/import-review';
 import { matchText, segments, snippet } from '@fbincon/statusline-core/editor/search';
 import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
@@ -30,6 +28,13 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     const drawRow = (row: EditorLine & { selected?: boolean }, index: number) =>
         canvas.content(panel, index, paintLine(row, width, row.selected), row.selected);
+    const drawItemDetail = () => {
+        const page = state.itemDetailPage(width, panel.innerHeight - 1);
+        page.rows.forEach(({ kind, text }, index) => {
+            canvas.content(panel, index, [kind === 'heading' ? heading(text) : paint(text)]);
+        });
+        return page.summary;
+    };
     if (e.changeReview || e.reuse) {
         (e.changeReview ? changesView(e, state.language, width, panel.innerHeight - 1) : reuseView(e, state.language, width, panel.innerHeight - 1)).forEach(drawRow);
         return '';
@@ -79,34 +84,24 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         return tr('profiles.sample');
     }
 
-    if(e.explanation) {
-        const lines=explanationLines(e,state.language,width), count=Math.max(1,panel.innerHeight-1);
-        const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-count));e.explanation.scroll=start;
-        lines.slice(start,start+count).forEach((text,index)=>canvas.content(panel,index,[paint(text)]));
-        return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;
-    }
+    if (e.explanation) return drawItemDetail();
     if (e.quick) {
         quickView(e.quick, state.language, width, panel.innerHeight - 1, e.baseline.configuration?.shared_projects).forEach(drawRow);
         return tr('quick.steps');
     }
-    if (e.review || e.guidanceScroll !== null) {
+    if (e.review) {
         const review = e.review;
         const capacity = Math.max(1, panel.innerHeight - 1);
-        const values = review ? reviewRows(review, state.language, width)
-            : (state.detailItem ? guidanceLines(state.detailItem, state.language, width) : [])
-                .map(text => ({ text, heading: false, section: '' }));
-        const start = Math.min(review?.scroll ?? e.guidanceScroll ?? 0, Math.max(0, values.length - capacity));
-        if (review) {
-            review.scroll = start;
-        } else {
-            e.guidanceScroll = start;
-        }
+        const values = reviewRows(review, state.language, width);
+        const start = Math.min(review.scroll, Math.max(0, values.length - capacity));
+        review.scroll = start;
         values.slice(start, start + capacity).forEach((row, index) => {
-            const selected = row.heading && row.section === review?.selected;
+            const selected = row.heading && row.section === review.selected;
             canvas.content(panel, index, [row.heading ? heading(row.text, selected) : paint(row.text)], selected);
         });
         return `${start + 1}–${Math.min(values.length, start + capacity)}/${values.length}`;
     }
+    if (e.guidanceScroll !== null) return drawItemDetail();
 
     if (state.input?.kind === 'category') {
         const input = state.input;

@@ -10,11 +10,13 @@ import { settingRows } from '../../lib/client/settings.ts';
 import { handleKey } from '../../lib/client/keys.ts';
 import type { View } from '../../lib/session.ts';
 import { draw } from '../../ui/client/draw.ts';
-import { clip, displayWidth, headerColumns } from '../../ui/layout.ts';
+import { clip, contentColumns, displayWidth, headerColumns } from '../../ui/layout.ts';
 import { editorLayout, editorShortcuts } from '../../ui/client/help.ts';
 import { shortcutRows, shortcutSpans } from '../../ui/components/shortcuts.ts';
-import { description, readResult } from '../fixtures.ts';
+import { description, readResult, sample } from '../fixtures.ts';
 import { createReview } from '../../lib/editor/import-review.ts';
+import { explanationRows } from '../../lib/editor/explanation.ts';
+import { guidanceRows } from '../../lib/editor/guidance.ts';
 import type { CatalogItem } from '../../lib/generated-contracts.ts';
 import { SEARCH_CATALOG } from '../generated-search-fixtures.ts';
 
@@ -26,6 +28,11 @@ function view(): View {
     message: '', busy: '', uncertain: false };
 }
 function text(node: Node | string): string { return typeof node === 'string' ? node : node.children.map(text).join(''); }
+function detailTextNodes(tree: Node, framed: boolean): Node[] {
+  const section = tree.children[3] as Node;
+  const body = section.children[1] as Node;
+  return (body.children[Number(framed)] as Node).children as Node[];
+}
 function render(node: Node): string[] {
   let lines: string[];
   if (node.type === 'Text') lines = text(node).split('\n');
@@ -139,29 +146,113 @@ test('category picker fits all registered languages and accepts or cancels witho
 });
 
 test('static guidance scrolls and returns to the item form without applying changes', () => {
-  for (const language of LANGUAGES) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
+  for (const language of LANGUAGES) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]] as const) {
     const state = view(), e = state.editor!;
     state.language = language;
-    handleKey(state, {key:'e', ctrl:true}, columns!, rows!);
+    handleKey(state, {key:'e', ctrl:true}, columns, rows);
     expect(e.setting).toBe('item:label');
-    handleKey(state, {key:'home'}, columns!, rows!);
+    handleKey(state, {key:'home'}, columns, rows);
     expect(e.setting).toBe('item-explain');
-    handleKey(state, {key:'down'}, columns!, rows!);
+    handleKey(state, {key:'down'}, columns, rows);
     expect(e.setting).toBe('item-guidance');
-    handleKey(state, {key:'return'}, columns!, rows!);
+    handleKey(state, {key:'return'}, columns, rows);
     expect(e.guidanceScroll).toBe(0);
-    render(draw(elements, state, columns!, rows!) as unknown as Node);
-    handleKey(state, {key:'end'}, columns!, rows!);
-    if (rows === 12) expect(e.guidanceScroll! > 0).toBe(true);
-    const tree = draw(elements, state, columns!, rows!) as unknown as Node;
-    render(tree);
-    expect(text(tree)).toContain('claude-statusline doctor');
-    expect(handleKey(state, {key:'s'}, columns!, rows!)).toBe(null);
-    handleKey(state, {key:'g', ctrl:true}, columns!, rows!);
+    const layout = editorLayout(state, columns, rows);
+    const capacity = Math.max(1, layout.bodyRows - 1);
+    const detailRows = guidanceRows(e.detailItem!, language, contentColumns(columns, rows));
+    const firstPage = draw(elements, state, columns, rows) as unknown as Node;
+    render(firstPage);
+    if (columns === 120) {
+      const body = detailTextNodes(firstPage, layout.framed);
+      const heading = body.find(row => text(row) === t('guidance.overview', language))!;
+      const scope = body.find(row => text(row).trim() === t('guidance.scope', language, { value: t('guidance.scopes.main', language) }))!;
+      expect(heading.props.bold).toBe(true);
+      expect(heading.props.color).toBe('suggestion');
+      expect(scope.props.bold).toBe(false);
+      expect(scope.props.color).toBe('text');
+      expect(heading.props.backgroundColor).toBe(scope.props.backgroundColor);
+    }
+    handleKey(state, {key:'end'}, columns, rows);
+    const end = Math.max(0, detailRows.length - capacity);
+    expect(e.guidanceScroll).toBe(end);
+    const lastPage = draw(elements, state, columns, rows) as unknown as Node;
+    render(lastPage);
+    expect(text(lastPage)).toContain(detailRows.at(-1)!.text);
+    handleKey(state, {key:'up', ctrl:true}, columns, rows);
+    expect(e.guidanceScroll).toBe(end);
+    handleKey(state, {key:'up'}, columns, rows);
+    expect(e.guidanceScroll).toBe(Math.max(0, end - 1));
+    expect(handleKey(state, {key:'s'}, columns, rows)).toBe(null);
+    handleKey(state, {key:'g', ctrl:true}, columns, rows);
     expect(e.guidanceScroll).toBe(null);
     expect(e.detail?.id).toBe('model-with-effort');
+    expect(e.setting).toBe('item-guidance');
     expect(e.modified).toBe(false);
   }
+});
+
+test('configuration explanation styles its rows and pages by the current pane size', () => {
+  const state = view(), e = state.editor!;
+  const language = state.language = 'zh-CN';
+  const item = e.draft.display.instances[0]!;
+  const label = item.options.label = '项目 é 👩🏽‍💻';
+  const before = JSON.stringify(e.draft);
+  const large = [120, 30] as const, small = [32, 12] as const;
+  handleKey(state, {key:'e', ctrl:true}, ...large);
+  handleKey(state, {key:'home'}, ...large);
+  expect(handleKey(state, {key:'return'}, ...large)).toBe('explain');
+  const explanation = e.explanation!;
+  const preview = { ...sample('Fixed draft preview'), sample: true as const, scenario: 'normal' };
+  state.preview = preview;
+  explanation.result = { sample: true, scope: 'main', width: 118, actual_availability: 'not_observed', preview, instances: [{
+    id: item.id, type_id: item.type_id, enabled: true,
+    reasons: [{ code:'configured_on', origin:'configuration' }, { code:'actual_not_observed', origin:'unknown' }],
+    samples: [{ row_id:'main', outcome:'sample_visible', truncated:false }],
+  }] };
+
+  const tree = draw(elements, state, ...large) as unknown as Node;
+  const rendered = render(tree);
+  const body = detailTextNodes(tree, true);
+  const heading = body.find(row => text(row) === t('explain.examples', language))!;
+  const example = body.find(row => text(row).trim() === e.detailItem!.examples[0])!;
+  const explanationLine = body.find(row => text(row).includes(t('explain.reason.configured_on', language)))!;
+  expect(heading.props.bold).toBe(true);
+  expect(heading.props.color).toBe('suggestion');
+  expect(example.props.bold).toBe(false);
+  expect(example.props.color).toBe('suggestion');
+  expect(text(example).startsWith(' ')).toBe(true);
+  expect(explanationLine.props.bold).toBe(false);
+  expect(explanationLine.props.color).toBe('text');
+  expect(rendered.some(row => row.includes('Fixed draft preview'))).toBe(true);
+
+  const compact = render(draw(elements, state, ...small) as unknown as Node);
+  expect(compact.some(row => row.includes(label))).toBe(true);
+  const end = (columns: number, rows: number) => {
+    const total = explanationRows(e, language, contentColumns(columns, rows)).length;
+    return Math.max(0, total - Math.max(1, editorLayout(state, columns, rows).bodyRows - 1));
+  };
+  handleKey(state, {key:'end'}, ...small);
+  const smallEnd = end(...small);
+  expect(smallEnd > 0).toBe(true);
+  expect(explanation.scroll).toBe(smallEnd);
+  handleKey(state, {key:'up'}, ...small);
+  expect(explanation.scroll).toBe(smallEnd - 1);
+  handleKey(state, {key:'pageup', meta:true}, ...small);
+  expect(explanation.scroll).toBe(smallEnd - 1);
+  handleKey(state, {key:'pagedown'}, ...small);
+  expect(explanation.scroll).toBe(smallEnd);
+  handleKey(state, {key:'up'}, ...large);
+  expect(explanation.scroll).toBe(Math.max(0, Math.min(smallEnd, end(...large)) - 1));
+  handleKey(state, {key:'home'}, ...small);
+  handleKey(state, {key:'pagedown'}, ...small);
+  expect(explanation.scroll).toBe(Math.min(smallEnd, Math.max(1, editorLayout(state, ...small).bodyRows - 1)));
+  handleKey(state, {key:'pageup'}, ...small);
+  expect(explanation.scroll).toBe(0);
+  handleKey(state, {key:'g', ctrl:true}, ...small);
+  expect(e.explanation).toBe(null);
+  expect(e.setting).toBe('item-explain');
+  expect(JSON.stringify(e.draft)).toBe(before);
+  expect(e.history.undo).toHaveLength(0);
 });
 
 test('import review preserves a candidate preview and bounded expanded rows at every size', () => {

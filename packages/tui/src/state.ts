@@ -11,7 +11,9 @@ import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-man
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
 import { graphemes } from '@fbincon/statusline-core/unicode/index';
 import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profile-manager';
-import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
+import { openExplanation, explanationRows } from '@fbincon/statusline-core/editor/explanation';
+import { guidanceRows } from '@fbincon/statusline-core/editor/guidance';
+import { itemDetailWindow } from '@fbincon/statusline-core/editor/item-detail';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import type { EditorLine } from '@fbincon/statusline-core/editor/hints';
@@ -52,6 +54,7 @@ export interface Row extends SettingRow {
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
 const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
 const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Inspection', 'Preview', 'Interface'];
+const itemDetailKeys = new Set(['up', 'down', 'pageup', 'pagedown', 'home', 'end']);
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
     editor: Editor;
@@ -85,6 +88,12 @@ export class State {
         const e = this.editor, detail = e.detail;
         if (!detail) return '';
         return e.adding ? t(`items.${detail.scope}.${detail.id}.label`, this.language) : e.instanceLabel(detail.scope, detail.id, this.language);
+    }
+    itemDetailPage(width: number, capacity: number, key?: string) {
+        const { explanation, guidanceScroll, detailItem } = this.editor;
+        const rows = explanation ? explanationRows(this.editor, this.language, width)
+            : detailItem ? guidanceRows(detailItem, this.language, width) : [];
+        return itemDetailWindow(rows, explanation?.scroll ?? guidanceScroll ?? 0, capacity, key);
     }
     get modified(): boolean {
         const input = this.input;
@@ -286,7 +295,12 @@ export class State {
                 return null;
             }
         }
-        if (e.explanation) { if (!explanationKey(e.explanation, cancel ? 'cancel' : ctrl || event.meta ? '' : k, height)) e.explanation = null; return null; }
+        if (e.explanation) {
+            if (cancel) e.explanation = null;
+            else if (!ctrl && !event.meta && itemDetailKeys.has(k))
+                e.explanation.scroll = this.itemDetailPage(size.content.innerWidth, size.content.innerHeight - 1, k).start;
+            return null;
+        }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
         if (e.saveState === 'unknown') { this.notice(text('editor.save_unknown', { check: 'Ctrl+K' })); return null; }
         if (action === 'quick-setup' && e.inDraftView) {
@@ -309,15 +323,9 @@ export class State {
                 e.guidanceScroll = null;
                 if (e.adding)
                     e.detail = null;
+            } else if (!ctrl && !event.meta && itemDetailKeys.has(k)) {
+                e.guidanceScroll = this.itemDetailPage(size.content.innerWidth, size.content.innerHeight - 1, k).start;
             }
-            else if (k === 'up' || k === 'pageup')
-                e.guidanceScroll = Math.max(0, e.guidanceScroll - (k === 'up' ? 1 : height));
-            else if (k === 'down' || k === 'pagedown')
-                e.guidanceScroll += k === 'down' ? 1 : height;
-            else if (k === 'home')
-                e.guidanceScroll = 0;
-            else if (k === 'end')
-                e.guidanceScroll = 1000000;
             return null;
         }
         const input = this.input;

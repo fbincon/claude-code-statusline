@@ -168,7 +168,9 @@ Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it
 
 Ctrl+F opens the category picker. Select with arrows and accept with Enter. **All categories** clears the category. In the configured list, Ctrl+G clears both filters and restores ordering. The catalog inherits the list's query and category when it opens. Use Ctrl+U to clear the catalog query and Ctrl+F to change its category. Catalog filters stay in that view. Enter and Space add or enable the selected type in the draft and keep the catalog open. [Component catalog and instance controls](COMPOSITION.md#use-either-editor)
 
-For an item's source and conditions, press Ctrl+E, select **Sources and requirements** at the start of the form, then Enter. Scroll with arrows or Page Up/Down; return with Ctrl+G (terminal Esc also works). This explains scope, source fields, verified host requirements, optional collectors and unavailable reasons. It does not inspect live data or enable collection. An unobserved item remains selectable and its preview stays a fixed sample.
+In the format form (Ctrl+E), open **Sources and requirements** with Enter. In the add-component catalog, Ctrl+E opens it directly. Start with **Data source and scope** and **When it appears**. Further down, look for possible reasons the value is missing, source field names, verified version requirements and setup or diagnostic commands. The page describes general conditions for the selected component.
+
+Scroll with the arrow keys or Page Up/Down. Home and End jump to the beginning and end. Ctrl+G returns to the format form or catalog. Esc also returns in the terminal editor.
 
 <a id="formats-and-layouts"></a>
 
@@ -198,7 +200,9 @@ Export writes the current draft, including unsaved edits, to a new portable file
 
 Preview uses the production renderer with fixed observations. It does not collect live Git, transcripts or account metrics. Ctrl+V changes scenario, Ctrl+W changes preview width and Ctrl+N scrolls preview rows; Settings also exposes these choices. These controls belong to the editor session. A sample cannot establish real field availability or successful integration.
 
-Select a component, press Ctrl+E, then choose **Configuration and sample explanation**. The view separates draft enablement, known local installation/collector conditions, conditional hiding, clipping and width omission. Repeated types resolve by instance ID and agent sample rows have separate outcomes. Panel overflow is distinct from renderer omission. Scroll with arrows or PgUp/PgDn; Ctrl+G returns. Explanation writes no files or locks and starts no collection. For actual captured input, use [input diagnosis](DIAGNOSTICS.md).
+Select a configured component, press Ctrl+E and open **Configuration and sample explanation**. **Reference examples** show typical output for the component type. The preview below renders the whole statusline for the current draft.
+
+Read the draft state and the current sample's scenario and column width to see why the selected instance appears, is hidden, or is shortened. Agent sample rows report their outcomes individually. **Local setup** shows what the editor can establish from the installation, host version and collector settings. The explanation is read-only. For actual captured input, use [input diagnosis](DIAGNOSTICS.md).
 
 <a id="terminal-colors"></a>
 

@@ -158,6 +158,17 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
         });
         check(`docs/EDITORS${suffix}.md`, body => {
             const rows = body.split(/\r?\n/u);
+            const language = suffix ? 'zh-CN' : 'en';
+            for (const [id, keys] of [
+                ['find-items-and-inspect-requirements', ['guidance.title', 'guidance.overview', 'guidance.requirements']],
+                ['sample-preview-and-colors', ['explain.title', 'explain.examples', 'explain.requirements']],
+            ] as const) {
+                const section = body.split(`<a id="${id}"></a>`)[1]?.split('<a id=')[0];
+                for (const key of keys) {
+                    const label = t(key, language);
+                    assert(section?.includes(`**${label}**`), 'Missing editor item detail label ' + label);
+                }
+            }
             const terminal = rows.find(row => row.startsWith('| `claude-statusline configure` |'));
             const dimensions = terminal?.match(/(\d+)×(\d+)/u);
             assert(dimensions, 'Missing terminal editor minimum size');
