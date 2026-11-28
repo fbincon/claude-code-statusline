@@ -1,0 +1,277 @@
+import { t, renderMessage, type Language } from '../i18n/messages.js';
+import { hintLine, prependLine, wrapEditorLine, type EditorLine } from './hints.js';
+import {
+    PACKAGE_CHANNELS, PACKAGE_RECORDS_PER_PAGE, packageCanExecute, packageCanReview, packageRowCanFocus,
+    type PackageCommand, type PackageManager, type PackagePage,
+} from './package-manager.js';
+import { shortcutHint } from './shortcut-map.js';
+import type { EditorShortcuts } from './shortcut-settings.js';
+import { inputView } from './text-input.js';
+
+interface LogicalRow extends EditorLine {
+    key: string;
+    command?: PackageCommand;
+    heading?: boolean;
+}
+
+export interface PackageRow extends LogicalRow {
+    part: number;
+    selected?: boolean;
+}
+
+const titleKeys: Record<PackagePage, string> = {
+    status: 'title', installation: 'installation_details', channel: 'choose_channel', history: 'history_title',
+    review: 'review_title', execution: 'execution_title', draft: 'draft_title', 'execute-confirm': 'confirm_title',
+    cleanup: 'cleanup_title', 'cleanup-confirm': 'cleanup_confirm_title',
+};
+
+export function packageTitle(view: PackageManager, language: Language): string {
+    return t('package.ui.' + titleKeys[view.mode], language);
+}
+
+const safe = (value: string) => value.replace(/[\p{Cc}\p{Cs}]/gu, '');
+const refreshKey = (shortcuts?: EditorShortcuts) =>
+    shortcuts?.hint('packages', 'refresh-package') ?? shortcutHint('native', 'packages', {}, 'refresh-package');
+
+export function packageNotice(view: PackageManager, language: Language, shortcuts?: EditorShortcuts, automatic = false): string | EditorLine {
+    if (view.message && typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested')
+        return automatic ? t('ui.refresh.cancel_requested', language)
+            : hintLine(view.message.key, language, { key: refreshKey(shortcuts) });
+    return safe(renderMessage(view.message ?? '', language));
+}
+
+function commandLine(label: string | EditorLine): EditorLine {
+    const line = prependLine('Enter · ', typeof label === 'string' ? { text: safe(label) } : label);
+    return { ...line, keys: [{ start: 0, end: 'Enter'.length }, ...(line.keys ?? [])] };
+}
+
+function packageRows(view: PackageManager, language: Language, shortcuts: EditorShortcuts | undefined, automatic: boolean): LogicalRow[] {
+    const tr = (key: string, params: Record<string, unknown> = {}) => t('package.ui.' + key, language, params);
+    const hint = (key: string, keys: Record<string, string | EditorLine>, params?: Record<string, unknown>) =>
+        hintLine('package.ui.' + key, language, keys, params);
+    const rows: LogicalRow[] = [];
+    const add = (key: string, value: string | EditorLine, command?: PackageCommand) =>
+        rows.push({ key, ...(typeof value === 'string' ? { text: safe(value) } : value), command });
+    const heading = (key: string) => rows.push({ key: 'heading:' + key, text: tr(key), heading: true });
+    const open = (key: string, label: string | EditorLine, page: Extract<PackageCommand, { kind: 'open' }>['page']) =>
+        add(key, commandLine(label), { kind: 'open', page });
+    const review = (action: Extract<PackageCommand, { kind: 'review' }>['action']) =>
+        add(action, commandLine(tr(action)), { kind: 'review', action });
+    const previousAndNext = (offset: number, total: number) => {
+        if (offset > 0) add('previous-page', hint('previous_page', { enter: 'Enter' }),
+            { kind: 'page', offset: Math.max(0, offset - PACKAGE_RECORDS_PER_PAGE) });
+        if (offset + PACKAGE_RECORDS_PER_PAGE < total) add('next-page', hint('next_page', { enter: 'Enter' }),
+            { kind: 'page', offset: offset + PACKAGE_RECORDS_PER_PAGE });
+    };
+    const pending = (showIdentity: boolean) => {
+        const entry = view.status?.pending;
+        if (entry) add('pending', showIdentity ? tr('pending', {
+            id: entry.id, stage: tr('stage_' + entry.stage),
+            running: t(entry.running ? 'task.value.running' : 'task.unknown', language),
+        }) : tr('pending_summary'));
+    };
+    const jobState = (prefix: 'state_' | 'execution_state_', state: string) =>
+        automatic && state === 'running' ? { text: t('task.value.running', language) }
+            : hint(prefix + state, { key: refreshKey(shortcuts) });
+    const progressLabel = (label: string, state: EditorLine) => prependLine(tr(label) + ' · ', state);
+    const unknown = t('task.unknown', language);
+    const status = view.status;
+    switch (view.mode) {
+        case 'status':
+            if (status) add('summary', tr('current', { value: status.current ?? unknown }) + ' · ' +
+                tr('installed_channel', { value: status.channel ?? unknown }));
+            add('notice', tr('local_notice'));
+            pending(false);
+            if (status && !status.prefix) add('needs-prefix', tr('needs_prefix'));
+            if (packageCanReview(view)) {
+                if (!view.execution) {
+                    heading('version_options');
+                    add('target', hint('edit_field', { enter: 'Enter' }, {
+                        field: tr('target', { value: safe(view.target) || t('values.auto', language) }),
+                    }), { kind: 'input', field: 'target' });
+                    add('channel', hint('choose_field', { enter: 'Enter' }, {
+                        field: tr('channel', { value: view.channel ?? tr('inherit') }),
+                    }), { kind: 'open', page: 'channel' });
+                }
+                heading('version_actions');
+                for (const action of ['check', 'update', 'rollback'] as const) review(action);
+            }
+            if (view.job) open('job', progressLabel('review_title', jobState('state_', view.job.state)), 'review');
+            if (view.execution) open('execution', progressLabel('execution_title',
+                jobState('execution_state_', view.execution.state)), 'execution');
+            heading('installation_actions');
+            open('installation', tr('installation_details'), 'installation');
+            if (status?.prefix) open('history', tr('history_title'), 'history');
+            break;
+        case 'installation': {
+            const prefix = tr('prefix', { value: safe(view.prefix) || unknown });
+            if (view.execution) add('prefix', prefix);
+            else add('prefix', hint('edit_field', { enter: 'Enter' }, { field: prefix }), { kind: 'input', field: 'prefix' });
+            if (status) {
+                add('current', tr('current', { value: status.current ?? unknown }));
+                add('observed-channel', tr('installed_channel', { value: status.channel ?? unknown }));
+                add('previous', tr('previous', { value: status.previous ?? unknown }));
+                add('entry', tr('entry', { value: status.entry ?? unknown }));
+                add('config', tr('config', { value: status.config_dir }));
+                add('runtime', 'Node ' + status.node_version + ' · Claude ' + (status.host ?? unknown));
+                for (const reason of status.reasons) add('reason:' + reason, t('package.reason_' + reason, language, {}, reason));
+            }
+            break;
+        }
+        case 'channel':
+            add('channel-help', tr('channel_help'));
+            for (const value of PACKAGE_CHANNELS) {
+                const label = value ?? tr('inherit');
+                add('channel:' + (value ?? 'inherit'), commandLine(value === view.channel ? tr('current_choice', { value: label }) : label),
+                    { kind: 'channel', value });
+            }
+            break;
+        case 'history':
+            add('history-context', tr('prefix', { value: safe(view.prefix) || unknown }));
+            pending(true);
+            if (packageCanReview(view)) {
+                review('recover-package');
+                add('cleanup-review', commandLine(tr('cleanup_review')), { kind: 'effect', effect: 'cleanup-review' });
+            }
+            if (!status?.history.length) add('history-empty', tr('history_empty'));
+            for (const record of status?.history ?? []) {
+                const restore = packageCanReview(view) && record.backup === 'verified';
+                const backup = restore ? hint('backup_verified', { enter: 'Enter' })
+                    : { text: tr(record.backup === 'verified' ? 'backup_ready' : 'backup_' + record.backup) };
+                const recordText = safe(record.id + ' · ' + (record.version ?? '—') + ' · ' + tr('stage_' + record.stage));
+                add('backup:' + record.id, { ...backup, text: backup.text + ' · ' + recordText },
+                    restore ? { kind: 'review', action: 'restore-config', backup: record.id } : undefined);
+            }
+            if (status) previousAndNext(status.offset, status.total);
+            break;
+        case 'review': {
+            const job = view.job;
+            if (!job) break;
+            add('job', hint('job', { state: jobState('state_', job.state) }, { id: safe(job.id) }));
+            if (job.error) add('job-error', t('package.reason_' + job.error, language, {}, job.error));
+            const result = job.review;
+            if (result) {
+                add('verification', tr(result.action === 'restore-config' ? 'restore_review' : result.artifact_verified ? 'verified' : 'unverified'));
+                add('review-target', (result.current ?? '—') + ' → ' + (result.target ?? '—'));
+                if (packageCanExecute(view)) add('execute', commandLine(tr('execute')), { kind: 'effect', effect: 'execute' });
+                add('review-config', tr('config', { value: result.config_dir }));
+                if (result.registry) add('registry', result.registry);
+                if (result.integrity) add('integrity', result.integrity);
+                if (result.node_engine) add('engine', 'Node ' + result.node_engine);
+                for (const reason of result.reasons) add('review-reason:' + reason, t('package.reason_' + reason, language, {}, reason));
+                for (const file of result.configuration_conflicts) add('conflict:' + file, file);
+                for (const file of result.files) add('restore:' + file, file);
+            }
+            break;
+        }
+        case 'execution': {
+            const run = view.execution;
+            if (!run) break;
+            const result = (value: boolean | null) => tr(value === null ? 'result_na' : value ? 'result_done' : 'result_pending');
+            add('execution-status', hint('execution', { state: jobState('execution_state_', run.state) }, {
+                id: safe(run.transaction_id ?? run.id), stage: t('package.ui.stage_' + run.stage, language, {}, run.stage),
+            }));
+            add('execution-results', tr('execution_results', {
+                package: result(run.results.package), integration: result(run.results.integration), configuration: result(run.results.configuration),
+            }));
+            add('execution-control', tr('control', { executable: run.control.executable, entry: run.control.args[0] ?? '' }));
+            add('execution-control-help', tr('control_help', { directory: run.control.config_dir }));
+            if (run.error) add('execution-error', t('package.reason_' + run.error, language, {}, run.error));
+            add('reload-required', tr('editor_locked'));
+            if (run.state === 'complete') add('reopen', tr('reopen'));
+            break;
+        }
+        case 'draft':
+            add('notice', tr('draft_required'));
+            if (view.draftSaveLocked) {
+                add('draft-reconcile', commandLine(tr('draft_reconcile')), { kind: 'effect', effect: 'reconcile-draft' });
+            } else {
+                add('draft-save', commandLine(tr('draft_save')), { kind: 'effect', effect: 'save-draft' });
+                add('draft-export', commandLine(tr('draft_export')), { kind: 'input', field: 'export_path' });
+                add('draft-discard', commandLine(tr('draft_discard')), { kind: 'effect', effect: 'discard-draft' });
+            }
+            add('draft-cancel', commandLine(tr('draft_cancel')), { kind: 'back' });
+            break;
+        case 'execute-confirm':
+            add('notice', tr('execute_notice'));
+            add('execute-confirm', hint('execute_confirm', { enter: 'Enter' }), { kind: 'effect', effect: 'execute' });
+            add('draft-cancel', commandLine(t('ui.hints.cancel', language)), { kind: 'back' });
+            break;
+        case 'cleanup': {
+            const cleanup = view.cleanup;
+            add('cleanup-message', tr(cleanup?.uncertain ? 'cleanup_uncertain' : 'cleanup_notice'));
+            if (cleanup && !cleanup.rows.length) add('cleanup-empty', tr('history_empty'));
+            for (const record of cleanup?.rows ?? []) {
+                const removable = packageCanReview(view) && !cleanup?.uncertain && record.removable;
+                const label = [record.id, record.version ?? '—', tr(record.removable ? 'cleanup_unused' : 'cleanup_protected'),
+                    ...record.reasons.map(reason => tr('protect_' + reason))].join(' · ');
+                add('cleanup:' + record.id, removable ? commandLine(tr('cleanup_remove') + ' · ' + label) : label,
+                    removable ? { kind: 'cleanup', id: record.id } : undefined);
+            }
+            if (cleanup) previousAndNext(cleanup.offset, cleanup.total);
+            break;
+        }
+        case 'cleanup-confirm': {
+            const back = (shortcuts?.hint('packages', 'close-packages') ?? 'Q') +
+                (shortcuts?.surface === 'native' ? '/Ctrl+G' : '/Esc');
+            add('cleanup-selected', view.cleanupId ?? '');
+            add('cleanup-confirm', hint('cleanup_confirm', { enter: 'Enter', back }), { kind: 'effect', effect: 'cleanup-apply' });
+            break;
+        }
+    }
+    return rows;
+}
+
+function inputRows(view: PackageManager, language: Language, width: number): PackageRow[] {
+    const field = view.editing!;
+    const label = t('package.ui.' + field, language, { value: '' }).trim();
+    const help = field === 'target' || field === 'prefix' ? [t('package.ui.' + field + '_help', language)] : [];
+    return [...[label, ...help].flatMap(line => wrapEditorLine({ text: line }, width)),
+        { text: safe(inputView(view.input!, width)) }]
+        .map((line, part, rows) => ({
+            ...prependLine(part === rows.length - 1 ? '› ' : '  ', line),
+            key: 'input', part, selected: part === rows.length - 1,
+        }));
+}
+
+function findSelection(view: PackageManager, rows: readonly PackageRow[]): number {
+    const existing = rows.findLastIndex(row => row.key === view.selected && row.part <= view.part && packageRowCanFocus(view, row));
+    if (existing >= 0) return existing;
+    const recordGroup = /^(backup:|cleanup:)/u.exec(view.selected)?.[0];
+    const inGroup = recordGroup && rows.some(row => row.key.startsWith(recordGroup));
+    let best = -1;
+    for (const [index, row] of rows.entries()) {
+        if (!packageRowCanFocus(view, row) || inGroup && !row.key.startsWith(recordGroup)) continue;
+        if (best < 0 || Math.abs(view.rowIndex - index) < Math.abs(view.rowIndex - best)) best = index;
+    }
+    return Math.max(0, best);
+}
+
+export function packageView(view: PackageManager, language: Language, width: number, height: number,
+    shortcuts?: EditorShortcuts, automatic = false): PackageRow[] {
+    view.capacity = Math.max(1, height);
+    const columns = Math.max(1, width - 2);
+    // The underlying page keeps its scroll and selected field throughout editing.
+    if (view.input && view.editing) return inputRows(view, language, columns).slice(-view.capacity);
+
+    const rows = packageRows(view, language, shortcuts, automatic)
+        .flatMap(({ text, keys, ...row }) => wrapEditorLine(view.busy ? { text } : { text, keys }, columns)
+            .map((line, part) => ({ ...row, ...line, part })));
+    const summary: PackageRow[] = [];
+    if (view.mode === 'status' && rows[0]?.key === 'summary' && view.capacity >= 3) {
+        const summaryRows = rows.findIndex(row => row.key !== 'summary');
+        summary.push(...rows.splice(0, summaryRows).slice(0, Math.min(2, view.capacity - 2)));
+        view.capacity -= summary.length;
+    }
+    const index = findSelection(view, rows);
+    view.rows = rows;
+    view.selected = rows[index]?.key ?? '';
+    view.part = rows[index]?.part ?? 0;
+    view.rowIndex = index;
+    view.scroll = Math.max(0, Math.min(view.scroll, index, rows.length - view.capacity));
+    if (index >= view.scroll + view.capacity) view.scroll = index - view.capacity + 1;
+    return [...summary.map(row => ({ ...row, ...prependLine('  ', row) })), ...rows.slice(view.scroll, view.scroll + view.capacity).map((row, offset) => {
+        const selected = !row.heading && view.scroll + offset === index;
+        return { ...row, ...prependLine(selected && row.command ? '› ' : '  ', row), selected };
+    })];
+}

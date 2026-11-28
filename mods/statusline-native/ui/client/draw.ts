@@ -1,6 +1,6 @@
 import { changesView } from '../../lib/editor/change-review.ts';
 import { reuseView } from '../../lib/editor/reuse-manager.ts';
-import { packageView } from '../../lib/editor/package-manager.ts';
+import { packageNotice, packageTitle, packageView } from '../../lib/editor/package-view.ts';
 import { diagnosisPage } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
 import { colorsView } from '../../lib/editor/color-manager.ts';
@@ -86,7 +86,12 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const content: RenderElement[] = [];
   let title = '';
   if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,language,inner,layout.bodyRows):reuseView(e,language,inner,layout.bodyRows)).map(row=>line(row,rowStyle(row.selected===true))));
-  } else if(e.packages){title=tr('package.ui.title');content.push(...packageView({...e.packages,input:e.packages.input?{...e.packages.input}:null},language,inner,layout.bodyRows,e.shortcuts).map(row=>line(row,rowStyle(row.selected===true))));
+  } else if (e.packages) {
+    title = packageTitle(e.packages, language);
+    if (e.packages.message) notice = packageNotice(e.packages, language, e.shortcuts);
+    const packages = { ...e.packages, input: e.packages.input ? { ...e.packages.input } : null };
+    content.push(...packageView(packages, language, inner, layout.bodyRows, e.shortcuts)
+      .map(row => line(row, row.heading ? styles.accent : rowStyle(row.selected === true))));
   } else if (e.diagnosis) {
     title = tr('diagnosis.title');
     const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);

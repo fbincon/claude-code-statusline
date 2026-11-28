@@ -116,7 +116,7 @@ export class Session {
             }
             if (effect === 'packages' && e.packages) {
                 const view = e.packages;
-                if (view.effect === 'status' && view.mode === 'status') {
+                if (view.effect === 'status') {
                     view.effect = null;
                     await this.readNow(columns, rows, refresh);
                 } else {

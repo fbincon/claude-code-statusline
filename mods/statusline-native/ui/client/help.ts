@@ -8,6 +8,7 @@ import { translatedShortcuts } from '../../lib/i18n/presentation.ts';
 import { shortcutContext } from '../../lib/client/settings.ts';
 import { reviewShortcutContext } from '../../lib/editor/import-review.ts';
 import { itemDecorationKind } from '../../lib/editor/forms.ts';
+import { packageControls } from '../../lib/editor/package-manager.ts';
 
 const focus: Shortcut = { key: 'Esc', label: 'focus', optional: 6 };
 
@@ -22,11 +23,19 @@ export function editorShortcuts(view: View): Shortcut[][] {
   }
   if (e.changeReview || e.reuse) return [[{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓ PgUp/PgDn',label:'scroll'}]];
   if (e.packages) {
-    if (e.packages.input) return [[{key:'Enter',label:'accept'},{key:'Ctrl+G',label:'back'},focus]];
-    return [[{key:'Enter',label:'select'},{key: keys.hint('packages', 'refresh-package'),label:'reload'},
-        ...(e.packages.job && !e.packages.execution ? [{key: keys.hint('packages', 'cancel-package-review'),label:'cancel'}] : []),
-        {key: keys.hint('packages', 'close-packages'),label:'close'},focus],
-      [{key:'↑↓',label:'select'},{key:'PgUp/PgDn',label:'page'},{key: keys.hint('packages', 'reload-packages'),label:'reload'}]];
+    if (e.packages.input) return [[{ key: 'Enter', label: 'accept' }, { key: 'Ctrl+G', label: 'back' }, focus],
+      [{ key: '←→ Home/End', label: 'edit', optional: 10 }, { key: 'Ctrl+U', label: 'clear', optional: 11 }]];
+    const { pick, refresh, reload, cancel } = packageControls(e.packages);
+    const actions: Shortcut[] = [
+      ...(pick ? [{ key: 'Enter', label: 'select' }] : []),
+      { key: keys.hint('packages', 'close-packages') + '/Ctrl+G', label: e.packages.mode === 'status' ? 'close' : 'back' },
+    ];
+    if (refresh) actions.push({ key: keys.hint('packages', 'refresh-package'), label: 'reload' });
+    actions.push(focus);
+    const navigation: Shortcut[] = [{ key: '↑↓', label: pick ? 'select' : 'scroll' }, { key: 'PgUp/PgDn', label: 'page', optional: 9 }];
+    if (reload) navigation.push({ key: keys.hint('packages', 'reload-packages'), label: 'reload', optional: 8 });
+    if (cancel) navigation.push({ key: keys.hint('packages', 'cancel-package-review'), label: 'cancel' });
+    return [actions, navigation];
   }
   if (view.busy) return [[focus]];
   if (e.colors) return [

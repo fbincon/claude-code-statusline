@@ -29619,6 +29619,291 @@
         "terms": []
       },
       "terms": {}
+    },
+    "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b": {
+      "key": "package.ui.backup_ready",
+      "english": "Backup verified",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.backup_ready",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06": {
+      "key": "package.ui.channel_help",
+      "english": "Exact versions take priority. The channel applies to automatic checks and upgrades.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.channel_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938": {
+      "key": "package.ui.choose_channel",
+      "english": "Choose a channel",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.choose_channel",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1": {
+      "key": "package.ui.choose_field",
+      "english": "{enter} choose · {field}",
+      "placeholders": [
+        "enter",
+        "field"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.choose_field",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a": {
+      "key": "package.ui.cleanup_confirm_title",
+      "english": "Confirm history cleanup",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.cleanup_confirm_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c": {
+      "key": "package.ui.cleanup_remove",
+      "english": "Review removal",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.cleanup_remove",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631": {
+      "key": "package.ui.cleanup_title",
+      "english": "History cleanup",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.cleanup_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb": {
+      "key": "package.ui.confirm_title",
+      "english": "Confirm execution",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15": {
+      "key": "package.ui.current_choice",
+      "english": "{value} (current)",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.current_choice",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2": {
+      "key": "package.ui.draft_title",
+      "english": "Unsaved draft",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.draft_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf": {
+      "key": "package.ui.edit_field",
+      "english": "{enter} edit · {field}",
+      "placeholders": [
+        "enter",
+        "field"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.edit_field",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd": {
+      "key": "package.ui.execution_title",
+      "english": "Execution progress",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.execution_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b": {
+      "key": "package.ui.history_empty",
+      "english": "No records for this installation.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.history_empty",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc": {
+      "key": "package.ui.history_title",
+      "english": "Recovery and history",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.history_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b": {
+      "key": "package.ui.installation_actions",
+      "english": "Installation and recovery",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.installation_actions",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de": {
+      "key": "package.ui.installation_details",
+      "english": "Installation details",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.installation_details",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be": {
+      "key": "package.ui.installed_channel",
+      "english": "Installation channel: {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.installed_channel",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7": {
+      "key": "package.ui.needs_prefix",
+      "english": "Choose a persistent npm prefix in Installation details.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.needs_prefix",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095": {
+      "key": "package.ui.pending_summary",
+      "english": "Unfinished installation transaction",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.pending_summary",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c": {
+      "key": "package.ui.prefix_help",
+      "english": "Enter a persistent npm prefix. Leave it blank to detect the installation.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.prefix_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e": {
+      "key": "package.ui.review_busy",
+      "english": "A review is running. Open the current review for progress or cancel it first.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.review_busy",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3": {
+      "key": "package.ui.review_title",
+      "english": "Current review",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.review_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8": {
+      "key": "package.ui.target_help",
+      "english": "Enter an exact version or leave it blank. Automatic checks and upgrades use the channel. Rollback defaults to the previous successful version.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.target_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72": {
+      "key": "package.ui.version_actions",
+      "english": "Check and change versions",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.version_actions",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7": {
+      "key": "package.ui.version_options",
+      "english": "Version options",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.version_options",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {

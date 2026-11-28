@@ -1,6 +1,6 @@
 import { changesView } from '@fbincon/statusline-core/editor/change-review';
 import { reuseView } from '@fbincon/statusline-core/editor/reuse-manager';
-import { packageView } from '@fbincon/statusline-core/editor/package-manager';
+import { packageNotice, packageView } from '@fbincon/statusline-core/editor/package-view';
 import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
@@ -35,9 +35,13 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         return '';
     }
     if (e.packages) {
-        packageView(e.packages, state.language, width, panel.innerHeight - 1, e.shortcuts, true).forEach(drawRow);
+        packageView(e.packages, state.language, width, panel.innerHeight - 1, e.shortcuts, true).forEach((row, index) => {
+            if (row.heading) canvas.content(panel, index, [heading(row.text)]);
+            else drawRow(row, index);
+        });
         const error = packageRefreshError(e.packages);
         if (error) return renderMessage(error, state.language);
+        if (e.packages.message) return packageNotice(e.packages, state.language, e.shortcuts, true);
         return packageRefreshInterval(e.packages) === null ? '' : tr('ui.refresh.auto');
     }
     if (e.taskViewer) {

@@ -22,10 +22,11 @@ import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
     claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' }, 'header-controls': { type: 'boolean' },
-    'editor-shortcuts': { type: 'boolean' },
+    'editor-shortcuts': { type: 'boolean' }, 'version-installation': { type: 'boolean' },
 } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts]');
-assert([values['component-picker'], values['header-controls'], values['editor-shortcuts']].filter(Boolean).length <= 1, 'Select one focused PTY journey');
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts | --version-installation]');
+assert([values['component-picker'], values['header-controls'], values['editor-shortcuts'], values['version-installation']]
+    .filter(Boolean).length <= 1, 'Select one focused PTY journey');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
 assert.deepEqual(artifact.source.source_hashes, sourceHashes(), 'PTY collector differs from the candidate source');
@@ -53,7 +54,9 @@ if (command === 'configure') {
   const { ConfigurationProtocol } = await import(${cliModule('ui/protocol.js')});
   const handle = ConfigurationProtocol.prototype.handle;
   ConfigurationProtocol.prototype.handle = function (request, diagnostics) {
-    if (JSON.parse(request).operation === 'apply') record({ command, operation: 'apply', phase: 'request' });
+    const { operation } = JSON.parse(request);
+    if (typeof operation === 'string' && (operation === 'apply' || operation.startsWith('package_')))
+        record({ command, operation, phase: 'request' });
     return handle.call(this, request, diagnostics);
   };
 }
@@ -152,9 +155,9 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const nativeTask = action === 'native-task';
     const compactTask = nativeTask && name === 'native-task-viewer';
     const header = action === 'header-controls';
-    const columns = header ? 190 : nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
+    const initialColumns = header ? 190 : nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
     const initialRows = header ? 40 : nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
-    let rows = initialRows;
+    let columns = initialColumns, rows = initialRows;
     const p = openPty(config, columns, rows, environment, 'en', external
         ? { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project }
         : { executable: host.executable, args: [...host.args, '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
@@ -348,17 +351,70 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await key('/agent-alpha\r','search agent');await key('e','show evidence');await key('r','manual refresh');
                 await until(text=>text.includes('captured-task'),'task retained');capture('after');await key('q','return to editor');
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
-            }else{
+            } else {
                 await until(text=>text.includes('Local status'),'local status boundary visible');
-                if(action==='package-cleanup'){
-                    // This isolated installation is not a global npm prefix.
-                    // Select the owned empty prefix explicitly before browsing.
-                    await key('\x1b[H','first package row');for(let i=0;i<8&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Prefix:'));i++)await key('\x1b[B','select explicit prefix');
-                    await key('\r','edit prefix');await key('\x15','clear prefix');await key(project,'owned empty prefix');await key('\r','read selected prefix');
-                    await key('\x1b[H','first package row');for(let i=0;i<50&&!read().split('\n').some(line=>line.includes('›')&&line.includes(t('package.ui.cleanup_review','en')));i++)await key('\x1b[B','find cleanup');
-                    await key('\r','review local cleanup');await until(text=>external?text.includes(t('package.ui.cleanup_notice','en').slice(0,32)):completed('package_cleanup_review'),'cleanup read completed');capture('after');await key('q','return from cleanup');
-                }else capture('after');await key('q','return to editor');
-                assert(!records().some(row=>row.operation==='package_review_start'),'Page entry started a network review');
+                const selected = (text: string, label: string) => text.split('\n').some(line => line.includes('›') && line.includes(label));
+                const select = async (label: string) => {
+                    await key('\x1b[H', 'first row');
+                    for (let i = 0; i < 36 && !selected(read(), label); i++) await key('\x1b[B', 'seek ' + label);
+                    await until(text => selected(text, label), label + ' selected');
+                };
+                const resize = (nextColumns: number, nextRows: number) => {
+                    columns = nextColumns;
+                    rows = nextRows;
+                    offset = p.captured().length;
+                    screen = new Capture(columns, rows);
+                    p.resize(columns, rows);
+                };
+                const installation = t('package.ui.installation_details', 'en');
+                const history = t('package.ui.history_title', 'en');
+                await select(installation);
+                await key('\r', 'open installation details');
+                await until(text => selected(text, 'Enter edit · Prefix:'), 'editable prefix identified');
+                // Select an owned temporary prefix to exercise local reads without depending on the real installation.
+                await key('\r\x15', 'edit and clear the prefix');
+                await key(project, 'type a literal prefix containing spaces and Unicode');
+                await key('\r', 'inspect the selected prefix');
+                await until(text => selected(text, 'Enter edit · Prefix:'), 'prefix selection restored after reading');
+                await key('q', 'return from installation details');
+                await until(text => selected(text, installation), 'installation details restored');
+                if (action === 'package-cleanup') {
+                    await select(history);
+                    await key('\r', 'open recovery and history');
+                    const cleanup = t('package.ui.cleanup_review', 'en');
+                    await select(cleanup);
+                    await key('\r', 'review local cleanup');
+                    await until(text => text.includes(t('package.ui.cleanup_notice', 'en').slice(0, 32)), 'cleanup read completed');
+                    capture('after');
+                    await key(external ? '\x1b' : 'q', 'return from cleanup');
+                    await until(text => selected(text, cleanup), 'cleanup entry restored');
+                    await key('q', 'return from history');
+                    await until(text => selected(text, history), 'history entry restored');
+                } else {
+                    await select('Enter choose · Channel:');
+                    await key('\r', 'open channel choices');
+                    await until(text => text.includes('latest') && text.includes('beta') &&
+                        selected(text, 'Use installation channel'), 'all available channels and the current value visible');
+                    await key('\x1b[F\r', 'select beta');
+                    await until(text => selected(text, 'Channel: beta'), 'channel selection restored after choosing beta');
+                    await key('\r\x1b[H', 'reopen channel choices and highlight the inherited value');
+                    if (external) {
+                        resize(64, 18);
+                        await until(text => selected(text, 'Use installation channel'), 'channel chooser available at 64×18');
+                        capture('compact');
+                    }
+                    await key(external ? '\x1b' : '\x07', 'cancel the pending channel choice');
+                    await until(text => selected(text, 'Channel: beta'), 'cancel preserves beta and restores the channel row');
+                    capture('after');
+                    if (external) {
+                        resize(initialColumns, initialRows);
+                        await until(text => selected(text, 'Channel: beta'), 'channel selection retained after resize');
+                    }
+                }
+                await key('q', 'return to the selected Settings row');
+                await until(text => selected(text, label), 'settings row restored');
+                assert(!records().some(row => ['package_review_start', 'package_execute_start', 'package_cleanup_apply'].includes(row.operation)),
+                    'Browsing started a review or requested a package change');
             }
             await until(text=>text.includes('Configure Status Line *'),'unsaved draft retained');
         } else if(action==='live-command'){
@@ -757,13 +813,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         try { process.kill(-p.child.pid!, 'SIGTERM'); } catch { /* Already ended. */ }
         await delay(100); try { process.kill(-p.child.pid!, 'SIGKILL'); } catch { /* Already ended. */ }
         await p.close();
-        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: columns, initial_rows: initialRows, language, body_columns: bodyColumns,
+        const report = { name, status, error, external, host: version!.join('.'), terminal_columns: initialColumns, initial_rows: initialRows, language, body_columns: bodyColumns,
             model_calls: 0, source_commands: action==='live-command'?1:0, source_commit: artifact.source.commit, tarball_sha256: artifact.sha256, display_before_sha256: sha256(before),
             display_after_sha256: sha256(fs.readFileSync(join(config, 'claude-statusline.json'))), steps };
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
-const expectedJourneys = values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 : values['component-picker'] ? 4 : 43;
+const expectedJourneys = values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 :
+    values['component-picker'] || values['version-installation'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
@@ -777,6 +834,10 @@ try {
             await runCase('native-header-' + language, 'plain-main-w72', 'header-controls', false, language);
     } else if (values['component-picker']) {
         for (const external of [false, true]) for (const action of ['picker-save', 'picker-discard']) {
+            await runCase((external ? 'external-' : 'native-') + action, 'plain-main-w72', action, external);
+        }
+    } else if (values['version-installation']) {
+        for (const external of [false, true]) for (const action of ['version-status', 'package-cleanup']) {
             await runCase((external ? 'external-' : 'native-') + action, 'plain-main-w72', action, external);
         }
     } else {

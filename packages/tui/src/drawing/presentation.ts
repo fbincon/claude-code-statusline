@@ -1,6 +1,7 @@
 /** External-editor labels and values; editable text remains canonical. */
 import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { fieldMessage, itemDecorationValue } from '@fbincon/statusline-core/editor/forms';
+import { packageTitle } from '@fbincon/statusline-core/editor/package-view';
 import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 import { t, renderMessage, LANGUAGE_NAMES, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { State, Row } from '../state.js';
@@ -68,7 +69,7 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
-    if(e.packages)return tr('package.ui.title');
+    if (e.packages) return packageTitle(e.packages, state.language);
     if(e.taskViewer)return t('task.title',e.taskViewer.language);
     if(e.diagnosis)return tr('diagnosis.title');
     if(e.colors)return tr('colors.title');

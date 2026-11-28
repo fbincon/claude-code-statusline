@@ -1,218 +1,616 @@
-import type { PackageStatus, PackageReviewJob, PackageReviewRequest, PackageExecution, PackageCleanupReview, PackageControl, Operation, ResultFor } from '../contracts/ui.js';
+import type {
+    Operation, PackageCleanupReview, PackageControl, PackageExecution, PackageReviewJob, PackageReviewRequest, PackageStatus, ResultFor,
+} from '../contracts/ui.js';
+import { text, type LocalizedText } from '../i18n/messages.js';
+import { BackendError } from './backend.js';
 import type { Editor } from './draft.js';
 import { closeSourceDraft } from './source-manager.js';
-import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/messages.js';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
-import { hintLine, prependLine, wrapEditorLine, type EditorLine } from './hints.js';
-import { BackendError } from './backend.js';
-import { resolveShortcut, shortcutHint } from './shortcut-map.js';
+import { resolveShortcut } from './shortcut-map.js';
 import type { EditorShortcuts } from './shortcut-settings.js';
-interface Row extends EditorLine { key:string; action?:PackageReviewRequest['action']; backup?:string; selected?:boolean }
-export interface PackageManager {
-    owner:string;status:PackageStatus|null;job:PackageReviewJob|null;execution:PackageExecution|null;cleanup:PackageCleanupReview|null;
-    prefix:string;target:string;channel:'latest'|'beta'|null;offset:number;selected:string;scroll:number;rows:Row[];capacity:number;
-    input:TextInput|null;editing:'prefix'|'target'|'export_path'|null;export_path:string;
-    message:LocalizedText|string|null;
-    effect:'load'|'start'|'status'|'cancel'|'close'|'execute'|'save-draft'|'discard-draft'|'export-draft'|'reconcile-draft'|'cleanup-review'|'cleanup-apply'|null;
-    mode:'status'|'draft'|'execute-confirm'|'cleanup'|'cleanup-confirm';cleanupId:string|null;draftPrepared:boolean;
-    action:PackageReviewRequest['action'];backup:string|null;busy:boolean;closed:boolean;generation:number;
+import { inputKey, textInput, type TextInput, type TextKey } from './text-input.js';
+import type { PackageRow } from './package-view.js';
+
+export type PackagePage = 'status' | 'installation' | 'channel' | 'history' | 'review' | 'execution' |
+    'draft' | 'execute-confirm' | 'cleanup' | 'cleanup-confirm';
+export type PackageChannel = PackageReviewRequest['channel'];
+type Field = 'prefix' | 'target' | 'export_path';
+type Effect = 'load' | 'start' | 'status' | 'cancel' | 'close' | 'execute' | 'save-draft' | 'discard-draft' |
+    'export-draft' | 'reconcile-draft' | 'cleanup-review' | 'cleanup-apply';
+
+export type PackageCommand =
+    | { kind: 'open'; page: 'installation' | 'channel' | 'history' | 'review' | 'execution' }
+    | { kind: 'input'; field: Field }
+    | { kind: 'channel'; value: PackageChannel }
+    | { kind: 'review'; action: PackageReviewRequest['action']; backup?: string }
+    | { kind: 'cleanup'; id: string }
+    | { kind: 'page'; offset: number }
+    | { kind: 'effect'; effect: 'cleanup-review' | 'cleanup-apply' | 'execute' | 'save-draft' | 'discard-draft' | 'reconcile-draft' }
+    | { kind: 'back' };
+
+interface PagePosition {
+    mode: PackagePage;
+    selected: string;
+    part: number;
+    rowIndex: number;
+    scroll: number;
 }
-export function packageManager():PackageManager {
-    return {owner:'viewer-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),status:null,job:null,execution:null,cleanup:null,prefix:'',target:'',channel:null,offset:0,selected:'prefix',scroll:0,rows:[],capacity:1,input:null,editing:null,export_path:'statusline-before-update.json',message:null,effect:'load',mode:'status',cleanupId:null,draftPrepared:false,action:'check',backup:null,busy:false,closed:false,generation:0};
+
+export interface PackageManager extends PagePosition {
+    owner: string;
+    status: PackageStatus | null;
+    job: PackageReviewJob | null;
+    execution: PackageExecution | null;
+    cleanup: PackageCleanupReview | null;
+    prefix: string;
+    target: string;
+    channel: PackageChannel;
+    historyOffset: number;
+    cleanupOffset: number;
+    parents: PagePosition[];
+    rows: PackageRow[];
+    capacity: number;
+    input: TextInput | null;
+    editing: Field | null;
+    export_path: string;
+    message: LocalizedText | string | null;
+    effect: Effect | null;
+    cleanupId: string | null;
+    draftPrepared: boolean;
+    draftSaveLocked: boolean;
+    reviewInvalidated: boolean;
+    action: PackageReviewRequest['action'];
+    backup: string | null;
+    busy: boolean;
+    closed: boolean;
+    generation: number;
 }
-export interface PackageBackend {
-    request<O extends Operation>(operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
-    control?<O extends Operation>(control:PackageControl,operation:O,payload?:unknown):ResultFor<O>|Promise<ResultFor<O>>;
-}
-function request<O extends Operation>(view:PackageManager,backend:PackageBackend,operation:O,payload:unknown):ResultFor<O>|Promise<ResultFor<O>> {
-    return view.execution&&backend.control?backend.control(view.execution.control,operation,payload):backend.request(operation,payload);
-}
-export async function closePackage(view:PackageManager,backend:PackageBackend):Promise<void>{
-    view.closed=true;view.generation++;
-    if(view.execution)try{await request(view,backend,'package_execute_detach',{id:view.execution.id,owner:view.owner});}catch{/* Detach never cancels an executor. */}
-    if(view.job)try{await request(view,backend,'package_review_cancel',{id:view.job.id,owner:view.owner});}catch{/* Review deadlines still bound disconnected views. */}
-}
-function verified(view:PackageManager):boolean {
-    const job=view.job,review=job?.review;
-    return job?.state==='complete'&&!!review?.compatible&&job.request.action!=='check'&&(review.artifact_verified||job.request.action==='restore-config');
-}
-function refreshKey(shortcuts?: EditorShortcuts): string {
-    return shortcuts?.hint('packages', 'refresh-package') ?? shortcutHint('native', 'packages', {}, 'refresh-package');
-}
-export async function performPackage(view:PackageManager,backend:PackageBackend,editor?:Editor):Promise<void>{
-    const cancellationRequested = () => text('package.ui.cancel_requested', { key: refreshKey(editor?.shortcuts) });
-    const effect=view.effect;if(!effect||view.busy)return;view.effect=null;
-    if(effect==='close'){await closePackage(view,backend);return;}
-    view.busy=true;const generation=view.generation;
-    try{
-        if(effect==='load'){
-            if(view.job&&view.prefix&&view.job.request.prefix!==view.prefix){
-                const cancelled=await request(view,backend,'package_review_cancel',{id:view.job.id,owner:view.owner});
-                if(view.closed||generation!==view.generation)return;
-                if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=cancellationRequested();view.selected='message';return;}view.job=null;
-            }
-            const status=await request(view,backend,'package_status',{prefix:view.prefix||null,offset:view.offset});
-            if(view.closed||generation!==view.generation)return;
-            if(view.job&&status.revision!==view.job.request.expected_revision){view.job={...view.job,state:'failed',review:null,error:'conflict'};view.message=text('package.ui.changed');view.selected='message';}
-            view.status=status;view.prefix=status.prefix??view.prefix;
-            if(status.execution){view.execution=status.execution;if(editor)editor.packageLocked=true;view.selected='execution';}
-        }else if(effect==='start'){
-            if(!view.status?.prefix)throw new BackendError('prefix',text('package.reason_prefix'));
-            if(view.job?.state==='running'||view.execution?.running!==false&&view.execution?.state==='running')return;
-            const previous=view.job;
-            let target=view.action==='recover-package'?view.status.pending?.version??view.target:view.target||null,integrity:string|null=null;
-            if(view.action==='update'&&previous?.state==='complete'&&previous.request.action==='check'&&previous.request.expected_revision===view.status.revision&&previous.review&&(!target||target===previous.review.target)&&(!view.channel||view.channel===previous.review.channel||!!target)){target=previous.review.target;integrity=previous.review.integrity;}
-            const reviewRequest:PackageReviewRequest={action:view.action,prefix:view.status.prefix,expected_revision:view.status.revision,target:view.action==='restore-config'?null:target,channel:!target&&['check','update'].includes(view.action)?view.channel:null,backup_id:view.action==='restore-config'?view.backup:null,expected_integrity:integrity};
-            if(previous){const cancelled=await request(view,backend,'package_review_cancel',{id:previous.id,owner:view.owner});if(view.closed||generation!==view.generation)return;if(cancelled.state!=='cancelled'){view.job=cancelled;view.message=cancellationRequested();view.selected='message';return;}view.job=null;}
-            const job=await request(view,backend,'package_review_start',{request:reviewRequest,owner:view.owner});
-            if(view.closed||generation!==view.generation){await request(view,backend,'package_review_cancel',{id:job.id,owner:view.owner});return;}
-            view.job=job;view.mode='status';view.draftPrepared=false;view.message=null;view.selected='job';
-        }else if(effect==='execute'){
-            if(!editor||!verified(view))throw new BackendError('integrity',text('package.reason_integrity'));
-            if(editor.saveState!=='idle'){view.mode='draft';view.message=text('editor.save_locked');return;}
-            if(!view.draftPrepared){
-                if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
-                view.mode=editor.modified?'draft':'execute-confirm';view.selected=editor.modified?'draft-cancel':'execute-confirm';return;
-            }
-            editor.packageLocked=true;
-            const execution=await request(view,backend,'package_execute_start',{id:view.job!.id,owner:view.owner});
-            view.execution=execution;view.mode='status';view.selected='execution';view.message=text('package.ui.editor_locked');
-            await closeSourceDraft(editor,{request:(operation,payload)=>request(view,backend,operation,payload)});
-            if(view.closed||generation!==view.generation)await request(view,backend,'package_execute_detach',{id:execution.id,owner:view.owner});
-        }else if(effect==='discard-draft'){
-            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
-            editor.replaceDraft(editor.baseline.draft);view.draftPrepared=true;view.mode='execute-confirm';view.selected='execute-confirm';
-        }else if(effect==='save-draft'){
-            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
-            if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
-            const submitted=editor.beginSave();
-            try{const saved=await backend.request('apply',{draft:submitted.draft,expected_revision:submitted.revision,...(submitted.target?{target:submitted.target}:{})});editor.committed(saved);}catch(error){editor.saveFailed(error instanceof BackendError?error.code:'');throw error;}
-            view.mode='status';view.job=null;view.status=null;view.effect='load';view.message=text('package.ui.review_again');
-        }else if(effect==='export-draft'){
-            if(!editor||editor.saveState!=='idle')throw new BackendError('configuration_conflict',text('editor.save_locked'));
-            await backend.request('export',{draft:editor.draft,path:view.export_path,overwrite:false});view.draftPrepared=true;view.mode='execute-confirm';view.selected='execute-confirm';view.message=text('package.ui.exported');
-        }else if(effect==='reconcile-draft'){
-            if(!editor?.pendingSave)return;
-            const pending=editor.pendingSave;editor.setSaveState('pending');
-            try{const current=await backend.request('read',pending.target?{target:pending.target}:{});const result=editor.reconcileSave(current);view.message=text('editor.'+result);view.mode='status';view.job=null;view.status=null;view.effect='load';}catch(error){editor.setSaveState('unknown');throw error;}
-        }else if(effect==='cleanup-review'){
-            if(!view.prefix)throw new BackendError('prefix',text('package.reason_prefix'));
-            view.cleanup=await request(view,backend,'package_cleanup_review',{prefix:view.prefix,offset:view.offset});view.mode='cleanup';view.selected=view.cleanup.rows[0]?'cleanup:'+view.cleanup.rows[0].id:'cleanup-message';
-        }else if(effect==='cleanup-apply'){
-            view.cleanup=await request(view,backend,'package_cleanup_apply',{prefix:view.prefix,revision:view.cleanup!.revision,ids:[view.cleanupId]});view.mode='cleanup';view.selected='cleanup-message';view.message=text('package.ui.cleaned');
-        }else if(effect==='status'&&view.execution){
-            view.execution=await request(view,backend,'package_execute_status',{id:view.execution.id});view.selected='execution';
-        }else if(view.job){
-            const job=await request(view,backend,effect==='cancel'?'package_review_cancel':'package_review_status',{id:view.job.id,owner:view.owner});
-            if(view.closed||generation!==view.generation)return;
-            const cancelled=effect==='cancel'&&job.state==='cancelled';view.job=cancelled?null:job;view.message=effect==='cancel'?(cancelled ? text('package.cancelled') : cancellationRequested()):null;
-            view.selected=effect==='cancel'?'message':job.review?'verification':job.error?'job-error':'job';
-        }
-    }catch(error){
-        if(effect==='execute'&&editor&&!view.execution&&error instanceof BackendError&&['arguments','conflict','integrity','identity','busy','development','permission','configuration','journal'].includes(error.code))editor.packageLocked=false;
-        if(!view.closed&&generation===view.generation){view.message=error instanceof BackendError&&error.localization?error.localization:text('package.reason_io_error');view.selected='message';}
-    }finally{if(generation===view.generation)view.busy=false;}
-}
-export function packageView(view:PackageManager,language:Language,width:number,height:number,shortcuts?: EditorShortcuts, automatic = false):Row[]{
-    const tr=(key:string,params:Record<string,unknown>={})=>t('package.ui.'+key,language,params),rows:Row[]=[];
-    const hint = (key: string, keys: Record<string, string | EditorLine>, params?: Record<string, unknown>) => hintLine('package.ui.' + key, language, keys, params);
-    const safe = (value: string) => value.replace(/[\p{Cc}\p{Cs}]/gu, '');
-    const jobState = (kind: 'state_' | 'execution_state_', state: string) => automatic && state === 'running'
-        ? { text: t('task.value.running', language) } : hint(kind + state, { key: refreshKey(shortcuts) });
-    const add = (key: string, value: string | EditorLine, action?: Row['action'], backup?: string) => {
-        const line = typeof value === 'string' ? { text: safe(value) } : value;
-        const visible = view.busy || view.input ? { text: line.text } : line;
-        wrapEditorLine(visible, width - 2).forEach((part, index) => rows.push({ ...part, key: index ? key + ':' + index : key,
-            ...(action ? { action } : {}), ...(backup ? { backup } : {}) }));
+
+export const PACKAGE_RECORDS_PER_PAGE = 16;
+export const PACKAGE_CHANNELS = [null, 'latest', 'beta'] as const;
+
+export function packageManager(): PackageManager {
+    return {
+        owner: 'viewer-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2),
+        status: null, job: null, execution: null, cleanup: null,
+        prefix: '', target: '', channel: null, historyOffset: 0, cleanupOffset: 0,
+        mode: 'status', selected: 'target', part: 0, rowIndex: 0, scroll: 0, parents: [], rows: [], capacity: 1,
+        input: null, editing: null, export_path: 'statusline-before-update.json', message: null, effect: 'load',
+        cleanupId: null, draftPrepared: false, draftSaveLocked: false, reviewInvalidated: false,
+        action: 'check', backup: null, busy: false, closed: false, generation: 0,
     };
-    const pageHint = (direction: 'previous' | 'next') => hint(direction + '_page', { enter: 'Enter' });
-    const status=view.status;
-    if(view.mode==='draft'){
-        add('notice',tr('draft_required'));add('draft-save',tr('draft_save'));add('draft-export',tr('draft_export'));add('draft-discard',tr('draft_discard'));add('draft-cancel',tr('draft_cancel'));add('draft-reconcile',tr('draft_reconcile'));
-    }else if(view.mode==='execute-confirm'){
-        add('notice',tr('execute_notice'));add('execute-confirm',hint('execute_confirm', { enter: 'Enter' }));add('draft-cancel',tr('draft_cancel'));
-    }else if(view.mode==='cleanup'||view.mode==='cleanup-confirm'){
-        add('cleanup-message',tr(view.cleanup?.uncertain?'cleanup_uncertain':'cleanup_notice'));
-        if(view.mode==='cleanup-confirm'){add('cleanup-confirm',hint('cleanup_confirm', { enter: 'Enter', back: shortcuts?.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G' }));add('cleanup-selected',view.cleanupId??'');}
-        else for(const row of view.cleanup?.rows??[])add('cleanup:'+row.id,`${row.id} · ${row.version??'—'} · ${tr(row.removable?'cleanup_unused':'cleanup_protected')}${row.reasons.map(reason=>' · '+tr('protect_'+reason)).join('')}`);
-        add('previous-page',pageHint('previous'));add('next-page',pageHint('next'));
-    }else{
-        add('notice',tr('local_notice'));if(status)add('current',tr('current',{value:status.current??t('task.unknown',language)}));
-        add('prefix',tr('prefix',{value:view.editing==='prefix'&&view.input?inputView(view.input,Math.max(2,width-12)):view.prefix||t('task.unknown',language)}));
-        if(!status)add('loading',t(view.busy?'profiles.loading':'task.unknown',language));
-        else{
-            add('entry',tr('entry',{value:status.entry??t('task.unknown',language)}));add('config',tr('config',{value:status.config_dir}));add('previous',tr('previous',{value:status.previous??t('task.unknown',language)}));add('observed-channel',tr('channel',{value:status.channel??t('task.unknown',language)}));add('runtime',`Node ${status.node_version} · Claude ${status.host??t('task.unknown',language)}`);
-            status.reasons.forEach(reason=>add('reason:'+reason,t('package.reason_'+reason,language,{},reason)));
-            if(!view.execution||view.execution.running===false){
-                add('target',tr('target',{value:view.editing==='target'&&view.input?inputView(view.input,Math.max(2,width-12)):view.target||tr('default_target')}));add('channel',tr('channel',{value:view.channel??tr('inherit')}));
-                for (const action of ['check', 'update', 'rollback', 'recover-package'] as const)
-                    add(action, { text: 'Enter · ' + tr(action), keys: [{ start: 0, end: 'Enter'.length }] }, action);
-                add('cleanup-review',tr('cleanup_review'));
-            }
-            if(status.pending)add('pending',tr('pending',{id:status.pending.id,stage:tr('stage_'+status.pending.stage),running:status.pending.running?t('task.value.running',language):t('task.unknown',language)}));
-            for (const record of status.history) {
-                const backup = hint('backup_' + record.backup, { enter: 'Enter' });
-                add('backup:' + record.id, prependLine(safe(`${record.id} · ${record.version ?? '—'} · ${tr('stage_' + record.stage)} · `), backup),
-                    record.backup === 'verified' ? 'restore-config' : undefined, record.id);
-            }
-            if(status.total>16){add('previous-page',pageHint('previous'));add('next-page',pageHint('next'));}
-        }
-        if(view.job){const job=view.job;add('job',hint('job',{state:jobState('state_', job.state)},{id:safe(job.id)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
-            if(job.review){const review=job.review;add('verification',tr(review.action==='restore-config'?'restore_review':review.artifact_verified?'verified':'unverified'));add('review-target',`${review.current??'—'} → ${review.target??'—'}`);add('review-config',tr('config',{value:review.config_dir}));if(review.registry)add('registry',review.registry);if(review.integrity)add('integrity',review.integrity);if(review.node_engine)add('engine','Node '+review.node_engine);review.reasons.forEach(reason=>add('review-reason:'+reason,t('package.reason_'+reason,language,{},reason)));review.configuration_conflicts.forEach(file=>add('conflict:'+file,file));review.files.forEach(file=>add('restore:'+file,file));if(verified(view))add('execute',tr('execute'));}
-        }
-        if(view.execution){const run=view.execution;add('execution',hint('execution',{state:jobState('execution_state_', run.state)},{id:safe(run.transaction_id??run.id),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
-    }
-    if(view.input&&view.editing==='export_path')add('export-path',tr('export_path',{value:inputView(view.input,Math.max(2,width-16))}));
-    if (view.message) {
-        const waiting = automatic && typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested';
-        add('message', waiting ? t('ui.refresh.cancel_requested', language) : typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested'
-            ? hint('cancel_requested', { key: refreshKey(shortcuts) }) : renderMessage(view.message, language));
-    }
-    let index = rows.findIndex(row => row.key === view.selected);
-    if (automatic && index < 0) {
-        const logicalRow = view.selected.replace(/:\d+$/u, '');
-        index = rows.findIndex(row => row.key === logicalRow);
-    }
-    if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
-    return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,...prependLine(row.key===view.selected?'› ':'  ',row),selected:row.key===view.selected}));
 }
-export function packageKey(view:PackageManager,event:TextKey,shortcuts?: EditorShortcuts):'packages'|null{
-    const key=event.key==='return'?'enter':event.key,cancel=!event.text&&!event.paste&&(key==='escape'||event.ctrl&&key.toLowerCase()==='g');
-    if(view.input&&view.editing){
-        if(cancel){view.input=null;view.editing=null;return null;}
-        if(!event.text&&!event.paste&&key==='enter'){
-            const field=view.editing;view[field]=view.input.value;view.input=null;view.editing=null;
-            if(field==='export_path'){view.effect='export-draft';return 'packages';}
-            if(field==='prefix'){view.status=null;view.offset=0;view.effect='load';return 'packages';}
-            if(field==='target'&&view.job){view.effect='cancel';return 'packages';}return null;
+
+export interface PackageBackend {
+    request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
+    control?<O extends Operation>(control: PackageControl, operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
+}
+
+function request<O extends Operation>(view: PackageManager, backend: PackageBackend, operation: O, payload: unknown) {
+    return view.execution && backend.control
+        ? backend.control(view.execution.control, operation, payload)
+        : backend.request(operation, payload);
+}
+
+function focus(view: PackageManager, selected: string) {
+    view.selected = selected;
+    view.part = 0;
+}
+
+function showPage(view: PackageManager, mode: PackagePage, selected = '') {
+    Object.assign(view, { mode, selected, part: 0, rowIndex: 0, scroll: 0, rows: [] });
+}
+
+function openPage(view: PackageManager, mode: PackagePage, selected = '') {
+    const { mode: parent, selected: key, part, rowIndex, scroll } = view;
+    view.parents.push({ mode: parent, selected: key, part, rowIndex, scroll });
+    showPage(view, mode, selected);
+}
+
+function leavePage(view: PackageManager) {
+    const parent = view.parents.pop();
+    if (view.mode === 'cleanup-confirm') view.cleanupId = null;
+    if (view.mode === 'draft' || view.mode === 'execute-confirm') view.draftPrepared = false;
+    if (parent) Object.assign(view, parent, { rows: [] });
+    else showPage(view, 'status');
+}
+
+function showExecution(view: PackageManager, execution: PackageExecution, editor?: Editor) {
+    view.execution = execution;
+    if (editor) editor.packageLocked = true;
+    view.parents.length = 0;
+    showPage(view, 'status', 'execution');
+    openPage(view, 'execution', 'execution-status');
+}
+
+export function packageCanReview(view: PackageManager): boolean {
+    return !!view.status?.prefix && (!view.execution || view.execution.running === false);
+}
+
+export function packageCanExecute(view: PackageManager): boolean {
+    const job = view.job, review = job?.review;
+    return !view.reviewInvalidated && (!view.execution || view.execution.running === false) &&
+        job?.state === 'complete' && !!review?.compatible && job.request.action !== 'check' &&
+        (review.artifact_verified || job.request.action === 'restore-config');
+}
+
+export function packageProgress(view: PackageManager): PackageExecution | PackageReviewJob | null {
+    if (view.mode === 'execution') return view.execution;
+    if (view.mode === 'review') return view.job;
+    if (view.mode !== 'status') return null;
+    return view.execution && view.execution.running !== false ? view.execution : view.job ?? view.execution;
+}
+
+/** Keep footer hints and keyboard routing in agreement on the available controls. */
+export function packageControls(view: PackageManager) {
+    const pick = view.mode !== 'execution' && (view.mode !== 'installation' || !view.execution);
+    const reload = view.mode === 'status' || view.mode === 'installation' || view.mode === 'history' || view.mode === 'review';
+    const cancel = (view.mode === 'status' || view.mode === 'review') && !!view.job &&
+        (!view.execution || view.execution.running === false);
+    return { pick, reload, cancel, refresh: reload || view.mode === 'execution' || view.mode === 'cleanup' };
+}
+
+export async function closePackage(view: PackageManager, backend: PackageBackend): Promise<void> {
+    if (view.closed) return;
+    view.closed = true;
+    view.generation++;
+    if (view.execution) {
+        try {
+            await request(view, backend, 'package_execute_detach', { id: view.execution.id, owner: view.owner });
+        } catch { /* Detach never cancels an executor. */ }
+    }
+    if (view.job) {
+        try {
+            await request(view, backend, 'package_review_cancel', { id: view.job.id, owner: view.owner });
+        } catch { /* Review deadlines still bound disconnected views. */ }
+    }
+}
+
+const cancellationRequested = () => text('package.ui.cancel_requested', { key: 'R' });
+const lastPageOffset = (total: number) => Math.max(0, Math.floor((total - 1) / PACKAGE_RECORDS_PER_PAGE) * PACKAGE_RECORDS_PER_PAGE);
+
+export function receivePackageReview(view: PackageManager, job: PackageReviewJob) {
+    view.job = job;
+    if (typeof view.message === 'object' && view.message?.key === 'package.ui.cancel_requested' && job.state !== 'running')
+        view.message = job.state === 'cancelled' ? text('package.cancelled') : null;
+}
+
+async function cancelReview(view: PackageManager, backend: PackageBackend, current: () => boolean): Promise<boolean> {
+    if (!view.job) return true;
+    const job = await request(view, backend, 'package_review_cancel', { id: view.job.id, owner: view.owner });
+    if (!current()) return false;
+    if (job.state !== 'cancelled') {
+        view.job = job;
+        view.message = cancellationRequested();
+        return false;
+    }
+    view.job = null;
+    view.reviewInvalidated = false;
+    return true;
+}
+
+async function loadStatus(view: PackageManager, backend: PackageBackend, current: () => boolean, editor?: Editor) {
+    if (view.job && (view.prefix || view.reviewInvalidated) && view.job.request.prefix !== view.prefix &&
+        !await cancelReview(view, backend, current)) return;
+    const payload = { prefix: view.prefix || null, offset: view.historyOffset };
+    let status = await request(view, backend, 'package_status', payload);
+    if (!current()) return;
+    const offset = lastPageOffset(status.total);
+    if (status.offset > offset) {
+        status = await request(view, backend, 'package_status', { ...payload, offset });
+        if (!current()) return;
+    }
+    if (view.job && status.revision !== view.job.request.expected_revision) {
+        view.job = { ...view.job, state: 'failed', review: null, error: 'conflict' };
+        view.reviewInvalidated = true;
+        view.message = text('package.ui.changed');
+    }
+    view.status = status;
+    view.historyOffset = status.offset;
+    view.prefix = status.prefix ?? view.prefix;
+    if (status.execution && status.execution.id !== view.execution?.id) showExecution(view, status.execution, editor);
+    else if (status.execution) view.execution = status.execution;
+}
+
+async function startReview(view: PackageManager, backend: PackageBackend, current: () => boolean) {
+    const status = view.status;
+    if (!status?.prefix) throw new BackendError('prefix', text('package.reason_prefix'));
+    if (!packageCanReview(view)) return;
+    if (view.job?.state === 'running') {
+        view.message = text('package.ui.review_busy');
+        return;
+    }
+    const previous = view.job;
+    let target = view.action === 'recover-package' ? status.pending?.version ?? (view.target || null) : view.target || null;
+    let integrity: string | null = null;
+    if (!view.reviewInvalidated && view.action === 'update' && previous?.state === 'complete' &&
+        previous.request.action === 'check' && previous.request.expected_revision === status.revision && previous.review &&
+        (!target || target === previous.review.target) && (!view.channel || view.channel === previous.review.channel || !!target)) {
+        target = previous.review.target;
+        integrity = previous.review.integrity;
+    }
+    const reviewRequest: PackageReviewRequest = {
+        action: view.action, prefix: status.prefix, expected_revision: status.revision,
+        target: view.action === 'restore-config' ? null : target,
+        channel: !target && (view.action === 'check' || view.action === 'update') ? view.channel : null,
+        backup_id: view.action === 'restore-config' ? view.backup : null, expected_integrity: integrity,
+    };
+    if (previous && !await cancelReview(view, backend, current)) return;
+    if (!current()) return;
+    const job = await request(view, backend, 'package_review_start', { request: reviewRequest, owner: view.owner });
+    if (!current()) {
+        await request(view, backend, 'package_review_cancel', { id: job.id, owner: view.owner });
+        return;
+    }
+    view.job = job;
+    view.reviewInvalidated = false;
+    view.draftPrepared = false;
+    view.message = null;
+    openPage(view, 'review', 'job');
+}
+
+function confirmExecution(view: PackageManager) {
+    if (view.mode === 'draft') showPage(view, 'execute-confirm', 'execute-confirm');
+    else openPage(view, 'execute-confirm', 'execute-confirm');
+}
+
+async function executeReview(view: PackageManager, backend: PackageBackend, current: () => boolean, editor?: Editor) {
+    if (!editor || !packageCanExecute(view) || !view.job) throw new BackendError('integrity', text('package.reason_integrity'));
+    if (editor.saveState !== 'idle') {
+        view.draftPrepared = false;
+        view.draftSaveLocked = true;
+        if (view.mode === 'execute-confirm') showPage(view, 'draft', 'draft-cancel');
+        else openPage(view, 'draft', 'draft-cancel');
+        view.message = text('editor.save_locked');
+        return;
+    }
+    if (!view.draftPrepared) {
+        if (!editor.acceptNumeric()) {
+            view.message = text('package.ui.draft_required');
+            return;
         }
-        const result=inputKey(view.input.value,view.input,event,view.editing==='target'?100:4096);view.input=result.state;if(result.error)view.message=text('input.'+result.error,{limit:view.editing==='target'?100:4096});return null;
+        view.draftSaveLocked = false;
+        if (editor.modified) openPage(view, 'draft', 'draft-cancel');
+        else confirmExecution(view);
+        return;
     }
-    if(event.text||event.paste||event.meta||event.overflow)return null;
+    editor.packageLocked = true;
+    const execution = await request(view, backend, 'package_execute_start', { id: view.job.id, owner: view.owner });
+    view.execution = execution;
+    if (current()) {
+        showExecution(view, execution, editor);
+        view.message = null;
+    }
+    await closeSourceDraft(editor, { request: (operation, payload) => request(view, backend, operation, payload) });
+    if (!current()) await request(view, backend, 'package_execute_detach', { id: execution.id, owner: view.owner });
+}
+
+function invalidateSavedReview(view: PackageManager) {
+    view.job = null;
+    view.reviewInvalidated = false;
+    view.status = null;
+    // Saving or reconciling consumes the review and returns to its originating page.
+    if (view.mode === 'draft') leavePage(view);
+    if (view.mode === 'review') leavePage(view);
+}
+
+async function readCleanup(view: PackageManager, backend: PackageBackend, offset: number) {
+    const prefix = view.prefix;
+    if (!prefix) throw new BackendError('prefix', text('package.reason_prefix'));
+    const first = await request(view, backend, 'package_cleanup_review', { prefix, offset });
+    const last = lastPageOffset(first.total);
+    return first.offset > last ? request(view, backend, 'package_cleanup_review', { prefix, offset: last }) : first;
+}
+
+function receiveCleanup(view: PackageManager, snapshot: PackageCleanupReview) {
+    view.cleanup = snapshot;
+    view.cleanupOffset = snapshot.offset;
+}
+
+export async function performPackage(view: PackageManager, backend: PackageBackend, editor?: Editor): Promise<void> {
+    const effect = view.effect;
+    if (!effect || view.closed) return;
+    if (effect === 'close') {
+        view.effect = null;
+        await closePackage(view, backend);
+        return;
+    }
+    if (view.busy) return;
+    view.effect = null;
+    view.busy = true;
+    const generation = view.generation;
+    const current = () => !view.closed && generation === view.generation;
+    try {
+        switch (effect) {
+            case 'load':
+                await loadStatus(view, backend, current, editor);
+                break;
+            case 'start':
+                await startReview(view, backend, current);
+                break;
+            case 'execute':
+                await executeReview(view, backend, current, editor);
+                break;
+            case 'discard-draft':
+                if (!editor || editor.saveState !== 'idle') throw new BackendError('configuration_conflict', text('editor.save_locked'));
+                editor.replaceDraft(editor.baseline.draft);
+                confirmExecution(view);
+                break;
+            case 'save-draft': {
+                if (!editor || editor.saveState !== 'idle') throw new BackendError('configuration_conflict', text('editor.save_locked'));
+                if (!editor.acceptNumeric()) {
+                    view.message = text('package.ui.draft_required');
+                    break;
+                }
+                const submitted = editor.beginSave();
+                try {
+                    const saved = await backend.request('apply', { draft: submitted.draft, expected_revision: submitted.revision,
+                        ...(submitted.target ? { target: submitted.target } : {}) });
+                    editor.committed(saved);
+                } catch (error) {
+                    editor.saveFailed(error instanceof BackendError ? error.code : '');
+                    view.draftSaveLocked = editor.saveState !== 'idle';
+                    throw error;
+                }
+                invalidateSavedReview(view);
+                view.message = text('package.ui.review_again');
+                if (current()) await loadStatus(view, backend, current, editor);
+                break;
+            }
+            case 'export-draft':
+                if (!editor || editor.saveState !== 'idle') throw new BackendError('configuration_conflict', text('editor.save_locked'));
+                await backend.request('export', { draft: editor.draft, path: view.export_path, overwrite: false });
+                if (current()) {
+                    confirmExecution(view);
+                    view.message = text('package.ui.exported');
+                }
+                break;
+            case 'reconcile-draft': {
+                if (!editor?.pendingSave) break;
+                const pending = editor.pendingSave;
+                editor.setSaveState('pending');
+                try {
+                    const saved = await backend.request('read', pending.target ? { target: pending.target } : {});
+                    view.message = text('editor.' + editor.reconcileSave(saved));
+                } catch (error) {
+                    editor.setSaveState('unknown');
+                    throw error;
+                }
+                invalidateSavedReview(view);
+                if (current()) await loadStatus(view, backend, current, editor);
+                break;
+            }
+            case 'cleanup-review': {
+                const snapshot = await readCleanup(view, backend, view.cleanupOffset);
+                if (current()) receiveCleanup(view, snapshot);
+                break;
+            }
+            case 'cleanup-apply': {
+                if (!view.cleanup || !view.cleanupId) throw new BackendError('conflict', text('package.reason_conflict'));
+                const id = view.cleanupId;
+                const snapshot = await request(view, backend, 'package_cleanup_apply', {
+                    prefix: view.prefix, revision: view.cleanup.revision, ids: [id],
+                });
+                if (!current()) break;
+                if (view.status && id.startsWith('pkg-')) {
+                    view.status = { ...view.status, total: Math.max(0, view.status.total - 1),
+                        history: view.status.history.filter(record => record.id !== id) };
+                }
+                leavePage(view);
+                const offset = Math.min(view.cleanupOffset, lastPageOffset(snapshot.total));
+                receiveCleanup(view, snapshot);
+                view.message = text('package.ui.cleaned');
+                // The deletion receipt already supplies a usable first page.
+                // A failed follow-up read must not turn a completed deletion into a retry.
+                if (offset !== snapshot.offset) {
+                    try {
+                        const page = await readCleanup(view, backend, offset);
+                        if (current()) receiveCleanup(view, page);
+                    } catch { /* Retain the first page and successful deletion notice. */ }
+                }
+                break;
+            }
+            case 'cancel':
+                if (await cancelReview(view, backend, current) && current()) {
+                    view.message = text('package.cancelled');
+                    if (view.mode === 'review') leavePage(view);
+                }
+                break;
+            case 'status': {
+                const progress = packageProgress(view);
+                if (!progress) break;
+                if ('control' in progress) {
+                    const execution = await request(view, backend, 'package_execute_status', { id: progress.id });
+                    if (current()) view.execution = execution;
+                } else {
+                    const job = await request(view, backend, 'package_review_status', { id: progress.id, owner: view.owner });
+                    if (current()) receivePackageReview(view, job);
+                }
+                break;
+            }
+        }
+    } catch (error) {
+        if (effect === 'execute' && editor && !view.execution && error instanceof BackendError &&
+            ['arguments', 'conflict', 'integrity', 'identity', 'busy', 'development', 'permission', 'configuration', 'journal'].includes(error.code))
+            editor.packageLocked = false;
+        if (current()) {
+            if (effect === 'cleanup-apply' && view.mode === 'cleanup-confirm') {
+                leavePage(view);
+                view.cleanup = null;
+            }
+            view.message = error instanceof BackendError && error.localization ? error.localization : text('package.reason_io_error');
+        }
+    } finally {
+        if (current()) view.busy = false;
+    }
+}
+
+function editField(view: PackageManager, event: TextKey, key: string, commandKey: boolean, back: boolean): 'packages' | null {
+    const field = view.editing!, input = view.input!;
+    if (back) {
+        view.input = null;
+        view.editing = null;
+        view.message = null;
+        return null;
+    }
+    if (commandKey && !event.ctrl && key === 'enter') {
+        view.input = null;
+        view.editing = null;
+        view.message = null;
+        if (field === 'export_path') {
+            view.export_path = input.value;
+            view.effect = 'export-draft';
+            return 'packages';
+        }
+        if (view[field] === input.value) return null;
+        view[field] = input.value;
+        if (view.job) view.reviewInvalidated = true;
+        if (field === 'prefix') {
+            view.status = null;
+            view.cleanup = null;
+            view.historyOffset = view.cleanupOffset = 0;
+            view.effect = 'load';
+            return 'packages';
+        }
+        if (view.job) {
+            view.effect = 'cancel';
+            return 'packages';
+        }
+        return null;
+    }
+    const limit = field === 'target' ? 100 : 4096;
+    const result = inputKey(input.value, input, event, limit);
+    view.input = result.state;
+    view.message = result.error ? text('input.' + result.error, { limit }) : null;
+    return null;
+}
+
+function activate(view: PackageManager, command: PackageCommand): 'packages' | null {
+    switch (command.kind) {
+        case 'open':
+            openPage(view, command.page, {
+                installation: 'prefix', channel: 'channel:' + (view.channel ?? 'inherit'), history: 'history-context',
+                review: 'job', execution: 'execution-status',
+            }[command.page]);
+            return null;
+        case 'input':
+            view.editing = command.field;
+            view.input = textInput(view[command.field]);
+            view.message = null;
+            return null;
+        case 'channel': {
+            const changed = view.channel !== command.value;
+            view.channel = command.value;
+            leavePage(view);
+            if (!changed || !view.job) return null;
+            view.reviewInvalidated = true;
+            view.effect = 'cancel';
+            break;
+        }
+        case 'review':
+            if (!packageCanReview(view)) return null;
+            view.action = command.action;
+            view.backup = command.backup ?? null;
+            view.effect = 'start';
+            break;
+        case 'cleanup':
+            view.cleanupId = command.id;
+            openPage(view, 'cleanup-confirm', 'cleanup-confirm');
+            return null;
+        case 'page':
+            if (view.mode === 'cleanup') {
+                view.cleanupOffset = command.offset;
+                view.effect = 'cleanup-review';
+            } else {
+                view.historyOffset = command.offset;
+                view.effect = 'load';
+            }
+            break;
+        case 'effect':
+            if (command.effect === 'cleanup-review') {
+                if (!packageCanReview(view)) return null;
+                openPage(view, 'cleanup', 'cleanup-message');
+            }
+            if (command.effect === 'execute') view.draftPrepared = view.mode === 'execute-confirm';
+            view.effect = command.effect;
+            break;
+        case 'back':
+            leavePage(view);
+            return null;
+    }
+    return 'packages';
+}
+
+/** Report pages also use the cursor to read lines without an Enter action. */
+export function packageRowCanFocus(view: PackageManager, row: PackageRow): boolean {
+    if (row.heading) return false;
+    switch (view.mode) {
+        case 'status':
+        case 'channel':
+        case 'draft':
+            return !!row.command && row.part === 0;
+        default:
+            return true;
+    }
+}
+
+function move(view: PackageManager, key: string) {
+    const positions = view.rows.flatMap((row, index) => packageRowCanFocus(view, row) ? [index] : []);
+    if (!positions.length) return;
+    const index = view.rowIndex;
+    const next = positions.find(position => position > index) ?? positions.at(-1)!;
+    const previous = positions.findLast(position => position < index) ?? positions[0]!;
+    let destination: number;
+    switch (key) {
+        case 'up': destination = previous; break;
+        case 'down': destination = next; break;
+        case 'pageup': destination = positions.findLast(position => position <= index - view.capacity) ?? positions[0]!; break;
+        case 'pagedown': destination = positions.find(position => position >= index + view.capacity) ?? positions.at(-1)!; break;
+        case 'home': destination = positions[0]!; view.scroll = 0; break;
+        case 'end': destination = positions.at(-1)!; break;
+        default: return;
+    }
+    const row = view.rows[destination]!;
+    view.selected = row.key;
+    view.part = row.part;
+    view.rowIndex = destination;
+}
+
+export function packageKey(view: PackageManager, event: TextKey, shortcuts?: EditorShortcuts): 'packages' | null {
+    const key = event.key === 'return' ? 'enter' : event.key;
+    const commandKey = !event.text && !event.paste && !event.meta && !event.overflow;
+    const back = commandKey && (event.ctrl ? key.toLowerCase() === 'g' : key === 'escape' || key === 'esc');
+    if (view.input && view.editing) return editField(view, event, key, commandKey, back);
+    if (!commandKey) return null;
+
     const action = shortcuts ? shortcuts.action('packages', event) : resolveShortcut('native', 'packages', event, {});
-    if(cancel||action==='close-packages'){
-        if(view.mode!=='status'){view.mode='status';view.draftPrepared=false;return null;}
-        view.effect='close';return 'packages';
+    if (back || action === 'close-packages') {
+        if (view.mode !== 'status') {
+            if (!view.busy) leavePage(view);
+            return null;
+        }
+        view.effect = 'close';
+        return 'packages';
     }
-    if(view.busy)return null;
-    if(action==='refresh-package'){view.effect=view.mode==='cleanup'?'cleanup-review':view.execution||view.job?'status':'load';return 'packages';}
-    if(action==='reload-packages'){view.effect='load';return 'packages';}
-    if(action==='cancel-package-review'&&view.job&&!view.execution){view.effect='cancel';return 'packages';}
-    if(event.ctrl)return null;
-    let index=Math.max(0,view.rows.findIndex(row=>row.key===view.selected));if(key==='up')index--;if(key==='down')index++;if(key==='pageup')index-=view.capacity;if(key==='pagedown')index+=view.capacity;if(key==='home')index=0;if(key==='end')index=view.rows.length-1;view.selected=view.rows[Math.max(0,Math.min(index,view.rows.length-1))]?.key??'';
-    if(key!=='enter')return null;const selectedKey=view.selected.replace(/:\d+$/u,'');
-    if(selectedKey==='draft-cancel'){view.mode='status';view.draftPrepared=false;return null;}
-    if(selectedKey==='draft-save'){view.effect='save-draft';return 'packages';}
-    if(selectedKey==='draft-reconcile'){view.effect='reconcile-draft';return 'packages';}
-    if(selectedKey==='draft-export'){view.editing='export_path';view.input=textInput(view.export_path);return null;}
-    if(selectedKey==='draft-discard'){view.effect='discard-draft';return 'packages';}
-    if(selectedKey==='execute'){view.draftPrepared=false;view.effect='execute';return 'packages';}
-    if(selectedKey==='execute-confirm'){view.draftPrepared=true;view.effect='execute';return 'packages';}
-    if(selectedKey==='cleanup-review'){view.offset=0;view.effect='cleanup-review';return 'packages';}
-    if(selectedKey==='cleanup-confirm'){view.effect='cleanup-apply';return 'packages';}
-    if(selectedKey.startsWith('cleanup:')){const row=view.cleanup?.rows.find(row=>'cleanup:'+row.id===selectedKey);if(row?.removable){view.cleanupId=row.id;view.mode='cleanup-confirm';view.selected='cleanup-confirm';}return null;}
-    if((selectedKey==='prefix'||selectedKey==='target')&&!view.execution){view.editing=selectedKey;view.input=textInput(view[selectedKey]);return null;}
-    if(selectedKey==='channel'&&!view.execution){const channels=[null,'latest','beta']as const;view.channel=channels[(channels.indexOf(view.channel)+1)%3]!;if(view.job){view.effect='cancel';return 'packages';}return null;}
-    if(['next-page','previous-page'].includes(selectedKey)){const total=view.mode==='cleanup'?view.cleanup?.total:view.status?.total;view.offset=Math.max(0,Math.min(view.offset+(selectedKey==='next-page'?16:-16),Math.max(0,Math.floor(((total??1)-1)/16)*16)));view.effect=view.mode==='cleanup'?'cleanup-review':'load';return 'packages';}
-    const selected=view.rows.find(row=>row.key===view.selected);if(selected?.action){view.action=selected.action;view.backup=selected.backup??null;view.effect='start';return 'packages';}return null;
+    if (view.busy) return null;
+    const controls = packageControls(view);
+    if (action === 'refresh-package' && controls.refresh) {
+        view.effect = view.mode === 'cleanup' ? 'cleanup-review' : packageProgress(view) ? 'status' : 'load';
+        return 'packages';
+    }
+    if (action === 'reload-packages' && controls.reload) {
+        view.effect = 'load';
+        return 'packages';
+    }
+    if (action === 'cancel-package-review' && controls.cancel) {
+        view.reviewInvalidated = true;
+        view.effect = 'cancel';
+        return 'packages';
+    }
+    if (event.ctrl) return null;
+    if (key === 'enter') {
+        const row = view.rows[view.rowIndex];
+        return row?.command && row.key === view.selected && row.part === view.part ? activate(view, row.command) : null;
+    }
+    move(view, key);
+    return null;
 }
