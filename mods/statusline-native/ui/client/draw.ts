@@ -71,31 +71,35 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       ],
     });
   const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
-  const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
-  const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
   const header = (title: string) => chromeRow(ui, line(title, { ...styles.accent, bold: true },
     headerColumns(columns, rows, language, paneColumns)), columns);
   const editorTitle = tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') +
     (e.baseline.configuration ? ' · ' + targetLabel(e, language) : '');
   if (e.shortcuts.panel) {
     const shortcuts = shortcutPanelView(e.shortcuts, language, columns, rows);
-    const content = shortcuts.body.map(row => line(row, row.kind === 'group' ? { ...styles.accent, bold: true }
-      : row.kind === 'columns' ? { ...styles.muted, bold: true } : rowStyle(row.selected === true, row.kind !== 'detail'), shortcuts.innerWidth));
-    if (shortcuts.menu.length) {
-      const gap = shortcuts.bodyHeight - content.length - 1;
+    const toolbarStyle = {
+      button: { ...styles.accent, bold: true }, focused: { ...styles.selected, bold: true }, key: styles.key, hint: styles.muted,
+    };
+    const content = shortcuts.toolbar.map(row => spanLine(ui, row.map(({ text, kind }) => ({
+      text, style: toolbarStyle[kind],
+    })), shortcuts.innerWidth));
+    const drawRow = (row: typeof shortcuts.body[number]) => line(row, row.kind === 'group' ? { ...styles.accent, bold: true }
+      : row.kind === 'columns' ? { ...styles.muted, bold: true } : rowStyle(row.selected === true, row.kind !== 'detail'), shortcuts.innerWidth);
+    content.push(...shortcuts.body.map(drawRow));
+    if (shortcuts.bottom.length) {
+      const gap = shortcuts.bottomOffset - content.length;
       if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
-      content.push(spanLine(ui, shortcuts.menu.map(item => ({
-        text: item.text, style: item.selected ? { ...styles.selected, bold: true } : styles.text,
-      })), shortcuts.innerWidth));
+      content.push(...shortcuts.bottom.map(drawRow));
     }
-    const title = (capacityNotice ? capacityNotice + ' · ' : '') + tr('shortcuts.title');
+    const title = tr('shortcuts.title') + (capacityNotice ? ' · ' + capacityNotice : '');
     return ui.Box({ width: columns, height: rows, flexDirection: 'column', overflow: 'hidden', children: [
-      header(shortcuts.headerRows === 2 ? editorTitle : tr('native.tabs.settings')),
-      ...(shortcuts.headerRows === 2 ? [chromeRow(ui, spanLine(ui, tabSpans(labels, 'settings', tabWidth > columns), columns), columns)] : []),
-      section(ui, 'content-region', title, content, columns, rows - shortcuts.headerRows - shortcuts.footer.length, shortcuts.framed),
+      header(shortcuts.fullTitle ? editorTitle : tr('native.tabs.settings')),
+      section(ui, 'content-region', title, content, columns, rows - 1 - shortcuts.footer.length, shortcuts.framed),
       ...shortcuts.footer.map(row => chromeRow(ui, line(row, styles.muted, columns), columns)),
     ] });
   }
+  const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
+  const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
   const layout = editorLayout(view, columns, rows);
   const inputDisplay = (width: number) => {
     const input = view.input;

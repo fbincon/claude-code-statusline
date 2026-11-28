@@ -85,12 +85,14 @@ test('both recovery instructions fit with the selected action and controls in al
             for (const query of ['', 'save']) {
                 keys.panel!.query = query;
                 const view = shortcutPanelView(keys, language, 32, 12);
-                assert.ok(view.body.length + 1 <= view.bodyHeight);
+                assert.ok(view.body.length + view.toolbar.length <= view.bottomOffset);
                 assert.ok(view.body.some(row => row.selected === true));
                 for (const line of wrapText([renderMessage(detail, language)], view.innerWidth))
-                    assert.ok(view.body.some(row => row.text === line), language + '/' + reason + ': ' + line);
-                assert.ok(view.footer.some(row => row.text === renderMessage(text('shortcuts.back-help', { tab: 'Tab', back: 'Ctrl+G' }), language)));
-                assert.ok(view.menu.some(item => item.text.includes(renderMessage(text('shortcuts.save'), language))));
+                    assert.ok(view.bottom.some(row => row.text === line), language + '/' + reason + ': ' + line);
+                const help = view.footer.map(row => row.text).join(' ');
+                assert.ok(help.includes(renderMessage(text('shortcuts.focus-actions', { tab: 'Tab' }), language)));
+                assert.ok(help.includes(renderMessage(text('shortcuts.back-help', { back: 'Ctrl+G' }), language)));
+                assert.equal(view.toolbar[0]!.filter(item => item.kind === 'button').length, 3);
             }
         }
     }

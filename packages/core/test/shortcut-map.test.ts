@@ -10,7 +10,7 @@ import { EditorShortcuts, shortcutPanelView } from '../src/editor/shortcut-setti
 
 function panelText(keys: EditorShortcuts, language: 'en' | 'zh-CN' = 'en', width = 32, height = 12): string {
     const panel = shortcutPanelView(keys, language, width, height);
-    return [...panel.body, ...panel.menu, ...panel.footer].map(row => row.text).join(' ');
+    return [panel.toolbar.flat().map(span => span.text).join(''), ...[...panel.body, ...panel.bottom, ...panel.footer].map(row => row.text)].join(' ');
 }
 
 test('presets are reachable and shared overrides replace context-specific aliases', () => {
@@ -280,7 +280,7 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     const empty = shortcutPanelView(keys, 'zh-CN', 32, 12);
     assert.ok(empty.body.some(row => row.text.includes('没有匹配的动作')));
     assert.ok(empty.body.every(row => row.kind !== 'group'));
-    assert.ok(empty.menu.some(row => row.text.includes('保存快捷键')));
+    assert.deepEqual(empty.toolbar[0]?.map(span => span.text.trim()), ['[保存]', '[恢复预设]', '[读已保存]']);
     press('tab');
     assert.equal(press('return'), 'save-shortcuts');
     assert.deepEqual(panel.draft, { 'task-evidence': 'Z' });
@@ -312,12 +312,13 @@ test('shortcut settings show each editor’s save key at narrow widths', () => {
             assert.ok(panelText(keys, language).includes(`${tr('terminal-short')} Z [Ctrl+S]`));
             assert.ok(panelText(keys, language).includes(`${tr('native-short')} Z [S]`));
             assert.ok(!panelText(keys, language).includes('[Ctrl+S / Enter]'));
-            assert.ok(panelText(keys, language).includes(t('shortcuts.back-help', language, { tab: 'Tab', back: 'Ctrl+G' })));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.focus-actions', language, { tab: 'Tab' })));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.back-help', language, { back: 'Ctrl+G' })));
         }
     }
 });
 
-test('shortcut tables align option and value cells, and keep focus within the selected menu command', () => {
+test('shortcut tables align their columns and preserve list selection across toolbar focus', () => {
     const offset = (row: string, part: string) => displayWidth(row.slice(0, row.lastIndexOf(part)));
     for (const language of LANGUAGES) for (const surface of ['terminal', 'native'] as const) {
         const editor = new EditorShortcuts(surface);
@@ -346,11 +347,23 @@ test('shortcut tables align option and value cells, and keep focus within the se
         editor.key({ key: 'right' }, language, 32, 12);
         for (const columns of [32, 120]) {
             const view = shortcutPanelView(editor, language, columns, 24);
-            assert.ok(view.menu.some(item => item.selected && item.text === '› ' + t('shortcuts.restore-all', language)));
+            const suffix = columns === 32 ? '-short' : '';
+            const buttons = view.toolbar[0]!.filter(span => span.kind === 'focused' || span.kind === 'button');
+            assert.deepEqual(buttons.map(item => item.text.trim()), ['save', 'restore-all', 'reload'].map((command, index) =>
+                (index === 1 ? '›' : '') + '[' + t('shortcuts.' + command + suffix, language) + ']'));
+            assert.equal(buttons.filter(item => item.kind === 'focused').length, 1);
+            assert.ok(view.toolbar.flat().map(item => item.text).join('').includes(t('shortcuts.focus-list', language, { tab: 'Tab' })));
             assert.ok(view.body.every(row => !row.selected));
+            assert.ok(view.bottom.some(row => row.kind === 'detail'));
         }
         editor.key({ key: 'tab' }, language, 32, 12);
         assert.equal(editor.panel!.selected, 'save');
+        editor.key({ key: 'tab' }, language, 32, 12, true);
+        assert.ok(shortcutPanelView(editor, language, 32, 12).toolbar[0]!
+            .some(span => span.kind === 'focused' && span.text.trimStart() === '›[' + t('shortcuts.reload-short', language) + ']'));
+        editor.key({ key: 'tab' }, language, 32, 12, true);
+        assert.equal(editor.panel!.selected, 'save');
+        assert.equal(editor.panel!.command, null);
         assert.deepEqual(editor.snapshot.bindings, {});
     }
 });
@@ -362,11 +375,17 @@ test('shortcut help keeps complete keys and shows controls for the active panel 
         const press = (key: string, ctrl = false, paste = false) => editor.key({ key, ctrl, paste }, language, 32, 12);
         const bold = () => {
             const view = shortcutPanelView(editor, language, 32, 12);
-            assert.ok(view.body.length + Number(view.menu.length > 0) <= view.bodyHeight, language);
-            assert.ok(view.body.every(row => displayWidth(row.text) <= view.innerWidth), language);
-            return new Set(view.footer.flatMap(row => editorLineSpans(row, 32)).filter(span => span.bold).map(span => span.text));
+            assert.ok(view.toolbar.length + view.body.length <= view.bottomOffset, language);
+            assert.ok(view.toolbar.every(row => displayWidth(row.map(span => span.text).join('')) <= view.innerWidth), language);
+            assert.ok([...view.body, ...view.bottom].every(row => displayWidth(row.text) <= view.innerWidth), language);
+            assert.ok(view.footer.length <= 2, language);
+            return new Set([...view.toolbar.flat().filter(span => span.kind === 'key').map(span => span.text),
+                ...view.footer.flatMap(row => editorLineSpans(row, 32)).filter(span => span.bold).map(span => span.text)]);
         };
-        assert.deepEqual(bold(), new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']), language);
+        const list = bold();
+        list.delete('↑↓');
+        assert.deepEqual(list, new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']), language);
+        assert.equal(shortcutPanelView(editor, language, 120, 30).footer.length, 1, language);
         press('/');
         assert.deepEqual(bold(), new Set(['Enter', 'Ctrl+G', 'Ctrl+U']), language);
         press('no-such-action', false, true);

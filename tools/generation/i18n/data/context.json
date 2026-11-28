@@ -82,6 +82,18 @@
       "description": "Editing a text field within the color panel. Accept finishes the field and cancel leaves just the text edit.",
       "terms": []
     },
+    "shortcuts.focus-actions": {
+      "version": 1,
+      "description": "Tab moves keyboard focus from the shortcut list to the toolbar immediately above it. The focus stays within the shortcut settings panel.",
+      "terms": [],
+      "cell_budget": 16
+    },
+    "shortcuts.focus-list": {
+      "version": 1,
+      "description": "Tab returns keyboard focus from the shortcut toolbar to the shortcut list and its existing selection.",
+      "terms": [],
+      "cell_budget": 16
+    },
     "shortcuts.host-preferences-pending": {
       "version": 1,
       "description": "The display is saved. The host preference edits still need a separate Apply. The user can then finish or close to discard the remaining host edits.",
@@ -90,6 +102,11 @@
     "shortcuts.interrupt-key": {
       "version": 1,
       "description": "The terminal editor declined Ctrl+C as a binding after catching it during recording. Ctrl+C interrupts the editor outside recording.",
+      "terms": []
+    },
+    "shortcuts.list-help": {
+      "version": 1,
+      "description": "Keyboard controls for the shortcut list. Delete restores the selected binding to its default.",
       "terms": []
     },
     "shortcuts.native-preset-applied": {
@@ -105,6 +122,21 @@
     "shortcuts.read-recovery": {
       "version": 1,
       "description": "Reason for a failed readback. The user should resolve the unfinished configuration transaction with the literal command and then read the saved map again.",
+      "terms": []
+    },
+    "shortcuts.reload-short": {
+      "version": 1,
+      "description": "Compact button label for reading the saved shortcut bindings from disk. It shares a 30-cell toolbar with the other two compact labels.",
+      "terms": []
+    },
+    "shortcuts.restore-all-short": {
+      "version": 1,
+      "description": "Compact button label for staging all default shortcut bindings. Save applies the staged defaults. It shares a 30-cell toolbar with the other two compact labels.",
+      "terms": []
+    },
+    "shortcuts.save-short": {
+      "version": 1,
+      "description": "Compact button label for writing the staged shortcut bindings. It shares a 30-cell toolbar with the other two compact labels.",
       "terms": []
     }
   }

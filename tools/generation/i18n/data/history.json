@@ -29926,6 +29926,131 @@
         "terms": []
       },
       "terms": {}
+    },
+    "fd8989486773ce67cf9e6fd6be23ecb02a5ac1b40ae1986b7a064ad344ac5cc4": {
+      "key": "shortcuts.back-help",
+      "english": "{back} back",
+      "placeholders": [
+        "back"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.back-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "55e816e09f28e1f7b2d22b58b7dc9b100269379e2886d75c02d8dc851168d68d": {
+      "key": "shortcuts.command-help",
+      "english": "{arrows} choose action · {enter} run",
+      "placeholders": [
+        "arrows",
+        "enter"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.command-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d992e6456ac6c54acc73dde1247077f728e41f8eb63ee32cb308824a3647637a": {
+      "key": "shortcuts.focus-actions",
+      "english": "{tab} to actions",
+      "placeholders": [
+        "tab"
+      ],
+      "context": {
+        "version": 1,
+        "description": "Tab moves keyboard focus from the shortcut list to the toolbar immediately above it. The focus stays within the shortcut settings panel.",
+        "terms": [],
+        "cell_budget": 16
+      },
+      "terms": {}
+    },
+    "8dac77ba9b43f02e49c449d4d2ea1f2c85a6b69138e3188eb88b801f6a66f759": {
+      "key": "shortcuts.focus-list",
+      "english": "{tab} to list",
+      "placeholders": [
+        "tab"
+      ],
+      "context": {
+        "version": 1,
+        "description": "Tab returns keyboard focus from the shortcut toolbar to the shortcut list and its existing selection.",
+        "terms": [],
+        "cell_budget": 16
+      },
+      "terms": {}
+    },
+    "3f0852a2f4c7e1acc912590e659aca2e067b60d3d98ffe7472cbcbd6d165b973": {
+      "key": "shortcuts.invalid",
+      "english": "Invalid shortcut preferences. Using defaults. Restore all defaults and save to repair them.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.invalid",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "58955872a3b180148fc195483ab05b9ccbcaa4af73df22f19b2990760d1e31ce": {
+      "key": "shortcuts.list-help",
+      "english": "{filter} filter · {enter} change · {restore} reset key",
+      "placeholders": [
+        "enter",
+        "filter",
+        "restore"
+      ],
+      "context": {
+        "version": 1,
+        "description": "Keyboard controls for the shortcut list. Delete restores the selected binding to its default.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c6b56236ef236089abdcb8efea8a6aa867107cca748358249f7916be7f3dcb61": {
+      "key": "shortcuts.reload-short",
+      "english": "Reload",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Compact button label for reading the saved shortcut bindings from disk. It shares a 30-cell toolbar with the other two compact labels.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b511155cd71f10129db82fc45c74c4f76f2b2f0e7aefa49272a7b73886046299": {
+      "key": "shortcuts.restore-all",
+      "english": "Restore all defaults",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.restore-all",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e02b7f746d2bf6a75be1190c1e3bb1d500f28f5439a7fc60005199a5efc5e615": {
+      "key": "shortcuts.restore-all-short",
+      "english": "Defaults",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Compact button label for staging all default shortcut bindings. Save applies the staged defaults. It shares a 30-cell toolbar with the other two compact labels.",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "91fd66fb81e30924a07d9b64d4807ee868902c6fdcef28a5cbf17948fc417e9c": {
+      "key": "shortcuts.save-short",
+      "english": "Save",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "Compact button label for writing the staged shortcut bindings. It shares a 30-cell toolbar with the other two compact labels.",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -30230,6 +30355,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "35bb741009a85c07c00b7cb3f04e4b466ed3ef40ffa02938eb49357aa71d8165"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "03cf09314d1a3f6f687ef50c6de546bc1a01ced89b5fd41e6857d11ca4b3c76d",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.action.event-refresh": [
@@ -30437,6 +30569,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "e005a8db9101effee8d55b76cefaa8dfb78b5bbb7db9fe612b628cd7b317ef23",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -30482,6 +30621,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "3d30f5fad94bf8a1fe2e6fddaaedc28b303461455e3be4c31b99ebbdfb0da3a7",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -30581,6 +30727,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "44b27f2167e2767c523142441b1462300636767974cd2bcef2426bb122453d7e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "a9c39ca5e456c9a787f5c55cba925e999ef41a7c174894eaf75926fa898b2b22",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
         }
       ]
     },
@@ -31067,6 +31231,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "ab3b70c211c8d656983b1f0d54c1d3d42a847436eb7960a94a8198a35f3f6222",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -31112,6 +31283,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "36fbe144dbb357071ec1c0bd4472cc506165ddcf79857430dbc25f6cb309d814",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -31148,6 +31326,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "3293f01a3078cc311103ee7ea9bb99fc9452c0f4c93078cf8b8fcc17ffdb1459",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -31220,6 +31405,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "6cababda1e4a125afe13acd493e4fefe5c93fc7a2ef2e98e603b6ea06fe23216",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "4f52b05bfc9343eca7369a18232bbedce3a2d33cbc6a2739e4b69f72b277eba3",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
         }
       ]
     },
@@ -31706,6 +31909,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "6587d264ca17678bc6b14782e126cc0f7b2cb2ed1ed314719542e1547866089a",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -31751,6 +31961,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "cc22ab9154260f367d3bb6309a8a372816f64745634722b874a9533d59a7b066",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -31787,6 +32004,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "9acc48e042456c2fae64d58b5800a5cdd3d9ea18bc41bf67ec23f8395c561425",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -31859,6 +32083,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "1b8f36b023b6009049dffaa2feb7a56d7afa1de59f6c4120893b022a90da344c",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "8ed17dc19ae030a41bc7034fc38133fca743d1560fc8bd631906e9d29187cb9a",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4f0dad7222b2778acf2b0b145a074594faabefe43815fd0ecf04ba8becc376ec"
         }
       ]
     },
@@ -32163,6 +32405,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "35bb741009a85c07c00b7cb3f04e4b466ed3ef40ffa02938eb49357aa71d8165"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "1b1bc9a542e0504523bc2862b5dad1002217ac21038b4f176c699124cc82fc79",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.action.event-refresh": [
@@ -32370,6 +32619,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "181e4a928bfba15aee027858bdf3af2fa0bf8766f2d194ecbdba69a87506a9c4",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -32415,6 +32671,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "e0097e49471a2f663e230c144d593fc372d3ea5909def42830faf44dbb8a7a56",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -32514,6 +32777,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "2983d5faa30ccb9c95d9cc86174491e93a122b26495af43cca004995a909b66b",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "107cadad9e803474345d979cb0bc0926f784297b568b659e5d25a0f0d4f53bec",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "784b837ded7394f1394ada64749df55f39542abbfada57c9cff12af20e82c4fc"
         }
       ]
     },
@@ -33640,6 +33921,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "d707ab13b6c16daa9fee1823f6b9f1ba1e41368e8554956af89d06034e1ba354",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -33685,6 +33973,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "6d805cddeaf46429426edab486373bfb99711cf83a59f9ed30eee82443fc16aa",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -33721,6 +34016,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "7575d5d6cbae705bd86356750d76d3a1d91fb2d0c758f2098639313024718218",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -33784,6 +34086,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "c3fde9b48f1bf0a4694ab8dfbf68ee0088f800f2bce90e0ac16a78e40d869c37",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "6308670f50583dafd8569b592ff6b354abd25b4495b476a85f51fb69d133d9cb",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
         }
       ]
     },
@@ -34270,6 +34590,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "d707ab13b6c16daa9fee1823f6b9f1ba1e41368e8554956af89d06034e1ba354",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -34315,6 +34642,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "6d805cddeaf46429426edab486373bfb99711cf83a59f9ed30eee82443fc16aa",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -34351,6 +34685,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "7575d5d6cbae705bd86356750d76d3a1d91fb2d0c758f2098639313024718218",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -34423,6 +34764,24 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "c3fde9b48f1bf0a4694ab8dfbf68ee0088f800f2bce90e0ac16a78e40d869c37",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "6308670f50583dafd8569b592ff6b354abd25b4495b476a85f51fb69d133d9cb",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "888006a76b426c12b8eae9124a8c5e4edf55ef1644d50a0f8201d088c149039d"
         }
       ]
     },
@@ -34900,6 +35259,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "e75e1fa722a6bba6c5e78c1961293815f45b99bfa3ea4a81f1f9d28acd0c6a6c",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -34945,6 +35311,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "f754d55a71909d412ca2e5121688ccbbd19fa191da1c152cfb0079c7fd4166ad",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -34981,6 +35354,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "bc87066b2807517a5c770fad2b76a27d284cd6652e46935d4a3ada387fdbb9b7",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -35053,6 +35433,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "208b9381f09c87c7f8649627e39f74704584e535a6e2869be9afcbff65126474",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "29a3189cb006779f3153863fb84adb36542a752ca9e3105d4b693de39183d418",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
         }
       ]
     },
@@ -35530,6 +35928,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "0205ca6bba8f87cac6fd2586bfa1d212729c33ed81a61243f0733639c0f7cbbf",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -35575,6 +35980,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "977ad730ea821fff7d6300cedbd89109c1fbc97d0e98801b07132e16d5bfd5c1",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -35611,6 +36023,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "e446fe4bd2acf0875a55f47a7da03ce2ffff29894c31c5f6d73e84a7b5db30eb",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -35683,6 +36102,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "cabb03ea2db01e1880911dd477210c51f176695588b7141de50e1c0b5cb66303",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "ab0073c1f8fb0b5d3107031b19f0e131f04cb3f92f36367cf7a91418f9fdb05b",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "4ff97b0a8de3ada125548158772ea8eed3a42968671489e736561394640f1f24"
         }
       ]
     },
@@ -36142,6 +36579,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "9039e5623854e33823be15c5dd2082879935820579236f6a1f617c3a15f85eed",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -36187,6 +36631,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "cae0e41f1110559f8e7cd5ed956e58305a4d7a5c28d47b3914a8ca7c5e3c6039",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -36223,6 +36674,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "fc6cd5bdc26f42e14ea63512752cee1216f4f5bfc0423829319940e0efe41b21",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -36295,6 +36753,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "7538d63797913230149fd06b6c6595b3ca8eea6ea0f28ff02d2fa33d7877f576",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "649cec0cafdc775332b5ee5942bddd205e93016474d1383807af7bca432bb688",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
         }
       ]
     },
@@ -36754,6 +37230,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "652832db1d0e0a1848e2423139592e1b1503ff5c23dfd2d1cbb30371250aa31c",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -36799,6 +37282,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "5fc5e61ba83ee7ac002eabf1aacaf4cc5d20ea280449f110d68d50003a14c282",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -36835,6 +37325,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "7dc46dd36179b86c529a5b53c000d96b4c4ef0a94f7c2d814c96bec8c31b3899",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -36907,6 +37404,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "5f697f8e88c654f1438f56ef51920bbdd50ef73f3f1d6581064580d2e6133070",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "2b53f350cba8a097435157aaca9bf27568fc236ef7ef33290c56cf729fbc4c06",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "2ba93021b4bf9c62da1db40195ddb4ac6c8676186da0df9e9a46bc33442ed822"
         }
       ]
     },
@@ -37366,6 +37881,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "16b2f7c1db9952f2da72d918f948db66299823d851af458c4387032abbbd9d32",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -37411,6 +37933,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "d3814b0515b0561121d9409160f625d7240f0927e2795eefd56b105578f59389",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -37447,6 +37976,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "295a26699d54320727a736807cb3ef2295fb451331ac994729e01f4451dfd606",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -37519,6 +38055,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "27e71cb3cd79eee6a8314459058268e33089d061314cf4bf8d00fa30b7d1dff6",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "a91d4db977908afdba682d14bb89f391554f7a7e51cb61138e9da867671761b9",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
         }
       ]
     },
@@ -37978,6 +38532,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "2a03761b71f5044c04cd529d79f120ae43c5897b56564be1216cc002e7ec360f",
+          "translation": "39baa1c34fa11a0538f418ece93df16e6d273574331fd36c54d304df3000b5ae",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.capture": [
@@ -38023,6 +38584,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "72462da1ea735a03670e0630dcefd72be6f9359e02c6c61ee6bfcc3e69740f69",
+          "translation": "a1f49926514e51c49271c404ad8dd9e730217ee2bba9e775b3717968cc1fb7c4",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.confirm-help": [
@@ -38059,6 +38627,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        },
+        {
+          "source": "f4269516bb5547236491033b59225ea7f0e9961b1388e17128bc167c9b8ec82f",
+          "translation": "e26a894eb032ee06ada6314f77e62029b1a38648d9769578e08dce12d87f296d",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.options": [
@@ -38131,6 +38706,24 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "972993e67e9a045e8c7ca0bcc58258db8de5d053a066864bef9688d87b6f392d"
+        }
+      ],
+      "shortcuts.invalid": [
+        {
+          "source": "ac803a4d9122b33dc7bd0ff430c75a78587cb7a4f7367cd4040c399ea442f0a6",
+          "translation": "52948870517af6477466dec10d08a6779868745ecf0c7e7bd31bbbf6ad713cdc",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
+        }
+      ],
+      "shortcuts.restore-all": [
+        {
+          "source": "257f9150bdf56408136c1eb069de7fc2abb6ff480571ffa61f50a8fc0ec22195",
+          "translation": "2d0393b5a4390bee21cfd5b8d52022928dc1431226c2e5e12e329215c0da2841",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "1ef8f6afa9666afff63201bc393e9cba6e94591bc2ddcf19ed1e93034655058f"
         }
       ]
     }
