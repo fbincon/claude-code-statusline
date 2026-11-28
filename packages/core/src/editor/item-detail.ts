@@ -56,13 +56,21 @@ export function wrapItemDetailRows(blocks: readonly ItemDetailBlock[], width: nu
   });
 }
 
-export function itemDetailWindow(rows: readonly ItemDetailRow[], scroll: number, capacity: number, key?: string): {
-  start: number;
-  rows: readonly ItemDetailRow[];
-  summary: string;
-} {
+/** Give each fact a first-screen slot. Lengthy values remain readable below it. */
+export function confirmationFacts<Row extends { text: string }>(facts: readonly Row[], width: number): Row[] {
+  const full: Row[] = [];
+  const summary = facts.map(row => {
+    const value = row.text.replace(/[\p{Cc}\p{Cs}]/gu, ' ');
+    const bounded = clip(value, width);
+    if (bounded !== value) full.push(...wrapDetailText(value, width).map(text => ({ ...row, text })));
+    return { ...row, text: bounded };
+  });
+  return [...summary, ...full];
+}
+
+export function detailOffset(length: number, scroll: number, capacity: number, key?: string): number {
   const visible = Math.max(1, Math.trunc(capacity) || 1);
-  const last = Math.max(0, rows.length - visible);
+  const last = Math.max(0, length - visible);
   const clamp = (offset: number) => Math.max(0, Math.min(offset, last));
   let start = clamp(Math.trunc(scroll) || 0);
   switch (key) {
@@ -73,6 +81,16 @@ export function itemDetailWindow(rows: readonly ItemDetailRow[], scroll: number,
     case 'home': start = 0; break;
     case 'end': start = last; break;
   }
+  return start;
+}
+
+export function itemDetailWindow<Row>(rows: readonly Row[], scroll: number, capacity: number, key?: string): {
+  start: number;
+  rows: readonly Row[];
+  summary: string;
+} {
+  const visible = Math.max(1, Math.trunc(capacity) || 1);
+  const start = detailOffset(rows.length, scroll, visible, key);
   const end = Math.min(rows.length, start + visible);
   return { start, rows: rows.slice(start, end), summary: `${rows.length ? start + 1 : 0}–${end}/${rows.length}` };
 }

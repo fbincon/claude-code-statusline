@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setup } from './final-support.js';
 import { Session } from '@fbincon/statusline-tui/session';
@@ -9,7 +9,7 @@ import { frame } from '@fbincon/statusline-tui/drawing';
 import { BackendError, parseResponse, requestText } from '@fbincon/statusline-core/editor/backend';
 import { copyDraft } from '@fbincon/statusline-core/editor/draft';
 import type { ConfigTarget } from '@fbincon/statusline-core/contracts/ui';
-import { LANGUAGES } from '@fbincon/statusline-core/i18n/messages';
+import { LANGUAGES, t as translate } from '@fbincon/statusline-core/i18n/messages';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { ProfileService } from '../src/config/profiles.js';
 import { allFiles } from './runtime-support.js';
@@ -75,7 +75,7 @@ test('installed-style backend workflow saves a named draft, previews without act
         await key('down');await key('down');await key('enter');
         assert.equal(e.draft.display.palette,'ansi');
         // Re-select the scheme, then explicitly discard and enter its editor.
-        await key('down');await key('enter');await key('enter');await key('down');await key('enter');
+        await key('down');await key('enter');await key('enter');await key('up');await key('enter');
         assert.equal(e.profiles,null);
         assert.equal(e.draft.display.statusline_language,'ja');
         assert.equal(e.baseline.configuration?.profile_name,'方案 é 👩‍💻');
@@ -99,13 +99,84 @@ test('scheme form paste stays text, duplicate overwrite is explicit, and activat
     assert.equal(e.profiles?.page,'form');
     await key('sfq 中文',{paste:true});await key('enter');
     assert.equal(e.profiles?.page,'confirm');assert.equal(p.read().profiles.length,0);
-    await key('enter');assert.equal(p.read().profiles[0]!.name,'sfq 中文');
+    await key('up');await key('enter');assert.equal(p.read().profiles[0]!.name,'sfq 中文');
     assert.equal(f.display().statusline_language,'en');
     // Select saved scheme, activate as default draft, explicitly discard old draft.
     await key('down');await key('enter');await key('down');await key('enter');
     assert.equal(e.profiles?.page,'dirty');
-    await key('down');await key('enter');
+    await key('up');await key('enter');
     assert.equal(e.profiles,null);assert.equal(e.draft.display.statusline_language,'ko');
     assert.equal(f.display().statusline_language,'en');
     await session.save();assert.equal(f.display().statusline_language,'ko');
+});
+
+test('save and bind shows both targets, cancels without writes and saves without consuming user-level drafts', async t => {
+    const f = setup(t, true), service = new ProfileService(f.service);
+    const backend: Backend = { request(operation, payload = {}) {
+        const response = f.protocol.handle(requestText(operation, payload));
+        return parseResponse(operation, { exitCode: response.status, stdout: JSON.stringify(response.response), stderr: '' });
+    } };
+    const session = await Session.open(backend, 'en'), editor = session.state.editor;
+    const draft = copyDraft(editor.draft);
+    draft.display.statusline_language = 'ko';
+    draft.host.hide_vim_mode_indicator = true;
+    editor.commitDraft(draft);
+    const key = (key: string, extra = {}) => session.key({ key, ...extra }, 64, 18);
+    const text = () => frame(session.state, 64, 18).rows.flatMap(row => row.map(span => span.text)).join('\n');
+    const prepare = async () => {
+        for (const step of ['down', 'down', 'enter']) await key(step);
+        await key('New scheme', { paste: true });
+        await key('enter');
+        await key('u', { ctrl: true });
+        await key(f.root, { paste: true });
+        await key('enter');
+        assert.equal(editor.profiles?.page, 'confirm');
+        assert(text().includes(translate('profiles.confirm_scheme', 'en', { name: 'New scheme' })));
+        assert(text().includes(translate('profiles.confirm_project', 'en', { path: '' }).trim()));
+        assert.equal(editor.profiles?.fields[1]?.input.value, f.root);
+    };
+    const initial = allFiles(f.root);
+    await key('o', { ctrl: true });
+    await prepare();
+    await key('enter');
+    assert.equal(editor.profiles?.page, 'list');
+    assert.deepEqual(allFiles(f.root), initial);
+    assert.deepEqual(editor.draft, draft);
+
+    await prepare();
+    await key('up');
+    await key('enter');
+    assert.equal(service.read().profiles[0]?.name, 'New scheme');
+    assert.equal(service.read().bindings[0]?.profile_id, service.read().profiles[0]?.id);
+    assert.equal(editor.baseline.configuration?.target.kind, 'project');
+    assert.equal(editor.draft.host.hide_vim_mode_indicator, true);
+    assert.equal(editor.modified, true);
+    assert.equal(editor.profiles?.message?.key, 'profiles.saved_with_pending');
+    assert.equal(f.display().statusline_language, 'en');
+});
+
+test('a real occupied scheme export path opens an explicit replacement confirmation', async t => {
+    const f = setup(t, true), service = new ProfileService(f.service);
+    service.mutate({ action: 'save', name: 'Stored scheme', display: defaultDisplay(), expected_revision: service.read().revision });
+    const path = join(f.root, 'existing.json');
+    writeFileSync(path, 'existing export', { mode: 0o600 });
+    const backend: Backend = { request(operation, payload = {}) {
+        const response = f.protocol.handle(requestText(operation, payload));
+        return parseResponse(operation, { exitCode: response.status, stdout: JSON.stringify(response.response), stderr: '' });
+    } };
+    const session = await Session.open(backend), editor = session.state.editor;
+    const key = (key: string, extra = {}) => session.key({ key, ...extra }, 64, 18);
+    await key('o', { ctrl: true });
+    for (const step of ['down', 'enter', 'end', 'enter']) await key(step);
+    assert.equal(editor.profiles?.page, 'form');
+    await key('u', { ctrl: true });
+    await key(path, { paste: true });
+    for (const step of ['enter', 'up', 'enter']) await key(step);
+    assert.equal(editor.profiles?.page, 'confirm');
+    assert.equal(editor.profiles?.uncertain, false);
+    assert.equal(editor.profiles?.confirmation?.kind, 'export');
+    assert.equal(editor.profiles?.message?.key, 'profiles.overwrite');
+    await key('enter');
+    assert.equal(editor.profiles?.page, 'list');
+    assert.equal(readFileSync(path, 'utf8'), 'existing export');
 });

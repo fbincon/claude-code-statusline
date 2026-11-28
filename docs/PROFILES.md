@@ -12,7 +12,7 @@ This named configuration is a **profile**. Built-in complete schemes and origina
 
 ## Choose an editing target
 
-The editor opens the scheme selected for its working directory, or the user default when no binding matches. Its header identifies the editing target, matching root and number of shared project bindings. The target stays fixed during editing; switching a dirty draft offers Save, Discard and Cancel.
+The editor opens the scheme selected for its working directory, or the user default when no binding matches. Its header identifies the editing target, matching root and number of shared project bindings. When switching with a dirty draft, compare the current and next targets and their shared project counts before choosing Save, Discard or Cancel. The default choice is Cancel.
 
 The external editor reads the profile list when you open it, return to it or request a reload. A profile that still exists stays selected by its ID even if another editor renames it. Forms and confirmation screens keep the values you are reviewing. Saving still checks the revision you started from.
 
@@ -23,7 +23,7 @@ claude-statusline configure --profile "Daily development"
 claude-statusline configure --project "/work/project"
 ```
 
-Editing a named scheme updates every project bound to that scheme when you save. Choose **Save current display as and bind** for an independent copy. Renaming retains the scheme's stable identity. Delete requires removing its project bindings first.
+Editing a named scheme updates every project bound to it when you save. Choose **Save current display as and bind** for an independent copy. Binding confirmations identify the scheme and project path. Page Up/Down shows longer details. Confirming immediately saves the scheme and binding. Save any remaining user-level draft settings with the editor's normal Save action. Renaming retains the scheme's stable identity. Delete requires removing its project bindings first.
 
 **Use as default draft** loads a copy for review; ordinary Save activates it. The user default is an independent snapshot: subsequent edits to the named scheme do not change that default. Existing `config set`, `config preset`, `config import` and `config reset` commands continue to operate on the user default. Reset does not remove the personal collection.
 

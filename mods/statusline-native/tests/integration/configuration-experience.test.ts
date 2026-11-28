@@ -21,7 +21,7 @@ test('quick setup preserves a dirty draft on cancel, previews its candidate and 
     ? {value:reply({draft:{...copyDraft(request.payload.draft), display:{...copyDraft(request.payload.draft).display,theme:'dark'}}})} : next();
   await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
   await keys(ui,'4',' ',{key:'p',ctrl:true},'return');
-  expect(await visibleText(ui)).toContain(t('quick.preset-ready', 'en'));
+  expect(await visibleText(ui)).toContain(t('quick.next', 'en'));
   await keys(ui,'s', 'right');
   expect(f.calls.some(c=>c.operation==='apply')).toBe(false);
   expect(f.calls.filter(c=>c.operation==='preview').at(-1)!.payload.draft.display.theme).toBe('light');
@@ -108,7 +108,7 @@ test('all complete scheme choices can save a copy without publishing the dirty n
   for (const id of ['daily-development','agent-focus','quota-watch']) {
     await keys(ui, {key:'p',ctrl:true}, 'home');
     for (let i=0; i<PRESETS.findIndex(p=>p.id===id); i++) await keys(ui, 'down');
-    await keys(ui, 'return', 'end', 'return', 'down', 'down', 'return', 'Copy ' + id, 'return', 'return');
+    await keys(ui, 'return', 'end', 'return', 'down', 'down', 'return', 'Copy ' + id, 'return', 'up', 'return');
     expect(f.calls.filter(c=>c.operation==='preset').at(-1)!.payload.preset).toBe(id);
     expect(f.calls.filter(c=>c.operation==='profiles_apply').at(-1)!.payload.display.theme).toBe('terminal');
     expect(f.calls.filter(c=>c.operation==='profiles_apply').at(-1)!.payload.display.use_colors).toBe(false);

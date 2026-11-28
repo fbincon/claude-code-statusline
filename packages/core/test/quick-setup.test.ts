@@ -30,6 +30,11 @@ test('all scenarios have localized scrollable requirements at narrow sizes', () 
     const lines=quickView(q,language,30,3);
     assert.equal(lines.length,3); assert.equal(lines.filter(line=>line.selected).length,1);
     assert.ok(!lines.some(line=>line.text.includes('quick.')));
-    quickKey(q,'pagedown'); assert.equal(q.detailScroll,1);
+    const viewport = { language, width: 30, height: 3 };
+    for (let press = 0; press < 20; press++) quickKey(q, 'pagedown', viewport);
+    const last = q.detailScroll;
+    assert(last > 0);
+    quickKey(q, 'pagedown', viewport); assert.equal(q.detailScroll, last);
+    quickKey(q, 'pageup', viewport); assert(q.detailScroll < last);
   }
 });

@@ -10,7 +10,8 @@ import { STYLE_FIELDS, styleFields, reuseDraft } from './reuse.ts';
 import { createReview, navigateReview, reviewRows, type ReviewState } from './import-review.ts';
 import { newInstance } from './instances.ts';
 import { openSources } from './source-manager.ts';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
+import { fileActionFailure } from '../backend.ts';
+import { inputKey, pathInputWindow, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { text, t, renderMessage, type Language, type LocalizedText } from '../i18n/index.ts';
 
 export interface ReuseManager {
@@ -70,8 +71,21 @@ export function reuseKey(e: Editor,event:TextKey,language:Language,width:number,
   if(event.overflow)return null;
   if(!event.text&&!event.paste&&(key==='escape'||event.ctrl&&key.toLowerCase()==='g')){e.reuse=null;return null;}
   if(m.page==='path'){
-    if(key==='return'&&!event.text&&!event.paste){m.effect='file';return 'reuse';}
-    m.input=inputKey(m.input.value,m.input,event,4096).state;return null;
+    const command = !event.ctrl && !event.meta && !event.text && !event.paste;
+    if (command && key === 'return') {
+      if (m.input.value.trim()) { m.effect = 'file'; return 'reuse'; }
+      m.message = text('ui.forms.enter_a_file_path'); m.scroll = 0;
+    } else if (command && (key === 'pageup' || key === 'pagedown')) {
+      m.scroll = reusePathPage(m, language, width, height, key).start;
+    } else {
+      const edited = inputKey(m.input.value, m.input, event, 4096);
+      if (edited.state.value !== m.input.value || edited.error) {
+        m.message = edited.error ? text('input.' + edited.error, { limit: 4096 }) : null;
+        m.scroll = 0;
+      }
+      m.input = edited.state;
+    }
+    return null;
   }
   if(event.text||event.paste||event.meta)return null;
   const action = e.shortcuts.action(reuseShortcutContext(m), event);
@@ -96,7 +110,7 @@ export function reuseKey(e: Editor,event:TextKey,language:Language,width:number,
   if(m.page==='source'){
     if(m.cursor===0){m.page='select';m.cursor=0;}
     else if(m.cursor===3){m.effect='profiles';return 'reuse';}
-    else {m.profileFile=m.cursor===2;m.page='path';}
+    else {m.profileFile=m.cursor===2;m.page='path';m.message=null;m.scroll=0;}
   }else if(m.page==='profiles'){
     const profile=m.library?.profiles[m.cursor];if(profile){m.incoming={display:clone(profile.display),host:clone(e.draft.host)};m.local=false;m.page='select';m.cursor=0;}
   }else if(m.page==='select'){
@@ -128,10 +142,13 @@ function detailRows(m:ReuseManager,language:Language):{text:string;heading:boole
     ...(m.result?.unresolved.map(u=>({text:tr('unbound')+': '+u.id+' · '+u.hint,heading:false,section:''}))??[])
   ];
 }
+function reusePathPage(m: ReuseManager, language: Language, width: number, height: number, key?: string) {
+  return pathInputWindow(t('reuse.path', language), m.input, renderMessage(m.message ?? '', language), width, height, m.scroll, key);
+}
 export function reuseView(e:Editor,language:Language,width:number,height:number):(EditorLine & {selected?:boolean})[]{
   const m=e.reuse!,tr=(key:string)=>t('reuse.'+key,language),header=tr(m.kind==='style'?'style':'groups');
   const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
-  if(m.page==='path')return [{text:header},{text:tr('path')},inputView({...m.input},width),hintLine('reuse.path_help', language, { enter: 'Enter', back })].slice(0,height).map(row=>clipEditorLine(row,width));
+  if(m.page==='path') return reusePathPage(m, language, width, height).rows;
   if(m.page==='review'){
     const capacity=reviewCapacity(m,height),review=m.review;
     const context = reuseShortcutContext(m), keys = e.shortcuts;
@@ -157,14 +174,15 @@ export function reuseView(e:Editor,language:Language,width:number,height:number)
 }
 export async function performReuse(e:Editor,backend:ReviewBackend):Promise<void>{
   const m=e.reuse,effect=m?.effect;if(!m||!effect)return;m.effect=null;
+  const input = m.input;
   try{
-    if(!e.canMutateDraft(m.generation)||m.target!==targetIdentity(e.baseline))throw new Error('history.stale');
+    if(!e.canMutateDraft(m.generation)||m.target!==targetIdentity(e.baseline)){m.message=text('history.stale');m.scroll=0;return;}
     if(effect==='profiles'){
       const library=await backend.request('profiles_read',{});if(e.reuse!==m||m.generation!==e.mutationGeneration)return;m.library=library;m.page='profiles';m.cursor=0;
     }else{
-      const incoming=m.profileFile?{display:(await backend.request('profile_import',{path:m.input.value})).display,host:clone(e.draft.host)}:(await backend.request('review_import',{draft:e.draft,path:m.input.value})).draft;
-      if(e.reuse!==m||m.generation!==e.mutationGeneration)return;m.incoming=clone(incoming);m.local=false;m.page='select';m.cursor=0;m.groups=[];
+      const incoming=m.profileFile?{display:(await backend.request('profile_import',{path:input.value})).display,host:clone(e.draft.host)}:(await backend.request('review_import',{draft:e.draft,path:input.value})).draft;
+      if(e.reuse!==m||m.generation!==e.mutationGeneration||m.input!==input)return;m.incoming=clone(incoming);m.local=false;m.page='select';m.cursor=0;m.groups=[];
     }
     m.message=null;
-  }catch(error){if(e.reuse===m)m.message=text('history.failed',{detail:error instanceof Error?error.message:String(error)});}
+  }catch(error){if(e.reuse===m&&(effect!=='file'||m.input===input)){m.message=fileActionFailure(error);m.scroll=0;}}
 }

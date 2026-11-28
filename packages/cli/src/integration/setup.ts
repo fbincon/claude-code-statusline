@@ -2,6 +2,7 @@ import { quoteArgument } from '@fbincon/statusline-platform/commands';
 import { t, renderMessage, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { SetupState } from '@fbincon/statusline-core/editor/setup';
 import { differences } from '@fbincon/statusline-core/config/import-review';
+import { formatReviewValue } from '@fbincon/statusline-core/editor/import-review';
 import { applyPreset } from '@fbincon/statusline-core/config/presets';
 import { randomUUID } from 'node:crypto';
 import { runSetup } from '@fbincon/statusline-tui/setup';
@@ -27,12 +28,12 @@ export async function setup(context: InstallContext, dryRun: boolean, language: 
         return inspection.canIntegrate ? 0 : 1;
     }
     const state = new SetupState(inspection, language), preview = await previewAdapter();
-    const summarize = (value: unknown): string => typeof value === 'object' && value !== null && 'type_id' in value ? String(value.type_id) : JSON.stringify(value);
     const action = await runSetup(state, {
         preset: (draft, id) => ({ ...draft, display: applyPreset(draft.display, id, () => randomUUID().replaceAll('-', '')) }),
         preview:(draft,width,scenario)=>preview(draft,width,undefined,scenario),
         language: next => { setLanguage(context.configDir, next, context.io); },
-        review: (draft, next) => differences(inspection.draft!, draft).map(change => renderMessage(change.label, next) + ': ' + summarize(change.before) + ' → ' + summarize(change.after)),
+        review: (draft, next) => differences(inspection.draft!, draft).map(change => renderMessage(change.label, next) + ' · '
+            + formatReviewValue(change, change.before, next, inspection.draft!) + ' → ' + formatReviewValue(change, change.after, next, draft)),
     });
     language = state.language;
     if (action === 'cancel' || action === 'interrupt') { stdout(t('setup.cancelled', language) + '\n'); return action === 'interrupt' ? 130 : 0; }

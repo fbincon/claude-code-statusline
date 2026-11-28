@@ -51,7 +51,7 @@ Permission checks are read-only and cannot guarantee that a later disk write wil
 
 ## Apply and recovery
 
-The final review offers **Save display and integrate**, **Save display only**, and **Cancel**. It shows display changes, planned file resources, retained editor/collector choices and the separate official plugin stage. Review details are scrollable.
+The final review lists the available actions first. It offers **Save display and integrate** when the integration checks pass. If integration is blocked and the display can still be saved, **Save display only** is selected and the review shows the check that blocked integration. Use PgUp/PgDn to browse the display changes and resources for the selected action. Backspace returns to the previous step and Esc cancels.
 
 Display save and integration are separate durable commits with backups. Display-only save works before installation and does not apply Claude host preferences. Integration reuses the existing installer and plugin recovery journal. Selecting a scheme never enables native timing or live metrics; saved opt-outs survive.
 

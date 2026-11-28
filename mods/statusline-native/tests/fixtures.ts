@@ -231,6 +231,7 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
   const fixture = {
     calls,
     configCalls,
+    configReads: 0,
     opens,
     closes,
     store,
@@ -271,7 +272,10 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
   on('ui.toast', () => ({ value: undefined }));
   on('ui.log', () => ({ value: undefined }));
   on('ui.message', () => ({}));
-  on('config.list', () => ({ value: store.rows }));
+  on('config.list', () => {
+    fixture.configReads++;
+    return { value: store.rows };
+  });
   on('config.set', ($, e) => {
     configCalls.push({ key: e.key, value: e.value });
     const result = behavior.configSet?.(e.key, e.value) || { value: e.value };

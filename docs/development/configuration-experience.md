@@ -12,6 +12,7 @@ The public entry points are `configure` and `/statusline-configure-native`; see 
 - `cli/ui/explain` reads installation ownership and collector preferences without locks or writes. Host capability is distinct from actual field observation. Unreadable sources remain unknown. No transcripts, runtime stores, Git queries or network calls supply explanation data.
 - `core/editor/explanation` pairs catalog reference examples with draft facts and sample outcomes for the selected instance ID. Native response guards check epoch, width and draft identity. TUI caches results by draft, scope, instance, scenario and width. Native effects run in hooks and external effects run in Session.
 - `core/editor/guidance` uses catalog data for source, scope and activation requirements. Both pages use the shared item-detail rows and viewport calculation. The editors apply their own heading and body styles and use the available body rows for paging.
+- Source, file and confirmation pages share their state and action availability in Core. The adapters use the full editor body for these pages where applicable and pass the same viewport to drawing and key handling. Report details page through complete graphemes and keep the current action and its target visible.
 
 New modules are generated into the self-contained native Mod; generated copies are not separately maintained. Tests live with the owning packages, with end-to-end PTY cases under the existing acceptance tools.
 

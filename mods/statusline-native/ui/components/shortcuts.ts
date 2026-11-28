@@ -7,6 +7,7 @@ import { styles } from '../theme.ts';
 export interface Shortcut {
   key: string;
   label: string;
+  labelKey?: string;
   short?: string;
   optional?: number;
 }

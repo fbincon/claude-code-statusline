@@ -2,7 +2,7 @@ import { isDeepStrictEqual } from 'node:util';
 import type { TaskDetails } from '@fbincon/statusline-core/contracts/ui';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
 import { packageProgress, receivePackageReview, type PackageManager } from '@fbincon/statusline-core/editor/package-manager';
-import { receiveTask, taskViewerView, type TaskRow, type TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
+import { receiveTask, taskPreferenceFailure, taskReadFailure, taskViewerView, type TaskRow, type TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 import { text, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, type RefreshTarget } from './foreground-refresh.js';
 import { observeBackend } from './observation-backend.js';
@@ -26,7 +26,7 @@ export function taskRefreshInterval(view: TaskViewer): number | null {
 function sameTaskRows(before: TaskRow[], after: TaskRow[]): boolean {
     return before.length === after.length && before.every((row, index) => {
         const next = after[index]!;
-        return row.key === next.key && row.selected === next.selected &&
+        return row.key === next.key && row.selected === next.selected && row.heading === next.heading &&
             (row.key.startsWith('captured:') || row.text === next.text);
     });
 }
@@ -62,7 +62,7 @@ export function taskRefresh(view: TaskViewer, backend: Backend, language?: Langu
                     preferences = { language: language ?? result.ui_language, warning: result.warning };
                 } catch {
                     signal.throwIfAborted();
-                    preferences = { language: language ?? 'en', warning: text('task.language_unavailable') };
+                    preferences = taskPreferenceFailure(language);
                 }
             }
             const snapshot = await observeBackend(backend, 'task_details', { session_id: session, prompt_id: prompt }, signal);
@@ -80,7 +80,7 @@ export function taskRefresh(view: TaskViewer, backend: Backend, language?: Langu
         },
         failed(error) {
             if (!current()) return false;
-            const message = error instanceof BackendError && error.localization ? error.localization : text('task.viewer.read_failed');
+            const message = taskReadFailure(view, error);
             const changed = !isDeepStrictEqual(message, view.error);
             view.error = message;
             return applyPreferences() || changed;

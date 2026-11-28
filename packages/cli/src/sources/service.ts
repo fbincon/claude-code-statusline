@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { join, resolve, isAbsolute } from 'node:path';
 import { readdirSync, statSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
 import { SOURCE_REGISTRY_VERSION, type SourceDefinition, type SourceContext, type SourceReference, type SourceJob, type SourceObservation, type SourcesResult, type SourceMutationResult, type SourceView, type AutomaticStatus } from '@fbincon/statusline-core/contracts/ui';
-import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, executionSummary, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar, githubBranch } from '@fbincon/statusline-core/extensions/model';
+import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, executionSummary, sourceError, sourceField, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar, githubBranch } from '@fbincon/statusline-core/extensions/model';
 import { object, ConfigError, integer } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -50,7 +50,7 @@ export class SourceService {
         if (result.scope.project) {
             const project = projectPaths.canonical(resolve(expandUser(result.scope.project)));
             if (!project)
-                sourceError('scope');
+                return sourceField('project', () => sourceError('scope'));
             result.scope.project = contextFor(project).project;
         }
         if (s.path)
@@ -58,13 +58,13 @@ export class SourceService {
         if (s.cwd) {
             const cwd = projectPaths.canonical(resolve(expandUser(s.cwd)));
             if (!cwd)
-                sourceError('scope');
+                return sourceField('cwd', () => sourceError('scope'));
             s.cwd = cwd;
         }
         if (s.executable) {
             const found = isAbsolute(s.executable) ? s.executable : which(s.executable);
             if (!found)
-                sourceError('missing_program');
+                return sourceField('executable', () => sourceError('missing_program'));
             s.executable = resolve(found);
         }
         return result;
@@ -79,7 +79,7 @@ export class SourceService {
             const path = join(this.configuration.context.configDir, SOURCE_FILENAME), raw = readSourceFile(path);
             const state = registry({ version: current.version, sources: current.sources, bindings: current.bindings, automatic: current.automatic });
             let binding: SourceReference | undefined;
-            const id = sourceId(value.id), selected = state.sources.find(s => s.id === id);
+            const id = sourceField('id', () => sourceId(value.id)), selected = state.sources.find(s => s.id === id);
             if (value.action === 'add' || value.action === 'edit') {
                 if (!object(value.source) || (value.action === 'add' ? selected !== undefined : selected === undefined))
                     sourceError('conflict');

@@ -26,7 +26,7 @@ export function dimensions(columns: number, rows: number) {
     const previewHeight = previewRows + (framed ? 2 : 1), contentHeight = Math.max(3, height - 6 - previewHeight);
     const panel = (y: number, h: number): Panel => ({ y, width, height: h, framed, innerY: y + 1, innerX: framed ? 2 : 1, innerWidth: Math.max(1, width - (framed ? 4 : 2)), innerHeight: Math.max(1, h - (framed ? 2 : 1)) });
     const content = panel(4, contentHeight), preview = panel(4 + contentHeight, previewHeight);
-    const report = panel(4, Math.max(3, height - 6));
+    const report = panel(2, Math.max(3, height - 4));
     return { content, preview, report, actionsY: height - 2, helpY: height - 1,
         formHeight: Math.max(1, content.innerHeight - 2),
         listHeight: Math.max(1, content.innerHeight - 3), // Heading, example and summary.

@@ -19,14 +19,21 @@ import { Capture, cellColors, cellColumn, showsInputCaret, type Cell } from '../
 import { EDITOR_SHORTCUTS_FILENAME, type Draft } from '@fbincon/statusline-core/contracts/ui';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
+import { diagnosisJourney, prepareDiagnosisJourney } from './editor-usability/diagnosis.js';
+import { prepareSourceJourney, sourcesJourney } from './editor-usability/sources.js';
+import { open as openChoice, type EditorJourney } from './editor-usability/terminal.js';
+import { dropApplyReplyFile, verifyInitialFocus, workflowJourney } from './editor-usability/workflow.js';
 
 const { values } = parseArgs({ options: {
     artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' },
     claude: { type: 'string', default: 'claude' }, 'component-picker': { type: 'boolean' }, 'header-controls': { type: 'boolean' },
     'editor-shortcuts': { type: 'boolean' }, 'version-installation': { type: 'boolean' }, 'item-details': { type: 'boolean' },
+    'editor-usability': { type: 'string' },
 } });
-if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts | --version-installation | --item-details]');
-assert([values['component-picker'], values['header-controls'], values['editor-shortcuts'], values['version-installation'], values['item-details']]
+if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE] [--component-picker | --header-controls | --editor-shortcuts | --version-installation | --item-details | --editor-usability sources|workflow|diagnosis]');
+const usability = values['editor-usability'];
+assert(usability === undefined || ['sources', 'workflow', 'diagnosis'].includes(usability), 'Select an editor usability journey: sources, workflow or diagnosis');
+assert([values['component-picker'], values['header-controls'], values['editor-shortcuts'], values['version-installation'], values['item-details'], usability]
     .filter(Boolean).length <= 1, 'Select one focused PTY journey');
 if (process.platform !== 'linux') throw new Error('This receipt covers Linux PTYs only');
 const artifact = verifyDelivery(resolve(values.artifact), values.commit);
@@ -49,6 +56,15 @@ const args = process.argv.slice(2), command = args[0];
 const raw = ['ui', 'runtime', 'render', 'render-subagents', 'hook', 'slash-hook'].includes(command) ? fs.readFileSync(0, 'utf8') : '';
 const log = path.join(process.env.CLAUDE_CONFIG_DIR, 'backend.jsonl');
 const record = value => fs.appendFileSync(log, JSON.stringify(value) + '\\n');
+const audit = process.env.STATUSLINE_EDITOR_USABILITY === '1';
+const dropReply = operation => {
+    if (!audit || operation !== 'apply') return false;
+    const marker = path.join(process.env.CLAUDE_CONFIG_DIR, ${JSON.stringify(dropApplyReplyFile)});
+    if (!fs.existsSync(marker)) return false;
+    fs.renameSync(marker, marker + '.used');
+    record({ command, operation, phase: 'reply-dropped' });
+    return true;
+};
 
 if (command === 'configure') {
   // External editor requests go directly through the in-process protocol.
@@ -56,10 +72,11 @@ if (command === 'configure') {
   const handle = ConfigurationProtocol.prototype.handle;
   ConfigurationProtocol.prototype.handle = function (request, diagnostics) {
     const { operation } = JSON.parse(request);
-    if (typeof operation === 'string' && (['apply', 'explain', 'source_refresh', 'sources_apply'].includes(operation) || operation.startsWith('package_')))
+    if (typeof operation === 'string' && (audit || ['apply', 'explain', 'source_refresh', 'sources_apply'].includes(operation) || operation.startsWith('package_')))
         record({ command, operation, phase: 'request' });
     const result = handle.call(this, request, diagnostics);
-    if (operation === 'explain') record({ command, operation, phase: 'complete', status: result.status });
+    if (audit || operation === 'explain') record({ command, operation, phase: 'complete', status: result.status });
+    if (result.status === 0 && dropReply(operation)) return { ...result, response: null };
     return result;
   };
 }
@@ -79,6 +96,7 @@ process.exitCode = await main(args, {
   hostVersion: () => ${JSON.stringify(version)},
   stdin: () => raw,
   stdout(value) {
+    if (audit && operation === 'apply' && 'result' in JSON.parse(value) && dropReply(operation)) return;
     process.stdout.write(value);
     if (operation === 'source_inspect') {
       try { sourceValue = JSON.parse(value).result?.view?.value ?? null; }
@@ -110,7 +128,7 @@ function assertShortcutHelp(screen: Capture): void {
     assert(top >= 0 && bottom > top, 'Shortcut content must have a frame');
     const body = lines.slice(top + 1, bottom);
     assert(body.some(line => line.includes('─ Editor and draft ─')), 'Shortcut group divider is inside the frame');
-    assert(body.some(line => /OPTION +(?:VALUE|CURRENT KEY +DEFAULT KEY)/u.test(line)), 'Shortcut columns are inside the frame');
+    assert(body.some(line => /OPTION +(?:VALUE|ACTIVE KEY +DEFAULT KEY)/u.test(line)), 'Shortcut columns are inside the frame');
     for (const label of ['Save shortcuts', 'Restore all defaults', 'Read saved'])
         assert(body[0]?.includes('[' + label + ']'), 'Shortcut button is at the top of the frame: ' + label);
     assert.match(body.at(-1) ?? '', /Terminal (?:Ctrl\+S|Z) \[Ctrl\+S\] · Client (?:S|Z) \[S\]/u,
@@ -152,6 +170,13 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     if (action === 'live-command') fs.mkdirSync(config); else fs.cpSync(template, config, { recursive: true });
     const data = caseData(fixtureName), draft = (fixtureName === 'import-four-gradients' ? data.review.result.draft : data.draft) as Draft;
     const itemDetails = action === 'item-details';
+    const sourceJourney = action === 'usability-source-new' || action === 'usability-source-disabled';
+    const workflow = action === 'usability-workflow';
+    const diagnosis = action === 'usability-diagnosis';
+    const audit = sourceJourney || workflow || diagnosis;
+    if (sourceJourney) prepareSourceJourney(draft, project, action === 'usability-source-disabled', args =>
+        command(installed.node, [installed.entry, ...args], { ...env, CLAUDE_CONFIG_DIR: config }));
+    if (diagnosis) prepareDiagnosisJourney(draft, project);
     if (itemDetails) {
         const item = draft.display.instances[0]!;
         assert.equal(item.type_id, 'model-with-effort');
@@ -196,16 +221,18 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const pickerSave = action === 'picker-save';
     const pickerDiscard = action === 'picker-discard';
     fs.writeFileSync(join(config, 'backend.jsonl'), '');
-    const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor' };
+    const hostLog = join(directory, 'host.log'), environment = { ...env, CLAUDE_CONFIG_DIR: config, COLORTERM: 'truecolor',
+        ...(audit ? { STATUSLINE_EDITOR_USABILITY: '1' } : {}) };
     const nativeTask = action === 'native-task';
     const compactTask = nativeTask && name === 'native-task-viewer';
     const header = action === 'header-controls';
     const initialColumns = header ? 190 : nativeTask ? compactTask ? 80 : 140 : external ? 120 : 200;
     const initialRows = itemDetails ? 26 : header ? 40 : nativeTask ? compactTask ? 24 : 44 : action === 'tall' ? 220 : external ? 32 : 50;
     let columns = initialColumns, rows = initialRows;
-    const p = openPty(config, columns, rows, environment, language, external
+    const startPty = () => openPty(config, columns, rows, environment, language, external
         ? { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project }
         : { executable: host.executable, args: [...host.args, '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
+    let p = startPty();
     let screen = new Capture(columns, rows), offset = 0, accepted = false;
     const steps: { name: string; elapsed_ms: number }[] = [], start = Date.now();
     const records = () => fs.readFileSync(join(config, 'backend.jsonl'), 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
@@ -216,21 +243,67 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         if (next.includes(Buffer.from('\x1b[6n'))) p.send('\x1b[1;1R');
         const text = screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n');
         if (!accepted && !external && text.includes('ANTHROPIC_API_KEY')) { p.send('\x1b[A\r'); accepted = true; }
-        if (fs.existsSync(hostLog)) assert(!failures.test(fs.readFileSync(hostLog, 'utf8')), 'Host refused a presentation');
+        if (fs.existsSync(hostLog)) {
+            const log = fs.readFileSync(hostLog, 'utf8');
+            assert(!failures.test(log), 'Host refused a presentation');
+            if (audit) assert(!/\[API REQUEST\]/u.test(log), 'The UI journey submitted a model request');
+        }
         return text;
     };
     const until = async (predicate: (text: string) => boolean, label: string, timeout = 15000) => {
         const stop = Date.now() + timeout;
-        while (Date.now() < stop && p.child.exitCode === null) {
+        while (Date.now() < stop) {
             if (predicate(read())) { steps.push({ name: label, elapsed_ms: Date.now() - start }); return; }
+            if (p.child.exitCode !== null) break;
             await delay(50);
         }
         throw new Error('PTY condition failed: ' + label + '\n' + read().slice(-3000));
     };
     const key = async (bytes: string, label: string) => { p.send(bytes); await delay(180); read(); steps.push({ name: label, elapsed_ms: Date.now() - start }); };
-    const capture = (label: string) => { read(); record(join(directory, label + '.cells.json'), { columns, rows, cells: screen.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' }); fs.writeFileSync(join(directory, label + '.txt'), screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n')); };
-    let status = 'fail', error: string | null = null, bodyColumns: number | undefined;
+    const capture = (label: string, refresh = true) => { if (refresh) read(); record(join(directory, label + '.cells.json'), { columns, rows, cells: screen.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' }); fs.writeFileSync(join(directory, label + '.txt'), screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n')); };
     const title = t('native.ui.client.draw.configure_status_line', language);
+    const journey: EditorJourney = { external, language, project, config, read, key, until, frame: capture,
+        selected(label) {
+            read();
+            const width = displayWidth(label);
+            return screen.buffer.some(row => {
+                const start = cellColumn(row, label);
+                const inverse = (cell: Cell) => cell.reverse || cell.bg === 'ffffff' && cell.fg === '000000';
+                const end = start + width;
+                const emptyFieldCaret = row[end]?.data === ':' && row[end + 2]?.data === ' ' && inverse(row[end + 2]!);
+                return start >= 0 && (row.slice(0, start).slice(-6).some(cell => cell.data === '›') ||
+                    row.slice(start, end).filter(cell => cell.data.trim()).every(inverse) || emptyFieldCaret);
+            });
+        },
+        resize(nextColumns, nextRows) {
+            columns = nextColumns;
+            rows = nextRows;
+            offset = p.captured().length;
+            screen = new Capture(columns, rows);
+            p.resize(columns, rows);
+        },
+        async reopenExternal() {
+            assert(external);
+            await p.exited();
+            assert.equal(p.child.exitCode, 0);
+            assert.deepEqual(p.attributes(), p.before);
+            fs.writeFileSync(join(directory, 'bound-session.ansi'), p.captured());
+            await p.close();
+            p = startPty();
+            screen = new Capture(columns, rows);
+            offset = 0;
+            await until(text => text.includes(title) && text.includes('[x]'), 'external editor reopened against the saved display');
+        },
+        requestCount: operation => records().filter(row => row.operation === operation && row.phase === 'request').length,
+    };
+    const focusBody = async () => {
+        for (let y = 0; y < screen.buffer.length; y++) {
+            const row = screen.buffer[y]!, x = row.findIndex((cell, i) => cell.data === '[' && row[i + 1]?.data === 'x' && row[i + 2]?.data === ']');
+            if (x >= 0) { await key(`\x1b[<0;${x + 2};${y + 1}M\x1b[<0;${x + 2};${y + 1}m`, 'focus Client'); return; }
+        }
+        assert.fail('No observed Client item to focus');
+    };
+    let status = 'fail', error: string | null = null, bodyColumns: number | undefined;
     try {
         if (!external) {
             await until(text => text.includes('❯') && fs.existsSync(hostLog) && fs.readFileSync(hostLog, 'utf8').includes('$.command.register (statusline-native): /statusline-configure-native listed'), 'host command ready', 30000);
@@ -238,15 +311,18 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         }
         if (!nativeTask) await until(text => text.includes(title) && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
         if (!external && !nativeTask) {
-            let clicked = false;
-            for (let y = 0; y < screen.buffer.length && !clicked; y++) {
-                const row = screen.buffer[y]!, x = row.findIndex((cell, i) => cell.data === '[' && row[i + 1]?.data === 'x' && row[i + 2]?.data === ']');
-                if (x >= 0) { await key(`\x1b[<0;${x + 2};${y + 1}M\x1b[<0;${x + 2};${y + 1}m`, 'focus Client'); clicked = true; }
-            }
-            assert(clicked, 'No observed Client item to focus');
+            if (workflow) await verifyInitialFocus(journey, focusBody);
+            else await focusBody();
         }
         if (!nativeTask) capture('before');
-        if (header) {
+        if (sourceJourney) {
+            await sourcesJourney(journey, action === 'usability-source-disabled');
+        } else if (workflow) {
+            await workflowJourney(journey);
+            if (!external) await focusBody();
+        } else if (diagnosis) {
+            await diagnosisJourney(journey);
+        } else if (header) {
             const retry = '[ ' + t('native.hooks.register.retry', language) + ' ]';
             const close = '[ ' + t('native.hooks.register.close', language) + ' ]';
             await until(text => text.split('\n').some(line => {
@@ -470,7 +546,16 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             const jobs=()=>{const folder=join(config,'statusline_runtime/sources/jobs');return fs.existsSync(folder)?fs.readdirSync(folder).filter(name=>name.endsWith('.json')).map(name=>JSON.parse(fs.readFileSync(join(folder,name),'utf8'))).filter(job=>job.source_id==='pty-command'):[];};
             await until(()=>jobs().some(job=>job.state==='completed'),'actual runtime lease dispatched the controlled command',25000);
             const observed=jobs();assert.equal(observed.length,1);assert.equal(observed[0].result.summary,'live-session-command');assert.equal(observed[0].result.exit_code,0);assert.equal(typeof observed[0].context.session,'string');
-            await key('\x19','show controlled source');await until(text=>text.includes('Controlled active-session command'),'controlled source visible');await key('\r','controlled source actions');await key('\x1b[B'.repeat(7)+'\r','read execution summary');await until(()=>completed('source_inspect'),'saved controlled result read');assert(records().some(row=>row.operation==='source_inspect'&&row.phase==='complete'&&row.source_value==='live-session-command'));capture('after');await key('\x07','return to source library');await key('\x07','return to retained editor');
+            await key('\x19','show controlled source');
+            await until(text => text.includes('Controlled active-session command'), 'controlled source visible');
+            await openChoice(journey, 'Controlled active-session command');
+            await openChoice(journey, t('sources.diagnose', language));
+            await until(() => completed('source_inspect'), 'saved controlled result read');
+            assert(records().some(row => row.operation === 'source_inspect' && row.phase === 'complete' && row.source_value === 'live-session-command'));
+            capture('after');
+            await key('\x07', 'return to controlled source actions');
+            await key('\x07', 'return to source library');
+            await key('\x07', 'return to retained editor');
         } else if(nativeTask){
             const selected = () => {
                 read();
@@ -664,7 +749,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await wait('compact Restore defaults button has focus', text => text.includes('›[Defaults]') && text.includes('Tab to list'));
                 resize(120, 30);
                 await wait('button focus and three column headings survive widening', text =>
-                    /OPTION +CURRENT KEY +DEFAULT KEY/u.test(text) && text.includes('›[Restore all defaults]') && text.includes('Tab to list'));
+                    /OPTION +ACTIVE KEY +DEFAULT KEY/u.test(text) && text.includes('›[Restore all defaults]') && text.includes('Tab to list'));
                 tty.send('\r\x1b[A\r');
                 await wait('Keyboard shortcuts saved');
                 assert.equal(fs.existsSync(preference), false);
@@ -862,11 +947,25 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             if (action === 'profile-actions') await key(external ? '\x1b' : '\x07', 'cancel library');
         } else if (['sources','source-review','source-inspect','source-bindings'].includes(action)) {
             await key('\x19', 'source library'); await until(text => text.includes('Local sample 0'), 'source list visible');
-            if (action === 'source-review') { await key('\r', 'source actions'); await key('\x1b[B', 'select review'); await key('\r', 'review disabled command'); await until(text => completed('source_review') && text.includes('Review all fields'), 'source review completed'); }
-            if(action==='source-inspect'){await key('\r','source actions');await key('\x1b[B'.repeat(6)+'\r','inspect saved source');await until(text=>external?text.includes('Last success:'):completed('source_inspect'),'readable source inspection');}
-            if(action==='source-bindings'){await key('\x1b[B'.repeat((data.sources?.library?.sources.length??0)+1)+'\r','binding inventory');await until(text=>external?text.includes(t('sources.bindings_help','en')):completed('source_bindings_review'),'bindings read completed');}
-            capture('after'); await key('\x07', 'cancel source page');
-            if (['source-review','source-inspect','source-bindings'].includes(action)) await key('\x07', 'cancel source library');
+            if (action === 'source-review' || action === 'source-inspect') {
+                await openChoice(journey, 'Local sample 0');
+                if (action === 'source-review') {
+                    await openChoice(journey, t('sources.review', language));
+                    await until(text => completed('source_review') && text.includes(t('sources.review_title', language)), 'source review completed');
+                } else {
+                    await openChoice(journey, t('sources.diagnose', language));
+                    await until(text => text.includes(t('sources.no_observation', language, { reason: t('sources.error.disabled', language) })), 'readable source inspection');
+                }
+                capture('after');
+                await key('\x07', 'return to source actions');
+                await key('\x07', 'return to the library');
+            } else if (action === 'source-bindings') {
+                await key('\x1b[F\r', 'inspect binding inventory');
+                await until(text => text.includes(t('sources.bindings_empty', language)), 'binding inventory reported its empty state');
+                capture('after');
+                await key('\x07', 'return to the library');
+            } else capture('after');
+            await key('\x07', 'close source library');
         } else if (action === 'save') {
             for (let i = 0; i < 14; i++) await key('d', 'copy ' + (i + 1));
             await key('s', 'save 24 instances'); await until(text => completed('apply') && /saved/iu.test(text), 'save outcome visible');
@@ -984,7 +1083,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(text => text.includes('Configure Status Line *') && text.includes('Preview'), 'draft retained after safe resize'); capture('resized');
         } else { await key('2', 'subagent page'); await key('1', 'main page'); capture('after'); }
         if (external) {
-            if (!pickerSave) p.send('\x1b');
+            if (!pickerSave && !sourceJourney) p.send('\x1b');
             if (pickerDiscard || ['version-status', 'package-cleanup', 'external-task'].includes(action)) {
                 await until(text => text.includes(t('ui.exit.unsaved','en')) && text.includes('› ' + t('ui.exit.keep','en')), 'keep dirty draft selected');
                 await key('\x1b[B\r', 'confirm discard');
@@ -996,11 +1095,11 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await until(text => !text.includes(title), 'pane closed');
         }
         if (action === 'shortcut-preset') assert.equal(applyRequests(), 0, 'Discarding the native preset requested a configuration save');
-        if (action !== 'save' && action !== 'editor-shortcuts' && !pickerSave) {
+        if (action !== 'save' && action !== 'editor-shortcuts' && !pickerSave && !sourceJourney && !workflow) {
             assert.deepEqual(fs.readFileSync(displayPath), before, 'Cancelled journey changed display configuration');
             if (pickerDiscard || header || action === 'shortcut-preset' || itemDetails) assert.equal(fs.statSync(displayPath).mode, beforeMode, 'Cancelled journey changed display file mode');
         }
-        assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
+        if (!sourceJourney) assert(!records().some(row => row.operation === 'source_refresh'), 'A disabled source was executed');
         if (itemDetails) {
             assert(!records().some(row => ['apply', 'sources_apply'].includes(row.operation)), 'Reading item details requested a configuration change');
             for (const preference of preferences) {
@@ -1010,7 +1109,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             steps.push({ name: 'display, settings and UI preference bytes and modes preserved', elapsed_ms: Date.now() - start });
         }
         status = 'pass';
-    } catch (failure) { error = String(failure); capture('failure'); }
+    } catch (failure) { error = String(failure); capture('failure', false); }
     finally {
         fs.writeFileSync(join(directory, 'terminal.ansi'), p.captured());
         fs.copyFileSync(join(config, 'backend.jsonl'), join(directory, 'backend.jsonl'));
@@ -1023,14 +1122,25 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         record(join(directory, 'result.json'), report); reports.push(report); console.log(JSON.stringify({ name, status, error }));
     }
 }
-const expectedJourneys = values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 :
+const expectedJourneys = usability ? usability === 'sources' ? 8 : 4 : values['editor-shortcuts'] ? 2 : values['header-controls'] ? 3 :
     values['component-picker'] || values['version-installation'] || values['item-details'] ? 4 : 43;
 try {
     const request = join(installed.temporary, 'prepare.json'), driver = join(installed.temporary, 'prepare-host.mjs');
     record(request, { host, version, launch: { executable: installed.node, args: [shim] } });
     fs.copyFileSync(fileURLToPath(new URL('../migration/ts-04/test/installed-driver.js', import.meta.url)), driver);
     command(installed.node, [driver, installed.modules, 'prepare-host', template, join(installed.temporary, 'prepared.json'), request], { ...env, CLAUDE_CONFIG_DIR: template });
-    if (values['editor-shortcuts']) {
+    if (usability) {
+        for (const external of [false, true]) for (const language of ['en', 'zh-CN'] as const) {
+            const name = (external ? 'external' : 'native') + '-' + language;
+            if (usability === 'sources') {
+                await runCase(name + '-source-new', 'plain-main-w72', 'usability-source-new', external, language);
+                await runCase(name + '-source-disabled', 'plain-main-w72', 'usability-source-disabled', external, language);
+            } else {
+                await runCase(name + '-' + usability, usability === 'workflow' ? 'profiles-list-2-w72' : 'plain-main-w72',
+                    'usability-' + usability, external, language);
+            }
+        }
+    } else if (values['editor-shortcuts']) {
         await runCase('editor-shortcuts', 'plain-main-w72', 'editor-shortcuts');
         await runCase('native-remapped-preset', 'plain-main-w72', 'shortcut-preset');
     } else if (values['header-controls']) {
@@ -1069,6 +1179,9 @@ try {
 } catch (error) { console.error(String(error)); process.exitCode = 1; }
 finally {
     record(join(output, 'report.json'), { status: reports.length === expectedJourneys && reports.every(row => row.status === 'pass') ? 'pass' : 'fail', commit: artifact.source.commit, tarball_sha256: artifact.sha256,
-        platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'), model_calls: 0, physical_visual_acceptance: false, journeys: reports });
+        platform: process.platform, arch: process.arch, os: release(), host: version?.join('.'),
+        ...(usability ? { usability, node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)),
+            host_sha256: sha256(fs.readFileSync(host.executable)), source_manifest_sha256: artifact.source.source_manifest_sha256 } : {}),
+        model_calls: 0, physical_visual_acceptance: false, journeys: reports });
     installed.cleanup();
 }

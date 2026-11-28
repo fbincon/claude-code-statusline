@@ -19,7 +19,7 @@ for(const language of LANGUAGES)test(`task language initializes before opening, 
     expect((f.opens.at(-1) as {title:string}).title).toBe(t('task.title',language));
     let ui=await $.ui.mount(languagePane);
     expect(await ui.find({type:'Text',text:t('task.title',language)+' · '+t('task.readonly',language)})).toBeDefined();
-    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.unknown',language)})).toBeDefined();
+    expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('task.viewer.retry_read',language)})).toBeDefined();
     expect(await ui.find({in:await taskClient(ui),type:'Text',text:t('native.backend_error',language,{code:'invalid_request',detail:text('task.error.input')})})).toBeDefined();
     expect((await ui.find({type:'Button',key:'task-refresh'}))!.props.label).toBe(t('profiles.refresh',language));
     expect((await ui.find({type:'Button',key:'task-close'}))!.props.label).toBe(t('task.close',language));
@@ -34,6 +34,24 @@ for(const language of LANGUAGES)test(`task language initializes before opening, 
     ui=await $.ui.mount(languagePane);
     expect((await ui.find({type:'Button',key:'task-close'}))!.props.label).toBe(t('task.close',next));
     expect(f.calls.some(c=>['apply','profiles_apply','sources_apply','set_ui_language'].includes(c.operation))).toBe(false);
+    await ui.unmount();
+});
+
+test('a compact Native task pane shows a missing current task before reading evidence', async ($, on) => {
+    const f = setup(on);
+    f.store.uiLanguage = 'zh-CN';
+    f.behavior.process = (request, next) => request.operation === 'task_details' ? { value: reply({
+        ...report, session_id: request.payload.session_id, limitations: ['no_current_task', 'independent_snapshots'],
+        evidence: [{ source: 'task_store', scope: 'task', status: 'not_observed', observed_at: null, freshness: 'unknown' }],
+    }) } : next();
+    await $.session.start(START);
+    await $.command.run({ ...RUN, command: 'statusline-task' });
+    const ui = await $.ui.mount({ ...languagePane, props: { ...languagePane.props, bodyColumns: 32, scroll: { offset: 0, bodyRows: 12 } } });
+    const body = await taskClient(ui);
+    expect(await ui.find({ in: body, type: 'Text', text: t('task.limit.no_current_task', 'zh-CN') })).toBeDefined();
+    expect(await ui.find({ in: body, type: 'Text', text: t('task.viewer.no_matches', 'zh-CN') })).toBeUndefined();
+    await ui.press({ key: 'task-evidence' });
+    expect(await ui.find({ in: body, type: 'Text', text: t('task.viewer.source', 'zh-CN', { source: 'task_store' }) })).toBeDefined();
     await ui.unmount();
 });
 

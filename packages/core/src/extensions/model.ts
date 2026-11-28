@@ -3,12 +3,22 @@ import { SOURCE_REGISTRY_VERSION } from '../contracts/ui.js';
 import type { AutomaticPolicy, SourceContext, SourceDefinition, SourceObservation, SourceReference, SourceRegistry, SourceScope, SourceSettings, SourceView } from '../contracts/ui.js';
 import { ConfigError, object, exact, integer, isSchema } from '../config/validation.js';
 import { numeric } from '../runtime/values.js';
+import { sameContext } from '../editor/source-compatibility.js';
+export { observationContext, sameContext } from '../editor/source-compatibility.js';
 export const SOURCE_FILENAME = 'claude-statusline-sources.json';
 export const MAX_SOURCE_BYTES = 1048576;
 export const SOURCE_TYPES = ['external-value', 'github-pr', 'github-ci'];
 export const INPUT_FIELDS = ['project', 'session', 'agent', 'branch', 'head'] as const;
 export const emptyRegistry = (): SourceRegistry => ({ version: 2, sources: [], bindings: [], automatic: [] });
 export function sourceError(reason: string): never { throw new ConfigError('sources.error.' + reason, {}, reason); }
+export function sourceField<T>(sourceField: string, validate: () => T): T {
+    try { return validate(); }
+    catch (error) {
+        if (error instanceof ConfigError)
+            throw new ConfigError(error.key, { ...error.params, sourceField }, error.code);
+        throw error;
+    }
+}
 export function sourceText(value: unknown, maximum = 4096, empty = false): string {
     if (typeof value !== 'string' || (!empty && !value.trim()) || value.length > maximum || /[\p{Cc}\p{Cs}]/u.test(value))
         sourceError('invalid');
@@ -22,9 +32,9 @@ export function sourceId(value: unknown): string {
 }
 export function sourceScope(value: unknown): SourceScope {
     exact(value, ['project', 'session', 'agent'], 'source scope');
-    const result = Object.fromEntries(['project', 'session', 'agent'].map(key => [key, value[key] === null ? null : sourceText(value[key])])) as unknown as SourceScope;
+    const result = Object.fromEntries(['project', 'session', 'agent'].map(key => [key, value[key] === null ? null : sourceField(key, () => sourceText(value[key]))])) as unknown as SourceScope;
     if (result.agent && !result.session)
-        sourceError('scope');
+        sourceField('session', () => sourceError('scope'));
     return result;
 }
 export function sourceContext(value: unknown): SourceContext {
@@ -35,9 +45,6 @@ export function sourceContext(value: unknown): SourceContext {
 export function matchesScope(scope: SourceScope, context: SourceScope): boolean {
     return (['project', 'session', 'agent'] as const).every(key => scope[key] === null || scope[key] === context[key]);
 }
-export function sameContext(a: SourceContext, b: SourceContext): boolean {
-    return (['project', 'session', 'agent', 'branch', 'head'] as const).every(key => a[key] === b[key]);
-}
 export function githubBranch(source: SourceDefinition, context: SourceContext):
     { branch: string } | { reason: 'not_repository' | 'detached' | 'branch_mismatch' } {
     if (!context.head)
@@ -47,19 +54,6 @@ export function githubBranch(source: SourceDefinition, context: SourceContext):
     if (source.settings.branch !== null && source.settings.branch !== context.branch)
         return { reason: 'branch_mismatch' };
     return { branch: context.branch };
-}
-/** Cache only declared scope and supplied input identities; a project source is
- * reusable across sessions unless it explicitly consumes session/agent input. */
-export function observationContext(source: SourceDefinition, actual: SourceContext): SourceContext {
-    const inputs = Object.values(source.settings.input ?? {});
-    const git = source.kind === 'github';
-    return {
-        project: source.scope.project !== null || git || inputs.some(key => ['project','branch','head'].includes(key)) ? actual.project : null,
-        session: source.scope.session !== null || inputs.includes('session') || inputs.includes('agent') ? actual.session : null,
-        agent: source.scope.agent !== null || inputs.includes('agent') ? actual.agent : null,
-        branch: git || inputs.includes('branch') ? actual.branch : null,
-        head: git || inputs.includes('head') ? actual.head : null,
-    };
 }
 export function reference(value: unknown): SourceReference {
     exact(value, ['binding', 'hint'], 'source reference');
@@ -93,38 +87,46 @@ export function settings(kind: SourceDefinition['kind'], value: unknown): Source
         sourceError('invalid');
     if (kind === 'json') {
         keys(value, ['path', 'pointer', 'observed_at_pointer', 'unit']);
-        const pointer = sourceText(value.pointer ?? '/value', 512, true);
-        pointerParts(pointer);
-        const observed = sourceText(value.observed_at_pointer ?? '/observed_at', 512, true);
-        pointerParts(observed);
-        return { path: sourceText(value.path), pointer, observed_at_pointer: observed, unit: sourceText(value.unit ?? '', 32, true) };
+        const path = sourceField('path', () => sourceText(value.path));
+        const pointer = (key: string, fallback: string) => sourceField(key, () => {
+            const pointer = sourceText(value[key] ?? fallback, 512, true);
+            pointerParts(pointer);
+            return pointer;
+        });
+        return { path, pointer: pointer('pointer', '/value'), observed_at_pointer: pointer('observed_at_pointer', '/observed_at'),
+            unit: sourceField('unit', () => sourceText(value.unit ?? '', 32, true)) };
     }
     if (kind === 'github') {
         keys(value, ['host', 'repository', 'branch', 'account', 'pr']);
-        const host = sourceText(value.host ?? 'github.com', 253).toLowerCase(), repository = sourceText(value.repository, 256);
-        if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/u.test(host) || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository))
-            sourceError('invalid');
-        const branch = value.branch === null ? null : sourceText(value.branch, 256), account = sourceText(value.account, 128);
-        if (branch?.startsWith('-') || !/^[A-Za-z0-9_-]+$/u.test(account))
-            sourceError('invalid');
-        const pr = value.pr == null ? null : integer(value.pr, 1, Number.MAX_SAFE_INTEGER, 'PR');
+        const checked = (key: string, raw: unknown, maximum: number, pattern: RegExp, lowercase = false) => sourceField(key, () => {
+            const text = sourceText(raw, maximum);
+            const normalized = lowercase ? text.toLowerCase() : text;
+            if (!pattern.test(normalized)) sourceError('invalid');
+            return normalized;
+        });
+        const host = checked('host', value.host ?? 'github.com', 253, /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/u, true);
+        const repository = checked('repository', value.repository, 256, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u);
+        const account = checked('account', value.account, 128, /^[A-Za-z0-9_-]+$/u);
+        const branch = value.branch === null ? null : checked('branch', value.branch, 256, /^[^-]/u);
+        const pr = value.pr == null ? null : sourceField('pr', () => integer(value.pr, 1, Number.MAX_SAFE_INTEGER, 'PR'));
         if (branch === null && pr !== null)
-            sourceError('github_branch_pr');
+            sourceField('branch', () => sourceError('github_branch_pr'));
         return { host, repository, branch, account, pr };
     }
     if (kind !== 'command')
         sourceError('invalid');
     keys(value, ['executable', 'args', 'cwd', 'input', 'output', 'timeout_ms']);
     if (!Array.isArray(value.args) || value.args.length > 128 || value.args.some(arg => typeof arg !== 'string' || arg.length > 8192 || arg.includes('\0')))
-        sourceError('invalid');
+        return sourceField('args', () => sourceError('invalid'));
     const input = value.input ?? {};
     if (!object(input) || Object.keys(input).length > 16 || Object.entries(input).some(([key, field]) => !/^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(key) || !(INPUT_FIELDS as readonly unknown[]).includes(field)))
-        sourceError('input');
+        return sourceField('input', () => sourceError('input'));
     const output = value.output ?? 'json';
     if (output !== 'json' && output !== 'text')
-        sourceError('invalid');
-    return { executable: sourceText(value.executable), args: [...value.args] as string[], cwd: sourceText(value.cwd), input: { ...input } as Record<string, string>, output,
-        timeout_ms: integer(value.timeout_ms ?? 5000, 100, 30000, 'timeout_ms') };
+        return sourceField('output', () => sourceError('invalid'));
+    return { executable: sourceField('executable', () => sourceText(value.executable)), args: [...value.args] as string[],
+        cwd: sourceField('cwd', () => sourceText(value.cwd)), input: { ...input } as Record<string, string>, output,
+        timeout_ms: sourceField('timeout_ms', () => integer(value.timeout_ms ?? 5000, 100, 30000, 'timeout_ms')) };
 }
 export function definition(value: unknown): SourceDefinition {
     exact(value, ['id', 'name', 'kind', 'scope', 'ttl_seconds', 'settings', 'enabled', 'revision'], 'source');
@@ -132,8 +134,9 @@ export function definition(value: unknown): SourceDefinition {
         sourceError('invalid');
     const kind = value.kind as SourceDefinition['kind'], scope = sourceScope(value.scope);
     if (kind === 'github' && !scope.project)
-        sourceError('scope');
-    return { id: sourceId(value.id), name: sourceText(value.name, 128), kind, scope, ttl_seconds: integer(value.ttl_seconds, 1, 86400, 'ttl_seconds'),
+        sourceField('project', () => sourceError('scope'));
+    return { id: sourceField('id', () => sourceId(value.id)), name: sourceField('name', () => sourceText(value.name, 128)), kind, scope,
+        ttl_seconds: sourceField('ttl_seconds', () => integer(value.ttl_seconds, 1, 86400, 'ttl_seconds')),
         settings: settings(kind, value.settings), enabled: value.enabled, revision: sourceId(value.revision) };
 }
 export function registry(value: unknown): SourceRegistry {

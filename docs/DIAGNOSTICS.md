@@ -32,13 +32,13 @@ Exit code `0` means a report was produced, including reports with unavailable or
 
 ## Diagnose a file from either editor
 
-Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter a path, select main/subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses only the supplied input; matching existing local observations can be explicitly included. The current unsaved display draft and its editing target remain in use. The existing CLI command keeps its documented default.
+Open **Diagnose input file** in Settings or an item's form, or press Ctrl+L. Enter the required path, select main or subagent scope, optionally supply an ISO capture time with timezone, and choose **Read and diagnose file**. The default uses the supplied input. You can include matching existing local observations. The editor uses the current display draft and its editing target.
 
 The JSON result identifies the actual file, scope, input/diagnosis times and evidence range; text reports identify scope in individual evidence rows. Missing time stays unknown. Style reasons identify disabled colors, non-Powerline background gradients, shared primary backgrounds, threshold overrides, ANSI conversion and contrast protection. They accompany each instance/agent row's layout outcome.
 
-Esc returns to the form, then to the retained draft. Errors preserve the form for correction; a previous successful report remains available. Reports are paged, and complete input/report data is never sent to the native Client. No file diagnosis saves, collects, repairs or executes a source. See [implementation](development/appearance-preview-diagnosis.md).
+The report opens with the result, the evidence scope and the first fitted output row. When there is no visible output, the report says so for this input. Tab switches between the report details and multi-line output. The active section shows its position. Use the arrow keys, Page Up/Down and Home/End to move through that section.
 
-Press Enter on the path field to edit it; the caret stays beside the text when the terminal is short. In the report, End selects the last page, Up moves one line and Page Up moves one visible page. Use Ctrl+G to return.
+Use Ctrl+G to return to the form, then to the editor. A failed diagnosis preserves the path and displays the cause on the form. Choose **View previous successful report** to revisit an earlier result and its original file and diagnosis time. [Implementation](development/appearance-preview-diagnosis.md)
 
 ## Read the report
 

@@ -4,6 +4,7 @@ import { Editor } from '../../lib/editor/draft.ts';
 import type { View } from '../../lib/session.ts';
 import { draw } from '../../ui/client/draw.ts';
 import { handleKey } from '../../lib/client/keys.ts';
+import { openColors } from '../../lib/editor/color-manager.ts';
 import { settingRows } from '../../lib/client/settings.ts';
 import { t } from '../../lib/i18n/index.ts';
 import { description, readResult } from '../fixtures.ts';
@@ -40,6 +41,31 @@ test('all pages explicitly pair selected colors and keep chrome on host tokens',
       expect(colors.every((c) => ['text', 'inverseText', 'inactive', 'suggestion', 'error'].includes(c))).toBe(true);
       expect(chrome.flatMap(nodes).some((n) => n.props.dimColor === true)).toBe(false);
     }
+  }
+});
+
+test('compact Native color options keep all three values and the focused candidate visible', () => {
+  for (const language of ['en', 'zh-CN'] as const) {
+    const state = view(), e = state.editor!;
+    state.language = language;
+    e.page = 'settings';
+    e.setting = 'field:theme';
+    e.draft.display.theme = 'terminal';
+    openColors(e, 'field:theme');
+    const screen = () => text(draw(elements, state, 32, 12) as unknown as Node);
+    const label = (name: string, theme: string) => t('colors.' + name, language, { value: t('values.' + theme, language) });
+    handleKey(state, { key: 'down' }, 32, 12);
+    expect(screen()).toContain('› ' + t('values.ocean', language));
+    expect(screen()).toContain(label('saved', 'classic'));
+    expect(screen()).toContain(label('draft', 'terminal'));
+    expect(screen()).toContain(label('candidate', 'terminal'));
+    handleKey(state, { key: 'return' }, 32, 12);
+    expect(screen()).toContain(label('candidate', 'ocean'));
+    expect(e.draft.display.theme).toBe('terminal');
+    handleKey(state, { key: 's', ctrl: true }, 32, 12);
+    expect(e.draft.display.theme).toBe('ocean');
+    expect(e.baseline.draft.display.theme).toBe('classic');
+    expect(screen()).toContain(t('colors.staged', language, { save: 'S' }));
   }
 });
 
@@ -133,7 +159,7 @@ test('sample rows use the chosen preview background independently of themed ance
   expect(JSON.stringify(state.preview)).toBe(before);
   state.preview = { sample: true, main: [], subagents: [] };
   const empty = draw(elements, state, 80, 24) as unknown as Node;
-  const placeholder = nodes(empty.children[4] as Node).find((n) => n.type === 'Text' && text(n) === '(empty preview)')!;
+  const placeholder = nodes(empty.children[4] as Node).find((n) => n.type === 'Text' && text(n) === t('preview.empty_no_values', 'en'))!;
   expect(placeholder.props.color).toBe(undefined);
   expect(placeholder.props.backgroundColor).toBe(undefined);
 });
@@ -150,7 +176,9 @@ test('error, search and loading styles preserve the draft and never require term
   for (const size of [[20, 8], [80, 24]]) {
     state.editor = null;
     const loading = draw(elements, state, size[0]!, size[1]!) as unknown as Node;
-    const label = nodes(loading).find((n) => n.type === 'Text' && /Loading|Resize/.test(text(n)))!;
+    const caption = size[0]! < 32 ? t('native.ui.client.draw.body_size', 'en', { columns: size[0], rows: size[1] })
+      : t('native.ui.client.draw.loading_configuration', 'en');
+    const label = nodes(loading).find((n) => n.type === 'Text' && text(n) === caption)!;
     expect(label.props.color).toBe('text');
     expect(label.props.backgroundColor).toBe('inverseText');
   }

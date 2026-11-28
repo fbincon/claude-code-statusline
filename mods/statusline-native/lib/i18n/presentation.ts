@@ -1,7 +1,7 @@
 /** Presentation of canonical descriptors and actual host rows, without editing values. */
 import type { View } from '../session.ts';
 import type { SettingRow } from '../client/settings.ts';
-import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
+import { PREFERENCE_SPECS, specFor, canEdit, matchesPreference, preferenceChanged, preferenceForKey } from '../preferences.ts';
 import { preferenceResult } from './messages.ts';
 import { t, text, LANGUAGE_NAMES } from './index.ts';
 import type { Language } from './index.ts';
@@ -9,7 +9,8 @@ import type { Shortcut } from '../../ui/components/shortcuts.ts';
 
 export function translatedShortcuts(groups: Shortcut[][], language: Language = 'en'): Shortcut[][] {
   const label = (value: string) => t('ui.hints.' + value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''), language, {}, value);
-  return groups.map(group => group.map(h => ({...h, label: label(h.label), ...(h.short ? {short: label(h.short)} : {})})));
+  return groups.map(group => group.map(h => ({ ...h, label: h.labelKey ? t(h.labelKey, language) : label(h.label),
+    ...(h.short ? { short: label(h.short) } : {}) })));
 }
 
 export function preferenceLabel(preference: View['preferences'][number], language: Language = 'en'): string {
@@ -40,17 +41,26 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
     let group = t(groupKey(row.group), language, {}, row.group);
     let value = ('valueRaw' in row ? itemDecorationValue(row.key, row.valueRaw, language) : undefined) ?? row.value;
     let valueHint = row.valueHint;
+    let host: SettingRow['host'];
     if (row.key.startsWith('host-')) {
-      const p = view.preferences.find(p => 'host-' + p.row.key === row.key);
+      const p = preferenceForKey(view.preferences, row.key);
       const spec = p ? specFor(p) : PREFERENCE_SPECS.find(s => 'host-' + s.id === row.key);
       if (spec) {
         label = text('preferences.' + spec.id + '.label');
         group = t('native.host_group', language, {group: text(groupKey(spec.group))});
         const entry = text('preferences.' + spec.id + '.entry');
-        value = p ? (p.row.kind === 'boolean' ? t('values.' + (p.value ? 'on' : 'off'), language)
-                   : p.row.kind === 'choice' && spec.id !== 'model' ? valueLabel(String(p.value), language) : String(p.value)) +
-          (p.row.isLocked ? t('native.host_locked', language, {entry}) : !canEdit(p) ? t('native.host_unsupported', language, {entry}) : '') +
-          (p.result ? ' · ' + preferenceResult(p, language) : '') : t('native.host_unavailable', language, {entry});
+        const actual = p?.latest === undefined ? p?.row : p.latest;
+        const format = (value: View['preferences'][number]['value']) => typeof value === 'boolean'
+          ? t('values.' + (value ? 'on' : 'off'), language) : actual?.kind === 'choice' && spec.id !== 'model'
+            ? valueLabel(String(value), language) : String(value);
+        const state = !actual ? 'unavailable' : actual.isLocked ? 'locked' : p && matchesPreference(p, actual) && !canEdit(p) ? 'unsupported' : '';
+        host = {
+          current: actual ? t('native.host_current_value', language, {value: format(actual.value)}) : '',
+          pending: p && preferenceChanged(p) ? t('native.host_pending_value', language, {value: format(p.value)}) : '',
+          reason: state ? t('native.host_status_' + state, language, {entry}) : '',
+          result: p?.result ? preferenceResult(p, language) : '',
+        };
+        value = [host.reason, host.current, host.pending].filter(Boolean).join(' · ');
       }
     } else if(row.key==='preview-scenario')value=t('preview.scenario.'+value,language);
     else if(row.key==='preview-width')value=value==='auto'?t('preview.auto',language):value;
@@ -69,6 +79,6 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
       value = valueHint.text;
     } else if (['preset-apply','import-file','export-file'].includes(row.key)) value = t('native.actions.' + row.key, language);
     else if (!row.key.endsWith(':label') && !row.key.endsWith(':icon') && !row.key.endsWith(':text') && !row.key.endsWith('base_ref')) value = valueLabel(value, language);
-    return {...row, label: t(label.key, language, label.params, row.label), group, value, ...(valueHint && { valueHint })};
+    return {...row, label: t(label.key, language, label.params, row.label), group, value, ...(valueHint && { valueHint }), ...(host && {host})};
   });
 }

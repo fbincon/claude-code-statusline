@@ -74,7 +74,7 @@ test('external selected components show their catalog examples across scopes and
             assert.equal(e.listContext(scope).selected, selected.id);
             assert.equal(example(), expected);
             state.search('not-a-real-component-xyz');
-            assert.ok(plain(state).some(row => row.includes(t('ui.drawing.no_matching_items', language))));
+            assert.ok(plain(state).some(row => row.includes(t('catalog.search.no_types', language))));
             assert.equal(example(), '');
         }
     }
@@ -219,7 +219,8 @@ test('external shortcuts show a top toolbar, pinned details and a compact footer
             assert.ok(screen[title + 1]?.includes('[' + t('shortcuts.' + key + suffix, 'zh-CN') + ']'), key);
         const group = screen.findIndex(row => row.includes('─ 编辑器与草稿 ─'));
         assert.ok(group > title + 1 && group < footer);
-        assert.ok(screen.slice(title + 2, group).some(row => row.includes('选项') && row.includes(width >= 80 ? '默认键' : '值')));
+        assert.ok(screen.slice(title + 2, group).some(row => row.includes('选项') && row.includes('已生效键') &&
+            (width < 80 || row.includes('默认键'))));
         assert.equal(screen.some(row => row.includes(t('ui.drawing.preview_sample_data', 'zh-CN'))), false);
         if (height >= 20) assert.equal(bottom, footer - 1);
         else assert.equal(bottom, -1);
@@ -364,7 +365,8 @@ test('navigation, switching, save and filtered list controls stay visible at 64 
                     const { rows } = frame(state, 64, 18);
                     const keys = (row: number) => rows[row]!.filter(span => span.bold).map(span => span.text);
                     const label = [language, page, category, query].join(' / ');
-                    assert.deepEqual(keys(17).slice(0, 4), ['Tab', '↑↓', 'Enter/Space', '/'], label);
+                    const mainKeys = e.listContext(state.scope).selected ? ['Tab', '↑↓', 'Enter/Space', '/'] : ['Tab', '/'];
+                    assert.deepEqual(keys(17).slice(0, mainKeys.length), mainKeys, label);
                     assert.deepEqual(keys(16).slice(0, 3), ['Ctrl+S', 'Esc', 'Ctrl+C'], label);
                     assert.ok(keys(3).includes('Ctrl+F'), label);
                     const clear = [...keys(3), ...keys(17)].filter(key => key === 'Ctrl+G');
@@ -373,6 +375,29 @@ test('navigation, switching, save and filtered list controls stay visible at 64 
                 }
             }
         }
+    }
+});
+
+test('minimum-size lists show the effective catalog and item-format shortcuts', () => {
+    for (const language of ['en', 'zh-CN'] as const) for (const page of ['main', 'subagents'] as const) {
+        const state = fixture(language), e = state.editor;
+        e.page = page;
+        e.shortcuts.snapshot.bindings = { 'add-item': 'M' };
+        const keys = () => frame(state, 64, 18).rows.flat().filter(span => span.bold).map(span => span.text);
+        assert.ok(keys().includes('M'));
+        assert.ok(keys().includes('Ctrl+E'));
+        const selected = e.listContext(state.scope).selected;
+        state.key({ key: 'e', ctrl: true }, 64, 18);
+        assert.equal(e.detail?.id, selected);
+        state.key({ key: 'g', ctrl: true }, 64, 18);
+        assert.equal(e.listContext(state.scope).selected, selected);
+
+        state.search('no-such-component');
+        assert.ok(plain(state, 64, 18).some(row => row.includes(t('catalog.search.open_catalog', language, { key: 'M' }))));
+        assert.ok(!keys().includes('Ctrl+E'));
+        state.key({ key: 'm' }, 64, 18);
+        assert.equal(e.picker?.search, 'no-such-component');
+        assert.ok(plain(state, 64, 18).some(row => row.includes(t('catalog.search.no_types', language))));
     }
 });
 

@@ -2,6 +2,10 @@
 import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { fieldMessage, itemDecorationValue } from '@fbincon/statusline-core/editor/forms';
 import { packageTitle } from '@fbincon/statusline-core/editor/package-view';
+import { colorsTitle } from '@fbincon/statusline-core/editor/color-manager';
+import { groupsTitle } from '@fbincon/statusline-core/editor/group-manager';
+import { sourcesTitle } from '@fbincon/statusline-core/editor/source-manager';
+import { profilesTitle } from '@fbincon/statusline-core/editor/profile-manager';
 import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 import { t, renderMessage, LANGUAGE_NAMES, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { State, Row } from '../state.js';
@@ -69,17 +73,19 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if (e.changeReview) return tr(e.structureProposal?.confirmation ? 'layout.review_title' : 'history.title');
+    if (e.reuse) return tr('reuse.' + e.reuse.kind);
     if (e.packages) return packageTitle(e.packages, state.language);
     if(e.taskViewer)return t('task.title',e.taskViewer.language);
     if(e.diagnosis)return tr('diagnosis.title');
-    if(e.colors)return tr('colors.title');
+    if (e.colors) return colorsTitle(e, state.language);
     if (e.alignmentManager) return tr('alignment.title');
-    if (e.groupManager) return tr('composition.groups.title');
-    if (e.sources) return tr('sources.title');
-    if (e.profiles) return tr('profiles.title');
+    if (e.groupManager) return groupsTitle(e, state.language);
+    if (e.sources) return sourcesTitle(e, state.language);
+    if (e.profiles) return profilesTitle(e, state.language);
     if (e.explanation) return tr('explain.title');
     if (e.quick) return tr('quick.title') + ' · ' + tr('quick.'+e.quick.step);
-    if (e.review) return tr('review.title');
+    if (e.review) return tr(e.review.choosing ? 'review.selection_title' : 'review.title');
     if (e.guidanceScroll !== null) return tr('guidance.title');
     if (state.input?.kind === 'category') return tr('catalog.search.categories');
     if (e.adding) return tr('composition.picker');

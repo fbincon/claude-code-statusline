@@ -104,19 +104,22 @@ test('Alt, delayed CSI and pasted commands preserve an external draft until expl
     } finally { await p.close(); }
 });
 
-test('pasting key names into the last source field never writes before explicit save', posix, async t => {
-    const f = await fixture(t), p = openPty(f.root, 120, 30), registry = join(f.root, 'claude-statusline-sources.json');
+test('pasting key names into the last source field never writes before explicit save', posix, async context => {
+    const f = await fixture(context), p = openPty(f.root, 120, 30), registry = join(f.root, 'claude-statusline-sources.json');
     const paste = (value: string) => '\x1b[200~' + value + '\x1b[201~';
     try {
         await p.wait(output => output.includes('Configure Status Line'));
-        p.send('\x19\r\r' + paste('probe') + '\t'.repeat(6) + paste(join(f.root,'probe.json')) + '\t'.repeat(3));
+        p.send('\x19\r\r' + paste('probe') + '\t' + paste(join(f.root, 'probe.json')) + '\t'.repeat(8));
         p.send(['enter','return','tab','escape','R'].map(paste).join(''));
         await p.wait(output => output.includes('enterreturntabescapeR'));
         assert.equal(fs.existsSync(registry), false);
-        p.send('\x13'); await p.wait(output => output.includes('Source saved.'));
+        p.send('\x13'); await p.wait(output => output.includes(t('sources.saved', 'en')));
         const [source] = JSON.parse(fs.readFileSync(registry,'utf8')).sources;
         assert.equal(source.id, 'probe'); assert.equal(source.settings.unit, 'enterreturntabescapeR');
         assert.equal(source.enabled, false);
+        const returned = p.captured().toString('utf8').length;
+        p.send('\x07');
+        await p.wait(output => output.slice(returned).includes(t('sources.add', 'en')));
         for (const [key, name] of [['R','Reload uppercase'],['r','Reload lowercase']] as const) {
             const current = await f.backend.request('sources_read');
             await f.backend.request('sources_apply', { action:'edit', expected_revision:current.revision, id:source.id,

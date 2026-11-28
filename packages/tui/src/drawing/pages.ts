@@ -4,7 +4,7 @@ import { packageNotice, packageView } from '@fbincon/statusline-core/editor/pack
 import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
-import { groupsHelp, groupsView } from '@fbincon/statusline-core/editor/group-manager';
+import { groupsView } from '@fbincon/statusline-core/editor/group-manager';
 import { prependLine, sectionDivider, type EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
@@ -12,6 +12,7 @@ import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
 import { clip, displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { catalogMarker } from '@fbincon/statusline-core/editor/instances';
+import { catalogEmptyLine } from '@fbincon/statusline-core/editor/navigation';
 import { reviewRows } from '@fbincon/statusline-core/editor/import-review';
 import { matchText, segments, snippet } from '@fbincon/statusline-core/editor/search';
 import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
@@ -50,12 +51,18 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         return packageRefreshInterval(e.packages) === null ? '' : tr('ui.refresh.auto');
     }
     if (e.taskViewer) {
-        externalTaskRows(e.taskViewer, width, panel.innerHeight - 1).forEach(drawRow);
+        externalTaskRows(e.taskViewer, width, panel.innerHeight - 1).forEach((row, index) => {
+            if (row.heading) canvas.content(panel, index, [heading(row.text, row.selected)], row.selected);
+            else drawRow(row, index);
+        });
         return taskReportStatus(e.taskViewer);
     }
     if (e.diagnosis) {
         const page = diagnosisPage(e, state.language, width, panel.innerHeight - 1);
-        page.lines.forEach(drawRow);
+        page.lines.forEach((row, index) => {
+            if (row.kind === 'heading') canvas.content(panel, index, [heading(row.text)]);
+            else drawRow(row, index);
+        });
         return page.summary;
     }
     if (e.colors) {
@@ -73,15 +80,18 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     }
     if (e.groupManager) {
         groupsView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
-        return groupsHelp(state.language);
+        return '';
     }
     if (e.sources) {
-        sourcesView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
-        return tr('sources.help');
+        sourcesView(e, state.language, width, panel.innerHeight - 1).forEach((row, index) => {
+            if (row.heading) canvas.content(panel, index, [heading(row.text)]);
+            else drawRow(row, index);
+        });
+        return '';
     }
     if (e.profiles) {
         profilesView(e, state.language, width, panel.innerHeight - 1).forEach(drawRow);
-        return tr('profiles.sample');
+        return panel === size.content ? tr('profiles.sample') : '';
     }
 
     if (e.explanation) return drawItemDetail();
@@ -180,9 +190,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
             ...styled(hint ? detail!.text : description, detail?.positions ?? []),
         ], selected);
     });
-    if (!values.length) {
-        canvas.content(panel, 1, [paint(tr('ui.drawing.no_matching_items'))]);
-    }
+    if (!values.length) drawRow(catalogEmptyLine(e, state.language), 1);
     const current = values.find(({ item }) => item.id === selectedId)?.item;
     if (current) canvas.content(panel, size.listHeight + 1, [paint(itemExample(current, state.language))]);
     const range = values.length > size.listHeight ? ` · ${start + 1}–${end}/${values.length}` : '';

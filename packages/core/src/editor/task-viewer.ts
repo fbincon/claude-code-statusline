@@ -11,6 +11,7 @@ export interface TaskRow extends EditorLine {
     key: string;
     agent?: string;
     selected?: boolean;
+    heading?: boolean;
 }
 export interface TaskViewer {
     session: string;
@@ -61,6 +62,16 @@ export function receiveTask(view: TaskViewer, report: TaskDetails): void {
     view.collapsed = view.collapsed.filter(id => report.agents.some(agent => agent.id === id));
     view.error = null;
 }
+
+export function taskReadFailure(view: TaskViewer, error: unknown): LocalizedText {
+    return error instanceof BackendError && error.localization ? error.localization :
+        text(view.report ? 'task.viewer.read_failed' : 'task.viewer.first_read_failed');
+}
+
+export function taskPreferenceFailure(fixedLanguage?: Language): Pick<TaskViewer, 'language' | 'warning'> {
+    return { language: fixedLanguage ?? 'en', warning: text(fixedLanguage ? 'task.language_kept' : 'task.language_unavailable') };
+}
+
 export async function readTask(view: TaskViewer, backend: {
     request(operation: 'read_ui_preferences' | 'task_details', payload?: unknown): unknown | Promise<unknown>;
 }, hostAgents?: unknown, fixedLanguage?: Language): Promise<void> {
@@ -82,8 +93,7 @@ export async function readTask(view: TaskViewer, backend: {
         catch {
             if (view.closed || view.generation !== generation)
                 return;
-            view.language = fixedLanguage ?? 'en';
-            view.warning = text('task.language_unavailable');
+            Object.assign(view, taskPreferenceFailure(fixedLanguage));
         }
         const report = await backend.request('task_details', { session_id: view.session, prompt_id: view.prompt,
             ...(hostAgents ? { host_agents: hostAgents } : {}) }) as TaskDetails;
@@ -93,7 +103,7 @@ export async function readTask(view: TaskViewer, backend: {
     }
     catch (error) {
         if (!view.closed && view.generation === generation)
-            view.error = error instanceof BackendError && error.localization ? error.localization : text('task.viewer.read_failed');
+            view.error = taskReadFailure(view, error);
     }
     finally {
         if (view.generation === generation)
@@ -110,13 +120,36 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     const language = view.language, tr = (key: string, params: Record<string, unknown> = {}) => t(key, language, params);
     const status = (value: string | null) => value === null ? tr('task.unknown') : t('task.value.' + value, language, {}, value);
     const duration = (value: number | null) => value === null ? tr('task.unknown') : value.toFixed(1) + 's';
-    const rows: TaskRow[] = [], add = (key: string, value: string, agent?: string) => {
-        wrapText([safe(value)], Math.max(2, width)).forEach((text, index) => rows.push({ key: key + ':' + index, text, ...(agent ? { agent } : {}) }));
+    const rows: TaskRow[] = [], add = (key: string, value: string, options: Pick<TaskRow, 'agent' | 'heading'> = {}) => {
+        wrapText([safe(value)], Math.max(2, width)).forEach((text, index) => rows.push({ key: key + ':' + index, text, ...options }));
     };
-    const evidence = (prefix: string, values: TaskEvidence[]) => values.forEach((e, index) => add(prefix + ':' + e.source + ':' + e.scope + ':' + index, tr('task.evidence', { source: e.source, scope: e.scope, status: status(e.status), time: e.observed_at ?? tr('task.unknown'), freshness: status(e.freshness) })));
+    const evidence = (prefix: string, values: TaskEvidence[]) => {
+        const sources = new Map<string, TaskEvidence[]>();
+        for (const entry of values) {
+            const group = sources.get(entry.source);
+            if (group) group.push(entry);
+            else sources.set(entry.source, [entry]);
+        }
+        for (const [source, entries] of sources) {
+            add(prefix + ':' + source, tr('task.viewer.source', { source }), { heading: true });
+            entries.forEach((entry, index) => add(prefix + ':' + source + ':' + entry.scope + ':' + index, tr('task.viewer.observation', {
+                scope: entry.scope, status: status(entry.status), time: entry.observed_at ?? tr('task.unknown'), freshness: status(entry.freshness),
+            })));
+        }
+    };
     const report = view.report;
     if (!report) {
-        add('empty', tr(view.busy ? 'profiles.loading' : 'task.unknown'));
+        add('empty', tr(!view.session ? 'task.viewer.set_session' : view.error ? 'task.viewer.retry_read' :
+            view.busy ? 'profiles.loading' : 'task.viewer.waiting'));
+        return rows;
+    }
+    const currentMissing = report.limitations.find(reason => reason === 'no_current_task' || reason === 'ambiguous_current_task');
+    if (currentMissing) {
+        add('current', tr('task.limit.' + currentMissing), { heading: true });
+        add('captured', tr('task.captured', { value: report.captured_at }));
+        if (view.evidence) evidence('evidence', report.evidence);
+        report.limitations.filter(reason => reason !== currentMissing).forEach(reason => add('limit:' + reason, t('task.limit.' + reason, language, {}, reason)));
+        view.cache = { report, key: cacheKey, rows, agentStart: rows.length, agentEnd: rows.length };
         return rows;
     }
     add('captured', tr('task.captured', { value: report.captured_at }));
@@ -124,11 +157,11 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
     add('elapsed', tr('task.elapsed', { value: duration(report.elapsed_seconds) }));
     add('active', tr('task.active', { value: duration(report.active_seconds) }));
     add('progress', tr('task.progress', { value: report.progress ? report.progress.completed + '/' + report.progress.total : tr('task.unknown') }));
-    add('agents', tr('task.agents'));
+    add('agents', tr('task.agents'), { heading: true });
     // The summary changes every tick. Reuse wrapped agent and evidence rows when
     // the corresponding immutable snapshot and reading controls still match.
     const agentStart = rows.length;
-    if (cache?.report?.agents === report.agents) {
+    if (cache && cache.agentEnd > cache.agentStart && cache.report?.agents === report.agents) {
         for (let index = cache.agentStart; index < cache.agentEnd; index++) rows.push(cache.rows[index]!);
     } else {
         const agents = new Map(report.agents.map(agent => [agent.id, agent]));
@@ -161,7 +194,7 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
             const collapsed = !filtering && collapsedAgents.has(agent.id);
             add('agent:' + agent.id, '  '.repeat(Math.min(depth, 8)) + (children.length ? collapsed ? '▸ ' : '▾ ' : '  ') +
                 (agent.name ?? agent.id) + ' [' + agent.id + ']: ' + status(agent.status) +
-                (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), agent.id);
+                (matched.has(agent.id) ? '' : ' · ' + tr('task.viewer.context')), { agent: agent.id });
             if (view.evidence)
                 evidence('agent-evidence:' + agent.id, agent.evidence);
             if (!collapsed)
@@ -183,14 +216,14 @@ export function taskViewerRows(view: TaskViewer, width: number): TaskRow[] {
                 append(agent, 0);
         });
         if (!matched.size)
-            add('no-agents', tr('task.viewer.no_matches'));
+            add('no-agents', tr(report.agents.length ? 'task.viewer.no_matches' : 'task.viewer.no_agents'));
     }
     const agentEnd = rows.length;
     if (cache?.report?.limitations === report.limitations && (!view.evidence || cache.report.evidence === report.evidence)) {
         for (let index = cache.agentEnd; index < cache.rows.length; index++) rows.push(cache.rows[index]!);
     } else {
         if (view.evidence) {
-            add('sources', tr('task.sources'));
+            add('sources', tr('task.sources'), { heading: true });
             evidence('evidence', report.evidence);
         }
         report.limitations.forEach(reason => add('limit:' + reason, t('task.limit.' + reason, language, {}, reason)));
@@ -206,6 +239,10 @@ function taskIdentityLine(key: string, language: Language, input: TextInput, wid
     const suffix = clipText(parts.slice(index + 1).map(part => part.text).join(''), width - displayWidth(prefix) - 1);
     const line = prefixedInputView(prefix, input, width - displayWidth(suffix));
     return { ...line, text: line.text + suffix };
+}
+
+export function taskIdentityHelp(language: Language, width: number): string[] {
+    return wrapText([t('task.viewer.session_help', language)], width);
 }
 
 /** Header identity and error remain visible while the evidence body pages. */
@@ -224,17 +261,21 @@ export function taskViewerView(view: TaskViewer, width: number, height: number):
         : view.input === 'search' ? prefixedInputView('/ ', view.searchInput, width)
         : { text: tr('task.viewer.filter', { status: view.status ? t('task.value.' + view.status, view.language, {}, view.status) : tr('task.viewer.all'), query: view.query || '—' }) };
     header.push({ key: 'controls', ...detail });
+    if (view.input === 'session' || view.input === 'prompt')
+        taskIdentityHelp(view.language, width).slice(0, Math.max(0, height - 4)).forEach((text, index) =>
+            header.push({ key: 'identity-help-' + index, text }));
+    if (view.error) {
+        header.push({ key: 'error', text: renderMessage(view.error, view.language) });
+        if (view.report && !view.input) header.push({ key: 'retained', text: tr('task.viewer.retained', { time: view.report.captured_at }) });
+    }
     if (view.warning)
         header.push({ key: 'warning', text: renderMessage(view.warning, view.language) });
-    if (view.error)
-        header.push({ key: 'error', text: renderMessage(view.error, view.language) + (view.report ? ' · ' + tr('task.captured', { value: view.report.captured_at }) : '') });
     // Small inline panes still need a visible selected report row. The identity
     // editor exposes both full identifiers when the single-line header is clipped.
     if (!view.input && height <= header.length) {
         const identity = { key: 'identity', text: header[0]!.text + ' · ' + (view.report?.prompt_id ?? view.prompt ?? tr('task.viewer.current')) };
-        const notices = header.slice(3).reverse();
-        const compact = [identity, ...notices, header[2]!].slice(0, Math.max(0, height - 1));
-        if (notices.length && compact.length === 1) compact[0] = notices[0]!;
+        const notices = header.slice(3);
+        const compact = [...notices, identity, header[2]!].slice(0, Math.max(0, height - 1));
         header.splice(0, header.length, ...compact);
     }
     const rows = taskViewerRows(view, width);

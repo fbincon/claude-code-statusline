@@ -10,6 +10,7 @@ import { ITEM_DEFAULTS } from '../generated-contracts.ts';
 import { itemFields, normalizeColor } from './appearance.ts';
 import { isDraft } from '../backend.ts';
 import { copyDraft } from './draft.ts';
+import { hintLine } from './hints.ts';
 import type { Draft, EditorField } from '../generated-contracts.ts';
 import type { Editor } from './draft.ts';
 export interface FormView {
@@ -78,6 +79,22 @@ export function itemDecorationNotice(view: FormView): string {
         return t('item-decoration.custom-active', language);
     return '';
 }
+
+export function automaticRowBoundary(view: FormView): boolean {
+    const e = view.editor;
+    return !!e && !e.detail && e.page === 'layout' && e.setting.startsWith('break:') && e.draft.display.layout.mode === 'auto';
+}
+
+export function layoutFormNotice(view: FormView) {
+    const e = view.editor;
+    if (!e || e.detail || e.page !== 'layout' || !e.inDraftView) return null;
+    const language = view.language ?? 'en';
+    if (automaticRowBoundary(view)) return hintLine('layout.review_boundary', language, { enter: 'Enter' });
+    if (e.draft.display.layout.mode === 'explicit' && e.baseline.draft.display.layout.mode === 'auto')
+        return hintLine('layout.explicit_pending', language, { save: e.shortcuts.hint('layout', 'save') });
+    return null;
+}
+
 function read(data: unknown, path: string): unknown {
     return path.split('.').reduce((v, key) => (v as Record<string, unknown>)[key], data);
 }
@@ -149,12 +166,18 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
         try { value = parseGradient(value); } catch { setMessage(view, 'message', localizedText('gradients.invalid')); return false; }
     }
     const draft = copyDraft(e.draft);
+    let confirmation: LocalizedText | undefined;
     if (current.key === 'layout.mode') {
         draft.display.layout = { ...draft.display.layout, mode: value as 'auto' | 'explicit', rows: value === 'explicit' && draft.display.instances.length ? [draft.display.instances.map(i => i.id)] : [] };
     }
     else if (current.key.startsWith('break:')) {
+        const auto = draft.display.layout.mode === 'auto';
         const starts = new Set(draft.display.layout.rows.slice(1).map((r) => r[0]));
-        const id = current.key.slice(6) as string;
+        const id = current.key.slice(6);
+        if (auto) {
+            if (!value) return true;
+            confirmation = localizedText('layout.confirm_auto_boundary', { item: e.instanceLabel('main', id, view.language) });
+        }
         if (value)
             starts.add(id);
         else
@@ -187,7 +210,7 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
     }
     else
         write(draft.display, spec.key, value);
-    if (!e.applyStructure(draft)) {
+    if (!e.applyStructure(draft, confirmation)) {
         setMessage(view, 'message', e.compositionError.key === 'composition.invalid' ? localizedText('native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints') : e.compositionError);
         return false;
     }

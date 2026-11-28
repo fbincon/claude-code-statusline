@@ -12,7 +12,9 @@ Horizontal dividers mark **Version options**, **Check and change versions**, and
 
 Press Enter on **Target version** to enter an exact version. With the target blank, checks and upgrades use the selected channel and rollback uses the previous successful version. Press Enter on **Channel** to choose **Use installation channel**, **latest** or **beta**. The choice applies to automatic checks and upgrades in the current view. Exact versions take priority.
 
-Select **Check version metadata** to contact the configured npm registry. The review reports whether the artifact was verified. Upgrade, package rollback and unfinished-package recovery reviews use the dry-run service and temporary staging with scripts disabled. Open **Recovery and history** for recovery and cleanup reviews and to review a verified configuration backup for restoration. The page reports damaged records and verifies backups against their recorded snapshot hashes. A compatible verified review enables a separate execution confirmation.
+Select **Check version metadata** to contact the configured npm registry. Reviews show the result and available next step above the technical details. Upgrade, package rollback and unfinished-package recovery reviews use the dry-run service and temporary staging with scripts disabled. Open **Recovery and history** to inspect retained records and review verified backups for configuration restoration. Package recovery appears when an unfinished transaction has no running executor. An unknown executor status blocks recovery.
+
+A compatible verified review opens a separate confirmation. Check the action, target version and installation prefix, or the backup, configuration directory and reviewed files for a restore. History cleanup names the selected record and its retained materials. Confirmation starts on Cancel. Use the arrow keys to choose the action and Page Up/Down to read more detail when needed.
 
 Use the current back key (default Q) to return one level with the originating row selected. Escape also works in the external editor. Press Ctrl+G to go back or cancel text input in either editor. Claude Code handles Escape in the native pane.
 

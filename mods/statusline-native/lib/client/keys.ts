@@ -19,13 +19,13 @@ import { text as localizedText } from '../i18n/index.ts';
 import type { View } from '../session.ts';
 import { settingRows, adjustSetting, shortcutContext } from './settings.ts';
 import { formRows, setFormValue } from './forms.ts';
-import { canEdit, validPreferenceValue } from '../preferences.ts';
+import { canEdit, preferenceForKey, validPreferenceValue } from '../preferences.ts';
 import { contentColumns } from '../../ui/layout.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceRows } from '../editor/guidance.ts';
 import { itemDetailWindow } from '../editor/item-detail.ts';
-import { navigateReview, reviewShortcutContext } from '../editor/import-review.ts';
+import { acceptImport, navigateReview, reviewShortcutContext } from '../editor/import-review.ts';
 import type { ShortcutEffect } from '../editor/shortcut-settings.ts';
 
 export type Effect = 'changes' | 'reuse' | 'packages' | 'diagnoseFile' | 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | 'sources' | ShortcutEffect | null;
@@ -69,12 +69,22 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     setMessage(view, 'message', localizedText('package.ui.editor_locked'));
     return key === 'escape' || event.ctrl && shortcut === 'g' ? 'close' : null;
   }
-  if (e.diagnosis) return diagnosisKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows - 1);
-  if (e.colors) return colorsKey(e, event, view.language ?? 'en');
+  if (e.diagnosis) {
+    const layout = editorLayout(view, columns, rows);
+    return diagnosisKey(e, event, view.language ?? 'en', contentColumns(columns, rows), layout.bodyRows - 1, layout.previewRows);
+  }
+  if (e.colors) {
+    const message = colorsKey(e, event, view.language ?? 'en', contentColumns(columns, rows), editorLayout(view, columns, rows).bodyRows);
+    if (message) setMessage(view, 'message', message);
+    return null;
+  }
   if (e.alignmentManager) return alignmentsKey(e, event);
   if (e.groupManager) return groupsKey(e, event);
-  if (e.sources) return sourcesKey(e, event);
-  if (e.profiles) return profilesKey(e, event);
+  if (e.sources || e.profiles) {
+    const language = view.language ?? 'en';
+    const width = contentColumns(columns, rows), height = editorLayout(view, columns, rows).bodyRows;
+    return e.sources ? sourcesKey(e, event, language, width, height) : profilesKey(e, event, language, width, height);
+  }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
   if (e.explanation || e.guidanceScroll !== null) {
     if (!event.meta && (event.ctrl ? shortcut === 'g' : e.explanation && key === 'escape')) {
@@ -109,7 +119,19 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
       return null;
     }
   }
-  if (e.quick) return controlQuick(e, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
+  if (e.quick) {
+    const effect = controlQuick(e, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key, {
+      language: view.language ?? 'en', width: contentColumns(columns, rows), height: editorLayout(view, columns, rows).bodyRows,
+      sharedProjects: e.baseline.configuration?.shared_projects,
+    });
+    if (effect === 'accepted') {
+      setMessage(view, 'message', e.modified ? localizedText('quick.applied', { save: e.shortcuts.hint(shortcutContext(view), 'save') })
+        : localizedText('review.empty'));
+      return null;
+    }
+    if (!e.quick || effect === 'transfer') view.message = '';
+    return effect;
+  }
   if (action === 'quick-setup' && !view.uncertain && e.inDraftView) {
     if (e.acceptNumeric()) e.quick = openQuick(e.draft);
     return null;
@@ -118,12 +140,13 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
     if (action === 'accept-import') {
-      e.replaceDraft(e.review.result.draft);
-      setMessage(view, 'message', localizedText('review.accepted'));
-      return 'reviewPreview';
+      const result = acceptImport(e);
+      if (result) setMessage(view, 'message', result);
+      return e.review ? null : 'reviewPreview';
     }
     if (action === 'cancel-import') { cancelInput(view); return 'reviewPreview'; }
     if (event.meta || event.ctrl && !action) return null;
+    view.message = '';
     const layout = editorLayout(view, columns, rows);
     navigateReview(e.review, event.ctrl ? '' : key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1), action);
     return 'reviewPreview';
@@ -144,12 +167,12 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     if (!event.text && key === 'return') {
       if (input.kind === 'path') {
         if (!input.buffer.trim()) { setMessage(view, "message", localizedText("native.lib.client.keys.enter_a_file_path")); return null; }
-        e.path = input.buffer; e.pendingTransfer = input.action; view.input = null; return 'transfer';
+        e.path = input.buffer; e.pendingTransfer = input.action; return 'transfer';
       }
       const field = formRows(view).find((row) => row.key === input.key);
       if (field && !setFormValue(view, field, input.buffer)) return null;
       if (!field) {
-        const p = view.preferences.find((p) => 'host-' + p.row.key === input.key);
+        const p = preferenceForKey(view.preferences, input.key);
         if (!p || !canEdit(p)) { setMessage(view, "message", localizedText("native.lib.client.keys.host_row_is_unavailable_or_locked")); return null; }
         const previous = p.value;
         p.value = p.row.kind === 'number' ? Number(input.buffer) : input.buffer;
@@ -157,6 +180,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
           p.value = previous; setMessage(view, "message", localizedText("native.lib.client.keys.invalid_host_value")); return null;
         }
         p.result = '';
+        delete p.localizedResult;
       }
       view.input = null;
     } else {
@@ -290,7 +314,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
       view.input = {kind:'numeric',field:e.setting}; e.activeNumeric = e.setting;
     } else {
       const field = formRows(view).find((row) => row.key === e.setting);
-      const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
+      const p = preferenceForKey(view.preferences, e.setting);
       if (field && (field.spec.kind === 'integer' || field.spec.kind === 'text')) view.input = {kind:'field',key:field.key,buffer:field.value,original:field.value};
       else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value),original:String(p.value)};
       else adjustSetting(view, 1);

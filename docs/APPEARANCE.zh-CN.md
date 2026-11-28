@@ -166,7 +166,9 @@ claude-statusline config set powerline-row-background-gradient off
 
 ## 可视选色与样例场景
 
-在主题、前景、背景或渐变字段按 Enter 打开配色页，名称旁显示实际色块和适用背景提示。Enter 选择候选，Ctrl+S 应用到显示草稿，Esc 取消本页修改。自定义颜色保留 `inherit`、`default`、`ansi:N` 和 RGB 支持。渐变支持 2–5 个 RGB 色标、逐色修改、反转、增删色标及关闭，关闭不删除已存纯色。
+在主题、前景、背景或渐变字段按 Enter 打开配色页。页面标明已保存值、显示草稿值和当前样例所用的候选。移动光标浏览色块，按 Enter 选定候选。按页脚显示的**应用到显示草稿**键（默认 Ctrl+S），再用显示**保存**键持久化。Ctrl+G 取消候选，外部编辑器也支持 Esc。
+
+自定义颜色支持 `inherit`、`default`、`ansi:N` 和 RGB。渐变支持 2–5 个 RGB 色标、逐色修改、反转、增删色标及关闭，关闭时保留已存纯色。
 
 新增主题为适合深底的 `ocean`、`ember`、`slate` 和适合浅底的 `blossom`；新增渐变为 `glacier`、`lagoon`、`flame`、`copper`、`steel`、`sage`、`petal`、`twilight`。终端背景继续独立设置。
 

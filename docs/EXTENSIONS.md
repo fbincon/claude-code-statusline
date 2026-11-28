@@ -48,27 +48,37 @@ Scheme imports and project bindings cannot grant these permissions.
 
 Open **Settings → Data sources**, or press **Ctrl+Y** outside a text field. Choose
 **Add source**, select Local JSON, GitHub or Command, and fill in the form.
-Tab/Enter advances between fields; Ctrl+S saves a disabled source. Arguments use a
-JSON array and command input fields use a JSON object, so quoting is literal.
+The form marks required fields with an asterisk and focuses a field when its value
+fails validation. For a JSON file containing `{"value":42}`, enter its path and
+use the default `/value` pointer. Tab or Enter advances between fields. Use the
+source form's save shortcut (Ctrl+S by default) to save the source as disabled.
+Command arguments use a JSON array and input mappings use a JSON object.
 
-Select **Review and enable**, inspect the complete program/path, arguments,
-working directory, input mapping, scope and expiration, then press Enter to
-enable that exact revision. Editing a source disables it until another review.
+The source's action page shows its name, type and enablement. Select **Review and
+enable** for a disabled source. Review the resolved file or program path, GitHub
+repository or command arguments and input mappings, and who can use the source.
+Scroll for the complete details. Enter saves permission for that exact revision.
+Editing revokes permission and requires a new review. Enablement itself starts no
+command or GitHub request. Automatic policies have a [separate review](#automation-refresh-and-execution).
 
 Add an `external-value`, `github-pr` or `github-ci` component through the existing
 Main/Subagents picker. **Bind to a component** selects an existing compatible
-instance. Source definitions save independently; the new binding in the display
-draft needs the usual **Save**. Cancelling the display draft leaves that draft
-unsaved and does not undo separately saved source changes.
+instance. **Unbind component** removes a reference from the display draft.
+Both changes need the usual display **Save**. A binding to a disabled source also
+needs source enablement before it can provide a value. Separately saved source
+definitions and permissions persist if you discard the display draft.
 
-**Refresh now** starts one bounded job. **Refresh status**, **Cancel running
-refresh** and **Inspect source and observations** expose its result. Closing the
-editor releases only its refresh interest; other consumers or applicable automatic leases keep the job running. Explicit cancellation still stops the whole job. Enablement is independent of refresh: it
-never automatically launches a command or GitHub request. Automatic policies are reviewed separately in [automation](#automation-refresh-and-execution).
+**Refresh now** starts or joins one bounded job for an enabled source. Both
+editors follow its progress while its actions, observation details, or saved
+checks are open. They check the same job ID and read the published observation
+after it finishes. A provisional timeout is checked less frequently while the
+worker settles. The reload key reads the current saved state immediately.
 
-The external editor follows a job you started, joined or found in a source inspection. Keep that source’s actions, observation details or saved checks open to see progress. The page checks the same job ID and reads the published observation when the result is final. A provisional timeout is checked less frequently while the worker settles. The reload key reads the known job immediately. Watching progress uses local records. Use **Refresh now** to request a job. Automatic command and GitHub jobs require their own policy review.
-
-The source list reloads when you open it, return to it or use its reload key. It keeps the selected source by ID. While you edit a definition or review a permission, you keep the fields and revision you opened.
+Ctrl+G returns from details to the selected source's actions, then to the
+source list. The list reloads by source ID when you open it, return to it or
+press its reload key. When you close the source list, the editor releases its
+own refresh interest. Other consumers or applicable automatic leases can keep
+the job running.
 
 <a id="local-json"></a>
 
@@ -382,11 +392,19 @@ also depends on Claude Code and the terminal, as explained in the
 
 ### Readable operations and saved check details
 
-**Inspect source and observations** and `source diagnose ID` share a readable summary: enablement, automatic policy, waiting/running/backoff/pause, current observation failure and freshness, last success, next attempt and context ownership. The newest bounded job summaries include exit status, duration and sanitized output; missing old-record information remains unknown. `--json` and the advanced JSON action expose structured details. A recent successful value can remain within TTL after a failed attempt; the failure remains visible independently of freshness.
+**Inspect observations** opens the value, freshness and latest refresh outcome
+for the selected context before the details. A recent successful value can stay
+visible within its TTL after a failed attempt. The latest failure is shown
+alongside it. A JSON value without an observation timestamp has unknown
+freshness. **Advanced JSON details** and `source diagnose ID --json` expose
+the structured report.
 
 GitHub check details retain observed names, state and validated HTTP(S) links, repository, branch, HEAD and capture time. Arrow keys paginate saved observations in groups of sixteen. Opening a page never queries GitHub. Unknown, missing, cancelled, skipped and expired checks keep their meanings; retained details from an earlier success retain their original time.
 
-**Cancel running refresh** cancels the source's running refresh jobs. **Disable automatic refresh** releases automatic interest while keeping applicable manual consumers. **Disable source** prevents new tasks and cancels unfinished work. Closing a view releases only that view's interest.
+**Cancel refresh** reviews the running job in the selected context and stops
+that job for all consumers when confirmed. **Disable automatic refresh**
+releases automatic interest while keeping applicable manual consumers.
+**Disable source** prevents new jobs and cancels unfinished work for that source.
 
 ### Troubleshooting
 

@@ -165,9 +165,12 @@ test('tests.ui.test_layout.DrawingTests.test_long_cjk_values_clipping_empty_sear
     f.e.draft.display.instances[0]!.options.label = '超长'.repeat(80);
     for (const [w, h] of [[32, 12], [64, 18], [120, 30]])
         bounded(f.state, w!, h!);
-    f.state.search('definitely-absent');
-    const output = text(f.state, 64, 18);
-    assert.ok(output.includes(tMessage('ui.drawing.no_matching_items', 'zh-CN')));
+    const query = 'definitely-absent';
+    f.state.search(query);
+    assert.ok(text(f.state, 64, 18).includes(tMessage('catalog.search.open_catalog', 'zh-CN', { key: 'Ctrl+A' })));
+    f.keys({ key: 'a', ctrl: true });
+    assert.equal(f.e.listContext('main').search, query);
+    assert.ok(text(f.state, 64, 18).includes(tMessage('catalog.search.no_types', 'zh-CN')));
 });
 test('tests.ui.test_layout.DrawingTests.test_detail_input_and_invalid_legacy_number_show_contextual_controls', async (t) => {
     const f = await fixture(t);

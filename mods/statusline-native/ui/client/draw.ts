@@ -1,22 +1,23 @@
 import { changesView } from '../../lib/editor/change-review.ts';
 import { reuseView } from '../../lib/editor/reuse-manager.ts';
 import { packageNotice, packageTitle, packageView } from '../../lib/editor/package-view.ts';
-import { diagnosisPage } from '../../lib/editor/diagnosis-view.ts';
+import { diagnosisOutput, diagnosisPage } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
-import { colorsView } from '../../lib/editor/color-manager.ts';
+import { editorPreviewDraft, samplePreview } from '../../lib/editor/preview-view.ts';
+import { colorsTitle, colorsView } from '../../lib/editor/color-manager.ts';
 import { EDITOR_PAGES } from '../../lib/editor/draft.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
-import { groupsView } from '../../lib/editor/group-manager.ts';
-import { sourcesView } from '../../lib/editor/source-manager.ts';
+import { groupsTitle, groupsView } from '../../lib/editor/group-manager.ts';
+import { sourcesTitle, sourcesView } from '../../lib/editor/source-manager.ts';
 import { explanationRows } from '../../lib/editor/explanation.ts';
-import { quickView } from '../../lib/editor/quick-setup.ts';
+import { quickNextHelp, quickView } from '../../lib/editor/quick-setup.ts';
 import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import type { View } from '../../lib/session.ts';
-import { preferenceChanged } from '../../lib/preferences.ts';
+import { preferenceChanged, preferenceForKey } from '../../lib/preferences.ts';
 import { settingRows } from '../../lib/client/settings.ts';
-import { formWindow, pageWindow } from '../../lib/editor/navigation.ts';
-import { clip, column, displayWidth, contentColumns, headerColumns, MIN_COLUMNS, MIN_ROWS } from '../layout.ts';
+import { catalogEmptyLine, formWindow, pageWindow } from '../../lib/editor/navigation.ts';
+import { clip, column, displayWidth, contentColumns, editorBodySizeLines, headerColumns, MIN_COLUMNS, MIN_ROWS } from '../layout.ts';
 import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
@@ -31,10 +32,10 @@ import { catalogMarker } from '../../lib/editor/instances.ts';
 import { guidanceRows } from '../../lib/editor/guidance.ts';
 import { itemDetailWindow, type ItemDetailRow } from '../../lib/editor/item-detail.ts';
 import { importShortcutHelp, reviewRows } from '../../lib/editor/import-review.ts';
-import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
+import { profilesTitle, profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 import { shortcutPanelView } from '../../lib/editor/shortcut-settings.ts';
 import { editorLineSpans, hintLine, prependLine, sectionDivider, type EditorLine } from '../../lib/editor/hints.ts';
-import { itemDecorationNotice } from '../../lib/editor/forms.ts';
+import { itemDecorationNotice, layoutFormNotice } from '../../lib/editor/forms.ts';
 
 const itemDetailStyles = {
   heading: { ...styles.accent, bold: true },
@@ -75,7 +76,9 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       backgroundColor: styles.text.backgroundColor,
       width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
       children: [
-        line(!available ? tr("native.ui.client.draw.resize_pane_to_32x12_draft_kept") : tr("native.ui.client.draw.loading_configuration")),
+        ...(!available
+          ? [...editorBodySizeLines(columns, rows, language), tr('native.capacity.retained')].map(value => line(value))
+          : [line(tr('native.ui.client.draw.loading_configuration'))]),
         shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
@@ -117,26 +120,29 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
     return inputView(edit, width);
   };
-  const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
+  const selectedPreference = preferenceForKey(view.preferences, e.setting);
   const pickerNotice = !view.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
   const message = view.localized?.message;
   const messageBindings = message?.fallback === view.message && message.key === 'shortcuts.native-preset-applied' ? ['save', 'close']
-    : message?.fallback === view.message && message.key === 'shortcuts.host-preferences-pending' ? ['apply', 'finish', 'close'] : [];
+    : message?.fallback === view.message && message.key === 'shortcuts.host-preferences-pending' ? ['apply', 'finish', 'close']
+      : message?.fallback === view.message && message.key === 'colors.staged' ? ['save'] : [];
   const editorMessage = messageBindings.length && message
     ? hintLine(message.key, language, Object.fromEntries(messageBindings.map(key => [key, String(message.params[key])])))
     : viewMessage(view, 'message');
-  let notice: string | EditorLine = e.review ? importShortcutHelp(e.review, e.shortcuts, language) :
+  let notice: string | EditorLine = e.review ? editorMessage || importShortcutHelp(e.review, e.shortcuts, language) :
+    (view.input?.kind === 'path' && editorMessage) ||
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
-    viewMessage(view, 'busy') || viewMessage(view, 'error') ||
+    viewMessage(view, 'busy') || (view.uncertain && e.sources ? tr('editor.save_check_from_editor') : viewMessage(view, 'error')) ||
+    (view.uncertain ? tr('editor.save_unconfirmed') : '') ||
     (pickerNotice ? renderMessage(pickerNotice, view.language) : '') || editorMessage ||
     (e.advanced
       ? viewMessage(view, 'preferencesError') ||
         (selectedPreference?.result ? preferenceLabel(selectedPreference, view.language) + ': ' + preferenceResult(selectedPreference, view.language) : '') ||
         view.preferences.map((p) => p.result ? preferenceLabel(p, view.language) + ': ' + preferenceResult(p, view.language) : '').filter(Boolean).join(' · ')
-      : '') || itemDecorationNotice(view);
+      : '') || (layout.hostRows ? tr('native.host_applies_separately') : '') || itemDecorationNotice(view) || layoutFormNotice(view) || '';
   const content: RenderElement[] = [];
   let title = '';
-  if(e.changeReview||e.reuse){title=tr(e.changeReview?'history.title':'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,language,inner,layout.bodyRows):reuseView(e,language,inner,layout.bodyRows)).map(row=>line(row,rowStyle(row.selected===true))));
+  if(e.changeReview||e.reuse){title=tr(e.changeReview?(e.structureProposal?.confirmation?'layout.review_title':'history.title'):'reuse.'+e.reuse!.kind);content.push(...(e.changeReview?changesView(e,language,inner,layout.bodyRows):reuseView(e,language,inner,layout.bodyRows)).map(row=>line(row,rowStyle(row.selected===true))));
   } else if (e.packages) {
     title = packageTitle(e.packages, language);
     if (e.packages.message) notice = packageNotice(e.packages, language, e.shortcuts);
@@ -146,23 +152,24 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   } else if (e.diagnosis) {
     title = tr('diagnosis.title');
     const page = diagnosisPage(e, view.language ?? 'en', inner, layout.bodyRows - 1);
-    content.push(...page.lines.map(row => line(row)));
+    content.push(...page.lines.map(row => row.kind ? line(row.text || ' ', itemDetailStyles[row.kind]) : line(row)));
     if (layout.bodyRows > 1) content.push(line(page.summary, styles.muted));
   } else if (e.colors) {
-    title = tr('colors.title');
+    title = colorsTitle(e, language);
     content.push(...colorsView(e, language, inner, layout.bodyRows).map(row => 'spans' in row
-      ? previewLine(ui, row.spans, inner, view.previewBackground ?? 'dark') : line(row)));
+      ? previewLine(ui, row.spans, inner, view.previewBackground ?? 'dark') : line(row, row.selected ? rowStyle(true) : styles.muted)));
   } else if(e.alignmentManager) {
     title=tr('alignment.title');
     content.push(...alignmentsView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected === true))));
   } else if(e.groupManager) {
-    title=tr('composition.groups.title');
+    title=groupsTitle(e,language);
     content.push(...groupsView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected === true))));
   } else if(e.sources) {
-    title=tr('sources.title');
-    content.push(...sourcesView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected))));
+    title = sourcesTitle(e, language);
+    content.push(...sourcesView(e, language, inner, layout.bodyRows).map(row => line(row,
+      row.heading ? { ...styles.accent, bold: true } : rowStyle(row.selected))));
   } else if(e.profiles) {
-    title = tr('profiles.title');
+    title = profilesTitle(e, language);
     content.push(...profilesView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected))));
   } else if (e.explanation || e.guidanceScroll !== null && e.detail) {
     title = tr(e.explanation ? 'explain.title' : 'guidance.title');
@@ -175,12 +182,16 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (page.summary && layout.bodyRows > 1) content.push(line(page.summary, itemDetailStyles.note));
   } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
+    if (e.quick.step === 'appearance' && (!notice || notice === editorMessage && message?.fallback === view.message && message?.key === 'quick.preset-ready'))
+      notice = quickNextHelp(language);
     content.push(...quickView(e.quick,language,inner,layout.bodyRows,e.baseline.configuration?.shared_projects).map(row=>line(row,rowStyle(row.selected))));
   } else if (e.review) {
-    title = tr('review.title');
+    title = tr(e.review.choosing ? 'review.selection_title' : 'review.title');
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(review.scroll, Math.max(0, lines.length - capacity));
-    content.push(...lines.slice(start, start + capacity).map(row => line(row.text, row.heading && row.section === review.selected ? rowStyle(true) : {})));
+    content.push(...lines.slice(start, start + capacity).map(row => line(row.text, row.heading
+      ? row.section === review.selected ? rowStyle(true) : { ...styles.accent, bold: true }
+      : rowStyle(false))));
     content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
   } else if (view.input?.kind === 'category') {
     title = tr('catalog.search.categories');
@@ -209,20 +220,30 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       const editing = (view.input?.kind === 'numeric' && view.input.field === row.key) ||
         (view.input?.kind === 'field' && view.input.key === row.key) ||
         (view.input?.kind === 'path' && row.key === view.input.action + '-file');
-      const preference = view.preferences.find((p) => 'host-' + p.row.key === row.key);
+      if (layout.hostRows && row.key === e.setting && row.host && !editing) {
+        content.push(ui.Box({ key: 'setting-' + row.key, flexShrink: 0,
+          children: [line('› ' + row.label, rowStyle(true, row.editable))],
+        }));
+        continue;
+      }
       const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)}`;
-      const suffix = (editing || !row.valueHint) && preference && preferenceChanged(preference) ? ' *' : '';
-      const valueWidth = Math.max(1, inner - displayWidth(label + ' ' + suffix));
+      const valueWidth = Math.max(1, inner - displayWidth(label + ' '));
       const valueSpans = editing ? inputSpans(inputDisplay(valueWidth), valueWidth)
         : row.valueHint ? editorLineSpans(row.valueHint, valueWidth).map(({ text, bold }) => ({ text, style: { bold } }))
           : [{ text: row.value }];
       // Keep a normal cell between the selected label and the caret in an empty field.
       const spans: TextSpan[] = [{ text: label }, { text: ' ', style: editing ? styles.text : undefined }, ...valueSpans];
-      if (suffix) spans.push({ text: suffix });
       content.push(ui.Box({
         key: 'setting-' + row.key, flexShrink: 0,
         children: [spanLine(ui, spans, inner, rowStyle(e.setting === row.key, row.editable))],
       }));
+    }
+    const host = layout.hostRows ? settings.find(row => row.key === e.setting)?.host : undefined;
+    if (host) {
+      const pair = [host.current, host.pending].filter(Boolean).join(' · ');
+      const values = host.pending && displayWidth(pair) <= inner ? [pair] : [host.current, host.pending];
+      const details = [host.reason, ...values.filter(Boolean), host.result].filter(Boolean);
+      content.push(...details.slice(0, layout.hostRows).map(value => line(value, styles.muted)));
     }
     const gap = layout.bodyRows - Number(layout.showSummary) - content.length;
     if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
@@ -256,7 +277,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         children: [spanLine(ui, itemSpans(item, match, search, view.language ?? 'en', inner, active, marker, type?.count), inner, rowStyle(active))],
       }));
     }
-    if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
+    if (!visible.length) content.push(line(catalogEmptyLine(e, language), styles.muted));
     const gap = layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary) - content.length;
     if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
@@ -271,35 +292,43 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     } else if (!notice) notice = filteredSummary;
   }
   if (capacityNotice) title = capacityNotice + ' · ' + title;
-  const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
-  const allSamples = e.diagnosis?.report&&e.diagnosis.result ? e.diagnosis.result.output.map(row=>row.spans) : view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
-  const sample=allSamples.slice(Math.min(e.previewOffset,Math.max(0,allSamples.length-1)));
-  const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
-  const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const background = view.previewBackground ?? 'dark';
+  const diagnostic = diagnosisOutput(e.diagnosis, language, columns - 5, layout.previewRows);
+  const { display } = editorPreviewDraft(e);
+  const sample = diagnostic ?? samplePreview(e, display, view.preview, language, { busy: view.previewBusy, error: viewMessage(view, 'previewError') });
+  const overflow = !diagnostic && layout.previewRows > 1 && sample.rows.length > layout.previewRows;
+  const shown = sample.rows.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const preview: RenderElement[] = shown.map((row) => previewLine(ui, row, inner, background));
-  if (overflow) preview.push(previewText(ui, tr("native.ui.client.draw.more_preview_rows", {value0: sample.length - shown.length}), inner, background));
-  if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
+  if (overflow) preview.push(previewText(ui, tr('native.ui.client.draw.more_preview_rows', { value0: sample.rows.length - shown.length }), inner, background));
+  if (!sample.rows.length) preview.push(previewText(ui, sample.empty, inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
+  const sampleTitle = e.colors ? tr('colors.candidate_preview') : e.review
+    ? tr('review.preview', { scope: tr('review.sections.' + e.review.previewScope) })
+    : previewTitle(display, columns, view.previewBusy, background, language);
+  const previewCaption = diagnostic?.title ?? (e.review ? sampleTitle :
+    sampleTitle + ' · ' + tr('preview.scenario.' + e.previewScenario) + ' · ' + previewWidth(inner, e.previewWidth) + 'c');
   const focusHint = hintLine('native.ui.client.draw.click_region_for_keys', language, { escape: 'Esc' });
+  const shortFocusHint = { text: tr('native.ui.client.draw.click_body_short') };
+  const focusForWidth = (width: number) => displayWidth(focusHint.text) <= width ? focusHint : shortFocusHint;
   const hasNotice = Boolean(notice || capacityNotice);
   // Keep both the notice and the click instruction. On narrow panes the numbered tabs suffice.
-  const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(focusHint.text) > columns;
+  const numberedTabs = hasNotice && tabWidth + 3 + displayWidth(shortFocusHint.text) > columns;
   const tabs = tabSpans(labels, e.page, numberedTabs);
   if (hasNotice) {
     const room = columns - displayWidth(tabs.map(span => span.text).join(''));
-    const hint = prependLine(numberedTabs ? ' ' : ' · ', focusHint);
+    const separator = numberedTabs ? ' ' : ' · ';
+    const hint = prependLine(separator, focusForWidth(room - displayWidth(separator)));
     tabs.push(...editorLineSpans(hint, room).map(({ text, bold }) => ({ text, style: bold ? styles.key : styles.muted })));
   }
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
       header(editorTitle),
-      chromeRow(ui, spanLine(ui, tabs, columns), columns),
+      ...(layout.previewHeight ? [chromeRow(ui, spanLine(ui, tabs, columns), columns)] : []),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line(capacityNotice || focusHint, styles.muted), columns),
+        : line(capacityNotice || focusForWidth(inner), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', e.diagnosis?.report ? tr('diagnosis.output') : e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language)+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(inner,e.previewWidth)+'c', preview, columns, layout.previewHeight, layout.framed, true),
+      ...(layout.previewHeight ? [section(ui, 'preview-region', previewCaption, preview, columns, layout.previewHeight, layout.framed, true)] : []),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

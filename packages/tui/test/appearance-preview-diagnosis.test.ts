@@ -1,13 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture, plain } from './fixtures.js';
-import { LANGUAGES, t } from '@fbincon/statusline-core/i18n/messages';
+import { LANGUAGES, t, text } from '@fbincon/statusline-core/i18n/messages';
+import type { DiagnoseResult } from '@fbincon/statusline-core/contracts/ui';
+import { BackendError } from '@fbincon/statusline-core/editor/backend';
 import { openColors, colorsKey, colorDraft } from '@fbincon/statusline-core/editor/color-manager';
-import { openDiagnosis, diagnosisKey, diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
+import { openDiagnosis, diagnosisKey, diagnosisRequest, receiveDiagnosis } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { THEME_IDS } from '@fbincon/statusline-core/editor/themes';
 import { SetupState } from '@fbincon/statusline-core/editor/setup';
 import { frame } from '../src/drawing.js';
 import { dimensions } from '../src/layout.js';
+import { Session, type Backend } from '../src/session.js';
+import { paint } from '../src/theme.js';
+
+const diagnosticReport = (source: string, lines: string[]): DiagnoseResult => ({
+    sample: false, scope: 'main', width: 60, source, observed_at: null, diagnosed_at: '2026-11-01T10:00:00Z',
+    session_id: null, prompt_id: null, host_version: null, include_local: false, instances: [],
+    output: lines.map((line, index) => ({ id: String(index), spans: [paint(line)] })),
+    host_fields: { worktree: { session_name: null, git_name: null, selected_source: null },
+        cache_miss: { status: 'not_observed', causes: [], last_miss_at: null, tools_added: null, tools_removed: null, system_char_delta: null } },
+});
 
 test('diagnosis keeps the current field and grapheme caret visible on short terminals', () => {
     for (const language of ['en', 'zh-CN'] as const) {
@@ -32,18 +44,13 @@ test('diagnosis keeps the current field and grapheme caret visible on short term
     }
 });
 
-test('diagnosis End, Up and page movement follow the visible report after resizing', () => {
+test('file diagnosis starts at the first output row and both panes scroll by their visible capacity', () => {
     const s = fixture();
+    s.preview = { sample: true, main: [[paint('First sample row')], [paint('Second sample row')]], subagents: [] };
+    s.key({ key: 'n', ctrl: true }, 64, 18);
     openDiagnosis(s.editor);
-    const v = s.editor.diagnosis!;
-    v.report = true;
-    v.result = {
-        sample: false, scope: 'main', width: 60, source: 'test file', observed_at: null, diagnosed_at: '2026-11-01T10:00:00Z',
-        session_id: null, prompt_id: null, host_version: null, include_local: false, instances: [],
-        output: Array.from({ length: 40 }, (_, i) => ({ id: String(i), spans: [{ text: 'report line ' + i, foreground: null, background: null, bold: false }] })),
-        host_fields: { worktree: { session_name: null, git_name: null, selected_source: null },
-            cache_miss: { status: 'not_observed', causes: [], last_miss_at: null, tools_added: null, tools_removed: null, system_char_delta: null } },
-    };
+    receiveDiagnosis(s.editor.diagnosis!, diagnosticReport('test file', Array.from({ length: 40 }, (_, i) => 'report line ' + i)));
+    assert(plain(s, 64, 18).some(row => row.includes('report line 0')));
     const window = (rows: number) => {
         const summary = plain(s, 80, rows).join('\n').match(/(\d+)–(\d+)\/(\d+)/u);
         assert(summary, 'missing page position');
@@ -56,9 +63,77 @@ test('diagnosis End, Up and page movement follow the visible report after resizi
     assert.deepEqual(window(24), [first! - 1, total! - 1, total]);
     const [resized] = window(18);
     s.key({ key: 'pageup' }, 80, 18);
-    assert.equal(window(18)[0], resized! - (dimensions(80, 18).content.innerHeight - 1));
+    assert.equal(window(18)[0], Math.max(1, resized! - (dimensions(80, 18).content.innerHeight - 1)));
     s.key({ key: 'home' }, 80, 18);
     assert.equal(window(18)[0], 1);
+    s.key({ key: 'tab' }, 64, 18);
+    s.key({ key: 'end' }, 64, 18);
+    assert(plain(s, 64, 18).some(row => row.includes('report line 39')));
+    s.key({ key: 'up' }, 64, 18);
+    assert(!plain(s, 64, 18).some(row => row.includes('report line 39')));
+    s.key({ key: 'home' }, 64, 18);
+    assert(plain(s, 64, 18).some(row => row.includes('report line 0')));
+    assert.equal(s.editor.diagnosis!.scroll, 0);
+    s.key({ key: 'g', ctrl: true }, 64, 18);
+    s.key({ key: 'g', ctrl: true }, 64, 18);
+    assert(plain(s, 64, 18).some(row => row.includes('Second sample row')));
+});
+
+test('file diagnosis isolates empty output and keeps the failed path available for correction', async () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language), editor = state.editor, before = JSON.stringify(editor.draft);
+        state.preview = null;
+        state.previewError = 'OLD TEST SAMPLE ERROR';
+        const session = new Session(state, { request(operation: string, payload: { path: string }) {
+            assert.equal(operation, 'diagnose_file');
+            if (payload.path === '/missing.json') throw new BackendError('io_error', text('diagnose.error.file', { value: payload.path }));
+            return diagnosticReport(payload.path, []);
+        } } as Backend);
+        const key = (key: string, ctrl = false, paste = false) => state.key({ key, ctrl, paste }, 64, 18);
+        const screen = () => plain(state, 64, 18).join('\n');
+        key('l', true);
+        const pathAndRun = async (path: string) => {
+            key('home'); key('return'); key('u', true); key(path, false, true); key('return');
+            for (let row = 0; row < 4; row++) key('down');
+            await session.key({ key: 'return' }, 64, 18);
+        };
+        await pathAndRun('/ok.json');
+        assert(screen().includes(t('diagnosis.no_output', language)));
+        assert(!screen().includes('OLD TEST SAMPLE ERROR'));
+        key('g', true);
+        await pathAndRun('/missing.json');
+        assert(screen().includes(t('diagnose.error.file', language, { value: '/missing.json' })));
+        assert.equal(editor.diagnosis!.path, '/missing.json');
+        assert.equal(editor.diagnosis!.cursor, 0);
+        assert.equal(editor.diagnosis!.result?.source, '/ok.json');
+        assert.equal(editor.diagnosis!.report, false);
+        assert.equal(JSON.stringify(editor.draft), before);
+    }
+});
+
+test('sample preview positions follow scope and workflow, while empty states follow the current draft and scenario', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language), editor = state.editor, before = JSON.stringify(editor.draft);
+        const screen = () => plain(state, 64, 18).join('\n');
+        state.preview = { sample: true, scenario: 'normal', main: [[paint('main A')], [paint('main B')]],
+            subagents: [[paint('agent A')], [paint('agent B')]] };
+        state.key({ key: 'n', ctrl: true }, 64, 18);
+        assert(!screen().includes('main A') && screen().includes('main B'));
+        state.key({ key: 'tab' }, 64, 18);
+        assert(screen().includes('agent A'));
+        state.key({ key: 'p', ctrl: true }, 64, 18);
+        assert(editor.quick);
+        assert(screen().includes('main A'));
+        state.key({ key: 'g', ctrl: true }, 64, 18);
+        assert.equal(JSON.stringify(editor.draft), before);
+
+        editor.previewScenario = 'no-agents';
+        state.preview = { ...state.preview, scenario: 'no-agents', subagents: [] };
+        assert(screen().includes(t('preview.empty_no_agents', language)));
+        assert(!screen().includes(t('ui.drawing.no_enabled_items', language)));
+        editor.draft.display.subagents.enabled = false;
+        assert(screen().includes(t('preview.empty_subagents_off', language)));
+    }
 });
 test('selected theme bands retain their actual colors while their labels remain highlighted', () => {
     const s = fixture();
@@ -70,6 +145,39 @@ test('selected theme bands retain their actual colors while their labels remain 
     assert(bands.length > 0);
     assert(bands.every(span => span.foreground !== null && !span.reverse));
     assert(selected.some(span => span.text.includes('Ocean') && span.reverse));
+});
+
+test('compact color selection separates the cursor, candidate, display draft and saved value', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language), e = state.editor;
+        e.page = 'settings';
+        openColors(e, 'field:theme');
+        const screen = () => plain(state, 64, 18).join('\n');
+        const label = (name: string, theme: string) => t('colors.' + name, language, { value: t('values.' + theme, language) });
+        state.key({ key: 'down' }, 64, 18);
+        assert(screen().includes('› ' + t('values.dark', language)));
+        assert(screen().includes(label('saved', 'classic')));
+        assert(screen().includes(label('draft', 'classic')));
+        assert(screen().includes(label('candidate', 'classic')));
+        state.key({ key: 'return' }, 64, 18);
+        assert(screen().includes('› ' + t('values.dark', language) + ' ✓'));
+        assert(screen().includes(label('candidate', 'dark')));
+        assert.equal(e.draft.display.theme, 'classic');
+        assert.equal(e.history.undo.length, 0);
+        state.key({ key: 's', ctrl: true }, 64, 18);
+        assert.equal(e.colors, null);
+        assert.equal(e.draft.display.theme, 'dark');
+        assert.equal(e.baseline.draft.display.theme, 'classic');
+        assert.equal(e.history.undo.length, 1);
+        assert(screen().includes(t('colors.staged', language, { save: e.shortcuts.hint('settings', 'save') })));
+        openColors(e, 'field:theme');
+        assert(screen().includes(label('saved', 'classic')));
+        assert(screen().includes(label('draft', 'dark')));
+        assert(screen().includes(label('candidate', 'dark')));
+        state.key({ key: 's', ctrl: true }, 64, 18);
+        assert.equal(e.history.undo.length, 1);
+        assert(screen().includes(t('colors.no_changes', language)));
+    }
 });
 test('the terminal color panel shows its active apply key and both ways to cancel an edit', () => {
     for (const language of ['en', 'zh-CN'] as const) {

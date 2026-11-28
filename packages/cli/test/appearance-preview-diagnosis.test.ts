@@ -102,7 +102,10 @@ test('file diagnosis uses the current draft, strict file parsing and input-only 
         writeFileSync(file, raw);
         assert.equal(f.call('diagnose_file', payload, protocol).status, 2);
     }
-    assert.equal(f.call('diagnose_file', { ...payload, path: file + '.absent' }, protocol).response.error.code, 'io_error');
+    const missing = f.call('diagnose_file', { ...payload, path: file + '.absent' }, protocol).response.error;
+    assert.equal(missing.code, 'io_error');
+    assert.equal(missing.localization.key, 'diagnose.error.file');
+    assert.equal(missing.localization.params.value, file + '.absent');
     writeFileSync(file, bytes);
     assert.equal(f.call('diagnose_file', { ...payload, observed_at: 'bad-time' }, protocol).status, 2);
     for (const language of LANGUAGES) {
