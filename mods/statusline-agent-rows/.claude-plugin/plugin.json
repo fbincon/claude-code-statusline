@@ -1,6 +1,6 @@
 {
   "name": "statusline-agent-rows",
-  "version": "3.16.5",
+  "version": "3.17.0",
   "description": "Custom subagent rows in the Claude Code terminal",
   "author": {
     "name": "fbincon"

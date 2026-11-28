@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-> **当前正式版：[v3.16.5](v3.16.5.zh-CN.md)** · 2026-11-21 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.16.5) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.16.5) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.16.5) · [CHANGELOG](../../CHANGELOG.zh-CN.md)
+> **当前正式版：[v3.17.0](v3.17.0.zh-CN.md)** · 2026-11-28 · [npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.17.0) · [GitHub](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.17.0) · [Gitee](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.17.0) · [CHANGELOG](../../CHANGELOG.zh-CN.md)
 
 自 v3.10.0 起，发布说明分别维护英文和简体中文页面。更早版本的中英说明保留在同一历史页面中。
 
@@ -15,7 +15,8 @@
 
 ## TypeScript v3.10 及后续版本
 
-- [**v3.16.5**](v3.16.5.zh-CN.md) · 2026-11-21 · 最新稳定版 — Claude Code 集成与 Native 控件修复 · [English](v3.16.5.md)
+- [**v3.17.0**](v3.17.0.zh-CN.md) · 2026-11-28 · 最新稳定版 — AgentRow 子代理状态行与编辑器改进 · [English](v3.17.0.md)
+- [**v3.16.5**](v3.16.5.zh-CN.md) · 2026-11-21 · 正式版 — Claude Code 集成与 Native 控件修复 · [English](v3.16.5.md)
 - [**v3.16.4**](v3.16.4.zh-CN.md) · 2026-11-21 · 正式版 — 修复 npm 首次设置与状态栏行为 · [English](v3.16.4.md)
 - [**v3.16.3**](v3.16.3.zh-CN.md) · 2026-11-05 · 正式版 — 配置技能工作流修复 · [English](v3.16.3.md)
 - [**v3.16.2**](v3.16.2.zh-CN.md) · 2026-11-01 · 正式版 — 任务窗格操控与草稿保护 · [English](v3.16.2.md)
