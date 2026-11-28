@@ -36,7 +36,7 @@ test('native color selector, temporary scenario controls and cancel preserve the
     await $.session.start(START);
     await $.command.run(RUN);
     const ui = await $.ui.mount(PANE), before = JSON.stringify(f.store.draft);
-    await keys(ui, '3');
+    await keys(ui, '4');
     await selectSetting(ui, 'field:theme');
     await keys(ui, 'return', 'down', 'down', 'down', 'down', 'return');
     expect(previewDraft(f).display.theme).toBe('ocean');
@@ -56,7 +56,7 @@ test('native explicit file diagnosis retains a large report in the host and retu
     await $.session.start(START);
     await $.command.run(RUN);
     const ui = await $.ui.mount(PANE), before = JSON.stringify(f.store.draft);
-    await keys(ui, '3');
+    await keys(ui, '4');
     await selectSetting(ui, 'diagnose-file');
     await keys(ui, 'return', 'return', '/tmp/input 中文.json', 'return', 'down', 'down', 'down', 'down', 'return');
     const call = f.calls.find(c => c.operation === 'diagnose_file')!;
@@ -122,7 +122,7 @@ for(const language of LANGUAGES) test('localized actual settings entries / '+lan
     await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
     await keys(ui,{key:'e',ctrl:true});await selectSetting(ui,'reuse-style');
     expect(await ui.find({in:await clientKey(ui),type:'Text',text:new RegExp(t('settings.reuse-style',language))})).toBeDefined();
-    await keys(ui,'escape','3');
+    await keys(ui,'escape','4');
     for(const key of ['change-history','reuse-groups']){await selectSetting(ui,key);expect(await ui.find({in:await clientKey(ui),type:'Text',text:new RegExp(t('settings.'+key,language))})).toBeDefined();}
     expect(f.calls.some(c=>c.operation==='apply')).toBe(false);await ui.unmount();
 });

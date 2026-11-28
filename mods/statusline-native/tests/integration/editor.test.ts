@@ -93,7 +93,7 @@ test('native Layout alignment form renders through the Client and persists only 
   fixture.store.draft.display.layout = { mode: 'explicit', rows: [['a'],['b']] };
   await $.session.start(START); await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '4'); await selectSetting(ui, 'row-alignment');
+  await keys(ui, '3'); await selectSetting(ui, 'row-alignment');
   await keys(ui, 'return', 'return', 'down', 'right', 'down', 'right', 'end', 'return');
   const alignment = previewDraft(fixture).display.layout.alignments![0]!;
   expect(alignment.columns).toEqual([[{kind:'instance',id:'a'},{kind:'instance',id:'b'}]]);
@@ -147,7 +147,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   expect(fixture.calls.length).toBe(count);
   await keys(ui, {key:'a',ctrl:true}, '/', 'g', 'i', 't', 'return', 'return', {key:'g',ctrl:true}, 'left');
   await keys(ui, '2', 'home', ' ');
-  await keys(ui, '3', ' ');
+  await keys(ui, '4', ' ');
   for (const field of ['palette', 'directory-style', 'separator-style', 'scope-labels']) {
     await selectSetting(ui, field);
     await keys(ui, 'right');
@@ -198,7 +198,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ');
+  await keys(ui, '4', ' ');
   const reads = fixture.calls.filter((c) => c.operation === 'read').length;
   await $.command.run(RUN);
   await ui.redraw();
@@ -213,7 +213,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
   await ui.unmount();
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  await keys(reopened, '3');
+  await keys(reopened, '4');
   expect(
     await reopened.find({ in: await clientKey(reopened), type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
@@ -228,7 +228,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   await keys(ui, '/', 's', 'f', 'q');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   expect(fixture.closes).toHaveLength(0);
-  await keys(ui, {key: 'g', ctrl: true}, '3');
+  await keys(ui, {key: 'g', ctrl: true}, '4');
   await selectSetting(ui, 'padding');
   await keys(ui, 'return', {key: 'u', ctrl: true}, '9');
   // Focus exit (Esc) is host-owned and does not cancel Client editing.
@@ -251,7 +251,7 @@ test('invalid numeric input stays visible and cannot save; correcting it accepts
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'padding');
   await keys(ui, 'return', {key: 'u', ctrl: true}, '9', '9', 'return');
   expect(
@@ -295,7 +295,7 @@ test('unknown saves require read reconciliation before retry or close', {timeout
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ', 'f', 's', 'q');
+  await keys(ui, '4', ' ', 'f', 's', 'q');
   expect(applies).toBe(1);
   expect(fixture.closes).toHaveLength(0);
   await keys(ui, 'k');
@@ -322,13 +322,13 @@ test(`${code} retains the draft; explicit reload reads external changes`, {timeo
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ', 'f');
+  await keys(ui, '4', ' ', 'f');
   expect(fixture.closes).toHaveLength(0);
   expect(await visibleText(ui)).toContain('Changes and history');
   expect(fixture.calls.filter(call=>call.operation==='apply').length).toBe(1);
   await keys(ui,'tab');expect(previewDraft(fixture).display.use_colors).toBe(false);
   fixture.store.draft.display.palette = 'ansi';
-  await keys(ui, 'l', 'return', '3');
+  await keys(ui, 'l', 'return', '4');
   expect(
     await ui.find({ in: await clientKey(ui), type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
@@ -352,7 +352,7 @@ test(`a scoped native profile conflict permits ordinary close when inspection ${
     return next();
   };
   await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
-  await keys(ui,'3',' ');const retained=JSON.stringify(previewDraft(fixture));
+  await keys(ui,'4',' ');const retained=JSON.stringify(previewDraft(fixture));
   fixture.store.draft.display.palette='ansi';fixture.store.revision='1'.repeat(64);
   const winner=JSON.stringify(fixture.store);conflict=true;
   await keys(ui,'f');
@@ -372,7 +372,7 @@ test('Claude preferences are separate, checked per row and retain partial applic
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', 'h', 'right', 'down', ' ', 'f');
+  await keys(ui, '4', 'h', 'right', 'down', ' ', 'f');
   expect(fixture.closes).toHaveLength(0);
   expect(fixture.configCalls).toHaveLength(0);
   await keys(ui, 'a');
@@ -392,7 +392,7 @@ test('missing, locked and concurrently changed Claude rows cannot be overwritten
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', 'h', 'right', 'down', ' ');
+  await keys(ui, '4', 'h', 'right', 'down', ' ');
   fixture.store.rows[0]!.value = 'light';
   fixture.store.rows[1]!.isLocked = true;
   await keys(ui, 'a');
@@ -446,7 +446,7 @@ test('Client fault and retry preserve received edits; old epoch and malformed po
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ');
+  await keys(ui, '4', ' ');
   const before = (await ui.find({ type: 'Client',  }))!.props.props as any;
   await ui.post({ epoch: before.epoch, fault: 'injected Client failure' });
   expect(
@@ -481,7 +481,7 @@ test('ordered cumulative batches preserve fast edits, deduplicate writes and rej
     columns: 60,
     rows: 24,
     events: [
-      { seq: 1, event: { key: '3' } },
+      { seq: 1, event: { key: '4' } },
       { seq: 2, event: { key: ' ' } },
       { seq: 3, event: { key: 's' } },
     ],

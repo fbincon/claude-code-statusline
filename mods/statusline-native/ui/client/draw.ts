@@ -4,6 +4,7 @@ import { packageView } from '../../lib/editor/package-manager.ts';
 import { diagnosisPage } from '../../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../../lib/editor/preview-settings.ts';
 import { colorsView } from '../../lib/editor/color-manager.ts';
+import { EDITOR_PAGES } from '../../lib/editor/draft.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { groupsView } from '../../lib/editor/group-manager.ts';
 import { sourcesView } from '../../lib/editor/source-manager.ts';
@@ -207,8 +208,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   if (overflow) preview.push(previewText(ui, tr("native.ui.client.draw.more_preview_rows", {value0: sample.length - shown.length}), inner, background));
   if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
-  const pages = ['main', 'subagents', 'settings', 'layout'];
-  const labels = pages.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
+  const labels = EDITOR_PAGES.map(key => tr((columns < 48 ? 'native.tabs.short.' : 'native.tabs.') + key));
   const focusHint = tr('native.ui.client.draw.click_region_for_keys');
   const hasNotice = Boolean(notice || capacityNotice);
   const tabWidth = displayWidth(labels.map((label, i) => String(i + 1) + ' ' + label).join(' · ')) + 2; // Selected tab brackets.
@@ -218,12 +218,12 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   labels.forEach((label, i) => {
     if (numberedTabs) {
       const n = String(i + 1);
-      tabs.push({ text: (i ? ' ' : '') + (pages[i] === e.page ? '[' + n + ']' : n), style: pages[i] === e.page ? styles.accent : styles.key });
+      tabs.push({ text: (i ? ' ' : '') + (EDITOR_PAGES[i] === e.page ? '[' + n + ']' : n), style: EDITOR_PAGES[i] === e.page ? styles.accent : styles.key });
       return;
     }
     if (i) tabs.push({ text: ' · ', style: styles.muted });
     tabs.push({ text: String(i + 1), style: styles.key });
-    tabs.push({ text: ' ' + (pages[i] === e.page ? '[' + label + ']' : label), style: { ...(pages[i] === e.page ? styles.accent : styles.muted), bold: false } });
+    tabs.push({ text: ' ' + (EDITOR_PAGES[i] === e.page ? '[' + label + ']' : label), style: { ...(EDITOR_PAGES[i] === e.page ? styles.accent : styles.muted), bold: false } });
   });
   if (hasNotice) tabs.push({ text: (numberedTabs ? ' ' : ' · ') + focusHint, style: styles.muted });
   return ui.Box({

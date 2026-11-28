@@ -31,7 +31,7 @@ async function waitForFrame(pty: Pty, start: number, expected: string[], limit =
 async function openEmbeddedTask(pty: Pty, session: string): Promise<void> {
     await waitForFrame(pty, 0, ['Preview (sample data)']);
     const start = mark(pty);
-    pty.send(' \t\t\x1b[F');
+    pty.send(' \t\t\t\x1b[F');
     await waitForFrame(pty, start, ['Configure Status Line *', 'Settings / global options', '› ']);
     // The inspection group is near the end of Settings; follow the visible
     // selection rather than tying the test to a particular number of fields.

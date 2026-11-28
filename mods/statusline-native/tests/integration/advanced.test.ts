@@ -21,7 +21,7 @@ test('appearance edits save one complete draft without applying host settings', 
   await selectSetting(ui, 'item:background');
   await keys(ui,'return','end','up','up','return',{key:'u',ctrl:true},'ansi:17','return',{key:'s',ctrl:true});
   expect(fixture.calls.some(c => c.operation === 'apply')).toBe(false);
-  await keys(ui, {key:'g',ctrl:true}, '3');
+  await keys(ui, {key:'g',ctrl:true}, '4');
   await selectSetting(ui, 'field:theme');
   await keys(ui, 'right');
   await selectSetting(ui, 'separator-style');
@@ -49,7 +49,7 @@ test('item format and explicit layout save a complete draft while text reserves 
   await selectSetting(ui, 'item:priority');
   await keys(ui, 'return', {key:'u',ctrl:true}, '1', '0', '0', 'return');
   await selectSetting(ui, 'item:max_width');
-  await keys(ui, 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '4', 'home', 'return', 's');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '3', 'home', 'return', 's');
   const d = fixture.store.draft.display;
   expect(d.instances.find(i=>i.id==='model-with-effort')!.options?.label).toBe('sFQ中文');
   expect(d.instances.find(i=>i.id==='model-with-effort')!.options?.priority).toBe(100);
@@ -75,7 +75,7 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'preset-apply');
   await keys(ui, 'return');
   expect(fixture.calls.some((c) => c.operation === 'preset')).toBe(true);
@@ -104,7 +104,7 @@ test('actual host row aliases apply separately and unavailable behavior rows rem
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount({...PANE, props: {...PANE.props, bodyColumns: 120}});
-  await keys(ui, '3', 'H');
+  await keys(ui, '4', 'H');
   await selectSetting(ui, 'host-turnDuration');
   await keys(ui, ' ', 'A');
   expect(fixture.configCalls).toEqual([{key:'turnDuration',value:false}]);
@@ -122,7 +122,7 @@ test('changed host kinds and choices are refused per row while independent rows 
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', 'h');
+  await keys(ui, '4', 'h');
   await selectSetting(ui, 'host-theme');
   await keys(ui, 'right');
   await selectSetting(ui, 'host-verbose');
@@ -134,9 +134,9 @@ test('changed host kinds and choices are refused per row while independent rows 
   expect(fixture.configCalls).toEqual([{key:'verbose',value:true}]);
   await selectSetting(ui, 'host-theme');
   expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Changed elsewhere/})).toBeDefined();
-  await keys(ui, 'r', '3', 'h');
+  await keys(ui, 'r', '4', 'h');
   fixture.store.rows = fixture.store.rows.map((row) => row.key === 'theme' ? {...row,kind:'choice',options:['dark','light']} : row);
-  await keys(ui, 'r', '3', 'h');
+  await keys(ui, 'r', '4', 'h');
   await selectSetting(ui, 'host-theme');
   await keys(ui, 'right');
   fixture.store.rows = fixture.store.rows.map((row) => row.key === 'theme' ? {...row,options:['dark']} : row);
@@ -157,7 +157,7 @@ test('theme drafts apply separately, refusals preserve the actual theme and reco
     expect(button.props.variant).toBe('primary');
     expect(button.props.dimColor).toBe(false);
   }
-  await keys(ui, '3', 'h');
+  await keys(ui, '4', 'h');
   await selectSetting(ui, 'host-theme');
   await keys(ui, 'right');
   expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('dark');

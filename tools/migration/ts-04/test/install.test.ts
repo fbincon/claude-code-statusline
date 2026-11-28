@@ -2,6 +2,7 @@ import test from 'node:test';
 import { fresh, snapshot, failWriteOnce, assert, fs, join, doctor } from './install-support.js';
 import { commandFor, splitCommand, detectClaudeVersion, expandUser } from '@fbincon/statusline-platform/commands';
 import { atomicWrite } from '@fbincon/statusline-platform/files';
+import { HOOK_TIMEOUT_SECONDS } from '@fbincon/statusline-platform/terminal/bridge';
 import { owns } from '@fbincon/statusline-cli/integration/ownership';
 import { loadFeature, writeFeature } from '@fbincon/statusline-cli/config/backend-preferences';
 import { FEATURE_FILENAME, parseFeature } from '@fbincon/statusline-core/config/backend-preferences';
@@ -64,7 +65,44 @@ test('tests.integration.test_installer.InstallTests.test_unrelated_skill_is_refu
 test('tests.integration.test_installer.InstallTests.test_atomic_write_removes_temp_files_and_fixes_mode', t => { const f = fresh(t); const path = f.put('atomic', Buffer.from('before')); fs.chmodSync(path, 0o644); atomicWrite(path, 'after'); assert.equal(f.read('atomic').toString(), 'after'); assert.deepEqual(fs.readdirSync(f.root), ['atomic']); if (process.platform !== 'win32')
     assert.equal(fs.statSync(path).mode & 0o777, 0o600); });
 test('tests.integration.test_installer.ExperimentalInstallTests.test_default_stable_install_enables_external_entry_without_preference_file', t => { const f = fresh(t); f.install(); assert.ok(f.read(external)); assert.equal(fs.existsSync(join(f.root, FEATURE_FILENAME)), false); });
-test('tests.integration.test_installer.ExperimentalInstallTests.test_enable_creates_feature_skill_owner_and_600_second_hook', t => { const f = fresh(t); f.install({ ...simple, external: true }); assert.equal(f.json(FEATURE_FILENAME).experimental_slash_tui, true); const group = f.json('settings.json').hooks.UserPromptExpansion.find((row: any) => row.matcher === 'statusline-configure'); assert.equal(group.hooks[0].timeout, 600); assert.equal(f.json('skills/statusline-configure/.claude-statusline-owner.json').owner, 'claude-code-statusline'); });
+test('tests.integration.test_installer.ExperimentalInstallTests.test_enable_creates_feature_skill_owner_and_600_second_hook', t => {
+    const f = fresh(t);
+    f.install({ ...simple, external: true });
+    assert.equal(f.json(FEATURE_FILENAME).experimental_slash_tui, true);
+    const group = f.json('settings.json').hooks.UserPromptExpansion.find((row: any) => row.matcher === 'statusline-configure');
+    assert.equal(group.hooks[0].timeout, HOOK_TIMEOUT_SECONDS);
+    assert.equal(f.json('skills/statusline-configure/.claude-statusline-owner.json').owner, 'claude-code-statusline');
+});
+test('reinstall replaces the owned 600-second editor hook and preserves other prompt hooks', t => {
+    const f = fresh(t);
+    f.install({ ...simple, external: true });
+    const settings = f.json('settings.json');
+    const promptHooks = settings.hooks.UserPromptExpansion;
+    const editorHook = promptHooks.find((row: any) => row.matcher === 'statusline-configure');
+    const fastHook = promptHooks.find((row: any) => row.matcher === 'statusline-config');
+    const foreignHook = { matcher: 'statusline-configure', hooks: [{ type: 'command', command: 'other', timeout: 600 }] };
+    editorHook.hooks[0].timeout = 600;
+    promptHooks.push(foreignHook);
+    f.put('settings.json', settings);
+    const before = f.read('settings.json');
+    const stale = doctor(f.context).find(row => typeof row.message !== 'string' && row.message.key === 'doctor.doctor.hook_expected_one_600s_hook_in_exactly');
+    assert.equal(stale?.level, 'ERROR');
+    assert(renderMessage(stale!.message).includes(`${HOOK_TIMEOUT_SECONDS}s`));
+    assert(renderMessage(stale!.message, 'zh-CN').includes(`${HOOK_TIMEOUT_SECONDS} 秒`));
+    assert.deepEqual(f.read('settings.json'), before);
+    assert.equal(f.install(simple).failed, false);
+    const repaired = f.json('settings.json').hooks.UserPromptExpansion;
+    assert.deepEqual(repaired.filter((row: any) => row.matcher === 'statusline-configure'), [
+        foreignHook,
+        { ...editorHook, hooks: [{ ...editorHook.hooks[0], timeout: HOOK_TIMEOUT_SECONDS }] },
+    ]);
+    assert.equal(fastHook.hooks[0].timeout, 5);
+    assert.deepEqual(repaired.find((row: any) => row.matcher === 'statusline-config'), fastHook);
+    const current = doctor(f.context).find(row => typeof row.message !== 'string' && row.message.key === 'doctor.doctor.hook_exactly_one_600s');
+    assert.equal(current?.level, 'OK');
+    assert(renderMessage(current!.message).includes(`${HOOK_TIMEOUT_SECONDS}s`));
+    assert.equal(f.install(simple).changed, false);
+});
 test('tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_dry_run_creates_nothing', t => { const f = fresh(t); f.install({ external: true, dryRun: true }); assert.equal(fs.existsSync(f.root), false); });
 test('tests.integration.test_installer.ExperimentalInstallTests.test_reinstall_preserves_enabled_preference_and_is_idempotent', t => { const f = fresh(t); f.install({ ...simple, external: true }); const before = f.read(FEATURE_FILENAME); assert.equal(f.install().changed, false); assert.deepEqual(f.read(FEATURE_FILENAME), before); });
 test('tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_suspends_old_or_unknown_version_and_keeps_preference', t => { for (const version of [null, [2, 1, 257]]) {
@@ -99,7 +137,7 @@ test('tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_acce
 test('tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_invalid_display_config_and_missing_skill', t => { const f = fresh(t); f.install(simple); f.put(CONFIG_FILENAME, Buffer.from('{bad')); fs.unlinkSync(join(f.root, skill)); assert.ok(doctor(f.context).filter(row => row.level === 'ERROR').length >= 2); });
 test('tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_rejects_non_private_or_corrupt_feature_file', t => { const f = fresh(t); f.install({ ...simple, external: true }); fs.chmodSync(join(f.root, FEATURE_FILENAME), 0o644); if (process.platform !== 'win32')
     assert.ok(doctor(f.context).some(row => row.level === 'ERROR')); f.put(FEATURE_FILENAME, Buffer.from('{bad')); assert.ok(doctor(f.context).some(row => row.level === 'ERROR')); });
-test('tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_enabled_disabled_suspended_and_broken_states', t => { const f = fresh(t); f.install({ ...simple, external: true }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes('600s'))); f.install({ external: false }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes('/statusline-configure: disabled'))); f.context.version = null; f.install({ external: true }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes('suspended'))); f.context.version = [2, 1, 288]; assert.ok(doctor(f.context).some(row => row.level === 'ERROR')); });
+test('tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_enabled_disabled_suspended_and_broken_states', t => { const f = fresh(t); f.install({ ...simple, external: true }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes(`${HOOK_TIMEOUT_SECONDS}s`))); f.install({ external: false }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes('/statusline-configure: disabled'))); f.context.version = null; f.install({ external: true }); assert.ok(doctor(f.context).some(row => renderMessage(row.message).includes('suspended'))); f.context.version = [2, 1, 288]; assert.ok(doctor(f.context).some(row => row.level === 'ERROR')); });
 test('tests.integration.test_installer.ResolutionAndDoctorTests.test_rendered_skill_has_no_placeholders_and_lists_every_item', t => { const f = fresh(t), value = renderSkill(f.launch).toString(); assert.equal(value.includes('__CLAUDE_STATUSLINE_'), false); for (const item of ITEMS.filter(row => !['text', 'spacer'].includes(row.id)))
     assert.ok(value.includes('`' + item.id + '`')); assert.ok(value.includes('config apply --items')); });
 test('tests.integration.test_installer.ResolutionAndDoctorTests.test_version_detection_parses_claude_output', () => { const version = detectClaudeVersion(); assert.ok(version === null || version.length === 3 && version.every(Number.isSafeInteger)); });

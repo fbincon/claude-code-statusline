@@ -3,11 +3,47 @@ import { fixture, assert, fs, join } from './support.js';
 import { dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { chooseLauncher, launcherArguments, shellQuote, workingDirectory, windowsCommand, type Probe, type Running } from '@fbincon/statusline-platform/terminal/launchers';
-import { prepare, resultPath, readResult, writeResult, requestGuard, started, cleanup, cleanupStale, deadline } from '@fbincon/statusline-platform/terminal/bridge';
+import { prepare, resultPath, readResult, writeResult, requestGuard, started, cleanup, cleanupStale, deadline, DEADLINE_ENV, REQUEST_ENV, NONCE_ENV, HOOK_TIMEOUT_SECONDS, EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import { launchEditor, stopEditor } from '@fbincon/statusline-cli/integration/launcher';
 import { UNAVAILABLE_MESSAGE } from '@fbincon/statusline-cli/integration/editor';
 function probe(calls: any[]): Probe { return { which: name => '/bin/' + name, directory: () => true, executable: () => true, uid: () => 1000, run(command, args) { calls.push([command, args]); return { code: 0, stdout: '%7' }; } }; }
 function running(code: number | null): Running { return { code: () => code, error: () => null, stop() { }, close() { } }; }
+test('external editor gets 30 minutes and the launcher preserves its result and startup margins', async t => {
+    const f = await fixture(t);
+    const checkpoints = [600_000, 1_844_999, 1_845_000];
+    let now = 0, polls = 0;
+    let requestPath: string | undefined;
+    let checkRequest: (() => void) | undefined;
+    const result = await launchEditor({ configDir: f.root, backend: f.launch, cwd: f.root }, {
+        choose: () => ({ kind: 'gnome', executable: 'gnome' }),
+        now: () => now,
+        run(_argv, _cwd, env) {
+            assert.equal(env[DEADLINE_ENV], '1800');
+            assert.equal(deadline(env, 50), 1_800_050);
+            assert.throws(() => deadline({ [DEADLINE_ENV]: '1800.001' }, 50), /Invalid slash TUI deadline/u);
+            requestPath = env[REQUEST_ENV]!;
+            const request = JSON.parse(fs.readFileSync(requestPath, 'utf8'));
+            assert.equal(request.expires - request.startup, 1_815_000);
+            checkRequest = requestGuard(f.root, requestPath, env[NONCE_ENV]!, f.launch);
+            return running(null);
+        },
+        async sleep() {
+            assert(checkRequest);
+            checkRequest();
+            const checkpoint = checkpoints[polls++];
+            assert.notEqual(checkpoint, undefined);
+            now = checkpoint!;
+        },
+    });
+    assert.equal(HOOK_TIMEOUT_SECONDS, 1_860);
+    assert.equal(polls, checkpoints.length);
+    assert.equal(result.outcome, 'error');
+    assert.match(String(result.message), /timed out without a confirmed result/u);
+    assert(requestPath);
+    assert.equal(fs.existsSync(dirname(requestPath)), false);
+    assert(checkRequest);
+    assert.throws(checkRequest, EditorRevoked);
+});
 test('tests.platforms.test_macos_terminal.InvocationTests.test_close_and_total_timeout_are_errors_without_a_result', async (t) => {
     const f = await fixture(t);
     let now = 0;

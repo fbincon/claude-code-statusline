@@ -8,6 +8,7 @@ import { parseArgs } from 'node:util';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture, type Cell } from '../migration/ts-04/capture.js';
 import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
+import { EDITOR_PAGES, type Page } from '@fbincon/statusline-core/editor/draft';
 import { renderCapture } from './render-capture.js';
 import { sha256 } from '../build/files.js';
 import { verifyDelivery } from '../build/verify.js';
@@ -215,7 +216,7 @@ export async function collectJourneys(options: { fixture: string; output: string
             const p = openPty(config, columns, rows, recordingEnv, language, external
                 ? { executable: fixture.node, args: [fixture.entry, '--language', language, 'configure'], cwd: project }
                 : { executable: '/usr/bin/unshare', args: [...isolation, options.claude, '--permission-mode', 'manual', '--debug-file', hostLog, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--settings', JSON.stringify(overrides)], cwd: project });
-            const screen = new Capture(columns, rows); let offset = 0, apiAccepted = false, page = 'main', frameSequence = 0; const start = performance.now();
+            const screen = new Capture(columns, rows); let offset = 0, apiAccepted = false, page: Page = 'main', frameSequence = 0; const start = performance.now();
             const title = t(external ? 'ui.drawing.configure_status_line' : 'native.ui.client.draw.configure_status_line', language);
             const text = () => {
                 const all = p.captured(), chunk = all.subarray(offset); offset = all.length; screen.feed(chunk);
@@ -267,9 +268,15 @@ export async function collectJourneys(options: { fixture: string; output: string
                 }, 'actual colored preview: ' + label);
                 text(); return captureObserved(label, screen, p.captured(), 'terminal.ansi', publicName, crop);
             };
-            const selectPage = async (target: string) => { if (page === target) return; const pages = ['main', 'subagents', 'settings', 'layout'];
-                if (external) for (let n = 0, count = (pages.indexOf(target) - pages.indexOf(page) + 4) % 4; n < count; n++) await key('\t');
-                else await key(String(pages.indexOf(target) + 1)); page = target; };
+            const selectPage = async (target: Page) => {
+                if (page === target) return;
+                const index = EDITOR_PAGES.indexOf(target);
+                if (external) {
+                    const count = (index - EDITOR_PAGES.indexOf(page) + EDITOR_PAGES.length) % EDITOR_PAGES.length;
+                    for (let n = 0; n < count; n++) await key('\t');
+                } else await key(String(index + 1));
+                page = target;
+            };
             const select = async (label: string) => { await key('\x1b[H'); for (let i = 0; i < 100; i++) {
                 if (text().split('\n').some(line => line.includes('›') && line.includes(label))) return; await key('\x1b[B'); }
                 throw new Error('Setting unavailable: ' + label); };

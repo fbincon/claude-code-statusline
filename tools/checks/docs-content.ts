@@ -7,9 +7,11 @@ import { SCHEMA_VERSION, defaultDisplay, isSchema, validateDisplay } from '@fbin
 import { COMPLETE_SCHEMES, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
 import { EDITOR_SHORTCUTS_FILENAME, EDITOR_SHORTCUTS_SCHEMA_VERSION, OPERATIONS, PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { PROTOCOL_VERSION as RUNTIME_PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/runtime';
+import { EDITOR_PAGES } from '@fbincon/statusline-core/editor/draft';
 import { reservedNativeKeys, shortcutAliases } from '@fbincon/statusline-core/editor/shortcut-map';
 import { definition } from '@fbincon/statusline-core/extensions/model';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
+import { t } from '@fbincon/statusline-core/i18n/messages';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { AGENT_ROW_MINIMUM, LEGACY_ROW_RANGES } from '@fbincon/statusline-core/integration/agent-row-capabilities';
@@ -19,6 +21,7 @@ import { developmentFacts, sourceReader, type SourceReader } from './docs-source
 import { checkInterfaceVersions, checkNpmScripts, documentationProse, NUMBER, numericClaims } from './docs-markdown.js';
 import { OPTIONS } from '@fbincon/statusline-cli/config/operations';
 import { AGENT_ROWS, NATIVE } from '@fbincon/statusline-cli/integration/model';
+import { DEADLINE_SECONDS, HOOK_TIMEOUT_SECONDS } from '@fbincon/statusline-platform/terminal/bridge';
 import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, MAX_REFRESH_BACKOFF_MS } from '@fbincon/statusline-tui/foreground-refresh';
 import { MIN_COLUMNS, MIN_ROWS } from '@fbincon/statusline-tui/layout';
 import { candidateCasesForNode } from './release-ci-policy.js';
@@ -85,8 +88,10 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
         .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
     const facts = developmentFacts(root, readSource);
     const releaseCases = candidateCasesForNode(readFileSync(join(root, '.node-version'), 'utf8').trim(), existsSync(join(root, AGENT_ROWS_MANIFEST)));
+    const tabNames = EDITOR_PAGES.map(page => t('native.tabs.' + page));
     for (const suffix of ['', '.zh-CN']) {
         const readme = `README${suffix}.md`, metrics = `docs/DISPLAY_ITEMS${suffix}.md`, guide = `docs/USER_GUIDE${suffix}.md`, schemes = `docs/SCHEMES${suffix}.md`;
+        const tabOrder = suffix ? tabNames.join('、') : tabNames.slice(0, -1).join(', ') + ' and ' + tabNames.at(-1);
         for (const path of [readme, metrics, guide]) check(path, body => {
             const counts = body.match(/(\d+)\s*(?:main metrics|个主栏指标)[^\n.。]*?(\d+)\s*(?:subagent metrics|个子(?:代理| Agent )指标)/u);
             assert(counts, 'Missing metric counts');
@@ -107,6 +112,7 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             assert.deepEqual(presetCounts.slice(1).map(count), [COMPLETE_SCHEMES.length, originals.length]);
         });
         check(guide, body => {
+            assert(body.includes(tabOrder), 'Editor page order differs from the shared editor');
             const declaration = body.match(/^(?:Supported codes are|语言代码为) (.+)$/mu)?.[1]?.split(/[.。]/u)[0];
             assert(declaration, 'Missing supported language declaration');
             assert.deepEqual([...declaration.matchAll(/`([^`]+)`/gu)].map(match => match[1]), [...LANGUAGES], 'Supported language codes differ from registry');
@@ -145,6 +151,10 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             assert(body.includes('config language reset') && body.includes('config set statusline-language en'), 'Missing language downgrade guidance');
             assert(/claude-statusline setup --dry-run/u.test(body), 'Missing setup dry-run command');
             assert(/claude-statusline setup(?![ \t]+--dry-run)/u.test(body), 'Missing setup command');
+            numericClaims(documentationProse(body), suffix
+                ? 'Claude Code hook 为编辑器启动、编辑和清理共预留 ' + NUMBER + ' 分钟'
+                : 'The Claude Code hook allows ' + NUMBER + ' minutes for editor startup, editing and cleanup',
+            [HOOK_TIMEOUT_SECONDS / 60], 'Claude Code hook timeout differs from the installed integration');
         });
         check(`docs/EDITORS${suffix}.md`, body => {
             const rows = body.split(/\r?\n/u);
@@ -154,9 +164,17 @@ export function contentErrors(pages: Documents, root = process.cwd(), readSource
             assert.deepEqual(dimensions.slice(1).map(Number), [MIN_COLUMNS, MIN_ROWS], 'Terminal editor minimum size differs from production layout');
             const client = rows.find(row => row.startsWith('| `/statusline-configure-native` |'));
             assert.equal(client?.match(/(\d+\.\d+\.\d+)\+/u)?.[1], NATIVE.minimum.join('.'), 'Client minimum host differs from integration');
+            numericClaims(documentationProse(body), suffix
+                ? 'slash 启动的编辑器在 ' + NUMBER + ' 分钟后取消且不保存'
+                : 'The slash-launched editor cancels without saving after ' + NUMBER + ' minutes',
+            [DEADLINE_SECONDS / 60], 'Slash-launched editor timeout differs from the terminal bridge');
             const undo = rows.find(row => row.startsWith(suffix ? '| 撤销 |' : '| Undo |'));
             const keyboard = body.split('<a id="keyboard-controls"></a>')[1]?.split('### ', 3);
             for (const [index, surface] of (['terminal', 'native'] as const).entries()) {
+                const tabs = keyboard?.[index + 1]?.split(/\r?\n/u).find(row => row.startsWith('| Tab / Shift+Tab'));
+                assert(tabs && tabs.includes(tabOrder), surface + ' page order differs from the shared editor');
+                if (surface === 'native')
+                    assert(tabs.includes(EDITOR_PAGES.map((_, i) => i + 1).join(' / ')), 'Client page numbers differ from the shared editor');
                 const key = shortcutAliases(surface, 'list', {}, 'undo');
                 assert(undo?.includes(key), 'Missing editor undo preset ' + key);
                 const toggle = shortcutAliases(surface, 'list', {}, 'toggle-item').replaceAll('/', ' / ');

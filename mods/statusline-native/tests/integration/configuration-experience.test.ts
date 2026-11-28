@@ -21,7 +21,7 @@ test('quick setup preserves a dirty draft on cancel, previews its candidate and 
   f.behavior.process=(request,next)=>request.operation==='preset'
     ? {value:reply({draft:{...copyDraft(request.payload.draft), display:{...copyDraft(request.payload.draft).display,theme:'dark'}}})} : next();
   await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
-  await keys(ui,'3',' ',{key:'p',ctrl:true},'return');
+  await keys(ui,'4',' ',{key:'p',ctrl:true},'return');
   expect(await visibleText(ui)).toContain(t('quick.preset-ready', 'en'));
   await keys(ui,'s', 'right');
   expect(f.calls.some(c=>c.operation==='apply')).toBe(false);
@@ -65,7 +65,7 @@ test('native explanation is instance-bound, scrollable and never applies the dra
 test('native Powerline controls save and reopen through the editor protocol', {timeoutMs:20000}, async ($,on) => {
   const f = setup(on);
   await $.session.start(START); await $.command.run(RUN); const ui = await $.ui.mount(PANE);
-  await keys(ui, '3');
+  await keys(ui, '4');
   for (const key of ['padding','separator','start_cap','end_cap','color_mode']) {
     await selectSetting(ui, 'field:powerline.' + key); await keys(ui, 'right');
   }
@@ -89,7 +89,7 @@ test('all complete scheme choices can save a copy without publishing the dirty n
     return next();
   };
   await $.session.start(START); await $.command.run(RUN); const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ');
+  await keys(ui, '4', ' ');
   for (const id of ['daily-development','agent-focus','quota-watch']) {
     await keys(ui, {key:'p',ctrl:true}, 'home');
     for (let i=0; i<PRESETS.findIndex(p=>p.id===id); i++) await keys(ui, 'down');

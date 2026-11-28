@@ -9,7 +9,7 @@ test('actual native Client routes history, comparison and whole-group review wit
   await keys(ui,{key:'_',ctrl:true});expect(previewDraft(f).display.instances.length).toBe(2);
   await keys(ui,{key:'r',ctrl:true});expect(previewDraft(f).display.instances.length).toBe(3);
   await keys(ui,{key:'t',ctrl:true},'c');expect(await visibleText(ui)).toContain('Changes and history');expect(f.calls.filter(c=>c.operation==='read').length>1).toBe(true);
-  await keys(ui,'q','3');await selectSetting(ui,'reuse-groups');await keys(ui,'return','return','down',' ','end','return');
+  await keys(ui,'q','4');await selectSetting(ui,'reuse-groups');await keys(ui,'return','return','down',' ','end','return');
   expect(await visibleText(ui)).toContain('Reuse complete groups');expect(previewDraft(f).display.instances.length).toBe(5);
   await keys(ui,'a');expect(await visibleText(ui)).toContain('Save separately');expect(f.calls.some(c=>c.operation==='apply')).toBe(false);
   await keys(ui,'q',{key:'_',ctrl:true});expect(previewDraft(f).display.instances.length).toBe(3);

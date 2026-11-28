@@ -28,7 +28,7 @@ Use the terminal editor or in-session Client to edit the same display configurat
 | `/statusline-configure` | Supported terminal launched from Claude | Claude Code 2.1.258+ and enabled external integration; same terminal editor conditions |
 | `/statusline-configure-native` | Client pane inside the current Claude session | Claude Code 2.1.287+, enabled native integration and loaded matching resources; minimum Client body 32×12 |
 
-On Windows, run `claude-statusline.cmd configure` in a terminal. The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a new system console on Windows. When no supported launcher is available, run `configure` directly. The slash-launched editor cancels without saving after 570 seconds; standalone `configure` has no automatic timeout. Save, cancellation and errors return a short result to the original conversation. The slash command `/statusline-configure` accepts `help`, `-h` and `--help`, rejecting other arguments; the standalone `claude-statusline configure` command does not accept `help`. A terminal below the minimum size waits for resizing and still permits cancellation.
+On Windows, run `claude-statusline.cmd configure` in a terminal. The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a new system console on Windows. When no supported launcher is available, run `configure` directly. The slash-launched editor cancels without saving after 30 minutes. Standalone `configure` has no automatic timeout. Save, cancellation and errors return a short result to the original conversation. The slash command `/statusline-configure` accepts `help`, `-h` and `--help`, rejecting other arguments; the standalone `claude-statusline configure` command does not accept `help`. A terminal below the minimum size waits for resizing and still permits cancellation.
 
 After integration changes, restart Claude Code in a trusted terminal. Click inside Client before using the keyboard; running the native command again focuses its existing pane and keeps its draft. Esc is a host focus action and may then close the pane; Ctrl+G cancels Client input. On macOS, Client interaction remains unverified; use the [focus checks and alternatives](USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
 
@@ -41,8 +41,8 @@ Confirm the editing target in the header. Use **Settings → Display schemes and
 | Page | What to configure |
 | --- | --- |
 | Main / Subagents | Configured component instances, including disabled instances; selection, order and item details |
-| Settings | Appearance, refresh/display behavior, Git metrics, formatting, risk colors, subagent visibility, presets/files and managers; Client also provides independent Claude preferences |
 | Layout | Automatic/explicit rows, row boundaries and item fitting |
+| Settings | Appearance, refresh/display behavior, Git metrics, formatting, risk colors, subagent visibility, presets/files and managers; Client also provides independent Claude preferences |
 | Item details (Ctrl+E) | Sources and requirements, labels/icons, formatting, width, priority and other supported component controls |
 
 Tab / Shift+Tab changes pages outside input editing. Page changes and resizing retain the draft, selection, filters and input buffer. Group headings are not selectable. Arrow keys select fields; Page Up/Down moves a visible page and Home/End selects the first/last field. Settings, Layout and item details account for group-heading rows when paging.
@@ -51,7 +51,7 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 ### Terminal page regions and footer
 
-Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`. Settings and forms show `OPTION`, `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
+Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`. The component list and catalog picker show the selected component’s description and catalog example below the list. If they need more room, the example gets its own line. Settings and forms show `OPTION`, `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
 
 The footer changes with the current operation. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
 
@@ -75,7 +75,7 @@ These tables describe the main editor. Active fields, pickers, reviews and manag
 
 | Key | Action |
 | --- | --- |
-| Tab / Shift+Tab | Cycle Main, Subagents, Settings and Layout outside input editing |
+| Tab / Shift+Tab | Cycle Main, Subagents, Layout and Settings outside input editing |
 | Enter / Space | Toggle the selected component in the Main or Subagents list |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
 | ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
@@ -96,7 +96,7 @@ On the **Refresh interval** row, Enter opens the editor with its current value. 
 
 | Key | Action |
 | --- | --- |
-| Tab / Shift+Tab; 1 / 2 / 3 / 4 | Switch Main, Subagents, Settings and Layout outside input editing |
+| Tab / Shift+Tab, 1 / 2 / 3 / 4 | Switch Main, Subagents, Layout and Settings outside input editing |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item or field |
 | ← / → | Reorder components and whole groups, or adjust a setting. Clear filters to reorder. |
 | Enter / Space | Toggle components, operate settings or open and accept field editing |

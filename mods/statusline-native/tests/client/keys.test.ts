@@ -69,7 +69,7 @@ test('ordinary controls accept both cases and Shift without consuming Ctrl or Me
   }
   for (const key of ['h', 'H']) {
     const state = view();
-    handleKey(state, { key: '3' }, 80, 24);
+    handleKey(state, { key: '4' }, 80, 24);
     handleKey(state, { key }, 80, 24);
     expect(state.editor!.advanced).toBe(true);
     for (const apply of ['a', 'A']) expect(handleKey(state, { key: apply }, 80, 24)).toBe('applyPreferences');
@@ -127,7 +127,7 @@ test('uppercase controls keep busy, uncertain, Ctrl+E and Shift+Tab boundaries',
   handleKey(state, { key: 'G', ctrl: true }, 80, 24);
   expect(state.editor!.detail).toBeNull();
   handleKey(state, { key: 'tab', shift: true }, 80, 24);
-  expect(state.editor!.page).toBe('layout');
+  expect(state.editor!.page).toBe('settings');
   handleKey(state, { key: '2' }, 80, 24);
   expect(state.editor!.page).toBe('subagents');
 });
@@ -145,7 +145,7 @@ test('paging uses the same visible capacity as wrapped footer layouts', () => {
     expect(keys.slice(window.start, window.end)).toContain(e.selected.main);
     handleKey(state, { key: 'pageup' }, columns!, rows!);
     expect(e.selected.main).toBe(first);
-    handleKey(state, { key: '3' }, columns!, rows!);
+    handleKey(state, { key: '4' }, columns!, rows!);
     handleKey(state, { key: 'H' }, columns!, rows!);
     for (let step = 0; step < 10; step++) {
       handleKey(state, { key: 'pagedown' }, columns!, rows!);

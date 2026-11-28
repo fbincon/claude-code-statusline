@@ -11,7 +11,7 @@ test('selective native review keeps host settings and accepts only the selected 
   imported.host.padding=7; imported.display.theme='light';
   fixture.behavior.process=(request,next)=>request.operation==='review_import' ? {value:reply({draft:imported,changes:[change]})} : next();
   await $.session.start(START); await $.command.run(RUN); const ui=await $.ui.mount(PANE);
-  await keys(ui,'3'); await selectSetting(ui,'import-file'); await keys(ui,'return','return','s');
+  await keys(ui,'4'); await selectSetting(ui,'import-file'); await keys(ui,'return','return','s');
   expect(previewDraft(fixture)).toEqual(fixture.store.draft);
   await keys(ui,'down','down','down','down',' ','return','a');
   expect(previewDraft(fixture).display.theme).toBe('light');
@@ -25,7 +25,7 @@ test('import review previews a candidate, cancels unchanged, then accepts withou
   fixture.behavior.process=(request,next)=>request.operation==='review_import' ? {value:reply({draft:imported,changes:[change]})} : next();
   await $.session.start(START); await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
-  await keys(ui,'3',' ');
+  await keys(ui,'4',' ');
   await selectSetting(ui,'import-file');
   await keys(ui,'return','return');
   expect(await visibleText(ui)).toContain('Review import');
@@ -60,7 +60,7 @@ test('invalid imports and post-acceptance save conflicts preserve the draft', {t
     return next();
   };
   await $.session.start(START); await $.command.run(RUN); const ui=await $.ui.mount(PANE);
-  await keys(ui,'3',' '); await selectSetting(ui,'import-file'); await keys(ui,'return','return');
+  await keys(ui,'4',' '); await selectSetting(ui,'import-file'); await keys(ui,'return','return');
   expect(await visibleText(ui)).toContain('Tool settings');expect(previewDraft(fixture).display.use_colors).toBe(false);
   invalid=false; await keys(ui,'return','return','a','s','tab');
   expect(previewDraft(fixture).host.padding).toBe(7);

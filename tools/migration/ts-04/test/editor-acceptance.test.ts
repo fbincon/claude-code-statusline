@@ -2,7 +2,7 @@ import test from 'node:test';
 import { spawn } from 'node:child_process';
 import { fixture, assert, fs, join } from './support.js';
 import { openPty } from './pty.js';
-import { prepare, cleanup, readResult } from '@fbincon/statusline-platform/terminal/bridge';
+import { prepare, cleanup, readResult, DEADLINE_SECONDS } from '@fbincon/statusline-platform/terminal/bridge';
 import { bridgeEnvironment } from '@fbincon/statusline-platform/terminal/launchers';
 import { lock } from '@fbincon/statusline-platform/files';
 import { processToken } from '@fbincon/statusline-platform/processes';
@@ -12,7 +12,7 @@ const posix = { skip: process.platform === 'win32' ? 'POSIX PTY; Windows has sep
 const ready = (p: ReturnType<typeof openPty>) => p.wait(o => o.includes('Preview (sample data)'));
 function bridge(f: {
     root: string;
-}) { const base = join(f.root, 'statusline_runtime/slash_tui'); fs.mkdirSync(base, { recursive: true, mode: 0o700 }); const directory = fs.mkdtempSync(join(base, 'invocation-')); const path = join(directory, 'result.json'); return { path, env: { CLAUDE_STATUSLINE_SLASH_RESULT: path, CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS: '570' } }; }
+}) { const base = join(f.root, 'statusline_runtime/slash_tui'); fs.mkdirSync(base, { recursive: true, mode: 0o700 }); const directory = fs.mkdtempSync(join(base, 'invocation-')); const path = join(directory, 'result.json'); return { path, env: { CLAUDE_STATUSLINE_SLASH_RESULT: path, CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS: String(DEADLINE_SECONDS) } }; }
 test('tests.integration.test_cli_tui.ConfigurePtyTests.test_escape_leaves_both_files_byte_identical', posix, async (t) => {
     const f = await fixture(t);
     await f.session.save();
@@ -55,7 +55,7 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_toggle_move_settings
     const p = openPty(f.root);
     try {
         await ready(p);
-        p.send(' \x1b[C\t\t' + '\x1b[B'.repeat(down));
+        p.send(' \x1b[C\t\t\t' + '\x1b[B'.repeat(down));
         await p.wait(output => output.includes('› ' + message('settings.padding', 'en') + ':'));
         p.send('\r');
         await p.wait(output => output.includes('0▏'));

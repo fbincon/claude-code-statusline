@@ -115,8 +115,8 @@ test('tests.ui.test_interactive_config.ItemStateTests.test_tabs_cycle_four_pages
         pages.push(f.e.page);
         f.keys('tab');
     }
-    assert.deepEqual(pages, ['main', 'subagents', 'settings', 'layout']);
-    for (const page of ['layout', 'settings', 'subagents', 'main']) {
+    assert.deepEqual(pages, ['main', 'subagents', 'layout', 'settings']);
+    for (const page of ['settings', 'layout', 'subagents', 'main']) {
         f.keys({ key: 'tab', shift: true });
         assert.equal(f.e.page, page);
     }

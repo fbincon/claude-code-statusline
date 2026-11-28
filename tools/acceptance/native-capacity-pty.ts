@@ -320,14 +320,14 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\x1b[B\r','source component');await key('\x1b[F\r','review selected visual fields');await until(text=>text.includes('Candidate only'),'style candidate visible');capture('after');
             await key('a','accept visual fields');await until(text=>text.includes('Applied to draft'),'style applied');await key('q','close reuse');await key('\x07','leave destination details');await key(external?'\x1a':'\x1f','undo style paste');await until(text=>text.includes('Configure Status Line')&&!text.includes('Configure Status Line *'),'original style restored');
         } else if(action==='group-reuse') {
-            await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
+            await key(external?'\t\t\t':'4','settings');await key('\x1b[H','first setting');
             for(let i=0;i<90&&!read().split('\n').some(line=>line.includes('›')&&line.includes('Reuse complete groups'));i++)await key('\x1b[B','find group reuse');
             await key('\r\r','select current source');await key('\x1b[B ','select first whole group');await key('\x1b[F\r','review dependencies');await until(text=>text.includes('Outside references require'),'outside references explicit');
             await key('x','expand reference closure');await key('\t','inspect mapped identities');capture('after');await key('a','accept complete group closure');await until(text=>text.includes('Applied to draft'),'groups accepted');
             await key('q','return from group reuse');await key(external?'\x1a':'\x1f','undo whole import');await until(text=>text.includes('Configure Status Line')&&!text.includes('Configure Status Line *'),'groups and rows restored');
         } else if(['version-status','package-cleanup','external-task'].includes(action)) {
             await key(external?'\x04':'d','unsaved copy');
-            await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
+            await key(external?'\t\t\t':'4','settings');await key('\x1b[H','first setting');
             const label=action==='external-task'?'Task details':'Version and installation';
             for(let i=0;i<90&&!read().split('\n').some(line=>line.includes('›')&&line.includes(label));i++)await key('\x1b[B','select read-only entry');
             await until(text=>text.split('\n').some(line=>line.includes('›')&&line.includes(label)),'read-only entry selected');
@@ -374,7 +374,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await taskInputJourney(config, { key, read, until, selected, capture, clickText,
                 reads: () => records().filter(row => row.operation === 'task_details' && row.phase === 'complete').length }, compactTask);
         } else if(action==='colors') {
-            await key(external?'\t\t':'3','settings');await key('\x1b[H','first setting');
+            await key(external?'\t\t\t':'4','settings');await key('\x1b[H','first setting');
             for(let i=0;i<80&&!/›.*Statusline theme/u.test(read());i++)await key('\x1b[B','find theme');
             await until(text=>/›.*Statusline theme/u.test(text),'theme selected');await key('\r','open color selector');
             await until(text=>text.includes('Colors and gradients'),'color selector visible');
@@ -394,7 +394,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert.ok(legacyShortcuts);
             const { bytes: legacy, mode: preferenceMode } = legacyShortcuts;
             const openNativeSettings = async () => {
-                await key('3', 'open native Settings');
+                await key('4', 'open native Settings');
                 await key('\x1b[F', 'start at last setting');
                 for (let i = 0; i < 16 && !/›.*Keyboard shortcuts/u.test(read()); i++) await key('\x1b[A', 'find shortcut setting');
                 await until(text => /›.*Keyboard shortcuts/u.test(text), 'native shortcut setting selected');
@@ -501,7 +501,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             });
             await runExternal('terminal-restore', async (tty, wait) => {
                 await wait(customSave);
-                tty.send('\t\t\x1b[F\r');
+                tty.send('\t\t\t\x1b[F\r');
                 await wait('Save display');
                 tty.send('\t\x1b[B\r\x1b[A\r');
                 await wait('Keyboard shortcuts saved');
@@ -558,7 +558,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             const enterAccept = 'Enter ' + t('ui.hints.accept', 'en');
             const selectRefresh = async (tty: ReturnType<typeof openPty>, wait: ExternalWait) => {
                 const selected = (screen: string) => /^│ › (.*?)(?::|…)/mu.exec(screen)?.[1];
-                tty.send('\t\t\x1b[H');
+                tty.send('\t\t\t\x1b[H');
                 let frame = await wait('› ' + t('settings.colors', 'en') + ':');
                 for (let i = 0; i < 32 && selected(frame) !== refreshLabel; i++) {
                     const previous = selected(frame);
@@ -632,7 +632,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             assert.equal(fs.statSync(displayPath).mode, committedDisplayMode);
             assert.deepEqual(fs.readFileSync(join(config, 'statusline-ui.json')), languageBytes);
         } else if (action === 'shortcut-preset') {
-            await key('3', 'open native Settings');
+            await key('4', 'open native Settings');
             await key('\x1b[F', 'start at the last setting');
             const selected = (text: string) => text.split('\n').some(line => /›.*Expand selected preset/u.test(line));
             for (let i = 0; i < 16 && !selected(read()); i++) await key('\x1b[A', 'find the preset action');
@@ -647,7 +647,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel quick setup');
         } else if (action === 'import') {
-            await key(external ? '\t\t' : '3', 'settings'); await key('\x1b[F', 'last setting');
+            await key(external ? '\t\t\t' : '4', 'settings'); await key('\x1b[F', 'last setting');
             for (let i = 0; i < 8 && !/›.*Import file/u.test(read()); i++) await key('\x1b[A', 'find import setting');
             await until(text => /›.*Import file/u.test(text), 'import field selected');
             await key('\r', 'edit import path'); await key('\x15', 'clear path'); await key(importPath, 'insert literal path'); await key('\r', 'review import');

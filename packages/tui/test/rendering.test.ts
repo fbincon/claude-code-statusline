@@ -41,6 +41,69 @@ test('all six languages retain bounded frames, complete separators and full-row 
     }
 });
 
+test('external tabs show Layout before Settings and highlight the active page', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language);
+        const order = ['main', 'subagents', 'layout', 'settings'] as const;
+        for (const page of order) {
+            const tabs = frame(state, 80, 24).rows[2]!;
+            const label = (id: typeof order[number]) => t('ui.drawing.' + id, language);
+            assert.equal(tabs.map(span => span.text).join('').trimEnd(), order.map(label).join('  '));
+            assert.equal(tabs.filter(span => span.reverse).map(span => span.text).join(''), label(page));
+            state.key({ key: 'tab' });
+        }
+    }
+});
+
+test('external selected components show their catalog examples across scopes and copies', () => {
+    const { content, listHeight } = dimensions(120, 30);
+    for (const language of ['en', 'zh-CN'] as const) {
+        for (const scope of ['main', 'subagent'] as const) {
+            const state = fixture(language), e = state.editor;
+            e.page = scope === 'main' ? 'main' : 'subagents';
+            const selected = e.visible(scope).find(item => item.id === e.selected[scope])!;
+            const detail = t(`items.${scope}.${selected.id}.description`, language);
+            const expected = t('native.item_detail', language, { detail, examples: selected.examples.join(' · ') });
+            const rows = () => plain(state).slice(content.innerY + listHeight + 1, content.innerY + listHeight + 3);
+            assert.ok(rows()[0]!.includes(expected));
+            state.key({ key: 'd', ctrl: true });
+            assert.notEqual(e.selected[scope], selected.id);
+            assert.ok(rows()[0]!.includes(expected));
+            state.key({ key: 'a', ctrl: true });
+            assert.equal(e.listContext(scope).selected, selected.id);
+            assert.ok(rows()[0]!.includes(expected));
+            state.search('not-a-real-component-xyz');
+            assert.ok(plain(state).some(row => row.includes(t('ui.drawing.no_matching_items', language))));
+            assert.ok(rows().every(row => !row.includes(selected.examples[0]!)));
+        }
+    }
+});
+
+test('all locale detail templates reserve the full example on a narrow terminal', () => {
+    for (const language of LANGUAGES) {
+        const [detailLabel, exampleLabel, extra] = t('native.item_detail', language).split(' · ');
+        assert.equal(extra, undefined, language);
+        assert.match(detailLabel!, /^.+\{detail\}$/u, language);
+        assert.match(exampleLabel!, /^.+\{examples\}$/u, language);
+        const state = fixture(language), e = state.editor;
+        state.key({ key: 'a', ctrl: true });
+        const selected = e.catalog('main').find(item => item.id === 'session-cost-rate')!;
+        e.selectItem('main', selected.id);
+        const examples = selected.examples.join(' · ');
+        const expected = exampleLabel!.replace('{examples}', examples);
+        const description = t(`items.main.${selected.id}.description`, language);
+        const prefix = detailLabel!.replace('{detail}', '');
+        for (const [columns, rows] of [[64, 18], [64, 20]] as const) {
+            const { content, listHeight } = dimensions(columns, rows);
+            assert.ok(displayWidth(prefix + description + ' · ' + expected) > content.innerWidth, language);
+            const value = plain(state, columns, rows);
+            assert.ok(value.every(row => displayWidth(row) === columns));
+            assert.ok(value[content.innerY + listHeight + 1]!.includes(prefix));
+            assert.ok(value[content.innerY + listHeight + 2]!.includes(expected));
+        }
+    }
+});
+
 test('overlays and editing states remain bounded at every supported size and color depth', () => {
     const states: ((state: State) => void)[] = [
         state => state.key({ key: 'a', ctrl: true }),

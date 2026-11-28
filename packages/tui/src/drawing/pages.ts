@@ -21,7 +21,7 @@ import { externalTaskRows, packageRefreshError, packageRefreshInterval } from '.
 import { paint, heading } from '../theme.js';
 import type { State } from '../state.js';
 import { Canvas, column } from './canvas.js';
-import { fieldLabel, fieldValue, groupKey, taskReportStatus } from './presentation.js';
+import { fieldLabel, fieldValue, groupKey, itemDetailRows, taskReportStatus } from './presentation.js';
 
 export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof dimensions>, panel: Panel): string {
     const e = state.editor;
@@ -108,7 +108,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     if (state.form) {
         const values = state.rows();
         const window = formWindow(values, values.findIndex(row => row.key === e.setting),
-            state.scroll[e.detail ? 'detail' : e.page] ?? 0, size.listHeight);
+            state.scroll[e.detail ? 'detail' : e.page] ?? 0, size.formHeight);
         const labelWidth = Math.min(44, Math.max(24, Math.floor(width / 2)),
             Math.max(...values.map(row => displayWidth(fieldLabel(row, state)) + 1)));
         canvas.content(panel, 0, [paint('  ' + column(tr('ui.drawing.option').trim(), labelWidth) +
@@ -139,10 +139,11 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const types = e.adding ? e.typeStates(scope) : null;
     const enabled = types ? null : new Set(e.items(scope));
     const start = state.scroll[state.listScrollKey] ?? 0;
+    const end = Math.min(values.length, start + size.listHeight);
     const itemWidth = Math.min(30, Math.max(18, Math.floor(width / 3)));
     canvas.content(panel, 0, [paint('  ' + column(tr('ui.drawing.on').trim(), 5) +
         column(tr('ui.drawing.item').trim(), itemWidth) + ' ' + tr('ui.drawing.description').trim(), true)]);
-    values.slice(start, start + size.listHeight).forEach(({ item, match }, index) => {
+    values.slice(start, end).forEach(({ item, match }, index) => {
         const selected = item.id === selectedId;
         const type = types?.get(item.id);
         const marker = types ? catalogMarker(type) : enabled?.has(item.id) ? 'x' : ' ';
@@ -168,14 +169,19 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     if (!values.length) {
         canvas.content(panel, 1, [paint(tr('ui.drawing.no_matching_items'))]);
     }
-    const range = values.length > size.listHeight ? ` · ${start + 1}–${Math.min(values.length, start + size.listHeight)}/${values.length}` : '';
+    const current = values.find(({ item }) => item.id === selectedId)?.item;
+    if (current) {
+        itemDetailRows(current, state.language, width)
+            .forEach((line, index) => canvas.content(panel, size.listHeight + 1 + index, [paint(line)]));
+    }
+    const range = values.length > size.listHeight ? ` · ${start + 1}–${end}/${values.length}` : '';
     if (types) return tr('composition.catalog_enabled', {
         enabled: values.filter(({ item }) => types.get(item.id)?.enabled).length, total: values.length,
     }) + range;
     if (category !== 'all') return tr('composition.category_counts', e.categoryCounts(scope)) + range;
     return tr('ui.drawing.items_enabled', {
         value0: values.length ? start + 1 : 0,
-        value1: Math.min(values.length, start + size.listHeight),
+        value1: end,
         value2: values.length,
         value3: enabled!.size,
     });

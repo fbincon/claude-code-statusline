@@ -82,7 +82,7 @@ For later display changes, open `/statusline-configure-native` in Claude or run 
 
 [Conditional visibility, item colors, themes and Powerline](APPEARANCE.md) explains the shared controls, raw-observation rules and migration recovery.
 
-Choose from 65 main metrics and 15 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and 5 subagent items. The terminal editor and in-session editor (Client) provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, eight complete display schemes and six original presets, and portable JSON files.
+Choose from 65 main metrics and 15 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and 5 subagent items. Both editors present the Main, Subagents, Layout and Settings pages in that order. They provide fixed sample previews, formatting, eight complete display schemes and six original presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 
@@ -730,7 +730,7 @@ claude-statusline configure
 
 Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.cmd configure` in PowerShell. The editor uses Node raw TTY/VT input and output. Check that the installed entry runs in a real console and that `doctor` reports valid resources, bindings and a writable runtime directory; it does not print the retired curses diagnostic rows.
 
-When the hook ends after 600 seconds, the TUI should normally already have timed out at 570 seconds. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
+The Claude Code hook allows 31 minutes for editor startup, editing and cleanup. If a manual npm upgrade leaves the previous hook timeout in place, rerun `claude-statusline install` and restart Claude Code. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
 
 With `disableAllHooks`, the local launcher does not run. If local interception is unavailable, the fallback skill reports that it could not launch the editor and suggests `claude-statusline configure` in a terminal (`claude-statusline.cmd configure` on Windows) or `/statusline-config`. It prohibits starting a terminal interface through Bash/PowerShell or another model tool; this exception may use a very short model turn. Check the hook settings and try a new session.
 

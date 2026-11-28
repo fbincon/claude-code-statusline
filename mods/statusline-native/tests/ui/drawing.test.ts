@@ -62,6 +62,32 @@ test('all editor pages fit the viewport and frame titles stay on its top edge', 
   }
 });
 
+test('tab labels, numeric keys and both cycling directions put Layout before Settings', () => {
+  for (const language of ['en', 'zh-CN'] as const) {
+    const state = view();
+    state.language = language;
+    const pages = ['main', 'subagents', 'layout', 'settings'] as const;
+    const expected = (page: typeof pages[number]) => pages.map((id, index) => {
+      const label = t('native.tabs.' + id, language);
+      return `${index + 1} ${id === page ? '[' + label + ']' : label}`;
+    }).join(' · ');
+    const tabs = () => render(draw(elements, state, 80, 24) as unknown as Node)[1]!.trimEnd();
+    for (const page of pages) {
+      expect(tabs()).toBe(expected(page));
+      handleKey(state, { key: 'tab' }, 80, 24);
+    }
+    for (const page of [...pages].reverse()) {
+      handleKey(state, { key: 'tab', shift: true }, 80, 24);
+      expect(tabs()).toBe(expected(page));
+    }
+    for (const [index, page] of pages.entries()) {
+      handleKey(state, { key: String(index + 1) }, 80, 24);
+      expect(state.editor!.page).toBe(page);
+      expect(tabs()).toBe(expected(page));
+    }
+  }
+});
+
 test('capacity notice survives a long page title and another notice at minimum size', () => {
   const state = view(), before = JSON.stringify(state.editor!.draft);
   state.editor!.detail = {scope: 'main', id: 'model-with-effort'};
@@ -160,7 +186,7 @@ test('import review preserves a candidate preview and bounded expanded rows at e
 
 test('resizing keeps field and input state; h exposes separate host application', () => {
   const state = view(), e = state.editor!;
-  handleKey(state, { key: '3' }, 80, 24);
+  handleKey(state, { key: '4' }, 80, 24);
   handleKey(state, { key: 'end' }, 80, 24);
   const key = e.setting;
   state.input = { kind: 'path', action: 'export', buffer: '/中文 é.json' };

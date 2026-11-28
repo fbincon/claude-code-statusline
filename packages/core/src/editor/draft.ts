@@ -29,7 +29,13 @@ import type { LocalizedText } from '../i18n/messages.js';
 import type { NumericField } from './numeric.js';
 export type { NumericField } from './numeric.js';
 
-export type Page = 'main' | 'subagents' | 'settings' | 'layout';
+export const EDITOR_PAGES = ['main', 'subagents', 'layout', 'settings'] as const;
+export type Page = typeof EDITOR_PAGES[number];
+
+export function cycleEditorPage(page: Page, reverse = false): Page {
+  const offset = reverse ? -1 : 1;
+  return EDITOR_PAGES[(EDITOR_PAGES.indexOf(page) + offset + EDITOR_PAGES.length) % EDITOR_PAGES.length]!;
+}
 
 /** Copy wire data without sharing editable arrays with the opening snapshot. */
 export function copyDraft(draft: Draft): Draft {

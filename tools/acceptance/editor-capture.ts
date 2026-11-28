@@ -16,6 +16,7 @@ import { Capture, TERMINAL_THEMES, verifyColors } from '../migration/ts-04/captu
 import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { t } from '@fbincon/statusline-core/i18n/messages';
+import { EDITOR_PAGES } from '@fbincon/statusline-core/editor/draft';
 import { dimensions } from '@fbincon/statusline-tui/layout';
 import { Canvas, ansiFrame } from '@fbincon/statusline-tui/drawing/canvas';
 import type { Span } from '@fbincon/statusline-core/contracts/ui';
@@ -128,20 +129,19 @@ try {
                 }
                 throw new Error('Setting not found in installed editor: ' + name);
             };
-            for (const page of ['main', 'subagents', 'settings', 'layout']) {
+            for (const [index, page] of EDITOR_PAGES.entries()) {
+                if (index) await key('\t');
                 capture(page);
-                if (page !== 'layout') {
-                    await key('\t');
-                }
             }
             if (values.extended) {
+                await key('\x1b[Z'); // Start the extended journey in Layout.
                 await key('\x1b[H'); await key('\x1b[B\x1b[B ');
                 await key('\x1b[H\x1b[B\r', t('alignment.title', language)); capture('alignment-list');
                 await key('\r'); await key('\x1b[B\x1b[C\x1b[B\x1b[C'); capture('alignment-form');
                 await key('\x1b[F\r'); capture('alignment-draft');
                 await key('\r\x1b[B\r'); await key('\x07');
                 await key('\x1b[H\x1b[D');
-                await key('\t');
+                await key('\t\t');
                 await key('\x02', t('composition.groups.title', language));
                 capture('groups-list');
                 await key('\x1b[B\r'); capture('groups-form');
@@ -278,8 +278,7 @@ try {
                 capture('guidance');
                 await key('\x1b');
                 await key('\x07');
-                await key('\t');
-                await key('\t');
+                await key('\x1b[Z');
                 await selectSetting('fields.global.theme.label');await key('\r',t('colors.title',language));capture('theme-selector');await key('\x07');
                 await selectSetting('fields.global.powerline.row_background_gradient.label');await key('\r',t('colors.title',language));capture('row-background-selector');await key('\x07');
                 await key('\x16');capture('sample-warning');await key('\x17');capture('sample-width');
@@ -319,12 +318,11 @@ try {
                 await key('\x1b[H');
                 for (let index = 0; index < 15; index++) await key('\x1b[B');
                 const selected = capture('settings-focus').find(line => line.includes('› '));
-                await key('\t');
+                await key('\x1b[Z');
                 await key('\x1b[F');
                 capture('layout-focus');
-                await key('\x1b[Z');
-                assert.equal(capture('settings-restored').find(line => line.includes('› ')), selected);
                 await key('\t');
+                assert.equal(capture('settings-restored').find(line => line.includes('› ')), selected);
                 await key('\t');
                 for (const [width, height] of [[32, 12], [64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]]) {
                     const length = pty.captured().length;

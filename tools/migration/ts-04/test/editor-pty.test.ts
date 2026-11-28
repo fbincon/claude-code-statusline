@@ -47,7 +47,7 @@ for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]
         try {
             await pty.wait(output => output.includes('Configure Status Line'));
             if (signal === 'SIGINT') {
-                pty.send('\r\t\t\x1b[F\r\r');
+                pty.send('\r\t\t\t\x1b[F\r\r');
                 await pty.wait(output => output.includes('New key for Save display'));
                 pty.send('\x03');
                 await pty.wait(output => output.includes('Ctrl+C interrupts'));

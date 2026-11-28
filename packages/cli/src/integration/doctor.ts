@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { which, ownedCommand, resolvedPath, sameLaunchEntry } from '@fbincon/statusline-platform/commands';
+import { HOOK_TIMEOUT_SECONDS } from '@fbincon/statusline-platform/terminal/bridge';
 import { chooseLauncher } from '@fbincon/statusline-platform/terminal/launchers';
 import { text } from '@fbincon/statusline-core/i18n/messages';
 import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
@@ -124,18 +125,19 @@ export function doctor(context: InstallContext): Diagnostic[] {
             add('ERROR', 'doctor.doctor.experimental_feature_preferences_permissions_expected_0600_found', { preference_mode: (fs.statSync(preferencePath).mode & 0o777).toString(8) });
         const root = join(configDir, 'skills', EXTERNAL), owned = skillOwned(io.read(join(root, OWNER_FILE)));
         const groups = object(settings.hooks) && Array.isArray(settings.hooks.UserPromptExpansion) ? settings.hooks.UserPromptExpansion.filter(object) : [];
-        const matching = groups.filter(group => group.matcher === EXTERNAL), hooks = matching.flatMap(group => Array.isArray(group.hooks) ? group.hooks.filter(object) : []), count = hooks.filter(action => ownedCommand(action.command, 'slash-hook', launch) && (() => { try {
-            return safeInteger(action.timeout) === 600;
-        }
-        catch {
-            return false;
-        } })()).length;
+        const hooks = groups.filter(group => group.matcher === EXTERNAL)
+            .flatMap(group => Array.isArray(group.hooks) ? group.hooks.filter(object) : []);
+        const ownedHooks = hooks.filter(action => ownedCommand(action.command, 'slash-hook', launch));
+        const hasArtifacts = owned || ownedHooks.length > 0;
         if (!enabled || !supported)
-            add(owned || count ? 'ERROR' : enabled ? 'WARN' : 'OK', owned || count ? enabled ? 'doctor.doctor.is_suspended_but_owned_artifacts_remain_rerun' : 'doctor.doctor.is_disabled_but_owned_artifacts_remain_rerun' : enabled ? 'doctor.doctor.suspended_on_claude_code_requires_2_1' : 'doctor.doctor.disabled', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL, version_text: version?.join('.') ?? 'unknown' });
+            add(hasArtifacts ? 'ERROR' : enabled ? 'WARN' : 'OK', hasArtifacts ? enabled ? 'doctor.doctor.is_suspended_but_owned_artifacts_remain_rerun' : 'doctor.doctor.is_disabled_but_owned_artifacts_remain_rerun' : enabled ? 'doctor.doctor.suspended_on_claude_code_requires_2_1' : 'doctor.doctor.disabled', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL, version_text: version?.join('.') ?? 'unknown' });
         else {
             const valid = owned && io.read(join(root, 'SKILL.md'))?.equals(renderSkill(launch, true)) === true;
             add(valid ? 'OK' : 'ERROR', valid ? 'doctor.doctor.skill_and_owner_marker' : 'doctor.doctor.skill_is_missing_or_not_owned_2', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL });
-            add(count === 1 && matching.length === 1 ? 'OK' : 'ERROR', count === 1 && matching.length === 1 ? 'doctor.doctor.hook_exactly_one_600s' : 'doctor.doctor.hook_expected_one_600s_hook_in_exactly', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL });
+            let validHook = false;
+            try { validHook = ownedHooks.length === 1 && safeInteger(ownedHooks[0]!.timeout) === HOOK_TIMEOUT_SECONDS; }
+            catch { /* Report a malformed timeout as an invalid hook. */ }
+            add(validHook ? 'OK' : 'ERROR', validHook ? 'doctor.doctor.hook_exactly_one_600s' : 'doctor.doctor.hook_expected_one_600s_hook_in_exactly', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL, timeout_seconds: HOOK_TIMEOUT_SECONDS });
             if (!chooseLauncher(process.env))
                 add('WARN', 'doctor.doctor.no_supported_interactive_launcher_is_installed_install');
         }

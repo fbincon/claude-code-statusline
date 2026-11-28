@@ -13,7 +13,7 @@ import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profi
 import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
-import { Editor, copyDraft, type NumericField, type Page } from '@fbincon/statusline-core/editor/draft';
+import { Editor, copyDraft, cycleEditorPage, type NumericField, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
@@ -49,7 +49,6 @@ export interface Row extends SettingRow {
 }
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
 const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
-const pages = ['main', 'subagents', 'settings', 'layout'] as const;
 const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Inspection', 'Preview', 'Interface'];
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
@@ -222,7 +221,7 @@ export class State {
     }
     key(event: Key, columns = 80, rows = 24): Effect {
         const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && !event.meta && (k === 'escape' || (ctrl && k === 'g'));
-        const size = dimensions(columns, rows), height = size.listHeight;
+        const size = dimensions(columns, rows), height = this.form ? size.formHeight : size.listHeight;
         if (ctrl && k === 'c' && !event.paste && !event.text && !event.meta && !e.shortcuts.panel?.capture)
             return 'interrupt';
         if (this.exitChoice !== null) {
@@ -465,7 +464,7 @@ export class State {
         }
         if (k === 'tab' && !e.adding) {
             if (this.form && !e.detail) this.pageSettings[e.page] = e.setting;
-            e.page = pages[(pages.indexOf(e.page) + (event.shift ? 3 : 1)) % 4]!;
+            e.page = cycleEditorPage(e.page, event.shift);
             e.detail = null;
             e.setting = this.pageSettings[e.page] ?? e.setting;
         }
@@ -502,7 +501,7 @@ export class State {
             if (/^\d$/u.test(k) && (row.key === 'padding' || row.key === 'refresh_interval'))
                 this.numeric(row.key, k);
         }
-        this.ensureVisible(height);
+        this.ensureVisible(this.form ? size.formHeight : size.listHeight);
         return null;
     }
 }

@@ -28,7 +28,7 @@
 | `/statusline-configure` | 从 Claude 启动的受支持终端 | Claude Code 2.1.258+ 且外部接入已启用；同样满足终端编辑器条件 |
 | `/statusline-configure-native` | 当前 Claude 会话内的 Client 面板 | Claude Code 2.1.287+、原生接入已启用且加载匹配资源；Client 正文最低 32×12 |
 
-Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台。没有受支持启动器时直接运行 `configure`。slash 启动的编辑器在 570 秒后取消且不保存，独立 `configure` 没有自动超时。保存、取消及错误返回原会话的简短结果；slash 命令 `/statusline-configure` 接受 `help`／`-h`／`--help`，拒绝其他参数；独立命令 `claude-statusline configure` 不接受 `help`。终端小于最低尺寸时等待放大，仍可取消。
+Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台。没有受支持启动器时直接运行 `configure`。slash 启动的编辑器在 30 分钟后取消且不保存。独立 `configure` 没有自动超时。保存、取消及错误返回原会话的简短结果；slash 命令 `/statusline-configure` 接受 `help`／`-h`／`--help`，拒绝其他参数；独立命令 `claude-statusline configure` 不接受 `help`。终端小于最低尺寸时等待放大，仍可取消。
 
 接入变化后，在受信任终端重启 Claude Code。先点击 Client 正文再使用键盘；重复运行原生命令聚焦现有面板并保留草稿。Esc 由宿主管理焦点，之后可能关闭面板；取消 Client 输入用 Ctrl+G。macOS 会话内交互仍未验证，见[焦点检查与替代入口](USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
@@ -41,8 +41,8 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 | 页面 | 配置内容 |
 | --- | --- |
 | Main / Subagents | 已配置组件实例，包含禁用项；选择、排序与逐项详情 |
-| Settings | 外观、刷新／显示行为、Git 指标、格式、风险颜色、子代理可见性、预设／文件与管理器；Client 还提供独立 Claude 偏好 |
 | Layout | 自动／显式分行、行边界及逐项适配 |
+| Settings | 外观、刷新／显示行为、Git 指标、格式、风险颜色、子代理可见性、预设／文件与管理器；Client 还提供独立 Claude 偏好 |
 | 逐项详情（Ctrl+E） | 来源与启用条件、标签／图标、格式、宽度、优先级及组件支持的其他控制 |
 
 非输入编辑状态下用 Tab / Shift+Tab 切页。切页和缩放保留草稿、选择、筛选与输入缓冲。分组标题不可选中。方向键选择字段，Page Up/Down 移动一页，Home/End 到首尾字段；Settings、Layout 和逐项详情分页会计算分组标题占用的行。
@@ -51,7 +51,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 
 ### 终端页面区域与底部提示
 
-编辑显示配置时，草稿内容和 `Preview (sample data)` 使用独立区域，64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`，设置及表单显示 `OPTION`、`VALUE`。**任务详情**和**版本与安装**将整个内容区用于报告，文件诊断则在预览区显示实际渲染输出。
+编辑显示配置时，草稿内容和 `Preview (sample data)` 使用独立区域，64×20 起使用边框，64×18–19 使用紧凑分隔。Main/Subagents 显示 `ON`、`ITEM`、`DESCRIPTION`。组件列表和目录选择器在列表下方显示选中组件的说明和目录示例。空间不足时，示例单独占一行。设置及表单显示 `OPTION`、`VALUE`。**任务详情**和**版本与安装**将整个内容区用于报告，文件诊断则在预览区显示实际渲染输出。
 
 底部提示随当前操作变化。组件列表优先显示切页、选择和切换。保存区显示当前的保存并退出键。筛选时提供清除筛选的入口，隐藏排序提示。输入字段显示接受／取消及光标／删除控制，选择器显示选择控制。仅打开字段或修改文件路径不改变显示草稿；配置文本尚未接受时，也可能在标题中标记为已修改。
 
@@ -75,7 +75,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 
 | 按键 | 操作 |
 | --- | --- |
-| Tab / Shift+Tab | 非输入状态下循环 Main、Subagents、Settings、Layout |
+| Tab / Shift+Tab | 非输入状态下循环 Main、Subagents、Layout、Settings |
 | Enter / Space | 在 Main／Subagents 列表勾选或取消当前组件 |
 | ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾条目或字段 |
 | ← / → | 调整组件和整组的顺序，或调整设置。排序前请清除筛选。 |
@@ -96,7 +96,7 @@ Windows 在终端运行 `claude-statusline.cmd configure`。外部启动器在 L
 
 | 按键 | 操作 |
 | --- | --- |
-| Tab / Shift+Tab；1 / 2 / 3 / 4 | 非输入状态下切换 Main、Subagents、Settings、Layout |
+| Tab / Shift+Tab；1 / 2 / 3 / 4 | 非输入状态下切换 Main、Subagents、Layout、Settings |
 | ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾条目或字段 |
 | ← / → | 调整组件和整组的顺序，或调整设置。排序前请清除筛选。 |
 | Enter / Space | 切换组件、操作设置或打开及接受字段编辑 |
