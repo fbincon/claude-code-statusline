@@ -8,7 +8,7 @@ import { applyPreviewShortcut } from '../editor/preview-settings.ts';
 import { openAlignments, alignmentsKey } from '../editor/alignment-manager.ts';
 import { openGroups, groupsKey } from '../editor/group-manager.ts';
 import { openSources, sourcesKey } from '../editor/source-manager.ts';
-import { openExplanation, explanationKey } from '../editor/explanation.ts';
+import { openExplanation, explanationRows } from '../editor/explanation.ts';
 import { openQuick, controlQuick } from '../editor/quick-setup.ts';
 import { openProfiles, profilesKey } from '../editor/profile-manager.ts';
 import { inputKey } from '../editor/text-input.ts';
@@ -23,7 +23,8 @@ import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { contentColumns } from '../../ui/layout.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
-import { guidanceLines } from '../editor/guidance.ts';
+import { guidanceRows } from '../editor/guidance.ts';
+import { itemDetailWindow } from '../editor/item-detail.ts';
 import { navigateReview, reviewShortcutContext } from '../editor/import-review.ts';
 import type { ShortcutEffect } from '../editor/shortcut-settings.ts';
 
@@ -75,6 +76,22 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (e.sources) return sourcesKey(e, event);
   if (e.profiles) return profilesKey(e, event);
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  if (e.explanation || e.guidanceScroll !== null) {
+    if (!event.meta && (event.ctrl ? shortcut === 'g' : e.explanation && key === 'escape')) {
+      if (e.explanation) e.explanation = null;
+      else cancelInput(view);
+      return null;
+    }
+    if (event.ctrl || event.meta || !['up', 'down', 'pageup', 'pagedown', 'home', 'end'].includes(key)) return null;
+    const language = view.language ?? 'en';
+    const width = contentColumns(columns, rows);
+    const item = e.detailItem;
+    const detailRows = e.explanation ? explanationRows(e, language, width) : item ? guidanceRows(item, language, width) : [];
+    const page = itemDetailWindow(detailRows, e.explanation?.scroll ?? e.guidanceScroll ?? 0, editorLayout(view, columns, rows).bodyRows - 1, key);
+    if (e.explanation) e.explanation.scroll = page.start;
+    else e.guidanceScroll = page.start;
+    return null;
+  }
   const context = e.quick ? 'quick' : e.review ? reviewShortcutContext(e.review) : shortcutContext(view);
   const action = view.input ? null : e.shortcuts.action(context, event);
   if ((e.inDraftView || e.quick || e.review) && applyPreviewShortcut(e, action, view.preview)) return null;
@@ -91,10 +108,6 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
       if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
       return null;
     }
-  }
-  if (e.explanation) {
-    if (!explanationKey(e.explanation, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key, Math.max(1, rows - 10))) e.explanation = null;
-    return null;
   }
   if (e.quick) return controlQuick(e, event.ctrl && shortcut === 'g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
   if (action === 'quick-setup' && !view.uncertain && e.inDraftView) {
@@ -114,20 +127,6 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     const layout = editorLayout(view, columns, rows);
     navigateReview(e.review, event.ctrl ? '' : key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1), action);
     return 'reviewPreview';
-  }
-  if (e.guidanceScroll !== null && e.detail) {
-    const layout = editorLayout(view, columns, rows);
-    const width = Math.max(2, columns - (layout.framed ? 2 : 0));
-    const item = e.detailItem!;
-    const capacity = Math.max(1, layout.bodyRows - 1), maximum = Math.max(0, guidanceLines(item, view.language ?? 'en', width).length - capacity);
-    if (key === 'up') e.guidanceScroll--;
-    else if (key === 'down') e.guidanceScroll++;
-    else if (key === 'pageup') e.guidanceScroll -= capacity;
-    else if (key === 'pagedown') e.guidanceScroll += capacity;
-    else if (key === 'home') e.guidanceScroll = 0;
-    else if (key === 'end') e.guidanceScroll = maximum;
-    e.guidanceScroll = Math.max(0, Math.min(maximum, e.guidanceScroll));
-    return null;
   }
   const input = view.input;
   if (input?.kind === 'category') {

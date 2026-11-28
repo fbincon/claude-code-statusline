@@ -10,7 +10,8 @@
 - `core/config/presets` 提供有序用途元数据；`core/editor/quick-setup` 管理候选和状态转换，既有后端负责预设展开。两套编辑器共享菜单和可滚动要求说明。打开或退出流程不替换待保存草稿、不安装集成、不启用采集。
 - `core/rendering/trace` 在既有主行、子代理、组件和 Powerline 渲染中记录决策，普通路径不构造记录；`core/rendering/explain` 将示例判断与明确配置事实组合。
 - `cli/ui/explain` 无锁、只读地检查安装归属和采集偏好。宿主能力与真实字段观察分开，不可读来源保持未知。解释不读取转录、运行时存储，不查询 Git 或网络。
-- `core/editor/explanation` 为两套界面格式化逐实例证据。原生响应保留 epoch、宽度和草稿身份校验；TUI 按草稿、范围、实例和宽度缓存。原生副作用留在 hooks，外部副作用留在 Session。
+- `core/editor/explanation` 提供目录参考示例，并按选中的实例 ID 展示草稿状态与示例结果。原生响应校验 epoch、宽度和草稿身份。TUI 按草稿、范围、实例、场景和宽度缓存。原生副作用由 hooks 执行，外部副作用由 Session 执行。
+- `core/editor/guidance` 从目录读取来源、统计范围和启用条件。两页共用项目说明行与可见范围计算。编辑器各自应用标题和正文样式，按实际可见正文行数翻页。
 
 新共享模块生成到自包含的原生 Mod，不独立维护生成副本。测试按业务包归属组织，端到端 PTY 用例放在既有 acceptance 工具目录。
 

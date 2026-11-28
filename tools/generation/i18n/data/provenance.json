@@ -73810,6 +73810,1155 @@
       },
       "review": "Reviewed the toolbar labels, the two Tab focus directions, one-binding versus all-default reset wording, and the separate save and reload operations in the twelve locales.",
       "validated_inputs_sha256": "ef336562ae93ceb18fa2e09bec466a5ba5b283b3f4bb0acde1e21627d60d8a46"
+    },
+    "f31214da033f1e9da19089cd36f5b43e3f298d214f085538992f30f191b8e0a2": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "c9e3c8abdfe17e86bf36279efaf6938c81a708841dd5e1a223b390cdd86358b0"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "e6260de4b8a161ad61db7755ebd55de515085665b1ac77ece5da1c3bf3708717"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "8aefe344b3dc923c885f68ded26ce76e1a0a949bb2e7297d1469c0723fbadb26"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "b32b42b2c5484613033bc01565ad38e4d1799ebdea2980a36f050e6d8e98cda8"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "3f4ee2f46ea97f4f811778a1cb139a412d98e4b466e662486b479198877f1992"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "c668df071b7065770be4fa6509547eff4aff63ac0254f56c4ad9b5d395d85666"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "4ff92f56a4a054fb0d41493a68b9fac876218d4b0160e4705bc52b5ef8a0d1ab"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "69a18f4663359f13af6881cd730d8feea36a6ea2947b7b31505f6810a7d18c1e"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "7389eda0dd2b7ac994f3da09d0dac36e079f8e351a02bd24b84e6f5b3b6e254f"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "33dbb850c34af336db564512e00ae68f55e47cc1c3c72182354bee6c0284bb39"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "4b9e648f4087743a2b616c02738bdda547667eda740d4f46b388c4d5b7b07e41"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "318532680618534a67372912f439c909b8c656ccf9dfa0db3a530b8813623f28"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "ae463d8c7499816c7333ffac1b5c804cd695b7e60303f62819f1bbb6a910df60"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "1034a50bde8aa35c1d5ed79d76135c706e98fbcd2e42425a4d5b2af5e5033c54"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "52dfac70eb92e260dcc32506af63d1a80a15dc265a7b80fe080f795b7eaa339b"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "d22cf31b7865d6dfece8559781e756ccc6a3180fb31e78118efefba64173be48"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "225ebc4751305b3f30b87f7c5d9edfcd3b7a2c2d730b89f628b6c75aa963fa42"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "9fae965c9535103229b0f5d53d57b9225215121fe6c537deabf2dd043fe3a510"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "fd16b973f4713630a8b90491abbb91e2f0dcea9d0053d542d997795188a51ebb"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "ee029b3c9571bd863587fb3da1af46081306dfec8a2f15b424520206c649ebba"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "14e80e94f60b3239f7b25d0ed7b9d4f03abb5be845d16c1cee8190c80478812b"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "0da24adf1d72ead7e9200bbcc746bbe6314b96590afa273ec15b5b3ba20058b4"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "d03cb58495903ef129171cdb5f71d05e090bcfb3330c85fb5be5f0a6498c5f1b"
+          }
+        },
+        "en": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "f8d839595544a5ee9e46428db6000d2dc4288021b6997486b417d13d75ecf8b5"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "444905f64e9ea268496d79050f6e504d87c27fbd9ecda95b6fb67c3921d7897d"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "d96cb7983c5813cde7348f0ae9fac6a30a3c513c3a83faad699ded0eb3b087b7"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "e36a66df2d11c24403fbdda56a59b8357ef013166accfd1a2119a0eae0eeeb1a"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "5f8d2ac4dc5ed065b1c4ead86f2ec8e93bf8d55b54adea069307ed51dde06aec"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "5094d3e7c6b4799fb22f66ed7b2ef6e7e5029f40a5bcafb12941366abf445d99"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "b6831da17e2361f9ccc678cf4e3c3f0d06400ecaaba7c80c7c569cb1a0afe989"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "53ae6e8bff2f2c4b52917daddf8917c00a88dda078b91b31d7223c8fa08e3962"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "330e48de80885a66a765dd4a2b8d2659e840bd5d3c7f5868ec83629664ae462e"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "04e3c7e7aa3e912970e382149e6a88bac44c293ff2c11656de08a46e9ead4e68"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "48071bff636e070659f11dc6338614079a289a439e75539dadf84ed8b3ef5084"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "c67e2fb9ea97b67705995e620212ca2f15917b0842781d89c771806a4f9b4ab1"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "6f0d425766db722545569124c7832c37772eccb1e0a50c1ad2e2bd59cf68246b"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "d8f2c0e129726c787c42dc4fd56cf3b2736ed90a1cbc06d1f7f169a457ffbe1c"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "273edccdf51f7436abd58d54de6ec23f1f13760bf17f1f7709afb6e0924066df"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "0a9154b4c8b398bd1398980a6cbd8bd8dc5e4053c94939bfa25dd60bea336bf5"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "21c595f9607397f912fd336d7d75f0e035de168829a8d2d85d0cc543015d674f"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "00f0e107e7cb1f7e59217cc7f13ac78ae977ed7b9f62b105bb23d8a5505eabb9"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "e635db8279a3a2dcd12e5143de56a1eda1ebf8765a2292cb84f8912001ee4ada"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "dc5fbec99d9e6126ec08aa20d48dc66dd60dc16636d6ce1989da95f186432770"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "a7666b5c51ecfba3203b439108e162ac8b7f215188e5916b382f395e1ccd32cd"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "687ce1a9e45a8e937dd750dbef7640355ed8173976df187e3da531ec486b29bb"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "acec3851296a02d06e5c9b19f9df654c8fa94bc6fd6e52e0e9f0f302a9790429"
+          }
+        },
+        "es": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "812fc70e54376a68e15601d92ad4db34607b69b90a284035e48e7a506213fe81"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "0e3110ba7ab9a385e4f64af26e5bf627a51525129ee0b984010de5354789de36"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "b33a5c1f00ae8aa6c4e7771659d571d449bb2ce880d3f47ce7910eea25254af8"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "a64ebb1332f8271054d9740179957b1f6b03c5d4b20f5e1e87b60be6fd2a0453"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "571d07751e4f81e2c64a3fbcd5efad98ef78be64371edd3a055085e3a0959175"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "7acfb414844c47d0123e0a105c7ede55dc7c2b5b2700203f03a3afb0b4229c59"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "455285c7b610a0c3cc3b9c010d593b08b03cca26bfd497fc95edcb221574c46b"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "8b2fb6a7049ef6ef423034a5f9f2b00c1ee1eec848c4ec743f2f31f574f40aa7"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "2ed8a9d1557be1a0c11176c378ea93a2cd5c5ea654d528c05f0e16dacb058ab4"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "f7c25a92888b392c42be2adb8c6e04ac2939f8f5fc7f0998f1a8b41d1e81b84a"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "6e27179d05886dc6483281baa974a55a2f14a42f25b3fb73c45a85e9f42c7538"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "ecc848fa9e611133ff6a0e35b8cee89329e06539d64bd71e1db1fffb5d7d1028"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "9bf99a76441f6161ee0672c29932415d460adacdb4dcfcfc55da3f89ee8e10b9"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "67ae5d9ea393a3a7b8bd94f25ba1e80c276b37a439d45b4e7228cb412dd694fc"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "de833a2985ef3c0a58a1aa58ae9d4b2c629547186527bbc121a9daf74c899ccb"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "0bdb6a88b2b3c0ebc50e6f42ce91ed00e243f313a182384791a1b65e990c0c97"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "138ef12a0196ffc3d1a675c6fa0d27b11f2cb9456f5b4dbea798be0b80b79ba0"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "d22ecf501361ea603b8ff8bc9dcf28981d670b00b21b255c91d65a35d45fd81a"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "033275d14533a0d410149017cf347750df245987fcab0d5867397b373821aef5"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "f81afafafe894237e6f344b292fdf5a744eb1e416ca743b425aca5800c94dd3b"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "692f3fb8fffa6ba5a627f7d4240a86e072e8a9996951dea3f1d4a561bd89ce5f"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "5bd0366b6719480344097f830b1b150586f3c0115f63e59f77667dd46a01a489"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "a03cffe18d9985649aab72f9f4254edd529dc8a1cafea139ebd31350937fc54e"
+          }
+        },
+        "fr": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "727f573aabbbda083963ee59e09d2027b3f2360805b8f0e1c360a039bdb64f77"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "5cb6596c7ae5d29af6adbb385bcec798a7a0c5da062c24502b9660b1073b284e"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "08ce8cf2c7573a5c9d6e58b91ee5a9ef9e447fc26a3509ab1e73a753b7ec1044"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "51f56d628171c9a9ec8c674fdfdab63658fa8d57cd821544b538b7696bd88b03"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "c9a7f2aa36a4e6050904c9b34dfd87309633a73482167660fd258240268dcaf1"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "12e429b736ce32a8ad360919c9cfd0c1acab40085b19abfac8867a8f85a9cbd8"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "3746b6aa9d0e75a823e30a935abe7db93d69ba0d1abd962c8bd0271c17591bbb"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "809a690ea212df5354a8c3538d02d254c898975a7e8493d8c73ad14cf615b97f"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "d40f1ff7855e56dc8b94bbf77484d4f3b14ce8a0acfcb397dc22d01bdcd9b2d9"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "cf7c74555918104ce66c9ed692a28815df7ca47034f944a8927b41e58e8ff807"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "1281d877176bee33a4bc87cbccabbb837897f734a44997eb10b2db3e13270398"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "fbd88ec28a6a7b5d28abbbc1c1c397971fcb2b0ffd85cad46e9c335f92c4ad56"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "f73049ec9d7cdf7e82a9cd311836042e55a10e5a61f883a2e60e390363d450c6"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "14f276e454578aab7738674b190d95d73c8cd9c47e48307f29e02a788afd7e51"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "ad4a1d7c268fa477911b9bfdb03bd2da3e7c45a699303b7f27b68b3d8949ba2f"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "ae1f88fe0413093a8a77f986a52f5fbf5948d1183e15ed072133899b51085986"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "4471d9c64a50701f68062de7a42799750cc021dee8565c3adc14b8b4e2183372"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "d91558212a4e3e7a60b536ef47726d5e6c53f61eeb500942a36a1f50f9df41fa"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "f4d8eef02b3b217a9c517c21644d13781b6c200583b70d1edc3c57feeeb50c87"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "b33b5749bb06105fd64f8c5fe3c8581c9956314525fa101533e3394744ea91cf"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "68eeac5bdc904d145450a84e83191c6bf23f553566a18d24cee35ac530b6c373"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "95b88dc1ffbac20df98c5e1bd4e982eed67144760e75c99cb20fdb18576fb0dc"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "1371f806be660432e4f50c038eb360d7204c2cdd6ea9e497574ce0dc14fa26ac"
+          }
+        },
+        "id": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "4347c06cac5f9365937b93c45b6fb1fe93e2292342a5f472682e1c6904879f52"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "aec5220c23c828a2c91e881903f6c2c518ce857487d752ba9bf722fee3f7274a"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "53c60503a3e3ccd141e085ee6032cb873782aaaffa2518a46b45b25dad89190d"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "3c7f046ed6be6c7330b01013cc1136358d7f405e9f68b2d27b8ecb3062607a39"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "2487f1075b7064289fbaa5141844daa0b50a03f80e23db1dabefdfc83ab917d3"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "e55c14e8419585aa409dfe1862038efc480cb6e5e447b0b16158e38e111f6009"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "e668cf3a0e6a112288aacb3eca5b77c6aceb71ea4c2c99d16de3225649430432"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "c94157f2b624a4cbe18539d9c579f974a91bda4ce71481d3bab27ac9ec7cd14d"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "16d0807f0d52f8d0355933a75943b4e88c03cf0f16e307c39f04db65b635d36a"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "b3ca22f5c8df4e1da3caba7c137ee6cb34ddf55a0b73460f1e6ef87d1e15c1da"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "5b0c2d0e2ef81c4f5225fde8a870089482b595b4905581252602b95fdd32fdc5"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "a70ca870f2e7cf5639cc6c8c09e7b9a4c125a5086b97e07c9b001df32a32f3fc"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "e4f23f389e0f4f75ea117cb247af93579dbf3686e6a30bdad7ffac78e19a24be"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "3b47c8e49e74a6637427f7ddec2f4591b93e4c3eda650aa9ae0097c66231d11c"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "7183c560eb2280f2af9e11aecf47c5df958d48ae51f65842e35591b44d2a1080"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "858dc1912bbfefea501344515ae672f79eaf5fc92d9333aaa0e247306206907e"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "89f008d10486ce92ebcadcba66d6accf2490f409d05ffeef8fad57c5bf96556b"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "e1cb453776e5af6ed54026e177581a14d32423d920e021aa3b5263569444e1b1"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "5bf1aaefd090dd2cc9f1e7e093a713522af8b8e905bd0f9625a49d4fd197f77e"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "58f5b475b54cd335a4752ff60f42ffa3e58a8c989e7379dbdbb9cd05e26ba126"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "2ad956c2a8eaf013a75c28dc662eaab29a1060cae4e09a4806a650d171fdac21"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "393741e7445330e2daeaf38bf43cb6218cf4fc40a9a3a2b15a3e6e05da997b27"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "c20d2f7e4c276acf39e7174c2018684def25d3074e975eb243dce1e43413a0c1"
+          }
+        },
+        "ja": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "1054d52caa084c82a748a4e5996c66e0a3e805dff1e2f60cef5e3f0789fc409c"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "5cd4265f24c0f9671151e7de3defedf1ff647c7b56bd4f12c663071a3cf8b715"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "45bf92beb142470e707d3d68b3490178f3776407061c037b2676c61e8ca370bf"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "e05417ef6d52fe4724d584d061e26716f5f5a58430c3f3df96f2ce7152d61a81"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "3ab5b5ec2c2d8bc20177ad65730d52fe5d16612a9650b33f2baee1c2def9d749"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "32ef1d7050c9f07ffac4a45626a16c84b2e0eec90a5285c2c5e42d36cfd8b798"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "51a3ee773b244f96cac1b1f11ed0c50ac2788f12341cf36889cb4843a1c7f3d5"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "2ae5e08c64a466068c13b21e9ccc89bf33965f8baf864346d314f7096b43c978"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "4dedae9442a97ab4ddd6e26657fcbc327b4f5586190a5e078b4aadca5062b6eb"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "376a803157a248e1081ef831ac4395f4e9b8d409bcbcd8d3e0cc09a3828fecbb"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "b68ac7dc99cbe109da2c1dfae3968583ceb20c2fb1c717950931248a9f538c17"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "4e979a2f5d902af5ab0e12227d6b2ff6ab27315992fa31f52818272da802307d"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "1f747a64f8d88630720c04ada57248d9d7a1e7c9443b7cb3091faec30675dd4f"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "fa74a6d4a5894ec49940f74a619e0a47e7518a846aa1b0cc13b5cd72a238dcfc"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "4a361a37072ffad17990e4d8ac52bd7a9ad6a3d3712516ea0a65ae7855a845ae"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "d78edb15c2af890167e7eeed23524588991ceb918cf0371fc1894f64700e7433"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "66c3786152c877f8de53d2c6e9df12e5f39147aae2ccd9d78ffb41c195b8897c"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "4a31c0b7320262ce48e7a7e1884952ddde9373ee5b22ecc42674903db76bec57"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "8e93684c71fb4274d133a1548bfd5935dac1cf738a7812fd67af869f9e152b02"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "8b6ad5f1ac01b34ed139fa4965fcf9fd651953fa6ee617bedee1be72add2b47b"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "2154c422f330cfa79e1e427601f61cb8e390227c08d5d4272ce975bfa3ff8298"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "63c5980cae771b715b68303554cd1515439d04da36c7814ad74e2ba4a50f7ff7"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "3c583dbac9a332977ad4892f7dd3dd1b8a0db6d582f4c807857d17a30a8b51cd"
+          }
+        },
+        "ko": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "38ff7b99650dc297d616f26c937d8cfaa7ecf76de64ddc4ccd934b38c413fce9"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "e8c124a6ecd69545b740c01816ea5ba1a251f558cc8ebd625cba23e86aa8f16a"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "1c791d50559f837d48ef1b2ca2cf81b2ff8319358ee656579980734bdd7263b4"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "5e53bea29cdfd4c6148a56951024fd82cee7e0d930af7876a321665a2dc9c777"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "7f02c277220859e0ee424792d4dcaea3b88df06b5713d30ca4377d5c4d713b77"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "a3a59fb2bb1f8e10e80b20d24cf2609c5bc3ef18256483eb030a23ba1a28d954"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "0f9d0bba628849c1c0632a878440264455b44165d0b385208b9a56dc1aa8f9ef"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "f2027602edb6e07733f214cae2b19ea76a8bb2ae6d14f116f2021e0c6fffd568"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "ab7cc441de758950387c54461749d3832900a8e21ce917570b58e1821e35f686"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "578808c8a07f6f2d9a46e2150157b4d8e30f542faf3f4a615b453d92466c3b9a"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "58d841dc324dd8367dc7c385a12dcb0d04bcd0f8d7f49a46a3a5e707047fb0cf"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "15251c0a95eb96445eaad075fd3e6c623266cf6b5e05c43d006408c30c2fc58f"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "8669ccc03a1e4919d062c682dd9018f40feb1945527bd188eef573b26ec0db7f"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "58ff0476003a41ccd4d285ff24f50a1b2693fd3298f80ab63ccda43ded39c24d"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "c8f43899c980573262ba461ab52b53cfeb47db439db1bbc5e3d170e8a2a5831d"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "67b45e2d8c2e4fbb8bfac0306a67e8a9b09e825c4788d06d870bdf01aedf8bce"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "6eb2480dc236bad20507a9a5391a28eb32960effbb316a0f2f5375b9154d76eb"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "f86c56dca1e2b3e27bc8c5e0196158307a0a55d504e941d8f9376668d5889332"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "9d8c34f7fe6ccaa85ad8f2fc4ca7dd7c437308c748039c2a6dcfc2d0f3395d84"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "0e80900d9783813d6b7cc761a05c85a681f9ddadd79ce9cbe8e7c38ba12d6544"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "aa6d09512678d0211fe45935882637417a46b3ee2622eb96a9ebc948d5f8569d"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "8bb3290bc2152e7bd60c9470eb10100252f76d111744d9d41e832ff09153776f"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "ff5e1d244760e74c7bc44ce46b19393ea94f4a999d470cb95b2e791892b3c985"
+          }
+        },
+        "pt-BR": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "b78815697d7e95fb398377393e3c3ac6bf50f2b3b45007ef0466625fdc285d6f"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "d497bb0c59a06b4a18737f7caebaf04866cb20b46cab3801d2e31b45f4396f3d"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "9d90a34ba40bd85f42203c820f9da7de2948810068f64e8f1c5d8c09be3666d2"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "6e1cb75a2c43269e465dc9aa3be7807b4e0c4c0e06a86c08cc97541abf3a7eaf"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "97a7ef63159728f2a6f1df5245c16284713e86d464728679b695828708da1c63"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "c782619ed1d2370e4f8182393b0ebe888f8b52fcde85562826b8d8514d74d79a"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "0f242df5c36b848840b8a45ac2043c088be0987a6d7876ed45dff38dc76489ec"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "8cecb536500fbeb97efbd2b915fcd4036c4f4691085ef58eaad1bb91d4362a9d"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "9c51eb69999219d42acda3371eebadb504db2c78761e9619dbcb33d5edcb1cb4"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "3cbd58a65d358deb80266556831de6cb5afad6cea05bd462b8531944f190d7fe"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "8e4bb31170de16fb2b7a38e4484c19bc9304587a48a7fb4b4bba2ba70ea05d98"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "994f6c5f2abcff638608085e99d23eaff8a48a6955b67ed5c0cf0b5385fd0c10"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "dc28b9939910ae5b006150bbc8adada9eb997b3b303a11df642f0e117baab6b8"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "f98ed3b2b430dab16a632f183ab83473a08a0d0ab07c4e7c1aea259fd0681f83"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "63befe7343cda02faf8a2ebfa73bfab7de4b1c80d511a21ca75effa26f723a2c"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "e0c68cd826e68eb2998b899e6a1210fd5eabfabf754e7433f6fcdd9094c0cb33"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "0c5f08391300ed37e493751af4e84a977c8b75ae05b12cfc42f53175157f3f6c"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "bf18018088c9ef741be1736ff0dc1d0fb90665564be6168a5a9e24e4ddc38a75"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "1ae98cae16e287c9a70eb14abaf79af2cd0eacfb482f8b3680ee4ac141795dce"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "006a86918b88705f9c388594f3b37243bf705906c19267889eb7b144ec74d005"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "f55177ba80ac9106954dccb6e163291e6179399ec1ed4661cc8e57b6251cc897"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "3d426e4018f73668f129fa25e145cc92effd66f67355a59a76f6391240f7eab8"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "12bb03cf90d1f023f91c007323e6d08ea03b1a83f73ee3513028a8c3811a738c"
+          }
+        },
+        "ru": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "5f3824d747372f40cc05eb6b185ca4cfa0715e2a6d282a6b1325911d4a0e46a6"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "c38dcc3944ad3dd2a4889c5f5e6c6929c85c5537098b77adec862ef7e8e638ab"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "8146055886b6c715ae922f66d36d9b16ed81827dbee449acbe8d1657b24faf6d"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "a8adb7145298231008a036d4b7253b5602a687da5c0509b76cad9c1feca2cab3"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "a3d4c40e0d473cde4039e8afc5d76513de4bbe09e525ab1a1d71fb2465e39f63"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "cc2e2b50ce68d16b1b56b5331084f921199a6f4eba0d710e7c36ad3593820b50"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "f688bd81999cacba95d90af6c8b63db9708ae3a71646573d7db2d849004fa9eb"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "c53c3af66393289eff25bc96fbf335a27182c8884ee6d921d5b4823bf4965dc3"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "6fcbadd5c26e0395b6af8bd121768ca8f7c8b37c7b2076de979bda65ec582d64"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "2d0252915d81282534fbdb9f4d1b98e5b51a84113d17046ab567b489ee260ba5"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "ddaf79333d7d20917890de458bbfd1bd4a486f4c626b6b4389ac63edb1b438b0"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "99f2350092e6ed6fe59a4f4c7c093308973ae8ada15bd007a85540ecd3f0c968"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "7c4af2bbd92ef861b94a283401eb5d025eb14fe630d13c7f16b7c3c6f5467db1"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "763a0e5e2198e2fdc1836d39ce90726e3f1bd2d5e6395f3791395e4febc4354e"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "659a59b33a743cbb9b82e7d8ac6550db9b9b608a4b62d921d97b528480ec7f24"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "f1d1f71b7ef025ee8ddba3d7199ec30e3ef7d13824d33fd11992fe703848514b"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "3dd56b069c6bf9bd8879ce56dfbf3d34fffa1d783f0619ee4a857586e83bb93b"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "cece785ea3235165049e8f84894c8b9a6c133d149a5eb1716853c717a727c65b"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "12de2649908846431a10865c2b8f269093241ad7e49b7bbdaf2072809da91104"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "6e5ba69918c4e7a3225e75f3054f8956b741df0e018b020540357ed882384e0e"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "b97e47ed367eca87b4f87605416a4dd413b51930355d8d826a49cd2dc7c5bfa2"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "a26973e2e87af2506b4ad50e9223568337b9b564693e85f1d4530d3d0b24a212"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "e0df0608aff51982484c0a1d7641152c6e74de8e385fb7e0c07a04e77b086a21"
+          }
+        },
+        "zh-CN": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "7338daaa99bbbdd3574e85ac2f9cb323093c21301ed62e26c077699f38646b55"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "2c383838729aa0af7ba71da9f69b7e770b7bc930e3ef0a32affc80581b74934f"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "fda32f5e45d0e1198daae9344069fff3be6fe80ecf3aa1fe10a586bf60905c4b"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "77e3e418cdf6c2122b99137066a49acdece442cad033278ae80e569f6355cadd"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "ab8a6c9876ba89fa7a2c297ce4f82fb8e1e7af97146e970bb0254903ff500a3a"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "d22e330e598b01c2622cf945107f70143f3c463e2e54cb0774aa431178427b25"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "e5e7fc49eb6c015afecab379ca6e8cd79faaed1b2ee692721840652baf8690f4"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "4650d8911a9be1ae5f9d8855ca66ccff09e9c5b1c752aa1c4b52f5ab027e4392"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "ea0b49fa1b017ee74ba369b72b2407fe1a5a95ed0caa4cd297e29e1ba423edbe"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "a2bd5e16760219b4c60930ee5bbf207a8a51bb29d121e3d9ff6ac3b2cbb38198"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "737d16a4b90a647f15638f7ac244ce684e2f12328026b0a82a3e4e597413aa91"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "e0d75d41865bb8833fc89c4891fd5d6857bcc5c6064ca3542d39565155b6f527"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "1946cfda661022af8d767cf02525c263e884d97abe2540d8b9fa66e685e195af"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "72277908762994286eb757157293e717ab6604a2d3dfd96d7c6bc97017a0aaa6"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "ae2e75b6a614ef3ccc247572cfec4eaec31792f917e5d77acc18111ec3199c34"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "1c4ec43bad1408ad57f15e9c2b209ab789f620b4a5ff36448253af48c81ea54e"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "52aded852c7dd6e348c6c534063f1299595a9b3377b624ba895705a7f3d90d54"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "f8eaf0334255351b44a35bb3eb91130625728405ab3b1b217c7fda776a1ca04b"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "96c3539375437547f0d589e7aa3de1f4fbc48d33a119d32a5b1e9d2875836234"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "9333a73b2fc6b83ac1df9d24765147ea83b500f0e79e850ed4eb8b3bc7f02dfe"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "0eec572ca91f1e4cc8bb5cd38e218c5b7088ed85ee3955db413dad80880b1193"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "fcd8f992c4239b715bb53abd6ddffffd622b4387c76c266edf2b5937e642a5db"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "de7b9641d977b210c15935e036f045a1e8b3d05a11ed5ee87c2b4a28cdb0ace7"
+          }
+        },
+        "zh-HK": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "dca6c49c733a76ac8ee82f6fd5d894ba9b9f22aaed6cdd0c0b5193cbfa65da40"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "aa8c907a3d884b51300f09eef0aabab7ec6c4cb8d73781306b43a59aadca7604"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "7390b8628b3a2759e36a7322f5563db53446bee859c3e92f6349acd0caf9e2da"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "0dc5471c0a0ed07a523c11ed90a3a3191d101baa28394c76a8a9ada5c308a5e8"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "05e11d6694342255c3494a1800697ab635feadb902be1c5418766c731898978e"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "e8139092ef11365faca4c11d2ffa05e9a520ee380084d774bd69816662368ef4"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "50807bb77919f82def55b4370d90d2851b3e0f52df104e4c88289fcf2cf0ab6e"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "9186e21c040b0d4b8ea649a91e422389f5c18cea0942130c878c2a99bf8ad581"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "2f469736fa22ced7259cc75e57d0624f0a2d0f353400198fbad768c2970722eb"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "7ce953a128226aa0ba1d7b4274954c417f26839f43ac951f44825d22f4866811"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "8f14b7f9f6c597ee802d727fccba1cf6186224c9030d4db418377f4886c619ae"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "11fac53e0052ed25ece52493b4d99866d9d02aab199850b926786bed85b442be"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "70e268dbf839f6da151bd890d112177b316745d29cd8cf388cd5133a63beec73"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "1ae4ac4766cc73173ce708082f5a54b7ddcaa4218de0bdf4715aba4edf026c6e"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "ecdd792738805fa06431ec539b6864da13360cb830d2e17aa770506cbf5a0917"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "3e1f4b432b8af1752131ce6f7aad2f0db06451215c3bcd93cac4c71d944689d1"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "7c94a10be13b0f198bf4184d69ff45d4fa19f6d194bcdbdd713baafb68371052"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "ee0f7c824f6f2aaa62990eac838bb0ff97f18fa66035ae86f3014835317bb4c6"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "087a59dcb53077af20c41e1bd6ab09cfbbf768392e77187014782e4404724927"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "439f7df654d19864713defd5fbc9361def920fd734d377d2890180108b802c23"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "b6febe755364f64c75967a8f3074bbe19887ac226d2138651455f495d92ef3d2"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "ff755a82972429b077c74bff8dbc1e237326b7db3d86031cd7cb8637e9613b6c"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "5aa4664d328b24aef6e480ea26db6de58d934c6753f1b633d6692b08dca18cb6"
+          }
+        },
+        "zh-TW": {
+          "explain.examples": {
+            "source": "0e8f0024f4fac15790c6c5e30cd11eecbc890177419c0493e534484484190e41",
+            "translation": "dca6c49c733a76ac8ee82f6fd5d894ba9b9f22aaed6cdd0c0b5193cbfa65da40"
+          },
+          "explain.no_sample": {
+            "source": "01c8798c1571adc1b2c91359bde92f822049a90654b6d2f0a3ab6814408e07e5",
+            "translation": "aa8c907a3d884b51300f09eef0aabab7ec6c4cb8d73781306b43a59aadca7604"
+          },
+          "explain.no_sample_agents": {
+            "source": "c20f5f18c8e9445ad931cc66aaba726a9eec52481f99d4b95598578cccbc73f5",
+            "translation": "7390b8628b3a2759e36a7322f5563db53446bee859c3e92f6349acd0caf9e2da"
+          },
+          "explain.no_sample_result": {
+            "source": "e58f8fb2735015a4486c147fcf0e22dc122ff4f37466bb5f96e68ca3a73e130f",
+            "translation": "0dc5471c0a0ed07a523c11ed90a3a3191d101baa28394c76a8a9ada5c308a5e8"
+          },
+          "explain.no_sample_scope_disabled": {
+            "source": "4c0d20d1a54b6b870dccf1f14c970d92bf4c2b5a800275fb917430417a8dc466",
+            "translation": "d156676ab812bebf54566db4f937723c0afe2472c8acd0f929dc2324992f36b7"
+          },
+          "explain.panel_note": {
+            "source": "b6c8dd51c687f4f0b1f7d0b0b790b16762bfe58c2347fb75cd8541e0e090ef78",
+            "translation": "c6dd328e1c4e4c5a408dcc5da963a1cf4ce11af441c2d6cbb1c54cd39ac38858"
+          },
+          "explain.reason.unsupported_host": {
+            "source": "7d37bd2b749a6bb4f6f7d58e65ba6f79b400623c59b96688f6bb7460dce12c56",
+            "translation": "49fe3f687a90203c2bba0f921daa93721256a6a7ab4bbe060c7b216dd47ebcc3"
+          },
+          "explain.requirements": {
+            "source": "4d3ed9a321506ab812d8551da661cd6f06e8ed3304039cc281e78af2641846b2",
+            "translation": "9186e21c040b0d4b8ea649a91e422389f5c18cea0942130c878c2a99bf8ad581"
+          },
+          "explain.row.other": {
+            "source": "64a12ffe0960edd809aabb0f18cf6144753c400da11691b37af19eba971d7cc9",
+            "translation": "49434777ead1854b7913f1d554d51115bc4bc847cee74294914750020fab6e3b"
+          },
+          "explain.row.preview-agent": {
+            "source": "fa9f6be74f5e395a097b2c47f7a306d320067a0666243360d485953377919b70",
+            "translation": "7ce953a128226aa0ba1d7b4274954c417f26839f43ac951f44825d22f4866811"
+          },
+          "explain.sample_result": {
+            "source": "afdbc76e1b8e0c0d7a701eca9776c03c2cdd53a50cde3caa7b0a7387aa73b7cd",
+            "translation": "8f14b7f9f6c597ee802d727fccba1cf6186224c9030d4db418377f4886c619ae"
+          },
+          "explain.unavailable": {
+            "source": "fb199bef897199a6664a9dd16f73023535f9233e821c8a844576843ab93884e0",
+            "translation": "11fac53e0052ed25ece52493b4d99866d9d02aab199850b926786bed85b442be"
+          },
+          "guidance.details": {
+            "source": "a58edbf67f6b71ec756752797c405ec8f0f50dd2db687fd89b78337a94f74d6e",
+            "translation": "70e268dbf839f6da151bd890d112177b316745d29cd8cf388cd5133a63beec73"
+          },
+          "guidance.overview": {
+            "source": "9cf8e102af845f27cc902c1312c76eba114be0d7971bd8016f6e966c2816f652",
+            "translation": "b9f352e9000a47d61d0ddd44c86d89a7f92d85f68b67dedb82de5da8248cf2fc"
+          },
+          "guidance.reasons": {
+            "source": "3683173d76ea738f0cdad37b6f784f181497f5eb7f3de39135f5bebf0f2b7317",
+            "translation": "ecdd792738805fa06431ec539b6864da13360cb830d2e17aa770506cbf5a0917"
+          },
+          "guidance.requirements": {
+            "source": "bb6a13776be13c997d26d4faeb1b34e947dcdebf654e147fbb5e6e7bda6daa3e",
+            "translation": "3e1f4b432b8af1752131ce6f7aad2f0db06451215c3bcd93cac4c71d944689d1"
+          },
+          "guidance.requirements.source_binding": {
+            "source": "6432574f2748be205ef0e042a9b20aa6b17b3c3bc9d143706e52a71e9d56156b",
+            "translation": "e8a9465c8a9e090b70da896888b683df71de11f752bb67391c01dda4b10ae7de"
+          },
+          "guidance.requirements.spacer": {
+            "source": "10c3032f1af56f0dec1aaf8de24e21ac4a77f57615f1eca2e52fcaed2204ac40",
+            "translation": "a7ae63d4471086d9f25d85f18b1f8d66ae4f7c35c0d8ac9b6cbcaeae3b831c5a"
+          },
+          "guidance.requirements.subagent_rows": {
+            "source": "5a6f7da9a09974b4eb2d3ec96b5f66fe2ee8337a61b22d6ad67fb6efd24b0d1d",
+            "translation": "3d75320b4a0f5825f8952dc5a6cec11639743b312b56d9cc59d41af921532e01"
+          },
+          "guidance.requirements.text": {
+            "source": "afb45165e8a6fe20128e7047f1401790f42d075d11a437f0adad410f8d8048cd",
+            "translation": "439f7df654d19864713defd5fbc9361def920fd734d377d2890180108b802c23"
+          },
+          "guidance.setup": {
+            "source": "8e3d6318ea8b7f78d78c6e5ae52801a90ec199c5edf36a2cf1f3614c734aafc9",
+            "translation": "b6febe755364f64c75967a8f3074bbe19887ac226d2138651455f495d92ef3d2"
+          },
+          "guidance.setup_restart": {
+            "source": "894d68c2ca1c58913bf1c198c418e80e08eaf160e99972a4b0705f5110a14197",
+            "translation": "d20b3e0e2a200745bee42e1c6c45526de928abdc02c58a2d7bd58b5183fd5a99"
+          },
+          "guidance.static": {
+            "source": "32834e5f4afd34f51d37839def50425680dcbfdc1301c49f39230b390dc1017e",
+            "translation": "d6b635712076eb80aa984f6f0b78abd6eb4beeb6a4d637a05de81842c564a1eb"
+          }
+        }
+      },
+      "review": "Reviewed the localized detail headings, current sample and empty states, and source and host wording against the shared editor behavior and named placeholders.",
+      "validated_inputs_sha256": "160fabf5e7ff6cf61697331190c74a2d850069d9755f6a9120cd55e85b702035"
     }
   }
 }

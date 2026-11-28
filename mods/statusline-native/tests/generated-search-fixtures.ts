@@ -4476,7 +4476,7 @@ export const SEARCH_CATALOG = [
       "local_source_observation"
     ],
     "examples": [
-      "42"
+      "GitHub PR: #42 · APPROVED"
     ],
     "default_position": null,
     "minimum_version": null,
@@ -4525,7 +4525,7 @@ export const SEARCH_CATALOG = [
       "local_source_observation"
     ],
     "examples": [
-      "42"
+      "GitHub CI: passed"
     ],
     "default_position": null,
     "minimum_version": null,

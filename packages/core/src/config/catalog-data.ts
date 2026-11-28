@@ -3824,7 +3824,7 @@ export const catalogData = [
       "local_source_observation"
     ],
     "examples": [
-      "42"
+      "GitHub PR: #42 · APPROVED"
     ],
     "default_position": null,
     "minimum_version": null,
@@ -3873,7 +3873,7 @@ export const catalogData = [
       "local_source_observation"
     ],
     "examples": [
-      "42"
+      "GitHub CI: passed"
     ],
     "default_position": null,
     "minimum_version": null,

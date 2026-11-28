@@ -8,7 +8,7 @@ import { EDITOR_PAGES } from '../../lib/editor/draft.ts';
 import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { groupsView } from '../../lib/editor/group-manager.ts';
 import { sourcesView } from '../../lib/editor/source-manager.ts';
-import { explanationLines } from '../../lib/editor/explanation.ts';
+import { explanationRows } from '../../lib/editor/explanation.ts';
 import { quickView } from '../../lib/editor/quick-setup.ts';
 import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
@@ -28,12 +28,21 @@ import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
 import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
 import { itemSpans } from '../components/catalog.ts';
 import { catalogMarker } from '../../lib/editor/instances.ts';
-import { guidanceLines } from '../../lib/editor/guidance.ts';
+import { guidanceRows } from '../../lib/editor/guidance.ts';
+import { itemDetailWindow, type ItemDetailRow } from '../../lib/editor/item-detail.ts';
 import { importShortcutHelp, reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 import { shortcutPanelView } from '../../lib/editor/shortcut-settings.ts';
 import { editorLineSpans, hintLine, prependLine, sectionDivider, type EditorLine } from '../../lib/editor/hints.ts';
 import { itemDecorationNotice } from '../../lib/editor/forms.ts';
+
+const itemDetailStyles = {
+  heading: { ...styles.accent, bold: true },
+  body: { bold: false },
+  example: { ...styles.accent, bold: false },
+  note: { ...styles.muted, bold: false },
+  error: { ...styles.error, bold: false },
+} satisfies Record<ItemDetailRow['kind'], TextProps>;
 
 function tabSpans(labels: readonly string[], active: (typeof EDITOR_PAGES)[number], numbered: boolean): TextSpan[] {
   const tabs: TextSpan[] = [];
@@ -155,12 +164,15 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   } else if(e.profiles) {
     title = tr('profiles.title');
     content.push(...profilesView(e,language,inner,layout.bodyRows).map(row=>line(row,rowStyle(row.selected))));
-  } else if(e.explanation) {
-    title=tr('explain.title');
-    const lines=explanationLines(e,view.language ?? 'en',inner), capacity=Math.max(1,layout.bodyRows-1);
-    const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-capacity));
-    content.push(...lines.slice(start,start+capacity).map(text=>line(text)));
-    content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if (e.explanation || e.guidanceScroll !== null && e.detail) {
+    title = tr(e.explanation ? 'explain.title' : 'guidance.title');
+    const item = e.detailItem;
+    const detailRows = e.explanation ? explanationRows(e, language, inner) : item ? guidanceRows(item, language, inner) : [];
+    const page = itemDetailWindow(detailRows, e.explanation?.scroll ?? e.guidanceScroll ?? 0, layout.bodyRows - 1);
+    // Empty host Text nodes have zero height.
+    content.push(...page.rows.map(row => row.text ? line(row.text, itemDetailStyles[row.kind])
+      : ui.Box({ height: 1, flexShrink: 0, children: [] })));
+    if (page.summary && layout.bodyRows > 1) content.push(line(page.summary, itemDetailStyles.note));
   } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
     content.push(...quickView(e.quick,language,inner,layout.bodyRows,e.baseline.configuration?.shared_projects).map(row=>line(row,rowStyle(row.selected))));
@@ -169,13 +181,6 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(review.scroll, Math.max(0, lines.length - capacity));
     content.push(...lines.slice(start, start + capacity).map(row => line(row.text, row.heading && row.section === review.selected ? rowStyle(true) : {})));
-    content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
-  } else if (e.guidanceScroll !== null && e.detail) {
-    title = tr('guidance.title');
-    const item = e.detailItem!;
-    const lines = guidanceLines(item, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
-    const start = Math.min(e.guidanceScroll, Math.max(0, lines.length - capacity));
-    content.push(...lines.slice(start, start + capacity).map(text => line(text)));
     content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
   } else if (view.input?.kind === 'category') {
     title = tr('catalog.search.categories');

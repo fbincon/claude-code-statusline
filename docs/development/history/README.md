@@ -25,7 +25,7 @@ Current guides live under [`docs/development`](../). This directory owns frozen 
 | Editor shortcuts | [Shortcut toolbar and fixed details](deliveries/editor-shortcut-toolbar.md) · [Version and shortcut panels](deliveries/editor-panel-layout.md) · [Item format and shortcut hints](deliveries/editor-hint-clarity.md) · [Custom shortcuts in both editors](deliveries/editor-shortcuts.md) · [Shortcut reliability](deliveries/editor-shortcut-reliability.md) · [Component list shortcuts](deliveries/editor-list-shortcuts.md) · [Terminal Settings shortcuts](deliveries/terminal-settings-shortcuts.md) · [Shortcut correctness and committed saves](deliveries/editor-shortcut-correctness.md) |
 | Editor text input | [In-place input caret in both editors](deliveries/editor-input-caret.md) |
 | External editor refresh | [Task reports, job progress and list reloads](deliveries/external-editor-live-refresh.md) |
-| Component editing | [Group movement](deliveries/editor-group-movement.md) · [Catalog states and continuous additions](deliveries/component-catalog.md) |
+| Component editing | [Item format explanations](deliveries/item-format-explanations.md) · [Group movement](deliveries/editor-group-movement.md) · [Catalog states and continuous additions](deliveries/component-catalog.md) |
 | v3.16.5 host compatibility | [Host compatibility and recovery delivery](deliveries/v3-16-5.md#final-release) |
 | Runtime prompt ownership | [Task timing and current status](deliveries/runtime-prompt-ownership.md) |
 | v3.16.4 npm setup | [Installation and statusline delivery](deliveries/v3-16-4.md#final-release) |

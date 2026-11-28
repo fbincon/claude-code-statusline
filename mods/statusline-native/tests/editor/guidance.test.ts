@@ -1,17 +1,19 @@
 import { expect, test } from 'claude-code/testing';
 import type { CatalogItem } from '../../lib/generated-contracts.ts';
-import { guidanceLines } from '../../lib/editor/guidance.ts';
+import { guidanceRows } from '../../lib/editor/guidance.ts';
 import { displayWidth } from '../../ui/layout.ts';
 import { parseResponse } from '../../lib/backend.ts';
 import { SEARCH_CATALOG } from '../generated-search-fixtures.ts';
 import { description, reply } from '../fixtures.ts';
 
-test('all canonical item explanations are translated and fit terminal cells', () => {
+test('all canonical item guidance is translated and fits terminal cells', () => {
   for (const item of SEARCH_CATALOG as CatalogItem[]) for (const language of ['en', 'zh-CN'] as const) for (const width of [30, 60, 118]) {
-    const lines = guidanceLines(item, language, width);
-    expect(lines.every(line => displayWidth(line) <= width)).toBe(true);
-    expect(lines.join('\n').includes('guidance.')).toBe(false);
-    if(!['text','spacer','external-value','github-pr','github-ci'].includes(item.id))expect(lines.some(line => line.includes('claude-statusline doctor'))).toBe(true);
+    const rows = guidanceRows(item, language, width);
+    expect(rows[0]!.kind).toBe('heading');
+    expect(rows.every(row => displayWidth(row.text) <= width && !row.text.includes('guidance.'))).toBe(true);
+    if (item.guidance.setup.includes('claude-statusline doctor')) {
+      expect(rows.some(row => row.text.includes('claude-statusline doctor'))).toBe(true);
+    }
   }
 });
 

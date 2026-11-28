@@ -51,6 +51,8 @@ test('documentation checks reject changed counts, missing IDs/languages/presets 
             [`docs/EDITORS${suffix}.md`, '| E |', '| J |'],
             [`docs/EDITORS${suffix}.md`, 'Ctrl+/', 'Ctrl+F'],
             [`docs/EDITORS${suffix}.md`, 'Ctrl+Z', 'Ctrl+B'],
+            [`docs/EDITORS${suffix}.md`, suffix ? '**数据来源与范围**' : '**Data source and scope**', 'Data'],
+            [`docs/EDITORS${suffix}.md`, suffix ? '**参考示例**' : '**Reference examples**', 'Example'],
             [`docs/development/ci-maintenance${suffix}.md`, suffix ? '17 项发版 PR 作业' : '17 release PR jobs', suffix ? '65 项发版 PR 作业' : '65 release PR jobs'],
             [`docs/development/impact-checks${suffix}.md`, suffix ? '360 分钟的托管作业上限' : 'hosted job limit of 360 minutes',
                 suffix ? '377 分钟的托管作业上限' : 'hosted job limit of 377 minutes'],
