@@ -8,6 +8,8 @@ Version management is explicit through the CLI or either editor. Rendering and e
 
 Open **Settings → Version and installation** in either editor. The overview reads local status and shows the installed version, installation channel and any unfinished transaction. Open **Installation details** for the prefix, executable entry, configuration directory, prior successful version and compatibility diagnostics. If the installation is ambiguous, edit the prefix there. Leave the field blank to detect the installation again.
 
+Horizontal dividers mark **Version options**, **Check and change versions**, and **Installation and recovery**. The arrow keys move between available controls, skipping the group titles.
+
 Press Enter on **Target version** to enter an exact version. With the target blank, checks and upgrades use the selected channel and rollback uses the previous successful version. Press Enter on **Channel** to choose **Use installation channel**, **latest** or **beta**. The choice applies to automatic checks and upgrades in the current view. Exact versions take priority.
 
 Select **Check version metadata** to contact the configured npm registry. The review reports whether the artifact was verified. Upgrade, package rollback and unfinished-package recovery reviews use the dry-run service and temporary staging with scripts disabled. Open **Recovery and history** for recovery and cleanup reviews and to review a verified configuration backup for restoration. The page reports damaged records and verifies backups against their recorded snapshot hashes. A compatible verified review enables a separate execution confirmation.

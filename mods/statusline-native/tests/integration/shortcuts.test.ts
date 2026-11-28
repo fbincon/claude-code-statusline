@@ -12,8 +12,12 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   await keys(ui, 'return');
   await ui.resize({ columns: 32, rows: 12 });
   await keys(ui, '/', 'save display', 'return');
-  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('› S Save display');
+  const compact = (await visibleText(ui)).replace(/ +/gu, ' ');
+  expect(compact).toContain('› Save display S');
+  expect(compact).toContain('OPTION VALUE');
+  expect(compact).toContain('─ Editor and draft ─');
   await ui.resize({ columns: 100, rows: 30 });
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('› Save display S');
   await keys(ui, 'return');
   expect(await visibleText(ui)).toContain('Claude reserves Ctrl+D, Ctrl+X, Ctrl+Z');
   await keys(ui, { key: 'd', ctrl: true });
@@ -21,7 +25,9 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   await keys(ui, 'z');
   expect(fixture.store.shortcuts.bindings).toEqual({});
   expect(await visibleText(ui)).toContain('Save display');
-  await keys(ui, 'tab', 'return');
+  await keys(ui, 'tab');
+  expect(await visibleText(ui)).toContain('› Save shortcuts');
+  await keys(ui, 'return');
   expect(fixture.store.shortcuts.bindings).toEqual({ save: 'Z' });
   expect(fixture.calls.filter(call => call.operation === 'apply')).toHaveLength(0);
   await keys(ui, { key: 'g', ctrl: true }, '1', 's');

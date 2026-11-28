@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} seleccionar · {enter} confirmar · {back} cancelar",
   "shortcuts.confirm-reload": "¿Leer los atajos guardados y descartar este borrador?",
   "shortcuts.conflict": "En {editor}, la tecla {key} está asignada a «{first}» y «{second}».",
+  "shortcuts.current-key": "TECLA ACTUAL",
+  "shortcuts.default-key": "TECLA PREDETERMINADA",
   "shortcuts.discard": "Descartar cambios de atajos",
   "shortcuts.failed": "No se pudo completar la operación de atajos. {detail}",
   "shortcuts.filter": "Filtro",

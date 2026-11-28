@@ -13,13 +13,24 @@ import { drawPage } from './drawing/pages.js';
 import { contentTitle } from './drawing/presentation.js';
 import { footer, notice, shortcuts } from './drawing/shortcuts.js';
 import {
-    SHORTCUT_PANEL_MIN_COLUMNS, SHORTCUT_PANEL_MIN_ROWS, shortcutPanelFits, shortcutPanelRows,
+    SHORTCUT_PANEL_MIN_COLUMNS, SHORTCUT_PANEL_MIN_ROWS, shortcutPanelFits, shortcutPanelView,
 } from '@fbincon/statusline-core/editor/shortcut-settings';
 
 export type { Paint } from './theme.js';
 export type { Frame } from './drawing/canvas.js';
 export { ansiFrame } from './drawing/canvas.js';
 export { shortcuts } from './drawing/shortcuts.js';
+
+function drawTabs(canvas: Canvas, language: State['language'], active: (typeof EDITOR_PAGES)[number], y: number): void {
+    const labels = EDITOR_PAGES.map(page => t('ui.drawing.' + page, language));
+    const gap = displayWidth(labels.join('  ')) > canvas.columns ? 1 : 2;
+    let x = 0;
+    for (const [index, page] of EDITOR_PAGES.entries()) {
+        const label = labels[index]!;
+        canvas.put(y, x, [paint(label, page === active, page === active)]);
+        x += displayWidth(label) + gap;
+    }
+}
 
 export function frame(state: State, columns: number, rows: number): Frame {
     const canvas = new Canvas(columns, rows);
@@ -44,10 +55,26 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
+    const editorTitle = () => tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language);
     if (e.shortcuts.panel && shortcutPanelFits(canvas.columns, canvas.rows)) {
-        canvas.put(0, 0, [heading(tr('shortcuts.title'))]);
-        shortcutPanelRows(e.shortcuts, state.language, canvas.columns, canvas.rows - 1)
-            .forEach((row, index) => canvas.put(index + 1, 0, paintLine(row, canvas.columns, row.selected)));
+        const view = shortcutPanelView(e.shortcuts, state.language, canvas.columns, canvas.rows);
+        if (view.headerRows === 2) {
+            canvas.put(0, 0, [heading(editorTitle())]);
+            drawTabs(canvas, state.language, 'settings', 1);
+        } else canvas.put(0, 0, [heading(tr('ui.drawing.settings'))]);
+        const panel = {
+            y: view.headerRows, width: canvas.columns, height: canvas.rows - view.headerRows - view.footer.length,
+            framed: view.framed, innerY: view.headerRows + 1, innerX: (canvas.columns - view.innerWidth) / 2,
+            innerWidth: view.innerWidth, innerHeight: view.bodyHeight,
+        };
+        canvas.panel(panel, tr('shortcuts.title'));
+        view.body.forEach((row, index) => {
+            const spans = row.kind === 'group' ? [heading(row.text)] : row.kind === 'columns' ? [paint(row.text, true)]
+                : paintLine(row, view.innerWidth, row.selected);
+            canvas.content(panel, index, spans, row.selected);
+        });
+        if (view.menu.length) canvas.content(panel, view.bodyHeight - 1, view.menu.map(item => paint(item.text, item.selected, item.selected)));
+        view.footer.forEach((row, index) => canvas.put(canvas.rows - view.footer.length + index, 0, paintLine(row, canvas.columns)));
         return canvas.frame();
     }
 
@@ -68,7 +95,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     }
 
     if (!reportPage) state.ensureVisible(state.form ? size.formHeight : size.listHeight);
-    canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
+    canvas.put(0, 0, [heading(editorTitle())]);
     const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
     const description = pickerNotice ? renderMessage(pickerNotice, state.language)
         : e.detail ? tr('ui.drawing.edit_item_format') + state.detailLabel
@@ -78,12 +105,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
                 : e.page === 'subagents' ? 'choose_subagent_row_items_and_their_order'
                     : 'adjust_display_and_tool_refresh_settings'));
     canvas.line(1, description);
-    let tabX = 0;
-    for (const page of EDITOR_PAGES) {
-        const label = tr('ui.drawing.' + page);
-        canvas.put(2, tabX, [paint(label, page === e.page, page === e.page)]);
-        tabX += displayWidth(label) + 2;
-    }
+    drawTabs(canvas, state.language, e.page, 2);
     const { actions, help, primaryActions } = footer(state);
     const visibleHelp = shortcuts(help, canvas.columns);
     canvas.put(3, 0, notice(state, canvas.columns, visibleHelp));

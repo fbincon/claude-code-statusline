@@ -68,6 +68,7 @@ test('native channel selection exposes its Enter action and restores the row at 
     await selectSetting(ui, 'package-management');
     await keys(ui, 'return');
     expect(await screen()).toContain('› Enter 编辑 · 目标版本');
+    expect(await screen()).toContain('─ ' + t('package.ui.version_options', 'zh-CN') + ' ─');
     await keys(ui, 'down');
     expect(await screen()).toContain('› Enter 选择 · 渠道');
     await keys(ui, 'return', 'end');

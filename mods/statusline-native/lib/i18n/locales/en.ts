@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} select · {enter} confirm · {back} cancel",
   "shortcuts.confirm-reload": "Read the saved shortcuts and discard this draft?",
   "shortcuts.conflict": "{editor}: {key} is assigned to {first} and {second}.",
+  "shortcuts.current-key": "CURRENT KEY",
+  "shortcuts.default-key": "DEFAULT KEY",
   "shortcuts.discard": "Discard shortcut changes",
   "shortcuts.failed": "Shortcut operation failed. {detail}",
   "shortcuts.filter": "Filter",

@@ -2448,6 +2448,8 @@
   "shortcuts.confirm-help": "{arrows} 選択 · {enter} 確定 · {back} でキャンセル",
   "shortcuts.confirm-reload": "編集中の変更を破棄し、保存済みのショートカットを読み込みますか？",
   "shortcuts.conflict": "{editor}で {key} が「{first}」と「{second}」の両方に割り当てられています。",
+  "shortcuts.current-key": "現在のキー",
+  "shortcuts.default-key": "既定のキー",
   "shortcuts.discard": "ショートカットの変更を破棄",
   "shortcuts.failed": "ショートカットの操作に失敗しました。{detail}",
   "shortcuts.filter": "絞り込み",

@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} wählen · {enter} bestätigen · {back} abbrechen",
   "shortcuts.confirm-reload": "Gespeicherte Kürzel neu laden und diesen Entwurf verwerfen?",
   "shortcuts.conflict": "{editor}: {key} ist {first} und {second} zugewiesen.",
+  "shortcuts.current-key": "AKTUELLE TASTE",
+  "shortcuts.default-key": "STANDARDTASTE",
   "shortcuts.discard": "Kürzeländerungen verwerfen",
   "shortcuts.failed": "Tastenkürzel konnten nicht verarbeitet werden. {detail}",
   "shortcuts.filter": "Filtern",

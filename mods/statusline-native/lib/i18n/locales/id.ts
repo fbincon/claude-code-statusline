@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} pilih · {enter} konfirmasi · {back} batal",
   "shortcuts.confirm-reload": "Buang draf ini dan baca pintasan tersimpan?",
   "shortcuts.conflict": "Di {editor}, {key} dipakai untuk «{first}» dan «{second}».",
+  "shortcuts.current-key": "TOMBOL AKTIF",
+  "shortcuts.default-key": "TOMBOL BAWAAN",
   "shortcuts.discard": "Buang perubahan pintasan",
   "shortcuts.failed": "Operasi pintasan gagal. {detail}",
   "shortcuts.filter": "Filter",

@@ -53,7 +53,7 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. **Task details** and **Version and installation** use the full content area. A file diagnosis uses the preview area for its rendered output.
 
-In both editors, **Version and installation** shows an installation overview and groups the version controls. Enter opens the marked actions and the channel chooser. Going back from details, a review or a confirmation restores the originating row. [Package management](PACKAGE_MANAGEMENT.md#review-from-either-editor)
+In both editors, horizontal dividers mark the groups in **Version and installation**. Enter opens the marked actions and the channel chooser. Going back from details, a review or a confirmation restores the originating row. [Package management](PACKAGE_MANAGEMENT.md#review-from-either-editor)
 
 The footer changes with the current operation. Available keys appear in bold in the footer and in panel instructions. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
 
@@ -130,10 +130,12 @@ Return from a manager to the main editor to use draft history. On Unix, Claude m
 
 ## Customize keyboard shortcuts
 
-In either editor, open **Settings → Keyboard shortcuts**. Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. Each action shows its current binding and the preset in brackets. The editors share the same preferences and show both sets of presets where they differ. The open shortcut panel fits in 32×12.
+In either editor, open **Settings → Keyboard shortcuts**. Horizontal dividers mark the action groups inside the panel. At 80 columns and above, the list shows **Option**, **Current key** and **Default key**. In narrower panes it shows **Option** and **Value**. The selected action's details show each applicable editor's current binding and its default in brackets. The open panel fits in 32×12.
+
+Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. The footer below the panel shows the keys for the current operation.
 
 1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
-2. Press Tab for the action menu, select **Save shortcuts** with the arrows, and press Enter. To restore every preset, choose **Restore all** and save.
+2. Press Tab to focus the action menu at the bottom of the panel, select **Save shortcuts** with the arrows, and press Enter. The menu shows one command at a time when space is tight. Press Tab again to return to the selected action. To restore every preset, choose **Restore all** and save.
 3. Resolve any conflicts shown before saving. You can swap two bindings and save them together. Separate pages can reuse a key when their actions cannot run at the same time. Ctrl+G goes back and asks before discarding staged changes.
 
 The current editor applies the keys after the save is confirmed. In another open editor, choose **Read saved** in the shortcut panel or close and reopen the editor. If two editors change shortcuts concurrently, the later save reports a conflict. If a write is in progress or recovery is required, the open panel keeps its last confirmed bindings and staged changes. Follow the recovery message when shown, then choose **Read saved**. Shortcut preferences save independently from the display draft and its undo history. [Storage format](reference/cli.md#editor-shortcut-preferences)

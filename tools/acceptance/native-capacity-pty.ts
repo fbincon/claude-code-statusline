@@ -101,9 +101,18 @@ function caseData(name: string): any {
 const failures = /props serializes to more than|a tree serializing to more than|too many nodes|too deep|a hook returned a tree that does not validate|instance unmounted|returned a tree that does not validate/u;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 function assertShortcutHelp(screen: Capture): void {
+    const lines = screen.buffer.map(row => row.map(cell => cell.data).join(''));
+    const top = lines.findIndex(line => /[┌╭]─ Keyboard shortcuts ─/u.test(line));
+    const bottom = lines.findIndex((line, index) => index > top && /[└╰]──+/u.test(line));
+    assert(top >= 0 && bottom > top, 'Shortcut content must have a frame');
+    const body = lines.slice(top + 1, bottom);
+    assert(body.some(line => line.includes('─ Editor and draft ─')), 'Shortcut group divider is inside the frame');
+    assert(body.some(line => /OPTION +(?:VALUE|CURRENT KEY +DEFAULT KEY)/u.test(line)), 'Shortcut columns are inside the frame');
+    assert(body.at(-1)?.includes('Save shortcuts'), 'Shortcut action menu is at the bottom of the frame');
+    const footer = screen.buffer.slice(bottom + 1);
     for (const [key, label] of [['/', 'filter'], ['Enter', 'change'], ['Delete', 'restore'], ['Tab', 'switch'], ['Ctrl+G', 'back']] as const) {
         const hint = `${key} ${label}`;
-        assert.ok(screen.buffer.some(row => row.some((cell, start) => {
+        assert.ok(footer.some(row => row.some((cell, start) => {
             if (!cell.bold || cell.data !== key[0]) return false;
             const cells = row.slice(start, start + hint.length);
             return cells.map(value => value.data).join('') === hint && cells.every((value, index) => value.bold === (index < key.length));
@@ -353,6 +362,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
             } else {
                 await until(text=>text.includes('Local status'),'local status boundary visible');
+                const installationGroup = '─ ' + t('package.ui.installation_actions', 'en') + ' ─';
+                await until(text => text.includes(installationGroup), 'installation actions are separated by a group divider');
                 const selected = (text: string, label: string) => text.split('\n').some(line => line.includes('›') && line.includes(label));
                 const select = async (label: string) => {
                     await key('\x1b[H', 'first row');
@@ -392,6 +403,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                     await until(text => selected(text, history), 'history entry restored');
                 } else {
                     await select('Enter choose · Channel:');
+                    const versionGroup = '─ ' + t('package.ui.version_options', 'en') + ' ─';
+                    await until(text => text.includes(versionGroup), 'version options are separated by a group divider after specifying a prefix');
                     await key('\r', 'open channel choices');
                     await until(text => text.includes('latest') && text.includes('beta') &&
                         selected(text, 'Use installation channel'), 'all available channels and the current value visible');
@@ -469,15 +482,22 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await until(text => /›.*Save display/u.test(text), 'native save binding selected');
             };
             type ExternalWait = (label: string, matches?: (text: string) => boolean) => Promise<string>;
-            const runExternal = async (label: string, journey: (tty: ReturnType<typeof openPty>, wait: ExternalWait) => Promise<void>) => {
+            const runExternal = async (label: string, journey: (
+                tty: ReturnType<typeof openPty>, wait: ExternalWait, resize: (width: number, height: number) => void,
+            ) => Promise<void>) => {
                 const child = openPty(config, 120, 30, environment, 'en', { executable: installed.node, args: [shim, 'configure', '--config-dir', config], cwd: project });
-                const capture = new Capture(120, 30);
+                let capture = new Capture(120, 30);
                 let offset = 0;
                 const screenText = () => {
                     const bytes = child.captured(); capture.feed(bytes.subarray(offset)); offset = bytes.length;
                     return capture.buffer.map(row => row.map(cell => cell.data).join('')).join('\n');
                 };
                 try {
+                    const resize = (width: number, height: number) => {
+                        offset = child.captured().length;
+                        capture = new Capture(width, height);
+                        child.resize(width, height);
+                    };
                     await journey(child, async (value, matches = text => text.includes(value)) => {
                         let frame = '';
                         await child.wait(() => {
@@ -486,7 +506,7 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                         });
                         steps.push({ name: label + ': ' + value, elapsed_ms: Date.now() - start });
                         return frame;
-                    });
+                    }, resize);
                     await child.exited();
                     assert.equal(child.child.exitCode, 0);
                     assert.deepEqual(child.attributes(), child.before);
@@ -569,14 +589,22 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 await wait(customClose);
                 tty.send('\x1b');
             });
-            await runExternal('terminal-restore', async (tty, wait) => {
+            await runExternal('terminal-restore', async (tty, wait, resize) => {
                 await wait(customSave);
                 tty.send('\t\t\t\x1b[F\r');
                 await wait('/ filter');
                 const help = new Capture(120, 30);
                 help.feed(tty.captured());
                 assertShortcutHelp(help);
-                tty.send('\t\x1b[B\r\x1b[A\r');
+                resize(32, 12);
+                await wait('save row and two column headings survive a resize to 32×12', text =>
+                    /OPTION +VALUE/u.test(text) && /› Save display +Z/u.test(text));
+                tty.send('\t\x1b[C');
+                await wait('› Restore all');
+                resize(120, 30);
+                await wait('menu focus and three column headings survive widening', text =>
+                    /OPTION +CURRENT KEY +DEFAULT KEY/u.test(text) && text.includes('› Restore all'));
+                tty.send('\r\x1b[A\r');
                 await wait('Keyboard shortcuts saved');
                 assert.equal(fs.existsSync(preference), false);
                 tty.send('\x07\x1b');

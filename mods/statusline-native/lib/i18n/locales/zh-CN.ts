@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} 选择 · {enter} 确认 · {back} 取消",
   "shortcuts.confirm-reload": "放弃暂存并读取已保存的快捷键？",
   "shortcuts.conflict": "{editor}的 {key} 同时绑定了「{first}」和「{second}」。",
+  "shortcuts.current-key": "当前键",
+  "shortcuts.default-key": "默认键",
   "shortcuts.discard": "放弃快捷键修改",
   "shortcuts.failed": "快捷键操作失败。{detail}",
   "shortcuts.filter": "筛选",

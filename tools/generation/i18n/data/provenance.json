@@ -73144,6 +73144,147 @@
       },
       "review": "Reviewed the installation and review terminology, target and channel defaults, navigation labels, and named key/value placeholders across the twelve interface packs.",
       "validated_inputs_sha256": "ff0ed0bd663dda300af6970cc4de25ca087876d0c42e9814436b5ccdccc7bd1a"
+    },
+    "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "2b0a4ad10e67ef4dfe9248b38143feea25cc9f6310ea1901fb4349ad1e4f78e0"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "c065a4b9c72c4edc8ae8f7e6aec769c1098259ef433a9d9a086611300ebc9351"
+          }
+        },
+        "en": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "8575c859ad922cfec0c422ec81619d253d43ebfef34cf639313fdd98c962a627"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "b178c071096ff86c7f50a83bafcdffa6e1bc3fdd4aeeaa0b3936cedf227271c5"
+          }
+        },
+        "es": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "2707c9811d865d8a79534793a9e30040ca54b5fcf948cbebddd40c0ad72ca9cb"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "9153365fdb4b7058cebe57e1a26c2e9a1ca39dca123cd201342e994cefb1e28c"
+          }
+        },
+        "fr": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "bbd0b66deb4af4bf8b02d293cedc11e4755a11b9393420483d59c2e90c6040aa"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "fb0e5697abffff2a4b222166daa97f1d60257f811412e1ff303ca1d7c5402cb1"
+          }
+        },
+        "id": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "657a23aa1e8b83df78c456acbb45669bec181e9eb3946d260f8b746ee5dc4f69"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "7966ed21065ac48e4f2747298ba6316a383c7c6cb1f630aceebb8c58b0a0ec40"
+          }
+        },
+        "ja": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "64d42fdf5b6f1043544ff7e2c765ed5045a2d2be2d07effac33f415d6d9c944c"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "a08dd3e96fb8fa516d33b2e01ed77cde508840e503e30f6311a37f944f57a64a"
+          }
+        },
+        "ko": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "b9f9483ca43da5d98239d66eddb38198b5b9647154f1f690c03576553923ccf3"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "1220ca4e7076c8d8362a6865a99dc9ea6b00eaf632910c5ec00fd0ba8dd5ee09"
+          }
+        },
+        "pt-BR": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "b2e5aa345ee59635d360b8df21f6062f26118a843f5ea4a0766ee011cc94e57d"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "8c24259b211f9231730d42af31d092c0c134b8cd05d5ed13bfa50f7069dd46c4"
+          }
+        },
+        "ru": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "a18aae0d34d433b7a835d67ef0f97450e498bd1a570619083a5bff7ff1f2f8c9"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "94293736e259f3905dd8ae88c0aa7575d0b79e5be771da1c0b45983d83eeb9a7"
+          }
+        },
+        "zh-CN": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "500748650404f306887e65dd0df3441ee92d00d28908376a2c054b6f9af08929"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "5d6da38397fb973cf34ccd61c4dad3ce2e923953dbdcdc0ebc698c5d6ed4a033"
+          }
+        },
+        "zh-HK": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "7f379eafacf05a9fd0da7ce2b8789b0198599c2590d365537ad93144ecbc7c4d"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "5fa03ee2cf529d7b90072890964edabc3a58649eb8523a941456e89e443a775a"
+          }
+        },
+        "zh-TW": {
+          "shortcuts.current-key": {
+            "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+            "translation": "7f379eafacf05a9fd0da7ce2b8789b0198599c2590d365537ad93144ecbc7c4d"
+          },
+          "shortcuts.default-key": {
+            "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+            "translation": "5fa03ee2cf529d7b90072890964edabc3a58649eb8523a941456e89e443a775a"
+          }
+        }
+      },
+      "review": "Reviewed current and default key column terminology and terminal cell lengths in all twelve locale packs.",
+      "validated_inputs_sha256": "6dca616d69bd651765fd976675a082954126c8144c0daf6ed72f7ed28b4fa9dd"
     }
   }
 }

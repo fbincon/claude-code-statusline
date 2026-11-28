@@ -20,7 +20,7 @@ import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
-import { dimensions, formWindow, usesReportRows } from './layout.js';
+import { canvasSize, dimensions, formWindow, usesReportRows } from './layout.js';
 import { externalTaskRows } from './report-refresh.js';
 import { sourceObservationJob } from './manager-refresh.js';
 import { formPageIndex } from './navigation.js';
@@ -241,7 +241,10 @@ export class State {
         if (e.saveState === 'pending') return null;
         if (!size.available && !cancel && !(e.shortcuts.panel && shortcutPanelFits(columns, rows))) return null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
-        if (e.shortcuts.panel) return e.shortcuts.key(event, this.language, columns, rows - 1, event.shift);
+        if (e.shortcuts.panel) {
+            const viewport = canvasSize(columns, rows);
+            return e.shortcuts.key(event, this.language, viewport.columns, viewport.rows, event.shift);
+        }
         if (e.changeReview) return changesKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         if (e.reuse) return reuseKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
         // Several decoded keys can arrive before the next terminal draw.

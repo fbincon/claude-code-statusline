@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} choisir · {enter} confirmer · {back} annuler",
   "shortcuts.confirm-reload": "Relire les raccourcis enregistrés et abandonner ce brouillon ?",
   "shortcuts.conflict": "{editor} : {key} est affectée à {first} et {second}.",
+  "shortcuts.current-key": "TOUCHE ACTUELLE",
+  "shortcuts.default-key": "TOUCHE PAR DÉFAUT",
   "shortcuts.discard": "Abandonner les changements de raccourcis",
   "shortcuts.failed": "Échec de l’opération sur les raccourcis. {detail}",
   "shortcuts.filter": "Filtrer",

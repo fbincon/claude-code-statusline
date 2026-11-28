@@ -1,5 +1,5 @@
 import { t, renderMessage, type Language } from '../i18n/messages.js';
-import { hintLine, prependLine, wrapEditorLine, type EditorLine } from './hints.js';
+import { hintLine, prependLine, sectionDivider, wrapEditorLine, type EditorLine } from './hints.js';
 import {
     PACKAGE_CHANNELS, PACKAGE_RECORDS_PER_PAGE, packageCanExecute, packageCanReview, packageRowCanFocus,
     type PackageCommand, type PackageManager, type PackagePage,
@@ -255,8 +255,9 @@ export function packageView(view: PackageManager, language: Language, width: num
     if (view.input && view.editing) return inputRows(view, language, columns).slice(-view.capacity);
 
     const rows = packageRows(view, language, shortcuts, automatic)
-        .flatMap(({ text, keys, ...row }) => wrapEditorLine(view.busy ? { text } : { text, keys }, columns)
-            .map((line, part) => ({ ...row, ...line, part })));
+        .flatMap(({ text, keys, ...row }) => row.heading ? [{ ...row, text: sectionDivider(text, width), part: 0 }]
+            : wrapEditorLine(view.busy ? { text } : { text, keys }, columns)
+                .map((line, part) => ({ ...row, ...line, part })));
     const summary: PackageRow[] = [];
     if (view.mode === 'status' && rows[0]?.key === 'summary' && view.capacity >= 3) {
         const summaryRows = rows.findIndex(row => row.key !== 'summary');
@@ -271,7 +272,8 @@ export function packageView(view: PackageManager, language: Language, width: num
     view.scroll = Math.max(0, Math.min(view.scroll, index, rows.length - view.capacity));
     if (index >= view.scroll + view.capacity) view.scroll = index - view.capacity + 1;
     return [...summary.map(row => ({ ...row, ...prependLine('  ', row) })), ...rows.slice(view.scroll, view.scroll + view.capacity).map((row, offset) => {
-        const selected = !row.heading && view.scroll + offset === index;
+        if (row.heading) return row;
+        const selected = view.scroll + offset === index;
         return { ...row, ...prependLine(selected && row.command ? '› ' : '  ', row), selected };
     })];
 }

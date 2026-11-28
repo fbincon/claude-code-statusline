@@ -1774,6 +1774,8 @@ export const MESSAGES = {
   "shortcuts.confirm-help": "{arrows} selecionar · {enter} confirmar · {back} cancelar",
   "shortcuts.confirm-reload": "Ler os atalhos salvos e descartar este rascunho?",
   "shortcuts.conflict": "Em {editor}, a tecla {key} está atribuída a «{first}» e «{second}».",
+  "shortcuts.current-key": "TECLA ATUAL",
+  "shortcuts.default-key": "TECLA PADRÃO",
   "shortcuts.discard": "Descartar alterações nos atalhos",
   "shortcuts.failed": "A operação de atalhos falhou. {detail}",
   "shortcuts.filter": "Filtro",

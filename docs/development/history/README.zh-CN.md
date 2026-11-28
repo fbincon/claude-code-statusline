@@ -22,7 +22,7 @@
 | --- | --- |
 | v3.17.0 AgentRow 与编辑器 | [AgentRow 与编辑器交付](deliveries/v3-17-0.zh-CN.md#final-release) |
 | 子代理行兼容 | [AgentRow 与旧版子代理行兼容](deliveries/agent-row-compatibility.zh-CN.md) |
-| 编辑器快捷键 | [项目格式与快捷键提示](deliveries/editor-hint-clarity.zh-CN.md) · [两种编辑器的自定义快捷键](deliveries/editor-shortcuts.zh-CN.md) · [快捷键可靠性](deliveries/editor-shortcut-reliability.zh-CN.md) · [组件列表快捷键](deliveries/editor-list-shortcuts.zh-CN.md) · [终端设置快捷键](deliveries/terminal-settings-shortcuts.zh-CN.md) · [快捷键修复与保存确认](deliveries/editor-shortcut-correctness.zh-CN.md) |
+| 编辑器快捷键 | [版本与快捷键面板](deliveries/editor-panel-layout.zh-CN.md) · [项目格式与快捷键提示](deliveries/editor-hint-clarity.zh-CN.md) · [两种编辑器的自定义快捷键](deliveries/editor-shortcuts.zh-CN.md) · [快捷键可靠性](deliveries/editor-shortcut-reliability.zh-CN.md) · [组件列表快捷键](deliveries/editor-list-shortcuts.zh-CN.md) · [终端设置快捷键](deliveries/terminal-settings-shortcuts.zh-CN.md) · [快捷键修复与保存确认](deliveries/editor-shortcut-correctness.zh-CN.md) |
 | 外部编辑器刷新 | [任务报告、作业进度与列表重读](deliveries/external-editor-live-refresh.zh-CN.md) |
 | 组件编辑 | [分组移动](deliveries/editor-group-movement.zh-CN.md) · [目录状态与连续添加](deliveries/component-catalog.zh-CN.md) |
 | v3.16.5 宿主兼容 | [宿主兼容与恢复交付](deliveries/v3-16-5.zh-CN.md#final-release) |

@@ -5,7 +5,7 @@ import { diagnosisPage } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { colorsView } from '@fbincon/statusline-core/editor/color-manager';
 import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
 import { groupsHelp, groupsView } from '@fbincon/statusline-core/editor/group-manager';
-import type { EditorLine } from '@fbincon/statusline-core/editor/hints';
+import { sectionDivider, type EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
@@ -123,8 +123,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
             '  ' + tr('ui.drawing.value').trim(), true)]);
         window.lines.forEach((entry, index) => {
             if (entry.index === undefined) {
-                const title = '─ ' + column(tr(groupKey(entry.group)), width - 3).trimEnd() + ' ';
-                canvas.content(panel, index + 1, [heading(title + '─'.repeat(Math.max(0, width - displayWidth(title))))]);
+                canvas.content(panel, index + 1, [heading(sectionDivider(tr(groupKey(entry.group)), width))]);
                 return;
             }
             const row = values[entry.index]!;

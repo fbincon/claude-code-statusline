@@ -17697,6 +17697,20 @@
       "method": "validated_accepted",
       "validation_version": 1,
       "evidence": "514bc6b8a6555931c020e50103bfd29ff27f327f43c4f99daed46a12b0b1c6bd"
+    },
+    "shortcuts.current-key": {
+      "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+      "translation": "500748650404f306887e65dd0df3441ee92d00d28908376a2c054b6f9af08929",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136"
+    },
+    "shortcuts.default-key": {
+      "source": "8e14414e46da5d4ccfa469148fd65450318bcba126a027a07427cb683811c9a0",
+      "translation": "5d6da38397fb973cf34ccd61c4dad3ce2e923953dbdcdc0ebc698c5d6ed4a033",
+      "method": "validated_accepted",
+      "validation_version": 1,
+      "evidence": "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136"
     }
   }
 }
