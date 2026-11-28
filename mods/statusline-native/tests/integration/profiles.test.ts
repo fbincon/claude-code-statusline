@@ -23,7 +23,7 @@ test('native scheme manager previews, changes target and saves the shared scheme
   const ui=await $.ui.mount(PANE);
   await keys(ui,{key:'o',ctrl:true},'down','return');
   expect(f.calls.some(c=>c.operation==='apply')).toBe(false);
-  await keys(ui,'return','3',' ','s');
+  await keys(ui,'return','4',' ','s');
   expect(library.profiles[0]!.display.use_colors).toBe(false);
   expect(JSON.stringify(f.store.draft)).toBe(original);
   expect(f.calls.find(c=>c.operation==='apply')!.payload.target).toEqual({kind:'profile',id:'scheme'});
@@ -38,7 +38,7 @@ for(const language of LANGUAGES)test(`localized profile entry retains the draft 
   const ui=await $.ui.mount(PANE),saved=JSON.stringify(f.store.draft);
   await keys(ui,'d');const draft=JSON.stringify(previewDraft(f));
   expect(draft===saved).toBe(false);
-  await keys(ui,'3');await selectSetting(ui,'profiles');
+  await keys(ui,'4');await selectSetting(ui,'profiles');
   expect(await visibleText(ui)).toContain(t('settings.profiles',language));
   await keys(ui,'return');
   expect(await visibleText(ui)).toContain(t('profiles.title',language));

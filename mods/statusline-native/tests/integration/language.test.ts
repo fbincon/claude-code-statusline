@@ -15,7 +15,7 @@ test('registered languages cycle forwards and backwards without replacing the di
     en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-TW': '設定狀態列',
     ja: 'ステータスライン設定', ko: '상태 표시줄 설정',
   };
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'ui-language');
   const draft = JSON.stringify(previewDraft(fixture));
   for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
@@ -50,7 +50,7 @@ test('language persists immediately across cancel and reopening while display dr
   const ui = await $.ui.mount(PANE);
   const props = async () => await presentation(ui);
   const before = JSON.stringify(fixture.store.draft);
-  await keys(ui,'3',' ');
+  await keys(ui,'4',' ');
   const draft = JSON.stringify(previewDraft(fixture));
   await selectSetting(ui,'ui-language');
   await keys(ui,'right');
@@ -67,7 +67,7 @@ test('language persists immediately across cancel and reopening while display dr
   const reopened=await $.ui.mount(PANE);
   expect((await presentation(reopened)).language).toBe('zh-CN');
   expect(JSON.stringify(fixture.store.draft)).toBe(before);
-  await keys(reopened,'3');
+  await keys(reopened,'4');
   await selectSetting(reopened,'ui-language');
   await keys(reopened,'left');
   expect(fixture.store.uiLanguage).toBe('en');
@@ -81,7 +81,7 @@ test('rejected language write restores the last display language without replaci
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
-  await keys(ui,'3');
+  await keys(ui,'4');
   await selectSetting(ui,'ui-language');
   const before=previewDraft(fixture);
   await keys(ui,'right');
@@ -117,7 +117,7 @@ test('statusline language previews a display draft and cancel discards it in eit
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const view = async () => await presentation(ui);
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'field:statusline_language');
   await keys(ui, 'right');
   const current = await view();
@@ -149,7 +149,7 @@ test('saving statusline language persists the complete draft while a refusal ret
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const view = async () => await presentation(ui);
-  await keys(ui, '3', 'right');
+  await keys(ui, '4', 'right');
   await selectSetting(ui, 'field:statusline_language');
   await keys(ui, 'right');
   expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');

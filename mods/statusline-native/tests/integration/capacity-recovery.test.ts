@@ -73,7 +73,7 @@ test('presentation recovery checks an unknown save by reading without resubmitti
     return result;
   };
   await $.session.start(START); await $.command.run(RUN); const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', ' ', 's');
+  await keys(ui, '4', ' ', 's');
   expect(await ui.find({type: 'Text', text: /Save outcome unknown/})).toBeDefined();
   expect(await ui.find({key: 'retry-client'})).toBeUndefined();
   await ui.press({key: 'close'}); expect(fixture.closes.length).toBe(0);

@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { prepare, readResult, started, cleanup, LAUNCH_TIMEOUT } from '@fbincon/statusline-platform/terminal/bridge';
+import { prepare, readResult, started, cleanup, LAUNCH_TIMEOUT, STARTUP_TIMEOUT_MS } from '@fbincon/statusline-platform/terminal/bridge';
 import { chooseLauncher, bridgeEnvironment, workingDirectory, launcherArguments, start, startWindows, type Launcher, type Running } from '@fbincon/statusline-platform/terminal/launchers';
 import { processMatches } from '@fbincon/statusline-platform/processes';
 import { durableUnlink } from '@fbincon/statusline-platform/files';
@@ -48,7 +48,8 @@ export async function launchEditor(request: EditorRequest, environment: Launcher
         invocation = prepare(request.configDir, request.backend, cwd);
         const argv = launcherArguments(launcher, invocation.request, invocation.directory, env);
         running = (environment.run ?? (launcher.kind === 'windows-console' ? startWindows : start))(argv, cwd, bridgeEnvironment(invocation.request, invocation.directory, env));
-        const expires = now() + (environment.timeoutMs ?? LAUNCH_TIMEOUT), startup = now() + 30000;
+        const began = now();
+        const expires = began + (environment.timeoutMs ?? LAUNCH_TIMEOUT), startup = began + STARTUP_TIMEOUT_MS;
         for (;;) {
             const error = running.error();
             if (error)

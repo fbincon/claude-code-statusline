@@ -2,6 +2,7 @@ import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
 /** External-editor frame composition. Existing drawing exports remain stable. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
+import { EDITOR_PAGES } from '@fbincon/statusline-core/editor/draft';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
@@ -66,7 +67,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return canvas.frame();
     }
 
-    if (!reportPage) state.ensureVisible(size.listHeight);
+    if (!reportPage) state.ensureVisible(state.form ? size.formHeight : size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
     const pickerNotice = !state.input && !e.detail && !e.changeReview ? e.picker?.notice : null;
     const description = pickerNotice ? renderMessage(pickerNotice, state.language)
@@ -78,7 +79,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
                     : 'adjust_display_and_tool_refresh_settings'));
     canvas.line(1, description);
     let tabX = 0;
-    for (const page of ['main', 'subagents', 'settings', 'layout']) {
+    for (const page of EDITOR_PAGES) {
         const label = tr('ui.drawing.' + page);
         canvas.put(2, tabX, [paint(label, page === e.page, page === e.page)]);
         tabX += displayWidth(label) + 2;

@@ -12,7 +12,7 @@ interface Step {
 
 /** Drive identical key sequences and check on-disk state on POSIX PTYs and Windows consoles. */
 export function installedEditorJourney(config: string, choice: Journey) {
-    const openShortcuts = '\t\t\x1b[F\r'; // Settings, last row, open Keyboard shortcuts.
+    const openShortcuts = '\t\t\t\x1b[F\r'; // Settings, last row, open Keyboard shortcuts.
     const journeys: Record<Journey, Step[]> = {
         save: [
             { visible: 'Preview (sample data)', keys: '\r', preference: 'preset' },
@@ -21,7 +21,7 @@ export function installedEditorJourney(config: string, choice: Journey) {
             { visible: 'New key for Exit editor', keys: '\x03' },
             { visible: 'Ctrl+C interrupts', keys: '\x07\t\r', preference: 'preset' },
             { visible: 'Keyboard shortcuts saved.', keys: '\x07', preference: 'custom' },
-            { visible: 'Z save', keys: '\x13\t' },
+            { visible: 'Z save', keys: '\x13\x1b[Z' },
             { visible: 'Set explicit rows', keys: 'z' },
         ],
         restore: [
@@ -29,7 +29,7 @@ export function installedEditorJourney(config: string, choice: Journey) {
             { visible: 'Configure Status Line *', keys: openShortcuts + '\t\x1b[B\r' },
             { visible: 'Defaults staged. Save to apply.', keys: '\x1b[A\r', preference: 'custom' },
             { visible: 'Keyboard shortcuts saved.', keys: '\x07', preference: 'preset' },
-            { visible: 'Ctrl+S save', keys: 'z\t' },
+            { visible: 'Ctrl+S save', keys: 'z\x1b[Z' },
             { visible: 'Set explicit rows', keys: '\x13' },
         ],
         cancel: [

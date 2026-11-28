@@ -2138,18 +2138,18 @@
       "evidence": "v3.14.0-verified-pr"
     },
     "doctor.doctor.hook_exactly_one_600s": {
-      "source": "8208ec4a0cb67e8a99c26b46e5c4b6f5ea6e5cd0ac98e390be3bfd4b9065c7ca",
-      "translation": "1b6592c9779b9a33fb32ed6fc97be61404a28cea79283731122879e3f3d82dce",
-      "method": "baseline_accepted",
+      "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+      "translation": "d9cc80f12022840ab30427026a55efb41e9b9a453b622213dfac788c83c7d5fc",
+      "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "v3.14.0-verified-pr"
+      "evidence": "e276d97dffea7f16427d76cc6addb32ebeaa51c8da9b2e3659d543a8327577fa"
     },
     "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
-      "source": "0dd2ea8677c3c7cc0d140a42288388465c905baa6e2ed0ed3658c6ef40e48343",
-      "translation": "67aa08b99d4582093f2b31db8422279942c62ccbbd2cd1ead697ab16ba97c2cb",
-      "method": "baseline_accepted",
+      "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+      "translation": "ee28d5c9ebbb5c3bb5d1198ccd321d335e14dc57b8144390992849320ed0be78",
+      "method": "validated_accepted",
       "validation_version": 1,
-      "evidence": "v3.14.0-verified-pr"
+      "evidence": "e276d97dffea7f16427d76cc6addb32ebeaa51c8da9b2e3659d543a8327577fa"
     },
     "doctor.doctor.hook_expected_one_found": {
       "source": "ada6a27f8fb3eca8463db2af8dd8d54321a2799157c332bf978f029216ef989a",

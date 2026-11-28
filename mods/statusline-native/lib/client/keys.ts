@@ -11,6 +11,7 @@ import { openExplanation, explanationKey } from '../editor/explanation.ts';
 import { openQuick, controlQuick } from '../editor/quick-setup.ts';
 import { openProfiles, profilesKey } from '../editor/profile-manager.ts';
 import { inputKey } from '../editor/text-input.ts';
+import { cycleEditorPage, EDITOR_PAGES } from '../editor/draft.ts';
 import type { NativeKeyEvent } from './messages.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
@@ -183,6 +184,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     }
     return null;
   }
+  const numberedPage = /^[1-9]$/u.test(key) ? EDITOR_PAGES[Number(key) - 1] : undefined;
   if(!e.detail&&(e.page==='main'||e.page==='subagents')){
     const scope=e.page==='main'?'main':'subagent';
     if(action === 'add-item'){e.openPicker(scope);return null;}
@@ -197,7 +199,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     }
     if(action === 'close-picker'){e.closePicker();return null;}
     if(event.ctrl&&!event.meta&&shortcut==='u'){e.filter(scope, '');return null;}
-    if(e.adding&&['tab','1','2','3','4'].includes(key))return null;
+    if (e.adding && (key === 'tab' || numberedPage)) return null;
   }
   if (action === 'item-details' && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
@@ -236,9 +238,16 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   }
   if (event.ctrl || event.meta) return null;
   if (shortcut === 'k') return 'reconcile';
-  const pages = ['main', 'subagents', 'settings', 'layout'] as const;
-  if (key === 'tab') { e.page = pages[(pages.indexOf(e.page) + (event.shift ? 3 : 1)) % 4]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
-  if (['1', '2', '3', '4'].includes(key)) { e.page = pages[Number(key) - 1]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
+  const page = key === 'tab' ? cycleEditorPage(e.page, event.shift) : numberedPage;
+  if (page) {
+    e.page = page;
+    e.detail = null;
+    if (page === 'layout' || page === 'settings') {
+      const settings = settingRows(view);
+      e.setting = settings.find(row => row.key === e.setting)?.key ?? settings[0]!.key;
+    }
+    return null;
+  }
   const size = editorLayout(view, columns, rows);
   if (!size.available) return null;
   const isSettings = !!e.detail || e.page === 'settings' || e.page === 'layout';

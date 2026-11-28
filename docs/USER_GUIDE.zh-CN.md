@@ -82,7 +82,7 @@ claude-statusline doctor
 
 [条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
 
-主栏支持 65 个主栏指标，子代理行支持 15 个子代理指标，两个作用域均支持文本和弹性留白，默认启用 10 个主栏条目和 5 个子代理条目。终端编辑器与会话内编辑器（Client）均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、八套完整显示方案与六种原有预设及可移植 JSON 文件。
+主栏支持 65 个主栏指标，子代理行支持 15 个子代理指标，两个作用域均支持文本和弹性留白，默认启用 10 个主栏条目和 5 个子代理条目。两个编辑器均按 Main、Subagents、Layout、Settings 的顺序显示四页，并提供固定样例预览、格式设置、八套完整显示方案与六种原有预设，以及可移植 JSON 文件。
 
 主栏显示主会话数据，各子代理行显示自己的任务数据；任务计时包含子代理工作和主代理收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -717,7 +717,7 @@ claude-statusline configure
 
 Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.cmd configure`。编辑器使用 Node raw TTY／VT 输入输出。检查已安装入口是否运行在真实控制台，以及 `doctor` 报告的资源、绑定和运行目录写入能力；当前不会输出已退役的 curses 诊断行。
 
-若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
+Claude Code hook 为编辑器启动、编辑和清理共预留 31 分钟。手动通过 npm 升级后如果仍使用原来的 hook 超时时间，请重新运行 `claude-statusline install` 并重启 Claude Code。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
 
 若启用了 `disableAllHooks`，本地启动器不会运行。本地拦截不可用时，回退 skill 会说明未能启动编辑器，建议在终端运行 `claude-statusline configure`（Windows 使用 `claude-statusline.cmd configure`）或使用 `/statusline-config`。它禁止通过 Bash／PowerShell 或其他模型工具启动终端界面；该例外可能产生一个极短模型回合。检查 hooks 设置后新开会话再试。
 

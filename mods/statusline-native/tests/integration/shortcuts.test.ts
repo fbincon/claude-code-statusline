@@ -7,7 +7,7 @@ test('editing shortcuts preserves the native draft and changes the visible contr
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, ' ', '3');
+  await keys(ui, ' ', '4');
   await selectSetting(ui, 'keyboard-shortcuts');
   await keys(ui, 'return');
   await ui.resize({ columns: 32, rows: 12 });
@@ -39,7 +39,7 @@ test('finishing with pending Claude preferences shows their active apply, finish
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount({ ...PANE, viewport: { columns: 170, rows: 40 }, props: { ...PANE.props, bodyColumns: 140 } });
-  await keys(ui, '3', 'h');
+  await keys(ui, '4', 'h');
   await selectSetting(ui, 'host-theme');
   await keys(ui, 'right', 'j');
   expect(await visibleText(ui)).toContain(t('shortcuts.host-preferences-pending', 'en', { apply: 'B', finish: 'J', close: 'Z' }));

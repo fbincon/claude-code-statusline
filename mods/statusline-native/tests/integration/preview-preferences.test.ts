@@ -9,7 +9,7 @@ test('preview background remembers immediately across cancel/reopen without chan
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const before = JSON.stringify(fixture.store.draft);
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'preview-background');
   expect(await visibleText(ui)).toContain('light');
   await keys(ui, 'right');
@@ -33,7 +33,7 @@ test('failed background writes restore the remembered choice and keep the draft'
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const before = JSON.stringify(fixture.store.draft);
-  await keys(ui, '3');
+  await keys(ui, '4');
   await selectSetting(ui, 'preview-background');
   await keys(ui, 'return');
   expect(await visibleText(ui)).toContain('dark');

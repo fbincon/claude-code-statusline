@@ -1,12 +1,30 @@
 /** External-editor labels and values; editable text remains canonical. */
+import type { CatalogItem } from '@fbincon/statusline-core/contracts/ui';
 import { fieldMessage } from '@fbincon/statusline-core/editor/forms';
 import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
-import { t, renderMessage, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/messages';
+import { t, renderMessage, LANGUAGE_NAMES, type Language } from '@fbincon/statusline-core/i18n/messages';
+import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import type { State, Row } from '../state.js';
 import { taskRefreshInterval } from '../report-refresh.js';
 
 export const groupKey = (group: string): string =>
     'groups.' + group.toLowerCase().replaceAll(' / ', '.').replaceAll(' ', '-');
+
+export function itemDetailRows(item: CatalogItem & { type_id?: string }, language: Language, width: number): string[] {
+    const separator = ' · ';
+    const detail = t(`items.${item.scope}.${item.type_id ?? item.id}.description`, language, {}, item.description);
+    const examples = item.examples.join(separator);
+    // Separate the translated clauses before substituting values so the example gets its own row at narrow widths.
+    const [detailTemplate, exampleTemplate, extra] = t('native.item_detail', language).split(separator);
+    if (extra !== undefined || !detailTemplate?.includes('{detail}') || !exampleTemplate?.includes('{examples}')) {
+        return [t('native.item_detail', language, { detail, examples })];
+    }
+    const detailLine = detailTemplate.replace('{detail}', () => detail);
+    if (!examples) return [detailLine];
+    const exampleLine = exampleTemplate.replace('{examples}', () => examples);
+    const inline = detailLine + separator + exampleLine;
+    return displayWidth(inline) <= width ? [inline] : [detailLine, exampleLine];
+}
 
 export function taskReportStatus(view: TaskViewer): string {
     const readOnly = t('ui.refresh.read_only', view.language);

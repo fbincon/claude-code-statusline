@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { frame } from '../src/drawing.js';
+import { dimensions } from '../src/layout.js';
 import { fixture } from './fixtures.js';
 
 test('Settings and Layout retain independent selection and scroll across round trips', () => {
@@ -11,16 +12,17 @@ test('Settings and Layout retain independent selection and scroll across round t
     assert.equal(e.setting, 'field:formatting.labels');
     const settingsScroll = state.scroll.settings;
     assert.equal(settingsScroll, 16);
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     state.key({ key: 'end' });
     const layoutField = e.setting, layoutScroll = state.scroll.layout;
-    state.key({ key: 'tab', shift: true });
+    state.key({ key: 'tab' });
     assert.equal(e.setting, 'field:formatting.labels');
     assert.equal(state.scroll.settings, settingsScroll);
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     assert.equal(e.setting, layoutField);
     assert.equal(state.scroll.layout, layoutScroll);
     // Traversing a transient detail must not replace either page's field.
+    state.key({ key: 'tab' });
     state.key({ key: 'tab' });
     state.key({ key: 'e', ctrl: true });
     state.key({ key: 'end' });
@@ -31,10 +33,9 @@ test('Settings and Layout retain independent selection and scroll across round t
     assert.equal(e.setting, 'item:label');
     assert.equal(state.scroll.detail, 0);
     state.key({ key: 'g', ctrl: true });
-    state.key({ key: 'tab' });
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     assert.equal(e.setting, 'field:formatting.labels');
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     assert.equal(e.setting, layoutField);
 });
 
@@ -49,15 +50,15 @@ test('resizing preserves focus and pending input; removed layout fields safely f
     assert.equal(e.setting, 'field:metrics.branch_diff_base_ref');
     assert.deepEqual(state.input, input);
     state.key({ key: 'escape' });
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     state.key({ key: 'end' });
     assert.ok(e.setting.startsWith('fit:'));
-    state.key({ key: 'tab', shift: true });
+    state.key({ key: 'tab' });
     const replacement = structuredClone(e.draft);
     replacement.display.instances = [];
     replacement.display.layout = { mode: 'auto', rows: [] };
     e.replaceDraft(replacement);
-    state.key({ key: 'tab' });
+    state.key({ key: 'tab', shift: true });
     assert.equal(e.setting, 'layout-mode');
     assert.equal(state.scroll.layout, 0);
 });
@@ -92,5 +93,8 @@ test('form paging counts fields in Layout and item details while list paging cou
     state.key({ key: 'g', ctrl: true }, 64, 18);
     state.key({ key: 'home' }, 64, 18);
     state.key({ key: 'pagedown' }, 64, 18);
-    assert.equal(e.selected.main, e.visible('main')[6]!.id);
+    assert.equal(e.selected.main, e.visible('main')[dimensions(64, 18).listHeight]!.id);
+    const value = frame(state, 64, 18);
+    const { content, listHeight } = dimensions(64, 18);
+    assert.ok(value.rows.slice(content.innerY + 1, content.innerY + listHeight + 1).some(row => row.some(span => span.reverse)));
 });

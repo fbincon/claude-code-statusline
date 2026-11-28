@@ -69217,6 +69217,147 @@
       },
       "review": "Applied the documented Hong Kong terminology for installation identity. Verified by the regional terminology regression.",
       "validated_inputs_sha256": "52a62b4d19fa7cd4f8954ccb635e1f3ab438a9b50910ac33329c030a742db864"
+    },
+    "e276d97dffea7f16427d76cc6addb32ebeaa51c8da9b2e3659d543a8327577fa": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "4222c37a10391e07420e6d93b78745737b7a72fcdf8c8cbae24f27f5417853cc"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "4e45cf9055cc24b8ee71661494f0e6fe806acd7eb8343c402c38badd1685aec2"
+          }
+        },
+        "en": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "a5fa5f1db6588682809d9b8ce098615f8f36c7841c2c478cad9693305e7105df"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "e1718486e0df260d3afd0fd1796ae9041ac6af7824025b138ed0acae9ec0268b"
+          }
+        },
+        "es": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "a9b513267f87580f1c0379b2745294615ae175012e31016d0e8c85948a99ab56"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "7239bee0a2d04137ac088b5ac00a76f7afbd78a59f47ea20d0fab67839adab42"
+          }
+        },
+        "fr": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "2c4fca96a4d13b1bdadb3a7f265e80d9be2447920a856b548ccfb1acb2ba561a"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "8b09c4c1f20ab2a8ae7da2ca98bcff686e434597245df0128e9b0001d7c0ddef"
+          }
+        },
+        "id": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "6b800dfe4444f48f564345f5cdb4f9581368561276e509b0f7221d12a5ea441d"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "5a05a2fb1bf20b82b0efb5bb7a3b47fd38b687c15ff27bb81756d066925a265b"
+          }
+        },
+        "ja": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "6e1e02ce891c99c2d991b18d038373243298d6e146df804bb821af738e348dac"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "77e5f99b3cc6c98dfc04da1f7fa94113bf9518bd2031806e3b971fb46c31f118"
+          }
+        },
+        "ko": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "04fe621084f4fbacc40597fd8f958aa8174bdb8e0f834647962d3b126993b63d"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "f01ad652e2b4cb16c72063fd34455aa50439a32f35710d7cba0e8a656ddbef88"
+          }
+        },
+        "pt-BR": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "fd0693a03eb5a1206a014c783a5bb4d553415c7575697e7f5a4326c2301c834e"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "dadea2b3d66b8e9a16593eed4dfd1f3c030a0207896771e27934a9873570b77e"
+          }
+        },
+        "ru": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "fa75942fc06f7bc273a83f5105278674f2e8002f3136bd28c9e3fc9aa960c76b"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "1190f93b6917e3ee2c2fdc65e2efcc0605d71f6c901130b9928c4ce4be1b5175"
+          }
+        },
+        "zh-CN": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "1f3ad7fca854549f0cb117215d3d6b0ac7c146df28dea04fef1f88d975a69f77"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "905868207d3e22e738aa73e991fb8a89c4129601b8206e4956d4895ddcb03f09"
+          }
+        },
+        "zh-HK": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "d9cc80f12022840ab30427026a55efb41e9b9a453b622213dfac788c83c7d5fc"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "ee28d5c9ebbb5c3bb5d1198ccd321d335e14dc57b8144390992849320ed0be78"
+          }
+        },
+        "zh-TW": {
+          "doctor.doctor.hook_exactly_one_600s": {
+            "source": "b599c7e34e6d77dfcf9527f02d757dc8e98322b3c1af55a6e80c700275aa72c4",
+            "translation": "fa45e15db05dda1d431291adb54807ff9dc4fcf8951471a95c1a665d6a74fb38"
+          },
+          "doctor.doctor.hook_expected_one_600s_hook_in_exactly": {
+            "source": "92a92407484c6ac419b8dc31411b1d56533659a5fa58ae0a16fc0f93a44c8818",
+            "translation": "e9f3ed9dec8a447aeeb8f5739017a268321271ec0ea185b7d541a132d03db621"
+          }
+        }
+      },
+      "review": "Reviewed both diagnostics in the installer and doctor context. Each language specifies exactly one hook managed by this tool, retains the slash command, and renders the configured timeout in seconds. The wording allows unrelated hooks using the same matcher.",
+      "validated_inputs_sha256": "3e8ae9e2d3548fc176d45eda1c1ecc4eb9cf3ffa6edcb4ed584c7226f8d3bbed"
     }
   }
 }

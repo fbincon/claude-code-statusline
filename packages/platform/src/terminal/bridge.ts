@@ -8,7 +8,12 @@ import { decode, isLosslessNumber, safeInteger } from '@fbincon/statusline-core/
 import type { LaunchSpec } from '@fbincon/statusline-core/integration/binding';
 export const RESULT_ENV = 'CLAUDE_STATUSLINE_SLASH_RESULT', DEADLINE_ENV = 'CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS';
 export const REQUEST_ENV = 'CLAUDE_STATUSLINE_EDITOR_REQUEST', NONCE_ENV = 'CLAUDE_STATUSLINE_EDITOR_NONCE';
-export const RESULT_LIMIT = 16 * 1024, DEADLINE_SECONDS = 570, LAUNCH_TIMEOUT = 585000;
+export const RESULT_LIMIT = 16 * 1024;
+export const DEADLINE_SECONDS = 30 * 60;
+export const STARTUP_TIMEOUT_MS = 30_000;
+const EXIT_GRACE_MS = 15_000;
+export const LAUNCH_TIMEOUT = STARTUP_TIMEOUT_MS + DEADLINE_SECONDS * 1000 + EXIT_GRACE_MS;
+export const HOOK_TIMEOUT_SECONDS = (LAUNCH_TIMEOUT + EXIT_GRACE_MS) / 1000;
 export interface BridgeResult {
     schema_version: 1;
     outcome: 'updated' | 'already-current' | 'cancelled' | 'interrupted' | 'timed-out' | 'error';
@@ -113,7 +118,7 @@ export function prepare(configDir: string, backend: LaunchSpec, cwd: string, now
     const directory = fs.mkdtempSync(join(base, 'invocation-'));
     if (process.platform !== 'win32')
         fs.chmodSync(directory, 0o700);
-    const request: Request = { schema_version: 1, nonce: randomUUID(), parent: process.pid, parent_token: token, startup: now + 30000, expires: now + LAUNCH_TIMEOUT, configDir, backend, cwd };
+    const request: Request = { schema_version: 1, nonce: randomUUID(), parent: process.pid, parent_token: token, startup: now + STARTUP_TIMEOUT_MS, expires: now + LAUNCH_TIMEOUT, configDir, backend, cwd };
     const path = join(directory, 'request.json');
     atomicWrite(path, json(request));
     return { directory, path, request, result: join(directory, 'result.json') };

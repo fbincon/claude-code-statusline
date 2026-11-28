@@ -27,7 +27,7 @@ for (const language of LANGUAGES)
         await keys(ui, 'd');
         const saved = JSON.stringify(f.store.draft), draft = JSON.stringify(previewDraft(f));
         const writes = f.calls.filter(call => call.operation === 'apply').length;
-        await keys(ui, '3');
+        await keys(ui, '4');
         await selectSetting(ui, 'package-management');
         expect(await visibleText(ui)).toContain(t('settings.package-management', language));
         await keys(ui, 'return');

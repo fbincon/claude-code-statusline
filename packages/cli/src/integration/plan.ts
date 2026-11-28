@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import { commandFor, ownedCommand } from '@fbincon/statusline-platform/commands';
+import { HOOK_TIMEOUT_SECONDS } from '@fbincon/statusline-platform/terminal/bridge';
 import { clone, object, fail } from '@fbincon/statusline-core/config/validation';
 import { safeInteger } from '@fbincon/statusline-core/json';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
@@ -92,7 +93,7 @@ export function settingsPlan(settings: Record<string, unknown>, context: PlanCon
             delete hooks[event];
     }
     const slash = cleanHooks(hooks.UserPromptExpansion, context, ['slash-hook']);
-    for (const [enabled, matcher, timeout] of [[context.fast, SKILL, 5], [context.external, EXTERNAL, 600]] as const) {
+    for (const [enabled, matcher, timeout] of [[context.fast, SKILL, 5], [context.external, EXTERNAL, HOOK_TIMEOUT_SECONDS]] as const) {
         if (enabled)
             slash.push({ matcher, hooks: [{ type: 'command', command: commandFor(context.launch, 'slash-hook'), timeout }] });
     }

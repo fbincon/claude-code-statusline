@@ -13,7 +13,7 @@ export function registerLanguagePairs(language: Language): void {
       await $.command.run(RUN);
       let ui = await $.ui.mount(PANE);
       const choose = async () => {
-        await keys(ui, '3');
+        await keys(ui, '4');
         await selectSetting(ui, 'field:statusline_language');
         for (let n = 0; n < LANGUAGES.indexOf(target); n++) await keys(ui, 'right');
         const view = await presentation(ui);
