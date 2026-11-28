@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BackendError, parseResponse } from '../src/editor/backend.js';
 import { PROTOCOL_VERSION } from '../src/contracts/ui.js';
-import { t, text } from '../src/i18n/messages.js';
+import { LANGUAGES, t, text } from '../src/i18n/messages.js';
+import { editorLineSpans, hintLine, wrapEditorLine } from '../src/editor/hints.js';
+import { displayWidth } from '../src/unicode/index.js';
 import { SHORTCUT_GROUPS, isBindingMap, listedShortcut, readShortcutBindings, resolveShortcut, shortcutAliases, shortcutConflict, shortcutHint } from '../src/editor/shortcut-map.js';
 import { EditorShortcuts, shortcutPanelRows } from '../src/editor/shortcut-settings.js';
 
@@ -302,9 +304,52 @@ test('shortcut settings show each editor’s save key at narrow widths', () => {
             assert.ok(panelText().includes(`${tr('terminal-short')} Z [Ctrl+S]`));
             assert.ok(panelText().includes(`${tr('native-short')} Z [S]`));
             assert.ok(!panelText().includes('[Ctrl+S / Enter]'));
-            assert.ok(panelText().includes(tr('back-help')));
+            assert.ok(panelText().includes(t('shortcuts.back-help', language, { tab: 'Tab', back: 'Ctrl+G' })));
         }
     }
+});
+
+test('shortcut help keeps complete keys and shows controls for the active panel state', () => {
+    for (const language of LANGUAGES) {
+        const editor = new EditorShortcuts('terminal');
+        editor.open();
+        const press = (key: string, ctrl = false, paste = false) => editor.key({ key, ctrl, paste }, language, 32, 11);
+        const bold = () => {
+            const rows = shortcutPanelRows(editor, language, 32, 11);
+            assert.ok(rows.length <= 11, language);
+            return new Set(rows.flatMap(row => editorLineSpans(row, 32)).filter(span => span.bold).map(span => span.text));
+        };
+        assert.deepEqual(bold(), new Set(['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']), language);
+        press('/');
+        assert.deepEqual(bold(), new Set(['Enter', 'Ctrl+G', 'Ctrl+U']), language);
+        press('no-such-action', false, true);
+        press('return');
+        assert.deepEqual(bold(), new Set(['/', 'Tab', 'Ctrl+G']), language);
+        press('/');
+        press('u', true);
+        press('return');
+        press('return');
+        assert.deepEqual(bold(), new Set(['Ctrl+G']), language);
+        press('z');
+        press('tab');
+        assert.deepEqual(bold(), new Set(['←→', 'Enter', 'Tab', 'Ctrl+G']), language);
+        press('g', true);
+        assert.deepEqual(bold(), new Set(['↑↓', 'Enter', 'Ctrl+G']), language);
+        press('g', true);
+        editor.panel!.busy = true;
+        assert.deepEqual(bold(), new Set(), language);
+    }
+});
+
+test('only substituted operation keys receive the shortcut style', () => {
+    const state = hintLine('package.ui.state_running', 'en', { key: 'Ctrl+G' });
+    const line = hintLine('package.ui.job', 'en', { state }, { id: 'Ctrl+G é 中文' });
+    assert.deepEqual(editorLineSpans(line, 120).filter(span => span.bold).map(span => span.text), ['Ctrl+G']);
+    const wrapped = wrapEditorLine(line, 8);
+    assert.ok(wrapped.every(row => displayWidth(row.text) <= 8));
+    assert.deepEqual(wrapped.flatMap(row => editorLineSpans(row, 8)).filter(span => span.bold).map(span => span.text), ['Ctrl+G']);
+    const clipped = editorLineSpans(line, displayWidth(line.text.slice(0, line.text.lastIndexOf('Ctrl+G'))) + 3);
+    assert.ok(clipped.every(span => !span.bold));
 });
 
 test('shortcut settings refuse Enter when capturing the refresh event action', () => {

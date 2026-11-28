@@ -2,6 +2,7 @@ import { safeLink, linkSequence, CLOSE_LINK } from '@fbincon/statusline-core/ter
 /** Bounded terminal cells and ANSI serialization, independent of editor state. */
 import { clip, clusterWidth, displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { clipSpans, clusterSpans } from '@fbincon/statusline-core/terminal/spans';
+import { editorLineSpans, type EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { terminalColor } from '@fbincon/statusline-core/rendering/colors';
 import type { Span } from '@fbincon/statusline-core/contracts/ui';
 import { paint, heading, type Paint } from '../theme.js';
@@ -10,6 +11,11 @@ import { canvasSize, type Panel } from '../layout.js';
 export interface Frame {
     columns: number;
     rows: Paint[][];
+}
+
+export function paintLine(line: EditorLine, width: number, selected = false): Paint[] {
+    if (!line.keys?.length) return [paint(line.text, false, selected)];
+    return editorLineSpans(line, width).map(span => paint(span.text, span.bold, selected));
 }
 
 export const safe = (text: string): string => text.replace(/[\p{Cc}\p{Cs}]/gu, ' ');

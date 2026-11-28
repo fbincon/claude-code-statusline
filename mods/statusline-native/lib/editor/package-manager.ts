@@ -4,11 +4,11 @@ import type { Editor } from './draft.ts';
 import { closeSourceDraft } from './source-manager.ts';
 import { t, text, renderMessage, type Language, type LocalizedText } from '../i18n/index.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
-import { wrapText } from '../../ui/text.ts';
+import { hintLine, prependLine, wrapEditorLine, type EditorLine } from './hints.ts';
 import { BackendError } from '../backend.ts';
 import { resolveShortcut, shortcutHint } from './shortcut-map.ts';
 import type { EditorShortcuts } from './shortcut-settings.ts';
-interface Row { key:string; text:string; action?:PackageReviewRequest['action']; backup?:string; selected?:boolean }
+interface Row extends EditorLine { key:string; action?:PackageReviewRequest['action']; backup?:string; selected?:boolean }
 export interface PackageManager {
     owner:string;status:PackageStatus|null;job:PackageReviewJob|null;execution:PackageExecution|null;cleanup:PackageCleanupReview|null;
     prefix:string;target:string;channel:'latest'|'beta'|null;offset:number;selected:string;scroll:number;rows:Row[];capacity:number;
@@ -70,7 +70,7 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
             view.job=job;view.mode='status';view.draftPrepared=false;view.message=null;view.selected='job';
         }else if(effect==='execute'){
             if(!editor||!verified(view))throw new BackendError('integrity',text('package.reason_integrity'));
-            if(editor.saveState!=='idle'){view.mode='draft';view.message=text('editor.save_unknown');return;}
+            if(editor.saveState!=='idle'){view.mode='draft';view.message=text('editor.save_locked');return;}
             if(!view.draftPrepared){
                 if(!editor.acceptNumeric()){view.message=text('package.ui.draft_required');return;}
                 view.mode=editor.modified?'draft':'execute-confirm';view.selected=editor.modified?'draft-cancel':'execute-confirm';return;
@@ -116,19 +116,27 @@ export async function performPackage(view:PackageManager,backend:PackageBackend,
 }
 export function packageView(view:PackageManager,language:Language,width:number,height:number,shortcuts?: EditorShortcuts, automatic = false):Row[]{
     const tr=(key:string,params:Record<string,unknown>={})=>t('package.ui.'+key,language,params),rows:Row[]=[];
+    const hint = (key: string, keys: Record<string, string | EditorLine>, params?: Record<string, unknown>) => hintLine('package.ui.' + key, language, keys, params);
+    const safe = (value: string) => value.replace(/[\p{Cc}\p{Cs}]/gu, '');
     const jobState = (kind: 'state_' | 'execution_state_', state: string) => automatic && state === 'running'
-        ? t('task.value.running', language) : tr(kind + state, { key: refreshKey(shortcuts) });
-    const add=(key:string,value:string,action?:Row['action'],backup?:string)=>wrapText([value.replace(/[\p{Cc}\p{Cs}]/gu,'')],Math.max(2,width-2)).forEach((line,index)=>rows.push({key:index?key+':'+index:key,text:line,...(action?{action}:{}),...(backup?{backup}:{})}));
+        ? { text: t('task.value.running', language) } : hint(kind + state, { key: refreshKey(shortcuts) });
+    const add = (key: string, value: string | EditorLine, action?: Row['action'], backup?: string) => {
+        const line = typeof value === 'string' ? { text: safe(value) } : value;
+        const visible = view.busy || view.input ? { text: line.text } : line;
+        wrapEditorLine(visible, width - 2).forEach((part, index) => rows.push({ ...part, key: index ? key + ':' + index : key,
+            ...(action ? { action } : {}), ...(backup ? { backup } : {}) }));
+    };
+    const pageHint = (direction: 'previous' | 'next') => hint(direction + '_page', { enter: 'Enter' });
     const status=view.status;
     if(view.mode==='draft'){
         add('notice',tr('draft_required'));add('draft-save',tr('draft_save'));add('draft-export',tr('draft_export'));add('draft-discard',tr('draft_discard'));add('draft-cancel',tr('draft_cancel'));add('draft-reconcile',tr('draft_reconcile'));
     }else if(view.mode==='execute-confirm'){
-        add('notice',tr('execute_notice'));add('execute-confirm',tr('execute_confirm'));add('draft-cancel',tr('draft_cancel'));
+        add('notice',tr('execute_notice'));add('execute-confirm',hint('execute_confirm', { enter: 'Enter' }));add('draft-cancel',tr('draft_cancel'));
     }else if(view.mode==='cleanup'||view.mode==='cleanup-confirm'){
         add('cleanup-message',tr(view.cleanup?.uncertain?'cleanup_uncertain':'cleanup_notice'));
-        if(view.mode==='cleanup-confirm'){add('cleanup-confirm',tr('cleanup_confirm'));add('cleanup-selected',view.cleanupId??'');}
+        if(view.mode==='cleanup-confirm'){add('cleanup-confirm',hint('cleanup_confirm', { enter: 'Enter', back: shortcuts?.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G' }));add('cleanup-selected',view.cleanupId??'');}
         else for(const row of view.cleanup?.rows??[])add('cleanup:'+row.id,`${row.id} · ${row.version??'—'} · ${tr(row.removable?'cleanup_unused':'cleanup_protected')}${row.reasons.map(reason=>' · '+tr('protect_'+reason)).join('')}`);
-        add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));
+        add('previous-page',pageHint('previous'));add('next-page',pageHint('next'));
     }else{
         add('notice',tr('local_notice'));if(status)add('current',tr('current',{value:status.current??t('task.unknown',language)}));
         add('prefix',tr('prefix',{value:view.editing==='prefix'&&view.input?inputView(view.input,Math.max(2,width-12)):view.prefix||t('task.unknown',language)}));
@@ -138,22 +146,28 @@ export function packageView(view:PackageManager,language:Language,width:number,h
             status.reasons.forEach(reason=>add('reason:'+reason,t('package.reason_'+reason,language,{},reason)));
             if(!view.execution||view.execution.running===false){
                 add('target',tr('target',{value:view.editing==='target'&&view.input?inputView(view.input,Math.max(2,width-12)):view.target||tr('default_target')}));add('channel',tr('channel',{value:view.channel??tr('inherit')}));
-                for(const action of ['check','update','rollback','recover-package'] as const)add(action,'Enter · '+tr(action),action);
+                for (const action of ['check', 'update', 'rollback', 'recover-package'] as const)
+                    add(action, { text: 'Enter · ' + tr(action), keys: [{ start: 0, end: 'Enter'.length }] }, action);
                 add('cleanup-review',tr('cleanup_review'));
             }
             if(status.pending)add('pending',tr('pending',{id:status.pending.id,stage:tr('stage_'+status.pending.stage),running:status.pending.running?t('task.value.running',language):t('task.unknown',language)}));
-            for(const record of status.history)add('backup:'+record.id,`${record.id} · ${record.version??'—'} · ${tr('stage_'+record.stage)} · ${tr('backup_'+record.backup)}`,record.backup==='verified'?'restore-config':undefined,record.id);
-            if(status.total>16){add('previous-page',tr('previous_page'));add('next-page',tr('next_page'));}
+            for (const record of status.history) {
+                const backup = hint('backup_' + record.backup, { enter: 'Enter' });
+                add('backup:' + record.id, prependLine(safe(`${record.id} · ${record.version ?? '—'} · ${tr('stage_' + record.stage)} · `), backup),
+                    record.backup === 'verified' ? 'restore-config' : undefined, record.id);
+            }
+            if(status.total>16){add('previous-page',pageHint('previous'));add('next-page',pageHint('next'));}
         }
-        if(view.job){const job=view.job;add('job',tr('job',{id:job.id,state:jobState('state_', job.state)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
+        if(view.job){const job=view.job;add('job',hint('job',{state:jobState('state_', job.state)},{id:safe(job.id)}));if(job.error)add('job-error',t('package.reason_'+job.error,language,{},job.error));
             if(job.review){const review=job.review;add('verification',tr(review.action==='restore-config'?'restore_review':review.artifact_verified?'verified':'unverified'));add('review-target',`${review.current??'—'} → ${review.target??'—'}`);add('review-config',tr('config',{value:review.config_dir}));if(review.registry)add('registry',review.registry);if(review.integrity)add('integrity',review.integrity);if(review.node_engine)add('engine','Node '+review.node_engine);review.reasons.forEach(reason=>add('review-reason:'+reason,t('package.reason_'+reason,language,{},reason)));review.configuration_conflicts.forEach(file=>add('conflict:'+file,file));review.files.forEach(file=>add('restore:'+file,file));if(verified(view))add('execute',tr('execute'));}
         }
-        if(view.execution){const run=view.execution;add('execution',tr('execution',{id:run.transaction_id??run.id,state:jobState('execution_state_', run.state),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
+        if(view.execution){const run=view.execution;add('execution',hint('execution',{state:jobState('execution_state_', run.state)},{id:safe(run.transaction_id??run.id),stage:t('package.ui.stage_'+run.stage,language,{},run.stage)}));add('execution-results',tr('execution_results',{package:tr(run.results.package===null?'result_na':run.results.package?'result_done':'result_pending'),integration:tr(run.results.integration===null?'result_na':run.results.integration?'result_done':'result_pending'),configuration:tr(run.results.configuration===null?'result_na':run.results.configuration?'result_done':'result_pending')}));add('execution-control',tr('control',{executable:run.control.executable,entry:run.control.args[0]??''}));add('execution-control-help',tr('control_help',{directory:run.control.config_dir}));if(run.error)add('execution-error',t('package.reason_'+run.error,language,{},run.error));add('reload-required',tr('editor_locked'));if(run.state==='complete')add('reopen',tr('reopen'));}
     }
     if(view.input&&view.editing==='export_path')add('export-path',tr('export_path',{value:inputView(view.input,Math.max(2,width-16))}));
     if (view.message) {
         const waiting = automatic && typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested';
-        add('message', waiting ? t('ui.refresh.cancel_requested', language) : renderMessage(view.message, language));
+        add('message', waiting ? t('ui.refresh.cancel_requested', language) : typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested'
+            ? hint('cancel_requested', { key: refreshKey(shortcuts) }) : renderMessage(view.message, language));
     }
     let index = rows.findIndex(row => row.key === view.selected);
     if (automatic && index < 0) {
@@ -161,7 +175,7 @@ export function packageView(view:PackageManager,language:Language,width:number,h
         index = rows.findIndex(row => row.key === logicalRow);
     }
     if(index<0)index=0;view.rows=rows;view.selected=rows[index]?.key??'';view.capacity=Math.max(1,height);view.scroll=Math.max(0,Math.min(view.scroll,index,Math.max(0,rows.length-view.capacity)));if(index>=view.scroll+view.capacity)view.scroll=index-view.capacity+1;
-    return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,text:(row.key===view.selected?'› ':'  ')+row.text,selected:row.key===view.selected}));
+    return rows.slice(view.scroll,view.scroll+view.capacity).map(row=>({...row,...prependLine(row.key===view.selected?'› ':'  ',row),selected:row.key===view.selected}));
 }
 export function packageKey(view:PackageManager,event:TextKey,shortcuts?: EditorShortcuts):'packages'|null{
     const key=event.key==='return'?'enter':event.key,cancel=!event.text&&!event.paste&&(key==='escape'||event.ctrl&&key.toLowerCase()==='g');

@@ -4,7 +4,7 @@ import { COST_RATE_DEFAULTS } from './cost-rate.ts';
 import { effortFallback } from './effort-fallback.ts';
 import { INDICATOR_DEFAULTS } from './indicators.ts';
 import { nodes } from './instances.ts';
-import { text as localizedText, type Language, type LocalizedText } from '../i18n/index.ts';
+import { t, text as localizedText, type Language, type LocalizedText } from '../i18n/index.ts';
 /** Canonical descriptors drive tool forms in both editors. */
 import { ITEM_DEFAULTS } from '../generated-contracts.ts';
 import { itemFields, normalizeColor } from './appearance.ts';
@@ -47,6 +47,37 @@ export interface FormRow extends SettingRow {
     spec: EditorField;
     valueRaw: unknown;
 }
+
+const decorationFields = ['labels', 'label', 'icons', 'icon'];
+const itemGroups = ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'];
+function decorationRank(key: string): number {
+    const index = decorationFields.indexOf(key);
+    return index < 0 ? decorationFields.length : index;
+}
+
+export function itemDecorationKind(key: string): 'preset' | 'custom' | undefined {
+    if (key === 'item:labels' || key === 'item:icons') return 'preset';
+    if (key === 'item:label' || key === 'item:icon') return 'custom';
+}
+
+export function itemDecorationValue(key: string, raw: unknown, language: Language): string | undefined {
+    if (itemDecorationKind(key) !== 'custom') return undefined;
+    if (raw === null) return t('item-decoration.use-preset', language);
+    if (raw === '') return t('values.hidden', language);
+    return typeof raw === 'string' ? raw : undefined;
+}
+
+export function itemDecorationNotice(view: FormView): string {
+    const e = view.editor;
+    if (!e?.detail || !e.inDraftView) return '';
+    const language = view.language ?? 'en';
+    const kind = itemDecorationKind(e.setting);
+    if (kind === 'custom') return t('item-decoration.text-help', language);
+    const options = e.instance(e.detail.scope, e.detail.id)?.options;
+    if (kind === 'preset' && options && options[e.setting === 'item:labels' ? 'label' : 'icon'] !== null)
+        return t('item-decoration.custom-active', language);
+    return '';
+}
 function read(data: unknown, path: string): unknown {
     return path.split('.').reduce((v, key) => (v as Record<string, unknown>)[key], data);
 }
@@ -70,7 +101,8 @@ export function formRows(view: FormView): FormRow[] {
         const options = node.options;
         return itemFields(e.description.editor_fields.item!, e.detail.scope, node.type_id, e.definition(e.detail.scope,node.id)?.capabilities).map((spec) => row(spec, 'item:' + spec.key, spec.key === 'text' ? node.text : spec.key === 'link' ? options.link ?? 'off' : spec.key === 'effort_fallback' ? effortFallback(options) : spec.key in e.description.formatting_options ? options.formatting[spec.key] ?? 'inherit' :
             options[spec.key as keyof typeof options] ?? INDICATOR_DEFAULTS[spec.key as keyof typeof INDICATOR_DEFAULTS] ?? COST_RATE_DEFAULTS[spec.key as keyof typeof COST_RATE_DEFAULTS] ?? GRADIENT_DEFAULTS[spec.key as keyof typeof GRADIENT_DEFAULTS] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
-            .sort((a, b) => ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(a.group) - ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(b.group));
+            .sort((a, b) => itemGroups.indexOf(a.group) - itemGroups.indexOf(b.group) ||
+                (node.type_id === 'text' ? 0 : decorationRank(a.spec.key) - decorationRank(b.spec.key)));
     }
     if (e.page === 'layout') {
         const result = [row({ key: 'layout.mode', label: 'Layout mode', group: 'Layout', kind: 'choice', choices: ['auto', 'explicit'], minimum: 0, maximum: 0, nullable: false }, 'layout.mode', d.layout.mode)];

@@ -87,8 +87,8 @@ test('both recovery instructions fit with the selected action and controls in al
             assert.ok(rows.some(row => row.selected === true));
             for (const line of wrapText([renderMessage(detail, language)], 32))
                 assert.ok(rows.some(row => row.text === line), language + '/' + reason + ': ' + line);
-            assert.ok(rows.some(row => row.text === renderMessage(text('shortcuts.back-help'), language)));
-            const options = renderMessage(text('shortcuts.options'), language), save = renderMessage(text('shortcuts.save'), language);
+            assert.ok(rows.some(row => row.text === renderMessage(text('shortcuts.back-help', { tab: 'Tab', back: 'Ctrl+G' }), language)));
+            const options = renderMessage(text('shortcuts.options', { tab: 'Tab' }), language), save = renderMessage(text('shortcuts.save'), language);
             assert.ok(rows.some(row => row.text === options || row.text.includes(save)));
         }
     }

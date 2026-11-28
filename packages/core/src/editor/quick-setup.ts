@@ -3,8 +3,8 @@ import type { Draft, Scope } from '../contracts/ui.js';
 import { THEME_VALUES, PALETTE_VALUES, SEPARATORSTYLE_VALUES, PRESETS } from '../contracts/ui.js';
 import { copyDraft } from './draft.js';
 import { t, type Language } from '../i18n/messages.js';
-import { wrapText } from './text.js';
 import { saveProfileCopy } from './profile-manager.js';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 
 export interface QuickSetup {
   base: Draft;
@@ -49,7 +49,11 @@ export function quickKey(quick: QuickSetup, key: string): 'preset' | 'accept' | 
   return null;
 }
 /** Both adapters use the same menu, selection window and scrollable requirement text. */
-export function quickView(quick: QuickSetup, language: Language, width: number, height: number, sharedProjects: readonly string[] = []): {text:string;selected:boolean}[] {
+export function quickSampleHelp(language: Language): EditorLine {
+  return hintLine('quick.sample', language, { tab: 'Tab', page: 'PgUp/PgDn' });
+}
+
+export function quickView(quick: QuickSetup, language: Language, width: number, height: number, sharedProjects: readonly string[] = []): (EditorLine & {selected:boolean})[] {
   const tr = (key:string,params:Record<string,unknown>={}) => t(key,language,params);
   const preset = PRESETS.find(p=>p.id === (quick.step === 'scenario' ? PRESETS[quick.selected]!.id : quick.preset))!;
   const d=quick.candidate.display;
@@ -60,15 +64,17 @@ export function quickView(quick: QuickSetup, language: Language, width: number, 
       tr('settings.palette')+': '+d.palette,
       tr('settings.separator-style')+': '+tr('values.'+d.separator_style), tr('quick.next'),
     ] : [tr('quick.fine_tune'),tr('quick.save'),tr('quick.copy'),tr('quick.back')];
-  const paragraphs=[...(quick.step === 'review' && quick.selected === 1 && sharedProjects.length ? [tr('profiles.shared',{count:sharedProjects.length}), ...sharedProjects] : []),
-    tr(preset.requirements_key),tr('quick.sample'),
-    ...(!d.subagents.enabled && ['multi-agent','agent-focus','agent-workbench'].includes(preset.id) ? [tr('quick.subagents_off')] : []),
-    ...(quick.step==='review' ? [tr('quick.replace')] : [])];
-  const detail=wrapText(paragraphs,width), menuHeight=Math.max(1, Math.min(rows.length,Math.floor(height/2)));
+  const projects = quick.step === 'review' && quick.selected === 1 && sharedProjects.length
+    ? [tr('profiles.shared', { count: sharedProjects.length }), ...sharedProjects] : [];
+  const paragraphs: EditorLine[] = [...projects.map(text => ({ text })), { text: tr(preset.requirements_key) }, quickSampleHelp(language)];
+  if (!d.subagents.enabled && ['multi-agent', 'agent-focus', 'agent-workbench'].includes(preset.id)) paragraphs.push({ text: tr('quick.subagents_off') });
+  if (quick.step === 'review') paragraphs.push({ text: tr('quick.replace') });
+  const detail = paragraphs.flatMap(line => wrapEditorLine(line, width));
+  const menuHeight=Math.max(1, Math.min(rows.length,Math.floor(height/2)));
   const start=Math.max(0, Math.min(quick.selected,rows.length-menuHeight,quick.selected-menuHeight+1));
   const result=rows.slice(start,start+menuHeight).map((text,index)=>({text:(start+index===quick.selected?'› ':'  ')+text,selected:start+index===quick.selected}));
   const capacity=Math.max(0,height-result.length), offset=Math.min(quick.detailScroll,Math.max(0,detail.length-capacity));
-  result.push(...detail.slice(offset,offset+capacity).map(text=>({text,selected:false})));
+  result.push(...detail.slice(offset,offset+capacity).map(line=>({...line,selected:false})));
   return result;
 }
 

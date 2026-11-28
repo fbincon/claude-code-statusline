@@ -283,7 +283,7 @@ export class State {
         }
         if (e.explanation) { if (!explanationKey(e.explanation, cancel ? 'cancel' : ctrl || event.meta ? '' : k, height)) e.explanation = null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
-        if (e.saveState === 'unknown') { this.notice(text('editor.save_unknown')); return null; }
+        if (e.saveState === 'unknown') { this.notice(text('editor.save_unknown', { check: 'Ctrl+K' })); return null; }
         if (action === 'quick-setup' && e.inDraftView) {
             if (e.acceptNumeric()) { e.quick = openQuick(e.draft); this.notice(''); }
             return null;

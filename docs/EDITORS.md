@@ -51,9 +51,9 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 ### Terminal page regions and footer
 
-Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main/Subagents show `ON`, `ITEM`, `DESCRIPTION`. The component list and catalog picker show the selected component’s description and catalog example below the list. If they need more room, the example gets its own line. Settings and forms show `OPTION`, `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
+Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
 
-The footer changes with the current operation. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
+The footer changes with the current operation. Available keys appear in bold in the footer and in panel instructions. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
 
 Leave a task report or a running job’s status open to follow changes. The active refresh key requests an immediate update. Automatic reads pause during input and confirmation, and stop when you leave the view. The **Refresh interval** setting controls Claude’s status line independently. See [task details](TASK_DETAILS.md), [package progress](PACKAGE_MANAGEMENT.md) and [source jobs](EXTENSIONS.md#configure-with-either-editor).
 
@@ -168,7 +168,9 @@ For an item's source and conditions, press Ctrl+E, select **Sources and requirem
 
 ## Formats and layouts
 
-On Main/Subagents, select a component and press Ctrl+E to edit its label, icon, priority, maximum width and supported format choices. Ctrl+G returns. Enter opens or accepts text/integer input. `inherit` clears an override, an empty label/icon hides it and `none` clears an optional width/limit. Unicode/ASCII icon modes use built-in characters and need no special font.
+On Main/Subagents, select a component and press **Ctrl+E** to open its format. On **Label preset** or **Icon preset**, press **←/→** or **Enter** to cycle the built-in options. On **Custom label** or **Custom icon**, press **Enter** to edit and again to accept. A custom value takes priority over its preset. Enter `inherit` to follow the preset, or clear the field and confirm to hide the label or icon. Unicode and ASCII icon presets use built-in characters.
+
+Use **Ctrl+G** to return. **Enter** also opens or accepts integer input for fields such as maximum width. Enter `none` to clear an optional width or limit.
 
 Layout chooses auto/explicit and sets **New row before** boundaries for all configured main instances, including disabled instances. Higher priorities are retained first (default 50); maximum width counts terminal columns. Reordering keeps row boundaries valid. When explicit rows are too narrow, scope decoration yields to real items, widths shrink and lower-priority items can be hidden. Explicit layout removes empty rows without adding continuation lines; automatic layout wraps. [Components, groups and alignment](COMPOSITION.md).
 

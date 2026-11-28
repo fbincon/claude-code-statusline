@@ -29,7 +29,7 @@ export function dimensions(columns: number, rows: number) {
     const report = panel(4, Math.max(3, height - 6));
     return { content, preview, report, actionsY: height - 2, helpY: height - 1,
         formHeight: Math.max(1, content.innerHeight - 2),
-        listHeight: Math.max(1, content.innerHeight - 4), // Heading, two detail rows and summary.
+        listHeight: Math.max(1, content.innerHeight - 3), // Heading, example and summary.
         available: width >= MIN_COLUMNS && height >= MIN_ROWS };
 }
 export interface FormLine {

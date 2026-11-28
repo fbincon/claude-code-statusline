@@ -16,7 +16,7 @@ Since v1.3.0, the project provides Client TUI inside the current Claude Code ter
 
 At 32×12, shorten hints and omit secondary V/R/Esc help before sacrificing current controls. Auxiliary detail/count rows yield space to the footer; the selected row and one actual sample row remain visible. Resizing retains state and recomputes both rendering and navigation from the same budget. These presentation changes do not modify protocol or configuration schemas.
 
-The keyboard shortcuts panel uses the shared core controller. Its action filter preserves the selected action by ID, and its drawing and Page Up/Page Down use the same visible row budget. [User workflow](../EDITORS.md#customize-keyboard-shortcuts)
+The keyboard shortcuts panel uses the shared core controller. Its action filter preserves the selected action by ID. Drawing and Page Up/Page Down share the visible row budget, including wrapped help. The shared editor supplies localized text with explicit key spans for the active controls. The terminal and Client adapters style those spans with their existing footer styles. [User workflow](../EDITORS.md#customize-keyboard-shortcuts)
 
 Use Node.js 24.21.0/npm 11.19.0, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The fixed host inventory and applicable capacity checks are defined in [CI maintenance](ci-maintenance.md) and [capacity/recovery](native-capacity.md), including the separately reported 2.1.296 declaration gap.
 

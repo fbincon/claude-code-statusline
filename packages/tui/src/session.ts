@@ -103,7 +103,7 @@ export class Session {
         if (effect === 'save')
             return 'save';
         if (effect === 'cancel' || effect === 'interrupt')
-            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown',state.language) : undefined);
+            return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown', state.language, { check: 'Ctrl+K' }) : undefined);
         try {
             if(!e.packageLocked)this.guard();
             if (effect === 'save-shortcuts' || effect === 'read-shortcuts') {
@@ -236,8 +236,8 @@ export class Session {
                     }
                 },
                 guard: () => {if(!this.state.editor.packageLocked)this.guard();},
-                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130, this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
-                timeout: () => outcome('timed-out', this.state.language,0,this.state.editor.saveState!=='idle'?t('editor.save_unknown',this.state.language):undefined),
+                interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130, this.state.editor.saveState !== 'idle' ? t('editor.save_unknown', this.state.language, { check: 'Ctrl+K' }) : undefined),
+                timeout: () => outcome('timed-out', this.state.language, 0, this.state.editor.saveState !== 'idle' ? t('editor.save_unknown', this.state.language, { check: 'Ctrl+K' }) : undefined),
             }, options);
             if (result !== 'save')
                 return result;

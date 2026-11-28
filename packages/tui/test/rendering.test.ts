@@ -14,7 +14,7 @@ import { fixture, plain } from './fixtures.js';
 const sizes = [[32, 12], [64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]] as const;
 const pages = ['main', 'subagents', 'settings', 'layout'] as const;
 
-test('all six languages retain bounded frames, complete separators and full-row selections', () => {
+test('all interface languages retain bounded frames, complete separators and full-row selections', () => {
     for (const language of LANGUAGES) {
         for (const [columns, rows] of sizes) {
             for (const page of pages) {
@@ -63,43 +63,36 @@ test('external selected components show their catalog examples across scopes and
             e.page = scope === 'main' ? 'main' : 'subagents';
             const selected = e.visible(scope).find(item => item.id === e.selected[scope])!;
             const detail = t(`items.${scope}.${selected.id}.description`, language);
-            const expected = t('native.item_detail', language, { detail, examples: selected.examples.join(' · ') });
-            const rows = () => plain(state).slice(content.innerY + listHeight + 1, content.innerY + listHeight + 3);
-            assert.ok(rows()[0]!.includes(expected));
+            const expected = t('ui.drawing.item_example', language, { examples: selected.examples.join(' · ') });
+            const example = () => plain(state)[content.innerY + listHeight + 1]!.trim().replace(/^│\s*|\s*│$/gu, '');
+            assert.ok(plain(state).slice(content.innerY + 1, content.innerY + 1 + listHeight).some(row => row.includes(detail)));
+            assert.equal(example(), expected);
             state.key({ key: 'd', ctrl: true });
             assert.notEqual(e.selected[scope], selected.id);
-            assert.ok(rows()[0]!.includes(expected));
+            assert.equal(example(), expected);
             state.key({ key: 'a', ctrl: true });
             assert.equal(e.listContext(scope).selected, selected.id);
-            assert.ok(rows()[0]!.includes(expected));
+            assert.equal(example(), expected);
             state.search('not-a-real-component-xyz');
             assert.ok(plain(state).some(row => row.includes(t('ui.drawing.no_matching_items', language))));
-            assert.ok(rows().every(row => !row.includes(selected.examples[0]!)));
+            assert.equal(example(), '');
         }
     }
 });
 
-test('all locale detail templates reserve the full example on a narrow terminal', () => {
+test('all locales fit the complete example on one row at the minimum external width', () => {
     for (const language of LANGUAGES) {
-        const [detailLabel, exampleLabel, extra] = t('native.item_detail', language).split(' · ');
-        assert.equal(extra, undefined, language);
-        assert.match(detailLabel!, /^.+\{detail\}$/u, language);
-        assert.match(exampleLabel!, /^.+\{examples\}$/u, language);
         const state = fixture(language), e = state.editor;
         state.key({ key: 'a', ctrl: true });
         const selected = e.catalog('main').find(item => item.id === 'session-cost-rate')!;
         e.selectItem('main', selected.id);
-        const examples = selected.examples.join(' · ');
-        const expected = exampleLabel!.replace('{examples}', examples);
-        const description = t(`items.main.${selected.id}.description`, language);
-        const prefix = detailLabel!.replace('{detail}', '');
+        const expected = t('ui.drawing.item_example', language, { examples: selected.examples.join(' · ') });
         for (const [columns, rows] of [[64, 18], [64, 20]] as const) {
             const { content, listHeight } = dimensions(columns, rows);
-            assert.ok(displayWidth(prefix + description + ' · ' + expected) > content.innerWidth, language);
+            assert.equal(listHeight + 3, content.innerHeight, language);
             const value = plain(state, columns, rows);
             assert.ok(value.every(row => displayWidth(row) === columns));
-            assert.ok(value[content.innerY + listHeight + 1]!.includes(prefix));
-            assert.ok(value[content.innerY + listHeight + 2]!.includes(expected));
+            assert.ok(value[content.innerY + listHeight + 1]!.includes(expected), language);
         }
     }
 });
@@ -163,7 +156,7 @@ test('external fields localize inheritance while literal user values remain exac
         state.key({ key: 'e', ctrl: true });
         for (const key of ['label', 'icon', 'foreground', 'background']) {
             const row = state.rows().find(row => row.key === 'item:' + key)!;
-            assert.equal(fieldValue(row, state), t('values.inherit', language));
+            assert.equal(fieldValue(row, state), t(key === 'label' || key === 'icon' ? 'item-decoration.use-preset' : 'values.inherit', language));
         }
         const node = state.editor.instance('main', state.editor.selected.main)!;
         for (const literal of ['inherit', 'on', 'off', '中文 👩🏽‍💻 é']) {
@@ -177,6 +170,49 @@ test('external fields localize inheritance while literal user values remain exac
         for (const key of ['colors', 'directory-style', 'separator-style', 'refresh_interval', 'vim-indicator']) {
             assert.equal(fieldLabel(state.rows().find(row => row.key === key)!, state), t('settings.' + key, language));
         }
+    }
+});
+
+test('external item format pairs preset controls with independent custom input', () => {
+    const state = fixture('zh-CN'), e = state.editor;
+    state.key({ key: 'e', ctrl: true });
+    const fields = state.rows().filter(row => /^item:(?:labels?|icons?)$/u.test(row.key));
+    assert.deepEqual(fields.map(row => fieldLabel(row, state)), ['标签预设', '自定义标签', '图标预设', '自定义图标']);
+    e.setting = 'item:labels';
+    assert.ok(frame(state, 64, 18).rows.at(-1)!.some(span => span.bold && span.text === '←→/Enter'));
+    state.key({ key: 'right' });
+    state.key({ key: 'down' });
+    assert.equal(e.setting, 'item:label');
+    state.key({ key: 'return' });
+    state.key({ key: 'u', ctrl: true });
+    state.key({ key: 'Ctrl+G', paste: true });
+    state.key({ key: 'return' });
+    assert.ok(frame(state, 64, 18).rows.some(row => row.some(span => span.reverse && !span.bold && span.text.includes('Ctrl+G'))));
+    state.key({ key: 'up' });
+    assert.ok(plain(state, 64, 18)[3]!.includes('自定义值优先'));
+    state.key({ key: 'down' });
+    state.key({ key: 'return' });
+    state.key({ key: 'u', ctrl: true });
+    state.key({ key: 'return' });
+    assert.ok(plain(state, 64, 18).some(row => row.includes('自定义标签') && row.includes(t('values.hidden', 'zh-CN'))));
+    state.key({ key: 'return' });
+    state.key({ key: 'inherit', paste: true });
+    state.key({ key: 'return' });
+    const { label, formatting } = e.instance('main', e.selected.main)!.options;
+    assert.equal(label, null);
+    assert.equal(formatting.labels, 'legacy');
+    assert.ok(plain(state, 64, 18).some(row => row.includes('自定义标签') && row.includes('跟随预设')));
+});
+
+test('external shortcut settings bold keys in body rows at both panel widths', () => {
+    const state = fixture('zh-CN');
+    state.editor.shortcuts.open();
+    for (const [width, height] of [[32, 12], [120, 30]] as const) {
+        const terminal = frame(state, width, height);
+        const help = terminal.rows.slice(1).flat().filter(span => span.bold);
+        for (const key of ['/', 'Enter', 'Delete', 'Tab', 'Ctrl+G']) assert.ok(help.some(span => span.text === key), key);
+        assert.ok(help.every(span => !/筛选|改键|恢复|切换|返回/u.test(span.text)));
+        assert.ok(terminal.rows.every(row => displayWidth(row.map(span => span.text).join('')) === width));
     }
 });
 

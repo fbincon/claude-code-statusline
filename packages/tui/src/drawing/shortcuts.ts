@@ -1,5 +1,8 @@
 import { importShortcutHelp, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 import { shortcutHint, type ShortcutAction } from '@fbincon/statusline-core/editor/shortcut-map';
+import { itemDecorationKind, itemDecorationNotice } from '@fbincon/statusline-core/editor/forms';
+import { hintLine } from '@fbincon/statusline-core/editor/hints';
+import { quickSampleHelp } from '@fbincon/statusline-core/editor/quick-setup';
 import type { EditorShortcuts } from '@fbincon/statusline-core/editor/shortcut-settings';
 import type { TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 /** State-specific hints fitted as indivisible key/action pairs. */
@@ -8,6 +11,7 @@ import { t, renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import { paint, type Paint } from '../theme.js';
 import type { State } from '../state.js';
 import { sourceObservationJob, sourceObservationPending } from '../manager-refresh.js';
+import { paintLine } from './canvas.js';
 
 export type Hint = readonly [key: string, label: string, short?: string];
 
@@ -141,7 +145,9 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
     if(!e.detail) actions.push([keys.hint(context, 'quick-setup'),t('quick.title',state.language)]);
     actions.push([keys.hint(context, 'preview-scenario', 'preview-width', 'preview-row'),t('preview.controls',state.language)]);
     if (e.detail) {
-        return { actions, primaryActions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
+        const kind = itemDecorationKind(e.setting);
+        const control = kind === 'preset' ? [hint('←→/Enter', 'switch_preset')] : kind === 'custom' ? [hint('Enter', 'edit')] : [hint('←→', 'adjust'), hint('Enter', 'edit')];
+        return { actions, primaryActions, help: [hint('↑↓', 'select'), ...control, hint('Ctrl+G', 'back')] };
     }
     if (state.form) {
         const row = state.selectedRow();
@@ -168,7 +174,7 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
-    if(e.saveState==='unknown')return [paint(tr('editor.save_unknown'),true)];
+    if (e.saveState === 'unknown') return paintLine(hintLine('editor.save_unknown', state.language, { check: 'Ctrl+K' }), width);
     if (e.sources) {
         const job = sourceObservationJob(e);
         if (job) {
@@ -182,14 +188,20 @@ export function notice(state: State, width: number, visibleHelp: readonly Paint[
             return [paint(parts.join(' · '))];
         }
     }
-    if (e.quick) return [paint(tr(e.quick.step === 'appearance' ? 'quick.preset-ready' : 'quick.sample'))];
+    if (e.quick) return e.quick.step === 'appearance' ? [paint(tr('quick.preset-ready'))] : paintLine(quickSampleHelp(state.language), width);
+    const localized = state.localized.message;
+    if (localized?.key === 'shortcuts.preset-expanded' && typeof localized.params.key === 'string')
+        return paintLine(hintLine(localized.key, state.language, { key: localized.params.key }), width);
     if (message) return [paint(message, true)];
-    if (e.review) return [paint(importShortcutHelp(e.review, e.shortcuts, state.language))];
+    const decorationNotice = itemDecorationNotice(state);
+    if (e.review) return paintLine(importShortcutHelp(e.review, e.shortcuts, state.language), width);
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
     if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
     if (e.detail) {
         const prefix = tr('ui.drawing.item_format');
-        return [paint(prefix), ...shortcuts([['Ctrl+G', tr('ui.hints.back')]], width - displayWidth(prefix))];
+        if (state.input && decorationNotice) return [paint(decorationNotice)];
+        const back = shortcuts([['Ctrl+G', tr('ui.hints.back')]], width - displayWidth(prefix));
+        return [paint(prefix), ...back, ...(decorationNotice ? [paint(' · ' + decorationNotice)] : [])];
     }
     if (e.page === 'layout') return [paint(tr('ui.drawing.explicit_rows_priority_width'))];
     if (e.page === 'settings') return [];

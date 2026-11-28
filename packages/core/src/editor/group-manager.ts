@@ -7,7 +7,7 @@ import { AlignmentReferenceError } from './alignments.js';
 import { editGroup, groupScope, type GroupEdit } from './groups.js';
 import { newInstance } from './instances.js';
 import { isDraft } from './backend.js';
-import { wrapText } from './text.js';
+import { hintLine, wrapEditorLine, type EditorLine } from './hints.js';
 
 export interface GroupManager {
   scope: Scope; page: 'list' | 'actions' | 'form'; cursor: number; selected: string | null;
@@ -89,7 +89,11 @@ export function groupsKey(e: Editor, event: TextKey): null {
   }
   return null;
 }
-export function groupsView(e: Editor, language: Language, width: number, height: number): { text: string; selected?: boolean }[] {
+export function groupsHelp(language: Language): EditorLine {
+  return hintLine('composition.groups.help', language, { arrows: '↑↓/←→', enter: 'Enter' });
+}
+
+export function groupsView(e: Editor, language: Language, width: number, height: number): (EditorLine & { selected?: boolean })[] {
   const m = e.groupManager!, target = groupScope(e.draft.display, m.scope);
   const tr = (key: string) => t('composition.groups.' + key, language);
   const label = (id: string) => e.instance(m.scope, id) ? e.instanceLabel(m.scope, id, language) + ' (' + id + ')' : '—';
@@ -97,7 +101,8 @@ export function groupsView(e: Editor, language: Language, width: number, height:
     : m.page === 'actions' ? actions.map(tr)
       : [tr('first') + ': ' + label(m.first), tr('last') + ': ' + label(m.last), tr('primary') + ': ' + label(m.primary),
         tr('linked') + ': ' + t('values.' + (m.linked ? 'on' : 'off'), language), tr('shared') + ': ' + t('values.' + (m.shared ? 'on' : 'off'), language), tr('apply')];
-  const note = wrapText([m.error && m.errorMessage ? renderMessage(m.errorMessage, language) : tr(m.error ? 'invalid' : 'help')], width), capacity = Math.max(1, height - Math.min(2, note.length));
+  const help = m.error ? { text: m.errorMessage ? renderMessage(m.errorMessage, language) : tr('invalid') } : groupsHelp(language);
+  const note = wrapEditorLine(help, width), capacity = Math.max(1, height - Math.min(2, note.length));
   const start = Math.max(0, m.cursor - capacity + 1);
-  return [...values.slice(start, start + capacity).map((text, i) => ({ text: (start + i === m.cursor ? '› ' : '  ') + text, selected: start + i === m.cursor })), ...note.slice(0, Math.max(0, height - Math.min(capacity, values.length))).map(text => ({ text }))];
+  return [...values.slice(start, start + capacity).map((text, i) => ({ text: (start + i === m.cursor ? '› ' : '  ') + text, selected: start + i === m.cursor })), ...note.slice(0, Math.max(0, height - Math.min(capacity, values.length)))];
 }

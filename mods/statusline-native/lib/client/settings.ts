@@ -7,6 +7,7 @@ import { formRows, adjustForm } from './forms.ts';
 import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
 import { LANGUAGES, LANGUAGE_NAMES } from '../i18n/index.ts';
 import type { ShortcutContext } from '../editor/shortcut-map.ts';
+import type { EditorLine } from '../editor/hints.ts';
 
 export function shortcutContext(view: View): ShortcutContext {
   const e = view.editor!;
@@ -22,15 +23,26 @@ export interface SettingRow {
   group: string;
   value: string;
   editable: boolean;
+  valueHint?: EditorLine;
+}
+
+const enter = 'Enter';
+function enterRow(key: string, label: string, group: string): SettingRow {
+  return { key, label, group, value: enter, editable: true, valueHint: { text: enter, keys: [{ start: 0, end: enter.length }] } };
 }
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
-  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true},...(!e.adding?[{key:'diagnose-file',label:'Diagnose input file',group:'Item format',value:'Enter',editable:true},{key:'reuse-style',label:'Copy / paste visual style',group:'Item format',value:'Enter',editable:true}]:[]), ...formRows(view)];
+  if (e.detail) return [
+    ...(!e.adding ? [enterRow('item-explain', 'Configuration and sample explanation', 'Item format')] : []),
+    enterRow('item-guidance', 'Sources and requirements', 'Item format'),
+    ...(!e.adding ? [enterRow('diagnose-file', 'Diagnose input file', 'Item format'), enterRow('reuse-style', 'Copy / paste visual style', 'Item format')] : []),
+    ...formRows(view),
+  ];
   if (e.page === 'layout') {
     const fields = formRows(view);
     if (!e.draft.display.instances.length) return fields;
-    return [fields[0]!, {key:'row-alignment',label:'Align explicit main rows',group:'Layout',value:'Enter',editable:true}, ...fields.slice(1)];
+    return [fields[0]!, enterRow('row-alignment', 'Align explicit main rows', 'Layout'), ...fields.slice(1)];
   }
   const d = e.draft.display;
   const h = e.draft.host;
@@ -112,19 +124,21 @@ export function settingRows(view: View): SettingRow[] {
   rows.push(...fields.filter(row => row.group !== 'Appearance'));
   rows.push(
     {key:'preview-scenario',label:'Sample scenario',group:'Preview',value:e.previewScenario,editable:true},
-    {key:'preview-width',label:'Preview width',group:'Preview',value:e.previewWidth,editable:true},    {key:'diagnose-file',label:'Diagnose input file',group:'Presets / portable files',value:'Enter',editable:true},    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
-    { key: 'keyboard-shortcuts', label: 'Keyboard shortcuts', group: 'Interface', value: 'Enter', editable: true },
-    { key: 'component-groups', label: 'Component groups', group: 'Presets / portable files', value: 'Enter', editable: true },
-    { key: 'sources', label: 'Data sources', group: 'Presets / portable files', value: 'Enter', editable: true },
-    { key: 'profiles', label: 'Display schemes and projects', group: 'Presets / portable files', value: 'Enter', editable: true },
-    { key: 'quick-setup', label: 'Quick setup', group: 'Presets / portable files', value: 'Enter', editable: true },
+    { key:'preview-width', label:'Preview width', group:'Preview', value:e.previewWidth, editable:true },
+    enterRow('diagnose-file', 'Diagnose input file', 'Presets / portable files'),
+    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
+    enterRow('keyboard-shortcuts', 'Keyboard shortcuts', 'Interface'),
+    enterRow('component-groups', 'Component groups', 'Presets / portable files'),
+    enterRow('sources', 'Data sources', 'Presets / portable files'),
+    enterRow('profiles', 'Display schemes and projects', 'Presets / portable files'),
+    enterRow('quick-setup', 'Quick setup', 'Presets / portable files'),
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
     { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },
-    {key:'change-history',label:'Changes and history',group:'Presets / portable files',value:'Enter',editable:true},
-    {key:'reuse-groups',label:'Reuse complete groups',group:'Presets / portable files',value:'Enter',editable:true},
+    enterRow('change-history', 'Changes and history', 'Presets / portable files'),
+    enterRow('reuse-groups', 'Reuse complete groups', 'Presets / portable files'),
     { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'file path; save later', editable: true },
     { key: 'export-file', label: 'Export current draft', group: 'Presets / portable files', value: 'new file path (may be unsaved)', editable: true },
-    { key: 'package-management', label: 'Version and installation', group: 'Inspection', value: 'Enter', editable: true },
+    enterRow('package-management', 'Version and installation', 'Inspection'),
   );
   if (e.advanced) {
     for (const spec of PREFERENCE_SPECS) {

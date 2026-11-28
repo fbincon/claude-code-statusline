@@ -72,10 +72,10 @@ test('the terminal color panel shows its active apply key and both ways to cance
         state.key({ key: 'e', ctrl: true });
         openColors(editor, 'item:foreground');
         const screen = () => plain(state).join('\n');
-        const help = t('shortcuts.color-help', language, { apply: 'J', back: 'Esc/Ctrl+G' });
+        const help = t('shortcuts.color-help', language, { enter: 'Enter', apply: 'J', back: 'Esc/Ctrl+G' });
         assert(screen().includes(help));
         for (const key of ['end', 'up', 'up', 'return']) state.key({ key });
-        assert(screen().includes(t('shortcuts.color-input-help', language, { back: 'Esc/Ctrl+G' })));
+        assert(screen().includes(t('shortcuts.color-input-help', language, { enter: 'Enter', back: 'Esc/Ctrl+G', clear: 'Ctrl+U' })));
         state.key({ key: 'escape' });
         state.key({ key: 's', ctrl: true });
         assert(screen().includes(help));
