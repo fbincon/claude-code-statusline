@@ -56,7 +56,7 @@ export async function taskInputJourney(config: string, terminal: TaskTerminal, c
     const livePath = join(folder, sha256(session) + '.json'), liveBytes = JSON.stringify(live);
     writeFileSync(livePath, liveBytes);
 
-    await key('s', 'open identity'); await until(screen => screen.includes('⏎ accept'), 'identity input focused');
+    await key('s', 'open identity'); await until(screen => screen.includes('⏎ read now'), 'identity input focused');
     await key('\t', 'select task ID'); await key('unused', 'enter cancelled ID');
     await key('\t', 'select cancel'); await key('\r', 'cancel identity');
     await until(screen => screen.includes('Search: —'), 'reading screen restored');
