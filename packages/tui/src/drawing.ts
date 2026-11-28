@@ -1,8 +1,11 @@
 import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
+import { editorPreviewDraft, samplePreview } from '@fbincon/statusline-core/editor/preview-view';
+import { diagnosisOutput } from '@fbincon/statusline-core/editor/diagnosis-view';
 /** External-editor frame composition. Existing drawing exports remain stable. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
 import { EDITOR_PAGES } from '@fbincon/statusline-core/editor/draft';
+import { usesFullEditorBody } from '@fbincon/statusline-core/editor/navigation';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { renderMessage, t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
@@ -37,7 +40,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const e = state.editor;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     const size = dimensions(canvas.columns, canvas.rows);
-    const reportPage = !!(e.packages || e.taskViewer);
+    const reportPage = usesFullEditorBody(e);
     const panel = reportPage ? size.report : size.content;
 
     if (state.exitChoice !== null) {
@@ -89,7 +92,8 @@ export function frame(state: State, columns: number, rows: number): Frame {
         wrapText([message], canvas.columns).slice(0, Math.max(0, canvas.rows - start - 1))
             .forEach((line, offset) => canvas.line(start + offset, line));
         canvas.put(canvas.rows - 1, 0, shortcuts([
-            ['Esc', tr('ui.hints.cancel')], ['Ctrl+C', tr('ui.hints.interrupt')],
+            e.saveState === 'unknown' ? ['Ctrl+K', tr('editor.check_saved')] : ['Esc', tr('ui.hints.cancel')],
+            ['Ctrl+C', tr('ui.hints.interrupt')],
         ], canvas.columns));
         return canvas.frame();
     }
@@ -104,11 +108,23 @@ export function frame(state: State, columns: number, rows: number): Frame {
             : e.page === 'main' ? 'choose_main_status_line_items_and_their'
                 : e.page === 'subagents' ? 'choose_subagent_row_items_and_their_order'
                     : 'adjust_display_and_tool_refresh_settings'));
-    canvas.line(1, description);
-    drawTabs(canvas, state.language, e.page, 2);
     const { actions, help, primaryActions } = footer(state);
     const visibleHelp = shortcuts(help, canvas.columns);
-    canvas.put(3, 0, notice(state, canvas.columns, visibleHelp));
+    if (!reportPage) {
+        const list = !state.form && !state.input && e.inDraftView && e.saveState === 'idle';
+        const visibleKeys = visibleHelp.filter(span => span.bold).map(span => span.text);
+        const add = e.shortcuts.hint('list', 'add-item');
+        const format = e.shortcuts.hint('list', 'item-details');
+        const start = list ? shortcuts([
+            ...(visibleKeys.includes(e.shortcuts.hint('list', 'add-item', 'copy-item', 'remove-item'))
+                ? [] : [[add, tr('ui.hints.catalog')] as const]),
+            ...(!e.listContext(state.scope).selected || visibleKeys.includes(format)
+                ? [] : [[format, tr('ui.hints.item_format'), tr('ui.hints.format')] as const]),
+        ], canvas.columns) : [];
+        canvas.put(1, 0, start.length ? start : [paint(description)]);
+        drawTabs(canvas, state.language, e.page, 2);
+    }
+    canvas.put(reportPage ? 1 : 3, 0, notice(state, canvas.columns, visibleHelp));
     canvas.panel(panel, contentTitle(state));
     const summary = drawPage(canvas, state, size, panel);
     const summaryLine = typeof summary === 'string' ? { text: summary } : summary;
@@ -122,26 +138,28 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(size.helpY, 0, visibleHelp);
     if (reportPage) return canvas.frame();
 
-    const draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-    const previewTitle = e.review
-        ? tr('review.preview', { scope: tr('review.sections.' + e.review.previewScope) })
-        : tr('ui.drawing.preview_sample_data') + (draft.display.use_colors
-            ? tr('ui.drawing.palette') + draft.display.palette : tr('ui.drawing.colors_off'));
-    canvas.panel(size.preview,e.diagnosis?.report?tr('diagnosis.output'):previewTitle+' · '+tr('preview.scenario.'+e.previewScenario)+' · '+previewWidth(size.preview.innerWidth,e.previewWidth)+'c');
-    const subagents = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
-    const sample = e.diagnosis?.report&&e.diagnosis.result?e.diagnosis.result.output.map(row=>row.spans):state.preview ? subagents ? state.preview.subagents : state.preview.main : [];
     const capacity = size.preview.innerHeight;
-    const offset=Math.min(e.previewOffset,Math.max(0,sample.length-1));
-    const visible=sample.slice(offset);
-    const overflow = visible.length > capacity;
-    const count = overflow && capacity > 1 ? capacity - 1 : capacity;
-    for (let index = 0; index < count; index++) {
-        canvas.content(size.preview, index, visible[index] ?? [paint(
-            index === 0 && !sample.length ? tr('ui.drawing.no_enabled_items') : '',
-        )]);
+    const diagnostic = diagnosisOutput(e.diagnosis, state.language, canvas.columns - (size.preview.framed ? 6 : 4), capacity);
+    if (diagnostic) {
+        canvas.panel(size.preview, diagnostic.title);
+        if (!diagnostic.rows.length) canvas.content(size.preview, 0, [paint(diagnostic.empty)]);
+        diagnostic.rows.forEach((row, index) => canvas.content(size.preview, index, row));
+        return canvas.frame();
     }
+
+    const { display } = editorPreviewDraft(e);
+    const previewTitle = e.colors ? tr('colors.candidate_preview') : e.review
+        ? tr('review.preview', { scope: tr('review.sections.' + e.review.previewScope) })
+        : tr('ui.drawing.preview_sample_data') + (display.use_colors
+            ? tr('ui.drawing.palette') + display.palette : tr('ui.drawing.colors_off'));
+    canvas.panel(size.preview, previewTitle + ' · ' + tr('preview.scenario.' + e.previewScenario) + ' · ' + previewWidth(size.preview.innerWidth, e.previewWidth) + 'c');
+    const sample = samplePreview(e, display, state.preview, state.language, { error: renderMessage(state.previewError ?? '', state.language) });
+    const overflow = sample.rows.length > capacity;
+    const count = overflow && capacity > 1 ? capacity - 1 : capacity;
+    if (!sample.rows.length) canvas.content(size.preview, 0, [paint(sample.empty)]);
+    sample.rows.slice(0, count).forEach((row, index) => canvas.content(size.preview, index, row));
     if (overflow && capacity > 1) {
-        const remaining = visible.length - count;
+        const remaining = sample.rows.length - count;
         canvas.content(size.preview, count, [paint(tr(
             remaining === 1 ? 'ui.drawing.more_line' : 'ui.drawing.more_lines', { remaining },
         ))]);

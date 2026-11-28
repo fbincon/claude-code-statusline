@@ -17,6 +17,7 @@ import { description, readResult, sample } from '../fixtures.ts';
 import { createReview } from '../../lib/editor/import-review.ts';
 import { explanationRows } from '../../lib/editor/explanation.ts';
 import { guidanceRows } from '../../lib/editor/guidance.ts';
+import { openQuick, receivePreset } from '../../lib/editor/quick-setup.ts';
 import type { CatalogItem } from '../../lib/generated-contracts.ts';
 import { SEARCH_CATALOG } from '../generated-search-fixtures.ts';
 
@@ -50,6 +51,52 @@ function render(node: Node): string[] {
   }
   return lines;
 }
+
+test('Native compact Quick setup, groups and layout show the action for the selected object', () => {
+  for (const language of ['en', 'zh-CN'] as const) {
+    const state = view(), current = readResult();
+    current.draft.display.instances.push(component('current-dir'));
+    const e = state.editor = new Editor(description(), current);
+    state.language = language;
+    const screen = () => render(draw(elements, state, 32, 12) as unknown as Node).join('\n');
+    const key = (key: string, ctrl = false) => handleKey(state, ctrl ? { key, ctrl: true } : { key }, 32, 12);
+    const quick = e.quick = openQuick(e.draft, 'agent-focus');
+    const candidate = structuredClone(e.draft);
+    candidate.display.subagents.enabled = false;
+    receivePreset(quick, candidate);
+    expect(screen()).toContain(t('quick.next', language));
+    for (let index = 0; index < 20; index++) key('pagedown');
+    const last = screen();
+    key('pageup');
+    expect(screen() === last).toBe(false);
+    key('end'); key('return');
+    expect(quick.step).toBe('review');
+    key('g', true);
+
+    key('b', true);
+    expect(screen()).toContain(t('composition.groups.switch_scope', language));
+    key('return');
+    expect(e.groupManager!.scope).toBe('subagent');
+    expect(e.modified).toBe(false);
+    key('end');
+    expect(screen()).toContain(t('composition.groups.create', language));
+    key('g', true);
+
+    e.page = 'layout';
+    const id = e.draft.display.instances[1]!.id;
+    e.setting = 'break:' + id;
+    key('return');
+    expect(screen()).toContain(t('layout.review_title', language));
+    expect(screen()).toContain(e.instanceLabel('main', id, language));
+    expect(e.draft.display.layout.mode).toBe('auto');
+    key('g', true);
+    expect(e.changeReview).toBe(null);
+    key('return'); key('a');
+    expect(e.draft.display.layout.mode).toBe('explicit');
+    expect(e.baseline.draft.display.layout.mode).toBe('auto');
+    expect(e.history.undo.length).toBe(1);
+  }
+});
 
 test('all editor pages fit the viewport and frame titles stay on its top edge', () => {
   for (const [columns, rows] of [[32, 12], [64, 18], [64, 20], [80, 24], [120, 30], [80, 48]]) {
@@ -312,7 +359,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', '↑↓', 'Enter/Space', '/', 'Ctrl+F', 'A/D/X', '←→', 'Ctrl+E']
+      ? ['Tab', '↑↓', 'Enter/Space', '/', 'Ctrl+F', 'A', 'D/X', '←→', 'Ctrl+E']
       : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
       : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
@@ -340,7 +387,7 @@ test('filtered lists and the picker show their available remapped controls in or
   e.shortcuts.snapshot.bindings = { save: 'Z', 'toggle-item': 'T', search: 'Y', category: 'C', 'add-item': 'M' };
   e.chooseCategory('main', 'test');
   const hints = editorShortcuts(state)[1]!;
-  expect(hints.map(({ key }) => key)).toEqual(['Tab', '↑↓', 'T', 'Ctrl+G', 'Y', 'C', 'M', 'M/D/X', 'Ctrl+E']);
+  expect(hints.map(({ key }) => key)).toEqual(['Tab', '↑↓', 'T', 'Ctrl+G', 'Y', 'C', 'M', 'D/X', 'Ctrl+E']);
   e.openPicker('main');
   const picker = editorLayout(state, 120, 30).footer.flat();
   expect(picker.map(({ key }) => key)).toEqual(['Enter/Space', 'Q/Ctrl+G', 'Esc', '↑↓', 'Y', 'C', 'Ctrl+U', 'Ctrl+E', 'Z', 'F']);
@@ -373,7 +420,7 @@ test('an editor notice keeps the keyboard focus instruction visible on narrow pa
   state.error = 'Example warning';
   for (const columns of [32, 72, 120]) {
     const tree = draw(elements, state, columns, 24) as unknown as Node;
-    expect(text(tree.children[1]!)).toContain('Click the editor body');
+    expect(text(tree.children[1]!)).toContain(columns < 120 ? 'Click editor for keys' : 'Click the editor body first.');
     expect(text(tree.children[2]!)).toBe(state.error);
     expect(render(tree)).toHaveLength(24);
   }
@@ -518,7 +565,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   for (const page of ['main', 'subagents', 'layout']) {
     e.page = page as typeof e.page;
     const hints = editorShortcuts(state).flat();
-    expect(hints.some((hint) => hint.key === 'H' || hint.key === 'A')).toBe(false);
+    expect(hints.some((hint) => hint.key === 'H' || hint.label === 'apply separately')).toBe(false);
     expect(hints.some((hint) => hint.key === '/')).toBe(page !== 'layout');
   }
   e.page = 'main';
@@ -622,7 +669,7 @@ test('native shortcuts show a top toolbar and keep selection details against the
       expect(lines[title + 1]).toContain('[' + t('shortcuts.' + key + (columns === 32 ? '-short' : ''), 'zh-CN') + ']');
     const body = lines.slice(title + 2, bottom < 0 ? footer : bottom);
     expect(body.some(row => row.includes('─ 编辑器与草稿 ─'))).toBe(true);
-    expect(body.some(row => row.includes('选项') && row.includes(columns >= 80 ? '当前键' : '值'))).toBe(true);
+    expect(body.some(row => row.includes('选项') && row.includes(t('shortcuts.current-key', 'zh-CN')))).toBe(true);
     expect(body.some(row => row.includes('默认键'))).toBe(columns >= 80);
     expect(body.at(-1)).toContain('内置 S [S]');
     expect(lines.slice(title + 1, title + 3).some(row => row.includes('Tab 到操作区'))).toBe(true);
@@ -686,12 +733,28 @@ test('translated list footers retain primary controls, selection and a real prev
     expect(render(tree)).toHaveLength(12);
     expect(text(tree.children[3]!)).toContain('›');
     expect(text(tree.children[4]!)).toContain(page === 'main' ? 'main sample' : 'agent sample');
-    const primary = ['S', 'F', 'Q', 'Tab', '↑↓', 'Enter/Space', ...(filtered ? ['Ctrl+G'] : []), '/'];
+    const primary = ['S', 'F', 'Q', 'Tab', '↑↓', 'Enter/Space', ...(filtered ? ['Ctrl+G'] : []), '/', 'A', 'Ctrl+E'];
     const hints = geometry.footer.flat().filter(({ key }) => primary.includes(key));
     expect(hints.map(({ key }) => key)).toEqual(primary);
     expect(hints.every(({ label }) => label.length > 0)).toBe(true);
     expect(editor.selected[scope]).toBe(selected);
     expect(JSON.stringify(editor.draft)).toBe(before);
+  }
+});
+
+test('a filtered Native list with no match names the usable catalog control', () => {
+  for (const language of ['en', 'zh-CN'] as const) for (const scope of ['main', 'subagent'] as const) {
+    const state = view(), editor = state.editor!;
+    state.language = language;
+    editor.page = scope === 'main' ? 'main' : 'subagents';
+    editor.shortcuts.snapshot.bindings = { 'add-item': 'M' };
+    editor.filter(scope, 'no-such-component');
+    const screen = () => render(draw(elements, state, 32, 12) as unknown as Node);
+    expect(screen().join('\n')).toContain(t('catalog.search.open_catalog', language, { key: 'M' }));
+    expect(editorLayout(state, 32, 12).footer.flat().some(hint => hint.key === 'Ctrl+E')).toBe(false);
+    handleKey(state, { key: 'm' }, 32, 12);
+    expect(editor.picker?.search).toBe('no-such-component');
+    expect(screen().join('\n')).toContain(clip(t('catalog.search.no_types', language), 32));
   }
 });
 

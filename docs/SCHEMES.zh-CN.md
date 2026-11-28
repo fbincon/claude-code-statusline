@@ -22,7 +22,7 @@
 
 ## 在编辑器中使用快速配置
 
-在 `/statusline-configure-native` 或 `claude-statusline configure` 中按 **Ctrl+P**，或在设置页选择“快速配置”。依次选择用途、外观和示例。用上下键和 Enter 选择，左右键调整外观，Tab 切换主行与子代理示例，PgUp/PgDn 滚动来源要求。需要审阅和安装 Claude 接入时，使用独立的[首次设置向导](SETUP.zh-CN.md)。
+在 `/statusline-configure-native` 或 `claude-statusline configure` 中按 **Ctrl+P**，或在设置页选择“快速配置”。用上下键和 Enter 选择用途。在外观页用左右键调整字段，然后按 End 再按 Enter，执行**继续查看示例**。Tab 切换主行与子代理示例，PgUp/PgDn 滚动来源要求。需要审阅和安装 Claude 接入时，使用独立的[首次设置向导](SETUP.zh-CN.md)。
 
 在审阅页选择操作。
 

@@ -30,7 +30,7 @@ Use the terminal editor or in-session Client to edit the same display configurat
 
 On Windows, run `claude-statusline.cmd configure` in a terminal. The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a new system console on Windows. When no supported launcher is available, run `configure` directly. The slash-launched editor cancels without saving after 30 minutes. Standalone `configure` has no automatic timeout. Save, cancellation and errors return a short result to the original conversation. The slash command `/statusline-configure` accepts `help`, `-h` and `--help`, rejecting other arguments; the standalone `claude-statusline configure` command does not accept `help`. A terminal below the minimum size waits for resizing and still permits cancellation.
 
-After integration changes, restart Claude Code in a trusted terminal. Click inside Client before using the keyboard; running the native command again focuses its existing pane and keeps its draft. Esc is a host focus action and may then close the pane; Ctrl+G cancels Client input. On macOS, Client interaction remains unverified; use the [focus checks and alternatives](USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
+After integration changes, restart Claude Code in a trusted terminal. Click the editor body before pressing a shortcut. Running the native command again returns to the existing pane and keeps its draft. Esc returns focus to Claude and may then close the pane. Use Ctrl+G to cancel Client input. If the pane is too small, compare its reported body size with 32×12 and enlarge the terminal to continue the same draft. On macOS, Client interaction remains unverified. See [focus checks and alternatives](USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
 
 Confirm the editing target in the header. Use **Settings → Display schemes and projects** or Ctrl+O to choose a user default, named profile or project target; terminal `configure` also accepts explicit target options. See [profiles and project bindings](PROFILES.md). [Installation combinations and host compatibility](USER_GUIDE.md#editor-installation-combinations-and-compatibility) explain independent enablement of the two integrations.
 
@@ -51,7 +51,7 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 ### Terminal page regions and footer
 
-Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. **Task details** and **Version and installation** use the full content area. A file diagnosis uses the preview area for its rendered output.
+Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. Data sources, task details, version management and file or configuration confirmations use the full content area where applicable. A file diagnosis shows rendered output in its own area. Tab switches between the report and output when there are rows to read.
 
 In both editors, horizontal dividers mark the groups in **Version and installation**. Enter opens the marked actions and the channel chooser. Going back from details, a review or a confirmation restores the originating row. [Package management](PACKAGE_MANAGEMENT.md#review-from-either-editor)
 
@@ -63,7 +63,7 @@ Leave a task report or a running job’s status open to follow changes. The acti
 
 ### Client pagination and footer
 
-At 64×20 and above, frames separate content and preview; compact panes use titled separators. Active tabs, group headings and selected fields have distinct styles. Save and close controls form a separate group from page controls. Component lists lead with page, selection and toggle controls. Settings shows H for Claude preferences and A when those preferences are expanded.
+At 64×20 and above, frames separate content and preview. Compact panes use titled separators. Active tabs, group headings and selected fields have distinct styles. Save and close controls form a separate group from page controls. Component lists show the catalog shortcut and the selected component's format shortcut. Settings shows H for Claude preferences and A when those preferences are expanded.
 
 Input editing replaces ordinary shortcuts with accept/cancel/clear/delete controls. Busy operations and unknown saves show their applicable controls. Hints wrap as complete key/action pairs. At 32×12, compact descriptions and fewer detail rows preserve the selection, basic operations and a sample preview; secondary hints may be omitted. Resizing recomputes field pages while retaining the selected field and input buffer.
 
@@ -130,9 +130,9 @@ Return from a manager to the main editor to use draft history. On Unix, Claude m
 
 ## Customize keyboard shortcuts
 
-In either editor, open **Settings → Keyboard shortcuts**. The three buttons sit above the list and use shorter labels in narrow panes. Horizontal dividers mark the action groups. At 80 columns and above, the list shows **Option**, **Current key** and **Default key**. In narrower panes it shows **Option** and **Value**. The bottom of the panel shows each applicable editor's current binding and its default in brackets for the selected action. The open panel fits in 32×12.
+In either editor, open **Settings → Keyboard shortcuts**. The three buttons sit above the list and use shorter labels in narrow panes. Horizontal dividers mark the action groups. The **Active key** column shows the binding currently in use. At 80 columns and above, the list also shows **Default key**. Staged changes are marked in the list, and the selected action shows its active and pending values in the panel details. The open panel fits in 32×12.
 
-Navigate with the arrows and page keys. Press `/` to filter by action name or ID, Enter to accept the filter, and Ctrl+G to return to the previous selection and filter. Ctrl+U clears the filter text while editing it. The footer below the panel shows the keys for the current operation.
+Navigate with the arrows and page keys. Press `/` to filter by action name, page name, alias, action ID or key, such as `Data sources` or `Ctrl+Y`. Enter accepts the filter, Ctrl+G restores the previous selection and filter, and Ctrl+U clears the filter text while editing it. The footer below the panel shows the keys for the current operation.
 
 1. Select an action, press Enter, and press the new key. Ctrl+G cancels recording. Delete restores the selected action to its preset.
 2. Press Tab to focus **Save shortcuts** or Shift+Tab to focus **Read saved**. Use Left/Right to choose a button and Enter to run it. Press Tab again to return to the same list selection and filter. **Restore all defaults** stages the defaults. Choose **Save shortcuts** to apply them.
@@ -166,7 +166,7 @@ Terminal bracketed paste and recognizable Client multi-character text do not exe
 
 Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it and Ctrl+G restores the previous query. The terminal editor also accepts direct typing; Esc cancels explicit search input. Search matches IDs, names and descriptions in all twelve languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighting identifies the match, including an alternate-language snippet when needed.
 
-Ctrl+F opens the category picker. Select with arrows and accept with Enter. **All categories** clears the category. In the configured list, Ctrl+G clears both filters and restores ordering. The catalog inherits the list's query and category when it opens. Use Ctrl+U to clear the catalog query and Ctrl+F to change its category. Catalog filters stay in that view. Enter and Space add or enable the selected type in the draft and keep the catalog open. [Component catalog and instance controls](COMPOSITION.md#use-either-editor)
+Ctrl+F opens the category picker. Select with arrows and accept with Enter. **All categories** clears the category. In the configured list, Ctrl+G clears both filters and restores ordering. When there is no match, the list points to the catalog shortcut. The catalog inherits the list's query and category when it opens. Use Ctrl+U to clear the catalog query and Ctrl+F to change its category. Catalog filters stay in that view. Enter and Space add or enable the selected type in the draft and keep the catalog open. [Component catalog and instance controls](COMPOSITION.md#use-either-editor)
 
 In the format form (Ctrl+E), open **Sources and requirements** with Enter. In the add-component catalog, Ctrl+E opens it directly. Start with **Data source and scope** and **When it appears**. Further down, look for possible reasons the value is missing, source field names, verified version requirements and setup or diagnostic commands. The page describes general conditions for the selected component.
 
@@ -180,7 +180,7 @@ On Main/Subagents, select a component and press **Ctrl+E** to open its format. O
 
 Use **Ctrl+G** to return. **Enter** also opens or accepts integer input for fields such as maximum width. Enter `none` to clear an optional width or limit.
 
-Layout chooses auto/explicit and sets **New row before** boundaries for all configured main instances, including disabled instances. Higher priorities are retained first (default 50); maximum width counts terminal columns. Reordering keeps row boundaries valid. When explicit rows are too narrow, scope decoration yields to real items, widths shrink and lower-priority items can be hidden. Explicit layout removes empty rows without adding continuation lines; automatic layout wraps. [Components, groups and alignment](COMPOSITION.md).
+Layout chooses auto/explicit and sets **New row before** boundaries for all configured main instances, including disabled instances. Starting a row in automatic layout opens a review of the switch to explicit layout. Accept to update the display draft, then Save to apply it. Higher priorities are retained first (default 50) and maximum width counts terminal columns. Reordering keeps row boundaries valid. When explicit rows are too narrow, scope decoration yields to real items, widths shrink and lower-priority items can be hidden. Explicit layout removes empty rows without adding continuation lines. Automatic layout wraps. [Components, groups and alignment](COMPOSITION.md).
 
 <a id="presets-import-review-and-export"></a>
 
@@ -230,7 +230,7 @@ Enter inside a field accepts the field, and A inside import review accepts the c
 
 Two editors can stay open. The first save succeeds; a stale revision is refused without overwriting newer settings. Conflict review retains the draft and supports comparison, export and explicitly reviewed retry or discard/reload. Use the [concurrent-edit workflow](DRAFT_HISTORY.md#concurrent-edits-and-unknown-saves); ordinary reload discards the draft rather than merging it.
 
-While a save is pending or unknown, display/history mutations and ordinary closure are blocked, including already-open source/profile managers. Saved-state checks read the submitted snapshot without saving again. A definitive result unlocks editing; a conflict retains the draft. Read-only source inspection remains available. On Client failure, Retry/Close buttons outside the pane recover while retaining drafts already received by the host. At narrow widths the header ellipsizes the editing target before those controls. [Troubleshooting](USER_GUIDE.md#troubleshooting).
+While a save is pending or unknown, display/history mutations and ordinary closure are blocked, including already-open source/profile managers. Saved-state checks read the submitted target without saving again. A definitive result unlocks editing, and a conflict retains the draft. Read-only source inspection remains available. In Client, use Ctrl+G to return from the active page and then press K to check. The external editor offers Ctrl+K alongside the active page's return keys. On Client failure, Retry/Close buttons outside the pane recover while retaining drafts already received by the host. At narrow widths the header ellipsizes the editing target before those controls. [Troubleshooting](USER_GUIDE.md#troubleshooting).
 
 <a id="claude-preferences-apply-separately"></a>
 

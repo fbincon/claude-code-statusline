@@ -30,6 +30,32 @@ test('native scheme manager previews, changes target and saves the shared scheme
   await ui.unmount();
 });
 
+test('a native 32×12 dirty switch shows the next scheme and cancels on Enter', async ($, on) => {
+  const f = setup(on);
+  f.store.uiLanguage = 'zh-CN';
+  const name = '试用方案';
+  const library: ProfilesResult = { version: 1, revision: '1'.repeat(64),
+    profiles: [{ id: 'scheme', name, display: BASE.display }],
+    bindings: [{ root: '/fixture/project', profile_id: 'scheme' }] };
+  f.behavior.process = (request, next) => request.operation === 'profiles_read' ? { value: reply(library) } : next();
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, 'd');
+  const dirty = JSON.stringify(previewDraft(f));
+  await ui.resize({ columns: 32, rows: 12 });
+  await keys(ui, { key: 'o', ctrl: true }, 'down', 'return', 'return');
+  const screen = await visibleText(ui);
+  expect(screen).toContain(t('profiles.switch_title', 'zh-CN'));
+  expect(screen).toContain(t('profiles.switch_to', 'zh-CN', { name, count: 1 }));
+  expect(screen).toContain(t('profiles.cancel', 'zh-CN'));
+  await keys(ui, 'return');
+  expect(await visibleText(ui)).toContain(t('profiles.title', 'zh-CN'));
+  expect(JSON.stringify(previewDraft(f))).toBe(dirty);
+  expect(f.calls.some(call => call.operation === 'apply' || call.operation === 'profiles_apply')).toBe(false);
+  await ui.unmount();
+});
+
 for(const language of LANGUAGES)test(`localized profile entry retains the draft until explicit Save in ${language}`,{timeoutMs:20000},async($,on)=>{
   const f=setup(on);f.store.uiLanguage=language;
   const library:ProfilesResult={version:1,revision:'1'.repeat(64),profiles:[],bindings:[]};

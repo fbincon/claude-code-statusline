@@ -47,6 +47,26 @@ export class BackendError extends Error {
   }
 }
 
+function fileErrno(error: unknown): number | undefined {
+  if (!(error instanceof BackendError) || error.code !== 'io_error') return undefined;
+  const errno = /^\[Errno (\d+)\]/u.exec(error.message);
+  return errno ? Number(errno[1]) : undefined;
+}
+
+export function isFileExistsError(error: unknown): boolean {
+  return fileErrno(error) === 17;
+}
+
+export function fileActionFailure(error: unknown): LocalizedText {
+  if (error instanceof BackendError && error.localization) return error.localization;
+  switch (fileErrno(error)) {
+    case 1: case 13: return localizedText('history.file_permission');
+    case 2: return localizedText('history.file_missing');
+    case 17: return localizedText('history.file_exists');
+    default: return localizedText('history.failed', { detail: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 export function processFailure(error: unknown): BackendError {
   if (error instanceof BackendError) return error;
   const message =

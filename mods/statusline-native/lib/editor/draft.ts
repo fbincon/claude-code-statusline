@@ -78,7 +78,7 @@ export class Editor {
   page: Page = 'main';
   previewScenario: import('./preview-settings.js').PreviewScenario = 'normal';
   previewWidth = 'auto';
-  previewOffset = 0;
+  previewOffsets: import('./preview-settings.js').PreviewOffsets = {};
   advanced = false;
   picker: Picker | null = null;
   detail: { scope: Scope; id: string } | null = null;
@@ -194,8 +194,10 @@ export class Editor {
     }
     return true;
   }
-  replaceDraft(draft: Draft, label: LocalizedText = text('history.replace')): void {
-    if (this.commitDraft(draft, label)) this.restoreDraft(draft);
+  replaceDraft(draft: Draft, label: LocalizedText = text('history.replace')): boolean {
+    if (!this.commitDraft(draft, label)) return false;
+    this.restoreDraft(draft);
+    return true;
   }
   undo(redo = false): boolean {
     if (!this.canMutateDraft() || this.numericBefore) return false;
@@ -210,12 +212,12 @@ export class Editor {
     this.groupManager = null; this.colors = null; this.structureProposal = null; this.changeReview = null;
     return true;
   }
-  applyStructure(draft: Draft): boolean {
+  applyStructure(draft: Draft, confirmation?: LocalizedText): boolean {
     if (!this.canMutateDraft()) return false;
     try {
       const proposal = repairStructure(this.draft, draft);
-      if (!proposal.repairs.length) return this.commitDraft(proposal.draft, text('history.structure'));
-      this.structureProposal = { ...proposal, generation: this.mutationGeneration, target: targetIdentity(this.baseline) };
+      if (!confirmation && !proposal.repairs.length) return this.commitDraft(proposal.draft, text('history.structure'));
+      this.structureProposal = { ...proposal, generation: this.mutationGeneration, target: targetIdentity(this.baseline), confirmation };
       openChanges(this, true); return true;
     } catch (error) {
       this.compositionError = text(error instanceof Error && error.message === 'composition.groups.invalid'

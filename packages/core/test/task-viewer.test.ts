@@ -127,6 +127,37 @@ test('preference errors use the documented fallback without preventing evidence 
     assert(view.warning);
     assert(view.report);
 });
+test('the first read failure has no retained result and errors preserve an explicit interface language', async () => {
+    const view = taskViewer('session', null, 'zh-CN');
+    await readTask(view, { request() { throw new Error('private failure'); } }, undefined, 'zh-CN');
+    assert.equal(view.language, 'zh-CN');
+    assert.equal(view.warning?.key, 'task.language_kept');
+    assert.equal(view.report, null);
+    const rows = taskViewerView(view, 62, 9);
+    assert(rows.some(row => row.key === 'error' && row.text === t('task.viewer.first_read_failed', view.language)));
+    assert(rows.some(row => row.text === t('task.viewer.retry_read', view.language)));
+    assert(!rows.some(row => row.key === 'retained'));
+
+    receiveTask(view, report());
+    await readTask(view, { request() { throw new Error('private failure'); } }, undefined, 'zh-CN');
+    assert(taskViewerView(view, 62, 9).some(row => row.key === 'retained' && row.text.includes(report().captured_at)));
+});
+test('missing and conflicting current tasks show their status first and retain source evidence', () => {
+    const view = taskViewer('session', null, 'zh-CN');
+    for (const reason of ['no_current_task', 'ambiguous_current_task']) {
+        const snapshot = { ...report(), prompt_id: null, status: null, phase: null, elapsed_seconds: null, progress: null, agents: [], limitations: [reason] };
+        receiveTask(view, snapshot);
+        const first = taskViewerRows(view, 32);
+        assert.equal(first.filter(row => row.key.startsWith('current:')).map(row => row.text).join(''), t('task.limit.' + reason, view.language));
+        assert(first[0]!.key.startsWith('current:'));
+        assert(!first.some(row => /^(elapsed|active|status|no-agents):/u.test(row.key)));
+        taskViewerKey(view, { key: 'e' });
+        const evidence = taskViewerRows(view, 64);
+        assert(evidence.some(row => row.heading && row.text.includes('task_store')));
+        assert(evidence.some(row => row.text.includes(snapshot.evidence[0]!.observed_at!)));
+        taskViewerKey(view, { key: 'e' });
+    }
+});
 for (const language of LANGUAGES)
     test(`task viewer bounds large lists and preserves complete graphemes in ${language}`, () => {
         const view = taskViewer('session', null, language), value = report();

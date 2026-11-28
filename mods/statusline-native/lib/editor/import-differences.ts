@@ -12,6 +12,11 @@ export const KINDS = ['add', 'remove', 'enable', 'disable', 'reorder', 'change']
 function fieldMessage(path: string[]) {
   if (path.includes('groups')) return text('composition.groups.title');
   if (path.includes('source')) return text('sources.title');
+  if (path[1] === 'layout' && path[2]) {
+    if (path[2] === 'mode') return text('native.settings.layout.mode');
+    if (path[2] === 'rows') return text('groups.row-boundaries');
+    if (path[2] === 'alignments') return text('alignment.title');
+  }
   let key: string;
   if (path.includes('options')) {
     const tail = path.slice(path.indexOf('options') + 1), name = tail.at(-1) ?? 'overrides';

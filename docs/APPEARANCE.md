@@ -164,7 +164,9 @@ Use the [complete schemes](SCHEMES.md) to preview adaptive indicators and contin
 
 ## Visual color selection and sample scenarios
 
-Enter on a theme, foreground, background or gradient field opens a color page. Actual swatches accompany names and surface suitability. Enter selects a candidate; Ctrl+S applies it to the display draft; Esc cancels that page. Custom colors retain `inherit`, `default`, `ansi:N` and RGB support. Gradients support 2–5 RGB stops, individual edits, reversal, adding/removing stops and disabling without deleting the saved solid color.
+Press Enter on a theme, foreground, background or gradient field to open the color page. The page labels the saved value, the display draft value and the candidate shown in the sample. Move the cursor to browse swatches, then press Enter to select a candidate. Use the displayed **Apply to display draft** shortcut, default Ctrl+S, and then the display **Save** shortcut to persist the change. Ctrl+G cancels the candidate. The external editor also accepts Esc.
+
+Custom colors support `inherit`, `default`, `ansi:N` and RGB. Gradients support 2–5 RGB stops, individual edits, reversal, adding/removing stops and disabling while retaining the saved solid color.
 
 Additional themes are `ocean`, `ember`, `slate` (dark surfaces) and `blossom` (light surfaces). Additional gradients are `glacier`, `lagoon`, `flame`, `copper`, `steel`, `sage`, `petal` and `twilight`. The terminal background remains independently controlled.
 

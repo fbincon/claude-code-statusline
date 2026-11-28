@@ -1,8 +1,8 @@
 import { BackendError } from '../src/editor/backend.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { packageManager, packageKey, performPackage, closePackage, type PackageBackend, type PackageManager } from '../src/editor/package-manager.js';
-import { packageView } from '../src/editor/package-view.js';
+import { packageManager, packageKey, packageControls, performPackage, closePackage, type PackageBackend, type PackageManager } from '../src/editor/package-manager.js';
+import { packageTitle, packageView } from '../src/editor/package-view.js';
 import { displayWidth } from '../src/unicode/index.js';
 import { isPackageRequest, isPackageResult } from '../src/editor/package-validation.js';
 import type { PackageCleanupReview, PackageStatus, PackageReviewJob, PackageReviewRequest } from '../src/contracts/ui.js';
@@ -304,7 +304,16 @@ test('cleanup confirms exactly the reviewed removable record and removes its sta
     assert.equal(view.mode, 'cleanup');
     press(view, 'return', 'cleanup:' + removableId);
     assert.equal(requests.length, 1);
-    assert.equal(press(view, 'return'), 'packages');
+    const confirmation = packageView(view, 'en', 64, 8);
+    assert(confirmation.some(row => row.text.includes(removableId)));
+    assert(confirmation.some(row => row.text.includes(status.current!)));
+    assert(confirmation.some(row => row.text.includes(status.prefix!)));
+    assert.equal(confirmation.find(row => row.selected)?.key, 'confirm-cancel');
+    assert.equal(press(view, 'return'), null);
+    assert.equal(view.mode, 'cleanup');
+    assert.equal(requests.length, 1);
+    press(view, 'return', 'cleanup:' + removableId);
+    assert.equal(press(view, 'return', 'cleanup-confirm'), 'packages');
     await performPackage(view, backend);
     assert.deepEqual(requests[1], { operation: 'package_cleanup_apply',
         payload: { prefix: status.prefix, revision: cleanup.revision, ids: [removableId] } });
@@ -359,6 +368,68 @@ import type { ReadResult, DescribeResult, PackageExecution } from '../src/contra
 function editorFixture(){return new Editor({catalog:[],options:{padding:{minimum:0,maximum:32},'refresh-interval':{minimum:1,maximum:3600}}}as unknown as DescribeResult,{draft:{display:defaultDisplay(),host:{...DEFAULT_HOST}},revision:'0'.repeat(64),installed:true,installation:{}}as ReadResult);}
 function verifiedJob(view:ReturnType<typeof packageManager>):PackageReviewJob{return {...job(view.owner),state:'complete',request:{...request,action:'update'},review:{action:'update',current:'3.10.0',target:'3.12.0',prefix:'/prefix',entry:'/prefix/entry',config_dir:'/config',channel:'latest',registry:'https://registry.npmjs.org/',integrity:'sha512-'+Buffer.alloc(64).toString('base64'),node_engine:'>=22',host:'2.1.310',artifact_verified:true,compatible:true,reasons:[],configuration_conflicts:[],backup_id:null,files:[]}};}
 
+test('reviews lead with the current verdict and confirmations identify the reviewed target at compact sizes', async () => {
+    const prefix = '/reviewed/' + '项目路径/'.repeat(18) + 'actual-target', backup = recordId(9);
+    for (const language of ['en', 'zh-CN'] as const) {
+        for (const action of ['update', 'rollback', 'recover-package', 'restore-config'] as const) {
+            const view = openStatus(), editor = editorFixture();
+            const original = verifiedJob(view);
+            const restore = action === 'restore-config';
+            view.job = { ...original, request: { ...original.request, action }, review: { ...original.review!, action, prefix,
+                backup_id: restore ? backup : null, artifact_verified: !restore, files: restore ? ['/config/reviewed-settings.json'] : [],
+                ...(restore ? { registry: null, integrity: null, node_engine: null } : {}) } };
+            view.mode = 'review'; view.selected = 'review-state';
+            const heading = packageView(view, language, 32, 6);
+            assert.equal(heading[0]?.key, 'review-state');
+            const keys = view.rows.map(row => row.key);
+            if (keys.includes('integrity')) assert(keys.indexOf('execute') < keys.indexOf('integrity'));
+            press(view, 'return', 'execute');
+            await performPackage(view, { request() { assert.fail('Preparing the confirmation must not execute'); } } as PackageBackend, editor);
+            assert.equal(packageTitle(view, language), t('package.ui.confirm_title.' + action, language));
+            const initial = packageView(view, language, 32, 6);
+            assert.equal(initial.find(row => row.selected)?.key, 'confirm-cancel');
+            assert(initial.some(row => row.key === (restore ? 'restore-backup' : 'review-prefix')));
+            assert(initial.some(row => row.text.includes(original.review!.target!)));
+            assert(initial.every(row => displayWidth(row.text) <= 32));
+            const read = [];
+            for (let i = 0; i < 15; i++) {
+                read.push(...packageView(view, language, 32, 6));
+                packageKey(view, { key: 'pagedown' });
+            }
+            const last = view.detailScroll;
+            packageKey(view, { key: 'pageup' });
+            assert(view.detailScroll < last);
+            const details = read.filter(row => row.key === (restore ? 'restore:/config/reviewed-settings.json' : 'review-prefix'));
+            assert(details.map(row => row.text.trim()).join('').includes(restore ? 'reviewed-settings.json' : 'actual-target'));
+            assert.equal(press(view, 'return'), null);
+            assert.equal(view.mode, 'review');
+        }
+    }
+    const view = openStatus();
+    const ready = verifiedJob(view);
+    view.job = { ...ready, review: { ...ready.review!, compatible: false, artifact_verified: false, reasons: ['configuration'] } };
+    view.mode = 'review'; view.selected = 'review-state';
+    assert.deepEqual(packageView(view, 'en', 64, 4).slice(0, 2).map(row => row.key), ['review-state', 'review-reason:configuration']);
+    assert(!packageControls(view).pick);
+});
+
+test('history offers recovery only for a confirmed stopped executor and empty cleanup has no Enter action', () => {
+    const view = openStatus();
+    press(view, 'return', 'history');
+    assert(packageView(view, 'en', 64, 8).some(row => row.key === 'no-pending'));
+    assert(!view.rows.some(row => row.key === 'recover-package'));
+    for (const running of [true, null, false]) {
+        view.status = { ...status, pending: { id: recordId(2), version: '3.10.0', created: status.captured_at, stage: 'uncertain', backup: 'verified', running } };
+        packageView(view, 'en', 64, 9);
+        assert.equal(view.rows.some(row => row.key === 'recover-package'), running === false);
+        assert.equal(view.rows.some(row => row.key === 'recovery-wait'), running !== false);
+    }
+    view.mode = 'cleanup';
+    view.cleanup = { version: 1, revision: 'b'.repeat(64), prefix: view.prefix, offset: 0, total: 0, uncertain: false, rows: [] };
+    assert.equal(packageControls(view).pick, false);
+    assert(packageView(view, 'en', 64, 7).every(row => !row.command));
+});
+
 test('returning from clean or dirty execution preparation restores the execute action', async () => {
     for (const dirty of [false, true]) {
         const editor = editorFixture(), view = openStatus();
@@ -389,6 +460,33 @@ test('dirty drafts require an explicit choice and exporting never marks them sav
     view.effect='export-draft';await performPackage(view,backend,e);assert.equal(e.modified,true);assert.equal(view.mode,'execute-confirm');assert.equal(calls.join(','),'export');
     press(view,'q');view.effect='execute';await performPackage(view,backend,e);assert.equal(view.mode,'draft');
     press(view,'return','draft-discard');await performPackage(view,backend,e);assert.equal(e.modified,false);assert.equal(view.mode,'execute-confirm');assert(!calls.includes('apply'));
+});
+
+test('a package preparation export failure keeps the path and draft ready for a new destination', async () => {
+    const editor = editorFixture(), view = openStatus(), accepted: unknown[] = [];
+    editor.draft.display.statusline_language = 'ko';
+    view.job = verifiedJob(view);
+    view.effect = 'execute';
+    const backend = { request(operation: string, payload: unknown) {
+        assert.equal(operation, 'export');
+        accepted.push(payload);
+        if (accepted.length === 1) throw new BackendError('io_error', '[Errno 17] File exists');
+        return { path: '/new.json' };
+    } } as PackageBackend;
+    await performPackage(view, backend, editor);
+    press(view, 'return', 'draft-export');
+    assert.equal(press(view, 'return'), 'packages');
+    const input = { ...view.input! };
+    await performPackage(view, backend, editor);
+    assert.deepEqual(view.input, input);
+    assert(packageView(view, 'en', 64, 7).some(row => row.text.includes(t('history.file_exists', 'en'))));
+    packageKey(view, { key: 'u', ctrl: true });
+    packageKey(view, { key: '/new.json', paste: true });
+    assert.equal(press(view, 'return'), 'packages');
+    await performPackage(view, backend, editor);
+    assert.equal(view.mode, 'execute-confirm');
+    assert.equal(editor.modified, true);
+    assert.deepEqual(accepted.map(value => (value as { overwrite: boolean }).overwrite), [false, false]);
 });
 test('unknown saves block execution and accepted handoffs lock editing while close only detaches',async()=>{
     const e=editorFixture(),view=packageManager();view.job=verifiedJob(view);view.effect='execute';e.setSaveState('unknown');const calls:string[]=[];

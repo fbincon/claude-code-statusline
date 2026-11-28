@@ -5,7 +5,7 @@ import { packageView } from '@fbincon/statusline-core/editor/package-view';
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';
-import { applyPreviewShortcut, SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '@fbincon/statusline-core/editor/preview-settings';
+import { applyPreviewShortcut, SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview, setPreviewScenario } from '@fbincon/statusline-core/editor/preview-settings';
 import { openAlignments, alignmentsKey } from '@fbincon/statusline-core/editor/alignment-manager';
 import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-manager';
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
@@ -14,18 +14,18 @@ import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profi
 import { openExplanation, explanationRows } from '@fbincon/statusline-core/editor/explanation';
 import { guidanceRows } from '@fbincon/statusline-core/editor/guidance';
 import { itemDetailWindow } from '@fbincon/statusline-core/editor/item-detail';
+import { usesFullEditorBody } from '@fbincon/statusline-core/editor/navigation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import type { EditorLine } from '@fbincon/statusline-core/editor/hints';
 import { Editor, copyDraft, cycleEditorPage, type NumericField, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
-import { navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
+import { acceptImport, navigateReview, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { canvasSize, dimensions, formWindow, usesReportRows } from './layout.js';
 import { externalTaskRows } from './report-refresh.js';
-import { sourceObservationJob } from './manager-refresh.js';
 import { formPageIndex } from './navigation.js';
 import type { ShortcutContext } from '@fbincon/statusline-core/editor/shortcut-map';
 import { shortcutPanelFits, type ShortcutEffect } from '@fbincon/statusline-core/editor/shortcut-settings';
@@ -61,6 +61,7 @@ export class State {
     input: Input | null = null;
     exitChoice: 'keep' | 'discard' | null = null;
     preview: PreviewResult | null = null;
+    previewError: LocalizedText | string | null = null;
     message = '';
     localized: {
         message?: LocalizedText;
@@ -165,7 +166,7 @@ export class State {
     }
     adjust(delta: -1 | 1): Effect {
         const e = this.editor, row = this.selectedRow(), candidate = copyDraft(e.draft), d = candidate.display;
-        if(row.key==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return null;}
+        if (row.key === 'preview-scenario') { setPreviewScenario(e, cyclePreview(SCENARIO_IDS, e.previewScenario, delta)); return null; }
         if(row.key==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return null;}
         if (row.key !== 'ui-language' && !e.canMutateDraft()) {this.notice(e.compositionError);return null;}
         if (row.form) {
@@ -247,7 +248,8 @@ export class State {
             }
             return null;
         }
-        if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' && !event.text && !event.paste) return 'reconcile';
+        if (e.saveState === 'unknown' && ctrl && k.toLowerCase() === 'k' &&
+            !event.text && !event.paste && !event.meta && !event.overflow) return 'reconcile';
         if (e.saveState === 'pending') return null;
         if (!size.available && !cancel && !(e.shortcuts.panel && shortcutPanelFits(columns, rows))) return null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
@@ -255,11 +257,12 @@ export class State {
             const viewport = canvasSize(columns, rows);
             return e.shortcuts.key(event, this.language, viewport.columns, viewport.rows, event.shift);
         }
-        if (e.changeReview) return changesKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
-        if (e.reuse) return reuseKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
+        const body = usesFullEditorBody(e) ? size.report : size.content;
+        if (e.changeReview) return changesKey(e, event, this.language, body.innerWidth, body.innerHeight - 1);
+        if (e.reuse) return reuseKey(e, event, this.language, body.innerWidth, body.innerHeight - 1);
         // Several decoded keys can arrive before the next terminal draw.
         if (e.packages) {
-            if (!e.packages.input && usesReportRows(event))
+            if (usesReportRows(event))
                 packageView(e.packages, this.language, size.report.innerWidth, size.report.innerHeight - 1, e.shortcuts, true);
             return packageKey(e.packages, event, e.shortcuts);
         }
@@ -271,12 +274,16 @@ export class State {
             if (effect === 'close') e.taskViewer = null;
             return effect === 'read' ? 'tasks' : null;
         }
-        if (e.diagnosis) return diagnosisKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1);
-        if (e.colors) return colorsKey(e, event, this.language);
+        if (e.diagnosis) return diagnosisKey(e, event, this.language, size.content.innerWidth, size.content.innerHeight - 1, size.preview.innerHeight);
+        if (e.colors) {
+            const message = colorsKey(e, event, this.language, body.innerWidth, body.innerHeight - 1);
+            if (message) this.notice(message);
+            return null;
+        }
         if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
-        if (e.sources) return sourcesKey(e, event, sourceObservationJob);
-        if (e.profiles) return profilesKey(e, event);
+        if (e.sources) return sourcesKey(e, event, this.language, body.innerWidth, body.innerHeight - 1);
+        if (e.profiles) return profilesKey(e, event, this.language, body.innerWidth, body.innerHeight - 1);
         if ((event.paste || event.text) && (!this.input || this.input.kind === 'category')) return null;
         const context = e.quick ? 'quick' : e.review ? reviewShortcutContext(e.review) : this.shortcutContext;
         const action = this.input ? null : e.shortcuts.action(context, event);
@@ -301,8 +308,19 @@ export class State {
                 e.explanation.scroll = this.itemDetailPage(size.content.innerWidth, size.content.innerHeight - 1, k).start;
             return null;
         }
-        if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
-        if (e.saveState === 'unknown') { this.notice(text('editor.save_unknown', { check: 'Ctrl+K' })); return null; }
+        if (e.quick) {
+            const effect = controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k, {
+                language: this.language, width: size.content.innerWidth, height: size.content.innerHeight - 1,
+                sharedProjects: e.baseline.configuration?.shared_projects,
+            });
+            if (effect === 'accepted') {
+                this.notice(e.modified ? text('quick.applied', { save: e.shortcuts.hint(this.shortcutContext, 'save') }) : text('review.empty'));
+                return null;
+            }
+            if (!e.quick || effect === 'transfer') this.notice('');
+            return effect;
+        }
+        if (e.saveState === 'unknown') return null;
         if (action === 'quick-setup' && e.inDraftView) {
             if (e.acceptNumeric()) { e.quick = openQuick(e.draft); this.notice(''); }
             return null;
@@ -312,10 +330,12 @@ export class State {
                 e.review = null;
                 this.notice(text('review.cancelled'));
             } else if (action === 'accept-import') {
-                e.replaceDraft(copyDraft(e.review.result.draft));
-                this.notice(text('review.accepted'));
-            } else if (!event.meta)
+                const result = acceptImport(e);
+                if (result) this.notice(result);
+            } else if (!event.meta) {
+                this.notice('');
                 navigateReview(e.review, ctrl ? '' : k, this.language, size.content.innerWidth, size.content.innerHeight - 1, action);
+            }
             return null;
         }
         if (e.guidanceScroll !== null) {
@@ -357,7 +377,7 @@ export class State {
                     } else if (input.kind === 'path') {
                         if (!input.buffer.trim()) { this.notice(text('native.lib.client.keys.enter_a_file_path')); return null; }
                         e.path = input.buffer; e.pendingTransfer = input.key === 'import-file' ? 'import' : 'export';
-                        this.input = null; return 'transfer';
+                        return 'transfer';
                     } else {
                         const field = this.rows().find(row => row.key === input.key)?.form;
                         if (field && setFormValue(this, field, input.buffer)) { this.input = null; this.notice(''); }

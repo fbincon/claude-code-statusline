@@ -4,7 +4,7 @@ import { terminal, type TerminalOptions } from '@fbincon/statusline-platform/ter
 import { Canvas, ansiFrame, paintLine } from './drawing/canvas.js';
 import { taskReportStatus } from './drawing/presentation.js';
 import { shortcuts, taskFooter } from './drawing/shortcuts.js';
-import { paint } from './theme.js';
+import { heading, paint } from './theme.js';
 import type { Backend } from './session.js';
 import { ForegroundRefresh } from './foreground-refresh.js';
 import { externalTaskRows, taskRefresh } from './report-refresh.js';
@@ -19,10 +19,10 @@ export function taskFrame(view: TaskViewer, columns: number, rows: number) {
     const canvas = new Canvas(columns, rows);
     canvas.put(0, 0, [paint(t('task.title', view.language) + ' · ' + taskReportStatus(view), true)]);
     standaloneRows(view, canvas.columns, canvas.rows)
-        .forEach((row, index) => canvas.put(index + 1, 0, paintLine(row, canvas.columns, row.selected)));
+        .forEach((row, index) => canvas.put(index + 1, 0, row.heading ? [heading(row.text, row.selected)] : paintLine(row, canvas.columns, row.selected)));
     const { actions, help } = taskFooter(view);
-    canvas.put(canvas.rows - 2, 0, shortcuts(view.input ? actions : [...actions, help[0]!], canvas.columns));
-    canvas.put(canvas.rows - 1, 0, view.input ? shortcuts(help, canvas.columns) : [paint(t('task.viewer.help_read', view.language))]);
+    canvas.put(canvas.rows - 2, 0, shortcuts(actions, canvas.columns));
+    canvas.put(canvas.rows - 1, 0, shortcuts(help, canvas.columns));
     return canvas.frame();
 }
 export async function runTaskViewer(view: TaskViewer, backend: Backend, options: TerminalOptions = {}, language?: Language): Promise<number> {

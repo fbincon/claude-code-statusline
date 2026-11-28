@@ -1,10 +1,9 @@
 import { copyDraft } from '../editor/draft.ts';
-import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview } from '../editor/preview-settings.ts';
-import { setMessage, failureMessage } from '../i18n/messages.ts';
-import { text as localizedText } from '../i18n/index.ts';
+import { SCENARIO_IDS, PREVIEW_WIDTHS, cyclePreview, setPreviewScenario } from '../editor/preview-settings.ts';
+import { setMessage } from '../i18n/messages.ts';
 import type { View } from '../session.ts';
 import { formRows, adjustForm } from './forms.ts';
-import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
+import { PREFERENCE_SPECS, specFor, canEdit, preferenceForKey } from '../preferences.ts';
 import { LANGUAGES, LANGUAGE_NAMES } from '../i18n/index.ts';
 import type { ShortcutContext } from '../editor/shortcut-map.ts';
 import type { EditorLine } from '../editor/hints.ts';
@@ -24,6 +23,7 @@ export interface SettingRow {
   value: string;
   editable: boolean;
   valueHint?: EditorLine;
+  host?: { current: string; pending: string; reason: string; result: string };
 }
 
 const enter = 'Enter';
@@ -144,9 +144,7 @@ export function settingRows(view: View): SettingRow[] {
     for (const spec of PREFERENCE_SPECS) {
       const p = view.preferences.find((p) => specFor(p)?.id === spec.id);
       rows.push({ key: 'host-' + (p?.row.key ?? spec.id), label: p?.row.label || spec.label,
-        group: spec.group + ' (apply separately)',
-        value: p ? String(p.value) + (p.row.isLocked ? ' [locked; ' + spec.entry + ']' : !canEdit(p) ? ' [unsupported; ' + spec.entry + ']' : '') + (p.result ? ' · ' + p.result : '') : '(unavailable; ' + spec.entry + ')',
-        editable: !!p && canEdit(p) });
+        group: spec.group + ' (apply separately)', value: p ? String(p.value) : '', editable: !!p && canEdit(p) });
     }
   }
   return rows;
@@ -154,9 +152,22 @@ export function settingRows(view: View): SettingRow[] {
 
 export function adjustSetting(view: View, delta: -1 | 1): void {
   const e = view.editor!;
-  if(e.setting==='preview-scenario'){e.previewScenario=cyclePreview(SCENARIO_IDS,e.previewScenario,delta);e.previewOffset=0;return;}
+  if (e.setting === 'preview-scenario') { setPreviewScenario(e, cyclePreview(SCENARIO_IDS, e.previewScenario, delta)); return; }
   if(e.setting==='preview-width'){e.previewWidth=cyclePreview(PREVIEW_WIDTHS,e.previewWidth as typeof PREVIEW_WIDTHS[number],delta);return;}
-  if (!e.canMutateDraft() && !['ui-language','preview-background'].includes(e.setting) && !e.setting.startsWith('host-')) { setMessage(view, 'message', e.compositionError);return; }
+  if (e.setting.startsWith('host-')) {
+    const p = preferenceForKey(view.preferences, e.setting);
+    if (!p || !canEdit(p) || p.row.kind === 'text') return;
+    if (p.row.kind === 'boolean') p.value = !p.value;
+    else if (p.row.kind === 'number') p.value = Number(p.value) + delta;
+    else if (p.row.kind === 'choice') {
+      const choices = p.row.options!;
+      p.value = choices[(choices.indexOf(String(p.value)) + delta + choices.length) % choices.length]!;
+    }
+    p.result = '';
+    delete p.localizedResult;
+    return;
+  }
+  if (!e.canMutateDraft() && !['ui-language','preview-background'].includes(e.setting)) { setMessage(view, 'message', e.compositionError);return; }
   const candidate = copyDraft(e.draft), d = candidate.display;
   const form = formRows(view).find((row) => row.key === e.setting);
   if (form) { adjustForm(view, form, delta); return; }
@@ -236,24 +247,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
       e.acceptNumeric(field);
       return;
     }
-    default: {
-      const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-      if (!p || !canEdit(p)) {
-        setMessage(view, "message", localizedText("native.lib.client.settings.this_claude_preference_is_unavailable_locked_or_unsupported"));
-        break;
-      }
-      if (p.row.kind === 'boolean') p.value = !p.value;
-      else if (p.row.kind === 'choice') {
-        const choices = p.row.options!;
-        p.value =
-          choices[
-            (choices.indexOf(String(p.value)) + delta + choices.length) %
-              choices.length
-          ]!;
-      }
-      else if (p.row.kind === 'number') p.value = Number(p.value) + delta;
-      p.result = '';
-    }
+    default: return;
   }
   e.commitDraft(candidate);
 }

@@ -13,6 +13,10 @@ test('selective native review keeps host settings and accepts only the selected 
   await $.session.start(START); await $.command.run(RUN); const ui=await $.ui.mount(PANE);
   await keys(ui,'4'); await selectSetting(ui,'import-file'); await keys(ui,'return','return','s');
   expect(previewDraft(fixture)).toEqual(fixture.store.draft);
+  await keys(ui,'return','a');
+  expect(await visibleText(ui)).toContain('No import fields selected.');
+  expect(previewDraft(fixture)).toEqual(fixture.store.draft);
+  await keys(ui,'s');
   await keys(ui,'down','down','down','down',' ','return','a');
   expect(previewDraft(fixture).display.theme).toBe('light');
   expect(previewDraft(fixture).host.padding).toBe(0);

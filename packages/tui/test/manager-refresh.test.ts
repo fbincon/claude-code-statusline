@@ -4,11 +4,12 @@ import type { Operation, ResultFor, SourceContext, SourceDefinition, SourceInspe
 import { Editor } from '@fbincon/statusline-core/editor/draft';
 import { readShortcutBindings } from '@fbincon/statusline-core/editor/shortcut-map';
 import { openProfiles, performProfileAction, profilesKey } from '@fbincon/statusline-core/editor/profile-manager';
-import { closeSources, openSources, performSourceAction, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
+import { closeSources, openSources, performSourceAction, sourceActions, sourcesKey, sourcesView } from '@fbincon/statusline-core/editor/source-manager';
+import { sourceObservationJob } from '@fbincon/statusline-core/editor/source-observation';
 import { fixture } from './fixtures.js';
 import { footer } from '../src/drawing/shortcuts.js';
 import type { Backend } from '../src/session.js';
-import { managerRefresh, manualManagerRefresh, sourceObservationJob } from '../src/manager-refresh.js';
+import { managerRefresh, manualManagerRefresh } from '../src/manager-refresh.js';
 
 const context: SourceContext = { project: '/project', branch: 'main', head: 'a'.repeat(40), session: null, agent: null };
 const definition: SourceDefinition = { id: 'ci', name: 'CI', revision: 'rev', kind: 'github', enabled: true, ttl_seconds: 60,
@@ -164,11 +165,11 @@ test('fixed source arrows read both saved check pages in each editor after loadi
             assert(footer(state).help.some(([key]) => key === 'R'));
             assert.equal(state.key({ key: 'r' }), 'sources');
             assert(manualManagerRefresh(editor, { key: 'r' }));
-        } else assert.equal(sourcesKey(editor, { key: 'r' }), null);
+        } else assert.equal(sourcesKey(editor, { key: 'r' }), 'sources');
     }
 });
 
-test('only an observable job enables and advertises the active manual source read key', () => {
+test('manual read is advertised for saved observations and uses the foreground target for an applicable job', () => {
     const state = fixture(), editor = state.editor;
     editor.shortcuts.snapshot.bindings = { 'reload-sources': 'X' };
     openSources(editor);
@@ -178,10 +179,10 @@ test('only an observable job enables and advertises the active manual source rea
     for (const jobs of [[], [{ ...job, context: { ...context, head: 'other' } }], [job]]) {
         view.inspection = report(jobs);
         const observable = jobs[0] === job;
-        assert.equal(footer(state).help.some(([key]) => key === 'X'), observable);
+        assert(footer(state).help.some(([key]) => key === 'X'));
         assert.equal(state.key({ key: 'r' }), null);
-        assert.equal(state.key({ key: 'x' }), observable ? 'sources' : null);
-        assert.equal(view.effect, observable ? 'observe-job' : null);
+        assert.equal(state.key({ key: 'x' }), 'sources');
+        assert.equal(view.effect, 'observe-job');
         assert.equal(manualManagerRefresh(editor, { key: 'x' }), observable);
     }
 });
@@ -198,13 +199,50 @@ test('release a joined consumer on close during a provisional timeout and ignore
         if (op === 'source_inspect') return report([]);
         assert.equal(op, 'source_release'); assert.deepEqual(payload, { id: job.id, owner: view.owner }); releases++; return provisional;
     });
-    sourcesKey(editor, { key: 'r' }, sourceObservationJob);
+    sourcesKey(editor, { key: 'r' });
     assert(manualManagerRefresh(editor));
     const apply = await managerRefresh(editor, backend)!.read(signal(), 'manual');
     await closeSources(editor, backend);
     assert.equal(apply(), false);
     assert.equal(releases, 1);
     assert.equal(view.jobs[0], provisional);
+});
+
+test('source cancellation confirms the exact current job and leaves other contexts alone', async () => {
+    const editor = fixture().editor;
+    openSources(editor);
+    const view = editor.sources!;
+    const other = { ...job, id: 'other-job', context: { ...context, branch: 'other' } };
+    view.library = library;
+    view.selected = definition.id;
+    view.page = 'actions';
+    view.inspection = report([job, other]);
+    view.observation = { id: definition.id, revision: definition.revision, context };
+    view.effect = null;
+    assert(sourceActions(editor).some(row => row.id === 'cancel'));
+    view.action = 'cancel';
+    sourcesKey(editor, { key: 'enter' });
+    assert.equal(view.page, 'cancel');
+    sourcesKey(editor, { key: 'escape' });
+    assert.equal(view.page, 'actions');
+    assert.equal(view.effect, null);
+    const cancelled: SourceJob = { ...job, state: 'cancelled', reason: 'cancelled' };
+    const calls: Operation[] = [];
+    const backend = backendFor((operation, payload) => {
+        calls.push(operation);
+        if (operation === 'source_context') return context;
+        if (operation === 'source_inspect') return report([cancelled, other]);
+        assert.deepEqual(payload, { id: job.id });
+        return operation === 'source_status' ? job : operation === 'source_cancel' ? cancelled : assert.fail(operation);
+    });
+    sourcesKey(editor, { key: 'enter' });
+    sourcesKey(editor, { key: 'enter' });
+    await performSourceAction(editor, backend);
+    assert.deepEqual(calls, ['source_context', 'source_status', 'source_cancel', 'source_inspect']);
+    assert.equal(sourceObservationJob(editor)?.state, 'cancelled');
+    assert(sourcesView(editor, 'en', 62, 8).some(row => row.text.includes('Refresh cancelled')));
+    sourcesKey(editor, { key: 'escape' });
+    assert(!sourceActions(editor).some(row => row.id === 'cancel'));
 });
 
 test('another consumer joining changes the raw report without repainting a readable status or checks page', async () => {
@@ -295,7 +333,7 @@ test('temporary final inspection errors retry the cached result at a bounded cad
     assert.equal(view.message, null);
 });
 
-test('mutating an existing source or profile and exporting a profile return to the originating row', async () => {
+test('mutating a source keeps its actions open and returning restores its row; profile mutations and exports restore their row', async () => {
     const editor = fixture().editor;
     const a = { ...definition, id: 'a', name: 'A' };
     openSources(editor);
@@ -307,7 +345,9 @@ test('mutating an existing source or profile and exporting a profile return to t
         assert.equal(op, 'sources_apply');
         return { ...library, revision: 'disabled', sources: [a, { ...definition, enabled: false }] };
     }));
-    assert.equal(sources.page, 'list'); assert.equal(sources.cursor, 1); assert.equal(sources.refreshList, false);
+    assert.equal(sources.page, 'actions'); assert.equal(sources.selected, definition.id);
+    sourcesKey(editor, { key: 'escape' });
+    assert.equal(sources.page, 'list'); assert.equal(sources.cursor, 1); assert.equal(sources.refreshList, true);
     editor.sources = null;
     openProfiles(editor);
     const view = editor.profiles!;

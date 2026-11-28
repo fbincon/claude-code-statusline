@@ -73,7 +73,8 @@ test('embedded reports use the preview space and return to the same settings row
     for (const [width, height] of [[64, 18], [80, 24], [120, 40]] as const) {
         const layout = dimensions(width, height);
         const screen = plain(state, width, height);
-        assert.equal(layout.report.innerHeight, layout.content.innerHeight + layout.preview.height);
+        assert.equal(layout.report.y, 2);
+        assert.equal(layout.report.innerHeight, layout.content.innerHeight + layout.preview.height + 2);
         assert.equal(layout.report.y + layout.report.height, layout.actionsY);
         assert(!screen.some(line => line.includes(t('ui.drawing.preview_sample_data', 'en'))));
         assert(!screen.some(line => line.includes('👩🏽‍💻')));
@@ -98,6 +99,21 @@ test('embedded reports use the preview space and return to the same settings row
     state.key({ key: 'pagedown' }, 64, 18);
     assert.equal(packages.capacity, dimensions(64, 18).report.innerHeight - 1);
     assert.equal(state.scroll.settings, start);
+});
+
+test('narrow task entry explains the required session ID and the actual read key', () => {
+    for (const language of ['en', 'zh-CN'] as const) {
+        const state = fixture(language);
+        state.editor.page = 'settings';
+        state.editor.setting = 'task-details';
+        assert.equal(state.key({ key: 'return' }, 64, 18), null);
+        const screen = plain(state, 64, 18);
+        assert(screen.some(row => row.includes('session_id')));
+        assert(screen.at(-2)!.includes('Enter ' + t('ui.refresh.read_now', language)));
+        assert(screen.at(-1)!.includes('Tab ' + t('task.viewer.switch_id', language)));
+        state.key({ key: 'escape' }, 64, 18);
+        assert(plain(state, 64, 18).at(-2)!.includes('S ' + t('task.controls.identity', language)));
+    }
 });
 
 test('report controls follow embedded remaps, input and confirmation; standalone uses its own defaults', () => {
@@ -248,7 +264,7 @@ test('observed source jobs show progress, provisional timeouts and manual reads 
     const source = { id: 'build', revision: 'version', name: 'Build', kind: 'command' as const, scope: context,
         enabled: true, ttl_seconds: 60, settings: {} };
     m.library = { version: 4, revision: 'registry', sources: [source], bindings: [], automatic: [] };
-    m.page = 'actions';
+    m.page = 'diagnose';
     m.selected = source.id;
     m.observation = { id: source.id, revision: source.revision, context };
     const job: SourceJob = { version: 4, id: 'job-1', source_id: source.id, source_revision: source.revision,
@@ -257,18 +273,21 @@ test('observed source jobs show progress, provisional timeouts and manual reads 
     m.jobs = [job];
     e.shortcuts.snapshot.bindings = { 'reload-sources': 'X' };
     const current = plain(state, 120, 40);
-    assert(current[3]!.includes(t('ui.refresh.auto', 'en')));
-    assert(current[3]!.includes(job.id));
+    assert(current.some(line => line.includes(t('sources.refresh_progress', 'en'))));
+    assert(current.some(line => line.includes(source.name)));
     assert(current.at(-1)!.includes('X ' + t('ui.refresh.read_now', 'en')));
-    assert(current.some(line => line.includes(t('sources.refresh', 'en'))));
+    m.page = 'actions';
+    assert(plain(state, 120, 40).some(line => line.includes(t('sources.status', 'en'))));
+    assert(!plain(state, 120, 40).some(line => line.includes(t('sources.refresh', 'en'))));
+    m.page = 'diagnose';
     job.state = 'failed';
     job.reason = 'timeout';
-    assert(plain(state, 120, 40)[3]!.includes(t('ui.refresh.checking_timeout', 'en')));
+    assert(plain(state, 120, 40).some(line => line.includes(t('ui.refresh.checking_timeout', 'en'))));
     job.state = 'completed';
     job.reason = 'completed';
     const settled = plain(state, 120, 40);
-    assert(settled[3]!.includes(t('sources.reason.completed', 'en')));
-    assert(!settled[3]!.includes(t('ui.refresh.auto', 'en')));
+    assert(settled.some(line => line.includes(t('sources.refresh_outcome', 'en', { state: 'completed', reason: 'completed' }))));
+    assert(!settled.some(line => line.includes(t('sources.refresh_progress', 'en'))));
     m.page = 'review';
     assert(!plain(state, 120, 40).at(-1)!.includes(t('ui.refresh.read_now', 'en')));
 });

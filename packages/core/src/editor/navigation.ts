@@ -1,3 +1,20 @@
+import type { Editor } from './draft.js';
+import { t, type Language } from '../i18n/messages.js';
+import { hintLine, type EditorLine } from './hints.js';
+
+/** File, confirmation and observation pages give the sample space to the current task. */
+export function usesFullEditorBody(editor: Editor): boolean {
+    const profilePage = editor.profiles?.page;
+    return Boolean(editor.packages || editor.taskViewer || editor.sources || editor.changeReview?.input ||
+        editor.changeReview?.kind === 'structure' || editor.changeReview?.confirm || editor.reuse?.page === 'path' ||
+        profilePage === 'form' || profilePage === 'confirm' || profilePage === 'dirty');
+}
+
+export function catalogEmptyLine(editor: Editor, language: Language): EditorLine {
+    return editor.adding ? { text: t('catalog.search.no_types', language) }
+        : hintLine('catalog.search.open_catalog', language, { key: editor.shortcuts.hint('list', 'add-item') });
+}
+
 export const SETTING_KEYS = [
   'colors',
   'palette',

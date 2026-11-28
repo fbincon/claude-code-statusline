@@ -321,7 +321,17 @@ test('foreign native command and foreign panes pass through without changing the
 test('unknown saves require read reconciliation before retry or close', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let applies = 0;
+  let failRead = false;
   fixture.behavior.process = (request, next) => {
+    if (request.operation === 'sources_read') return { value: reply({
+      version: 3, sources: [], bindings: [], automatic: [], revision: 'a'.repeat(64),
+    }) };
+    if (request.operation === 'source_context') return { value: reply({
+      project: null, session: null, agent: null, branch: null, head: null,
+    }) };
+    if (request.operation === 'read' && failRead) return { value: output(JSON.stringify({
+      protocol_version: PROTOCOL_VERSION, error: { code: 'io_error', message: 'Read unavailable', localization: null },
+    }), 2) };
     if (request.operation !== 'apply') return next();
     applies++;
     fixture.store.draft = request.payload.draft;
@@ -334,6 +344,26 @@ test('unknown saves require read reconciliation before retry or close', {timeout
   await keys(ui, '4', ' ', 'f', 's', 'q');
   expect(applies).toBe(1);
   expect(fixture.closes).toHaveLength(0);
+  const reads = () => fixture.calls.filter(call => call.operation === 'read').length;
+  const before = reads();
+  await ui.redraw({ ...PANE.props, bodyColumns: 32, scroll: { offset: 0, bodyRows: 12 } });
+  await ui.resize({ columns: 32, rows: 12 });
+  await keys(ui, {key:'y', ctrl:true});
+  const inspection = await visibleText(ui);
+  expect(inspection).toContain('Back to editor to check save.');
+  expect(inspection).toContain('Ctrl+G');
+  expect(inspection).not.toContain('K check saved state');
+  await keys(ui, 'k');
+  expect(reads()).toBe(before);
+  await keys(ui, {key:'g', ctrl:true});
+  expect((await visibleText(ui)).replace(/ +/gu, ' ')).toContain('K check saved state');
+  failRead = true;
+  await keys(ui, 'k');
+  expect(await visibleText(ui)).toContain('Read unavailable');
+  expect(reads()).toBe(before + 1);
+  failRead = false;
+  await ui.redraw(PANE.props);
+  await ui.resize({ columns: PANE.props.bodyColumns, rows: PANE.props.scroll.bodyRows });
   await keys(ui, 'k');
   expect(
     await ui.find({
@@ -342,6 +372,7 @@ test('unknown saves require read reconciliation before retry or close', {timeout
       text: 'submitted tool configuration is saved',
     }),
   ).toBeDefined();
+  expect(reads()).toBe(before + 2);
   expect(applies).toBe(1);
   expect(fixture.closes).toHaveLength(0);
   await ui.unmount();
@@ -467,8 +498,9 @@ test('full and compact layouts keep selection through paging, filtering and resi
     scroll: { offset: 0, bodyRows: 12 },
   });
   expect(
-    await ui.find({ type: 'Text', text: 'Resize pane to 32x12' }),
+    await ui.find({ type: 'Text', text: 'Editor body 31×12' }),
   ).toBeDefined();
+  expect(await ui.find({ type: 'Text', text: 'Needs 32×12' })).toBeDefined();
   await ui.redraw({ ...PANE.props, bodyColumns: 72 });
   await ui.resize({ columns: 72, rows: 24 });
   expect(

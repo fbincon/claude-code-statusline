@@ -22,7 +22,7 @@ Selecting a scheme or preset produces a candidate. Accept it in the editor, then
 
 ## Quick setup in either editor
 
-In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample. Use the arrow keys and Enter to select, Left/Right to adjust appearance, Tab to switch main and subagent samples, and PgUp/PgDn to scroll source requirements. Use the separate [first-use setup](SETUP.md) wizard to review and install Claude integration.
+In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Use Up/Down and Enter to choose a use case. On the appearance page, use Left/Right to adjust a field. Press End and then Enter to activate **Continue to sample**. Tab switches between the main and subagent samples, and PgUp/PgDn scrolls the source requirements. Use the separate [first-use setup](SETUP.md) wizard to review and install Claude integration.
 
 On the review page, choose an action.
 

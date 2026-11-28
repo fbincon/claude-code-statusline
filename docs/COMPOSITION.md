@@ -106,7 +106,7 @@ copying a component does not duplicate transcript scans, Git calls or usage tota
 
 ## Component groups
 
-Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
+Open **Component groups** in Settings or press **Ctrl+B** in either editor. On the Scope row, Enter or Left/Right switches between the main line and the subagent template. Choose **Create group** and set the first and last members and the primary metric. Enter on **Apply to draft** accepts the group edit into the display draft. Return to the main editor and use the display Save to keep it. Cancel the form to return to the previous draft.
 
 Groups contain at least two consecutive instances in one scope; explicit layouts must place the whole group on one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
 

@@ -15,7 +15,7 @@ claude-statusline task view --session-id SESSION_ID
 claude-statusline --language zh-CN task view --session-id SESSION_ID --prompt-id PROMPT_ID --config-dir "/path/to/config"
 ```
 
-The external configuration editor also offers **Task details** in Settings. Enter the session ID and optional prompt ID, switch fields with Tab, then press Enter to read. Returning preserves the display draft, editing target and unresolved save state. Standalone `task view` requires a TTY; for noninteractive text/JSON, use:
+The external configuration editor also offers **Task details** in Settings. Use the required `session_id` from your status-line input or existing session metadata. Press Tab to switch to the optional prompt ID and Enter to read. Returning preserves the display draft, editing target and unresolved save state. Standalone `task view` requires a TTY. For noninteractive output, run one of these commands.
 
 ```sh
 claude-statusline task show --session-id SESSION_ID
@@ -25,7 +25,7 @@ claude-statusline task show --session-id SESSION_ID --config-dir "/path/to/confi
 
 Session and prompt IDs come from your supplied statusline input or existing session metadata. Pass `--session-id` explicitly; the CLI does not read statusline stdin or search other sessions to guess an identity. Without `--prompt-id`, it uses an explicit current-task pointer from existing state. Conflicting pointers, missing tasks and ambiguous aliases remain unavailable.
 
-Command descriptions and initial titles use the loaded interface language. A task-read failure retains that language. Reopening or requesting an immediate refresh reloads preferences. Automatic reads keep the current interface language. The native pane and interactive `task view` show guidance and fall back to English when preferences are unreadable. `task show` returns a single report and falls back to English silently. Tall native panes reduce the visible page to fit host capacity while retaining the complete report for paging.
+Command descriptions and initial titles use the loaded interface language. A task-read failure retains that language. Reopening or requesting an immediate refresh reloads preferences. Automatic reads keep the current interface language. When preferences are unreadable, the native pane and interactive `task view` show guidance and use English as the default. An explicit language selection remains in use. `task show` returns a single report and falls back to English silently. Tall native panes reduce the visible page to fit host capacity while retaining the complete report for paging.
 
 ## Reading controls
 
@@ -47,9 +47,11 @@ In the external editor’s **Task details** page and in `task view`, leave the r
 
 Automatic reads pause while you edit a field. Search is case-insensitive, and matching children retain their parents as context. The initial view shows the summary and all statuses. The external viewer uses the agent names present in the published report.
 
-Short panes reserve space for the selected report row and page by the actual body height; use S to inspect identities when the heading is compact. Refresh and resizing retain a selected row that still exists. Selecting another task resets task-specific reading state. Failed refreshes keep the previous report and its capture time.
+Short panes reserve space for the selected report row and page by the actual body height. Use S to inspect identities when the heading is compact. Refresh and resizing retain a selected row that still exists. Selecting another task resets task-specific reading state. A first read failure offers a retry or another session ID. A failed refresh with an earlier report shows the failure and keeps that report with its original read time.
 
 ## Read the evidence
+
+If there is no current task or its pointers disagree, the report opens with that status. Evidence is grouped by source when expanded.
 
 - **Task total time** uses the existing lifecycle timer and frozen terminal duration.
 - **Active time** is shown only when native execution and waiting coverage support it. Missing starts, incomplete waits or unreliable clocks do not become zero.

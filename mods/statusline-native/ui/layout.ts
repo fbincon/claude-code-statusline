@@ -4,6 +4,13 @@ import { displayWidth, clip as clipGraphemes } from '../lib/unicode.ts';
 export const MIN_COLUMNS = 32;
 export const MIN_ROWS = 12;
 
+export function editorBodySizeLines(columns: number, rows: number, language: Language): string[] {
+  const actual = t('native.ui.client.draw.body_size', language, { columns, rows });
+  const minimum = t('native.ui.client.draw.body_minimum', language, { columns: MIN_COLUMNS, rows: MIN_ROWS });
+  const both = actual + ' · ' + minimum;
+  return displayWidth(both) <= columns ? [both] : [actual, minimum];
+}
+
 export const RECOVERY_CONTROL_GAP = 1;
 const TITLE_GAP = 1;
 const MIN_TITLE_COLUMNS = 12;
@@ -36,11 +43,11 @@ export function headerColumns(columns: number, rows: number, language: Language 
 }
 
 /** Budget a paged body between the header, preview and action rows. */
-export function dimensions(columns: number, rows: number, footerRows = 2) {
+export function dimensions(columns: number, rows: number, footerRows = 2, fullBody = false) {
   const framed = columns >= 64 && rows >= 20;
-  const previewRows = Math.min(3, Math.max(1, Math.floor((rows - 8 - footerRows) / 4)));
-  const previewHeight = previewRows + (framed ? 2 : 1);
-  const bodyHeight = Math.max(1, rows - 3 - footerRows - previewHeight);
+  const previewRows = fullBody ? 0 : Math.min(3, Math.max(1, Math.floor((rows - 8 - footerRows) / 4)));
+  const previewHeight = fullBody ? 0 : previewRows + (framed ? 2 : 1);
+  const bodyHeight = Math.max(1, rows - (fullBody ? 2 : 3) - footerRows - previewHeight);
   const bodyRows = Math.max(1, bodyHeight - (framed ? 2 : 1));
   const tableHeading = columns >= 64 && bodyRows >= 4;
   const showSummary = bodyRows >= (tableHeading ? 4 : 3);

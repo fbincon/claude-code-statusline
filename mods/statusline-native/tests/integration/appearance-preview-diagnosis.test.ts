@@ -62,8 +62,10 @@ test('native explicit file diagnosis retains a large report in the host and retu
     const call = f.calls.find(c => c.operation === 'diagnose_file')!;
     expect(call.payload.include_local).toBe(false);
     expect(call.payload.path).toBe('/tmp/input 中文.json');
-    expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: /Actual input/ })).toBeDefined();
-    const client = await ui.find({ key: await clientKey(ui) });
+    const body = await clientKey(ui);
+    const output = (index: number) => ui.find({ in: body, type: 'Text', text: new RegExp('^Actual input ' + index + '\\b') });
+    const client = await ui.find({ key: body });
+    expect(await output(0)).toBeDefined();
     expect(withinBudget(client!.props.props)).toBe(true);
     expect(JSON.stringify(client!.props.props).includes('style_reasons')).toBe(false);
     const position = async () => {
@@ -79,6 +81,12 @@ test('native explicit file diagnosis retains a large report in the host and retu
     expect((await position())[0]).toBe(first! - 1);
     await keys(ui, 'pageup');
     expect((await position())[0]).toBe(first! - 1 - (last! - first! + 1));
+    await keys(ui, 'tab', 'end');
+    expect(await output(63)).toBeDefined();
+    await keys(ui, 'up');
+    expect(await output(63)).toBeUndefined();
+    await keys(ui, 'home');
+    expect(await output(0)).toBeDefined();
     await keys(ui, { key: 'g', ctrl: true }, { key: 'g', ctrl: true });
     expect(JSON.stringify(f.store.draft)).toBe(before);
     expect(f.calls.some(c => c.operation === 'apply')).toBe(false);

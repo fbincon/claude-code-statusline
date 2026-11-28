@@ -1,9 +1,50 @@
 import { clientKey } from '../fixtures.ts';
 import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, reply, selectSetting, visibleText } from '../fixtures.ts';
+import { setup, START, RUN, PANE, keys, reply, output, selectSetting, visibleText } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
+import { differences } from '../../lib/editor/import-differences.ts';
 import { t } from '../../lib/i18n/index.ts';
+import { PROTOCOL_VERSION } from '../../lib/generated-contracts.ts';
+
+test('Settings file transfers keep the path and its caret on failure and close on success', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  const stored = copyDraft(fixture.store.draft);
+  fixture.behavior.process = (request, next) => {
+    const { operation } = request;
+    if (operation !== 'review_import' && operation !== 'export') return next();
+    const { draft, path } = request.payload;
+    expect(draft.display.use_colors).toBe(!stored.display.use_colors);
+    if (operation === 'export') expect(request.payload.overwrite).toBe(false);
+    if (path === '/draft.json') return { value: output(JSON.stringify({
+      protocol_version: PROTOCOL_VERSION, error: {
+        code: 'io_error', message: operation === 'review_import' ? 'Missing file' : 'Destination exists', localization: null,
+      },
+    }), 2) };
+    return { value: reply(operation === 'review_import' ? { draft, changes: [] } : { path }) };
+  };
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 72 } });
+  await keys(ui, '4', ' ');
+  for (const action of ['import', 'export'] as const) {
+    const operation = action === 'import' ? 'review_import' : 'export';
+    await selectSetting(ui, action + '-file');
+    await keys(ui, 'return', {key:'u',ctrl:true}, '/draft.json', 'home', 'right', 'return');
+    const failed = (await visibleText(ui)).replace(/ +/gu, ' ');
+    expect(failed).toContain(action === 'import' ? 'Missing file' : 'Destination exists');
+    expect(failed).toContain('Enter ' + t(action === 'import' ? 'ui.hints.read_file' : 'ui.hints.export_new_file', 'en'));
+    await keys(ui, 'x', 'return');
+    const paths = fixture.calls.filter(call => call.operation === operation).map(call => call.payload.path);
+    expect(paths).toEqual(['/draft.json', '/xdraft.json']);
+    expect((await visibleText(ui)).replace(/ +/gu, ' ')).not.toContain('Enter ' +
+      t(action === 'import' ? 'ui.hints.read_file' : 'ui.hints.export_new_file', 'en'));
+    if (action === 'import') await keys(ui, {key:'g',ctrl:true});
+  }
+  expect(fixture.store.draft).toEqual(stored);
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
+  await ui.unmount();
+});
 
 test('appearance edits save one complete draft without applying host settings', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
@@ -66,9 +107,11 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   const imported = copyDraft(fixture.store.draft);
   imported.display.formatting.number_format = 'grouped';
   imported.host.padding = 7;
+  const expanded = copyDraft(imported);
+  expanded.host.padding = 5;
   fixture.behavior.process = (request, next) => {
-    if (request.operation === 'preset') return {value:reply({draft:imported})};
-    if (request.operation === 'review_import') return {value:reply({draft:imported,changes:[]})};
+    if (request.operation === 'preset') return {value:reply({draft:expanded})};
+    if (request.operation === 'review_import') return {value:reply({draft:imported,changes:differences(request.payload.draft, imported)})};
     if (request.operation === 'export') return {value:reply({path:request.payload.path})};
     return next();
   };
@@ -110,7 +153,7 @@ test('actual host row aliases apply separately and unavailable behavior rows rem
   expect(fixture.configCalls).toEqual([{key:'turnDuration',value:false}]);
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await selectSetting(ui, 'host-effort');
-  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/unavailable.*\/effort/})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Unavailable.*\/effort/})).toBeDefined();
   await keys(ui, ' ', 'a');
   expect(fixture.configCalls.length).toBe(1);
   await ui.unmount();
@@ -171,5 +214,35 @@ test('theme drafts apply separately, refusals preserve the actual theme and reco
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await keys(ui, '1');
   expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Configure Status Line' })).toBeDefined();
+  await ui.unmount();
+});
+
+test('compact Claude preferences distinguish pending changes from the confirmed host value', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.rows[1]!.isLocked = true;
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns: 32, scroll: { offset: 0, bodyRows: 12 } } });
+  await ui.resize({ columns: 32, rows: 12 });
+  await keys(ui, '4', 'h');
+  const readsAtOpen = fixture.configReads;
+  await keys(ui, 'a');
+  expect(await visibleText(ui)).toContain(t('native.host_no_pending', 'en'));
+  expect(fixture.configReads).toBe(readsAtOpen);
+  expect(fixture.configCalls).toEqual([]);
+  await keys(ui, 'right');
+  expect(await visibleText(ui)).toContain('Current dark · Pending light');
+  expect(fixture.store.rows[0]!.value).toBe('dark');
+  await keys(ui, 'down');
+  expect(await visibleText(ui)).toContain('Locked · /config verbose');
+  const locked = await visibleText(ui);
+  expect(locked).not.toContain('Enter');
+  expect(locked).not.toContain('←→');
+  await keys(ui, 'right', 'return', ' ', 'a');
+  expect(fixture.configCalls).toEqual([{ key: 'theme', value: 'light' }]);
+  await keys(ui, 'up');
+  expect(await visibleText(ui)).toContain('Current light');
+  expect(await visibleText(ui)).not.toContain('Pending light');
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
   await ui.unmount();
 });

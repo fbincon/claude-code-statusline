@@ -1,19 +1,19 @@
-import { performChanges, changePreview, openChanges } from '@fbincon/statusline-core/editor/change-review';
+import { performChanges, openChanges } from '@fbincon/statusline-core/editor/change-review';
 import { performReuse } from '@fbincon/statusline-core/editor/reuse-manager';
 import { performPackage, closePackage } from '@fbincon/statusline-core/editor/package-manager';
-import { diagnosisRequest } from '@fbincon/statusline-core/editor/diagnosis-view';
-import { colorDraft } from '@fbincon/statusline-core/editor/color-manager';
+import { diagnosisRequest, receiveDiagnosis, receiveDiagnosisFailure } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { previewWidth } from '@fbincon/statusline-core/editor/preview-settings';
+import { editorPreviewDraft } from '@fbincon/statusline-core/editor/preview-view';
 import { performSourceAction, closeSources, closeSourceDraft } from '@fbincon/statusline-core/editor/source-manager';
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
 import type { Operation, ResultFor, PackageControl } from '@fbincon/statusline-core/contracts/ui';
 import { createReview } from '@fbincon/statusline-core/editor/import-review';
-import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
+import { text, t, renderMessage, type Language } from '@fbincon/statusline-core/i18n/messages';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { terminal, type TerminalOptions } from '@fbincon/statusline-platform/terminal/session';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
-import { isSaveConflict } from '@fbincon/statusline-core/editor/draft';
+import { copyDraft, isSaveConflict } from '@fbincon/statusline-core/editor/draft';
 import { defaultShortcuts } from '@fbincon/statusline-core/editor/shortcut-settings';
 import { EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import { State } from './state.js';
@@ -41,6 +41,9 @@ export const outcome = (kind: Outcome['outcome'], language: Language, exit_code 
 export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
     return colorCapability({environment:env,platform:process.platform,tty:true,windowsVT:false}).colors;
 }
+const localFailure = (error: unknown) => error instanceof BackendError && error.localization
+    ? error.localization : error instanceof Error ? error.message : String(error);
+
 export class Session {
     private previewKey = '';
     private explanationKey = '';
@@ -59,22 +62,33 @@ export class Session {
         return new Session(state, backend, guard, languageOverride);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = previewWidth(dimensions(columns, rows).preview.innerWidth,e.previewWidth), draft = e.changeReview ? changePreview(e) : e.reuse?.result && !e.reuse.result.blocked.length ? e.reuse.result.draft : e.colors ? colorDraft(e) : e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
-        if(e.diagnosis || e.taskViewer || e.packages || e.shortcuts.panel)return;
-        const key = JSON.stringify([draft, width,e.previewScenario]);
-        if(e.explanation) {
-            const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
-            if(identity!==this.explanationKey || !view.result) {
-                const result=await this.backend.request('explain',{draft,scope:view.scope,width,scenario:e.previewScenario});
-                if(result.scope!==view.scope || result.width!==width) throw new Error('Explanation response does not match the request');
-                view.result=result;view.error='';this.state.preview=result.preview;this.explanationKey=identity;
+        const state = this.state, e = state.editor;
+        if (e.diagnosis || e.taskViewer || e.packages || e.shortcuts.panel) return;
+        const width = previewWidth(dimensions(columns, rows).preview.innerWidth, e.previewWidth);
+        const draft = editorPreviewDraft(e), view = e.explanation, scenario = e.previewScenario;
+        const key = JSON.stringify([draft, width, scenario]);
+        try {
+            if (view) {
+                const identity = JSON.stringify([key, view.scope, view.id]);
+                if (identity !== this.explanationKey || !view.result) {
+                    const result = await this.backend.request('explain', { draft, scope: view.scope, width, scenario });
+                    if (result.scope !== view.scope || result.width !== width) throw new Error('Explanation response does not match the request');
+                    view.result = result;
+                    view.error = '';
+                    this.explanationKey = identity;
+                }
+                state.preview = view.result.preview;
+            } else if (key !== this.previewKey) {
+                state.preview = await this.backend.request('preview', { draft, width, scenario });
             }
-            this.previewKey=key;return;
+            state.previewError = null;
+            this.previewKey = key;
+        } catch (error) {
+            state.preview = null;
+            state.previewError = localFailure(error);
+            this.previewKey = '';
+            if (view) view.error = renderMessage(state.previewError, state.language);
         }
-        if (key === this.previewKey)
-            return;
-        this.state.preview = await this.backend.request('preview', { draft, width,scenario:e.previewScenario });
-        this.previewKey = key;
     }
     private refreshTarget(columns: number, rows: number): RefreshTarget | null {
         const state = this.state, e = state.editor;
@@ -100,11 +114,14 @@ export class Session {
     async key(key: Key, columns = 80, rows = 24, refresh?: ForegroundRefresh): Promise<'save' | Outcome | null> {
         const state = this.state, e = state.editor;
         const effect = state.key(key, columns, rows);
+        const transferInput = effect === 'transfer' && state.input?.kind === 'path' ? state.input : null;
+        const hasTransferInput = () => state.editor === e && state.input === transferInput;
         if (effect === 'save')
             return 'save';
         if (effect === 'cancel' || effect === 'interrupt')
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0, e.saveState !== 'idle' ? t('editor.save_unknown', state.language, { check: 'Ctrl+K' }) : undefined);
         try {
+            if (effect === 'reconcile') { await this.reconcile(); return null; }
             if(!e.packageLocked)this.guard();
             if (effect === 'save-shortcuts' || effect === 'read-shortcuts') {
                 await e.shortcuts.perform(effect, async (operation, payload) => this.backend.request(operation, payload));
@@ -130,10 +147,22 @@ export class Session {
                 await this.readNow(columns, rows, refresh);
                 return null;
             }
-            if(effect==='diagnoseFile'){const view=e.diagnosis!,generation=view.generation;view.busy=true;try{const result=await this.backend.request('diagnose_file',diagnosisRequest(e,previewWidth(dimensions(columns,rows).preview.innerWidth,e.previewWidth)));if(e.diagnosis===view&&view.generation===generation){view.result=result;view.error='';view.report=true;view.scroll=0;}}catch(error){if(e.diagnosis===view&&view.generation===generation){this.failure(error);view.error=this.state.message;}}finally{view.busy=false;}return null;}
+            if (effect === 'diagnoseFile') {
+                const view = e.diagnosis!, generation = view.generation;
+                const width = previewWidth(dimensions(columns, rows).preview.innerWidth, e.previewWidth);
+                view.busy = true;
+                try {
+                    const result = await this.backend.request('diagnose_file', diagnosisRequest(e, width));
+                    if (e.diagnosis === view && view.generation === generation) receiveDiagnosis(view, result);
+                } catch (error) {
+                    if (e.diagnosis === view && view.generation === generation) receiveDiagnosisFailure(view, localFailure(error));
+                } finally {
+                    view.busy = false;
+                }
+                return null;
+            }
             if (effect === 'changes') {await performChanges(e,this.backend);return null;}
             if (effect === 'reuse') {await performReuse(e,this.backend);return null;}
-            if (effect === 'reconcile') {await this.reconcile();return null;}
             if (effect === 'sources' || effect === 'profiles') refresh?.invalidate();
             if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
@@ -145,7 +174,9 @@ export class Session {
                 state.notice('');
             }
             else if (effect === 'transfer') {
-                if (e.pendingTransfer === 'preset') {
+                const action = e.pendingTransfer;
+                e.pendingTransfer = null;
+                if (action === 'preset') {
                     const result = await this.backend.request('preset', { draft: e.quick?.base ?? e.draft, preset: e.preset });
                     if (e.quick) {
                         receivePreset(e.quick, result.draft);
@@ -155,19 +186,25 @@ export class Session {
                         state.notice(text('shortcuts.preset-expanded', { key: e.shortcuts.hint(state.shortcutContext, 'save') }));
                     }
                 }
-                else if (e.pendingTransfer === 'import') {
-                    e.review = createReview(await this.backend.request('review_import', { draft: e.draft, path: e.path }), e.draft);
+                else if (action === 'import') {
+                    const draft = copyDraft(e.draft);
+                    const result = await this.backend.request('review_import', { draft, path: e.path });
+                    if (!hasTransferInput()) return null;
+                    e.review = createReview(result, draft);
+                    state.input = null;
                     state.notice('');
                 }
-                else {
-                    const result = await this.backend.request('export', { draft: e.draft, path: e.path, overwrite: false });
+                else if (action === 'export') {
+                    const result = await this.backend.request('export', { draft: copyDraft(e.draft), path: e.path, overwrite: false });
+                    if (!hasTransferInput()) return null;
+                    state.input = null;
                     state.notice(text('ui.session.exported_current_draft_may_be_unsaved', { value0: result.path }));
                 }
-                e.pendingTransfer = null;
             }
             await this.preview(columns, rows);
         }
         catch (error) {
+            if (transferInput && !hasTransferInput()) return null;
             state.pendingLanguage = null;
             e.pendingTransfer = null;
             this.failure(error);
@@ -175,17 +212,20 @@ export class Session {
         }
         return null;
     }
-    failure(error: unknown): void { this.state.notice(error instanceof BackendError && error.localization ? error.localization : error instanceof Error ? error.message : String(error)); }
+    failure(error: unknown): void { this.state.notice(localFailure(error)); }
     async reconcile(): Promise<void> {
-        const e=this.state.editor,submitted=e.pendingSave;
-        if(e.saveState!=='unknown'||!submitted)return;
-        this.guard();e.setSaveState('pending');
+        const e = this.state.editor, submitted = e.pendingSave;
+        if (e.saveState !== 'unknown' || !submitted) return;
         try {
-            const current=await this.backend.request('read',submitted.target?{target:submitted.target}:{});
-            this.state.notice(text('editor.'+e.reconcileSave(current)));
-        }catch(error) {
+            this.guard();
+            e.setSaveState('pending');
+            const current = await this.backend.request('read', submitted.target ? { target: submitted.target } : {});
+            this.state.notice(text('editor.' + e.reconcileSave(current)));
+        } catch (error) {
             e.setSaveState('unknown');
-            this.state.notice(text('editor.still_unknown',{detail:error instanceof Error?error.message:String(error)}));
+            const detail = error instanceof BackendError && error.localization ? error.localization
+                : error instanceof Error ? error.message : String(error);
+            this.state.notice(text('editor.still_unknown', { detail }));
         }
     }
     async save(): Promise<Outcome> {

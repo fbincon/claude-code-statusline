@@ -286,6 +286,39 @@ test('filter input matches labels and action IDs, preserves selection, and leave
     assert.deepEqual(panel.draft, { 'task-evidence': 'Z' });
 });
 
+test('shortcut filtering finds a page by its title and by active, default or staged key', () => {
+    for (const surface of ['terminal', 'native'] as const) for (const language of ['en', 'zh-CN'] as const) {
+        const editor = new EditorShortcuts(surface);
+        editor.snapshot.bindings = { sources: 'J' };
+        editor.open();
+        const panel = editor.panel!;
+        const press = (key: string, flags = {}) => editor.key({ key, ...flags }, language, 32, 12);
+        const filter = (query: string) => {
+            press('/');
+            press('u', { ctrl: true });
+            press(query, { paste: true });
+            press('return');
+        };
+        filter(t('sources.title', language));
+        assert.equal(panel.selected, 'sources');
+        filter('Ctrl+Y');
+        assert.equal(panel.selected, 'sources');
+        filter('J');
+        assert.equal(panel.selected, 'sources');
+        press('return');
+        press('q', { ctrl: true });
+        filter('ctrl + q');
+        assert.equal(panel.selected, 'sources');
+        assert.equal(editor.action('list', { key: 'j' }), 'sources');
+        assert.equal(editor.action('list', { key: 'q', ctrl: true }), null);
+        press('delete');
+        assert.ok(!shortcutPanelView(editor, language, 32, 12).body.some(row => row.selected));
+        press('return');
+        assert.equal(panel.selected, null);
+        assert.equal(panel.capture, false);
+    }
+});
+
 test('shortcut settings put common editor and component actions first', () => {
     const keys = new EditorShortcuts('terminal');
     keys.open();
@@ -309,10 +342,12 @@ test('shortcut settings show each editor’s save key at narrow widths', () => {
             assert.ok(panelText(keys, language).includes(`${tr('terminal-short')} Ctrl+S [Ctrl+S]`));
             assert.ok(panelText(keys, language).includes(`${tr('native-short')} S [S]`));
             keys.panel!.draft.save = 'Z';
-            assert.ok(panelText(keys, language).includes(`${tr('terminal-short')} Z [Ctrl+S]`));
-            assert.ok(panelText(keys, language).includes(`${tr('native-short')} Z [S]`));
-            assert.ok(!panelText(keys, language).includes('[Ctrl+S / Enter]'));
-            assert.ok(panelText(keys, language).includes(t('shortcuts.focus-actions', language, { tab: 'Tab' })));
+            const live = surface === 'terminal' ? 'Ctrl+S' : 'S';
+            const staged = shortcutPanelView(keys, language, 32, 12);
+            assert.match(staged.body.find(row => row.selected)!.text, new RegExp('\\* ' + live.replace('+', '\\+') + '$'));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.active-binding', language, {keys: live})));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.pending-binding', language, {keys: 'Z'})));
+            assert.ok(panelText(keys, language).includes(t('shortcuts.pending-save-help', language, {tab: 'Tab', enter: 'Enter'})));
             assert.ok(panelText(keys, language).includes(t('shortcuts.back-help', language, { back: 'Ctrl+G' })));
         }
     }
@@ -328,8 +363,8 @@ test('shortcut tables align their columns and preserve list selection across too
             const view = shortcutPanelView(editor, language, columns, 24);
             const heading = view.body.find(row => row.kind === 'columns')!.text;
             const selected = view.body.find(row => row.selected)!.text;
-            const current = t(columns >= 80 ? 'shortcuts.current-key' : 'ui.drawing.value', language).trim();
-            assert.equal(offset(heading, current), offset(selected, 'Z'), language);
+            const current = t('shortcuts.current-key', language).trim();
+            assert.equal(offset(heading, current), displayWidth(selected.slice(0, selected.indexOf('* ') + 2)), language);
             const preset = t('shortcuts.default-key', language);
             assert.equal(heading.endsWith(preset), columns >= 80, language);
             if (columns >= 80) assert.equal(offset(heading, preset), offset(selected, surface === 'terminal' ? 'Ctrl+S' : 'S'), language);
@@ -440,7 +475,8 @@ test('shortcut settings refuse Enter when capturing the refresh event action', (
         assert.equal(keys.panel!.capture, false);
         assert.equal(keys.panel!.message, null);
         assert.deepEqual(keys.panel!.draft, { save: 'Z', 'event-refresh': 'J' });
-        assert.match(panelText(keys), /Terminal J \[E\]/);
+        assert.ok(panelText(keys).includes(t('shortcuts.active-binding', 'en', {keys:'E'})));
+        assert.ok(panelText(keys).includes(t('shortcuts.pending-binding', 'en', {keys:'J'})));
     }
 });
 

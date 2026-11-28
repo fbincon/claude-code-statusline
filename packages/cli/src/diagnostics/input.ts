@@ -22,17 +22,16 @@ export function diagnosticInputFile(path: unknown): {
     input: Record<string, unknown>;
 } {
     if (typeof path !== 'string' || !path.trim() || path.length > 4096 || /[\p{Cc}\p{Cs}]/u.test(path))
-        throw new ConfigError('diagnose.error.file', { value: typeof path === 'string' ? path : '' }, 'invalid_request');
+        throw new ConfigError('diagnose.error.path', {}, 'invalid_request');
     const absolute = resolve(path);
-    let raw: string;
+    let raw: string | null;
     try {
         const bytes = readDiagnosticFile(absolute, true);
-        if (bytes === null)
-            throw new Error('Missing file');
-        raw = decodeUtf8(bytes);
+        raw = bytes === null ? null : decodeUtf8(bytes);
     }
     catch {
         throw new ConfigError('diagnose.error.read', {}, 'io_error');
     }
+    if (raw === null) throw new ConfigError('diagnose.error.file', { value: absolute }, 'io_error');
     return { path: absolute, input: parseDiagnosticInput(raw) };
 }

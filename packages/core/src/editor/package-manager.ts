@@ -2,8 +2,9 @@ import type {
     Operation, PackageCleanupReview, PackageControl, PackageExecution, PackageReviewJob, PackageReviewRequest, PackageStatus, ResultFor,
 } from '../contracts/ui.js';
 import { text, type LocalizedText } from '../i18n/messages.js';
-import { BackendError } from './backend.js';
+import { BackendError, fileActionFailure } from './backend.js';
 import type { Editor } from './draft.js';
+import { detailOffset } from './item-detail.js';
 import { closeSourceDraft } from './source-manager.js';
 import { resolveShortcut } from './shortcut-map.js';
 import type { EditorShortcuts } from './shortcut-settings.js';
@@ -33,6 +34,7 @@ interface PagePosition {
     part: number;
     rowIndex: number;
     scroll: number;
+    detailScroll: number;
 }
 
 export interface PackageManager extends PagePosition {
@@ -49,6 +51,8 @@ export interface PackageManager extends PagePosition {
     parents: PagePosition[];
     rows: PackageRow[];
     capacity: number;
+    detailLength: number;
+    detailCapacity: number;
     input: TextInput | null;
     editing: Field | null;
     export_path: string;
@@ -73,7 +77,8 @@ export function packageManager(): PackageManager {
         owner: 'viewer-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2),
         status: null, job: null, execution: null, cleanup: null,
         prefix: '', target: '', channel: null, historyOffset: 0, cleanupOffset: 0,
-        mode: 'status', selected: 'target', part: 0, rowIndex: 0, scroll: 0, parents: [], rows: [], capacity: 1,
+        mode: 'status', selected: 'target', part: 0, rowIndex: 0, scroll: 0, detailScroll: 0, parents: [], rows: [], capacity: 1,
+        detailLength: 0, detailCapacity: 1,
         input: null, editing: null, export_path: 'statusline-before-update.json', message: null, effect: 'load',
         cleanupId: null, draftPrepared: false, draftSaveLocked: false, reviewInvalidated: false,
         action: 'check', backup: null, busy: false, closed: false, generation: 0,
@@ -97,12 +102,12 @@ function focus(view: PackageManager, selected: string) {
 }
 
 function showPage(view: PackageManager, mode: PackagePage, selected = '') {
-    Object.assign(view, { mode, selected, part: 0, rowIndex: 0, scroll: 0, rows: [] });
+    Object.assign(view, { mode, selected, part: 0, rowIndex: 0, scroll: 0, detailScroll: 0, rows: [] });
 }
 
 function openPage(view: PackageManager, mode: PackagePage, selected = '') {
-    const { mode: parent, selected: key, part, rowIndex, scroll } = view;
-    view.parents.push({ mode: parent, selected: key, part, rowIndex, scroll });
+    const { mode: parent, selected: key, part, rowIndex, scroll, detailScroll } = view;
+    view.parents.push({ mode: parent, selected: key, part, rowIndex, scroll, detailScroll });
     showPage(view, mode, selected);
 }
 
@@ -126,6 +131,10 @@ export function packageCanReview(view: PackageManager): boolean {
     return !!view.status?.prefix && (!view.execution || view.execution.running === false);
 }
 
+export function packageCanRecover(view: PackageManager): boolean {
+    return packageCanReview(view) && view.status?.pending?.running === false;
+}
+
 export function packageCanExecute(view: PackageManager): boolean {
     const job = view.job, review = job?.review;
     return !view.reviewInvalidated && (!view.execution || view.execution.running === false) &&
@@ -142,11 +151,18 @@ export function packageProgress(view: PackageManager): PackageExecution | Packag
 
 /** Keep footer hints and keyboard routing in agreement on the available controls. */
 export function packageControls(view: PackageManager) {
-    const pick = view.mode !== 'execution' && (view.mode !== 'installation' || !view.execution);
+    if (view.busy) return { pick: false, reload: false, cancel: false, refresh: false, scroll: false };
+    if (view.input) return { pick: true, reload: false, cancel: false, refresh: false,
+        scroll: view.editing === 'export_path' && !!view.message };
+    const pick = view.mode === 'review' ? packageCanExecute(view) : view.mode === 'cleanup'
+        ? !!view.cleanup && (view.cleanup.offset > 0 || view.cleanup.offset + PACKAGE_RECORDS_PER_PAGE < view.cleanup.total ||
+            packageCanReview(view) && !view.cleanup.uncertain && view.cleanup.rows.some(row => row.removable))
+        : view.mode !== 'execution' && (view.mode !== 'installation' || !view.execution);
     const reload = view.mode === 'status' || view.mode === 'installation' || view.mode === 'history' || view.mode === 'review';
     const cancel = (view.mode === 'status' || view.mode === 'review') && !!view.job &&
         (!view.execution || view.execution.running === false);
-    return { pick, reload, cancel, refresh: reload || view.mode === 'execution' || view.mode === 'cleanup' };
+    return { pick, reload, cancel, refresh: reload || view.mode === 'execution' || view.mode === 'cleanup',
+        scroll: view.mode !== 'cleanup' || !!view.cleanup?.rows.length || pick };
 }
 
 export async function closePackage(view: PackageManager, backend: PackageBackend): Promise<void> {
@@ -214,7 +230,7 @@ async function loadStatus(view: PackageManager, backend: PackageBackend, current
 async function startReview(view: PackageManager, backend: PackageBackend, current: () => boolean) {
     const status = view.status;
     if (!status?.prefix) throw new BackendError('prefix', text('package.reason_prefix'));
-    if (!packageCanReview(view)) return;
+    if (!packageCanReview(view) || view.action === 'recover-package' && !packageCanRecover(view)) return;
     if (view.job?.state === 'running') {
         view.message = text('package.ui.review_busy');
         return;
@@ -245,12 +261,12 @@ async function startReview(view: PackageManager, backend: PackageBackend, curren
     view.reviewInvalidated = false;
     view.draftPrepared = false;
     view.message = null;
-    openPage(view, 'review', 'job');
+    openPage(view, 'review', 'review-state');
 }
 
 function confirmExecution(view: PackageManager) {
-    if (view.mode === 'draft') showPage(view, 'execute-confirm', 'execute-confirm');
-    else openPage(view, 'execute-confirm', 'execute-confirm');
+    if (view.mode === 'draft') showPage(view, 'execute-confirm', 'confirm-cancel');
+    else openPage(view, 'execute-confirm', 'confirm-cancel');
 }
 
 async function executeReview(view: PackageManager, backend: PackageBackend, current: () => boolean, editor?: Editor) {
@@ -360,6 +376,8 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
                 if (!editor || editor.saveState !== 'idle') throw new BackendError('configuration_conflict', text('editor.save_locked'));
                 await backend.request('export', { draft: editor.draft, path: view.export_path, overwrite: false });
                 if (current()) {
+                    view.input = null;
+                    view.editing = null;
                     confirmExecution(view);
                     view.message = text('package.ui.exported');
                 }
@@ -437,7 +455,9 @@ export async function performPackage(view: PackageManager, backend: PackageBacke
                 leavePage(view);
                 view.cleanup = null;
             }
-            view.message = error instanceof BackendError && error.localization ? error.localization : text('package.reason_io_error');
+            view.message = effect === 'export-draft' ? fileActionFailure(error)
+                : error instanceof BackendError && error.localization ? error.localization : text('package.reason_io_error');
+            view.detailScroll = 0;
         }
     } finally {
         if (current()) view.busy = false;
@@ -453,14 +473,19 @@ function editField(view: PackageManager, event: TextKey, key: string, commandKey
         return null;
     }
     if (commandKey && !event.ctrl && key === 'enter') {
-        view.input = null;
-        view.editing = null;
-        view.message = null;
         if (field === 'export_path') {
+            view.detailScroll = 0;
+            if (!input.value.trim()) {
+                view.message = text('ui.forms.enter_a_file_path');
+                return null;
+            }
             view.export_path = input.value;
             view.effect = 'export-draft';
             return 'packages';
         }
+        view.input = null;
+        view.editing = null;
+        view.message = null;
         if (view[field] === input.value) return null;
         view[field] = input.value;
         if (view.job) view.reviewInvalidated = true;
@@ -477,10 +502,17 @@ function editField(view: PackageManager, event: TextKey, key: string, commandKey
         }
         return null;
     }
+    if (field === 'export_path' && commandKey && !event.ctrl && (key === 'pageup' || key === 'pagedown')) {
+        view.detailScroll = detailOffset(view.detailLength, view.detailScroll, view.detailCapacity, key);
+        return null;
+    }
     const limit = field === 'target' ? 100 : 4096;
     const result = inputKey(input.value, input, event, limit);
     view.input = result.state;
-    view.message = result.error ? text('input.' + result.error, { limit }) : null;
+    if (field !== 'export_path' || result.state.value !== input.value || result.error) {
+        view.message = result.error ? text('input.' + result.error, { limit }) : null;
+        view.detailScroll = 0;
+    }
     return null;
 }
 
@@ -488,14 +520,15 @@ function activate(view: PackageManager, command: PackageCommand): 'packages' | n
     switch (command.kind) {
         case 'open':
             openPage(view, command.page, {
-                installation: 'prefix', channel: 'channel:' + (view.channel ?? 'inherit'), history: 'history-context',
-                review: 'job', execution: 'execution-status',
+                installation: 'prefix', channel: 'channel:' + (view.channel ?? 'inherit'), history: 'pending',
+                review: 'review-state', execution: 'execution-status',
             }[command.page]);
             return null;
         case 'input':
             view.editing = command.field;
             view.input = textInput(view[command.field]);
             view.message = null;
+            view.detailScroll = 0;
             return null;
         case 'channel': {
             const changed = view.channel !== command.value;
@@ -507,14 +540,14 @@ function activate(view: PackageManager, command: PackageCommand): 'packages' | n
             break;
         }
         case 'review':
-            if (!packageCanReview(view)) return null;
+            if (!packageCanReview(view) || command.action === 'recover-package' && !packageCanRecover(view)) return null;
             view.action = command.action;
             view.backup = command.backup ?? null;
             view.effect = 'start';
             break;
         case 'cleanup':
             view.cleanupId = command.id;
-            openPage(view, 'cleanup-confirm', 'cleanup-confirm');
+            openPage(view, 'cleanup-confirm', 'confirm-cancel');
             return null;
         case 'page':
             if (view.mode === 'cleanup') {
@@ -547,6 +580,8 @@ export function packageRowCanFocus(view: PackageManager, row: PackageRow): boole
         case 'status':
         case 'channel':
         case 'draft':
+        case 'execute-confirm':
+        case 'cleanup-confirm':
             return !!row.command && row.part === 0;
         default:
             return true;
@@ -579,7 +614,7 @@ export function packageKey(view: PackageManager, event: TextKey, shortcuts?: Edi
     const key = event.key === 'return' ? 'enter' : event.key;
     const commandKey = !event.text && !event.paste && !event.meta && !event.overflow;
     const back = commandKey && (event.ctrl ? key.toLowerCase() === 'g' : key === 'escape' || key === 'esc');
-    if (view.input && view.editing) return editField(view, event, key, commandKey, back);
+    if (view.input && view.editing) return view.busy ? null : editField(view, event, key, commandKey, back);
     if (!commandKey) return null;
 
     const action = shortcuts ? shortcuts.action('packages', event) : resolveShortcut('native', 'packages', event, {});
@@ -610,6 +645,10 @@ export function packageKey(view: PackageManager, event: TextKey, shortcuts?: Edi
     if (key === 'enter') {
         const row = view.rows[view.rowIndex];
         return row?.command && row.key === view.selected && row.part === view.part ? activate(view, row.command) : null;
+    }
+    if ((view.mode === 'execute-confirm' || view.mode === 'cleanup-confirm') && ['pageup', 'pagedown', 'home', 'end'].includes(key)) {
+        view.detailScroll = detailOffset(view.detailLength, view.detailScroll, view.detailCapacity, key);
+        return null;
     }
     move(view, key);
     return null;

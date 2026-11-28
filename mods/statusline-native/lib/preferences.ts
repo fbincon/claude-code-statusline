@@ -23,12 +23,17 @@ export interface Preference {
   row: ConfigRow;
   baseline: ConfigValue;
   value: ConfigValue;
+  latest?: ConfigRow | null;
   result: string;
   localizedResult?: LocalizedText;
 }
 
 export function specFor(preference: Preference) {
   return PREFERENCE_SPECS.find((spec) => (spec.keys as readonly string[]).includes(preference.row.key));
+}
+
+export function preferenceForKey(rows: readonly Preference[], key: string): Preference | undefined {
+  return rows.find(preference => 'host-' + preference.row.key === key);
 }
 
 export function preferences(rows: readonly ConfigRow[]): Preference[] {
@@ -38,9 +43,14 @@ export function preferences(rows: readonly ConfigRow[]): Preference[] {
   });
 }
 
+export function matchesPreference(preference: Preference, row: ConfigRow): boolean {
+  return JSON.stringify(row.value) === JSON.stringify(preference.baseline) &&
+    row.kind === preference.row.kind && JSON.stringify(row.provider) === JSON.stringify(preference.row.provider);
+}
+
 export function canEdit(preference: Preference): boolean {
-  const row = preference.row;
-  return !row.isLocked && (
+  const row = preference.latest === undefined ? preference.row : preference.latest;
+  return !!row && matchesPreference(preference, row) && !row.isLocked && (
     (row.kind === 'choice' && typeof row.value === 'string' && !!row.options?.length && row.options.every((s) => typeof s === 'string')) ||
     (row.kind === 'boolean' && typeof row.value === 'boolean') ||
     (row.kind === 'text' && typeof row.value === 'string') ||

@@ -22,6 +22,8 @@ The review compares the saved baseline with the unsaved draft. Enter expands a s
 
 A save conflict keeps the draft and history. **C** reads the current configuration for the same target; **Tab** switches baseline → draft, baseline → current file, and current file → draft. **E** exports the draft to a new portable file, stripping machine authorization bindings.
 
+In the export form, Enter writes a new file. If the destination exists or cannot be written, the form shows the reason beside the path. Edit the path and press Enter again. A successful export leaves the display draft's save state unchanged.
+
 Concurrent changes to an explicitly selected user default, named profile or project
 target open this conflict review directly. A refused write has a known outcome:
 the local draft and the other editor's saved configuration remain intact. Failure
@@ -49,6 +51,8 @@ Replace `INSTANCE_ID` with the selected instance, and use the returned `expected
 ## Copy visual styles
 
 Open a destination component's details and choose **Copy / paste visual style**. Select the current draft, a portable file, a profile export or a saved profile as the source, then select a source component and the visual fields to copy. Incompatible fields are visible and cannot be selected.
+
+When reusing a file, Enter reads the entered path. If reading fails, the form keeps the path available for correction and shows the reason. Use Page Up/Down to read a longer error.
 
 The whitelist includes foreground/background colors, both gradients, label, icon and supported formatting overrides. Inherited values restore inheritance. Metric type, source binding, literal text, order, priority, width and visibility stay with the destination. Review the selected differences and accept with **A**, then save separately.
 

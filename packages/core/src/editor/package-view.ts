@@ -1,17 +1,19 @@
 import { t, renderMessage, type Language } from '../i18n/messages.js';
-import { hintLine, prependLine, sectionDivider, wrapEditorLine, type EditorLine } from './hints.js';
+import { clipEditorLine, hintLine, prependLine, sectionDivider, wrapEditorLine, type EditorLine } from './hints.js';
 import {
-    PACKAGE_CHANNELS, PACKAGE_RECORDS_PER_PAGE, packageCanExecute, packageCanReview, packageRowCanFocus,
+    PACKAGE_CHANNELS, PACKAGE_RECORDS_PER_PAGE, packageCanExecute, packageCanRecover, packageCanReview, packageRowCanFocus,
     type PackageCommand, type PackageManager, type PackagePage,
 } from './package-manager.js';
 import { shortcutHint } from './shortcut-map.js';
 import type { EditorShortcuts } from './shortcut-settings.js';
-import { inputView } from './text-input.js';
+import { inputView, pathInputWindow } from './text-input.js';
+import { confirmationFacts, itemDetailWindow } from './item-detail.js';
 
 interface LogicalRow extends EditorLine {
     key: string;
     command?: PackageCommand;
     heading?: boolean;
+    fact?: boolean;
 }
 
 export interface PackageRow extends LogicalRow {
@@ -26,6 +28,8 @@ const titleKeys: Record<PackagePage, string> = {
 };
 
 export function packageTitle(view: PackageManager, language: Language): string {
+    const action = view.job?.review?.action;
+    if (view.mode === 'execute-confirm' && action && action !== 'check') return t('package.ui.confirm_title.' + action, language);
     return t('package.ui.' + titleKeys[view.mode], language);
 }
 
@@ -50,8 +54,9 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
     const hint = (key: string, keys: Record<string, string | EditorLine>, params?: Record<string, unknown>) =>
         hintLine('package.ui.' + key, language, keys, params);
     const rows: LogicalRow[] = [];
-    const add = (key: string, value: string | EditorLine, command?: PackageCommand) =>
-        rows.push({ key, ...(typeof value === 'string' ? { text: safe(value) } : value), command });
+    const add = (key: string, value: string | EditorLine, command?: PackageCommand, fact = false) =>
+        rows.push({ key, ...(typeof value === 'string' ? { text: safe(value) } : value), command, fact });
+    const fact = (key: string, value: string) => add(key, value, undefined, true);
     const heading = (key: string) => rows.push({ key: 'heading:' + key, text: tr(key), heading: true });
     const open = (key: string, label: string | EditorLine, page: Extract<PackageCommand, { kind: 'open' }>['page']) =>
         add(key, commandLine(label), { kind: 'open', page });
@@ -67,7 +72,7 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
         const entry = view.status?.pending;
         if (entry) add('pending', showIdentity ? tr('pending', {
             id: entry.id, stage: tr('stage_' + entry.stage),
-            running: t(entry.running ? 'task.value.running' : 'task.unknown', language),
+            running: entry.running === false ? tr('pending_stopped') : t(entry.running ? 'task.value.running' : 'task.unknown', language),
         }) : tr('pending_summary'));
     };
     const jobState = (prefix: 'state_' | 'execution_state_', state: string) =>
@@ -127,13 +132,16 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
             }
             break;
         case 'history':
-            add('history-context', tr('prefix', { value: safe(view.prefix) || unknown }));
             pending(true);
+            if (!status?.pending) add('no-pending', tr('no_recovery_available'));
+            else if (status.pending.running !== false) add('recovery-wait', tr(status.pending.running ? 'recovery_running' : 'recovery_unknown'));
+            if (packageCanRecover(view)) review('recover-package');
             if (packageCanReview(view)) {
-                review('recover-package');
                 add('cleanup-review', commandLine(tr('cleanup_review')), { kind: 'effect', effect: 'cleanup-review' });
             }
             if (!status?.history.length) add('history-empty', tr('history_empty'));
+            add('history-context', tr('prefix', { value: safe(view.prefix) || unknown }));
+            for (const reason of status?.reasons ?? []) add('reason:' + reason, t('package.reason_' + reason, language, {}, reason));
             for (const record of status?.history ?? []) {
                 const restore = packageCanReview(view) && record.backup === 'verified';
                 const backup = restore ? hint('backup_verified', { enter: 'Enter' })
@@ -147,21 +155,31 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
         case 'review': {
             const job = view.job;
             if (!job) break;
-            add('job', hint('job', { state: jobState('state_', job.state) }, { id: safe(job.id) }));
-            if (job.error) add('job-error', t('package.reason_' + job.error, language, {}, job.error));
             const result = job.review;
+            const action = job.request.action;
+            add('review-state', result?.compatible === false ? tr('review_blocked')
+                : result?.action === 'restore-config' ? tr('restore_review')
+                : result?.artifact_verified ? tr('verified')
+                : result ? tr('unverified') : jobState('state_', job.state));
+            if (job.error) add('job-error', t('package.reason_' + job.error, language, {}, job.error));
             if (result) {
-                add('verification', tr(result.action === 'restore-config' ? 'restore_review' : result.artifact_verified ? 'verified' : 'unverified'));
-                add('review-target', (result.current ?? '—') + ' → ' + (result.target ?? '—'));
-                if (packageCanExecute(view)) add('execute', commandLine(tr('execute')), { kind: 'effect', effect: 'execute' });
+                for (const reason of result.reasons) add('review-reason:' + reason, t('package.reason_' + reason, language, {}, reason));
+                if (action === 'restore-config') {
+                    add('review-target', tr('restore_source_version', { value: result.target ?? unknown }));
+                    if (result.backup_id) add('review-backup', tr('restore_backup', { value: result.backup_id }));
+                } else add('review-target', tr('review_versions', { current: result.current ?? unknown, target: result.target ?? unknown }));
+                if (packageCanExecute(view)) add('execute', commandLine(tr('confirm_title.' + action)), { kind: 'effect', effect: 'execute' });
+                if (action === 'check' && result.compatible && result.target) {
+                    add('check-next', tr(result.target === result.current ? 'check_current' : 'check_upgrade_next'));
+                }
                 add('review-config', tr('config', { value: result.config_dir }));
+                for (const file of result.configuration_conflicts) add('conflict:' + file, file);
+                for (const file of result.files) add('restore:' + file, file);
                 if (result.registry) add('registry', result.registry);
                 if (result.integrity) add('integrity', result.integrity);
                 if (result.node_engine) add('engine', 'Node ' + result.node_engine);
-                for (const reason of result.reasons) add('review-reason:' + reason, t('package.reason_' + reason, language, {}, reason));
-                for (const file of result.configuration_conflicts) add('conflict:' + file, file);
-                for (const file of result.files) add('restore:' + file, file);
             }
+            add('job', tr('review_job', { id: job.id }));
             break;
         }
         case 'execution': {
@@ -192,11 +210,26 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
             }
             add('draft-cancel', commandLine(tr('draft_cancel')), { kind: 'back' });
             break;
-        case 'execute-confirm':
+        case 'execute-confirm': {
+            const result = view.job?.review;
+            if (result?.action === 'restore-config') {
+                fact('restore-backup', tr('restore_backup', { value: result.backup_id ?? unknown }));
+                fact('restore-version', tr('restore_source_version', { value: result.target ?? unknown }));
+                fact('restore-config', tr('config', { value: result.config_dir }));
+                fact('restore-scope', tr('restore_file_count', { count: result.files.length }));
+                for (const file of result.files) add('restore:' + file, file);
+            } else if (result) {
+                fact('review-target', tr('review_versions', { current: result.current ?? unknown, target: result.target ?? unknown }));
+                fact('review-prefix', tr('prefix', { value: result.prefix }));
+                fact('review-scope', tr(result.action === 'recover-package' ? 'confirm_recover_scope' : 'confirm_package_scope'));
+                add('review-config', tr('config', { value: result.config_dir }));
+                if (result.action === 'recover-package' && result.backup_id) add('transaction', tr('transaction_record', { value: result.backup_id }));
+            }
             add('notice', tr('execute_notice'));
-            add('execute-confirm', hint('execute_confirm', { enter: 'Enter' }), { kind: 'effect', effect: 'execute' });
-            add('draft-cancel', commandLine(t('ui.hints.cancel', language)), { kind: 'back' });
+            add('confirm-cancel', commandLine(t('ui.hints.cancel', language)), { kind: 'back' });
+            if (result && packageCanExecute(view)) add('execute-confirm', commandLine(tr('confirm_action.' + result.action)), { kind: 'effect', effect: 'execute' });
             break;
+        }
         case 'cleanup': {
             const cleanup = view.cleanup;
             add('cleanup-message', tr(cleanup?.uncertain ? 'cleanup_uncertain' : 'cleanup_notice'));
@@ -212,10 +245,18 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
             break;
         }
         case 'cleanup-confirm': {
-            const back = (shortcuts?.hint('packages', 'close-packages') ?? 'Q') +
-                (shortcuts?.surface === 'native' ? '/Ctrl+G' : '/Esc');
-            add('cleanup-selected', view.cleanupId ?? '');
-            add('cleanup-confirm', hint('cleanup_confirm', { enter: 'Enter', back }), { kind: 'effect', effect: 'cleanup-apply' });
+            const selected = view.cleanup?.rows.find(row => row.id === view.cleanupId);
+            if (selected) {
+                fact('cleanup-selected', tr('transaction_record', { value: selected.id }));
+                fact('cleanup-version', tr('cleanup_record_version', { value: selected.version ?? unknown }));
+                fact('cleanup-prefix', tr('prefix', { value: view.cleanup!.prefix }));
+                fact('cleanup-scope', tr(selected.id.startsWith('execution-') ? 'confirm_execution_cleanup_scope' : 'confirm_cleanup_scope'));
+                if (status?.config_dir) add('cleanup-config', tr('config', { value: status.config_dir }));
+            }
+            add('confirm-cancel', commandLine(t('ui.hints.cancel', language)), { kind: 'back' });
+            if (selected?.removable && !view.cleanup?.uncertain && packageCanReview(view)) {
+                add('cleanup-confirm', commandLine(tr('confirm_cleanup_action')), { kind: 'effect', effect: 'cleanup-apply' });
+            }
             break;
         }
     }
@@ -225,6 +266,13 @@ function packageRows(view: PackageManager, language: Language, shortcuts: Editor
 function inputRows(view: PackageManager, language: Language, width: number): PackageRow[] {
     const field = view.editing!;
     const label = t('package.ui.' + field, language, { value: '' }).trim();
+    if (field === 'export_path') {
+        const page = pathInputWindow(label, view.input!, renderMessage(view.message ?? '', language), width, view.capacity, view.detailScroll);
+        view.detailLength = page.length;
+        view.detailCapacity = page.capacity;
+        view.detailScroll = page.start;
+        return page.rows.map((line, part) => ({ ...prependLine(part === 1 ? '› ' : '  ', line), key: 'input', part, selected: part === 1 }));
+    }
     const help = field === 'target' || field === 'prefix' ? [t('package.ui.' + field + '_help', language)] : [];
     return [...[label, ...help].flatMap(line => wrapEditorLine({ text: line }, width)),
         inputView(view.input!, width)]
@@ -232,6 +280,29 @@ function inputRows(view: PackageManager, language: Language, width: number): Pac
             ...prependLine(part === rows.length - 1 ? '› ' : '  ', line),
             key: 'input', part, selected: part === rows.length - 1,
         }));
+}
+
+function confirmationView(view: PackageManager, rows: readonly LogicalRow[], columns: number): PackageRow[] {
+    const choices = rows.filter(row => row.command).map(row => ({ ...row, part: 0 }));
+    const selection = findSelection(view, choices);
+    view.rows = choices;
+    view.rowIndex = selection;
+    view.selected = choices[selection]?.key ?? '';
+    view.part = 0;
+    const confirmed = confirmationFacts(rows.filter(row => row.fact), columns);
+    const details = [...confirmed, ...rows.filter(row => !row.fact && !row.command)
+        .flatMap(row => wrapEditorLine(row, columns).map(line => ({ ...row, ...line })))];
+    const space = Math.max(0, view.capacity - choices.length);
+    const showPosition = space >= 5 && details.length > space;
+    view.detailLength = details.length;
+    view.detailCapacity = Math.max(1, space - Number(showPosition));
+    const page = itemDetailWindow(details, view.detailScroll, view.detailCapacity);
+    view.detailScroll = page.start;
+    return [
+        ...page.rows.slice(0, space).map((row, part) => ({ ...row, ...prependLine('  ', row), part })),
+        ...(showPosition ? [{ key: 'position', ...prependLine('  ', { text: page.summary }), part: 0 }] : []),
+        ...choices.map((row, index) => ({ ...row, ...prependLine(index === selection ? '› ' : '  ', clipEditorLine(row, columns)), selected: index === selection })),
+    ].slice(0, view.capacity);
 }
 
 function findSelection(view: PackageManager, rows: readonly PackageRow[]): number {
@@ -253,8 +324,9 @@ export function packageView(view: PackageManager, language: Language, width: num
     const columns = Math.max(1, width - 2);
     // The underlying page keeps its scroll and selected field throughout editing.
     if (view.input && view.editing) return inputRows(view, language, columns).slice(-view.capacity);
-
-    const rows = packageRows(view, language, shortcuts, automatic)
+    const logical = packageRows(view, language, shortcuts, automatic);
+    if (view.mode === 'execute-confirm' || view.mode === 'cleanup-confirm') return confirmationView(view, logical, columns);
+    const rows = logical
         .flatMap(({ text, keys, ...row }) => row.heading ? [{ ...row, text: sectionDivider(text, width), part: 0 }]
             : wrapEditorLine(view.busy ? { text } : { text, keys }, columns)
                 .map((line, part) => ({ ...row, ...line, part })));

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
 import { Session, type Backend } from '../src/session.js';
-import { fixture } from './fixtures.js';
+import { fixture, plain } from './fixtures.js';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { copyDraft } from '@fbincon/statusline-core/editor/draft';
@@ -10,6 +10,7 @@ import { formRows, setFormValue } from '@fbincon/statusline-core/editor/forms';
 import { newInstance } from '@fbincon/statusline-core/editor/instances';
 import { openSources, sourcesKey, performSourceAction, type SourceBackend } from '@fbincon/statusline-core/editor/source-manager';
 import type { SourceMutationResult } from '@fbincon/statusline-core/contracts/ui';
+import { t } from '@fbincon/statusline-core/i18n/messages';
 
 for (const code of ['configuration_conflict','profile_conflict']) for (const readFails of [false,true])
 test(`an external ${code} retains the draft and allows cancellation when conflict inspection ${readFails?'fails':'succeeds'}`, {timeout:5000}, async t=>{
@@ -65,6 +66,41 @@ test('external uncertain saves freeze mutations and reconcile four outcomes with
     await session.key({key:'k',ctrl:true});
     assert.equal(e.saveState,outcome==='unknown'?'unknown':'idle');assert.equal(attempts,1);assert.deepEqual(e.draft,submitted);
     if(outcome!=='unknown')assert(e.toggle('main',e.selected.main));
+  }
+});
+
+test('a narrow source page retains its return key and shows the latest save readback result', async () => {
+  for (const language of ['en', 'zh-CN'] as const) {
+    const state = fixture(language), e = state.editor;
+    const target = { kind: 'user' } as const;
+    e.baseline.configuration = { target, profile_id: null, profile_name: null, project_root: null, reason: 'user', shared_projects: [] };
+    e.toggle('main', e.selected.main);
+    const submitted = e.beginSave();
+    e.saveFailed('io_error');
+    openSources(e);
+    e.sources!.effect = null;
+
+    const screen = () => plain(state, 64, 18).join('\n');
+    assert.match(screen(), /Ctrl\+K.*Esc\/Ctrl\+G/u);
+    assert.ok(!screen().includes('Ctrl+Y ' + t('sources.title', language)));
+    let reads = 0;
+    const backend = { request(operation: string, payload: unknown) {
+      assert.equal(operation, 'read');
+      assert.deepEqual(payload, { target });
+      if (++reads === 1) throw new Error('Read unavailable');
+      return { ...e.baseline, draft: submitted.draft, revision: '2'.repeat(64) };
+    } } as Backend;
+    const session = new Session(state, backend);
+    await session.key({ key: 'k', ctrl: true }, 64, 18);
+    assert.match(screen(), /Read unavailable/u);
+    assert.equal(e.saveState, 'unknown');
+    await session.key({ key: 'k', ctrl: true }, 64, 18);
+    assert.ok(screen().includes(t('editor.saved', language)));
+    assert.doesNotMatch(screen(), /Ctrl\+K/u);
+    assert.match(screen(), /Esc\/Ctrl\+G/u);
+    assert.equal(reads, 2);
+    assert.equal(e.saveState, 'idle');
+    assert.deepEqual(e.draft, submitted.draft);
   }
 });
 

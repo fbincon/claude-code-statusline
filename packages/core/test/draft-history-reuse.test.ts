@@ -1,4 +1,5 @@
-import { openReuse, reuseKey, reuseView } from '../src/editor/reuse-manager.js';
+import { openReuse, performReuse, reuseKey, reuseView } from '../src/editor/reuse-manager.js';
+import { BackendError } from '../src/editor/backend.js';
 import { LANGUAGES } from '../src/i18n/registry.js';
 import { t } from '../src/i18n/messages.js';
 import { textInput } from '../src/editor/text-input.js';
@@ -209,6 +210,50 @@ test('review presentation preserves long export/path input state and scroll snap
   const before=JSON.stringify(e.changeReview);for(const width of [32,196])changesView(e,'en',width,12);assert.equal(JSON.stringify(e.changeReview),before);
   e.changeReview=null;openReuse(e,'style');e.reuse!.page='path';e.reuse!.input=textInput('/'+('界'.repeat(512))+'/source.json');
   const snapshot=JSON.stringify(e.reuse);for(const width of [32,196])reuseView(e,'en',width,12);assert.equal(JSON.stringify(e.reuse),snapshot);
+});
+
+test('path failures stay beside the correct editable value and only a new file completes draft export', async () => {
+  const e = editor();
+  const dirty = copyDraft(e.draft);
+  dirty.host.padding = 9;
+  e.commitDraft(dirty);
+  const before = JSON.stringify(e.draft), history = JSON.stringify(e.history);
+  const submitted: unknown[] = [];
+  const exports = { request<O extends Operation>(operation: O, payload: unknown): ResultFor<O> {
+    assert.equal(operation, 'export');
+    submitted.push(payload);
+    if (submitted.length === 1) throw new BackendError('io_error', '[Errno 17] File exists: ./draft.json');
+    return { path: './fresh.json' } as ResultFor<O>;
+  } };
+  openChanges(e);
+  changesKey(e, { key: 'e' }, 'zh-CN', 32, 5);
+  const first = { ...e.changeReview!.input! };
+  assert.equal(changesKey(e, { key: 'return' }, 'zh-CN', 32, 5), 'changes');
+  await performChanges(e, exports);
+  assert.deepEqual(e.changeReview!.input, first);
+  assert(changesView(e, 'zh-CN', 32, 5).some(row => row.text === t('history.file_exists', 'zh-CN')));
+  for (const key of [{ key: 'u', ctrl: true }, { key: './fresh.json', paste: true }, { key: 'return' }]) changesKey(e, key, 'zh-CN', 32, 5);
+  await performChanges(e, exports);
+  assert.equal(e.changeReview!.input, null);
+  assert.equal(e.changeReview!.message?.key, 'history.exported');
+  assert.deepEqual(submitted.map(value => (value as { overwrite: boolean }).overwrite), [false, false]);
+  e.changeReview = null;
+
+  openReuse(e, 'style');
+  for (const key of ['down', 'return', 'return']) reuseKey(e, { key }, 'en', 32, 5);
+  const path = { ...e.reuse!.input }, reason = 'Long file failure ' + 'context '.repeat(16) + 'precise cause';
+  await performReuse(e, { request() { throw new Error(reason); } });
+  assert.deepEqual(e.reuse!.input, path);
+  assert(reuseView(e, 'en', 32, 5).some(row => row.text.includes('complete the action')));
+  for (let i = 0; i < 20; i++) reuseKey(e, { key: 'pagedown' }, 'en', 32, 5);
+  assert(reuseView(e, 'en', 32, 5).map(row => row.text).join(' ').includes('precise cause'));
+  const bottom = e.reuse!.scroll;
+  reuseKey(e, { key: 'pageup' }, 'en', 32, 5);
+  assert(e.reuse!.scroll < bottom);
+  reuseKey(e, { key: 'g', ctrl: true }, 'en', 32, 5);
+  assert.equal(e.reuse, null);
+  assert.equal(JSON.stringify(e.draft), before);
+  assert.equal(JSON.stringify(e.history), history);
 });
 
 test('history review undo and redo refresh the comparison and retain unresolved-save protection',()=>{

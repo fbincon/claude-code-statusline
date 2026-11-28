@@ -105,7 +105,7 @@ test('failed task reads retain the report, localize through the selected languag
     const target = () => taskRefresh(view, backend, 'ja');
     assert.equal(await update(target(), 'manual'), true);
     assert.equal(view.language, 'ja');
-    assert.equal(view.warning?.key, 'task.language_unavailable');
+    assert.equal(view.warning?.key, 'task.language_kept');
     assert.equal(view.report, original);
     assert.equal(typeof view.error === 'object' && view.error?.key, 'task.viewer.read_failed');
     assert.equal(await update(target()), false, 'identical read failures should not keep writing the screen');

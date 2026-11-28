@@ -5,11 +5,13 @@ import { isDraft } from './backend.js';
 import { validGroups } from './groups.js';
 import { clone, semantic } from './history.js';
 import { differences } from './import-differences.js';
+import type { LocalizedText } from '../i18n/messages.js';
 
 export interface AlignmentRepair { id: string; before: AlignmentDraft; after: AlignmentDraft | null }
 export interface StructureProposal {
   generation: number; target: string; base: Draft; draft: Draft; repairs: AlignmentRepair[]; changes: ImportChange[];
   pickerAddition?: { scope: Scope; id: string };
+  confirmation?: LocalizedText;
 }
 export function repairStructure(base: Draft, proposed: Draft): Omit<StructureProposal, 'generation' | 'target'> {
   const draft = clone(proposed), d = draft.display, originals = d.layout.alignments ?? [];

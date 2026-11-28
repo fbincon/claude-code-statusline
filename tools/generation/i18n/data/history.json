@@ -30311,6 +30311,2781 @@
         "terms": []
       },
       "terms": {}
+    },
+    "31a6fe36584d8e3d8dcba6a4e5797e70238d9a81855d3d6e3c22b8abaf99be71": {
+      "key": "catalog.search.no_types",
+      "english": "No catalog matches. Change the search or category.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "catalog.search.no_types",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1f5cdb0e1881247ce129cf821ba56d270624195aa133db8ee83438c116cdf044": {
+      "key": "catalog.search.open_catalog",
+      "english": "No matches · {key} Catalog",
+      "placeholders": [
+        "key"
+      ],
+      "context": {
+        "version": 1,
+        "description": "catalog.search.open_catalog",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "11707e24d0d2d1889714b1f40ea094254dfb41e378bc2427131af587973e74aa": {
+      "key": "colors.candidate",
+      "english": "Candidate {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "colors.candidate",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7b4b4b110e776b8d55e316e1bffc8a934fc3640596700923ec61324338ca3c53": {
+      "key": "colors.candidate_preview",
+      "english": "Candidate sample",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "colors.candidate_preview",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ba71d31baef15e451640cece679a0d7296ba090b95a3bb4cfaa7634e97eacd4e": {
+      "key": "colors.draft",
+      "english": "Draft {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "colors.draft",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3e7c0a2139e5321c9f2f6f891a65206390cb81a3e6d6af75a61a6a3f767c9df3": {
+      "key": "colors.no_changes",
+      "english": "The display draft already uses this choice.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "colors.no_changes",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "43b3f926b3c37c9aa714b468f597e6908888ae2a59e0b72e4c8f06766b8554f0": {
+      "key": "colors.saved",
+      "english": "Saved {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "colors.saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a965c1224c7f79450e24fa51cbb589fc25f763c0ec8d5cfafb53830ec09a41a7": {
+      "key": "colors.staged",
+      "english": "Draft updated · {save} to save",
+      "placeholders": [
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "colors.staged",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "75ee1e3ddd01097bd4756c9fc244289c458c1d75009354ae9945c5a4fd8f69c5": {
+      "key": "colors.unsaved",
+      "english": "not saved",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "colors.unsaved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a404850fefd3b5d03239f94e7d863d7d36489aa80c816a39a6519b9f3e0be52f": {
+      "key": "composition.groups.draft_changed",
+      "english": "Group change in draft. Save after returning.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.draft_changed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "52ce420e707af30a4aa05a670df2c2ebf713070c621e80fe24150ba18be4007b": {
+      "key": "composition.groups.empty",
+      "english": "No groups in this scope.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.empty",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3ebc86c43e35a7a70fc8614722348487fcda340fe5ba319f9c288314304d75c4": {
+      "key": "composition.groups.move_unavailable",
+      "english": "At the edge of this scope.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.move_unavailable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ed4a217aa23ea40722654700a668cdd5f494f0e657149314479dfb6b62372031": {
+      "key": "composition.groups.open",
+      "english": "open group",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.open",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "707f3ec7cbff9ee2e2e5a4e567ac72142ddccbe684751524d155c5cc6ba57b2e": {
+      "key": "composition.groups.scope",
+      "english": "Scope · {scope}",
+      "placeholders": [
+        "scope"
+      ],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a91c735c2f141a8edfe3a7512a9f9218e47b219610173fae0a0d28fcef0e6e4e": {
+      "key": "composition.groups.switch_scope",
+      "english": "switch scope",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "composition.groups.switch_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4fae2b75c6c4dda26e393e992ae373b34a6f776c27c9639ff7efe65ceddae318": {
+      "key": "diagnose.error.path",
+      "english": "Provide a valid input file path.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnose.error.path",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f54f254255f266106f772aa30fe489191abe9c48e10a2eddf47d045cbb484a97": {
+      "key": "diagnose.layout.group_hidden",
+      "english": "decoration hidden with its primary metric",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnose.layout.group_hidden",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "528af33275ab740651b62e67de4f614789747a8849f0102e5ee6f8d50073c0da": {
+      "key": "diagnosis.details",
+      "english": "Details",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.details",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ba84fcefcae78476eb141008403db14e55e476af1dfc5d294c18beedd8d47ecd": {
+      "key": "diagnosis.host_supported",
+      "english": "The supplied host version meets the known minimum.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.host_supported",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "60bcec877a77b5201e63944497f5979fca59e6fcc35ae3ebe895a847dc5492ea": {
+      "key": "diagnosis.no_output",
+      "english": "No visible rows for this input",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.no_output",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f0080661dd4317b8bb2069899b987568071d8198c7bb727d9d3ecbe778726f74": {
+      "key": "diagnosis.output",
+      "english": "File diagnosis output",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.output",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c44fba50da0ca4f8a64f92a1d82c166ab6b068a9c3ce18786b3fafefc70526a6": {
+      "key": "diagnosis.output_short",
+      "english": "Output",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.output_short",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "767b5c158f268b984679295003debd08fd064fcb54a159dac7cf15d12d5ef720": {
+      "key": "diagnosis.path",
+      "english": "Input file (required)",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.path",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d7abb71ede0b7b7a13fe04d84a18334ec2f0ffbd60ae65987ed6ba7fa7b6d095": {
+      "key": "diagnosis.path_required",
+      "english": "Enter the input file path.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.path_required",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a94ecce5d87a5133b1aaaaf02c4ad6ee407b1cc550a2284d3f95ae8c08132cdf": {
+      "key": "diagnosis.read_only",
+      "english": "Read-only · current draft",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.read_only",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c9b5af6c5622ca2bd3db1680740ca64f567d5e78b20cebf8e5cb425b5cfda115": {
+      "key": "diagnosis.visible_rows",
+      "english": "Output · {rows} rows · {width}c",
+      "placeholders": [
+        "rows",
+        "width"
+      ],
+      "context": {
+        "version": 1,
+        "description": "diagnosis.visible_rows",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "acf3ab63c617fb01341c077a023560609cacc91c16d8f336ab2d037bbbe112a8": {
+      "key": "editor.save_check_from_editor",
+      "english": "Back to editor to check save.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "editor.save_check_from_editor",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e0bae8db9111f2252805a5249fbf0f4e339461afe9d2366cebb9fac8b3570616": {
+      "key": "editor.save_unconfirmed",
+      "english": "Display save outcome unknown.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "editor.save_unconfirmed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "067d401292d1f592671d91c835309f8a9cca9339cc343e73de1a02a1cecc6b96": {
+      "key": "editor.still_unknown",
+      "english": "Save unknown. {detail}",
+      "placeholders": [
+        "detail"
+      ],
+      "context": {
+        "version": 1,
+        "description": "editor.still_unknown",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6d29bd7116a3101f42b7a9359d9d49976e9c19e68878f462129530eefa0584f8": {
+      "key": "history.file_exists",
+      "english": "The destination file already exists.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "history.file_exists",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7ea5e99d8d03396f8446fa4bcfa6d0ebac405355bafd34292df9404cff7400be": {
+      "key": "history.file_missing",
+      "english": "Could not find the file or directory.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "history.file_missing",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f195ef7f2249bd2421e6b8277cc6bbb6d0053de7eec5766a7f948496726d135b": {
+      "key": "history.file_permission",
+      "english": "Permission denied for this path.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "history.file_permission",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b372721054710d0869271609600605b3cdfeaea2bcc2645163cefed758f7c01c": {
+      "key": "history.input_help",
+      "english": "{enter} export to a new file · {back} cancel",
+      "placeholders": [
+        "back",
+        "enter"
+      ],
+      "context": {
+        "version": 1,
+        "description": "history.input_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7ca5f7bef954cacbd0d2d9f8cf312f445ab74dafe3ad9e4e7389715468a0e706": {
+      "key": "layout.confirm_auto_boundary",
+      "english": "Break before {item}.\nApplies to the entire main line.",
+      "placeholders": [
+        "item"
+      ],
+      "context": {
+        "version": 1,
+        "description": "layout.confirm_auto_boundary",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d7275521af5e80a7633868e93ae59d0801c4121844033a35fb605a3ca38524b4": {
+      "key": "layout.explicit_pending",
+      "english": "Explicit rows pending · {save} Save",
+      "placeholders": [
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "layout.explicit_pending",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e4a20bedca462cd970ebbc1c62655e1fca6642ea8ef370b7f2bb455e6505a529": {
+      "key": "layout.review_boundary",
+      "english": "{enter} reviews explicit rows",
+      "placeholders": [
+        "enter"
+      ],
+      "context": {
+        "version": 1,
+        "description": "layout.review_boundary",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d0b571db5d52dcc19960addf98ef0d2989ee253792f0be8224a77d36c3858630": {
+      "key": "layout.review_title",
+      "english": "Use explicit rows",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "layout.review_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b0bd9112c00278d692bb67853bdb86ad7b33e69ebacde5fabab7cc77fd819ca3": {
+      "key": "native.host_applies_separately",
+      "english": "Apply preferences separately.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "native.host_applies_separately",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c80d4524d7f87ee060d8f0a81759f52d0a0ca241f75987d3b86f6ab9cf2f8cc9": {
+      "key": "native.host_current_value",
+      "english": "Current {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.host_current_value",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b1ea003ed483498d2eb1194ebb44fe2f3037413b521570f2153ea232f715be51": {
+      "key": "native.host_no_pending",
+      "english": "No Claude preferences to apply.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "native.host_no_pending",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "600cc941415d857f1c56b24b1d3c81304079e7aa328f254ae309dd4ca04ec298": {
+      "key": "native.host_pending_value",
+      "english": "Pending {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.host_pending_value",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "326e184e732f2271b2425f757dc06ad98816158145003c95244cea54876851c0": {
+      "key": "native.host_status_locked",
+      "english": "Locked · {entry}",
+      "placeholders": [
+        "entry"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.host_status_locked",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ba65b19f1809b4967898ce2a335959eccb4b7c185f8b338d9320828ea16b5316": {
+      "key": "native.host_status_unavailable",
+      "english": "Unavailable · {entry}",
+      "placeholders": [
+        "entry"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.host_status_unavailable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1302ccc9f45fb8d75f5451ceeceee828d37d076fbd72822640c2046d8daacdf3": {
+      "key": "native.host_status_unsupported",
+      "english": "Unsupported · {entry}",
+      "placeholders": [
+        "entry"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.host_status_unsupported",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "126b3222dff814614b2a3465633eaeac67e00a236cdfff6c2435f72a1ecf038a": {
+      "key": "native.ui.client.draw.body_minimum",
+      "english": "Needs {columns}×{rows}",
+      "placeholders": [
+        "columns",
+        "rows"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.ui.client.draw.body_minimum",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d43c8bf90041f074cd323eb9fd73d648af926b87f81402779ab470647b9a421d": {
+      "key": "native.ui.client.draw.body_size",
+      "english": "Editor body {columns}×{rows}",
+      "placeholders": [
+        "columns",
+        "rows"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.ui.client.draw.body_size",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4f3ec499488278843d0f65e284f3b352378a943f8f1022599975a3376b17f7a4": {
+      "key": "native.ui.client.draw.click_body_short",
+      "english": "Click editor for keys",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "native.ui.client.draw.click_body_short",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "666f4e6fd026d35c649562ec4b18ad084fafad8fc3e8cddaefeee947ff0f481d": {
+      "key": "native.ui.client.draw.click_region_for_keys",
+      "english": "Click the editor body first. {escape} returns to Claude.",
+      "placeholders": [
+        "escape"
+      ],
+      "context": {
+        "version": 1,
+        "description": "native.ui.client.draw.click_region_for_keys",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "108ee967b3a3317f5603abca284f392403c172b76f68ba18458c3c559a0cb8b3": {
+      "key": "package.ui.check_current",
+      "english": "The selected version is already installed.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.check_current",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1808bcc164e372f71ddd91b4745f7227f7232002d8cbe3c2726c64be0bc8d67e": {
+      "key": "package.ui.check_upgrade_next",
+      "english": "Go back and verify the upgrade before executing it.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.check_upgrade_next",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "975f821d923ba2c2a86ca4f389f7b336a148186dde62e0dc49c92ccdc8e85640": {
+      "key": "package.ui.cleanup_confirm_title",
+      "english": "Delete history record",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.cleanup_confirm_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7e0aaee2e03d3c4ee432200ded8c1446134a4d668ca13d7555600152c4d24a71": {
+      "key": "package.ui.cleanup_record_version",
+      "english": "Record version: {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.cleanup_record_version",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f55011dc7cd36aae8a3cfae91cbeb87135df54df6f55cf61a52ed0c3b8248344": {
+      "key": "package.ui.confirm_action.recover-package",
+      "english": "Resume package recovery",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_action.recover-package",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "dc59668cda8c14787be45e9b8a737f3a6f777569f30515725cdb670dc8e82ebe": {
+      "key": "package.ui.confirm_action.restore-config",
+      "english": "Restore reviewed files",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_action.restore-config",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f1a39f1ef92ed58acb83c6c58016bf23b73e7f43cff41d577d2df93978c34035": {
+      "key": "package.ui.confirm_action.rollback",
+      "english": "Roll back package",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_action.rollback",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3a2846248b2a112b36f502acd6f23af2a838a637a5117e562ab65c12cd4aaa62": {
+      "key": "package.ui.confirm_action.update",
+      "english": "Upgrade package",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_action.update",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9a8e5cce283d395a4bba959fe87bb2c577f16e2f92a71a6fd1d40dccd63ed91f": {
+      "key": "package.ui.confirm_cleanup_action",
+      "english": "Delete retained record",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_cleanup_action",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "548d9d8ff87fa78417cd264861ce203442b15c88101a61c493f60dde4713e8b3": {
+      "key": "package.ui.confirm_cleanup_scope",
+      "english": "Delete this transaction's retained files.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_cleanup_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3da9df244146bba7669aaa76b7f802b263db25640de092dc310919a9e17772b4": {
+      "key": "package.ui.confirm_execution_cleanup_scope",
+      "english": "Delete this execution's retained controls.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_execution_cleanup_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f884d2e7255017233b0f33af8c18fed8fe0af6127588f14a2321319d8659c71c": {
+      "key": "package.ui.confirm_package_scope",
+      "english": "Replace package at this prefix and update its managed Claude integration if present.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_package_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1386b149556ef0649053c18cb03ea77901ba05ac78fbd264337c55d6362c732d": {
+      "key": "package.ui.confirm_recover_scope",
+      "english": "Resume the unfinished package and integration operation at this prefix.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_recover_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9da01c5c54133f127b4ff4cc7f4e436440a26644bf9f61678bdfed25bd627406": {
+      "key": "package.ui.confirm_title.recover-package",
+      "english": "Confirm package recovery",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_title.recover-package",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a34a186e1c363d3194a177980317917a3576885bf201737626922c923c51398a": {
+      "key": "package.ui.confirm_title.restore-config",
+      "english": "Confirm configuration restore",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_title.restore-config",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6b94129cf5997da37fa66e5202d37f428925eee466c2728442c87abb3993a8d5": {
+      "key": "package.ui.confirm_title.rollback",
+      "english": "Confirm package rollback",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_title.rollback",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5050858fe287d63047a4169c6bc5ffb730b186d7f97dbbaa506deb526ee2a956": {
+      "key": "package.ui.confirm_title.update",
+      "english": "Confirm package upgrade",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.confirm_title.update",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "42814295acda2d32145ec1394bc8a72b1ef88d9d49f3ef2bd7f5bcc3ab36d8fe": {
+      "key": "package.ui.no_recovery_available",
+      "english": "No recoverable package transaction found.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.no_recovery_available",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "06d97a5e2578b743ff3412836bfc89b09657b7863ba44e48d28c41f28a160894": {
+      "key": "package.ui.pending_stopped",
+      "english": "No running executor",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.pending_stopped",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d8892c989c95bffbedfc23dfbd3f23420ba2e89abf6384c32d39c6a59153aab6": {
+      "key": "package.ui.recovery_running",
+      "english": "Recovery is blocked while the executor is running.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.recovery_running",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cbaea05fc1e038d92a728cd178a274766c30601edb929eb8d4d24ff754b9c444": {
+      "key": "package.ui.recovery_unknown",
+      "english": "Executor status is unknown. Recovery is blocked.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.recovery_unknown",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "8847fca73e38ccf49fe13471f101c30c4825d437a77006571d6fb975fdd1ce12": {
+      "key": "package.ui.restore_backup",
+      "english": "Backup: {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.restore_backup",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1512f3467492f3c2f5273d6856a5c8efe94cb1bd8e2ff8ca9a5cb2dc820e5c59": {
+      "key": "package.ui.restore_file_count",
+      "english": "Restore {count} reviewed files.",
+      "placeholders": [
+        "count"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.restore_file_count",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b48c0588ef3fcf9fc93cab1fa47e95efd4c45424ed7431ca51208f05dc686ea7": {
+      "key": "package.ui.restore_source_version",
+      "english": "Backup version: {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.restore_source_version",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "05f793d7769063a63cc30af207910d95ee305b6b03969fd3529a395debefed8d": {
+      "key": "package.ui.review_blocked",
+      "english": "Review blocked",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "package.ui.review_blocked",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1d44b2f815d20e795f11e0953f3fe05ea4d7cf9a4bd4fd48e015d9b43b263e66": {
+      "key": "package.ui.review_job",
+      "english": "Review job: {id}",
+      "placeholders": [
+        "id"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.review_job",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ea048f30d44ee8799dd6fffd2fc38bf287b8ad85434bd67477ca5c258d784ce0": {
+      "key": "package.ui.review_versions",
+      "english": "Version: {current} → {target}",
+      "placeholders": [
+        "current",
+        "target"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.review_versions",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d73a74f389de1b855eaf49ad02f09735b78fca9034291f88656235d622f93f98": {
+      "key": "package.ui.transaction_record",
+      "english": "Record: {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "package.ui.transaction_record",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "71e21468a3bf26b12576403c9fffde6a9f005100eaa319549beb1117f43749e3": {
+      "key": "preview.empty_no_agents",
+      "english": "No agents in this sample",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "preview.empty_no_agents",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "64d731aa89334c98f4fcd786490e655c4c19baddaf0365d3cadbcf10df219aaf": {
+      "key": "preview.empty_no_values",
+      "english": "No visible values in this sample",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "preview.empty_no_values",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b07e8b939e81a5a61dd3caa0c774962489205c6e91d70173baa21fe59da5cb84": {
+      "key": "preview.empty_subagents_off",
+      "english": "Custom subagent rows are off",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "preview.empty_subagents_off",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a48d3f6f8ad1928a0725e14c3e1389811fc156c889893e911341ce71710885e7": {
+      "key": "profiles.binding_removed",
+      "english": "Project binding removed.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.binding_removed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6554ecf8ce3f0d7d8586f3f8bc8bd81ce4de7c314619fe2c953ed133883c0e7d": {
+      "key": "profiles.binding_saved",
+      "english": "Project binding saved and active.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.binding_saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2b85a6c01050115397c399065a9c643e83553a52bc0de652c37da0fef15841f2": {
+      "key": "profiles.confirm_action.bind",
+      "english": "Bind project",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.bind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1fb0be3d8e921b1954168257b2896a03ae17c4be27a0412241d00495b1531b0c": {
+      "key": "profiles.confirm_action.delete",
+      "english": "Delete scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.delete",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d30c47880bfe2512dc95db1840d4777a4da4b2c3cb9e1b853d6c97f412ebf1cc": {
+      "key": "profiles.confirm_action.export",
+      "english": "Export file",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.export",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "90a475296195086dc9929c41e39750ff73018f4fc17b2b00a0e896c0219c31cb": {
+      "key": "profiles.confirm_action.import",
+      "english": "Save imported scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.import",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "02d0d4da649856362a2bb10fbe1475639920a16598979f624d125c10cbf10612": {
+      "key": "profiles.confirm_action.rename",
+      "english": "Rename scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.rename",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3dc4e01d8e388459dbaf49bca2dfd106ff2af332d2040dfa607c2550842d432f": {
+      "key": "profiles.confirm_action.save",
+      "english": "Save scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.save",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b976e15a7205cde63df71b8ade22b0fbbc0ea4ee7d6803fddfb1088ada7de1b5": {
+      "key": "profiles.confirm_action.save_bind",
+      "english": "Save and bind",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.save_bind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cd5edb8f6452565d4db64d08e4fe424a6a72d3b2775fe876abb51b5a24d1cfe8": {
+      "key": "profiles.confirm_action.unbind",
+      "english": "Remove binding",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_action.unbind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "bb90f1c59c56364e1116f5a54980b0dd5139179bf69ae72115d2cc05ea30f2c9": {
+      "key": "profiles.confirm_bind_replace",
+      "english": "Replace any binding at this project root.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_bind_replace",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e31e8c14dbb5a4dc0c5e37338c6b789178a1ae43d177bd2fb3a4720e456cd600": {
+      "key": "profiles.confirm_bind_scope",
+      "english": "Save the binding for this root and its subdirectories. A deeper binding takes priority.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_bind_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0ef7d39f5bc424cdb76944730e475e4f9396f72b62262d30c150298e558e81c3": {
+      "key": "profiles.confirm_current_binding",
+      "english": "Current binding: {name}",
+      "placeholders": [
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_current_binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a07922a54bed67116db5b2cbb4fd77f24130ffbe41987292bdb9210e9e61aad8": {
+      "key": "profiles.confirm_delete_scope",
+      "english": "Delete the saved scheme. Remove any project bindings first ({count}).",
+      "placeholders": [
+        "count"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_delete_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a9ce4d8ea83a4ab4e31049d07ab0105784526d584e0cfdc6fb859e3f25697268": {
+      "key": "profiles.confirm_existing_scheme",
+      "english": "Current scheme: {name}",
+      "placeholders": [
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_existing_scheme",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2b2c22a5eae714f856018d70ee6103691b1edc9ddd07500631c377b41806ca72": {
+      "key": "profiles.confirm_export_new",
+      "english": "Export a new file with the scheme's saved display settings.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_export_new",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fc1bb0e86ef957b83ae53ed689e9ca75432b33e3f7ae3b5e9ebfb638154974f2": {
+      "key": "profiles.confirm_export_path",
+      "english": "File: {path}",
+      "placeholders": [
+        "path"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_export_path",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "89d8a26fb21e0cd97d77b48a393829131de38e569182bae7d9568f3d2ddc28af": {
+      "key": "profiles.confirm_export_replace",
+      "english": "Replace the existing export file.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_export_replace",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e2866996ad6a38dd872be5ffd238e73fce9fec55afdccda8eea9f6e46a41665e": {
+      "key": "profiles.confirm_preserved_bindings",
+      "english": "{count} bound projects keep using the renamed scheme.",
+      "placeholders": [
+        "count"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_preserved_bindings",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "476d8ba8da65600fe6705bffef5dc4a85c4867b60a0478e82762252ba17e6fda": {
+      "key": "profiles.confirm_project",
+      "english": "Project: {path}",
+      "placeholders": [
+        "path"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_project",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a852c34cc6242f91a9a0990b6347516220d8561af4f480de49f57bf3ac807f59": {
+      "key": "profiles.confirm_replace",
+      "english": "Replace existing target",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_replace",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c19f13921bb7c1a17f9b9aa7ad861cadc51c5ededc01c5ad621301db1466e4af": {
+      "key": "profiles.confirm_save_scope",
+      "english": "Save display settings as a separate scheme.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_save_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "882f9d3b190addca5815cd5d0dfd980aaae729ef30492c70e1bd04471535d58d": {
+      "key": "profiles.confirm_scheme",
+      "english": "Scheme: {name}",
+      "placeholders": [
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_scheme",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9b638e0f7f140edacbc653f389429395b7cb82022ed948cce0cca129510ba83f": {
+      "key": "profiles.confirm_title.bind",
+      "english": "Bind project to scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.bind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "52b5b6048f5d05b012d0cdcbbd8e13abb6d72c4f5e72b59662a3fa269db1d597": {
+      "key": "profiles.confirm_title.delete",
+      "english": "Delete display scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.delete",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0f3ea6b2233d102b04660f4f862c6131e0de4a09af19eb2d3d4a0baa3e68bae8": {
+      "key": "profiles.confirm_title.export",
+      "english": "Export display scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.export",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "1b601cc2d3b898ad38513a9ac6dd11419053beb72eef319581abc91985c40015": {
+      "key": "profiles.confirm_title.rename",
+      "english": "Rename display scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.rename",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ad3dea49ec9f27235cfd73e104fed257efd8921f7d00ca547f8756d0b2d13425": {
+      "key": "profiles.confirm_title.save",
+      "english": "Save display scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.save",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "95ff296b6e55cb66363e19496104ac0a96b7c9443016ecd89ca876cae61ad240": {
+      "key": "profiles.confirm_title.save_bind",
+      "english": "Save and bind scheme",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.save_bind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "79dfd7f4f3002b24935326beeb634e4f783fe87003134d5ad467db3cd04ab122": {
+      "key": "profiles.confirm_title.unbind",
+      "english": "Remove project binding",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_title.unbind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "20f7c510c2f9120f8837dd071f228e5a792542f16e6596fadf35cbb6158db5ad": {
+      "key": "profiles.confirm_unbind_scope",
+      "english": "Remove the binding at this root. A matching ancestor or the user default applies afterward.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.confirm_unbind_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "970d9d3cda7027cf8c664a438bb4c5304b961f4b2db530ccf57f0e9379617c18": {
+      "key": "profiles.exported",
+      "english": "Scheme exported to {path}.",
+      "placeholders": [
+        "path"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.exported",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4cbfb3f48dfc19dacabca8a1d4533718834f3a0b1f6f1ccd9b65f26b66d9c878": {
+      "key": "profiles.saved_bound",
+      "english": "Scheme and project binding saved.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.saved_bound",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d47998a59fb3667f0ffc44858d4973391466c82d475aa2c818bdcfca8efa1fc3": {
+      "key": "profiles.saved_refresh_failed",
+      "english": "{saved} Could not refresh the editor target. {detail}",
+      "placeholders": [
+        "detail",
+        "saved"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.saved_refresh_failed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "71be759d12ad4ee36693bd549fe5440ad6697400b31e40b97525cb6b789cac02": {
+      "key": "profiles.saved_with_pending",
+      "english": "{saved} User-level settings still need saving.",
+      "placeholders": [
+        "saved"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.saved_with_pending",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d48fd886a8e8b4ca771d56dae0d0367957aeddfd6a61c20b10bee18130994aa8": {
+      "key": "profiles.switch_copy_draft",
+      "english": "Copy {name} into the user-default draft. Save the draft to activate it.",
+      "placeholders": [
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_copy_draft",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d159a255bb41cadb06c71296b21de96077e5d156dbf47ce846277b759859a10e": {
+      "key": "profiles.switch_draft_saved",
+      "english": "Current draft saved.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_draft_saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ed38eab2cd095787f1d2b73dd185b8d708cf71b2b1bd58139f81da6c3dae96c5": {
+      "key": "profiles.switch_from",
+      "english": "From ({count} projects): {name}",
+      "placeholders": [
+        "count",
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_from",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "773ebc08e5ec449c072369d54eb12d8046aa13d3a37249c1e9b84954f2171f6a": {
+      "key": "profiles.switch_from_project",
+      "english": "Current project: {path}",
+      "placeholders": [
+        "path"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_from_project",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fa2eb3dd8f394cf4ef01c7d3ad0a2b6562270b1bac5b555038a5b5184c603b4f": {
+      "key": "profiles.switch_title",
+      "english": "Switch editing target",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7ebc7af62a7a7e2e3ea3997ec13b7570bbef95a94cfd698ae68d555df0e8bfcf": {
+      "key": "profiles.switch_to",
+      "english": "To ({count} projects): {name}",
+      "placeholders": [
+        "count",
+        "name"
+      ],
+      "context": {
+        "version": 1,
+        "description": "profiles.switch_to",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "afc510a08984db28f0deac0647959c5f8b71352bd077b387e83166d469edc767": {
+      "key": "quick.applied",
+      "english": "Display draft ready. {save} saves it.",
+      "placeholders": [
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "quick.applied",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fbea3c57371ee4930bdd6a6a4b6557be11cc94989fb08a12b767140db09a7a1e": {
+      "key": "quick.choose",
+      "english": "Choose use case",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "quick.choose",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "10a1d30ba2967bf18a1d4c96fb256e15d0fbdd3e980ab2e658123c18273f62e9": {
+      "key": "quick.next-with-keys",
+      "english": "{end} → {enter} {action}",
+      "placeholders": [
+        "action",
+        "end",
+        "enter"
+      ],
+      "context": {
+        "version": 1,
+        "description": "quick.next-with-keys",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b78b9e52f4d357df15adb5908ad744525c034e6fcc59fa3299ab20c278bb1a06": {
+      "key": "reuse.path_help",
+      "english": "{enter} read file · {back} cancel",
+      "placeholders": [
+        "back",
+        "enter"
+      ],
+      "context": {
+        "version": 1,
+        "description": "reuse.path_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fb896d7037691f324fd14b0db8c0242f68ee5c5c68f711609a0097b0a9bf587b": {
+      "key": "review.empty_selection",
+      "english": "No import fields selected.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.empty_selection",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "89caf6f16261f4b633132887952184578e6ded6cd35159e910ed71e07ba185bf": {
+      "key": "review.select_scope",
+      "english": "Select fields",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.select_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "10aafa0e9330a8504f452314ca4425c2e01684bf45f2d1914beca74619aae4b8": {
+      "key": "review.selection_title",
+      "english": "Select import fields",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.selection_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "664fe53ae0a9b401f1c24b01116ae078b82f060f171d44b90a51451705413679": {
+      "key": "review.value.absent",
+      "english": "Component absent",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.absent",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "35ae4266589a53d5665b24a7f386259dfa6c4b89c6ca66440425f706a2b94f0a": {
+      "key": "review.value.binding",
+      "english": "Local binding",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "27dbeca174cf6ee885e4685292f50e0832489c2ff0e7a97aa5c5230820746fda": {
+      "key": "review.value.columns",
+      "english": "Columns",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.columns",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9cfde1de8efd331aa74b5199fdd785acbdeeb9fc909f7ed12fb8c0571eb3aba3": {
+      "key": "review.value.disabled",
+      "english": "Disabled",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fef5af4dc4c7d69238c9ce983f8119f4b5489f9d96ec7a4f541578531e6daf09": {
+      "key": "review.value.empty_text",
+      "english": "Empty text",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.empty_text",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e69cea99a702e238c9b003cd6229c3677fdd8c0828a3a9e3e515a56088b652ae": {
+      "key": "review.value.enabled",
+      "english": "Enabled",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.enabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e638009572f70e10d02a12f55029be8ea2297c8d95f690c1158c94db364d920b": {
+      "key": "review.value.hint",
+      "english": "Source hint",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.hint",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "188514deaf121ed463b8c522ade371c71738043728021d34785cfbd25a375201": {
+      "key": "review.value.id",
+      "english": "ID",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.id",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f5ef305b6a015d331d110dc17d835199e1a5f6f3e80fde9970ce691af054c88c": {
+      "key": "review.value.kind",
+      "english": "Type",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.kind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0649198a8e490bd57e8cff0ca6e13ff8dfb20c200bf710eb3875d6949be0f294": {
+      "key": "review.value.kind.group",
+      "english": "Group",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.kind.group",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "85ebca0a21e073fd24ed2f7c79504f18f7d7c060cfa0a399d0e8e8c076c2c52d": {
+      "key": "review.value.kind.instance",
+      "english": "Component",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.kind.instance",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e0afb0288ef2af18cd91fefde3de4ea941b83318c74edca33739b14ed16cb25c": {
+      "key": "review.value.link_visibility",
+      "english": "Linked visibility",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.link_visibility",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "97a91b3663c48fe6ea6cfa7232fbc8ffa45d1be2817879a39ba1d4005170879d": {
+      "key": "review.value.member_ids",
+      "english": "Members",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.member_ids",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "eb39677f8fe6c020ac6274b1eadc4419e198bb4ae21ed0f7d5f8ba7c68d9a83e": {
+      "key": "review.value.none",
+      "english": "None",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.none",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ab28dfae2ed49201c207b73dd639f1a2d235ea9400cb226178aa9161eed7ff89": {
+      "key": "review.value.primary_id",
+      "english": "Primary",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.primary_id",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "86f911a592326d162cbdc44b2ee0429ab5846bc9f97f46a5adddf9065588c183": {
+      "key": "review.value.row",
+      "english": "Row {number} · {items}",
+      "placeholders": [
+        "items",
+        "number"
+      ],
+      "context": {
+        "version": 1,
+        "description": "review.value.row",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f78f7300b96bb518bb68fe234c9e8a78f2f1ce085c9520f4faff1059b575f694": {
+      "key": "review.value.shared_powerline",
+      "english": "Shared Powerline block",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.shared_powerline",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ea4ec08f146e9d08a0be2ba918dc21c4a939cfce47797cb93c54849a3efcda28": {
+      "key": "review.value.unset",
+      "english": "Not set",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "review.value.unset",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d5747f360cbcc026de4cf4b9d63e8349d1d86adca5307bf0cdaef30c843aa878": {
+      "key": "setup.change_language",
+      "english": "language (save now)",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "setup.change_language",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5e788b6678fb09b020acfe34b649136e23a68c9a672638852dab6fd07c3cd1a8": {
+      "key": "setup.review_save_only",
+      "english": "Save the user-default display file.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "setup.review_save_only",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "78aa00636bbaf824c031687b53393118c4bedcb8c05aad2a2c59574b4aea3919": {
+      "key": "shortcuts.active-binding",
+      "english": "Active {keys}",
+      "placeholders": [
+        "keys"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.active-binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2c5dd862e0d95e1aefd52f394e98e0e09c1d42f833380e7de8da0d5e01abec39": {
+      "key": "shortcuts.current-key",
+      "english": "ACTIVE KEY",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.current-key",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3f4ca0e6410be59d2aae917105e31ff90e56e43eaa94f890ef360ce579808a89": {
+      "key": "shortcuts.import-empty-help",
+      "english": "{select} Select fields · {full} Full import",
+      "placeholders": [
+        "full",
+        "select"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.import-empty-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b8f9afadb090234025d4dfd23aa110659339bc4276cb0c0f0ee594a4b362e0d0": {
+      "key": "shortcuts.pending-binding",
+      "english": "Pending {keys}",
+      "placeholders": [
+        "keys"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.pending-binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "157866c298f674d389c9ee12aae885ccd189bb22491379fde267e7345a70b387": {
+      "key": "shortcuts.pending-save-help",
+      "english": "{tab}, then {enter} to save",
+      "placeholders": [
+        "enter",
+        "tab"
+      ],
+      "context": {
+        "version": 1,
+        "description": "shortcuts.pending-save-help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "94974e9f33d7c91c7c746cff544d4e660738ae2f69286cc6d8ce85738ea52f07": {
+      "key": "sources.access_command",
+      "english": "A refresh runs this program with your account permissions and the input shown above.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.access_command",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b98f2bb2e105c344c91c0af52d3ccaec20ff36e402f188fc55af880475510e54": {
+      "key": "sources.access_github",
+      "english": "A refresh uses the existing gh login for the listed host, repository and PR checks.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.access_github",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c9911fd89b6a36d0836246c2315733b92a6cb6a505b441a499b3be22d2a2462b": {
+      "key": "sources.access_json",
+      "english": "An enabled binding reads this file for matching displays and may cache its observation locally.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.access_json",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3bb6e6f0ce03a7522eec4cb594dedd19a56b4ca9ed5352dd9af91dc7a881e22c": {
+      "key": "sources.already_bound",
+      "english": "All compatible components are bound to this source.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.already_bound",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "58e406c9134e2209581d410f20cd13b47a5f80365eff020058bbaf50bba23e76": {
+      "key": "sources.apply_auto",
+      "english": "Save policy",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.apply_auto",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "9c56d472452fa6407b8e6af7a426b83b43ae34ba91277bb18e4455408a27bf69": {
+      "key": "sources.automatic_disabled",
+      "english": "Automatic refresh disabled. Change saved.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.automatic_disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e9095317407afc6f17e6f6a75ccdd8188b2415d61667975ef7085a297a8a7d9e": {
+      "key": "sources.automatic_scope",
+      "english": "Allows recurring refresh during matching active Claude sessions.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.automatic_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "28e978584424bdaebaf73fccb6dca42ea1dde88dd3ba6b3410b7fb984d5bf9fc": {
+      "key": "sources.binding_effect",
+      "english": "Changes the display draft.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.binding_effect",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "abc05f3507c498ae4cfc77b8aa435b8cee18331b2712a58113e1692b8d65dd02": {
+      "key": "sources.binding_effect_disabled",
+      "english": "Enable the source and save the display for this binding to take effect.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.binding_effect_disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f4f12a8c475c6152af61638c6e45f45f47288acaf1625a567ef23399ddf9df87": {
+      "key": "sources.binding_group",
+      "english": "Display bindings",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.binding_group",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b51aba9bf51afefd5c52723e029a92ecbf09acb323fdecaeedf28013c9fd7fb7": {
+      "key": "sources.binding_locked",
+      "english": "Check the display save before changing bindings.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.binding_locked",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f5036d5516a2921a9aa43a6d81387a81afbd0b4d83accd5c974f18f49646299e": {
+      "key": "sources.bindings_empty",
+      "english": "No binding records to review.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.bindings_empty",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "57160709411eb6e43ffa23e7d50b7dcccec2876d58e6c77170afc7228c5ca380": {
+      "key": "sources.bound",
+      "english": "Bound {component} in draft. {save} saves the display.",
+      "placeholders": [
+        "component",
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.bound",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c6e517c9b1518966daa9ab3b902cc2dc2bacad8da1a4a5e7655660cb2f4d1386": {
+      "key": "sources.bound_disabled",
+      "english": "Bound {component} in draft. Enable the source and press {save} to save the display.",
+      "placeholders": [
+        "component",
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.bound_disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0303b8da9a257d5cea27cbfd7219d621cfd71fd1a82997e8114c7e2955298da4": {
+      "key": "sources.cancel",
+      "english": "Cancel refresh",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.cancel",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fab775e80d4edae2b91a10061805eab1240f9a4ca430bf4567c2777afd5d0e09": {
+      "key": "sources.cancel_scope",
+      "english": "Stops this job for all its consumers.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.cancel_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3c3ec8be1b8780aadb3996da96149fa46e1ab7d2ab4c8bac1162c9cdf4a241e0": {
+      "key": "sources.checks_empty",
+      "english": "No saved GitHub checks for this source and context.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.checks_empty",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0855bf72788506c3cc467232c7047026202ecdf4cf5d69fce63967f07cf92a4b": {
+      "key": "sources.command_form_help",
+      "english": "Enter a program, working directory and literal arguments.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.command_form_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f9797a11a9060c99da5893cb595bab5d96cb858bbfc4c6fca43064f7923e744d": {
+      "key": "sources.component",
+      "english": "{scope} · {name}",
+      "placeholders": [
+        "name",
+        "scope"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.component",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6e2eddd817628182dd1eff4704f13c207b170a66cf38a062fb523d7087889aa8": {
+      "key": "sources.delete_binding",
+      "english": "Delete binding",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.delete_binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b65a198b5237fee99e9cf957ced986ed5f7980db0f587ba277992c27b76ddaf9": {
+      "key": "sources.diagnose",
+      "english": "Inspect observations",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.diagnose",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "11b1b7acea9568837d1a3cd8800d125bb375b66681b1f124fa660b6113a714a6": {
+      "key": "sources.disabled_saved",
+      "english": "Source disabled. Change saved.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.disabled_saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "30e8d2924a0aee40803ce1960740ecf6bae6d716f19d2a496ba9374a287009ee": {
+      "key": "sources.edit_disabled",
+      "english": "Edit source",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.edit_disabled",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "7fbd43475b6bb8ae94d2373b9048c6807910010180eb00734a907a82a4af7fc2": {
+      "key": "sources.edit_title",
+      "english": "Edit data source",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.edit_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "be76e8639716a4fc65b41944d66da867282fcb31993540690e59d0a50e95619f": {
+      "key": "sources.empty",
+      "english": "Add your first data source.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.empty",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "756ef0e3f98c9df8d0e27f325ef2da841f9ec12982ec90557f0580150188fda1": {
+      "key": "sources.enable",
+      "english": "Enable",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.enable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "36a50ff9eebdcef88c0685c5c010ae7bc50016d3bc73f0c947b2691cdf5b3b1f": {
+      "key": "sources.enabled_saved",
+      "english": "Source enabled. Permission saved.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.enabled_saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "509bddb8cb7aceee950db649961d55d68a241a69c61b5fd0c09007016f9755f1": {
+      "key": "sources.error.invalid_json",
+      "english": "Enter valid JSON.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.invalid_json",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f95ad50bd12486889552de1e2bf84026ed0e5b8ae1910f3bce88994074126a3a": {
+      "key": "sources.error.required",
+      "english": "This field is required.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.error.required",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "26281bdd348931356f4b43b8256656067289c801353a7b290b5786b35dfbe096": {
+      "key": "sources.field_error",
+      "english": "{field}. {reason}",
+      "placeholders": [
+        "field",
+        "reason"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.field_error",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c3624796120805646c1f338089c91830278548c9f91bec944311c3c3317b1e71": {
+      "key": "sources.json_example",
+      "english": "Use /value with a file containing {{\"value\":42}}.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.json_example",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "83d001fd9a33787cb96fea17f344af2ade903d35b302a190e4f5acc881a30131": {
+      "key": "sources.kind_command",
+      "english": "Command",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.kind_command",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f85f3759853d3ca3885e5818f93ab597a518cad320679677182f9d481b3611b4": {
+      "key": "sources.manage_group",
+      "english": "Manage source",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.manage_group",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b3ccd520e5720bf24fc668944a7bb0b5d93d9149242d8a41f34154403f037c72": {
+      "key": "sources.new_title",
+      "english": "New data source",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.new_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cf84de0e67bdd6e4210b6396b7ab8960d4458c567fb41b1f6edddbc696f3d0d3": {
+      "key": "sources.next_field",
+      "english": "Next field",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.next_field",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e44201fe664cabbfc5cd068058122684c6d660e7d4fe18ab60a36a621f19fa9a": {
+      "key": "sources.no_components",
+      "english": "No compatible unbound component. Add one in Main or Subagents.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.no_components",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "abd415798174d2f1486068ff4e75de5df95b0b0c3de1303ad98520e6d682c2dd": {
+      "key": "sources.no_observation",
+      "english": "No value · {reason}",
+      "placeholders": [
+        "reason"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.no_observation",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d793505de5df6527809677adba1ec6ba9a0f077fbc6fa902b112ff88ef42fcb4": {
+      "key": "sources.no_unbind",
+      "english": "No components are bound to this source in the draft.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.no_unbind",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "190f946fd9c219b56c86b11871caf380cff4e42a3370d1dc8ca544b667d93e62": {
+      "key": "sources.observation_unavailable",
+      "english": "Observation details are unavailable.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.observation_unavailable",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4c465df5f59903739c8589ca86206254f6496aad6aa0848ec2ddc3db30e755ff": {
+      "key": "sources.observed_at",
+      "english": "Observed {value}",
+      "placeholders": [
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.observed_at",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f135679067e9d2de3cc3a99610ef91c2be130e1af62e839e682bf6ecbf4a5271": {
+      "key": "sources.observed_time_missing",
+      "english": "No observation time was supplied.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.observed_time_missing",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ec06a411346d0b08f018f307f06a921f03c034b8ce246b63f88c0ec5540e9326": {
+      "key": "sources.observed_value",
+      "english": "Value {value} · Freshness {freshness}",
+      "placeholders": [
+        "freshness",
+        "value"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.observed_value",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2310de24b206f0b293d7afcc95441fea58d1f259bcd6eec0ddf220e3a6bb6131": {
+      "key": "sources.open",
+      "english": "Open",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.open",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "97b0288399fb20d9acaf87f75bf1b59a8e4dc76bf72d9406a5849f687da458cf": {
+      "key": "sources.pointer_root",
+      "english": "Root value",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.pointer_root",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cb42bb43692681175b5706d07dcbd52dfc55578f9690ade1ef340915e6104992": {
+      "key": "sources.refresh_group",
+      "english": "Refresh and inspect",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.refresh_group",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d0b8b6e5283279a1c56569f123fc9cec4854bafe089628b3d8e8fade39149dc0": {
+      "key": "sources.refresh_outcome",
+      "english": "Refresh {state} · {reason}",
+      "placeholders": [
+        "reason",
+        "state"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.refresh_outcome",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "19f9a5020b8b19367c197978f3296f7fb90cda60c2c5a20ab3fcf7d41be63720": {
+      "key": "sources.refresh_progress",
+      "english": "Refresh is running.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.refresh_progress",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ed3ceaf1d0f83061d5982a62febdf34b42aa8b9c3a8aef9f71c07cf22a710938": {
+      "key": "sources.remove_scope",
+      "english": "Deletes this source and its local binding records. Stops its refresh jobs and removes its value from bound components.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.remove_scope",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "081a42d5bf99ef85a54952e8a1d48a4f996ae1d70671e067792f06388fe928ca": {
+      "key": "sources.removed_saved",
+      "english": "Source and binding records deleted.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.removed_saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5f260d98465dceffd9c91bc1dd18105c1fbf0db36a98568fdb89bd7da6dca08c": {
+      "key": "sources.required_fields",
+      "english": "* Required fields",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.required_fields",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e2d50d72b2be40db106e412c23c96b6a36eee10ab37cfc70f17c9dd107636d23": {
+      "key": "sources.review_binding",
+      "english": "Review removal",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.review_binding",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "eaf9556173ab55b2a7684a82793bd465c054e36767add5c8ae17efe794855f4b": {
+      "key": "sources.review_title",
+      "english": "Enable source review",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.review_title",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cbcb10a82009ae55a9fcb7001b4ef4f1a32da51a8c0a7494dfd2b56619fb9739": {
+      "key": "sources.saved",
+      "english": "Saved as disabled. Review it to enable.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.saved",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e08f4bb0cbb44925c26e28dd6b445761d584068efae336a0a87ad87a393e390b": {
+      "key": "sources.scope_main",
+      "english": "Main",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.scope_main",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "707963554cce9cdb0028f0036d25780221baf1ba17f91a35c5b74006362c5871": {
+      "key": "sources.scope_subagent",
+      "english": "Subagents",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.scope_subagent",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "56d684b7791fe86aa0091bf9b95257fcaa758bd67431be66e43608347ff90a43": {
+      "key": "sources.status",
+      "english": "View refresh progress",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "sources.status",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "f29d8404db9d4fd688806185282525a69945abf67b817d694827ed28d604de1c": {
+      "key": "sources.unbound",
+      "english": "Unbound {component} in draft. {save} saves the display.",
+      "placeholders": [
+        "component",
+        "save"
+      ],
+      "context": {
+        "version": 1,
+        "description": "sources.unbound",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "3499e4cb31c336f3c58a925e5e7b269855bcc897aa7fa9208d3f3fb05ce27fb3": {
+      "key": "task.language_kept",
+      "english": "Interface preferences are unavailable. Kept the selected language.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.language_kept",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "509b3c2c868bc8310b5b9ea345818aa33c51095fa0bcf610e4c62d6230b6bf06": {
+      "key": "task.viewer.first_read_failed",
+      "english": "Could not read task details.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.first_read_failed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "669466ad4d4d4297345aefb650fda5c23b08d0dbaade3a4ca942374de9e3a8f2": {
+      "key": "task.viewer.no_agents",
+      "english": "No attributable agents were observed.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.no_agents",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5d79e87c9fef50a5d63aa2227184c147974357ed5ba3b7e73bfefb4a20627690": {
+      "key": "task.viewer.observation",
+      "english": "{scope} · {status} · {time} · {freshness}",
+      "placeholders": [
+        "freshness",
+        "scope",
+        "status",
+        "time"
+      ],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.observation",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "064f6b4428c61cda052eb31e894916aa5c286b456e4f517bcdc80125d3660b51": {
+      "key": "task.viewer.prompt_optional",
+      "english": "Task ID (optional)",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.prompt_optional",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e945670fe51b6db4811f05a0ecb2549eb4e217caeaba208a5c59d157317f408b": {
+      "key": "task.viewer.read_failed",
+      "english": "Task refresh failed.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.read_failed",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "cdc494c34406182365797774d506db9e74be300a962dbb4ecd124ca6dde433f8": {
+      "key": "task.viewer.retained",
+      "english": "Retained report · {time}",
+      "placeholders": [
+        "time"
+      ],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.retained",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "e3cdb8570817c8a6637635bb39d0336c345882067709859351f1b79405a1475c": {
+      "key": "task.viewer.retry_read",
+      "english": "Read again or change the session ID.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.retry_read",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5f835a7b3ae70088beed3b89445b90ecb10600f62db693d9d3083137adad317f": {
+      "key": "task.viewer.session_help",
+      "english": "Use the required session_id from your status-line input or existing session metadata. A task ID is optional.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.session_help",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "4d69d00a5dc8c796000fde954bb68e06d2a85ec899a5197d438e5d90da80cc0c": {
+      "key": "task.viewer.session_required",
+      "english": "Session ID (required)",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.session_required",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c06b4df7e2b8ca6e9c1a3c1b2908b57fdc5563548dc929d854cb638baa85f43d": {
+      "key": "task.viewer.set_session",
+      "english": "Enter a session ID to read task details.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.set_session",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "c3bcb5673652d9c9b5776fba082e43e41b4f224a5f4344d9420096c97adbcd83": {
+      "key": "task.viewer.source",
+      "english": "Source {source}",
+      "placeholders": [
+        "source"
+      ],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.source",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "58fcaa34362b919481af9b37d025e88b3b7755443b346a4fc05d7c21e6352c82": {
+      "key": "task.viewer.switch_id",
+      "english": "switch ID field",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.switch_id",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "6bc9458eca54aaff1a6691f2c7577358d91fcf15754ed3d318763c58a8b7b170": {
+      "key": "task.viewer.waiting",
+      "english": "Waiting for a task report.",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "task.viewer.waiting",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fead5b53dcb405dd4be2fd45553a4015603bce25b114b61654c17319f442518d": {
+      "key": "ui.hints.browse",
+      "english": "browse",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.browse",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "abdb4973533b26f427fed11fd79b4d11d4704c682b963d0b113638818b8cf2f9": {
+      "key": "ui.hints.choose",
+      "english": "choose",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.choose",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "5eead663f804a600fa126bfd9b1e5f13627d1f523480a8dc9aed5f274d63df5e": {
+      "key": "ui.hints.choose_candidate",
+      "english": "choose candidate",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.choose_candidate",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "40c9fc5d593d2f023169b06fa0538bddc890d3586489151f85c001ad700e6413": {
+      "key": "ui.hints.confirm",
+      "english": "confirm",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.confirm",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a79161030844414a23f5a224881cd0e6b4674837dd971eea1aa385264ce94fd0": {
+      "key": "ui.hints.copy_remove",
+      "english": "copy/remove",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.copy_remove",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "d3603003757417622d7347d9de755ac2a947c16ea46eaf98983e3f94ac7aa781": {
+      "key": "ui.hints.copy_rm",
+      "english": "copy/rm",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.copy_rm",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "578fefa05cceb30cd3b35a702e22b8087d4ce7a134fd2d48df019a1cb134e7bd": {
+      "key": "ui.hints.export_new_file",
+      "english": "export new file",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.export_new_file",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "69164cc1e54b02ea68e3feb3ec12fb6c45be218b2bddd3c80cfad0d3091f9ba1": {
+      "key": "ui.hints.item_format",
+      "english": "item format",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.item_format",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "b93ea45d62521734b3b0376a24bc47d314b37f965ea9208e868778b73c933bbc": {
+      "key": "ui.hints.next_field",
+      "english": "next field",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.next_field",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "ba450d951c32ee750ed1cec08f9a29f420b32332d9ebea53c7e0cdc03228a1cb": {
+      "key": "ui.hints.previous_report",
+      "english": "previous report",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.previous_report",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "2c7d5f311d44d634fb1a4dc628aa3041550dc904b304064de48f28cd2c2a90d3": {
+      "key": "ui.hints.read_file",
+      "english": "read file",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.read_file",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "de6f5f021e75e89ab1be11b47eb24d016abb449b0b7a0837baed696363f67c2f": {
+      "key": "ui.hints.report_details",
+      "english": "details",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.report_details",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "a2252839828fdcb6e07a3e1251bc29e4f35b8b1c6c2b51c7e8a5598e93e6b69e": {
+      "key": "ui.hints.report_output",
+      "english": "output",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.report_output",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "fa3fa954c8ed516052e3cd142309ccaf454a40a39b1ac058b342bf26597fa4ee": {
+      "key": "ui.hints.review",
+      "english": "review",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.review",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "23810d9c24c44fa230d26adcb0a7ea4533585d8a232c398d5415738232b3f724": {
+      "key": "ui.hints.review_layout",
+      "english": "review layout",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.review_layout",
+        "terms": []
+      },
+      "terms": {}
+    },
+    "0f2a233156888a15ed7a5e4daadd4dd4fc6ff83f4d19f32dd4b65b927cc91305": {
+      "key": "ui.hints.to_draft",
+      "english": "to draft",
+      "placeholders": [],
+      "context": {
+        "version": 1,
+        "description": "ui.hints.to_draft",
+        "terms": []
+      },
+      "terms": {}
     }
   },
   "entries": {
@@ -30372,6 +33147,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "0a4eb857231eaca2b258f0ceb2474d972ac14b62aed61bd2926f1debc383405e"
+        },
+        {
+          "source": "9ec3d85f935fe4ddd9c8eab3a013114359d28b600b5762a39a0ee6c223ff4212",
+          "translation": "9c543e8ecedf9b2e153bedee30c482c7d01b94e27e2e5c7f87d7f28c77ccd5fa",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
@@ -30730,6 +33512,13 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "a863062e3cd4343fd51c6bf3528991e6eaa9b97df64ae60833799a94e5d29a6e",
+          "translation": "f33b15d3019b0c23cbfb34ef58765a62c22c5a06f50c1367527de7be840c3ccc",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "native.actions.item-guidance": [
@@ -30820,6 +33609,13 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "a9d47d94d11e7f702aaac11f6a20f7bb7700b48f85b0b3e40f4cb15692102bee",
+          "translation": "f33b15d3019b0c23cbfb34ef58765a62c22c5a06f50c1367527de7be840c3ccc",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.back-help": [
@@ -31092,6 +33888,123 @@
         {
           "source": "788f80837e16d67ea7a7de7128921e48ea414e2892670842f1500f2a0620f88d",
           "translation": "f093def0ef07fd1149d13af853cd1b717bf36f2941c6e130a80c2da8d683bf24",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.output": [
+        {
+          "source": "ed52f22cd331e77645358f00a518561cf81e3c34ff7074f22c06a9abfa974129",
+          "translation": "09e7fbc3db80afb32950495473650f24b2ee57b3847e96906828a870ef0717df",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.path": [
+        {
+          "source": "709c19af90072f842db8e152851ecbeaa1d1a15437cfe705a7170295dc339c99",
+          "translation": "fe90df627be9925c356625dd6fa3e310a3dc628de43b95375f630b267cdb5e2e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "editor.still_unknown": [
+        {
+          "source": "685b9ce0f4638e97460d99930ea1662cfcaccb11a97a65e900c149a293e87a49",
+          "translation": "30c4431cdc0469833bbbc6efc5da91e761091e614bf5da0ff1dd6ff33b5e3839",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.ui.cleanup_confirm_title": [
+        {
+          "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+          "translation": "1827f31335bc346a61d522d094a0fee540a7a2952ccb22a1da36abca1beb57ac",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "514bc6b8a6555931c020e50103bfd29ff27f327f43c4f99daed46a12b0b1c6bd"
+        }
+      ],
+      "shortcuts.current-key": [
+        {
+          "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+          "translation": "8575c859ad922cfec0c422ec81619d253d43ebfef34cf639313fdd98c962a627",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136"
+        }
+      ],
+      "sources.bound": [
+        {
+          "source": "f5a8457a5c63531de5dae9d837db566b1f55bbb94584bc865eddf07b55cbf9c2",
+          "translation": "86234cba087eda6d901a98a3b515799a7b9e501256661474b33eb38a30477c4d",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.cancel": [
+        {
+          "source": "5ebab8d96201ea1cc0aeb0152cc2eb5587e73cd97b081fb7d8bb20730ef9e08d",
+          "translation": "9361d84b21650c3e00217a2daa78b91d6ca0233eec5d9abcd0f57b4652b02248",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.diagnose": [
+        {
+          "source": "38bd724c542dba8048c1ff6d6279d97e461da750e937716151314d724696ba23",
+          "translation": "0304c5ab6cb43a9a0722d36ed157354b34a47661e745e8883c6040375202f587",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.empty": [
+        {
+          "source": "c3f8958f0ba9f800bb5d925cc3ca60ae6af65142154a39c709383fa8bbdacffc",
+          "translation": "328cce03b1c0352f3661c173896825e6cc47cf354f0f206422544e99e7c67121",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.no_components": [
+        {
+          "source": "8f3de62b87d6b09610f4297a3c6347cf6c3f4cbdb064bcc0b679993d31a5d62d",
+          "translation": "0d60f8fdcdee73372fda39ebcc267cf16502fe6f41d3dbd76f007c07d37b002f",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.saved": [
+        {
+          "source": "bb99c3b738e0ad62f489fb49306705c7fed96b9c7b877159936e3aa3615dfa7c",
+          "translation": "dfc8cc5b0976537f1bed9e65d968a8de2a3ddefe97b79677df1d94da7ef19c07",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.status": [
+        {
+          "source": "bf1bfeab42162fab41869a2793a241d998b92b2c8bf07b84d77ba08cdc0b13b3",
+          "translation": "442c4b893915d8df437b1c70debb798401d590321131f7da73ec7da82b97bd6a",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "task.viewer.read_failed": [
+        {
+          "source": "dc8c2b1e7ac011f8f6c476d9731abc69753861fec15cd808d5435772589a4d7f",
+          "translation": "79a90d208011672ead8554bce01fdb21893323233ddf46dbd85a85f05a7fec10",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
@@ -32692,6 +35605,13 @@
           "method": "validated_accepted",
           "validation_version": 1,
           "evidence": "0a4eb857231eaca2b258f0ceb2474d972ac14b62aed61bd2926f1debc383405e"
+        },
+        {
+          "source": "9ec3d85f935fe4ddd9c8eab3a013114359d28b600b5762a39a0ee6c223ff4212",
+          "translation": "e6ebfb5755205fbabf8bf4197f4b05d7641516b5da1c23c565d48d22c930dd48",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "ui.session.draft_imported_ctrl_s_saves_esc_discards": [
@@ -33050,6 +35970,13 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "a863062e3cd4343fd51c6bf3528991e6eaa9b97df64ae60833799a94e5d29a6e",
+          "translation": "d6ec60b8bb442fbd782008ba514443fee049974eb67dbfc2c020e41c444ec7e8",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "native.actions.item-guidance": [
@@ -33140,6 +36067,13 @@
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"
+        },
+        {
+          "source": "a9d47d94d11e7f702aaac11f6a20f7bb7700b48f85b0b3e40f4cb15692102bee",
+          "translation": "d6ec60b8bb442fbd782008ba514443fee049974eb67dbfc2c020e41c444ec7e8",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "d9ab26adfd3fca70cea569a5d8465845259cb992508fab30bf9369140a0a301a"
         }
       ],
       "shortcuts.back-help": [
@@ -33412,6 +36346,123 @@
         {
           "source": "788f80837e16d67ea7a7de7128921e48ea414e2892670842f1500f2a0620f88d",
           "translation": "8c1a3a4a1768f2822afb8b67da592fedc30e38042b76f849d946eb54d3694de8",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.output": [
+        {
+          "source": "ed52f22cd331e77645358f00a518561cf81e3c34ff7074f22c06a9abfa974129",
+          "translation": "0c8246bbfa7a506592acbf0c5c06429db04b0b08bf1ed75b2a37e9946aa41a7c",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "diagnosis.path": [
+        {
+          "source": "709c19af90072f842db8e152851ecbeaa1d1a15437cfe705a7170295dc339c99",
+          "translation": "0b6979fa5ddcf61537a36e38a859bd700ac9867ac7df420c1bff3a188e588a7a",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "editor.still_unknown": [
+        {
+          "source": "685b9ce0f4638e97460d99930ea1662cfcaccb11a97a65e900c149a293e87a49",
+          "translation": "c4c8f6370e2e60d3162dc14a01edac32add7f6b490ef7e4e26c278493a27973e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "package.ui.cleanup_confirm_title": [
+        {
+          "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+          "translation": "763f182686d729b85d5edafc197e41e92cfb15a345bc23ea644e0e11093c243e",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "514bc6b8a6555931c020e50103bfd29ff27f327f43c4f99daed46a12b0b1c6bd"
+        }
+      ],
+      "shortcuts.current-key": [
+        {
+          "source": "33779407be5a2177fc1d1ebc5a6659a53694226bd7db1e54f28d79f507b8f49a",
+          "translation": "500748650404f306887e65dd0df3441ee92d00d28908376a2c054b6f9af08929",
+          "method": "validated_accepted",
+          "validation_version": 1,
+          "evidence": "fc3ccbb78466e69a9788cfde81df083acbb139e1968af28686f03772f0764136"
+        }
+      ],
+      "sources.bound": [
+        {
+          "source": "f5a8457a5c63531de5dae9d837db566b1f55bbb94584bc865eddf07b55cbf9c2",
+          "translation": "ac0b40a7500a00521cd52ac42453b2b0c3692b82e8b715faf19c6a03bad7bb82",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.cancel": [
+        {
+          "source": "5ebab8d96201ea1cc0aeb0152cc2eb5587e73cd97b081fb7d8bb20730ef9e08d",
+          "translation": "7a0d8812582c6ceace5ae72997e0f1c35429bce7970e96690333dac49016d1d6",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.diagnose": [
+        {
+          "source": "38bd724c542dba8048c1ff6d6279d97e461da750e937716151314d724696ba23",
+          "translation": "14be09e58bf1c1fe6a1720e4db82d07385802fe156909d47ddbfbba8f47b62ea",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.empty": [
+        {
+          "source": "c3f8958f0ba9f800bb5d925cc3ca60ae6af65142154a39c709383fa8bbdacffc",
+          "translation": "05b6ee121bbb8844ec482681acb1f1e3efddb1e37a7a07cb7d4822817b9fe463",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.no_components": [
+        {
+          "source": "8f3de62b87d6b09610f4297a3c6347cf6c3f4cbdb064bcc0b679993d31a5d62d",
+          "translation": "dd99c86125505b05552a4deb3e30f3669f51eb88286579f0e9a75eb9db24e21e",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.saved": [
+        {
+          "source": "bb99c3b738e0ad62f489fb49306705c7fed96b9c7b877159936e3aa3615dfa7c",
+          "translation": "3857b8b3d24e6ec631b838c84b5019aaa867ef3120e767a4dca1edc11830ac60",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "sources.status": [
+        {
+          "source": "bf1bfeab42162fab41869a2793a241d998b92b2c8bf07b84d77ba08cdc0b13b3",
+          "translation": "802a407c774302aa563de3b5dbe79e3993e16a69447940780d444531d71b9899",
+          "method": "baseline_accepted",
+          "validation_version": 1,
+          "evidence": "v3.14.0-verified-pr"
+        }
+      ],
+      "task.viewer.read_failed": [
+        {
+          "source": "dc8c2b1e7ac011f8f6c476d9731abc69753861fec15cd808d5435772589a4d7f",
+          "translation": "38a9e1f19c9bf60405adaf84a8a05b964f753570a3e74f4fe9d25b0c45321b00",
           "method": "baseline_accepted",
           "validation_version": 1,
           "evidence": "v3.14.0-verified-pr"

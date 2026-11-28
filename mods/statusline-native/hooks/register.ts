@@ -1,13 +1,14 @@
 import { taskControls, taskNotice } from '../ui/task-controls.ts';
-import { openChanges, performChanges, changePreview } from '../lib/editor/change-review.ts';
+import { openChanges, performChanges } from '../lib/editor/change-review.ts';
 import { performReuse } from '../lib/editor/reuse-manager.ts';
 import { performPackage, closePackage } from '../lib/editor/package-manager.ts';
-import { diagnosisRequest } from '../lib/editor/diagnosis-view.ts';
-import { colorDraft } from '../lib/editor/color-manager.ts';
+import { diagnosisRequest, receiveDiagnosis, receiveDiagnosisFailure } from '../lib/editor/diagnosis-view.ts';
 import { previewWidth } from '../lib/editor/preview-settings.ts';
+import { editorPreviewDraft } from '../lib/editor/preview-view.ts';
 import { defaultShortcuts } from '../lib/editor/shortcut-settings.ts';
 import { performSourceAction, closeSources, closeSourceDraft } from '../lib/editor/source-manager.ts';
-import { taskViewer, taskViewerView, taskViewerKey, replaceTaskField, receiveTask, type TaskViewer } from '../lib/editor/task-viewer.ts';
+import { SOURCE_MAX_BACKOFF_MS, sourceObservationTarget } from '../lib/editor/source-observation.ts';
+import { taskViewer, taskViewerView, taskViewerKey, replaceTaskField, receiveTask, taskIdentityHelp, type TaskViewer } from '../lib/editor/task-viewer.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
 import type {
@@ -25,14 +26,14 @@ import {
 } from '../lib/backend.ts';
 import { Editor, copyDraft, sameDraft, isSaveConflict } from '../lib/editor/draft.ts';
 import { createReview } from '../lib/editor/import-review.ts';
-import { canEdit, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
+import { canEdit, matchesPreference, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
   TaskDetails,
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS, RECOVERY_CONTROL_GAP, recoveryControls, contentColumns, clip } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, RECOVERY_CONTROL_GAP, recoveryControls, contentColumns, clip, editorBodySizeLines } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
@@ -133,13 +134,50 @@ interface Session {
   previewKey: string;
   previewTimer: Timer | null;
   diagnosisTimer:Timer|null;
+  sourceWatch: { owner: object; key: string; timer: Timer | null } | null;
   writing: boolean;
+}
+
+function stopSourceWatch(state: Session): void {
+  state.sourceWatch?.timer?.cancel();
+  state.sourceWatch = null;
+}
+
+function followSource($: EngineInterface, state: Session, options: PluginOptions, retry = 0): void {
+  const editor = state.view.editor;
+  const target = editor && state.placed && !state.clientFault && !state.writing && !state.view.uncertain && !editor.packageLocked &&
+    state.columns >= MIN_COLUMNS && state.rows >= MIN_ROWS ? sourceObservationTarget(editor) : null;
+  if (!target || target.interval === null) { stopSourceWatch(state); return; }
+  if (state.sourceWatch?.owner === target.owner && state.sourceWatch.key === target.key) return;
+  stopSourceWatch(state);
+  const epoch = state.epoch;
+  const watch: NonNullable<Session['sourceWatch']> = { owner: target.owner, key: target.key, timer: null };
+  state.sourceWatch = watch;
+  const active = () => state.sourceWatch === watch && state.epoch === epoch && !state.writing && !state.view.uncertain;
+  watch.timer = $.clock.after(retry || target.interval, async () => {
+    if (!active()) return;
+    watch.timer = null;
+    let nextRetry = 0;
+    try {
+      const apply = await target.read({ request: (operation, payload) => callBackend($, options, operation, payload) }, false, active);
+      if (apply()) $.ui.invalidate('ui.render');
+    } catch (error) {
+      if (active() && target.failed(error)) $.ui.invalidate('ui.render');
+      nextRetry = Math.min(SOURCE_MAX_BACKOFF_MS, 2 * (retry || target.interval!));
+    } finally {
+      if (state.sourceWatch === watch) {
+        state.sourceWatch = null;
+        followSource($, state, options, nextRetry);
+      }
+    }
+  });
 }
 
 function discard(state: Session): void {
   state.previewTimer?.cancel();
   state.previewTimer = null;
   state.diagnosisTimer?.cancel();state.diagnosisTimer=null;
+  stopSourceWatch(state);
   state.epoch += 1;
   state.view = emptyView();
   state.previewKey = '';
@@ -274,8 +312,10 @@ async function reconcile(
     }
       state.view.uncertain = false;
   } catch (failure) {
-    if (state.epoch === saving)
-      setMessage(state.view, "error", localizedText("native.hooks.register.save_outcome_remains_unknown", {value0: failureMessage(failure)}));
+    if (state.epoch === saving) {
+      const error = processFailure(failure);
+      setMessage(state.view, 'error', localizedText('editor.still_unknown', { detail: error.localization ?? error.message }));
+    }
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -322,9 +362,11 @@ async function save(
   } catch (failure) {
     if (state.epoch !== saving) return;
     const error = processFailure(failure);
-    setMessage(state.view, "error", failureMessage(error));
     editor.saveFailed(error.code);
     state.view.uncertain = editor.saveState === 'unknown';
+    setMessage(state.view, 'error', state.view.uncertain
+      ? localizedText('editor.still_unknown', { detail: error.localization ?? error.message })
+      : failureMessage(error));
     state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
     if (isSaveConflict(error.code)) {
       openChanges(editor);editor.changeReview!.effect='read';
@@ -357,50 +399,51 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
   const e = state.view.editor;
   const action = e?.pendingTransfer;
   if (!e || !action || state.writing || state.view.uncertain) return;
-  const epoch = state.epoch;
+  const epoch = state.epoch, input = state.view.input;
+  const active = () => state.epoch === epoch && state.view.editor === e && state.view.input === input;
   e.pendingTransfer = null;
   state.writing = true;
   setMessage(state.view, "busy", (action === 'export' ? localizedText("native.hooks.register.exporting_current_draft_may_be_unsaved") : localizedText("native.hooks.register.loading_draft")));
   $.ui.invalidate('ui.render');
   try {
-    if (action === 'import') {
+    if (action !== 'preset') {
       const original = copyDraft(e.draft);
-      const candidate = new Editor(e.description, {...e.baseline, draft:copyDraft(e.draft)});
+      const candidate = new Editor(e.description, {...e.baseline, draft:original});
       candidate.buffers = {...e.buffers};
       if (!candidate.acceptNumeric()) { setMessage(state.view, 'message', localizedText('native.hooks.register.correct_numeric_fields_first')); return; }
-      const result = await callBackend($, options, 'review_import', {draft:copyDraft(candidate.draft), path:e.path});
-      if (state.epoch === epoch && state.view.editor === e) {
+      const draft = copyDraft(candidate.draft), path = e.path;
+      if (action === 'import') {
+        const result = await callBackend($, options, 'review_import', { draft, path });
+        if (!active()) return;
         if (!sameDraft(e.draft, original)) { setMessage(state.view, 'message', localizedText('review.stale')); return; }
         e.review = createReview(result, candidate.draft);
         state.view.preview = null;
         state.previewKey = '';
         state.view.message = '';
+      } else {
+        const result = await callBackend($, options, 'export', { draft, path, overwrite: false });
+        if (!active()) return;
+        setMessage(state.view, 'message', localizedText('native.hooks.register.exported_current_draft_may_be_unsaved', {path: result.path}));
       }
+      state.view.input = null;
       return;
     }
     if (!e.acceptNumeric()) { setMessage(state.view, "message", localizedText("native.hooks.register.correct_numeric_fields_first")); return; }
-    const payload = action === 'preset' ? { draft: copyDraft(e.quick?.base ?? e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
-    if (action === 'export') {
-      const result = await callBackend($, options, action, payload);
-      if (state.epoch === epoch) setMessage(state.view, "message", localizedText("native.hooks.register.exported_current_draft_may_be_unsaved", {path: result.path}));
+    const result = await callBackend($, options, 'preset', { draft: copyDraft(e.quick?.base ?? e.draft), preset: e.preset });
+    if (!active()) return;
+    if (e.quick) {
+      receivePreset(e.quick, result.draft);
+      setMessage(state.view, 'message', localizedText('quick.preset-ready'));
     } else {
-      const result = await callBackend($, options, action, payload);
-      if (state.epoch === epoch) {
-        if (e.quick) {
-          receivePreset(e.quick, result.draft);
-          setMessage(state.view, 'message', localizedText('quick.preset-ready'));
-        } else {
-          e.replaceDraft(result.draft);
-          const context = shortcutContext(state.view);
-          setMessage(state.view, 'message', localizedText('shortcuts.native-preset-applied', {
-            save: e.shortcuts.hint(context, 'save'), close: e.shortcuts.hint(context, 'close'),
-          }));
-        }
-        state.previewKey = '';
-      }
+      e.replaceDraft(result.draft);
+      const context = shortcutContext(state.view);
+      setMessage(state.view, 'message', localizedText('shortcuts.native-preset-applied', {
+        save: e.shortcuts.hint(context, 'save'), close: e.shortcuts.hint(context, 'close'),
+      }));
     }
+    state.previewKey = '';
   } catch (failure) {
-    if (state.epoch === epoch) setMessage(state.view, "message", failureMessage(failure));
+    if (active()) setMessage(state.view, 'message', failureMessage(failure));
   } finally {
     if (state.epoch === epoch) {
       state.writing = false;
@@ -412,9 +455,14 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
 async function applyPreferences(
   $: EngineInterface,
   state: Session,
-  options: PluginOptions,
 ) {
   if (state.writing || state.view.uncertain) return;
+  const changed = state.view.preferences.filter(preferenceChanged);
+  if (!changed.length) {
+    setMessage(state.view, 'message', localizedText('native.host_no_pending'));
+    $.ui.invalidate('ui.render');
+    return;
+  }
   const applying = state.epoch;
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.applying_host_preferences"));
@@ -422,20 +470,17 @@ async function applyPreferences(
   state.view.preferencesError = '';
   $.ui.invalidate('ui.render');
   try {
-    for (const preference of state.view.preferences.filter(preferenceChanged)) {
+    for (const preference of changed) {
       const rows = await $.config.list();
       if (state.epoch !== applying) return;
-      const latest = rows.find((row) => row.key === preference.row.key);
+      const row = rows.find(row => row.key === preference.row.key);
+      const latest = row ? { ...row } : null;
+      preference.latest = latest ?? null;
       if (!latest) {
         setResult(preference, localizedText("native.hooks.register.unavailable_not_applied"));
         continue;
       }
-      if (
-        JSON.stringify(latest.value) !== JSON.stringify(preference.baseline) ||
-        latest.kind !== preference.row.kind ||
-        JSON.stringify(latest.provider) !==
-          JSON.stringify(preference.row.provider)
-      ) {
+      if (!matchesPreference(preference, latest)) {
         setResult(preference, localizedText("native.hooks.register.changed_elsewhere_discard_and_reload_before_applying"));
         continue;
       }
@@ -460,6 +505,7 @@ async function applyPreferences(
           preference.baseline = result.value;
           preference.value = result.value;
           preference.row = { ...latest, value: result.value };
+          delete preference.latest;
           setResult(preference, localizedText("native.hooks.register.applied"));
         }
       } catch (failure) {
@@ -589,8 +635,8 @@ async function refreshTaskDetails($: EngineInterface, options: PluginOptions, st
 
 type TaskField = NonNullable<TaskViewer['input']>;
 const fieldInfo = {
-  session: { label: 'catalog.categories.session', buffer: 'sessionInput' },
-  prompt: { label: 'catalog.categories.task', buffer: 'promptInput' },
+  session: { label: 'task.viewer.session_required', buffer: 'sessionInput' },
+  prompt: { label: 'task.viewer.prompt_optional', buffer: 'promptInput' },
   search: { label: 'ui.hints.search', buffer: 'searchInput' },
 } as const;
 const taskAliases = new Map([['g', '/'], ['n', 'down'], ['p', 'up'], ['z', 'enter']]);
@@ -711,7 +757,7 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
           return ok;
         };
         return Input({key:fieldKey(field),label:tr(fieldInfo[field].label),value:state[fieldInfo[field].buffer].value,
-          ...(field===state.input?{autoFocus:true}:{}),submitLabel:tr('ui.hints.accept'),onInput:(value)=>{replace(value);},
+          ...(field===state.input?{autoFocus:true}:{}),submitLabel:tr(field === 'search' ? 'ui.hints.accept' : 'ui.refresh.read_now'),onInput:(value)=>{replace(value);},
           onSubmit:async(value)=>{if(replace(value))await handleTaskKey($,options,state,{key:'return'});}});
       });
       const cancel=Button({...recoveryButton,key:'task-cancel',label:tr('profiles.cancel'),onPress:()=>active()&&handleTaskKey($,options,state,{key:'g',ctrl:true})});
@@ -728,7 +774,9 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
         if (!withinBudget(props) || !withinBudget(frameTree(frame))) return fallback();
         instructions=Client({key:'task-client-'+state.epoch,module:'../ui/client/surface.ts',width,height:1,props});
       }
+      const identityHelp = state.input !== 'search' ? taskIdentityHelp(state.language, width).slice(0, Math.max(0, height - 6)) : [];
       const pane = Box({width,flexDirection:'column',children:[title(),instructions,...inputs,cancel,
+        ...identityHelp.map(value => textLine(value, width)),
         ...(notice?[textLine(notice,width)]:[])]});
       return withinBudget(pane) ? pane : fallback();
     }
@@ -739,7 +787,7 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
       try {
         const {elements,frame}=frameElements();
         elements.Box({width,flexDirection:'column',children:lines.map(row=>elements.Text({
-          ...styles.text,bold:row.selected,wrap:'truncate',children:[
+          ...styles.text,bold:row.selected || row.heading,wrap:'truncate',children:[
             row.key==='error'||row.key==='warning'?taskNotice(row.text,width):row.text,
           ],
         }))});
@@ -788,6 +836,7 @@ export const register: Register = (on, options) => {
     previewKey: '',
     previewTimer: null,
     diagnosisTimer:null,
+    sourceWatch: null,
     writing: false,
   };
 
@@ -930,9 +979,10 @@ export const register: Register = (on, options) => {
           const timer:Timer=$.clock.after(0,async()=>{
             try {
               const result=await callBackend($,options,'diagnose_file',payload);
-              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch){view.result=result;view.error='';view.report=true;view.scroll=0;}
+              if (editor.diagnosis === view && view.generation === generation && state.epoch === currentEpoch) receiveDiagnosis(view, result);
             }catch(failure){
-              if(editor.diagnosis===view&&view.generation===generation&&state.epoch===currentEpoch)view.error=renderMessage(failureMessage(failure),state.view.language??'en');
+              if (editor.diagnosis === view && view.generation === generation && state.epoch === currentEpoch)
+                receiveDiagnosisFailure(view, failure instanceof BackendError && failure.localization ? failure.localization : failureMessage(failure));
             }finally{view.busy=false;if(state.diagnosisTimer===timer)state.diagnosisTimer=null;$.ui.invalidate('ui.render');}
           });
           state.diagnosisTimer=timer;
@@ -944,6 +994,7 @@ export const register: Register = (on, options) => {
           if(view.closed)state.view.editor.packages=null;
         }
         else if (effect === 'sources' && state.view.editor) {
+          stopSourceWatch(state);
           state.writing=true;
           try { await performSourceAction(state.view.editor,{request:async(operation,payload)=>{
             if(operation==='source_context'){
@@ -960,7 +1011,7 @@ export const register: Register = (on, options) => {
           finally { state.writing = false; state.previewKey = ''; state.view.uncertain = state.view.editor?.saveState === 'unknown'; if(state.view.uncertain)state.saveOutcome='unknown'; }
         }
         else if (effect === 'applyPreferences')
-          await applyPreferences($, state, options);
+          await applyPreferences($, state);
         else if (effect === 'retry') state.previewKey = '';
         else if (effect === 'reviewPreview' || effect === 'explain') {
           state.previewTimer?.cancel();
@@ -1005,6 +1056,7 @@ export const register: Register = (on, options) => {
       }
       $.ui.invalidate('ui.render');
       if (state.epoch !== currentEpoch) return {};
+      followSource($, state, options);
       return clientReply($, state);
     });
     state.inputChain = run.then(
@@ -1033,8 +1085,9 @@ export const register: Register = (on, options) => {
     state.pane = { columns: width, rows: height };
     state.columns = width;
     state.rows = height;
+    followSource($, state, options);
     const editor = state.view.editor;
-    const previewDraft = editor?.changeReview ? changePreview(editor) : editor?.reuse?.result && !editor.reuse.result.blocked.length ? editor.reuse.result.draft : editor?.colors ? colorDraft(editor) : editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
+    const previewDraft = editor ? editorPreviewDraft(editor) : null;
     const previewColumns = previewWidth(contentColumns(width,height),editor?.previewWidth ?? 'auto');
     const explanation=editor?.explanation;
     const key = `${state.epoch}:${previewColumns}:${editor?.previewScenario}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
@@ -1131,6 +1184,11 @@ export const register: Register = (on, options) => {
       if (tree && withinBudget(tree)) return tree;
       state.clientFault ||= tr('native.capacity.failed');
     }
+    const summary = width < MIN_COLUMNS || height < MIN_ROWS
+      ? editorBodySizeLines(width, height, state.view.language ?? 'en')
+      : [state.clientFault
+        ? tr('native.hooks.register.client_failed_received_draft_kept')
+        : viewMessage(state.view, 'busy') || tr('native.hooks.register.could_not_open_the_client_editor')];
     return Box({
       backgroundColor: styles.text.backgroundColor,
       flexDirection: 'column',
@@ -1139,18 +1197,12 @@ export const register: Register = (on, options) => {
       // measures the short error tree and never grows it after a terminal resize.
       height: Math.max(24, height),
       children: [
-        Text({
+        ...summary.map(value => Text({
           ...styles.text,
           bold: true,
           wrap: 'truncate',
-          children: [
-            width < MIN_COLUMNS || height < MIN_ROWS
-              ? tr("native.hooks.register.resize_pane_to_32x12_draft_kept")
-              : state.clientFault
-                ? tr("native.hooks.register.client_failed_received_draft_kept")
-                : viewMessage(state.view, 'busy') || tr("native.hooks.register.could_not_open_the_client_editor"),
-          ],
-        }),
+          children: [value],
+        })),
         Text({
           ...styles.error,
           wrap: 'truncate',

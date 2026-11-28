@@ -1,5 +1,6 @@
 import { clip, clusterWidth, displayWidth, graphemes } from '../unicode/index.js';
 import { prependLine, type EditorLine } from './hints.js';
+import { itemDetailWindow, wrapItemDetailRows } from './item-detail.js';
 
 /** Offsets always lie on extended-grapheme boundaries; values retain their original bytes. */
 export interface TextInput { value: string; cursor: number; scroll: number }
@@ -90,4 +91,18 @@ export function inputView(state: TextInput, width: number): EditorLine {
 export function prefixedInputView(prefix: string, state: TextInput, width: number): EditorLine {
   const label = clip(prefix, width - 1);
   return prependLine(label, inputView(state, width - displayWidth(label)));
+}
+
+/** Keep the current path and caret in view while reading a wrapped failure. */
+export function pathInputWindow(label: string, input: TextInput, problem: string, width: number, height: number, scroll: number, key?: string) {
+  const fields = [{ text: clip(label, width) }, inputView({ ...input }, width)];
+  const details = problem ? wrapItemDetailRows([{ kind: 'error', text: problem }], width) : [];
+  const available = Math.max(0, height - fields.length);
+  const showPosition = details.length > available && available > 1;
+  const capacity = Math.max(1, available - Number(showPosition));
+  const page = itemDetailWindow(details, scroll, capacity, key);
+  return {
+    rows: [...fields, ...page.rows, ...(showPosition ? [{ text: page.summary }] : [])].slice(0, height),
+    start: page.start, capacity, length: details.length,
+  };
 }

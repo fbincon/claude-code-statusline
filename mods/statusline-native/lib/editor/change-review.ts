@@ -6,14 +6,17 @@ import { text, t, renderMessage, type Language, type LocalizedText } from '../i1
 import { createReview, navigateReview, reviewRows, type ReviewState } from './import-review.ts';
 import { differences } from './import-differences.ts';
 import { clone, semantic } from './history.ts';
-import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
+import { inputKey, pathInputWindow, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { wrapText } from '../../ui/text.ts';
 import { hintLine, wrapEditorLine, type EditorLine } from './hints.ts';
+import { fileActionFailure } from '../backend.ts';
+import { itemDetailWindow, wrapItemDetailRows } from './item-detail.ts';
 
 export interface ChangeReview {
   kind: 'changes' | 'structure'; generation: number; target: string; comparison: number;
   review: ReviewState; current: ReadResult | null; external: ReviewState | null; replacement: ReviewState | null;
   confirm: boolean; input: TextInput | null; message: LocalizedText | null;
+  detailScroll: number;
   effect: 'read' | 'export' | 'reload' | null;
 }
 export function targetIdentity(current: ReadResult): string {
@@ -23,7 +26,7 @@ export function openChanges(e: Editor, structure = false): void {
   const candidate = structure ? e.structureProposal!.draft : e.draft;
   e.changeReview = { kind: structure ? 'structure' : 'changes', generation: e.mutationGeneration, target: targetIdentity(e.baseline), comparison: 0,
     review: createReview({ draft: clone(candidate), changes: differences(structure ? e.draft : e.baseline.draft, candidate) }),
-    current: null, external: null, replacement: null, confirm: false, input: null, message: null, effect: null };
+    current: null, external: null, replacement: null, confirm: false, input: null, message: null, detailScroll: 0, effect: null };
 }
 function active(m: ChangeReview): ReviewState { return m.comparison === 1 ? m.external ?? m.review : m.comparison === 2 ? m.replacement ?? m.review : m.review; }
 export function changePreview(e: Editor): Draft { return e.changeReview ? active(e.changeReview).result.draft : e.draft; }
@@ -32,19 +35,47 @@ export function stepDraftHistory(e: Editor, redo: boolean): LocalizedText {
     ? text('history.counts', { undo: e.history.undo.length, redo: e.history.redo.length })
     : e.compositionError;
 }
+
+function exportPathPage(m: ChangeReview, language: Language, width: number, height: number, key?: string) {
+  return pathInputWindow(t('history.export_path', language), m.input!, renderMessage(m.message ?? '', language),
+    width, height, m.detailScroll, key);
+}
+
+function layoutReview(e: Editor, m: ChangeReview, language: Language, width: number, height: number, key?: string) {
+  const confirmation = renderMessage(e.structureProposal!.confirmation!, language);
+  const intro = wrapItemDetailRows(confirmation.split('\n').map(text => ({ kind: 'body', text })), width);
+  const rows: EditorLine[] = [...intro, ...reviewRows(m.review, language, width)];
+  const showPosition = height > 1 && rows.length > height;
+  return { ...itemDetailWindow(rows, m.detailScroll, height - Number(showPosition), key), showPosition };
+}
+
 export function changesKey(e: Editor, event: TextKey, language: Language, width: number, height: number): 'changes' | null {
   const m = e.changeReview!, key = event.key === 'enter' ? 'return' : event.key;
   if (event.overflow) return null;
-  if (!event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g')) {
-    if (m.input) m.input = null; else if (m.confirm) m.confirm = false; else { e.changeReview = null; e.structureProposal = null; }
+  const command = !event.text && !event.paste && !event.meta;
+  if (command && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g')) {
+    if (m.input) { m.input = null; m.message = null; }
+    else if (m.confirm) m.confirm = false;
+    else { e.changeReview = null; e.structureProposal = null; }
     return null;
   }
   if (m.input) {
-    if (key === 'return' && !event.text && !event.paste) { if (m.input.value.trim()) { m.effect = 'export'; return 'changes'; } }
-    else m.input = inputKey(m.input.value, m.input, event, 4096).state;
+    if (command && !event.ctrl && key === 'return') {
+      if (m.input.value.trim()) { m.effect = 'export'; return 'changes'; }
+      m.message = text('ui.forms.enter_a_file_path'); m.detailScroll = 0;
+    } else if (command && !event.ctrl && (key === 'pageup' || key === 'pagedown')) {
+      m.detailScroll = exportPathPage(m, language, width, height, key).start;
+    } else {
+      const edited = inputKey(m.input.value, m.input, event, 4096);
+      if (edited.state.value !== m.input.value || edited.error) {
+        m.message = edited.error ? text('input.' + edited.error, { limit: 4096 }) : null;
+        m.detailScroll = 0;
+      }
+      m.input = edited.state;
+    }
     return null;
   }
-  if (event.text || event.paste || event.meta) return null;
+  if (!command) return null;
   if (m.confirm) {
     if (!event.ctrl && key === 'return' && e.canMutateDraft()) { m.effect = 'reload'; return 'changes'; }
     return null;
@@ -55,6 +86,13 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
     if (!e.acceptProposal()) m.message = text('history.stale');
     return null;
   }
+  if (m.kind === 'structure' && e.structureProposal?.confirmation) {
+    if (!event.ctrl) {
+      if (key === 'return') navigateReview(m.review, key, language, width, height, null);
+      m.detailScroll = layoutReview(e, m, language, width, height, key).start;
+    }
+    return null;
+  }
   if (m.kind === 'changes') {
     if (action === 'undo' || action === 'redo') {
       if (e.undo(action === 'redo')) openChanges(e);
@@ -62,7 +100,9 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
       return null;
     }
     if (action === 'compare-saved') { m.effect = 'read'; return 'changes'; }
-    if (action === 'export-draft') { m.input = textInput('statusline-draft.json'); return null; }
+    if (action === 'export-draft') {
+      m.input = textInput('statusline-draft.json'); m.message = null; m.detailScroll = 0; return null;
+    }
     if (action === 'discard-to-saved') {
       if (!e.canMutateDraft()) m.message = e.compositionError;
       else m.confirm = true;
@@ -81,14 +121,15 @@ export function changesKey(e: Editor, event: TextKey, language: Language, width:
 export function changesView(e: Editor, language: Language, width: number, height: number): (EditorLine & { selected?: boolean })[] {
   const m = e.changeReview!, title = t(m.kind === 'structure' ? 'history.structure' : 'history.title', language);
   const back = e.shortcuts.surface === 'native' ? 'Ctrl+G' : 'Esc/Ctrl+G';
-  if (m.input) return [
-    ...wrapText([title, t('history.export_path', language)], width).map(text => ({ text })),
-    inputView({ ...m.input }, width),
-    ...wrapEditorLine(hintLine('history.input_help', language, { enter: 'Enter', back }), width),
-  ].slice(0, height);
+  if (m.input) return exportPathPage(m, language, width, height).rows;
   if (m.confirm) return [
     { text: title }, ...wrapEditorLine(hintLine('history.confirm_discard', language, { enter: 'Enter', back }), width),
   ].slice(0, height);
+  if (m.kind === 'structure' && e.structureProposal?.confirmation) {
+    if (m.message) return wrapItemDetailRows([{ kind: 'error', text: renderMessage(m.message, language) }], width).slice(0, height);
+    const page = layoutReview(e, m, language, width, height);
+    return [...page.rows, ...(page.showPosition ? [{ text: page.summary }] : [])];
+  }
   const view = active(m), rows = reviewRows(view, language, width), capacity = Math.max(1, height - 3);
   const scroll = Math.max(0, Math.min(view.scroll, rows.length - capacity));
   const summary = m.kind === 'structure' ? t('history.repairs', language, { ids: e.structureProposal?.repairs.map(r => r.id).join(', ') ?? '' })
@@ -109,22 +150,28 @@ export async function performChanges(e: Editor, backend: ReviewBackend): Promise
   const m = e.changeReview, effect = m?.effect;
   if (!m || !effect) return;
   m.effect = null;
+  const input = m.input;
+  const permitted = () => e.changeReview === m && m.generation === e.mutationGeneration && m.target === targetIdentity(e.baseline);
   try {
-    const permitted = () => e.changeReview === m && m.generation === e.mutationGeneration && m.target === targetIdentity(e.baseline);
-    if (!permitted()) throw new Error('history.stale');
+    if (!permitted()) { m.message = text('history.stale'); return; }
     if (effect === 'export') {
-      await backend.request('export', { draft: clone(e.draft), path: m.input!.value, overwrite: false });
-      if (permitted()) { m.input = null; m.message = text('history.exported'); }
+      if (!input) return;
+      await backend.request('export', { draft: clone(e.draft), path: input.value, overwrite: false });
+      if (permitted() && m.input === input) { m.input = null; m.message = text('history.exported'); }
       return;
     }
     const current = await backend.request('read', e.baseline.configuration ? { target: e.baseline.configuration.target } : {});
-    if (!permitted()) throw new Error('history.stale');
+    if (!permitted()) { m.message = text('history.stale'); return; }
     if (effect === 'reload') {
-      if (!e.canMutateDraft()) throw new Error('editor.save_locked');
+      if (!e.canMutateDraft()) { m.message = e.compositionError; return; }
       e.committed(current); e.changeReview = null; return;
     }
     m.current = clone(current); m.external = createReview({ draft: clone(current.draft), changes: differences(e.baseline.draft, current.draft) });
     m.replacement = createReview({ draft: clone(e.draft), changes: differences(current.draft, e.draft) });
     m.comparison = 1; m.message = null;
-  } catch (error) { if (e.changeReview === m) m.message = text('history.failed', { detail: error instanceof Error ? error.message : String(error) }); }
+  } catch (error) {
+    if (e.changeReview === m && (effect !== 'export' || m.input === input)) {
+      m.message = fileActionFailure(error); m.detailScroll = 0;
+    }
+  }
 }

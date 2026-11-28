@@ -5,7 +5,17 @@ import { THEME_VALUES, PALETTE_VALUES, SEPARATORSTYLE_VALUES, PRESETS } from '..
 import { copyDraft } from './draft.ts';
 import { t, type Language } from '../i18n/index.ts';
 import { saveProfileCopy } from './profile-manager.ts';
-import { hintLine, wrapEditorLine, type EditorLine } from './hints.ts';
+import { hintLine, prependLine, wrapEditorLine, type EditorLine } from './hints.ts';
+
+const nextIndex = 4;
+const reviewActions = ['quick.fine_tune', 'quick.save', 'quick.copy', 'quick.back'] as const;
+type QuickRow = EditorLine & { selected: boolean };
+export interface QuickViewport {
+  language: Language;
+  width: number;
+  height: number;
+  sharedProjects?: readonly string[];
+}
 
 export interface QuickSetup {
   base: Draft;
@@ -22,10 +32,26 @@ export function openQuick(draft: Draft, preset = 'developer'): QuickSetup {
 export function receivePreset(quick: QuickSetup, draft: Draft): void {
   quick.candidate = copyDraft(draft); quick.step = 'appearance'; quick.selected = 0; quick.detailScroll = 0;
 }
-export function quickKey(quick: QuickSetup, key: string): 'preset' | 'accept' | 'save' | 'copy' | 'cancel' | null {
-  const count = quick.step === 'scenario' ? PRESETS.length : quick.step === 'appearance' ? 5 : 4;
+export function quickAdjusts(quick: QuickSetup): boolean {
+  return quick.step === 'appearance' && quick.selected < nextIndex;
+}
+
+export function quickAction(quick: QuickSetup): string {
+  if (quick.step === 'scenario') return 'quick.choose';
+  if (quick.step === 'appearance') return quickAdjusts(quick) ? 'ui.hints.adjust' : 'quick.next';
+  return reviewActions[quick.selected]!;
+}
+
+export function quickKey(quick: QuickSetup, key: string, viewport?: QuickViewport): 'preset' | 'accept' | 'save' | 'copy' | 'cancel' | null {
+  const count = quick.step === 'scenario' ? PRESETS.length : quick.step === 'appearance' ? nextIndex + 1 : reviewActions.length;
   if (key === 'escape' || key === 'cancel') return 'cancel';
-  if (key === 'pageup' || key === 'pagedown') { quick.detailScroll = Math.max(0, quick.detailScroll + (key === 'pageup' ? -1 : 1)); return null; }
+  if (key === 'pageup' || key === 'pagedown') {
+    if (viewport) {
+      const { offset, capacity, last } = quickLayout(quick, viewport);
+      quick.detailScroll = Math.max(0, Math.min(last, offset + (key === 'pageup' ? -capacity : capacity)));
+    }
+    return null;
+  }
   if (key === 'tab') { quick.previewScope = quick.previewScope === 'main' ? 'subagent' : 'main'; return null; }
   if (key === 'backspace' || quick.step === 'review' && quick.selected === 3 && key === 'return') {
     if (quick.step === 'scenario') return 'cancel';
@@ -46,7 +72,7 @@ export function quickKey(quick: QuickSetup, key: string): 'preset' | 'accept' | 
   if (quick.selected === 1) d.use_colors = !d.use_colors;
   if (quick.selected === 2) d.palette = cycle(PALETTE_VALUES,d.palette);
   if (quick.selected === 3) d.separator_style = cycle(SEPARATORSTYLE_VALUES,d.separator_style);
-  if (quick.selected === 4 && key === 'return') { quick.step='review'; quick.selected=0; quick.detailScroll=0; }
+  if (quick.selected === nextIndex && key === 'return') { quick.step='review'; quick.selected=0; quick.detailScroll=0; }
   return null;
 }
 /** Both adapters use the same menu, selection window and scrollable requirement text. */
@@ -54,7 +80,11 @@ export function quickSampleHelp(language: Language): EditorLine {
   return hintLine('quick.sample', language, { tab: 'Tab', page: 'PgUp/PgDn' });
 }
 
-export function quickView(quick: QuickSetup, language: Language, width: number, height: number, sharedProjects: readonly string[] = []): (EditorLine & {selected:boolean})[] {
+export function quickNextHelp(language: Language): EditorLine {
+  return hintLine('quick.next-with-keys', language, { end: 'End', enter: 'Enter' }, { action: t('quick.next', language) });
+}
+
+function quickLayout(quick: QuickSetup, { language, width, height, sharedProjects = [] }: QuickViewport) {
   const tr = (key:string,params:Record<string,unknown>={}) => t(key,language,params);
   const preset = PRESETS.find(p=>p.id === (quick.step === 'scenario' ? PRESETS[quick.selected]!.id : quick.preset))!;
   const d=quick.candidate.display;
@@ -64,29 +94,48 @@ export function quickView(quick: QuickSetup, language: Language, width: number, 
       tr('settings.colors')+': '+tr('values.'+(d.use_colors?'on':'off')),
       tr('settings.palette')+': '+d.palette,
       tr('settings.separator-style')+': '+tr('values.'+d.separator_style), tr('quick.next'),
-    ] : [tr('quick.fine_tune'),tr('quick.save'),tr('quick.copy'),tr('quick.back')];
+    ] : reviewActions.map(key => tr(key));
   const projects = quick.step === 'review' && quick.selected === 1 && sharedProjects.length
     ? [tr('profiles.shared', { count: sharedProjects.length }), ...sharedProjects] : [];
   const paragraphs: EditorLine[] = [...projects.map(text => ({ text })), { text: tr(preset.requirements_key) }, quickSampleHelp(language)];
   if (!d.subagents.enabled && ['multi-agent', 'agent-focus', 'agent-workbench'].includes(preset.id)) paragraphs.push({ text: tr('quick.subagents_off') });
   if (quick.step === 'review') paragraphs.push({ text: tr('quick.replace') });
   const detail = paragraphs.flatMap(line => wrapEditorLine(line, width));
-  const menuHeight=Math.max(1, Math.min(rows.length,Math.floor(height/2)));
-  const start=Math.max(0, Math.min(quick.selected,rows.length-menuHeight,quick.selected-menuHeight+1));
-  const result=rows.slice(start,start+menuHeight).map((text,index)=>({text:(start+index===quick.selected?'› ':'  ')+text,selected:start+index===quick.selected}));
-  const capacity=Math.max(0,height-result.length), offset=Math.min(quick.detailScroll,Math.max(0,detail.length-capacity));
-  result.push(...detail.slice(offset,offset+capacity).map(line=>({...line,selected:false})));
-  return result;
+  const pinNext = quick.step === 'appearance' && height >= 3;
+  const menuRows = pinNext ? rows.slice(0, nextIndex) : rows;
+  const menuHeight = Math.max(1, Math.min(menuRows.length, Math.floor(height / 2), height - 1 - Number(pinNext)));
+  const current = Math.min(quick.selected, menuRows.length - 1);
+  const start = Math.max(0, Math.min(current, menuRows.length - menuHeight, current - menuHeight + 1));
+  const menu: QuickRow[] = menuRows.slice(start, start + menuHeight).map((text, index) => {
+    const selected = start + index === quick.selected;
+    return { text: (selected ? '› ' : '  ') + text, selected };
+  });
+  if (pinNext) {
+    const selected = quick.selected === nextIndex;
+    menu.push(selected ? { text: '› ' + rows[nextIndex], selected } : { ...prependLine('  ', quickNextHelp(language)), selected });
+  }
+  const capacity = Math.max(0, height - menu.length);
+  const last = Math.max(0, detail.length - capacity);
+  const offset = Math.min(quick.detailScroll, last);
+  return { menu, detail, capacity, last, offset };
 }
 
-export function controlQuick(editor: Editor, key: string): 'transfer' | 'save' | 'profiles' | null {
+export function quickView(quick: QuickSetup, language: Language, width: number, height: number, sharedProjects?: readonly string[]): QuickRow[] {
+  const { menu, detail, offset, capacity } = quickLayout(quick, { language, width, height, sharedProjects });
+  return [...menu, ...detail.slice(offset, offset + capacity).map(line => ({ ...line, selected: false }))];
+}
+
+export function controlQuick(editor: Editor, key: string, viewport?: QuickViewport): 'transfer' | 'save' | 'profiles' | 'accepted' | null {
   const quick = editor.quick;
   if (!quick) return null;
   if (!editor.canMutateDraft() && !['cancel','escape','tab','up','down','home','end','pageup','pagedown'].includes(key)) return null;
-  const effect = quickKey(quick,key);
+  const effect = quickKey(quick,key,viewport);
   if (effect === 'cancel') editor.quick = null;
   if (effect === 'preset') { editor.preset=quick.preset; editor.pendingTransfer='preset'; return 'transfer'; }
   if (effect === 'copy') { saveProfileCopy(editor, quick.candidate.display); editor.quick=null; return 'profiles'; }
-  if (effect === 'accept' || effect === 'save') { editor.replaceDraft(quick.candidate); editor.quick=null; return effect === 'save' ? 'save' : null; }
+  if ((effect === 'accept' || effect === 'save') && editor.replaceDraft(quick.candidate)) {
+    editor.quick = null;
+    return effect === 'save' ? 'save' : 'accepted';
+  }
   return null;
 }
