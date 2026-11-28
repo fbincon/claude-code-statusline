@@ -1,6 +1,7 @@
 import { openChanges, changesKey, stepDraftHistory } from '../editor/change-review.ts';
 import { openReuse, reuseKey } from '../editor/reuse-manager.ts';
-import { packageManager, packageKey, packageView } from '../editor/package-manager.ts';
+import { packageManager, packageKey } from '../editor/package-manager.ts';
+import { packageView } from '../editor/package-view.ts';
 import { openDiagnosis, diagnosisKey } from '../editor/diagnosis-view.ts';
 import { openColors, colorsKey } from '../editor/color-manager.ts';
 import { applyPreviewShortcut } from '../editor/preview-settings.ts';

@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import type { TaskDetails } from '@fbincon/statusline-core/contracts/ui';
 import { BackendError } from '@fbincon/statusline-core/editor/backend';
-import { type PackageManager } from '@fbincon/statusline-core/editor/package-manager';
+import { packageProgress, receivePackageReview, type PackageManager } from '@fbincon/statusline-core/editor/package-manager';
 import { receiveTask, taskViewerView, type TaskRow, type TaskViewer } from '@fbincon/statusline-core/editor/task-viewer';
 import { text, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { ACTIVE_REFRESH_MS, IDLE_REFRESH_MS, type RefreshTarget } from './foreground-refresh.js';
@@ -92,31 +92,32 @@ const packageErrors = new WeakMap<PackageManager, { id: string; message: Localiz
 
 export function packageRefreshError(view: PackageManager): LocalizedText | null {
     const failure = packageErrors.get(view);
-    return failure && failure.id === (view.execution ?? view.job)?.id && view.mode === 'status' && !view.input ? failure.message : null;
+    return failure && failure.id === packageProgress(view)?.id && !view.input ? failure.message : null;
 }
 
 export function packageRefreshInterval(view: PackageManager): number | null {
-    if (view.closed || view.input || view.busy || view.mode !== 'status') return null;
-    const run = view.execution;
-    if (run) {
-        if (run.running === null) return IDLE_REFRESH_MS;
-        if (run.state === 'running') return ACTIVE_REFRESH_MS;
-        return run.running ? IDLE_REFRESH_MS : null;
+    if (view.closed || view.input || view.busy) return null;
+    const progress = packageProgress(view);
+    if (progress && 'control' in progress) {
+        if (progress.running === null) return IDLE_REFRESH_MS;
+        if (progress.state === 'running') return ACTIVE_REFRESH_MS;
+        return progress.running ? IDLE_REFRESH_MS : null;
     }
-    return view.job?.state === 'running' ? ACTIVE_REFRESH_MS : null;
+    return progress?.state === 'running' ? ACTIVE_REFRESH_MS : null;
 }
 
 export function packageRefresh(view: PackageManager, backend: Backend): RefreshTarget | null {
-    const { owner, generation, execution, job } = view, active = execution ?? job;
-    if (!active || view.closed || view.input || view.busy || view.mode !== 'status') return null;
-    const current = () => !view.closed && !view.input && !view.busy && view.mode === 'status' &&
-        view.owner === owner && view.generation === generation && (view.execution ?? view.job) === active;
+    const { owner, generation } = view, active = packageProgress(view);
+    if (!active || view.closed || view.input || view.busy) return null;
+    const current = () => !view.closed && !view.input && !view.busy &&
+        view.owner === owner && view.generation === generation && packageProgress(view) === active;
     const identityError = () => new BackendError('identity', text('package.reason_identity'));
     return {
         owner: view, key: JSON.stringify([generation, owner, active.id]), interval: packageRefreshInterval(view),
         async read(signal) {
             let accept: () => boolean;
-            if (execution) {
+            if ('control' in active) {
+                const execution = active;
                 const next = await observeBackend(backend, 'package_execute_status', { id: execution.id }, signal, execution.control);
                 if (next.id !== execution.id || next.prefix !== execution.prefix || next.action !== execution.action ||
                     !isDeepStrictEqual(next.control, execution.control)) throw identityError();
@@ -127,14 +128,12 @@ export function packageRefresh(view: PackageManager, backend: Backend): RefreshT
                         !isDeepStrictEqual(execution.results, next.results);
                 };
             } else {
-                const review = job!;
-                const next = await observeBackend(backend, 'package_review_status', { id: review.id, owner }, signal);
+                const review = active;
+                const next = await observeBackend(backend, 'package_review_status', { id: review.id, owner }, signal, view.execution?.control);
                 if (next.id !== review.id || next.owner !== owner || !isDeepStrictEqual(next.request, review.request)) throw identityError();
                 accept = () => {
                     const previousMessage = view.message;
-                    view.job = next;
-                    if (view.message && typeof view.message === 'object' && view.message.key === 'package.ui.cancel_requested' &&
-                        next.state !== 'running') view.message = next.state === 'cancelled' ? text('package.cancelled') : null;
+                    receivePackageReview(view, next);
                     return previousMessage !== view.message || review.state !== next.state || review.error !== next.error ||
                         !isDeepStrictEqual(review.review, next.review);
                 };

@@ -1,6 +1,7 @@
 import { openChanges, changesKey, stepDraftHistory } from '@fbincon/statusline-core/editor/change-review';
 import { openReuse, reuseKey } from '@fbincon/statusline-core/editor/reuse-manager';
-import { packageManager, packageKey, packageView } from '@fbincon/statusline-core/editor/package-manager';
+import { packageManager, packageKey } from '@fbincon/statusline-core/editor/package-manager';
+import { packageView } from '@fbincon/statusline-core/editor/package-view';
 import { taskViewer, taskViewerKey } from '@fbincon/statusline-core/editor/task-viewer';
 import { openDiagnosis, diagnosisKey } from '@fbincon/statusline-core/editor/diagnosis-view';
 import { openColors, colorsKey } from '@fbincon/statusline-core/editor/color-manager';

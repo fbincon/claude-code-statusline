@@ -51,7 +51,9 @@ Tab / Shift+Tab changes pages outside input editing. Page changes and resizing r
 
 ### Terminal page regions and footer
 
-Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. **Task details** and **Version and installation** use the full content area for their reports. A file diagnosis uses the preview area for its rendered output.
+Display-editing pages show the draft and `Preview (sample data)` in separate regions, using frames at 64×20 and above and compact separators at 64×18–19. Main, Subagents and the catalog picker show `ON`, `ITEM` and `DESCRIPTION`, with a single line below the list for the selected component’s catalog example. Settings and forms show `OPTION` and `VALUE`. **Task details** and **Version and installation** use the full content area. A file diagnosis uses the preview area for its rendered output.
+
+In both editors, **Version and installation** shows an installation overview and groups the version controls. Enter opens the marked actions and the channel chooser. Going back from details, a review or a confirmation restores the originating row. [Package management](PACKAGE_MANAGEMENT.md#review-from-either-editor)
 
 The footer changes with the current operation. Available keys appear in bold in the footer and in panel instructions. Component lists lead with page, selection and toggle controls. The save control shows the active key for saving and exiting. Filtered lists offer a way to clear filters and hide ordering hints. Input fields show accept/cancel and cursor/delete controls, while pickers show selection controls. Opening a field or editing a file path alone does not modify the display draft. Changed configuration text can mark the title before it is accepted.
 

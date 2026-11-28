@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
 import type { ReadStream, WriteStream } from 'node:tty';
 import { LANGUAGES, t } from '@fbincon/statusline-core/i18n/messages';
-import type { PackageReviewJob, SourceContext, SourceJob, TaskDetails } from '@fbincon/statusline-core/contracts/ui';
-import { packageManager, packageView } from '@fbincon/statusline-core/editor/package-manager';
+import type { PackageReviewJob, PackageStatus, SourceContext, SourceJob, TaskDetails } from '@fbincon/statusline-core/contracts/ui';
+import { packageManager } from '@fbincon/statusline-core/editor/package-manager';
+import { packageView } from '@fbincon/statusline-core/editor/package-view';
 import { openSources } from '@fbincon/statusline-core/editor/source-manager';
 import { textInput } from '@fbincon/statusline-core/editor/text-input';
 import { dimensions } from '../src/layout.js';
@@ -136,6 +137,54 @@ test('report controls follow embedded remaps, input and confirmation; standalone
     const packageInput = plain(state, 120, 40);
     assert(!packageInput.at(-2)!.includes(t('ui.refresh.read_now', 'en')));
     assert(packageInput.at(-1)!.includes(t('ui.hints.move_cursor', 'en')));
+});
+
+test('external version navigation shows the current controls and returns to the original row after resize', async () => {
+    const state = fixture('zh-CN'), editor = state.editor;
+    editor.page = 'settings';
+    editor.setting = 'package-management';
+    editor.shortcuts.snapshot.bindings = { 'close-packages': 'Z' };
+    const originalDraft = JSON.stringify(editor.draft);
+    const local: PackageStatus = {
+        version: 1, backend_version: 'test', captured_at: report.captured_at, revision: 'a'.repeat(64),
+        prefix: '/prefix', entry: '/prefix/path with spaces/中文/cli.js', config_dir: '/config',
+        current: '3.17.0', previous: '3.16.5', channel: 'latest', node_version: '24.21.0', host: '2.1.332',
+        compatible: true, reasons: [], pending: null, history: [], offset: 0, total: 0,
+    };
+    const calls: string[] = [];
+    const session = new Session(state, { request(operation) {
+        calls.push(operation);
+        assert.equal(operation, 'package_status');
+        return local;
+    } } as Backend);
+    await session.key({ key: 'return' }, 64, 18);
+    const view = editor.packages!;
+    assert(view);
+    const overview = plain(state, 64, 18).join('\n');
+    assert(overview.includes('3.17.0') && overview.includes('Enter 编辑') && overview.includes('Enter 选择'));
+    assert(!overview.includes(local.entry!));
+    await session.key({ key: 'down' }, 64, 18);
+    assert.equal(view.selected, 'channel');
+    await session.key({ key: 'return' }, 64, 18);
+    assert.equal(view.mode, 'channel');
+    const choosing = plain(state, 64, 18);
+    assert(choosing.some(line => line.includes('latest')) && choosing.some(line => line.includes('beta')));
+    assert(choosing.at(-2)!.includes('Z/Esc ' + t('ui.hints.back', 'zh-CN')));
+    await session.key({ key: 'end' }, 80, 26);
+    await session.key({ key: 'return' }, 80, 26);
+    assert.equal(view.channel, 'beta');
+    assert.equal(view.selected, 'channel');
+    await session.key({ key: 'return' }, 64, 18);
+    await session.key({ key: 'home' }, 64, 18);
+    await session.key({ key: 'escape' }, 64, 18);
+    assert.equal(view.channel, 'beta');
+    assert.equal(view.selected, 'channel');
+    assert(plain(state, 64, 18).some(line => line.includes('› Enter 选择') && line.includes('beta')));
+    await session.key({ key: 'z' }, 64, 18);
+    assert.equal(editor.packages, null);
+    assert.equal(editor.setting, 'package-management');
+    assert.equal(JSON.stringify(editor.draft), originalDraft);
+    assert.deepEqual(calls, ['package_status']);
 });
 
 test('standalone paging uses the current terminal size for every key in a decoded chunk', async () => {

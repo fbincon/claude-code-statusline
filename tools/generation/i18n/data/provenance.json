@@ -71899,6 +71899,1251 @@
       },
       "review": "Reviewed the selected component example, preset and custom value wording, and named key placement for the twelve editor languages against their active panels.",
       "validated_inputs_sha256": "4dc30806f18fac0cf13311b25dfa70e0ed14b0518c3bf6b2f58bf6c2f38a6747"
+    },
+    "514bc6b8a6555931c020e50103bfd29ff27f327f43c4f99daed46a12b0b1c6bd": {
+      "method": "validated_accepted",
+      "checks": [
+        "registry",
+        "duplicate-keys",
+        "text-safety",
+        "templates",
+        "source-signatures",
+        "translation-hashes",
+        "acceptance-provenance",
+        "historical-contracts",
+        "recorded-contextual-review"
+      ],
+      "limitations": [
+        "Structural validation and the recorded contextual review only; no native-speaker, physical or paid-model acceptance is inferred"
+      ],
+      "entries": {
+        "de": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "9969402b1362252d7702e4aa355436f4d3ba4782c2a6089ab1b029396ce1d929"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "1d51c438ac70a199a7848cad5e540a6d4fcadb736d6716e66a81fedb1b7b4a04"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "a943a3bafc0e5585f37f09b3aed07e92684fa4e8714ee7a57a6227c44bf3fa32"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "4d47845695219fe07987b2fc65c40fffecd72d3fd2327c18ec822fd6e9e9ec2b"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "61fc0c5327bb20340c157ce86859e208d4767c6ea87870a66fd54e58346d28de"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "5dde65f91bed6bc7153787a08f554e6f2dfadd0e3c9ded1307850b6fc6f3d6ee"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "1349e2933d2d0f3464fcbacf2cdee93ef54cd0bbe4c768f8dc7150fb78af6808"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "d670a09e51cf4e6d0786f2914a36c2b13fa48d161cfe8111c313c90c2d26e968"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "6108e8aa8c1b6fac92f55793279f5104f4d082c6f4a610b0e207c996d835f34a"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "5d2c8057d8d618bd235a2497f791707dfb7044e6ff1ef8d4c84f4e72a6b05cbc"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "5564b00ee4889405a79894d5b647f9f5491fca17cca6a92c123be5d2ed563d92"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "ca0eb898b97fc8dc3d17c3930ccb4a21a5d7d39d1c71b92d0bc967f4f9b18640"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "ec898af13eac24014c81236acab0e1c54673c2331d295ad9e6dffe23d857bf44"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "b691ee4b2974c12bc3c28ceb71cef8e20252c7c9b0c3b3a8fd0755b6135c4404"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "1ddae9dc4bb424e0d3e812c51936a0ae88e2e8e97fe953b97e2f8424de6f2838"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "e185bac6775d218afe72c27e9b8d8a6add9eee2ea367b985e65dc1a17d56c674"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "22715aae09826ca6ca808dbb9756f426e9adc50cc4cf6c1b8bf6d3ba1d5496d5"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "1b03f57e94f6d35e45ad7cd5b2d3de55b4998f3dc7358022807b559b129ea098"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "a0b78e5a1db897cd59540dfaec3863b125646cf70078188f86f32ef389eebece"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "622befa17622a51b0292674a829b580b062185385edb2c78434e23eb5140ee82"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "e78acb0ceabe8ec4e59a5c1ece9a52e336f658368b7b9a35a2cd6ac96e5c92b8"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "06946035b21ab115f3785b354542b1709905c4a0bf8aa7714622d721170f0ef7"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "9d2cf344af157f4718c202ac4d5610f5762063c273e559513955e524e53d75e6"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "3c60065b3ea97b0835a8797c1b4da4bd3da2f2ab4aa61e502d7d6bc23116daf7"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "2a06dc7bf7108e8b091a866fa29b205b90339d3610eac723edf032379c0996fb"
+          }
+        },
+        "en": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "a89645a1419c0282f5c32a645715c3ab499013af1a5b665724d2351293b2ebda"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "ab430ce4035152768891d5f5a58f87b7f6ba5c85f6a8d7bf239fc6b420822efd"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "863068958bb1a551fa34e1d446b72f00fb9680202baecd9fc272903c6139a7ce"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "641d78a40c14428240ad69e7f3449168a760c4bc8cf6c866e58385bf45f86623"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "1827f31335bc346a61d522d094a0fee540a7a2952ccb22a1da36abca1beb57ac"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "eea4e9603b263131e0d5e3b6989320b9cd95f44b6d6e64706fa45538e3476843"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "da22e66adc2dbd524ba10b9ec203388b2f1f0d921f9399d55e9d5b945c627a8f"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "c27abebdc73a142b63fada848cf4900de1ae7b1a9572d805a72b9be956781927"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "d63d6b0313bc9c6ee3bb1fb1bccbedafd012b2f5815ce6c33410982386ffef21"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "f8edaa9e0057bb34546a11141b0d6f77e0d42d3081e18c82d76e62c6b64d2b1a"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "9f95e0fa4aeca2d6cda094f1214ea0bd88d39d6f80252c17c2279bf4d2c0a786"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "af6366d4e0144bbf4865c32881f388b3ceac2b5a2307f1b2067808d86a082404"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "348496bcd44da079845f545b82ecccbac8548118bcf3d7d541d3c571927d5703"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "3c57ff66e4fbb2a65041bebaa71fc4be8d6019ec53688bafc9b0a7f489ddd618"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "9bebc90293b316a3588f1632a88a2718de3b3ccd40d30e1a0e62e679abd41d1a"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "7ee3b59cbad939853d9cebb2a53a1eaab76b7fc62d033192cdc6b28c221a956d"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "103339e86a6fe06cb7abea2e20791dae2252432cee56b01966fe1ce1c0bef180"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "a8b209c2470d7931522cc0b800c3506c027805bc4d70a41125b58f75548ac090"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "ebb95b7b412cc724c4e1bfc6c0602a80282f43966464f0f0827f8718f4b96618"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "095662a2a9d97a8d8e37eafbb375fe6ad01a9300f5f8bc0fe080e5bd7cf6cfee"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "9c81e9f4b5821170e4a922014e4dd2b8eb83622519c90373ed7ba7461bf825aa"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "71ff6bad8e74aafbb5b2655d264c44db5d76a662c16313bd2c44cf8b14133042"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "b5ad022960950d826a1a6185474113af9846d4f40a234b680f5fbee1aae35d92"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "6b6720368e240a9eb4fbb1eb5f121cabc452b13e309340a281070598e8ad7c06"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "44913d1e92230b888215da411fd549f2a62389ebfe4f61e96252bf6c5194d569"
+          }
+        },
+        "es": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "709716a66d2bc2f3d260cb12e71e03cbb8fbd938eba45874380a651029bd13e2"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "52a8b69aef2d66cba78c96c2d78ad9513f683c81eaff583a0ac85c429b2b9dca"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "154401d116700cb360d8402e0edb10056dbe972cb8b8d6867013fbe8e7542c00"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "3462ce4e4c7486be60a83e46e02427b7b8a44c8914a8dea34dd30e3ac1d0ddc4"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "a0b811a3e9161c9e59c115b5681f008bf8386e55d0f61071462fdffbd885d4f7"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "423dc45e1db7e833c27accd15e1a7e6b7df9a9378372556cc5fe5cf75eb2b0bd"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "c61aed68245e6f27b94ee2d3bb07a02c83f1508990614b93197c86183f6d05f5"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "9bc5c2df864dfe6b56dfe1bee04f6e7b85d57bf237344465dbbb56aacde9e455"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "9c452d2ef8aba1ca90ae746915c7c0cc0666b8b8aaaa4738094cca148e016c6d"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "6938f3c82ba9e75c5d8bacebc1804aca1646bbc439371ef707d70cebfa2cddfe"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "9616bf86103e4415f55dc28497b7ce475240f592396542dd6ad6ad8bd02ed0ac"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "f3a3297d567c85a302f2380abd21ede2c6cbacffcec73e451c041730ef153ecc"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "52b901019b649df4a92dc3bd44565d1a99ff3d2618af333621afe5ffbaad9458"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "3559839aa727d2bdea8c79ac8493bc4c190d3048ab73c908d6b294d0728ac9f9"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "9607366f024a7dbcb928f71dfa34edaa7fb064c275e62a4b7146141667c934b6"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "dbdbdd5f0bd28ff8b796123d2578c23feba3cc85dc26b6bb5690799e0abc3fd0"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "67d3705955401fb98c31b96a9a9705841c2b974c0940d69d62ca4493e471c8e7"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "42fbdc08b9da7a1919777f53ffae42f9055f97477676b13dee70f3c3b8f01c20"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "a68e5d30929295aa1af2569e30281f0c34730642336d1879c3246eafd8365568"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "019d7fac2563db9aef4bf22dac8a37776d67ef36e349ecb6dadebaf7dd1fbea1"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "2239769610585b63787223ed74f3879eb3e70078819df650a8b89fd4926e6536"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "e1b26d44215047c110ff45b3a82cf3908bd478b9b51b377b1e37505921185b9a"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "01d0ce17804a0ce31d69768da68fbb8333b9ee4173120bc04db4a299aa2e882d"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "26ea85b5647e7ef24def953ef184d0e6cd05d16cc42841df8b7ff9b8e2183acf"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "484ca3a8d99ad21cc2b7516e71f890c42b2e808a9ca28408662a8bd454d590da"
+          }
+        },
+        "fr": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "0f4e8bcb89cd4c2ccc8283544a5e32a38bc075b2a4cf268e422edc560f6e88c9"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "27e22778df8e88c98b052c1af0f2cc33fe41453f7ca11665247253bbd41aec25"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "d83e060007524aa6258b702a2641d5ebbd7e13ba73eef59eafaced7f5920dc26"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "0de7307d5e09a7a016fc3e02fea5e47b380d1f9f0d0b0b847a230134fee22481"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "525723a552801cc53eb5f443495a0c9f6cb4bf53e5213bd4a154e750f3f7bce1"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "7d486a85c31f9b24703b3c30f377c1b8a22288e609eb57882b408897353b10f8"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "540e1ef376aabaa58813c7117b3605f449c8d330e25e1ab8561fe0b5da50cdf6"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "ca629526c3a0921be83fa3863c6ff7deca95203f010c88b8da4755d974253512"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "af13967671d5459f1ae01aed970ad7d526d5acbc4b4e378ad49e6afef67de980"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "a77bac5a78bcbdf4d50ac84deeffac51181cbd57ac0baaa5d07df08d9ca8559d"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "f9e043e2cbe8a5432ae531fea39570a125bf9ac71a14f08ed17de778b8b06ed0"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "2f65e301ac97763f8718afe5d194e8e7c9abd224baabf284e2fb8d1abe93e9c8"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "c24e5659d2efca5ffa88cc6eeeb2ee3f4f4ce0cfe4376a7bd8dba5fd9458b38a"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "8824b3b068c04ea12a66564100fd7c442181b34f4fd13a2c66403c6c8f1aa08b"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "e59460797288247c889bf062e1cab7fdb3394b060f241c000be8b8187f49d7aa"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "7d0f17f31e0b4de9c022e1ca27d55dbae0c34ca3388840788e5999beb9987079"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "bf59ffbc54b50044c8ef729942850255cf726cf64e19ba41a94ea07825060171"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "58409967ef183bbbd9c3e41da25fab20ba8dc3165a4908954479f79ffc54ef52"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "e6ad9015cbdf37b13fb31ad39eacbac4ce66e20eb50a0a3d2492eeb69f4a1cea"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "823b5ba85e73df842b038267780b0d6b06f9c422c689aed3774e75d83d179b5d"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "1c85e05fa65bf8184eaf8b7750c94f7a6310bdec66bb428c5139a11b50f12bbc"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "da410c8b2290b61d7c0a6947364e52a7bb2b0118622ec244276ef27a57cf710e"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "0993b1a29e391e0a924e50d4fdcca05df6aad7b37f186b3c2f08dcc43200800d"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "e7e0f0266eb5a338a7a02757ec61a37ef3c93d2c9fb4a8b439a25fbee9f53e30"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "48e846370bd59d81ddf5b3931d2c6ec4a48936c4272fd5eb603dcc81dda3a8bb"
+          }
+        },
+        "id": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "1410f2ef36760d1c7fef52a9f494df26f99a0b174f4058fa6779ae2ef0225c1a"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "d6e859758e7d2ef1bcb4967403d1ac85cd5e36a6f40db9c0c49c01e7924d8bf0"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "3574de74953ab52c75b899f06274b05c79090e9760095b423719cb6169a5044a"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "86bf4d0e6c737d90ca5878f72105c5a2527b12d78ea727f08d14cf077927c27f"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "e1dcd20e1c14b5813748c5e5572b18f39dc967d546a9ad977c02e5304d07544b"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "8757977b2dd27c594d5443a0e76877d79c73f9f2bb98f47f564750fefbd79289"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "b19cf1210f9c42cb22286935b078ca150b4c9f4c4c89a2652fcf613ba255843f"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "3ee36ea30c9ad0a01f7a6af36824d7efdc18b9d82eeb05f2f68f7037719a24e0"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "91e867812d663b9684fbab5a30f6550e317d6b8d600f23126c9c2b43e8ba5bfd"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "ac199b902b0b32feabad3132d4982aaedef63f0c35060ffb7b03077802c44f2c"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "9f95e0fa4aeca2d6cda094f1214ea0bd88d39d6f80252c17c2279bf4d2c0a786"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "cacaf23fb008eabb3afdd5f9724d72214d164cbfed4847c5a1e9792354d11c25"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "fa185e699a8c16cd43ae8ddc755af426265297f6cbc9e055b6c25dd32f105e21"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "fa3f9b11cbabbb443de0ca754429ceb8557c58607f5509007574f8ae02fd32b7"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "f855a1af7c764a687737c7d545f09f0e499bf1ff78388ad2c23fa216221d64b4"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "c4ad142750caf0dc23f06092283a342435884d0d47ce95465ce24e36e40e7d6c"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "367b011f9e96bd9bb98b88e71e8a42d6134605e27db5dfd50fb162f584a308ba"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "44a84c09daf1e37086b48a874bef6af50dfbdd38e5e56e18131de4fa61e990b3"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "b52adcedf787bc0eb40f4ed404ff03038b1f9db299197124ea07345accb9d74a"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "24bb91a27243043ef362efa87ef21d8de5c438c2b4e9b3df2fb2ff2f20ccfd22"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "3f90a69a733a6eee063e0d432e9b0087bec2ae22101d0d344b54ff82b90c6722"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "64273b25b3a15ca92da7e9f5891389c2329f698a9f49ffc43e8fa6ed8fb46054"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "0b08f9137efc0570f80390f6ba6b0977bcc4c799438c1741474fc5f4803034d2"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "0ad522f08e48635695486309e037438badd7ecef8c83375bd2d9f7a4f3bdb70a"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "cb388ad6e144de0b957bfaa6d3f23746a93099f8672254ec4907afd15ecb598b"
+          }
+        },
+        "ja": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "5bf1e9f5dc8655a0fe76402382f92c0f9a3d68980e9ab8cdee407f344dd20c70"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "c334ad807fddf802eb5b7a1255fb6b31beb8822e20e3d62400e8daddeb25304e"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "ed57ed39dd00fef8570b1d5eb38f8f61b6b8ebcec7c6c55caae329258165abd8"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "7b0c666ee692e60846e3acacff8b532e228cdc016911190b68a2ab3f0766a089"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "95d05b07e785db47c7906520f6191d909c4bfedd3b49bb3670e26ba8bac92cc2"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "e4561b18c4e5d0ed56f592cb9f3033cfdb2e9b6b5b335404fab0acf4e7243b92"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "7d2db719eab7eaf6903d30173863164c8acbdbd37faa71e77fbc9f841bef84e1"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "28278b2adafecdf86fff46d6facb35784ad8a913014180bfa80eece245c35bb8"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "0f396bac5797ee54ae87d84a32b367c10a9fadd2a4079f4daf3514e6945ac9c0"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "69e6ea8c863d1af8ad6218a53a5867f2aacc38b53de3227994ddd9d01d8c9a89"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "1c11285c51d436e77345cb1ad814f2bd32bde818cadff26ff7c76976b5770711"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "f447367059ef237cf9f4cccdffb4c748523b25e086b7a29d564584540a5718ed"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "8c0532e10ddf538942058a93cc503f7c0361a380bcce4242fefb449b73fd53f4"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "f8480fe3227e397293d619761f88b83f3146872f37dd258ce25d1419a5ae524a"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "20a43f08367d822111bc678894e9c7bea58f42d26f77303540185c6bb23e3fb8"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "058d72ca550821269ca2ee36da7d9b148e5c9d1d3e27c02d7f7aaa698ffd158c"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "0e08f47e66c382d0d7436bec623b3edc0d4e1b8c60413e12d7c82a7e6c81fa04"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "e2068dd5a8a53ba3c0bd519ca9fb9e5263b4159cab044bd74a5bef10056f83cc"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "359296f55de1717f8e64ab441ab7828904200d5d57a15bc4520d1258d247b2c1"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "b7a1aaa921fd4a8275cc47c4deec49eb89ff6fad15ac76a0b3a4b6edc8cd6823"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "e09bced6982e5754446134b2fe7a6caa312cb7d8a35a93940c396b927deb8295"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "d3fb960d1d806782244192b2872719cb0293c045bef1e78e11db2c1827e92d39"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "114cab95f8064bbc1f7f78ece2f12e5c3b0b3d2a889fadc0f8799dbb5d9774dd"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "836372833d455d0fac4cdc8a7d354559f5c413c38b96be1f7c8381c43116ef58"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "64fd25893fbce4f74331f99d5d83730a15b013d69a8a26db7a6dcdfc77af031f"
+          }
+        },
+        "ko": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "263a238daf098f5b9cc80995498250b0220000d564dec351f88c50de1048cc76"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "b046a994cd28a843c74f8cdec59dfcbfbfd803a93bcd734d4de85f68792db09f"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "abd2f91191a467433a6ccecdaba5113e382ddc0e647bdd3f3375510a2335e862"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "316a5e1e5d4c93c6c28b24ec70cadc781cdde8ba43e3c521befbc015955d2b96"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "6472d66f36c2c9778f231952a918e55255983ece900779af5bf1f30dc97a8eb0"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "8115cce8bebac318b4d97d3baa3170bc5e45096f6061c8b1bde583d30a0d8dfb"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "01e4ef83c7385aa56918a893535895aaaabadd318386a9f93310bb0079362cc7"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "e3ea9af439df6dad0d874e3c26dfd848a4abbd7e36cf06df8d74257311480d47"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "2049378f24539883a1b6f54d2ad1a359990e15618bc8dc88e025ddee45152a78"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "254becb80f2d15f51c933de4d638658157126e44367c9a5168184406ce16a4ba"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "fe28080f7092b95e36072333b434fccc61b5f6264421132f26363ed91708cf80"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "748d772fa33a42d229723bd40d1013b777deed9f1aa50887d56f476b62cf3fce"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "6679b1077a1ace5403ca758360b97ec79bc36ab091150d578b86eae9df6d26e4"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "6c3bc1e32895ea0dbfd5bb6de1ea7ba7bc0fb96954e022666346e1d1138b4675"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "1c8ef3c902cfea966159f412888978d7327433eb6c733eb3f839a6289bff0fb7"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "6f35740771abd2ddf38e706663101c60ca90daa7ebfa833d4ee1e5331d33775f"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "167d06f0a9f719d8ed6ad800bb06203dd87481cb001206e7af4e058d360985d0"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "e57fdef9443b738cb090338f3d0b7401a3fc497859fae1302f1ebc09f4cf97c6"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "85cece656d35adbb65ab712ddc96c45c91638595d15a65f8484a0ce1b5a9f2c8"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "1eeef3d9a88de2068e3fa6d9c047d0b3488e893f5cd5e141f456366a9a4a5cb1"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "2c2160c636036a290a00077876c8797cdb946f5f2cdd06732acc7d198f7272a9"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "95a9d350dc263876eef97f3bd0fe7c37297147cc2bcf02b35c9fa84d678252e4"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "1d8e3d0091cbc58638502289dd1b0f032dfcfad70b5e584426aa62373f9c8d41"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "636997104431cb8d323eb6670e4df5ee7ccb6f3c0a3470b31d1cc901a980288e"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "892575a88b8a1d9612476b6166e17c11ec27e09fd255f6e700284da7dfdb6eb0"
+          }
+        },
+        "pt-BR": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "0bb30e5de0ceb3d278e3b46a4ac8828218fe6735f0eb00ad282b05353fa87b1d"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "969ef9379fb0d45afd290a9ed52fcd2cb930ad2169c5d1be99c9430368485c17"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "544a1a42ffd28bf1dcfe1873f6b4e13166e77293e8aee6e2d3673155d98eb4a4"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "be58a45e3ad443ac5b023af4bcd2cd15f20cc39e861b2eb3abac589f15c3e7ad"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "1b3bbed26ee9524f0d99da4e0d06c1f0e585b54a6f1caa8a205e1522957bf987"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "762f1c8e0b680594c8bee9413b6638464b54d435f5690b0fe4663895c3cdc8e5"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "e20335edd5cd5ffcf8c141c220369450cb3ab7801d7673605c4e39da1d57c4d5"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "510a46945ecf38d6117cc8d1ae5bf15bb3429548d934e7ec699cb7fb618f2338"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "d126217b2fde541c170bf859fcafdaf33910b0625f7523aa1f6a93590ccc501b"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "6223a82c28cf6c0d13ab5aa884e5a6e11af74815fe6f8b5277027ec7305b84ed"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "9616bf86103e4415f55dc28497b7ce475240f592396542dd6ad6ad8bd02ed0ac"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "b2ea6b6d0cb9092845fe2113e0bc75b94f69dc7f21482df86227f0bb8399e1c6"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "6c5fb1963451181dc20b63a7292949787b939e543b2c67d51a1631e0c6d39419"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "6b87965a5510232678bd216667faaf2daf4caa385bcc94380680e4b93c453851"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "c543cf0d98625659d27b49c5d849b67ba1e3b3f878340ba82f16e1c3d0b9c8a8"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "d646563534532e0fd57c70fb9c92c4a045fe5d659351b202e28f649155e5207d"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "25d09c30ced4064e711921cc9c82d8ca87342508cbaeaf69ffdb5ddfab460441"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "95041db508ef77b13b90a40449c1ad9e44386d17f9c349f1e939a9d9cddce9dd"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "f0f4b1632b0fc4aa2ea0c87cbf25e2172892325456e79d15e016a13901cb7970"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "747c244583c6f3e01aa276edc47abf79092bdf0b946d16aefb83e45d9cab7ab4"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "726751026c30905b634c756aba3501885a3949d2c768d892828b9c1409bab8fb"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "a3b098d9cf630759f75acf0ff2291708e7ca58abcd989801b6352d60e48b23c8"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "22cbb4cd62072ac29e8bcde01dcc02bd35776f45eedee0b92b3393a0211c6fb1"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "4bc6939c86594fb527cd2a37384ac637b1b263e241722ff9fb9c82cb4196b3ff"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "dbd4d8f1117d7fbd083947f0015bf226f8db0749843642df0866a3818ecebd08"
+          }
+        },
+        "ru": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "827b5822aa24aa3d1c20371dffe8af0f639abef6e6f71ad19c44cbfc0bb01077"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "cd87f73a61595c636bab14b6c32c081d0e10a55830ee9aafd079c9445ae0e1b2"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "4486dc86b37b57daf300423ae6609d8b2e1b2e8c6b4f933bf1a8689cd2f2d3d4"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "2929408d0f53760caa8e82963d3479862ceda9164dc97575443cde561fa4b63f"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "07b37a5bef6a23d4bcf52293b2f4f0ca1ad5d4c45694a5e23e96172163225566"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "25e1937dbab5a78e6206ce35d7780f9c7c47ce8c2783a690dc3ceea01ee5ba91"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "3bc474f88917224e469bc32c1742d4755cf201c5c641913c40dc7fced58ee72e"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "7ce7a744ca449374acb43cc78d7c2b45c4138bc58a03e7292711973618b75983"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "573ba83307caf5901ede37ddbd49144ebccc5c5800cf9cec9f444f966678c0ab"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "dbf22e2a6c5fbefaca6d4d8bf048ac5d7b8b51f7241afd50e4f263d524686e9f"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "4701af5c9720dac5e65b3f131b06b1eeedfbe596fc2e2cb47cc3f955b55b356a"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "8f422eaeb7a5d881b028c567f5ffa7bfd66dfc3b32adf715076fff6703aa9326"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "d1065b1f9ae444eede5696a6a880456bb25b08f80af0ab0983637ecc21e607ff"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "da7d0fe07df19a8aa1a9b054ce47d1bb2d85818fe3b92e2afbad769afbceb822"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "a521aae01f0044728654abad3835db508e859c9c042bd32b3230c084b3e379e7"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "bbd567b6f34584b6b3f80d096840796082b327a55d32292a62865f131b11f79b"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "a5f67b46a25383963c426441691d0b22d2b82b1b22647c35cac5b19ea5255971"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "805d259ef88e3a170775b02d10c117c1b3d57e28d4cd0c0a5d9f4c87f2c3f5ff"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "e293d197afc4523063d2bcfb9b5b555a4353b9ec0fd204b6847a946ecd7ac3db"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "879f35f954b6b6c97a21c46a64da8527f0ddc95ae4152bbcb233e9fa54124ce6"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "0909cb53457229410e2cfdc0ad47696507bb54734e3f5f8217c834527c3ff8e5"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "9b3877542213b1afe66ad9b86041e2f4be3b8b927a611eafd9b5d39d934dce73"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "5961d9cf02b678c83340ac5db9d02d7941efdd58fdd6aebb8e4f8633bd64ca26"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "2b6880d7ebef439b49262c364c2caa2a07d08eff773e973d0cbe5c4379714a87"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "d9cc4df3339115a9b5d9eeb0fcb4ba4711b5f8512535c00271617e4222634ca4"
+          }
+        },
+        "zh-CN": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "f4df744b5d916dafea30e15b7f03bf0b4478c78712602d096369223d539b6ca0"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "c3b0e0e83326a8117c172fc741f6b4727f1322948f778689e760105bad842e5b"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "2693c140595dc6a8d1dc20253a0232afb8487b967f8f574fc3719d3d8e6ede5d"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "3e54e415069da379038a2fb48d811fe103c9bec9513e0cd707d651966a130a51"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "763f182686d729b85d5edafc197e41e92cfb15a345bc23ea644e0e11093c243e"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "a94e83fb60a6b057817115ca6bfa92ed62e060c9c481d17b8761436b8293a799"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "dbf4715206dbdce3016f2435f0d063214fe5322ca6cea50f5f895b871dd58a40"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "68a35e2242686dcc4b8f6bdf704cd3f3e0c68597ceae9cb48bb7c9f88a9c3a73"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "e4863c9be76ead066950d6c23ebab46ad05fca4f4cf43997471e1e73092a0b20"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "a3e432c613ca7ff40cc60b7ff51442e1b66c38093a797ec9654da77a6f77c4b5"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "c952eb2905fb383eed68f882ddbd59445f6d1fabf1d0568cb2a7624efbfa2885"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "32ed4a2eb28059b865652ab2e164cbdc4412f3cc5c70272d3f278eecb971a050"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "56bd7e388dc6d1596a5d5efff097539a72d840b1adb56c602cfed64580f71e35"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "2c6455adbb3914e23ddb1ea06f36cb90cb87199932bdcdd5760e30579aee217a"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "a5555afc144d05ce0e2403f63c655e901fe7f5f395dd46848e93300322b7b57d"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "44521c38bc3f9518ba6309670a34af7bdc8cc09841d5946aacbf3ec42596190e"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "1a3a17bc9ab9729e334da4cf7de7e53926be72a90bfa88002524f11fc0921d36"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "32a7ef703f669f651453b9c188fa9449d1d8e6e0be4c120b200f0074922c5d8f"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "94a22fb2ad14e8063b27809b950db00d897a7ef589972547335f8e9e07ceee2e"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "332c17178ed59934533023c96bd147f0bd354ddb1d4dce80663c692a68b562a9"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "5e7756966ad54aaddbc03e99ccbd22d2f4cfcccc802ba84cb03e8515d2fb8988"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "85912b5fd92615b8baacdfbb483c559555b204726c5d83a356ec8a9aa8689e25"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "5a4f3a1e0b9a97c13f8099e40dd4a02cca84bdd1e7e217e0310dd91e286b7ce4"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "4537d7f6aab604afd4251c247245932aaa7b8c2f84340a3a857c284343bfaf57"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "571fbe7aed490083468421bc76ea5d31461b6eb9e9ca5cd8ff681efe3049e68f"
+          }
+        },
+        "zh-HK": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "dc29fafa63db2d2c0706df174fc9be6c971f1393ab8c93a07aabc8ba06eb67d8"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "1e9905d44d88550ecd14026292fc921b5e416ab2c403f21b4d90b554756ccd57"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "e8b166f537f0d0de3524699d22ea0816c399a99f0048cad93aee67f760f2fc36"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "3f95aa497c7dd16c932b67003bc642ac74bae349378e09ee0ac81f61e2a29057"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "23a8cd9c8ba70723d843da391f2f5964d295166b57e5945dc20a4d180b68dad5"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "ddaff935435688af28053018a6c10543c878b336e4e2120d0c376fccbb4aa474"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "0ef3b97250ff18f2f15b358a3550144f00931250648a2284860bd07345eb2aa3"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "b19899cd708b389a17d3c0cd3e837a8ace26a58a476961d79191baf1a1f06804"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "64d5e1ae84463061d8d1d3a55552b7cc4b9423f045a8a92ddaa74d499a1996fe"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "d2bc003ab0da9487a804035fafb28b23ae1c8361c5ce043239d025ffc92b5f06"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "8f7eb8fe2ca3fa4cabddf6302555c18ca15a5d53910c11c4ab3c9017d26596f4"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "dd7739a181c6e7850abbe83915540a9158083f392677f4589bfc5dfd3091b984"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "2fbc1df0cf249a339c681fc857e678cf522b63af838e4571fd849a2e13c2ad4b"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "a53acf90f3b7443001dc4fdc0ec22f2c33b7fe666492a04f2abc66d3a76873b5"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "aabf877ca5a2d53a5eea0bb0808237575c01efb6b0427165f64f3a33b6f4d3dc"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "04638f462b17a87bfc4294a1ebf80947acb99b9ce358ecebc3ba80385538efdb"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "910c0d9f69bb3f4c64ba6e48d5c34db3b862b2fec6ae2ab4930e734634191a19"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "0edd6b4a82dac932b0597d6a6eed498c9ecff880001293454f334beed4779078"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "31991cfae1efd66b61805875ce5f40fbdd17954233a051dd7dc7166b4c5ed0af"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "30922e9bb4786f2b950703bf5210155248874417a55f514cf8632f6b7e95c191"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "04925072072f8d926468d76de6f8a50eb9b1bde72f731d0e896627ff801fccc6"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "42738490fd57d0eebbb6ed0758450ab90bc35811cefb3d6c7fbc8a917d8c136d"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "5bebc70b2845576638436b563b9c5f096d754a42122130f45fe2a721662cb935"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "e83e4433d730f62f32d4ff16c89c2815e11d2eb11c71e5e3474dd1faa46bdade"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "8f0798083584e6e941fc894db487ac6c925b43de197bf282cf7f2a52137e9b14"
+          }
+        },
+        "zh-TW": {
+          "package.ui.backup_ready": {
+            "source": "7cecb1a2bd14d286929f6e2847c7af34af7de2b2948b742df0b1e9ee8619a63b",
+            "translation": "dc29fafa63db2d2c0706df174fc9be6c971f1393ab8c93a07aabc8ba06eb67d8"
+          },
+          "package.ui.channel_help": {
+            "source": "8d6dc095270b70f4559028bf74349d70d7797bd1f6360585a0f72c03cae2af06",
+            "translation": "8469cd37958631f3fa617d35c66d5e15e65858a930d5e71516bf12c7681dbcf1"
+          },
+          "package.ui.choose_channel": {
+            "source": "f5265fd4bfc23e858b4c8ba6adceab9b970a47c2a93d772522d01173ff03b938",
+            "translation": "2aabd334f68e1fcfcd938c436e506d331cb5c81f215a139dffa0043eb959d806"
+          },
+          "package.ui.choose_field": {
+            "source": "7dc389038827393ed577035214fa60c48a64da0493dfe548903836fb5dfb1ba1",
+            "translation": "3f95aa497c7dd16c932b67003bc642ac74bae349378e09ee0ac81f61e2a29057"
+          },
+          "package.ui.cleanup_confirm_title": {
+            "source": "d688c39b74a98bb71674d83542a4f5fc7f9e9d076a17b76b74cb65cf27f4be9a",
+            "translation": "e89eb2c03e4a585456488ceaaac077423e95c593ee622c737a1a223b53e720cd"
+          },
+          "package.ui.cleanup_remove": {
+            "source": "571ddae4619c71665e94b384bc250088c965a420ebc492b2f3d3d1f06ab64d8c",
+            "translation": "ddaff935435688af28053018a6c10543c878b336e4e2120d0c376fccbb4aa474"
+          },
+          "package.ui.cleanup_title": {
+            "source": "f52e8cd7d472926b5c5146161491ec8ae3de620d7997878310d599304dc56631",
+            "translation": "f65d4d5f9945d45fa9375b2238717cfd79d7184325fc12688d33945ac0c1ed5a"
+          },
+          "package.ui.confirm_title": {
+            "source": "a4742b2a788889bd3c451f1e30cc6d184103362c4a7dc9b3a32fb6ef481224bb",
+            "translation": "b19899cd708b389a17d3c0cd3e837a8ace26a58a476961d79191baf1a1f06804"
+          },
+          "package.ui.current_choice": {
+            "source": "baa4f916c7c91be0079aabe87fc9ffafa5a79f2b0f46b51b88ef8181e1d11f15",
+            "translation": "64d5e1ae84463061d8d1d3a55552b7cc4b9423f045a8a92ddaa74d499a1996fe"
+          },
+          "package.ui.draft_title": {
+            "source": "4e917fb61de1c4f47b61572dbad443a3bc3be19febc70b07bede2a2aaa8811f2",
+            "translation": "d2bc003ab0da9487a804035fafb28b23ae1c8361c5ce043239d025ffc92b5f06"
+          },
+          "package.ui.edit_field": {
+            "source": "9c702d1121d21171be0bd0001312f6c016ae0ed991241e5c181e27da757115cf",
+            "translation": "8f7eb8fe2ca3fa4cabddf6302555c18ca15a5d53910c11c4ab3c9017d26596f4"
+          },
+          "package.ui.execution_title": {
+            "source": "95fe9805f57e80b641d64aaccab91fb50dd43689b97875ef6c9d8050e34dc2dd",
+            "translation": "dd7739a181c6e7850abbe83915540a9158083f392677f4589bfc5dfd3091b984"
+          },
+          "package.ui.history_empty": {
+            "source": "bb0d9ed5ad7f4c047129da412bebea9a3c6a95891c0d7ce1781bd919429a597b",
+            "translation": "d7d06936e50966b6df820cc99c22f760939374872c32acfb780aee0fff38df4a"
+          },
+          "package.ui.history_title": {
+            "source": "ac33f989d8cd065848dce59a76572755ff1a954511aec233b0afee39fd9076fc",
+            "translation": "2a55000ab2d9a85d134f954f9f6e83df2bdb60b3348b5530a434db8d86194eec"
+          },
+          "package.ui.installation_actions": {
+            "source": "07c4986d3101c8fc62dd41d6fbe1d2002ce69da191ad8fe3de84f1dc9260c43b",
+            "translation": "aabf877ca5a2d53a5eea0bb0808237575c01efb6b0427165f64f3a33b6f4d3dc"
+          },
+          "package.ui.installation_details": {
+            "source": "e52f3652a577793ec58f559da68723d6904af2186c525394734f5f36daa517de",
+            "translation": "9cde25bbc9214d7c1ca19079631b3d5b57036934767495bcab9227f9762d4192"
+          },
+          "package.ui.installed_channel": {
+            "source": "258d4a16c2dece2671a9f752645885f6df98c7ca1f268d06a9a0bac9c1c7a1be",
+            "translation": "27fa8829a97b5ee20e7d61d70b0f2e244eb96da72fe4918ad2ce7831b4128b8c"
+          },
+          "package.ui.needs_prefix": {
+            "source": "5c4193874859c2fdab0ba89aabb8e754d1316624c905846222a99a3836f697c7",
+            "translation": "725b571ccd091fa4369108f7853f3e2cf8f8571190949e872457940ab07410ce"
+          },
+          "package.ui.pending_summary": {
+            "source": "5c6b5cbc981becbe3da1a15c49604d427bb56b38f6db9bb317c47ff2a7d13095",
+            "translation": "d66c85bd28c8e6063f6d6cb703929a4e78407541460ccbb5e5117ce84a74c89a"
+          },
+          "package.ui.prefix_help": {
+            "source": "6c41dbce1e8aebca8154aa2694a52400e281219315e1db1291bae2c93a12423c",
+            "translation": "922167f32c2a22412e36529e62ace192dd31b65f3658c782addc6e8d06b36196"
+          },
+          "package.ui.review_busy": {
+            "source": "5cc918748987d22c4598440e114ef27f6715f64eaf38dc7acb5a2abdcd6f256e",
+            "translation": "04925072072f8d926468d76de6f8a50eb9b1bde72f731d0e896627ff801fccc6"
+          },
+          "package.ui.review_title": {
+            "source": "651aea7beff9e2d6f1c5a3165a3d94539ecf169cb2813041fe40172cd64b09e3",
+            "translation": "42738490fd57d0eebbb6ed0758450ab90bc35811cefb3d6c7fbc8a917d8c136d"
+          },
+          "package.ui.target_help": {
+            "source": "7fc975b3dcd6f375d6f86c4555719541449a69da31005776e4653cad7d94cae8",
+            "translation": "dfda791fa8dc0924bf88343f1f57d7c2960831323409096e74793f25b3c207c7"
+          },
+          "package.ui.version_actions": {
+            "source": "b70c1438a4175371bb3a1c3505de83cdd56febc6e21bf19ebee4023e2a6f6d72",
+            "translation": "e83e4433d730f62f32d4ff16c89c2815e11d2eb11c71e5e3474dd1faa46bdade"
+          },
+          "package.ui.version_options": {
+            "source": "da96f8bca56799f218be46d5a22a11219b3d736658ddd0d30b868c4fc784ccb7",
+            "translation": "8f0798083584e6e941fc894db487ac6c925b43de197bf282cf7f2a52137e9b14"
+          }
+        }
+      },
+      "review": "Reviewed the installation and review terminology, target and channel defaults, navigation labels, and named key/value placeholders across the twelve interface packs.",
+      "validated_inputs_sha256": "ff0ed0bd663dda300af6970cc4de25ca087876d0c42e9814436b5ccdccc7bd1a"
     }
   }
 }

@@ -1,4 +1,5 @@
 import { importShortcutHelp, reviewShortcutContext } from '@fbincon/statusline-core/editor/import-review';
+import { packageControls } from '@fbincon/statusline-core/editor/package-manager';
 import { shortcutHint, type ShortcutAction } from '@fbincon/statusline-core/editor/shortcut-map';
 import { itemDecorationKind, itemDecorationNotice } from '@fbincon/statusline-core/editor/forms';
 import { hintLine } from '@fbincon/statusline-core/editor/hints';
@@ -63,11 +64,16 @@ export function footer(state: State): { actions: Hint[]; help: Hint[]; primaryAc
             actions: [hint('Enter', 'accept'), hint('Esc/Ctrl+G', 'back')],
             help: [hint('←→', 'move_cursor'), hint('Ctrl+U', 'clear')],
         };
-        const actions: Hint[] = [hint('Enter', 'select'),
-            [keys.hint('packages', 'refresh-package'), t('ui.refresh.read_now', state.language)],
-            [keys.hint('packages', 'close-packages') + '/Esc', t('task.close', state.language)]];
-        const help = [hint(keys.hint('packages', 'reload-packages'), 'reload'), hint('↑↓ PgUp/PgDn', 'scroll')];
-        if (e.packages.job && !e.packages.execution) help.unshift(hint(keys.hint('packages', 'cancel-package-review'), 'cancel'));
+        const { pick, refresh, reload, cancel } = packageControls(e.packages);
+        const actions: Hint[] = [
+            ...(pick ? [hint('Enter', 'select')] : []),
+            hint(keys.hint('packages', 'close-packages') + '/Esc', e.packages.mode === 'status' ? 'close' : 'back'),
+        ];
+        if (refresh) actions.push([keys.hint('packages', 'refresh-package'), t('ui.refresh.read_now', state.language)]);
+        const help = [];
+        if (cancel) help.push(hint(keys.hint('packages', 'cancel-package-review'), 'cancel'));
+        if (reload) help.push(hint(keys.hint('packages', 'reload-packages'), 'reload'));
+        help.push(hint('↑↓ PgUp/PgDn', e.packages.mode === 'channel' ? 'select' : 'scroll'));
         return { actions, help };
     }
     if (e.taskViewer) return taskFooter(e.taskViewer, keys);

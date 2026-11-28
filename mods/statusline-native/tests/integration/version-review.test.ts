@@ -43,6 +43,9 @@ for (const language of LANGUAGES)
         await keys(ui, 'r');
         expect(await visibleText(ui)).toContain(t('package.ui.unverified', language));
         await keys(ui, 'q');
+        expect(await checkSelected()).toBe(true);
+        expect(f.calls.some(call => call.operation === 'package_review_cancel')).toBe(false);
+        await keys(ui, 'q');
         expect(f.calls.filter(call => call.operation === 'apply').length).toBe(writes);
         expect(f.calls.some(call => call.operation === 'package_review_cancel')).toBe(true);
         expect(JSON.stringify(previewDraft(f))).toBe(draft);
@@ -51,3 +54,34 @@ for (const language of LANGUAGES)
         expect(f.configCalls.length).toBe(0);
         await ui.unmount();
     });
+
+test('native channel selection exposes its Enter action and restores the row at 32×12', { timeoutMs: 20000 }, async ($, on) => {
+    const f = setup(on);
+    f.store.uiLanguage = 'zh-CN';
+    f.store.shortcuts = { schema_version: 1, bindings: { 'close-packages': 'Z' }, revision: '3'.repeat(64), warning: null };
+    f.behavior.process = (request, next) => request.operation === 'package_status' ? { value: reply(status) } : next();
+    const screen = async () => (await visibleText(ui)).replace(/\s+/gu, ' ');
+    await $.session.start(START);
+    await $.command.run(RUN);
+    const ui = await $.ui.mount(PANE);
+    await keys(ui, '4');
+    await selectSetting(ui, 'package-management');
+    await keys(ui, 'return');
+    expect(await screen()).toContain('› Enter 编辑 · 目标版本');
+    await keys(ui, 'down');
+    expect(await screen()).toContain('› Enter 选择 · 渠道');
+    await keys(ui, 'return', 'end');
+    expect(await screen()).toContain('› Enter · beta');
+    expect(await screen()).toContain('Z/Ctrl+G');
+    await ui.resize({ columns: 32, rows: 12 });
+    await keys(ui, 'z');
+    expect(await screen()).toContain('› Enter 选择 · 渠道');
+    expect(await screen()).toContain('3.10.0');
+    await keys(ui, 'return', 'end', 'return');
+    expect(await screen()).toContain('渠道：beta');
+    await keys(ui, 'return', 'home', { key: 'g', ctrl: true });
+    expect(await screen()).toContain('渠道：beta');
+    expect(await screen()).toContain('› Enter 选择 · 渠道');
+    expect(f.calls.filter(call => call.operation.startsWith('package_')).map(call => call.operation)).toEqual(['package_status']);
+    await ui.unmount();
+});
