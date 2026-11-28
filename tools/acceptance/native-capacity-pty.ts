@@ -362,8 +362,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                 assert.deepEqual(fs.readFileSync(taskEvidence.path),taskEvidence.bytes);
             } else {
                 await until(text=>text.includes('Local status'),'local status boundary visible');
-                const group = '─ ' + t('package.ui.version_options', 'en') + ' ─';
-                await until(text => text.includes(group), 'version options are separated by a group divider');
+                const installationGroup = '─ ' + t('package.ui.installation_actions', 'en') + ' ─';
+                await until(text => text.includes(installationGroup), 'installation actions are separated by a group divider');
                 const selected = (text: string, label: string) => text.split('\n').some(line => line.includes('›') && line.includes(label));
                 const select = async (label: string) => {
                     await key('\x1b[H', 'first row');
@@ -403,6 +403,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
                     await until(text => selected(text, history), 'history entry restored');
                 } else {
                     await select('Enter choose · Channel:');
+                    const versionGroup = '─ ' + t('package.ui.version_options', 'en') + ' ─';
+                    await until(text => text.includes(versionGroup), 'version options are separated by a group divider after specifying a prefix');
                     await key('\r', 'open channel choices');
                     await until(text => text.includes('latest') && text.includes('beta') &&
                         selected(text, 'Use installation channel'), 'all available channels and the current value visible');
